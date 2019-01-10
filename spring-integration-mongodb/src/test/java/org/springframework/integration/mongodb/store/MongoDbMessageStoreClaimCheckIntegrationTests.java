@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.Serializable;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
@@ -40,6 +42,18 @@ import com.mongodb.MongoClient;
  * @author Artem Bilan
  */
 public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests {
+
+	private final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+
+	@Before
+	public void setup() {
+		this.testApplicationContext.refresh();
+	}
+
+	@After
+	public void tearDown() {
+		this.testApplicationContext.close();
+	}
 
 	@Test
 	@MongoDbAvailable
@@ -84,9 +98,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	public void stringPayloadConfigurable() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
-		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-		testApplicationContext.refresh();
-		messageStore.setApplicationContext(testApplicationContext);
+		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -104,9 +116,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	public void objectPayloadConfigurable() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
-		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-		testApplicationContext.refresh();
-		messageStore.setApplicationContext(testApplicationContext);
+		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -127,7 +137,9 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	static class Beverage implements Serializable {
 
 		private String name;
+
 		private int shots;
+
 		private boolean iced;
 
 		@SuppressWarnings("unused")

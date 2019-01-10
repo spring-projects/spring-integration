@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -113,7 +112,7 @@ public class ReactiveStreamsTests {
 				});
 		this.messageSource.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		String[] strings = results.toArray(new String[results.size()]);
+		String[] strings = results.toArray(new String[0]);
 		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
 		this.messageSource.stop();
 	}
@@ -127,7 +126,6 @@ public class ReactiveStreamsTests {
 		Flux.from(this.pollablePublisher)
 				.take(6)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
-				.log("org.springframework.integration.flux2", Level.WARNING)
 				.doOnNext(p -> latch.countDown())
 				.subscribe();
 
@@ -138,11 +136,10 @@ public class ReactiveStreamsTests {
 								.map(v -> v.split(","))
 								.flatMapIterable(Arrays::asList)
 								.map(Integer::parseInt)
-								.<Message<Integer>>map(GenericMessage<Integer>::new)
+								.<Message<Integer>>map(GenericMessage::new)
 								.concatWith(this.pollablePublisher)
 								.take(7)
 								.map(Message::getPayload)
-								.log("org.springframework.integration.flux", Level.WARNING)
 								.collectList()
 								.block(Duration.ofSeconds(10))
 				);
@@ -163,14 +160,12 @@ public class ReactiveStreamsTests {
 				.map(v -> v.split(","))
 				.flatMapIterable(Arrays::asList)
 				.map(Integer::parseInt)
-				.log("org.springframework.integration.flux")
-				.map(GenericMessage<Integer>::new);
+				.map(GenericMessage::new);
 
 		QueueChannel resultChannel = new QueueChannel();
 
 		IntegrationFlow integrationFlow =
 				IntegrationFlows.from(messageFlux)
-						.log("org.springframework.integration.flux2")
 						.<Integer, Integer>transform(p -> p * 2)
 						.channel(resultChannel)
 						.get();

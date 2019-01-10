@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,6 +48,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -58,6 +62,18 @@ import com.mongodb.MongoClient;
  * @author Artem Bilan
  */
 public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
+
+	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+
+	@Before
+	public void setup() {
+		this.testApplicationContext.refresh();
+	}
+
+	@After
+	public void tearDown() {
+		this.testApplicationContext.close();
+	}
 
 	@Test
 	@MongoDbAvailable

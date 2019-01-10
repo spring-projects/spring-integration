@@ -62,12 +62,12 @@ public final class XPathUtils {
 	private static final List<String> RESULT_TYPES =
 			Arrays.asList(STRING, BOOLEAN, NUMBER, NODE, NODE_LIST, DOCUMENT_LIST);
 
-	private static final XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+	private static final XmlPayloadConverter CONVERTER = new DefaultXmlPayloadConverter();
 
-	private static final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactoryUtils.newInstance();
+	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactoryUtils.newInstance();
 
 	static {
-		documentBuilderFactory.setNamespaceAware(true);
+		DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
 	}
 
 	/**
@@ -97,7 +97,7 @@ public final class XPathUtils {
 		}
 
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression(xpath);
-		Node node = converter.convertToNode(object);
+		Node node = CONVERTER.convertToNode(object);
 
 		if (resultType == null) {
 			return (T) expression.evaluateAsString(node);
@@ -111,7 +111,7 @@ public final class XPathUtils {
 				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression,
 						node);
 				try {
-					DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+					DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
 					List<Node> documents = new ArrayList<>(nodeList.size());
 					for (Node n : nodeList) {
 						Document document = documentBuilder.newDocument();

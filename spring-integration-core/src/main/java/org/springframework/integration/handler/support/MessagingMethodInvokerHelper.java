@@ -398,9 +398,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private boolean isProvidedMessageHandlerFactoryBean() {
-		BeanFactory beanFactory = getBeanFactory();
-		return beanFactory != null
-				&& beanFactory.containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME);
+		return getBeanFactory().containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME);
 	}
 
 	private void createHandlerMethod() {
@@ -1163,9 +1161,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					}
 					if (annotationType.equals(Payloads.class)) {
 						Assert.isTrue(this.canProcessMessageList,
-								"The @Payloads annotation can only be applied if method handler " +
-										"canProcessMessageList" +
-										".");
+								"The @Payloads annotation can only be applied " +
+										"if method handler canProcessMessageList.");
 						Assert.isTrue(Collection.class.isAssignableFrom(parameterType),
 								"The @Payloads annotation can only be applied to a Collection-typed parameter.");
 						sb.append("messages.![payload");

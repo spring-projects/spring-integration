@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.HeaderEnricher;
@@ -49,6 +51,7 @@ public class MethodInvokingHeaderEnricherTests {
 	public void emptyHeadersOnRequest() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(true);
@@ -63,6 +66,7 @@ public class MethodInvokingHeaderEnricherTests {
 	public void overwriteFalseByDefault() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("bar", "XYZ").build();
@@ -76,6 +80,7 @@ public class MethodInvokingHeaderEnricherTests {
 	public void overwriteFalseExplicit() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(false);
@@ -90,6 +95,7 @@ public class MethodInvokingHeaderEnricherTests {
 	public void overwriteTrue() {
 		TestBean testBean = new TestBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "process");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		HeaderEnricher enricher = new HeaderEnricher();
 		enricher.setMessageProcessor(processor);
 		enricher.setDefaultOverwrite(true);

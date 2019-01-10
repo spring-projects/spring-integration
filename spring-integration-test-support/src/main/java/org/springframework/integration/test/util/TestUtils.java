@@ -52,6 +52,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class TestUtils {
 
+	private static final Log LOGGER = LogFactory.getLog(TestUtils.class);
+
 	/**
 	 * Obtain a value for the property from the provide object.
 	 * Supports nested properties via period delimiter.
@@ -114,6 +116,11 @@ public abstract class TestUtils {
 		scheduler.setErrorHandler(errorHandler);
 		registerBean("taskScheduler", scheduler, context);
 		registerBean("integrationConversionService", new DefaultFormattingConversionService(), context);
+		registerBean("errorChannel",
+				(MessageChannel) (message, timeout) -> {
+					LOGGER.error(message);
+					return true;
+				}, context);
 		return context;
 	}
 

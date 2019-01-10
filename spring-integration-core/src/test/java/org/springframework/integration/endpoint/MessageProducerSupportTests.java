@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
@@ -44,9 +45,17 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  * @author Kris Jacyna
  * @author Artem Bilan
+ *
  * @since 2.0.1
  */
 public class MessageProducerSupportTests {
+
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
+
+	@After
+	public void tearDown() {
+		this.context.close();
+	}
 
 	@Test(expected = MessageDeliveryException.class)
 	public void validateExceptionIfNoErrorChannel() {
@@ -55,12 +64,14 @@ public class MessageProducerSupportTests {
 		outChannel.subscribe(message -> {
 			throw new RuntimeException("problems");
 		});
-		MessageProducerSupport mps = new MessageProducerSupport() { };
+		MessageProducerSupport mps = new MessageProducerSupport() {
+
+		};
 		mps.setOutputChannel(outChannel);
-		mps.setBeanFactory(TestUtils.createTestApplicationContext());
+		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		mps.sendMessage(new GenericMessage<String>("hello"));
+		mps.sendMessage(new GenericMessage<>("hello"));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -73,54 +84,57 @@ public class MessageProducerSupportTests {
 		errorChannel.subscribe(message -> {
 			throw new RuntimeException("ooops");
 		});
-		MessageProducerSupport mps = new MessageProducerSupport() { };
+		MessageProducerSupport mps = new MessageProducerSupport() {
+
+		};
 		mps.setOutputChannel(outChannel);
 		mps.setErrorChannel(errorChannel);
-		mps.setBeanFactory(TestUtils.createTestApplicationContext());
+		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		mps.sendMessage(new GenericMessage<String>("hello"));
+		mps.sendMessage(new GenericMessage<>("hello"));
 	}
 
 	@Test
 	public void validateSuccessfulErrorFlowDoesNotThrowErrors() {
-		TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-		testApplicationContext.refresh();
+		this.context.refresh();
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(message -> {
 			throw new RuntimeException("problems");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		SuccessfulErrorService errorService = new SuccessfulErrorService();
-		ServiceActivatingHandler handler  = new ServiceActivatingHandler(errorService);
-		handler.setBeanFactory(testApplicationContext);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(errorService);
+		handler.setBeanFactory(this.context);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
-		MessageProducerSupport mps = new MessageProducerSupport() { };
+		MessageProducerSupport mps = new MessageProducerSupport() {
+
+		};
 		mps.setOutputChannel(outChannel);
 		mps.setErrorChannel(errorChannel);
-		mps.setBeanFactory(testApplicationContext);
+		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		Message<?> message = new GenericMessage<String>("hello");
+		Message<?> message = new GenericMessage<>("hello");
 		mps.sendMessage(message);
 		assertThat(errorService.lastMessage, instanceOf(ErrorMessage.class));
 		ErrorMessage errorMessage = (ErrorMessage) errorService.lastMessage;
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 		MessageDeliveryException exception = (MessageDeliveryException) errorMessage.getPayload();
 		assertEquals(message, exception.getFailedMessage());
-		testApplicationContext.close();
 	}
 
 	@Test
 	public void testWithChannelName() {
 		DirectChannel outChannel = new DirectChannel();
-		MessageProducerSupport mps = new MessageProducerSupport() { };
+		MessageProducerSupport mps = new MessageProducerSupport() {
+
+		};
 		mps.setOutputChannelName("foo");
-		TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-		testApplicationContext.registerBean("foo", outChannel);
-		testApplicationContext.refresh();
-		mps.setBeanFactory(testApplicationContext);
+		this.context.registerBean("foo", outChannel);
+		this.context.refresh();
+		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
 		assertSame(outChannel, mps.getOutputChannel());
@@ -152,6 +166,7 @@ public class MessageProducerSupportTests {
 		public void handleErrorMessage(Message<?> errorMessage) {
 			this.lastMessage = errorMessage;
 		}
+
 	}
 
 	private static class CustomEndpoint extends AbstractEndpoint {

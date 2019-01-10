@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,6 +62,10 @@ public class RouterAnnotationPostProcessorTests {
 		context.registerChannel("stringChannel", stringChannel);
 	}
 
+	@After
+	public void tearDown() {
+		this.context.close();
+	}
 
 	@Test
 	public void testRouter() {
@@ -70,7 +75,7 @@ public class RouterAnnotationPostProcessorTests {
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();
-		inputChannel.send(new GenericMessage<String>("foo"));
+		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
 		assertEquals("foo", replyMessage.getPayload());
 		context.stop();
@@ -90,7 +95,7 @@ public class RouterAnnotationPostProcessorTests {
 		assertEquals(Collections.singletonList("foo"), replyMessage.getPayload());
 
 		// The SpEL ReflectiveMethodExecutor does a conversion of a single value to a List
-		routingChannel.send(new GenericMessage<Integer>(2));
+		routingChannel.send(new GenericMessage<>(2));
 		replyMessage = integerChannel.receive(0);
 		assertEquals(2, replyMessage.getPayload());
 		context.stop();

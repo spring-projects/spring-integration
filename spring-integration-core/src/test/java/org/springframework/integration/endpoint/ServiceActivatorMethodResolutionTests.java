@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ package org.springframework.integration.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 import java.util.Date;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -36,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ServiceActivatorMethodResolutionTests {
 
@@ -45,7 +48,10 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.handleMessage(new GenericMessage<String>("foo"));
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
+
+		serviceActivator.handleMessage(new GenericMessage<>("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -62,7 +68,10 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.handleMessage(new GenericMessage<String>("foo"));
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
+
+		serviceActivator.handleMessage(new GenericMessage<>("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -76,13 +85,7 @@ public class ServiceActivatorMethodResolutionTests {
 
 	@Test
 	public void testRequestReplyExchanger() {
-		RequestReplyExchanger testBean = new RequestReplyExchanger() {
-
-			@Override
-			public Message<?> exchange(Message<?> request) {
-				return request;
-			}
-		};
+		RequestReplyExchanger testBean = request -> request;
 
 		final Message<?> test = new GenericMessage<Object>("foo");
 
@@ -95,6 +98,8 @@ public class ServiceActivatorMethodResolutionTests {
 				return null;
 			}
 		};
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
 
 		serviceActivator.handleMessage(test);
 	}
@@ -120,6 +125,8 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
@@ -151,6 +158,8 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
@@ -187,6 +196,8 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
@@ -223,6 +234,8 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		PollableChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
@@ -239,6 +252,9 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.setBeanFactory(mock(BeanFactory.class));
+		serviceActivator.afterPropertiesSet();
+
 		serviceActivator.handleMessage(new GenericMessage<>(new KafkaNull()));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("gotNull", result.getPayload());

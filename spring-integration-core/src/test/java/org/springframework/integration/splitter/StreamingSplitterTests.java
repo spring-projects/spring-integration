@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
@@ -44,6 +46,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Alex Peters
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class StreamingSplitterTests {
@@ -52,24 +55,22 @@ public class StreamingSplitterTests {
 
 	@Before
 	public void setUp() {
-		message = new GenericMessage<String>("foo.bar");
+		this.message = new GenericMessage<>("foo.bar");
 	}
 
 
 	@Test
-	public void splitToIterator_sequenceSizeInLastMessageHeader()
-			throws Exception {
+	public void splitToIterator_sequenceSizeInLastMessageHeader() {
 		int messageQuantity = 5;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
+		splitter.afterPropertiesSet();
+		splitter.handleMessage(this.message);
 		List<Message<?>> receivedMessages = replyChannel.clear();
-		Collections.sort(receivedMessages, (o1, o2) ->
-			o1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)
-				.compareTo(o2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)));
+		receivedMessages.sort(Comparator.comparing(o ->
+				o.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)));
 		assertThat(receivedMessages.get(4)
 						.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
@@ -77,22 +78,24 @@ public class StreamingSplitterTests {
 	}
 
 	@Test
-	public void splitToIterator_sourceMessageHeadersIncluded() throws Exception {
+	public void splitToIterator_sourceMessageHeadersIncluded() {
 		String anyHeaderKey = "anyProperty1";
 		String anyHeaderValue = "anyValue1";
-		message = MessageBuilder.fromMessage(message)
-				.setHeader(anyHeaderKey, anyHeaderValue)
-				.build();
+		this.message =
+				MessageBuilder.fromMessage(this.message)
+						.setHeader(anyHeaderKey, anyHeaderValue)
+						.build();
 		int messageQuantity = 5;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.handleMessage(message);
+		splitter.afterPropertiesSet();
+		splitter.handleMessage(this.message);
 		List<Message<?>> receivedMessages = replyChannel.clear();
 		assertThat(receivedMessages.size(), is(messageQuantity));
-		for (Message<?> reveivedMessage : receivedMessages) {
-			MessageHeaders headers = reveivedMessage.getHeaders();
+		for (Message<?> receivedMessage : receivedMessages) {
+			MessageHeaders headers = receivedMessage.getHeaders();
 			assertTrue("Unexpected result with: " + headers, headers.containsKey(anyHeaderKey));
 			assertThat("Unexpected result with: " + headers,
 					headers.get(anyHeaderKey, String.class),
@@ -104,53 +107,52 @@ public class StreamingSplitterTests {
 	}
 
 	@Test
-	public void splitToIterator_allMessagesSent() throws Exception {
+	public void splitToIterator_allMessagesSent() {
 		int messageQuantity = 5;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
+		splitter.afterPropertiesSet();
+		splitter.handleMessage(this.message);
 		assertThat(replyChannel.getQueueSize(), is(messageQuantity));
 	}
 
 	@Test
-	public void splitToIterable_allMessagesSent() throws Exception {
+	public void splitToIterable_allMessagesSent() {
 		int messageQuantity = 5;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IterableTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IterableTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
+		splitter.afterPropertiesSet();
+		splitter.handleMessage(this.message);
 		assertThat(replyChannel.getQueueSize(), is(messageQuantity));
 	}
 
 	@Test
-	public void splitToIterator_allMessagesContainSequenceNumber()
-			throws Exception {
+	public void splitToIterator_allMessagesContainSequenceNumber() {
 		final int messageQuantity = 5;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.afterPropertiesSet();
 
 		new EventDrivenConsumer(replyChannel, message -> assertThat("Failure with msg: " + message,
 				message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
 				is(Integer.valueOf((String) message.getPayload())))).start();
-		splitter.handleMessage(message);
+		splitter.handleMessage(this.message);
 	}
 
 	@Test
-	public void splitWithMassiveReplyMessages_allMessagesSent()
-			throws Exception {
+	public void splitWithMassiveReplyMessages_allMessagesSent() {
 		final int messageQuantity = 100000;
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(
-				messageQuantity));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new IteratorTestBean(messageQuantity));
+		splitter.setBeanFactory(mock(BeanFactory.class));
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
-
+		splitter.afterPropertiesSet();
 		final AtomicInteger receivedMessageCounter = new AtomicInteger(0);
 		new EventDrivenConsumer(replyChannel, message -> {
 			assertThat("Failure with msg: " + message, message.getPayload(), is(notNullValue()));
@@ -158,7 +160,7 @@ public class StreamingSplitterTests {
 
 		}).start();
 
-		splitter.handleMessage(message);
+		splitter.handleMessage(this.message);
 		assertThat(receivedMessageCounter.get(), is(messageQuantity));
 	}
 
@@ -197,6 +199,7 @@ public class StreamingSplitterTests {
 
 			};
 		}
+
 	}
 
 	static class IterableTestBean {
@@ -242,6 +245,7 @@ public class StreamingSplitterTests {
 				}
 			};
 		}
+
 	}
 
 }

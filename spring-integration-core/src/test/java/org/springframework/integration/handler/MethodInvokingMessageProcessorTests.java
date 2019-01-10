@@ -151,10 +151,11 @@ public class MethodInvokingMessageProcessorTests {
 				}
 
 				@Override
-				public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+				public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 					String[] names = ((String) message.getPayload()).split(" ");
 					return new Person(names[0], names[1]);
 				}
+
 			};
 			f.setArgumentResolvers(Collections.singletonList(resolver));
 			f.afterPropertiesSet();
@@ -170,7 +171,7 @@ public class MethodInvokingMessageProcessorTests {
 			}
 
 			public String toString() {
-				return "Person: " + name;
+				return "Person: " + this.name;
 			}
 
 		}
@@ -198,6 +199,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertEquals("A", message.getHeaders().get("A"));
 	}
@@ -228,6 +230,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertEquals("B", message.getHeaders().get("B"));
 	}
@@ -297,7 +300,8 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnObject");
-		Object result = processor.processMessage(new GenericMessage<>("testing"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Object result = processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-1", result);
 	}
 
@@ -305,7 +309,8 @@ public class MethodInvokingMessageProcessorTests {
 	public void testPayloadCoercedToString() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnObject");
-		Object result = processor.processMessage(new GenericMessage<>(123456789));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Object result = processor.processMessage(new GenericMessage<Integer>(123456789));
 		assertEquals("123456789-1", result);
 	}
 
@@ -313,6 +318,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnMessage");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
@@ -321,7 +327,8 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageAndReturnObject");
-		Object result = processor.processMessage(new GenericMessage<>("testing"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Object result = processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-3", result);
 	}
 
@@ -329,6 +336,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageAndReturnMessage");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
@@ -337,6 +345,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageSubclassAndReturnMessage");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
@@ -345,7 +354,8 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageSubclassAndReturnMessageSubclass");
-		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
@@ -353,6 +363,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndHeaderAndReturnObject");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> request = MessageBuilder.withPayload("testing").setHeader("number", 123).build();
 		Object result = processor.processMessage(request);
 		assertEquals("testing-123", result);
@@ -360,8 +371,9 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void testVoidMethodsIncludedByDefault() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
-				"testVoidReturningMethods");
+		MethodInvokingMessageProcessor processor =
+				new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
 		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
 	}
@@ -371,6 +383,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(new GenericMessage<>("foo"));
 		assertEquals("foo", result);
 	}
@@ -380,6 +393,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(new GenericMessage<>(123));
 		assertEquals(123, result);
 	}
@@ -389,7 +403,8 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Object result = processor.processMessage(new GenericMessage<String>("456"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Object result = processor.processMessage(new GenericMessage<>("456"));
 		assertEquals(456, result);
 	}
 
@@ -398,13 +413,15 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		processor.processMessage(new GenericMessage<String>("foo"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.processMessage(new GenericMessage<>("foo"));
 	}
 
 	@Test
 	public void filterSelectsAnnotationMethodsOnly() {
 		OverloadedMethodBean bean = new OverloadedMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
+		processor.setBeanFactory(mock(BeanFactory.class));
 		processor.processMessage(MessageBuilder.withPayload(123).build());
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
@@ -417,7 +434,8 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		assertEquals("foo", processor.processMessage(new GenericMessage<>("foo")));
 	}
 
 	@Test
@@ -426,7 +444,8 @@ public class MethodInvokingMessageProcessorTests {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("error", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		assertEquals("foo", processor.processMessage(new GenericMessage<>("foo")));
 	}
 
 	@Test
@@ -435,7 +454,8 @@ public class MethodInvokingMessageProcessorTests {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("checked", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		assertEquals("foo", processor.processMessage(new GenericMessage<>("foo")));
 	}
 
 	@Test
@@ -445,7 +465,8 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = TestErrorService.class.getMethod("checked", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
-		processor.processMessage(new GenericMessage<String>("foo"));
+		processor.setBeanFactory(mock(BeanFactory.class));
+		processor.processMessage(new GenericMessage<>("foo"));
 	}
 
 	@Test
@@ -453,6 +474,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
 		Object result = processor.processMessage(message);
 		assertEquals("foo-42", result);
@@ -463,8 +485,12 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Message<String> message = MessageBuilder.withPayload("foo").setHeader("prop", "bar").setHeader("number", 42)
-				.build();
+		processor.setBeanFactory(mock(BeanFactory.class));
+		Message<String> message =
+				MessageBuilder.withPayload("foo")
+						.setHeader("prop", "bar")
+						.setHeader("number", 42)
+						.build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar-42", result);
 	}
@@ -493,6 +519,8 @@ public class MethodInvokingMessageProcessorTests {
 
 	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
 			boolean compiled) {
+
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", 42)
 				.build();
@@ -545,6 +573,8 @@ public class MethodInvokingMessageProcessorTests {
 
 	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
 			boolean compiled) {
+
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("hello")
 				.setHeader("dot2", new DotBean())
 				.build();
@@ -577,6 +607,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
 		AmbiguousMethodBean bean = new AmbiguousMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		processor.processMessage(MessageBuilder.withPayload("true").build());
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
@@ -621,13 +652,14 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new Foo(), (String) null, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		assertEquals("4", helper.process(new GenericMessage<Object>(2L)));
 		assertEquals("1", helper.process(new GenericMessage<Object>(1)));
 		assertEquals("foo", helper.process(new GenericMessage<Object>(new Date())));
 	}
 
 	@Test
-	public void testInt3199GettersAmbiguity() throws Exception {
+	public void testInt3199GettersAmbiguity() {
 
 		class Foo {
 
@@ -678,6 +710,7 @@ public class MethodInvokingMessageProcessorTests {
 		Foo targetObject = new Foo();
 
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
 		assertEquals(1, helper.process(new GenericMessage<Object>(1)));
 		assertEquals(targetObject, helper.process(new GenericMessage<Object>(targetObject)));
@@ -708,6 +741,7 @@ public class MethodInvokingMessageProcessorTests {
 		Foo targetObject = new Foo();
 
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
 		assertEquals(1, helper.process(new GenericMessage<Object>(1)));
 		assertEquals(targetObject, helper.process(new GenericMessage<Object>(targetObject)));
@@ -739,6 +773,7 @@ public class MethodInvokingMessageProcessorTests {
 		Foo targetObject = new Foo();
 
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
 		assertEquals("FOO", helper.process(new GenericMessage<Object>(targetObject)));
 	}
@@ -747,6 +782,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void testIneligible() {
 		IneligibleMethodBean bean = new IneligibleMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		processor.processMessage(MessageBuilder.withPayload("true").build());
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
@@ -757,7 +793,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void testOptionalArgs() throws Exception {
 		class Foo {
 
-			private final Map<String, Object> arguments = new LinkedHashMap<String, Object>();
+			private final Map<String, Object> arguments = new LinkedHashMap<>();
 
 			@SuppressWarnings("unused")
 			public void optionalHeaders(Optional<String> foo, @Header(value = "foo", required = false) String foo1,
@@ -772,6 +808,7 @@ public class MethodInvokingMessageProcessorTests {
 		Foo targetObject = new Foo();
 
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 
 		helper.process(new GenericMessage<>(Optional.empty()));
 		assertNull(targetObject.arguments.get("foo"));
@@ -795,8 +832,9 @@ public class MethodInvokingMessageProcessorTests {
 
 		}
 
-		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new Foo(), ServiceActivator.class,
-				false);
+		MessagingMethodInvokerHelper helper =
+				new MessagingMethodInvokerHelper(new Foo(), ServiceActivator.class, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 
 		assertEquals("FOO", helper.process(new GenericMessage<>("foo")));
 		assertEquals("BAR", helper.process(new GenericMessage<>("bar")));
@@ -809,6 +847,7 @@ public class MethodInvokingMessageProcessorTests {
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
+		processor.setBeanFactory(mock(BeanFactory.class));
 
 		Message<Integer> message = MessageBuilder.withPayload(42).build();
 
@@ -823,6 +862,7 @@ public class MethodInvokingMessageProcessorTests {
 		stopWatch.stop();
 
 		processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setBeanFactory(mock(BeanFactory.class));
 
 		stopWatch.start("Invocable");
 		for (int i = 0; i < count; i++) {
@@ -834,6 +874,7 @@ public class MethodInvokingMessageProcessorTests {
 
 		processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
+		processor.setBeanFactory(mock(BeanFactory.class));
 
 		stopWatch.start("Compiled SpEL");
 		for (int i = 0; i < count; i++) {
@@ -858,7 +899,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new A(), "myMethod");
-
+		processor.setBeanFactory(mock(BeanFactory.class));
 		try {
 			processor.processMessage(new GenericMessage<>("foo"));
 		}
@@ -896,6 +937,7 @@ public class MethodInvokingMessageProcessorTests {
 		service = (MessageHandler) proxyFactory.getProxy(getClass().getClassLoader());
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handleMessage");
+		processor.setBeanFactory(mock(BeanFactory.class));
 
 		processor.processMessage(new GenericMessage<>("foo"));
 
@@ -931,6 +973,7 @@ public class MethodInvokingMessageProcessorTests {
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handle");
+		processor.setBeanFactory(mock(BeanFactory.class));
 
 		processor.processMessage(testMessage);
 
@@ -942,8 +985,10 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testUseSpelInvoker() throws Exception {
 		UseSpelInvokerBean bean = new UseSpelInvokerBean();
-		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
-				UseSpelInvokerBean.class.getDeclaredMethod("foo", String.class), false);
+		MessagingMethodInvokerHelper<?> helper =
+				new MessagingMethodInvokerHelper<>(bean,
+						UseSpelInvokerBean.class.getDeclaredMethod("foo", String.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>("Test");
 		helper.process(message);
 		assertEquals(SpelCompilerMode.OFF,
@@ -951,24 +996,28 @@ public class MethodInvokingMessageProcessorTests {
 
 		helper = new MessagingMethodInvokerHelper<>(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("bar", String.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertEquals(SpelCompilerMode.IMMEDIATE,
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
 
 		helper = new MessagingMethodInvokerHelper<>(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("baz", String.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertEquals(SpelCompilerMode.MIXED,
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
 
 		helper = new MessagingMethodInvokerHelper<>(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("qux", String.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertEquals(SpelCompilerMode.OFF,
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
 
 		helper = new MessagingMethodInvokerHelper<>(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("fiz", String.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		try {
 			helper.process(message);
 		}
@@ -993,11 +1042,13 @@ public class MethodInvokingMessageProcessorTests {
 
 		// Check other CTORs
 		helper = new MessagingMethodInvokerHelper<>(bean, "bar", false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertEquals(SpelCompilerMode.IMMEDIATE,
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
 
 		helper = new MessagingMethodInvokerHelper<>(bean, ServiceActivator.class, false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertEquals(SpelCompilerMode.MIXED,
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
@@ -1006,10 +1057,13 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testSingleMethodJson() throws Exception {
 		SingleMethodJsonWithSpELBean bean = new SingleMethodJsonWithSpELBean();
-		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
-				SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo",
-						SingleMethodJsonWithSpELBean.Foo.class),
-				false);
+		MessagingMethodInvokerHelper<?> helper =
+				new MessagingMethodInvokerHelper<>(bean,
+						SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo",
+								SingleMethodJsonWithSpELBean.Foo.class),
+						false);
+		helper.setBeanFactory(mock(BeanFactory.class));
+
 		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);
@@ -1021,6 +1075,7 @@ public class MethodInvokingMessageProcessorTests {
 		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
 		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
 				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>("baz",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);
@@ -1032,6 +1087,8 @@ public class MethodInvokingMessageProcessorTests {
 		SingleMethodJsonWithSpELMessageFooBean bean = new SingleMethodJsonWithSpELMessageFooBean();
 		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
 				SingleMethodJsonWithSpELMessageFooBean.class.getDeclaredMethod("foo", Message.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
+
 		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);
@@ -1043,6 +1100,8 @@ public class MethodInvokingMessageProcessorTests {
 		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
 		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
 				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
+		helper.setBeanFactory(mock(BeanFactory.class));
+
 		Message<?> message = new GenericMessage<>("{\"bar\":\"baz\"}",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.support.MessageBuilder;
@@ -52,8 +54,10 @@ public class MethodInvokingRouterTests {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new GenericMessage<String>("bar");
+		Message<String> message = new GenericMessage<>("bar");
 		router.handleMessage(message);
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
@@ -68,7 +72,9 @@ public class MethodInvokingRouterTests {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new GenericMessage<String>("bar");
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
+		Message<String> message = new GenericMessage<>("bar");
 		router.handleMessage(message);
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
@@ -86,6 +92,8 @@ public class MethodInvokingRouterTests {
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
 		router.setChannelResolver(channelResolver);
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader("targetChannel", "foo").build();
 		router.handleMessage(message);
@@ -109,26 +117,28 @@ public class MethodInvokingRouterTests {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelNameResolutionByMessage(router);
+		doTestChannelNameResolutionByMessage(router);
 	}
 
 	@Test
 	public void channelNameResolutionByMessageConfiguredByMethodName() {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestChannelNameResolutionByMessage(router);
+		doTestChannelNameResolutionByMessage(router);
 	}
 
 	private void doTestChannelNameResolutionByMessage(MethodInvokingRouter router) {
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
@@ -154,7 +164,7 @@ public class MethodInvokingRouterTests {
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelResolver);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelInstanceResolutionByPayload(router, channelResolver);
+		doTestChannelInstanceResolutionByPayload(router, channelResolver);
 	}
 
 	@Test
@@ -162,14 +172,17 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelResolver);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestChannelInstanceResolutionByPayload(router, channelResolver);
+		doTestChannelInstanceResolutionByPayload(router, channelResolver);
 	}
 
 	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -200,7 +213,7 @@ public class MethodInvokingRouterTests {
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelResolver);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelInstanceResolutionByMessage(router, channelResolver);
+		doTestChannelInstanceResolutionByMessage(router, channelResolver);
 	}
 
 	@Test
@@ -208,19 +221,22 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelResolver);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestChannelInstanceResolutionByMessage(router, channelResolver);
+		doTestChannelInstanceResolutionByMessage(router, channelResolver);
 	}
 
 	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
@@ -246,7 +262,7 @@ public class MethodInvokingRouterTests {
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameResolutionByPayload(router, channelResolver);
+		doTestMultiChannelNameResolutionByPayload(router, channelResolver);
 	}
 
 	@Test
@@ -254,19 +270,22 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestMultiChannelNameResolutionByPayload(router, channelResolver);
+		doTestMultiChannelNameResolutionByPayload(router, channelResolver);
 	}
 
 	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
@@ -297,11 +316,11 @@ public class MethodInvokingRouterTests {
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameResolutionByMessage(router, channelResolver);
+		doTestMultiChannelNameResolutionByMessage(router, channelResolver);
 	}
 
 	@Test
-	public void multiChannelNameResolutionByMessageConfiguredByMethodName() throws Exception {
+	public void multiChannelNameResolutionByMessageConfiguredByMethodName() {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
@@ -310,14 +329,17 @@ public class MethodInvokingRouterTests {
 
 	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
@@ -348,7 +370,7 @@ public class MethodInvokingRouterTests {
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameArrayResolutionByMessage(router, channelResolver);
+		doTestMultiChannelNameArrayResolutionByMessage(router, channelResolver);
 	}
 
 	@Test
@@ -356,19 +378,22 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessageToArray");
-		this.doTestMultiChannelNameArrayResolutionByMessage(router, channelResolver);
+		doTestMultiChannelNameArrayResolutionByMessage(router, channelResolver);
 	}
 
 	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
@@ -399,7 +424,7 @@ public class MethodInvokingRouterTests {
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelResolver);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelListResolutionByPayload(router, channelResolver);
+		doTestMultiChannelListResolutionByPayload(router, channelResolver);
 	}
 
 	@Test
@@ -407,11 +432,14 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelResolver);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestMultiChannelListResolutionByPayload(router, channelResolver);
+		doTestMultiChannelListResolutionByPayload(router, channelResolver);
 	}
 
 	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -459,11 +487,14 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelResolver);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestMultiChannelListResolutionByMessage(router, channelResolver);
+		doTestMultiChannelListResolutionByMessage(router, channelResolver);
 	}
 
 	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -503,7 +534,7 @@ public class MethodInvokingRouterTests {
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelResolver);
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelArrayResolutionByMessage(router, channelResolver);
+		doTestMultiChannelArrayResolutionByMessage(router, channelResolver);
 	}
 
 	@Test
@@ -511,19 +542,22 @@ public class MethodInvokingRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelResolver);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessageToArray");
-		this.doTestMultiChannelArrayResolutionByMessage(router, channelResolver);
+		doTestMultiChannelArrayResolutionByMessage(router, channelResolver);
 	}
 
 	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router,
 			TestChannelResolver channelResolver) {
+
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new GenericMessage<String>("foo");
-		Message<String> barMessage = new GenericMessage<String>("bar");
-		Message<String> badMessage = new GenericMessage<String>("bad");
+		Message<String> fooMessage = new GenericMessage<>("foo");
+		Message<String> barMessage = new GenericMessage<>("bar");
+		Message<String> badMessage = new GenericMessage<>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
@@ -561,7 +595,8 @@ public class MethodInvokingRouterTests {
 		router.setChannelResolver(channelResolver);
 		router.setChannelMapping(String.class.getName(), "stringsChannel");
 		router.setChannelMapping(Integer.class.getName(), "numbersChannel");
-
+		router.setBeanFactory(mock(BeanFactory.class));
+		router.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
 		router.handleMessage(message);
 		Message<?> replyMessage = stringsChannel.receive(10000);

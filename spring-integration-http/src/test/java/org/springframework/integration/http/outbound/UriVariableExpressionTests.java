@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.config.IntegrationRegistrar;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.MessageBuilder;
@@ -62,15 +59,11 @@ public class UriVariableExpressionTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 		SpelExpressionParser parser = new SpelExpressionParser();
 		handler.setUriVariableExpressions(Collections.singletonMap("foo", parser.parseExpression("payload")));
-		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
-
-			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
-				uriHolder.set(uri);
-				throw new RuntimeException("intentional");
-			}
-
-		});
+		handler.setRequestFactory(
+				(uri, httpMethod) -> {
+					uriHolder.set(uri);
+					throw new RuntimeException("intentional");
+				});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<>("bar");
@@ -96,15 +89,11 @@ public class UriVariableExpressionTests {
 		multipleExpressions.put("foo", parser.parseExpression("payload"));
 		multipleExpressions.put("extra-to-be-ignored", parser.parseExpression("headers.extra"));
 		handler.setUriVariableExpressions(multipleExpressions);
-		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
-
-			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
-				uriHolder.set(uri);
-				throw new RuntimeException("intentional");
-			}
-
-		});
+		handler.setRequestFactory(
+				(uri, httpMethod) -> {
+					uriHolder.set(uri);
+					throw new RuntimeException("intentional");
+				});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		try {
@@ -122,15 +111,11 @@ public class UriVariableExpressionTests {
 		final AtomicReference<URI> uriHolder = new AtomicReference<>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 
-		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
-
-			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
-				uriHolder.set(uri);
-				throw new RuntimeException("intentional");
-			}
-
-		});
+		handler.setRequestFactory(
+				(uri, httpMethod) -> {
+					uriHolder.set(uri);
+					throw new RuntimeException("intentional");
+				});
 
 		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
 		IntegrationRegistrar registrar = new IntegrationRegistrar();
@@ -192,6 +177,8 @@ public class UriVariableExpressionTests {
 			assertEquals("intentional", e.getCause().getMessage());
 		}
 		assertEquals("http://test/42", uriHolder.get().toString());
+
+		context.close();
 	}
 
 }

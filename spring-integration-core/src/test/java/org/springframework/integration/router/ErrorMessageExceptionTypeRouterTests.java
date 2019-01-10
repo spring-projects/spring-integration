@@ -23,10 +23,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.MessageRejectedException;
@@ -46,7 +46,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class ErrorMessageExceptionTypeRouterTests {
 
-	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+	private final TestUtils.TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private final QueueChannel illegalArgumentChannel = new QueueChannel();
 
@@ -60,28 +60,33 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Before
 	public void prepare() {
-		beanFactory.registerSingleton("illegalArgumentChannel", illegalArgumentChannel);
-		beanFactory.registerSingleton("runtimeExceptionChannel", runtimeExceptionChannel);
-		beanFactory.registerSingleton("messageHandlingExceptionChannel", messageHandlingExceptionChannel);
-		beanFactory.registerSingleton("messageDeliveryExceptionChannel", messageDeliveryExceptionChannel);
-		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		this.context.registerBean("illegalArgumentChannel", this.illegalArgumentChannel);
+		this.context.registerBean("runtimeExceptionChannel", this.runtimeExceptionChannel);
+		this.context.registerBean("messageHandlingExceptionChannel", this.messageHandlingExceptionChannel);
+		this.context.registerBean("messageDeliveryExceptionChannel", this.messageDeliveryExceptionChannel);
+		this.context.registerBean("defaultChannel", this.defaultChannel);
+		this.context.refresh();
 	}
 
+	@After
+	public void terDown() {
+		this.context.close();
+	}
 
 	@Test
 	public void mostSpecificCause() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setDefaultOutputChannel(defaultChannel);
+		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
 
 		router.handleMessage(message);
@@ -94,17 +99,17 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToNextMostSpecificCause() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
-		router.setDefaultOutputChannel(defaultChannel);
+		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
 
 		router.handleMessage(message);
@@ -117,16 +122,16 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToErrorMessageType() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setDefaultOutputChannel(defaultChannel);
+		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
 
 		router.handleMessage(message);
@@ -139,13 +144,13 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToDefaultChannel() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setApplicationContext(this.context);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.afterPropertiesSet();
 
@@ -159,14 +164,13 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void noMatchAndNoDefaultChannel() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setResolutionRequired(true);
 		router.setBeanName("fooRouter");
@@ -184,18 +188,18 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void exceptionPayloadButNotErrorMessage() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		Message<?> message = new GenericMessage<Exception>(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setDefaultOutputChannel(defaultChannel);
+		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
 
 		router.handleMessage(message);
@@ -208,14 +212,14 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void intermediateCauseHasNoMappingButMostSpecificCauseDoes() {
-		Message<?> failedMessage = new GenericMessage<String>("foo");
+		Message<?> failedMessage = new GenericMessage<>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
@@ -232,11 +236,12 @@ public class ErrorMessageExceptionTypeRouterTests {
 	@Test
 	public void testHierarchicalMapping() {
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
-		MessageHandlingException error = new MessageRejectedException(new GenericMessage<Object>("foo"), "failed", rootCause);
+		MessageHandlingException error =
+				new MessageRejectedException(new GenericMessage<Object>("foo"), "failed", rootCause);
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setBeanFactory(this.context);
+		router.setApplicationContext(this.context);
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
 		router.afterPropertiesSet();
@@ -250,8 +255,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 	@Test
 	public void testInvalidMapping() {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
-		router.setBeanFactory(beanFactory);
-		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setApplicationContext(this.context);
 		router.afterPropertiesSet();
 		try {
 			router.setChannelMapping("foo", "fooChannel");
@@ -266,7 +270,8 @@ public class ErrorMessageExceptionTypeRouterTests {
 	@Test
 	public void testLateClassBinding() {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
-		ctx.getBean(ErrorMessageExceptionTypeRouter.class).handleMessage(new GenericMessage<>(new NullPointerException()));
+		ctx.getBean(ErrorMessageExceptionTypeRouter.class)
+				.handleMessage(new GenericMessage<>(new NullPointerException()));
 		assertNotNull(ctx.getBean("channel", PollableChannel.class).receive(0));
 		ctx.close();
 	}

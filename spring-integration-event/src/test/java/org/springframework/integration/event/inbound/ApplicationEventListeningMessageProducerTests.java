@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,6 +170,8 @@ public class ApplicationEventListeningMessageProducerTests {
 		Message<?> message3 = channel.receive(20);
 		assertNotNull(message3);
 		assertEquals("received: event2", message3.getPayload());
+
+		ctx.close();
 	}
 
 	@Test
@@ -180,7 +182,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
-		adapter.onApplicationEvent(new MessagingEvent(new GenericMessage<String>("test")));
+		adapter.onApplicationEvent(new MessagingEvent(new GenericMessage<>("test")));
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
 		assertEquals("test", message2.getPayload());
@@ -194,7 +196,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
-		adapter.onApplicationEvent(new TestMessagingEvent(new GenericMessage<String>("test")));
+		adapter.onApplicationEvent(new TestMessagingEvent(new GenericMessage<>("test")));
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
 		assertEquals("test", message2.getPayload());
@@ -204,6 +206,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	public void anyApplicationEventCausesExceptionWithErrorHandling() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				throw new RuntimeException("Failed");
@@ -223,7 +226,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings({"unchecked", "serial"})
+	@SuppressWarnings({ "unchecked", "serial" })
 	public void testInt2935CheckRetrieverCache() {
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
 		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
@@ -278,6 +281,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		}
 
 		ctx.publishEvent(new ApplicationEvent("Some event") {
+
 		});
 
 		assertEquals(4, listenerCounter.get());

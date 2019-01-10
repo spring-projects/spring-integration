@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ public class BeanFactoryTypeConverterTests {
 		Collection<Integer> converted = (Collection<Integer>) typeConverter.convertValue(1234,
 				TypeDescriptor.valueOf(Integer.class),
 				TypeDescriptor.forObject(new ArrayList<>(Arrays.asList(1))));
-		assertEquals(Arrays.asList(1234), converted);
+		assertEquals(Collections.singletonList(1234), converted);
 	}
 
 	@Test
@@ -192,7 +192,7 @@ public class BeanFactoryTypeConverterTests {
 
 		Set<Foo> fooSet = new HashSet<>();
 		fooSet.add(new Foo());
-		Map<String, Set<Foo>> fooMap = new HashMap<String, Set<Foo>>();
+		Map<String, Set<Foo>> fooMap = new HashMap<>();
 		fooMap.put("foo", fooSet);
 		foos = new HashMap<>();
 		foos.put("foo", fooMap);
@@ -204,6 +204,7 @@ public class BeanFactoryTypeConverterTests {
 		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
 		processor.setUseSpelInvoker(true);
+		processor.setBeanFactory(beanFactory);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
@@ -231,6 +232,7 @@ public class BeanFactoryTypeConverterTests {
 		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
 		processor.setUseSpelInvoker(true);
+		processor.setBeanFactory(beanFactory);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);

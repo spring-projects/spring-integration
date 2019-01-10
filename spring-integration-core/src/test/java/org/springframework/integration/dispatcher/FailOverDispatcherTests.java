@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dispatcher;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.TestHandlers;
@@ -46,8 +48,7 @@ public class FailOverDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.addHandler(createConsumer(TestHandlers.countDownHandler(latch)));
 		dispatcher.dispatch(new GenericMessage<>("test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
+		assertTrue(latch.await(500, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -59,8 +60,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.dispatch(new GenericMessage<>("test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
+		assertTrue(latch.await(500, TimeUnit.MILLISECONDS));
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
 	}
 
@@ -201,7 +201,10 @@ public class FailOverDispatcherTests {
 
 
 	private static ServiceActivatingHandler createConsumer(Object object) {
-		return new ServiceActivatingHandler(object);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(object);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		return handler;
 	}
 
 

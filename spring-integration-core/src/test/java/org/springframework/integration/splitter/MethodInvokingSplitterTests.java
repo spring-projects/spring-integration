@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.splitter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
@@ -53,7 +55,7 @@ public class MethodInvokingSplitterTests {
 	@Test
 	public void splitStringToStringArray() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
+		MethodInvokingSplitter splitter = getSplitter("stringToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -69,7 +71,7 @@ public class MethodInvokingSplitterTests {
 	@Test
 	public void splitStringToStringList() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = this.getSplitter("stringToStringList");
+		MethodInvokingSplitter splitter = getSplitter("stringToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -85,7 +87,7 @@ public class MethodInvokingSplitterTests {
 	@Test
 	public void splitMessageToStringArray() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = this.getSplitter("messageToStringArray");
+		MethodInvokingSplitter splitter = getSplitter("messageToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -101,7 +103,7 @@ public class MethodInvokingSplitterTests {
 	@Test
 	public void splitMessageToStringList() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = this.getSplitter("messageToStringList");
+		MethodInvokingSplitter splitter = getSplitter("messageToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -117,7 +119,7 @@ public class MethodInvokingSplitterTests {
 	@Test
 	public void splitMessageToMessageArray() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageArray");
+		MethodInvokingSplitter splitter = getSplitter("messageToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -154,6 +156,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageBuilderList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -202,9 +206,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitStringToStringArrayConfiguredByMethodName() {
+	public void splitStringToStringArrayConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringArray");
+		MethodInvokingSplitter splitter = getSplitter("stringToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -218,9 +222,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitStringToStringListConfiguredByMethodName() {
+	public void splitStringToStringListConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringList");
+		MethodInvokingSplitter splitter = getSplitter("stringToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -239,6 +243,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -250,9 +256,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitMessageToStringListConfiguredByMethodName() {
+	public void splitMessageToStringListConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringList");
+		MethodInvokingSplitter splitter = getSplitter("messageToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -266,9 +272,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitMessageToMessageArrayConfiguredByMethodName() {
+	public void splitMessageToMessageArrayConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageArray");
+		MethodInvokingSplitter splitter = getSplitter("messageToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -282,9 +288,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitMessageToMessageListConfiguredByMethodName() {
+	public void splitMessageToMessageListConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageList");
+		MethodInvokingSplitter splitter = getSplitter("messageToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -298,9 +304,9 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
-	public void splitStringToMessageArrayConfiguredByMethodName() {
+	public void splitStringToMessageArrayConfiguredByMethodName() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo.bar");
-		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageArray");
+		MethodInvokingSplitter splitter = getSplitter("stringToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
@@ -319,6 +325,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -337,11 +345,14 @@ public class MethodInvokingSplitterTests {
 			public List<String> split(List<String> list) {
 				return list;
 			}
+
 		}
 		GenericMessage<List<?>> message = new GenericMessage<>(Arrays.asList("foo", "bar"));
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new ListSplitter(), "split");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -378,6 +389,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new StreamSplitter(), "split");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -453,6 +466,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -476,6 +491,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(annotatedBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -498,6 +515,8 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
+		splitter.setBeanFactory(mock(BeanFactory.class));
+		splitter.afterPropertiesSet();
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
@@ -516,7 +535,10 @@ public class MethodInvokingSplitterTests {
 	private MethodInvokingSplitter getSplitter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
-		return new MethodInvokingSplitter(testBean, splittingMethod);
+		MethodInvokingSplitter methodInvokingSplitter = new MethodInvokingSplitter(this.testBean, splittingMethod);
+		methodInvokingSplitter.setBeanFactory(mock(BeanFactory.class));
+		methodInvokingSplitter.afterPropertiesSet();
+		return methodInvokingSplitter;
 	}
 
 	public static class SplitterTestBean {

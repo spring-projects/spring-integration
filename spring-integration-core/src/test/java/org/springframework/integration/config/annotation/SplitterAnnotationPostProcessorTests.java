@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,16 +56,20 @@ public class SplitterAnnotationPostProcessorTests {
 		context.registerChannel("output", outputChannel);
 	}
 
+	@After
+	public void tearDown() {
+		this.context.close();
+	}
 
 	@Test
-	public void testSplitterAnnotation() throws InterruptedException {
+	public void testSplitterAnnotation() {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");
 		context.refresh();
-		inputChannel.send(new GenericMessage<String>("this.is.a.test"));
+		inputChannel.send(new GenericMessage<>("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);
 		assertNotNull(message1);
 		assertEquals("this", message1.getPayload());
