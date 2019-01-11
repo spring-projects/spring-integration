@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public abstract class AbstractPooledBufferByteArraySerializer extends AbstractBy
 
 	@Override
 	public final byte[] deserialize(InputStream inputStream) throws IOException {
-		byte[] buffer = this.pool == null ? new byte[this.maxMessageSize] : this.pool.getItem();
+		byte[] buffer = this.pool == null ? new byte[getMaxMessageSize()] : this.pool.getItem();
 		try {
 			return doDeserialize(inputStream, buffer);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,9 +105,9 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		}
 		byte[] messagePart = null;
 		try {
-			if (messageLength > this.maxMessageSize) {
+			if (messageLength > getMaxMessageSize()) {
 				throw new IOException("Message length " + messageLength +
-						" exceeds max message length: " + this.maxMessageSize);
+						" exceeds max message length: " + getMaxMessageSize());
 			}
 			messagePart = new byte[messageLength];
 			read(inputStream, messagePart, false);
