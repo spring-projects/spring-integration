@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,13 @@ public abstract class AbstractByteArraySerializer implements
 		Deserializer<byte[]>,
 		ApplicationEventPublisherAware {
 
-	protected int maxMessageSize = 2048;
+	/**
+	 * The default maximum message size when deserializing.
+	 * @since 5.1.3
+	 */
+	public static final int DEFAULT_MAX_MESSAGE_SIZE = 2048;
+
+	protected int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE;
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 

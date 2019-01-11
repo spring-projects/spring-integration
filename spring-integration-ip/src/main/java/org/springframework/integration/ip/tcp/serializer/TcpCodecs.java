@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,44 +45,57 @@ public final class TcpCodecs {
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayCrLfSerializer}.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayCrLfSerializer crlf() {
 		return ByteArrayCrLfSerializer.INSTANCE;
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
+	 * {@value AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE}.
 	 * @return a {@link ByteArrayLfSerializer}.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLfSerializer lf() {
 		return ByteArrayLfSerializer.INSTANCE;
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayRawSerializer}.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayRawSerializer raw() {
 		return ByteArrayRawSerializer.INSTANCE;
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayStxEtxSerializer}.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayStxEtxSerializer stxetx() {
 		return ByteArrayStxEtxSerializer.INSTANCE;
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @param terminator the terminator indicating message end.
 	 * @return a {@link ByteArraySingleTerminatorSerializer} using the supplied
 	 * terminator.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArraySingleTerminatorSerializer singleTerminator(byte terminator) {
 		return new ByteArraySingleTerminatorSerializer(terminator);
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 1 byte header.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader1() {
 		if (oneByteLHS == null) {
@@ -92,7 +105,9 @@ public final class TcpCodecs {
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 2 byte header.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader2() {
 		if (twoByteLHS == null) {
@@ -102,7 +117,9 @@ public final class TcpCodecs {
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 4 byte header.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader4() {
 		if (fourByteLHS == null) {
@@ -112,8 +129,10 @@ public final class TcpCodecs {
 	}
 
 	/**
+	 * Return a serializer with the default max message size for deserialization.
 	 * @param bytes header length.
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 1, 2 or 4 byte header.
+	 * @see AbstractByteArraySerializer#DEFAULT_MAX_MESSAGE_SIZE
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader(int bytes) {
 		switch (bytes) {
@@ -126,6 +145,104 @@ public final class TcpCodecs {
 		default:
 			throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
 		}
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayCrLfSerializer}.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayCrLfSerializer crlf(int maxMessageSize) {
+		ByteArrayCrLfSerializer codec = new ByteArrayCrLfSerializer();
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayLfSerializer}.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayLfSerializer lf(int maxMessageSize) {
+		ByteArrayLfSerializer codec = new ByteArrayLfSerializer();
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayRawSerializer}.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayRawSerializer raw(int maxMessageSize) {
+		ByteArrayRawSerializer codec = new ByteArrayRawSerializer();
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayStxEtxSerializer}.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayStxEtxSerializer stxetx(int maxMessageSize) {
+		ByteArrayStxEtxSerializer codec = new ByteArrayStxEtxSerializer();
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param terminator the terminator indicating message end.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArraySingleTerminatorSerializer} using the supplied
+	 * terminator.
+	 * @since 5.1.3
+	 */
+	public static ByteArraySingleTerminatorSerializer singleTerminator(byte terminator, int maxMessageSize) {
+		ByteArraySingleTerminatorSerializer codec = new ByteArraySingleTerminatorSerializer(terminator);
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 1 byte header.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayLengthHeaderSerializer lengthHeader1(int maxMessageSize) {
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(1);
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 2 byte header.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayLengthHeaderSerializer lengthHeader2(int maxMessageSize) {
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(2);
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
+	}
+
+	/**
+	 * Return a serializer with the provided max message size for deserialization.
+	 * @param maxMessageSize the max message size.
+	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 4 byte header.
+	 * @since 5.1.3
+	 */
+	public static ByteArrayLengthHeaderSerializer lengthHeader4(int maxMessageSize) {
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(4);
+		codec.setMaxMessageSize(maxMessageSize);;
+		return codec;
 	}
 
 }

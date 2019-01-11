@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -61,6 +62,38 @@ public class TcpCodecsTests {
 		assertEquals(2, TestUtils.getPropertyValue(codec, "headerSize"));
 		codec = TcpCodecs.lengthHeader(4);
 		assertThat(codec, instanceOf(ByteArrayLengthHeaderSerializer.class));
+		assertEquals(4, TestUtils.getPropertyValue(codec, "headerSize"));
+	}
+
+	@Test
+	public void testMaxLengths() {
+		AbstractByteArraySerializer codec = TcpCodecs.crlf(123);
+		assertThat(codec, instanceOf(ByteArrayCrLfSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		codec = TcpCodecs.lf(123);
+		assertThat(codec, instanceOf(ByteArrayLfSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		codec = TcpCodecs.raw(123);
+		assertThat(codec, instanceOf(ByteArrayRawSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		codec = TcpCodecs.stxetx(123);
+		assertThat(codec, instanceOf(ByteArrayStxEtxSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		codec = TcpCodecs.singleTerminator((byte) 23, 123);
+		assertThat(codec, instanceOf(ByteArraySingleTerminatorSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		assertEquals((byte) 23, TestUtils.getPropertyValue(codec, "terminator"));
+		codec = TcpCodecs.lengthHeader1(123);
+		assertThat(codec, instanceOf(ByteArrayLengthHeaderSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		assertEquals(1, TestUtils.getPropertyValue(codec, "headerSize"));
+		codec = TcpCodecs.lengthHeader2(123);
+		assertThat(codec, instanceOf(ByteArrayLengthHeaderSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
+		assertEquals(2, TestUtils.getPropertyValue(codec, "headerSize"));
+		codec = TcpCodecs.lengthHeader4(123);
+		assertThat(codec, instanceOf(ByteArrayLengthHeaderSerializer.class));
+		assertThat(codec.getMaxMessageSize(), equalTo(123));
 		assertEquals(4, TestUtils.getPropertyValue(codec, "headerSize"));
 	}
 
