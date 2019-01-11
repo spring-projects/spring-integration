@@ -155,7 +155,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayCrLfSerializer crlf(int maxMessageSize) {
 		ByteArrayCrLfSerializer codec = new ByteArrayCrLfSerializer();
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -167,7 +167,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLfSerializer lf(int maxMessageSize) {
 		ByteArrayLfSerializer codec = new ByteArrayLfSerializer();
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -179,7 +179,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayRawSerializer raw(int maxMessageSize) {
 		ByteArrayRawSerializer codec = new ByteArrayRawSerializer();
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -191,7 +191,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayStxEtxSerializer stxetx(int maxMessageSize) {
 		ByteArrayStxEtxSerializer codec = new ByteArrayStxEtxSerializer();
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -205,7 +205,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArraySingleTerminatorSerializer singleTerminator(byte terminator, int maxMessageSize) {
 		ByteArraySingleTerminatorSerializer codec = new ByteArraySingleTerminatorSerializer(terminator);
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -217,7 +217,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader1(int maxMessageSize) {
 		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(1);
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -229,7 +229,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader2(int maxMessageSize) {
 		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(2);
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 
@@ -241,7 +241,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader4(int maxMessageSize) {
 		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(4);
-		codec.setMaxMessageSize(maxMessageSize);;
+		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
 

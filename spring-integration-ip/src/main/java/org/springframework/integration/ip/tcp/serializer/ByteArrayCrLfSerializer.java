@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 					break;
 				}
 				buffer[n++] = (byte) bite;
-				if (n >= this.maxMessageSize) {
-					throw new IOException("CRLF not found before max message length: " + this.maxMessageSize);
+				if (n >= getMaxMessageSize()) {
+					throw new IOException("CRLF not found before max message length: " + getMaxMessageSize());
 				}
 			}
 			return n - 1; // trim \r

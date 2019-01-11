@@ -45,9 +45,10 @@ public abstract class AbstractByteArraySerializer implements
 	 */
 	public static final int DEFAULT_MAX_MESSAGE_SIZE = 2048;
 
-	protected int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE;
+	@Deprecated
+	protected int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE; // NOSONAR - TODO private in 5.2, use getter
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -56,6 +57,7 @@ public abstract class AbstractByteArraySerializer implements
 	 * Default 2048.
 	 * @return The max message size.
 	 */
+	@SuppressWarnings("deprecation")
 	public int getMaxMessageSize() {
 		return this.maxMessageSize;
 	}
@@ -65,6 +67,7 @@ public abstract class AbstractByteArraySerializer implements
 	 * Default 2048.
 	 * @param maxMessageSize The max message size.
 	 */
+	@SuppressWarnings("deprecation")
 	public void setMaxMessageSize(int maxMessageSize) {
 		this.maxMessageSize = maxMessageSize;
 	}

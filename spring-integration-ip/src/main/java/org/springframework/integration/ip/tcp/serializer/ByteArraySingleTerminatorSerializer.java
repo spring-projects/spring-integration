@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,10 +60,10 @@ public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByt
 					break;
 				}
 				buffer[n++] = (byte) bite;
-				if (n >= this.maxMessageSize) {
+				if (n >= getMaxMessageSize()) {
 					throw new IOException("Terminator '0x" + Integer.toHexString(this.terminator & 0xff)
 							+ "' not found before max message length: "
-							+ this.maxMessageSize);
+							+ getMaxMessageSize());
 				}
 			}
 			return copyToSizedArray(buffer, n);
