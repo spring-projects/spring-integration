@@ -29,7 +29,7 @@ public class ByteArrayLfSerializer extends ByteArraySingleTerminatorSerializer {
 	public static final ByteArrayLfSerializer INSTANCE = new ByteArrayLfSerializer();
 
 	public ByteArrayLfSerializer() {
-		super((byte) 0x0a);
+		super((byte) '\n');
 	}
 
 }

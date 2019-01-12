@@ -99,7 +99,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader1() {
 		if (oneByteLHS == null) {
-			oneByteLHS = new ByteArrayLengthHeaderSerializer(1);
+			oneByteLHS = new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE);
 		}
 		return oneByteLHS;
 	}
@@ -111,7 +111,8 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader2() {
 		if (twoByteLHS == null) {
-			twoByteLHS = new ByteArrayLengthHeaderSerializer(2);
+			twoByteLHS = new ByteArrayLengthHeaderSerializer(
+					ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT);
 		}
 		return twoByteLHS;
 	}
@@ -123,7 +124,7 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader4() {
 		if (fourByteLHS == null) {
-			fourByteLHS = new ByteArrayLengthHeaderSerializer(4);
+			fourByteLHS = new ByteArrayLengthHeaderSerializer(ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT);
 		}
 		return fourByteLHS;
 	}
@@ -136,11 +137,11 @@ public final class TcpCodecs {
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader(int bytes) {
 		switch (bytes) {
-		case 1:
+		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE:
 			return lengthHeader1();
-		case 2:
+		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT:
 			return lengthHeader2();
-		case 4:
+		case ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT:
 			return lengthHeader4();
 		default:
 			throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
@@ -216,7 +217,8 @@ public final class TcpCodecs {
 	 * @since 5.1.3
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader1(int maxMessageSize) {
-		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(1);
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(
+				ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_BYTE);
 		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
@@ -228,7 +230,8 @@ public final class TcpCodecs {
 	 * @since 5.1.3
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader2(int maxMessageSize) {
-		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(2);
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(
+				ByteArrayLengthHeaderSerializer.HEADER_SIZE_UNSIGNED_SHORT);
 		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}
@@ -240,7 +243,8 @@ public final class TcpCodecs {
 	 * @since 5.1.3
 	 */
 	public static ByteArrayLengthHeaderSerializer lengthHeader4(int maxMessageSize) {
-		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(4);
+		ByteArrayLengthHeaderSerializer codec = new ByteArrayLengthHeaderSerializer(
+				ByteArrayLengthHeaderSerializer.HEADER_SIZE_INT);
 		codec.setMaxMessageSize(maxMessageSize);
 		return codec;
 	}

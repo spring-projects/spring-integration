@@ -45,21 +45,24 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer {
 
-
 	/**
 	 * Default length-header field, allows for data up to 2**31-1 bytes.
 	 */
-	public static final int HEADER_SIZE_INT = 4; // default
-
-	/**
-	 * A single unsigned byte, for data up to 255 bytes.
-	 */
-	public static final int HEADER_SIZE_UNSIGNED_BYTE = 1;
+	public static final int HEADER_SIZE_INT = Integer.BYTES; // default
 
 	/**
 	 * An unsigned short, for data up to 2**16 bytes.
 	 */
-	public static final int HEADER_SIZE_UNSIGNED_SHORT = 2;
+	public static final int HEADER_SIZE_UNSIGNED_SHORT = Short.BYTES;
+
+	/**
+	 * A single unsigned byte, for data up to 255 bytes.
+	 */
+	public static final int HEADER_SIZE_UNSIGNED_BYTE = Byte.BYTES;
+
+	private static final int MAX_UNSIGNED_SHORT = 0xffff;
+
+	private static final int MAX_UNSIGNED_BYTE = 0xff;
 
 	private final int headerSize;
 
@@ -183,7 +186,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				lengthPart.putInt(length);
 				break;
 			case HEADER_SIZE_UNSIGNED_BYTE:
-				if (length > 0xff) {
+				if (length > MAX_UNSIGNED_BYTE) {
 					throw new IllegalArgumentException("Length header:"
 							+ this.headerSize
 							+ " too short to accommodate message length:" + length);
@@ -191,7 +194,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				lengthPart.put((byte) length);
 				break;
 			case HEADER_SIZE_UNSIGNED_SHORT:
-				if (length > 0xffff) {
+				if (length > MAX_UNSIGNED_SHORT) {
 					throw new IllegalArgumentException("Length header:"
 							+ this.headerSize
 							+ " too short to accommodate message length:" + length);
@@ -231,10 +234,10 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 					}
 					break;
 				case HEADER_SIZE_UNSIGNED_BYTE:
-					messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
+					messageLength = ByteBuffer.wrap(lengthPart).get() & MAX_UNSIGNED_BYTE;
 					break;
 				case HEADER_SIZE_UNSIGNED_SHORT:
-					messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
+					messageLength = ByteBuffer.wrap(lengthPart).getShort() & MAX_UNSIGNED_SHORT;
 					break;
 				default:
 					throw new IllegalArgumentException("Bad header size:" + this.headerSize);

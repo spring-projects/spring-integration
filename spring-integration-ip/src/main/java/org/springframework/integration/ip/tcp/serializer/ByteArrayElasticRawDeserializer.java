@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.springframework.util.StreamUtils;
  */
 public class ByteArrayElasticRawDeserializer implements Deserializer<byte[]> {
 
+	private static final int DEFAULT_INITIAL_SIZE = 32;
+
 	private final int initialBufferSize;
 
 	/**
@@ -41,7 +43,7 @@ public class ByteArrayElasticRawDeserializer implements Deserializer<byte[]> {
 	 * buffer size of 32;
 	 */
 	public ByteArrayElasticRawDeserializer() {
-		this(32);
+		this(DEFAULT_INITIAL_SIZE);
 	}
 
 	/**
