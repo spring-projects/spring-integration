@@ -16,10 +16,10 @@ By participating, you  are expected to uphold this code. Please report unaccepta
 Not sure what a *pull request* is, or how to submit one?
 Take a look at GitHub's excellent documentation: https://help.github.com/articles/using-pull-requests/[Using Pull Requests] first.
 
-== Search GitHub issues first; create one if necessary
+== Search GitHub (or JIRA) issues first; create one if necessary
 
 Is there already an issue that addresses your concern?
-Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] to see if you can find something similar.
+Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] (or https://jira.springsource.org/browse/INT[JIRA issue tracker]) to see if you can find something similar.
 If not, please create a new issue before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 
 == Sign the contributor license agreement
