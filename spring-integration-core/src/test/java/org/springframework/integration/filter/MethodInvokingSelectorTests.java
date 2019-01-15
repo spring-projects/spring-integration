@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ package org.springframework.integration.filter;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -30,62 +32,72 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class MethodInvokingSelectorTests {
 
 	@Test
 	public void acceptedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
-		assertTrue(selector.accept(new GenericMessage<String>("should accept")));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertTrue(selector.accept(new GenericMessage<>("should accept")));
 	}
 
 	@Test
 	public void acceptedWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("acceptString", new Class<?>[] { Message.class });
+		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		assertTrue(selector.accept(new GenericMessage<String>("should accept")));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertTrue(selector.accept(new GenericMessage<>("should accept")));
 	}
 
 	@Test
 	public void rejectedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
-		assertFalse(selector.accept(new GenericMessage<Integer>(99)));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertFalse(selector.accept(new GenericMessage<>(99)));
 	}
 
 	@Test
 	public void rejectedWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("acceptString", new Class<?>[] { Message.class });
+		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		assertFalse(selector.accept(new GenericMessage<Integer>(99)));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertFalse(selector.accept(new GenericMessage<>(99)));
 	}
 
 	@Test
 	public void noArgMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "noArgs");
-		selector.accept(new GenericMessage<String>("test"));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertTrue(selector.accept(new GenericMessage<>("test")));
 	}
 
 	@Test
 	public void noArgMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("noArgs", new Class<?>[] {});
-		new MethodInvokingSelector(testBean, method);
+		Method method = testBean.getClass().getMethod("noArgs");
+		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
+		selector.setBeanFactory(mock(BeanFactory.class));
+		assertTrue(selector.accept(new GenericMessage<>("test")));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturningMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "returnVoid");
-		selector.accept(new GenericMessage<String>("test"));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		selector.accept(new GenericMessage<>("test"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturningMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("returnVoid", new Class<?>[] { Message.class });
+		Method method = testBean.getClass().getMethod("returnVoid", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.accept(new GenericMessage<String>("test"));
+		selector.setBeanFactory(mock(BeanFactory.class));
+		selector.accept(new GenericMessage<>("test"));
 	}
 
 
@@ -106,6 +118,7 @@ public class MethodInvokingSelectorTests {
 		public boolean noArgs() {
 			return true;
 		}
+
 	}
 
 }

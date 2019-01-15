@@ -98,17 +98,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
-	protected final List<String> messageHandlerAttributes = new ArrayList<>();
+	protected final List<String> messageHandlerAttributes = new ArrayList<>(); // NOSONAR
 
-	protected final ConfigurableListableBeanFactory beanFactory;
+	protected final ConfigurableListableBeanFactory beanFactory; // NOSONAR
 
-	protected final ConversionService conversionService;
+	protected final ConversionService conversionService; // NOSONAR
 
-	protected final DestinationResolver<MessageChannel> channelResolver;
+	protected final DestinationResolver<MessageChannel> channelResolver; // NOSONAR
 
-	protected final Class<T> annotationType;
+	protected final Class<T> annotationType; // NOSONAR
 
 	protected final Disposables disposables; // NOSONAR
 
@@ -192,7 +192,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		if (AnnotatedElementUtils.isAnnotated(method, IdempotentReceiver.class.getName())
 				&& !AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			String[] interceptors = AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value(); // NOSONAR never null
+			String[] interceptors =
+					AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value(); // NOSONAR never null
 			for (String interceptor : interceptors) {
 				DefaultBeanFactoryPointcutAdvisor advisor = new DefaultBeanFactoryPointcutAdvisor();
 				advisor.setAdviceBeanName(interceptor);
@@ -281,9 +282,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				else if (adviceChainBean instanceof Collection) {
 					@SuppressWarnings("unchecked")
 					Collection<Advice> adviceChainEntries = (Collection<Advice>) adviceChainBean;
-					for (Advice advice : adviceChainEntries) {
-						adviceChain.add(advice);
-					}
+					adviceChain.addAll(adviceChainEntries);
 				}
 				else {
 					throw new IllegalArgumentException("Invalid advice chain type:" +
@@ -346,7 +345,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected void configurePollingEndpoint(AbstractPollingEndpoint pollingEndpoint, List<Annotation> annotations) {
-		PollerMetadata pollerMetadata = null;
+		PollerMetadata pollerMetadata;
 		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
 		if (!ObjectUtils.isEmpty(pollers)) {
 			Assert.state(pollers.length == 1,

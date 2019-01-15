@@ -56,7 +56,10 @@ public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFac
 	public T processMessage(Message<?> message) {
 		if (this.delegate == null) {
 			Object target = this.beanFactory.getBean(this.beanName);
-			this.delegate = new MethodInvokingMessageProcessor<>(target, this.methodName);
+			MethodInvokingMessageProcessor<T> methodInvokingMessageProcessor =
+					new MethodInvokingMessageProcessor<>(target, this.methodName);
+			methodInvokingMessageProcessor.setBeanFactory(this.beanFactory);
+			this.delegate = methodInvokingMessageProcessor;
 		}
 		return this.delegate.processMessage(message);
 	}

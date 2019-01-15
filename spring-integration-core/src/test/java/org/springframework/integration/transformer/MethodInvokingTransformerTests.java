@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Properties;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -34,6 +36,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingTransformerTests {
 
@@ -42,15 +45,17 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<?> message = new GenericMessage<String>("foo");
+		transformer.setBeanFactory(mock(BeanFactory.class));
+		Message<?> message = new GenericMessage<>("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
 	}
 
 	@Test
-	public void simplePayloadConfiguredWithMethodName() throws Exception {
+	public void simplePayloadConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
@@ -61,16 +66,18 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<?> message = new GenericMessage<Integer>(123);
+		transformer.setBeanFactory(mock(BeanFactory.class));
+		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
 		assertEquals("123!", result.getPayload());
 	}
 
 	@Test
-	public void typeConversionConfiguredWithMethodName() throws Exception {
+	public void typeConversionConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		Message<?> message = new GenericMessage<Integer>(123);
+		transformer.setBeanFactory(mock(BeanFactory.class));
+		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
 		assertEquals("123!", result.getPayload());
 	}
@@ -85,10 +92,10 @@ public class MethodInvokingTransformerTests {
 	}
 
 	@Test(expected = MessageHandlingException.class)
-	public void typeConversionFailureConfiguredWithMethodName() throws Exception {
+	public void typeConversionFailureConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		Message<?> message = new GenericMessage<TestBean>(new TestBean());
+		Message<?> message = new GenericMessage<>(new TestBean());
 		transformer.transform(message);
 	}
 
@@ -97,6 +104,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -104,9 +112,10 @@ public class MethodInvokingTransformerTests {
 	}
 
 	@Test
-	public void headerAnnotationConfiguredWithMethodName() throws Exception {
+	public void headerAnnotationConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "headerTest");
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -128,6 +137,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 99).build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foo99", result.getPayload());
@@ -138,6 +148,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foonull", result.getPayload());
@@ -148,15 +159,17 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("messageReturnValueTest", Message.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("test", result.getPayload());
 	}
 
 	@Test
-	public void messageReturnValueConfiguredWithMethodName() throws Exception {
+	public void messageReturnValueConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "messageReturnValueTest");
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("test", result.getPayload());
@@ -168,10 +181,11 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("propertyPayloadTest", Properties.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
-		Message<Properties> message = new GenericMessage<Properties>(props);
+		Message<Properties> message = new GenericMessage<>(props);
 		Message<Properties> result = (Message<Properties>) transformer.transform(message);
 		assertEquals(Properties.class, result.getPayload().getClass());
 		Properties payload = result.getPayload();
@@ -185,13 +199,14 @@ public class MethodInvokingTransformerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void propertiesPayloadConfiguredWithMethodName() throws Exception {
+	public void propertiesPayloadConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyPayloadTest");
+		transformer.setBeanFactory(mock(BeanFactory.class));
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
-		Message<Properties> message = new GenericMessage<Properties>(props);
+		Message<Properties> message = new GenericMessage<>(props);
 		Message<Properties> result = (Message<Properties>) transformer.transform(message);
 		assertEquals(Properties.class, result.getPayload().getClass());
 		Properties payload = result.getPayload();
@@ -207,12 +222,13 @@ public class MethodInvokingTransformerTests {
 	public void nullReturningMethod() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "nullReturnValueTest");
-		GenericMessage<String> message = new GenericMessage<String>("test");
+		transformer.setBeanFactory(mock(BeanFactory.class));
+		GenericMessage<String> message = new GenericMessage<>("test");
 		Message<?> result = transformer.transform(message);
 		assertNull(result);
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test // this changed in 2.0 see INT-785 and INT-1130
 	public void headerEnricherConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
@@ -220,6 +236,7 @@ public class MethodInvokingTransformerTests {
 		HeaderEnricher transformer = new HeaderEnricher();
 		transformer.setDefaultOverwrite(true);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, testMethod);
+		processor.setBeanFactory(mock(BeanFactory.class));
 		transformer.setMessageProcessor(processor);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
@@ -231,12 +248,14 @@ public class MethodInvokingTransformerTests {
 		assertEquals("baz", result.getHeaders().get("prop3"));
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test // this changed in 2.0 see INT-785 and INT-1130
-	public void headerEnricherConfiguredWithMethodName() throws Exception {
+	public void headerEnricherConfiguredWithMethodName() {
 		TestBean testBean = new TestBean();
 		HeaderEnricher transformer = new HeaderEnricher();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "propertyEnricherTest");
+		MethodInvokingMessageProcessor processor =
+				new MethodInvokingMessageProcessor(testBean, "propertyEnricherTest");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		transformer.setMessageProcessor(processor);
 		transformer.setDefaultOverwrite(true);
 		Message<String> message = MessageBuilder.withPayload("test")

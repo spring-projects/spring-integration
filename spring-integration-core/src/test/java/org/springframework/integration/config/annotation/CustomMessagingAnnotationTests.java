@@ -146,6 +146,7 @@ public class CustomMessagingAnnotationTests {
 					LoggingHandler.Level.class);
 			LoggingHandler loggingHandler = new LoggingHandler(level.name());
 			MethodInvokingMessageProcessor<String> processor = new MethodInvokingMessageProcessor<>(bean, method);
+			processor.setBeanFactory(this.beanFactory);
 			loggingHandler.setLogExpression(new FunctionExpression<>(processor::processMessage));
 			return loggingHandler;
 		}

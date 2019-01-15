@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ public class ApplicationContextMessageBusTests {
 				.setReplyChannelName("targetChannel").build();
 		sourceChannel.send(message);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				return message;
@@ -78,7 +79,7 @@ public class ApplicationContextMessageBusTests {
 		context.refresh();
 		Message<?> result = targetChannel.receive(10000);
 		assertEquals("test", result.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -86,21 +87,22 @@ public class ApplicationContextMessageBusTests {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		QueueChannel sourceChannel = new QueueChannel();
 		context.registerChannel("sourceChannel", sourceChannel);
-		sourceChannel.send(new GenericMessage<String>("test"));
+		sourceChannel.send(new GenericMessage<>("test"));
 		QueueChannel targetChannel = new QueueChannel();
 		context.registerChannel("targetChannel", targetChannel);
 		context.refresh();
 		Message<?> result = targetChannel.receive(10);
 		assertNull(result);
-		context.stop();
+		context.close();
 	}
 
 	@Test
 	public void autoDetectionWithApplicationContext() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
 		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
-		sourceChannel.send(new GenericMessage<String>("test"));
+		sourceChannel.send(new GenericMessage<>("test"));
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
 		Message<?> result = targetChannel.receive(10000);
 		assertEquals("test", result.getPayload());
@@ -114,12 +116,14 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				return message;
 			}
 		};
 		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				return message;
@@ -137,10 +141,10 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint1", endpoint1);
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
-		inputChannel.send(new GenericMessage<String>("testing"));
+		inputChannel.send(new GenericMessage<>("testing"));
 		Message<?> message1 = outputChannel1.receive(10000);
 		Message<?> message2 = outputChannel2.receive(0);
-		context.stop();
+		context.close();
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
 	}
 
@@ -152,6 +156,7 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
 		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
@@ -159,6 +164,7 @@ public class ApplicationContextMessageBusTests {
 			}
 		};
 		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
@@ -180,7 +186,7 @@ public class ApplicationContextMessageBusTests {
 		assertEquals("both handlers should have been invoked", 0, latch.getCount());
 		Message<?> message1 = outputChannel1.receive(500);
 		Message<?> message2 = outputChannel2.receive(500);
-		context.stop();
+		context.close();
 		assertNotNull("both handlers should have replied to the message", message1);
 		assertNotNull("both handlers should have replied to the message", message2);
 	}
@@ -201,7 +207,7 @@ public class ApplicationContextMessageBusTests {
 		context.refresh();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
-		context.stop();
+		context.close();
 		assertNull(outputChannel.receive(100));
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
@@ -216,6 +222,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
@@ -229,7 +236,7 @@ public class ApplicationContextMessageBusTests {
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have received error message", 0, latch.getCount());
-		context.stop();
+		context.close();
 	}
 
 
@@ -246,6 +253,7 @@ public class ApplicationContextMessageBusTests {
 			latch.countDown();
 			throw new RuntimeException("intentional test failure");
 		}
+
 	}
 
 }

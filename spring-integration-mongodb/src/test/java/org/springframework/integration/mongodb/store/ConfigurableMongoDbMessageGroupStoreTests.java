@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -40,7 +39,6 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StopWatch;
@@ -58,9 +56,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
-		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-		testApplicationContext.refresh();
-		mongoDbMessageStore.setApplicationContext(testApplicationContext);
+		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
@@ -79,7 +75,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Test
 	@Ignore("The performance test. Enough slow. Also needs the release strategy changed to size() == 1000")
 	@MongoDbAvailable
-	public void messageGroupStoreLazyLoadPerformance() throws Exception {
+	public void messageGroupStoreLazyLoadPerformance() {
 		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 
 		StopWatch watch = new StopWatch("Lazy-Load Performance");

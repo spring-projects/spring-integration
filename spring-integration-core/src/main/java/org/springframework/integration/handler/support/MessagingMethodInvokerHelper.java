@@ -437,14 +437,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (this.expectedType != null) {
 				Assert.state(context.getTypeConverter()
 								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()), this.expectedType),
-						"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+						() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
 			}
 		}
 		else {
 			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
 					this.requiresReply);
 			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
-					"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+					() -> "Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
 			context.registerMethodFilter(targetType, filter);
 		}
 		context.setVariable("target", this.targetObject);
@@ -705,9 +705,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 				}
 				catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to convert from JSON", e);
-					}
+					logger.debug("Failed to convert from JSON", e);
 				}
 			}
 		}
@@ -901,13 +899,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
-				"Target object of type [" + this.targetObject.getClass() +
+				() -> "Target object of type [" + this.targetObject.getClass() +
 						"] has no eligible methods for handling Messages.");
 
-		Assert.isNull(ambiguousFallbackType.get(), "Found ambiguous parameter type [" + ambiguousFallbackType
-				+ "] for method match: " + fallbackMethods.values());
+		Assert.isNull(ambiguousFallbackType.get(),
+				() -> "Found ambiguous parameter type [" + ambiguousFallbackType +
+						"] for method match: " + fallbackMethods.values());
 		Assert.isNull(ambiguousFallbackMessageGenericType.get(),
-				"Found ambiguous parameter type ["
+				() -> "Found ambiguous parameter type ["
 						+ ambiguousFallbackMessageGenericType
 						+ "] for method match: "
 						+ fallbackMethods.values());
@@ -969,8 +968,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private void checkSpelInvokerRequired(final Class<?> targetClass, Method methodArg, HandlerMethod handlerMethod) {
-		UseSpelInvoker useSpel = AnnotationUtils.findAnnotation(AopUtils.getMostSpecificMethod(methodArg, targetClass),
-				UseSpelInvoker.class);
+		UseSpelInvoker useSpel =
+				AnnotationUtils.findAnnotation(AopUtils.getMostSpecificMethod(methodArg, targetClass),
+						UseSpelInvoker.class);
 		if (useSpel == null) {
 			useSpel = AnnotationUtils.findAnnotation(targetClass, UseSpelInvoker.class);
 		}
@@ -1007,14 +1007,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				try {
 					// Maybe a proxy with no target - e.g. gateway
 					Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
-					if (interfaces != null && interfaces.length == 1) {
+					if (interfaces.length == 1) {
 						targetClass = interfaces[0];
 					}
 				}
 				catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Exception trying to extract interface", e);
-					}
+					logger.debug("Exception trying to extract interface", e);
 				}
 			}
 		}
@@ -1135,7 +1133,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		private String generateExpression(Method method) {
-			StringBuilder sb = new StringBuilder("#target." + method.getName() + "(");
+			StringBuilder sb =
+					new StringBuilder("#target.")
+							.append(method.getName())
+							.append('(');
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 			boolean hasUnqualifiedMapParameter = false;
@@ -1163,9 +1164,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					}
 					if (annotationType.equals(Payloads.class)) {
 						Assert.isTrue(this.canProcessMessageList,
-								"The @Payloads annotation can only be applied if method handler " +
-										"canProcessMessageList" +
-										".");
+								"The @Payloads annotation can only be applied " +
+										"if method handler canProcessMessageList.");
 						Assert.isTrue(Collection.class.isAssignableFrom(parameterType),
 								"The @Payloads annotation can only be applied to a Collection-typed parameter.");
 						sb.append("messages.![payload");
@@ -1350,9 +1350,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		 */
 		public static Object getHeader(Map<?, ?> headers, String header) {
 			Object object = headers.get(header);
-			if (object == null) {
-				throw new IllegalArgumentException("required header not available: " + header);
-			}
+			Assert.notNull(object, () -> "required header not available: " + header);
 			return object;
 		}
 

@@ -23,9 +23,10 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
@@ -45,9 +46,23 @@ import org.springframework.messaging.Message;
  */
 public class MapToObjectTransformerTests {
 
+	private GenericApplicationContext context = TestUtils.createTestApplicationContext();
+
+	@Before
+	public void prepare() {
+		this.context.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+				new RootBeanDefinition("org.springframework.integration.context.CustomConversionServiceFactoryBean"));
+		this.context.refresh();
+	}
+
+	@After
+	public void terDown() {
+		this.context.close();
+	}
+
 	@Test
 	public void testMapToObjectTransformation() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		Address address = new Address();
@@ -57,7 +72,7 @@ public class MapToObjectTransformerTests {
 		Message<?> message = MessageBuilder.withPayload(map).build();
 
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
-		transformer.setBeanFactory(this.getBeanFactory());
+		transformer.setBeanFactory(this.context);
 		Message<?> newMessage = transformer.transform(message);
 		Person person = (Person) newMessage.getPayload();
 		assertNotNull(person);
@@ -70,7 +85,7 @@ public class MapToObjectTransformerTests {
 
 	@Test
 	public void testMapToObjectTransformationWithPrototype() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		Address address = new Address();
@@ -95,7 +110,7 @@ public class MapToObjectTransformerTests {
 
 	@Test
 	public void testMapToObjectTransformationWithConversionService() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		map.put("address", "1123 Main st");
@@ -103,11 +118,11 @@ public class MapToObjectTransformerTests {
 		Message<?> message = MessageBuilder.withPayload(map).build();
 
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
-		BeanFactory beanFactory = this.getBeanFactory();
 		ConverterRegistry conversionService =
-				beanFactory.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConverterRegistry.class);
+				this.context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+						ConverterRegistry.class);
 		conversionService.addConverter(new StringToAddressConverter());
-		transformer.setBeanFactory(beanFactory);
+		transformer.setBeanFactory(this.context);
 
 		Message<?> newMessage = transformer.transform(message);
 		Person person = (Person) newMessage.getPayload();
@@ -116,14 +131,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("Case", person.getLname());
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
-	}
-
-	private BeanFactory getBeanFactory() {
-		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
-		ctx.registerBeanDefinition(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
-				new RootBeanDefinition("org.springframework.integration.context.CustomConversionServiceFactoryBean"));
-		ctx.refresh();
-		return ctx;
 	}
 
 	public static class Person {

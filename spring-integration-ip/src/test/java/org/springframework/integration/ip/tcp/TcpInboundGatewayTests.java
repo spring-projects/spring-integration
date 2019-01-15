@@ -28,6 +28,8 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +40,6 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -76,6 +77,8 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(channelName -> channel);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -87,6 +90,8 @@ public class TcpInboundGatewayTests {
 		assertEquals("Echo:Test1\r\n", new String(bytes));
 		readFully(socket2.getInputStream(), bytes);
 		assertEquals("Echo:Test2\r\n", new String(bytes));
+		gateway.stop();
+		scf.stop();
 	}
 
 	@Test
@@ -102,6 +107,8 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
@@ -112,6 +119,8 @@ public class TcpInboundGatewayTests {
 		assertEquals("Echo:Test1\r\n", new String(bytes));
 		readFully(socket.getInputStream(), bytes);
 		assertEquals("Echo:Test2\r\n", new String(bytes));
+		gateway.stop();
+		scf.stop();
 	}
 
 	@Test
@@ -121,7 +130,9 @@ public class TcpInboundGatewayTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		new SimpleAsyncTaskExecutor()
+
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		executorService
 				.execute(() -> {
 					try {
 						ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
@@ -158,6 +169,8 @@ public class TcpInboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(1);
 		taskScheduler.initialize();
@@ -173,6 +186,7 @@ public class TcpInboundGatewayTests {
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
 		assertTrue(done.get());
 		gateway.stop();
+		executorService.shutdown();
 	}
 
 	@Test
@@ -189,6 +203,8 @@ public class TcpInboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		handler.setChannelResolver(channelName -> channel);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -200,6 +216,8 @@ public class TcpInboundGatewayTests {
 		assertEquals("Echo:Test1\r\n", new String(bytes));
 		readFully(socket2.getInputStream(), bytes);
 		assertEquals("Echo:Test2\r\n", new String(bytes));
+		gateway.stop();
+		scf.stop();
 	}
 
 	@Test
@@ -215,6 +233,8 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
@@ -228,6 +248,8 @@ public class TcpInboundGatewayTests {
 		results.add(new String(bytes));
 		assertTrue(results.remove("Echo:Test1\r\n"));
 		assertTrue(results.remove("Echo:Test2\r\n"));
+		gateway.stop();
+		scf.stop();
 	}
 
 	@Test
@@ -240,7 +262,7 @@ public class TcpInboundGatewayTests {
 		final String errorMessage = "An error occurred";
 		errorChannel.subscribe(message -> {
 			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			replyChannel.send(new GenericMessage<String>(errorMessage));
+			replyChannel.send(new GenericMessage<>(errorMessage));
 		});
 		gateway.setErrorChannel(errorChannel);
 		scf.start();
@@ -260,6 +282,8 @@ public class TcpInboundGatewayTests {
 		assertEquals(errorMessage + "\r\n", new String(bytes));
 		readFully(socket2.getInputStream(), bytes);
 		assertEquals(errorMessage + "\r\n", new String(bytes));
+		gateway.stop();
+		scf.stop();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,8 @@ public class DelayHandlerTests {
 
 	private final ResultHandler resultHandler = new ResultHandler();
 
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
+
 	@Before
 	public void setup() {
 		input.setBeanName("input");
@@ -104,7 +106,8 @@ public class DelayHandlerTests {
 
 	@After
 	public void tearDown() {
-		taskScheduler.destroy();
+		this.context.close();
+		this.taskScheduler.destroy();
 	}
 
 	private void setDelayExpression() {
@@ -113,10 +116,9 @@ public class DelayHandlerTests {
 	}
 
 	private void startDelayerHandler() {
-		delayHandler.afterPropertiesSet();
-		TestApplicationContext ac = TestUtils.createTestApplicationContext();
-		delayHandler.setApplicationContext(ac);
-		delayHandler.onApplicationEvent(new ContextRefreshedEvent(ac));
+		this.delayHandler.setApplicationContext(this.context);
+		this.delayHandler.afterPropertiesSet();
+		this.delayHandler.onApplicationEvent(new ContextRefreshedEvent(this.context));
 	}
 
 	@Test
@@ -466,6 +468,7 @@ public class DelayHandlerTests {
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
+		ac.close();
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -473,7 +476,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.delayHandler.setIgnoreExpressionFailures(false);
 		startDelayerHandler();
-		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
+		this.delayHandler.handleMessage(new GenericMessage<>("test"));
 	}
 
 	@Test //INT-3560

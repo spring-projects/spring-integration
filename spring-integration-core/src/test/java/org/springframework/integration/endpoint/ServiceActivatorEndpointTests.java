@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -47,7 +47,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void outputChannel() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = this.createEndpoint();
+		ServiceActivatingHandler endpoint = createEndpoint();
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
@@ -60,7 +60,7 @@ public class ServiceActivatorEndpointTests {
 	public void outputChannelTakesPrecedence() {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = this.createEndpoint();
+		ServiceActivatingHandler endpoint = createEndpoint();
 		endpoint.setOutputChannel(channel1);
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel2).build();
 		endpoint.handleMessage(message);
@@ -163,9 +163,10 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void noReplyMessage() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				new TestNullReplyBean(), "handle");
+		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new TestNullReplyBean(), "handle");
 		endpoint.setOutputChannel(channel);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
 		assertNull(channel.receive(0));
@@ -174,10 +175,11 @@ public class ServiceActivatorEndpointTests {
 	@Test(expected = ReplyRequiredException.class)
 	public void noReplyMessageWithRequiresReply() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				new TestNullReplyBean(), "handle");
+		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new TestNullReplyBean(), "handle");
 		endpoint.setRequiresReply(true);
 		endpoint.setOutputChannel(channel);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
 	}
@@ -185,13 +187,17 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationIdNotSetIfMessageIsReturnedUnaltered() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new Object() {
+		ServiceActivatingHandler endpoint =
+				new ServiceActivatingHandler(new Object() {
 
-			@SuppressWarnings("unused")
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		}, "handle");
+					@SuppressWarnings("unused")
+					public Message<?> handle(Message<?> message) {
+						return message;
+					}
+				}, "handle");
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
+
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
@@ -202,20 +208,24 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new Object() {
+		ServiceActivatingHandler endpoint =
+				new ServiceActivatingHandler(new Object() {
 
-			@SuppressWarnings("unused")
-			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message)
-						.setCorrelationId("ABC-123").build();
-			}
-		}, "handle");
+					@SuppressWarnings("unused")
+					public Message<?> handle(Message<?> message) {
+						return MessageBuilder.fromMessage(message)
+								.setCorrelationId("ABC-123").build();
+					}
+				}, "handle");
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
+
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = new IntegrationMessageHeaderAccessor(reply).getCorrelationId();
-		assertFalse(message.getHeaders().getId().equals(correlationId));
+		assertNotEquals(message.getHeaders().getId(), correlationId);
 		assertEquals("ABC-123", correlationId);
 	}
 
@@ -232,7 +242,10 @@ public class ServiceActivatorEndpointTests {
 
 
 	private ServiceActivatingHandler createEndpoint() {
-		return new ServiceActivatingHandler(new TestBean(), "handle");
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new TestBean(), "handle");
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		return handler;
 	}
 
 
@@ -240,8 +253,9 @@ public class ServiceActivatorEndpointTests {
 
 		@SuppressWarnings("unused")
 		public Message<?> handle(Message<?> message) {
-			return new GenericMessage<String>(message.getPayload().toString().toUpperCase());
+			return new GenericMessage<>(message.getPayload().toString().toUpperCase());
 		}
+
 	}
 
 
@@ -251,6 +265,7 @@ public class ServiceActivatorEndpointTests {
 		public Message<?> handle(Message<?> message) {
 			return null;
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,16 +65,15 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void sendAndReceiveForRegisteredEndpoint() {
-		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(this.targetChannel);
+		context.registerBean("testServiceActivator", serviceActivator);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(this.sourceChannel, serviceActivator);
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		this.sourceChannel.send(new GenericMessage<String>("foo"));
+		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo!", response.getPayload());
-		context.stop();
 	}
 
 	@Test
@@ -88,7 +87,6 @@ public class DirectChannelSubscriptionTests {
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo-from-annotated-endpoint", response.getPayload());
-		this.context.stop();
 	}
 
 	@Test(expected = MessagingException.class)
@@ -104,12 +102,7 @@ public class DirectChannelSubscriptionTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, handler);
 		this.context.registerEndpoint("testEndpoint", endpoint);
 		this.context.refresh();
-		try {
-			this.sourceChannel.send(new GenericMessage<>("foo"));
-		}
-		finally {
-			this.context.stop();
-		}
+		this.sourceChannel.send(new GenericMessage<>("foo"));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -122,12 +115,7 @@ public class DirectChannelSubscriptionTests {
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
 		this.context.refresh();
-		try {
-			this.sourceChannel.send(new GenericMessage<String>("foo"));
-		}
-		finally {
-			this.context.stop();
-		}
+		this.sourceChannel.send(new GenericMessage<>("foo"));
 	}
 
 
