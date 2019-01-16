@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 
 package org.springframework.integration.aop;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
@@ -31,17 +34,18 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Cameron Mayfield
  *
  * @since 2.0
  */
 public class MethodAnnotationPublisherMetadataSourceTests {
 
 	private final MethodAnnotationPublisherMetadataSource source = new MethodAnnotationPublisherMetadataSource();
-
 
 	@Test
 	public void channelNameAndExplicitReturnValuePayload() {
@@ -81,6 +85,13 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		assertEquals(2, headerMap.size());
 		assertEquals("#args[1]", headerMap.get("foo").getExpressionString());
 		assertEquals("#args[2]", headerMap.get("bar").getExpressionString());
+	}
+
+	@Test
+	public void expressionsAreConcurrentHashMap() {
+		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "channels"), instanceOf(ConcurrentHashMap.class));
+		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "payloadExpressions"), instanceOf(ConcurrentHashMap.class));
+		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "headersExpressions"), instanceOf(ConcurrentHashMap.class));
 	}
 
 	@Test
@@ -142,7 +153,6 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		}
 	}
 
-
 	@Publisher
 	@Payload("testExpression1")
 	public void methodWithPayloadAnnotation(String arg1, int arg2) {
@@ -159,7 +169,6 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	public String methodWithChannelAndEmptyPayloadAnnotation() {
 		return "hello";
 	}
-
 
 	@Publisher(channel = "foo")
 	@Payload("#method")
