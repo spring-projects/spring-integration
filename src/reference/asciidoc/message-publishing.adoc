@@ -142,6 +142,8 @@ public class IntegrationConfiguration {
 ----
 ====
 
+Starting with version 5.1.3, the `<int:enable-publisher>` component, as well as `@EnablePublisher` annotation are supplied with the `proxy-target-class` and `order` attributes for tuning a `ProxyFactory` configuration.
+
 Similar to other Spring annotations (`@Component`, `@Scheduled`, and so on), you can also use `@Publisher` as a meta-annotation.
 This means that you can define your own annotations that are treated in the same way as the `@Publisher` itself.
 The following example shows how to do so:
@@ -321,7 +323,7 @@ Another way of handling this type of scenario is with a wire-tap. See <<channel-
 In the preceding sections, we looked at the message-publishing feature, which constructs and publishes messages as by-products of method invocations.
 However, in those cases, you are still responsible for invoking the method.
 Spring Integration 2.0 added support for scheduled message producers and publishers with the new `expression` attribute on the 'inbound-channel-adapter' element.
-You can schedul based on several triggers, any one of which can be configured on the 'poller' element.
+You can schedule based on several triggers, any one of which can be configured on the 'poller' element.
 Currently, we support `cron`, `fixed-rate`, `fixed-delay` and any custom trigger implemented by you and referenced by the 'trigger' attribute value.
 
 As mentioned earlier, support for scheduled producers and publishers is provided via the `<inbound-channel-adapter>` XML element.

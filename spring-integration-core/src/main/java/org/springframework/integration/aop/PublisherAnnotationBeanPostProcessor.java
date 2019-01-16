@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,19 @@
 
 package org.springframework.integration.aop;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.framework.ProxyConfig;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.aop.framework.autoproxy.AbstractBeanFactoryAwareAdvisingPostProcessor;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.Ordered;
-import org.springframework.util.ClassUtils;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 
 /**
  * Post-processes beans that contain the
  * method-level @{@link org.springframework.integration.annotation.Publisher} annotation.
+ * <p>
+ * Only one bean instance of this processor can be declared in the application context, manual
+ * or automatic by thr framework via annotation or XML processing.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -46,21 +39,14 @@ import org.springframework.util.ClassUtils;
  * @since 2.0
  */
 @SuppressWarnings("serial")
-public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
-		implements BeanPostProcessor, BeanClassLoaderAware, BeanFactoryAware, InitializingBean, Ordered {
+public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
+		implements BeanNameAware, InitializingBean {
 
-	private volatile String defaultChannelName;
+	private String defaultChannelName;
 
-	private volatile PublisherAnnotationAdvisor advisor;
+	private String name;
 
-	private volatile int order = Ordered.LOWEST_PRECEDENCE;
-
-	private volatile BeanFactory beanFactory;
-
-	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
-	private final Set<Class<?>> nonApplicableCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
+	private BeanFactory beanFactory;
 
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
@@ -73,63 +59,31 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	}
 
 	@Override
+	public void setBeanName(String name) {
+		this.name = name;
+	}
+
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
+		super.setBeanFactory(beanFactory);
+		PublisherAnnotationAdvisor publisherAnnotationAdvisor = new PublisherAnnotationAdvisor();
+		publisherAnnotationAdvisor.setBeanFactory(beanFactory);
+		publisherAnnotationAdvisor.setDefaultChannelName(this.defaultChannelName);
+		this.advisor = publisherAnnotationAdvisor;
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
-
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	@Override
-	public int getOrder() {
-		return this.order;
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		this.advisor = new PublisherAnnotationAdvisor();
-		this.advisor.setBeanFactory(this.beanFactory);
-		this.advisor.setDefaultChannelName(this.defaultChannelName);
-	}
-
-	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
-
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		Class<?> targetClass = AopUtils.getTargetClass(bean);
-
-		// the set will hold records of prior class scans and will contain the bean classes that can not
-		// be assigned to the Advisor interface and therefore can be short circuited
-		if (this.nonApplicableCache.contains(targetClass)) {
-			return bean;
+	public void afterPropertiesSet() throws Exception {
+		try {
+			this.beanFactory.getBean(PublisherAnnotationBeanPostProcessor.class);
 		}
-
-		if (AopUtils.canApply(this.advisor, targetClass)) {
-			if (bean instanceof Advised) {
-				((Advised) bean).addAdvisor(this.advisor);
-				return bean;
-			}
-			else {
-				ProxyFactory proxyFactory = new ProxyFactory(bean);
-				// Copy our properties (proxyTargetClass etc) inherited from ProxyConfig.
-				proxyFactory.copyFrom(this);
-				proxyFactory.addAdvisor(this.advisor);
-				return proxyFactory.getProxy(this.beanClassLoader);
-			}
-		}
-		else {
-			// cannot apply advisor
-			this.nonApplicableCache.add(targetClass);
-			return bean;
+		catch (NoUniqueBeanDefinitionException ex) {
+			throw new BeanCreationNotAllowedException(this.name,
+					"Only one 'PublisherAnnotationBeanPostProcessor' bean can be defined in the application context." +
+							" Consider do not use '@EnablePublisher' (or '<int:enable-publisher>') if you declare" +
+							" 'PublisherAnnotationBeanPostProcessor' bean definition manually. " +
+							"Bean names found: " + ex.getBeanNamesFound());
 		}
 	}
 

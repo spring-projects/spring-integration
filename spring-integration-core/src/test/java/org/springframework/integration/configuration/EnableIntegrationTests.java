@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.configuration;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.sameInstance;
@@ -51,8 +52,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,6 +91,7 @@ import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.annotation.UseSpelInvoker;
+import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -127,7 +127,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -294,6 +293,9 @@ public class EnableIntegrationTests {
 	@Autowired
 	@Qualifier("enableIntegrationTests.ChildConfiguration.autoCreatedChannelMessageSource.inboundChannelAdapter")
 	private Lifecycle autoCreatedChannelMessageSourceAdapter;
+
+	@Autowired
+	private PublisherAnnotationBeanPostProcessor publisherAnnotationBeanPostProcessor;
 
 	@Test
 	public void testAnnotatedServiceActivator() throws Exception {
@@ -666,7 +668,7 @@ public class EnableIntegrationTests {
 		List<Integer> integers = ref.get();
 		assertEquals(5, integers.size());
 
-		assertThat(integers, Matchers.<Integer>contains(2, 4, 6, 8, 10));
+		assertThat(integers, contains(2, 4, 6, 8, 10));
 	}
 
 	@Test
@@ -744,13 +746,17 @@ public class EnableIntegrationTests {
 
 		assertNotNull(receive);
 		assertEquals(testDate, receive.getPayload());
+
+		assertTrue(this.publisherAnnotationBeanPostProcessor.isProxyTargetClass());
+		assertEquals(Integer.MAX_VALUE - 1, this.publisherAnnotationBeanPostProcessor.getOrder());
 	}
 
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
 	@EnableIntegration
-//	INT-3853 @PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
+	//	INT-3853
+	//	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
 	@EnableMessageHistory({ "input", "publishedChannel", "annotationTestService*" })
 	public static class ContextConfiguration {
 
@@ -996,7 +1002,7 @@ public class EnableIntegrationTests {
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/configuration/EnableIntegrationTests-context.xml")
 	@EnableMessageHistory("${message.history.tracked.components}")
-	@EnablePublisher("publishedChannel")
+	@EnablePublisher(defaultChannel = "publishedChannel")
 	@EnableAsync
 	public static class ContextConfiguration2 {
 
@@ -1026,14 +1032,9 @@ public class EnableIntegrationTests {
 		@ServiceActivator(inputChannel = "sendAsyncChannel")
 		@Role("foo")
 		public MessageHandler sendAsyncHandler() {
-			return new MessageHandler() {
-
-				@Override
-				public void handleMessage(Message<?> message) throws MessagingException {
-					asyncAnnotationProcessThread().set(Thread.currentThread());
-					asyncAnnotationProcessLatch().countDown();
-				}
-
+			return message -> {
+				asyncAnnotationProcessThread().set(Thread.currentThread());
+				asyncAnnotationProcessLatch().countDown();
 			};
 		}
 
@@ -1139,7 +1140,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public AnnotationTestService annotationTestService() {
-			return new AnnotationTestServiceImpl();
+			return new AnnotationTestService();
 		}
 
 		@Bean
@@ -1155,7 +1156,8 @@ public class EnableIntegrationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "myHandlerChannel", adviceChain = "myHandlerAdvice")
 		public MessageHandler myHandler() {
-			return message -> { };
+			return message -> {
+			};
 		}
 
 		@Bean
@@ -1198,53 +1200,12 @@ public class EnableIntegrationTests {
 
 	}
 
-	public interface AnnotationTestService {
-
-		String handle(String payload);
-
-		String handle1(String payload);
-
-		String handle2(String payload);
-
-		String handle3(String payload);
-
-		String handle4(String payload);
-
-		String transform(Message<String> message);
-
-		String transform2(Message<String> message);
-
-		Integer count();
-
-		String foo();
-
-		Message<?> message();
-
-		Integer annCount();
-
-		Integer annCount1();
-
-		Integer annCount2();
-
-		Integer annCount5();
-
-		Integer annCount8();
-
-		Integer annAgg1(List<?> messages);
-
-		Integer annAgg2(List<?> messages);
-
-		Integer multiply(Integer value);
-
-	}
-
-	public static class AnnotationTestServiceImpl implements Lifecycle, AnnotationTestService {
+	public static class AnnotationTestService implements Lifecycle {
 
 		private final AtomicInteger counter = new AtomicInteger();
 
 		private boolean running;
 
-		@Override
 		@ServiceActivator(inputChannel = "input", outputChannel = "output", autoStartup = "false",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}",
 						fixedDelay = "${poller.interval}",
@@ -1256,7 +1217,6 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}
 
-		@Override
 		@ServiceActivator(inputChannel = "input1", outputChannel = "output",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}",
 						fixedRate = "${poller.interval}"))
@@ -1266,7 +1226,6 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}
 
-		@Override
 		@ServiceActivator(inputChannel = "input2", outputChannel = "output",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", cron = "0 5 7 * * *"))
 		@Publisher
@@ -1275,7 +1234,6 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}
 
-		@Override
 		@ServiceActivator(inputChannel = "input3", outputChannel = "output", poller = @Poller("myPoller"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
@@ -1283,7 +1241,6 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}
 
-		@Override
 		@ServiceActivator(inputChannel = "input4", outputChannel = "output",
 				poller = @Poller(trigger = "myTrigger"))
 		@Publisher
@@ -1303,7 +1260,6 @@ public class EnableIntegrationTests {
 			return payload.toUpperCase();
 		}*/
 
-		@Override
 		@Transformer(inputChannel = "gatewayChannel")
 		public String transform(Message<String> message) {
 			assertTrue(message.getHeaders().containsKey("foo"));
@@ -1313,7 +1269,6 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
-		@Override
 		@Transformer(inputChannel = "gatewayChannel2")
 		@UseSpelInvoker(compilerMode = "${xxxxxxxx:IMMEDIATE}")
 		public String transform2(Message<String> message) {
@@ -1324,20 +1279,17 @@ public class EnableIntegrationTests {
 			return this.handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
-		@Override
 		@MyInboundChannelAdapter1
 		public Integer count() {
 			return this.counter.incrementAndGet();
 		}
 
-		@Override
 		@InboundChannelAdapter(value = "fooChannel",
 				poller = @Poller(trigger = "onlyOnceTrigger", maxMessagesPerPoll = "2"))
 		public String foo() {
 			return "foo";
 		}
 
-		@Override
 		@InboundChannelAdapter(value = "messageChannel", poller = @Poller(fixedDelay = "${poller.interval}",
 				maxMessagesPerPoll = "1"))
 		public Message<?> message() {
@@ -1361,44 +1313,37 @@ public class EnableIntegrationTests {
 
 		// metaAnnotation tests
 
-		@Override
 		@MyServiceActivator
 		public Integer annCount() {
 			return 0;
 		}
 
-		@Override
 		@MyServiceActivator1(inputChannel = "annInput1", autoStartup = "true",
 				adviceChain = { "annAdvice1" }, poller = @Poller(fixedRate = "2000"))
 		public Integer annCount1() {
 			return 0;
 		}
 
-		@Override
 		@MyServiceActivatorNoLocalAtts
 		public Integer annCount2() {
 			return 0;
 		}
 
-		@Override
 		@MyServiceActivator5
 		public Integer annCount5() {
 			return 0;
 		}
 
-		@Override
 		@MyServiceActivator8
 		public Integer annCount8() {
 			return 0;
 		}
 
-		@Override
 		@MyAggregator
 		public Integer annAgg1(List<?> messages) {
 			return 42;
 		}
 
-		@Override
 		@MyAggregatorDefaultOverrideDefaults
 		public Integer annAgg2(List<?> messages) {
 			return 42;
@@ -1408,7 +1353,6 @@ public class EnableIntegrationTests {
 		/*@BridgeFrom("")
 		public void invalidBridgeAnnotationMethod(Object payload) {}*/
 
-		@Override
 		@ServiceActivator(inputChannel = "monoChannel")
 		public Integer multiply(Integer value) {
 			return value * 2;
@@ -1689,27 +1633,6 @@ public class EnableIntegrationTests {
 
 		public static Object bar(Object o) {
 			return o;
-		}
-
-	}
-
-	public class RegexMatcher<T> extends BaseMatcher<T> {
-
-		private final String regex;
-
-		public RegexMatcher(String regex) {
-			this.regex = regex;
-		}
-
-		@Override
-		public boolean matches(Object o) {
-			return ((String) o).matches(regex);
-
-		}
-
-		@Override
-		public void describeTo(Description description) {
-			description.appendText("matches regex=");
 		}
 
 	}
