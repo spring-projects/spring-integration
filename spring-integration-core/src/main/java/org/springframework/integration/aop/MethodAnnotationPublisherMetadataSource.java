@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -42,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gareth Chapman
+ * @author Cameron Mayfield
  *
  * @since 2.0
  */
@@ -49,11 +51,11 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-	private final Map<Method, String> channels = new HashMap<>();
+	private final Map<Method, String> channels = new ConcurrentHashMap<>();
 
-	private final Map<Method, Expression> payloadExpressions = new HashMap<>();
+	private final Map<Method, Expression> payloadExpressions = new ConcurrentHashMap<>();
 
-	private final Map<Method, Map<String, Expression>> headersExpressions = new HashMap<>();
+	private final Map<Method, Map<String, Expression>> headersExpressions = new ConcurrentHashMap<>();
 
 	private final Set<Class<? extends Annotation>> annotationTypes;
 
