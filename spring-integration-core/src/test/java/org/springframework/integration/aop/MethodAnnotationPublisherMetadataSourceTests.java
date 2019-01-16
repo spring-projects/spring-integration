@@ -89,9 +89,12 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 
 	@Test
 	public void expressionsAreConcurrentHashMap() {
-		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "channels"), instanceOf(ConcurrentHashMap.class));
-		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "payloadExpressions"), instanceOf(ConcurrentHashMap.class));
-		assertThat("Expressions should be concurrent to allow startup", ReflectionTestUtils.getField(source, "headersExpressions"), instanceOf(ConcurrentHashMap.class));
+		assertThat("Expressions should be concurrent to allow startup",
+				ReflectionTestUtils.getField(source, "channels"), instanceOf(ConcurrentHashMap.class));
+		assertThat("Expressions should be concurrent to allow startup",
+				ReflectionTestUtils.getField(source, "payloadExpressions"), instanceOf(ConcurrentHashMap.class));
+		assertThat("Expressions should be concurrent to allow startup",
+				ReflectionTestUtils.getField(source, "headersExpressions"), instanceOf(ConcurrentHashMap.class));
 	}
 
 	@Test
