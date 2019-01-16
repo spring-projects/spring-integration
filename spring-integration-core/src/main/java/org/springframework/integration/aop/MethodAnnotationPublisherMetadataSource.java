@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -49,11 +50,11 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-	private final Map<Method, String> channels = new HashMap<>();
+	private final Map<Method, String> channels = new ConcurrentHashMap<>();
 
-	private final Map<Method, Expression> payloadExpressions = new HashMap<>();
+	private final Map<Method, Expression> payloadExpressions = new ConcurrentHashMap<>();
 
-	private final Map<Method, Map<String, Expression>> headersExpressions = new HashMap<>();
+	private final Map<Method, Map<String, Expression>> headersExpressions = new ConcurrentHashMap<>();
 
 	private final Set<Class<? extends Annotation>> annotationTypes;
 
