@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.w3c.dom.Element;
@@ -40,8 +40,6 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
-
 		StandardAnnotationMetadata importingClassMetadata =
 				new StandardAnnotationMetadata(Object.class) {
 
@@ -51,8 +49,13 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 							Element enablePublisherElement =
 									DomUtils.getChildElementByTagName(element, "enable-publisher");
 							if (enablePublisherElement != null) {
-								return Collections.singletonMap("value",
+								Map<String, Object> attributes = new HashMap<>();
+								attributes.put("defaultChannel",
 										enablePublisherElement.getAttribute("default-publisher-channel"));
+								attributes.put("proxyTargetClass",
+										enablePublisherElement.getAttribute("proxy-target-class"));
+								attributes.put("order", enablePublisherElement.getAttribute("order"));
+								return attributes;
 							}
 							else {
 								return null;
@@ -65,7 +68,7 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 				};
 
-		integrationRegistrar.registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
+		new IntegrationRegistrar().registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
 
 		return null;
 	}

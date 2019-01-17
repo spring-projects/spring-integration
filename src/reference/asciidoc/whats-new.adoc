@@ -119,6 +119,7 @@ See <<aggregator>> for more information.
 ==== @Publisher annotation changes
 
 Starting with version 5.1, you must explicitly turn on the `@Publisher` AOP functionality by using `@EnablePublisher` or by using the `<int:enable-publisher>` child element on `<int:annotation-config>`.
+Also the `proxy-target-class` and `order` attributes have been added for tuning the `ProxyFactory` configuration.
 
 See <<publisher-annotation>> for more information.
 

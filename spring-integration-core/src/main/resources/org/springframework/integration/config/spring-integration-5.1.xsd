@@ -35,6 +35,30 @@
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:attribute>
+						<xsd:attribute name="proxy-target-class" default="false">
+							<xsd:annotation>
+								<xsd:documentation>
+									Indicate whether subclass-based (CGLIB) proxies are to be created as opposed
+									to standard Java interface-based proxies.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:boolean xsd:string" />
+							</xsd:simpleType>
+						</xsd:attribute>
+						<xsd:attribute name="order" default="2147483647">
+							<xsd:annotation>
+								<xsd:documentation>
+									Indicate the order in which the
+									'org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor'
+									should be applied.
+									Defaults to 'org.springframework.core.Ordered.LOWEST_PRECEDENCE'.
+								</xsd:documentation>
+							</xsd:annotation>
+							<xsd:simpleType>
+								<xsd:union memberTypes="xsd:integer xsd:string" />
+							</xsd:simpleType>
+						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>

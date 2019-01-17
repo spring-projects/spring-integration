@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
@@ -48,21 +49,28 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 		Map<String, Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
 
-		String value = (annotationAttributes == null
-				? (String) AnnotationUtils.getDefaultValue(EnablePublisher.class)
-				: (String) annotationAttributes.get("value"));
+		String defaultChannel =
+				annotationAttributes == null
+						? (String) AnnotationUtils.getDefaultValue(EnablePublisher.class)
+						: (String) annotationAttributes.get("defaultChannel");
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-			if (StringUtils.hasText(value)) {
-				builder.addPropertyValue("defaultChannelName", value);
+			if (StringUtils.hasText(defaultChannel)) {
+				builder.addPropertyValue("defaultChannelName", defaultChannel);
 				if (logger.isInfoEnabled()) {
-					logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
+					logger.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
 				}
 			}
 
+			if (annotationAttributes != null) {
+				Object proxyTargetClass = annotationAttributes.get("proxyTargetClass");
+				builder.addPropertyValue("proxyTargetClass", proxyTargetClass);
+				Object order = annotationAttributes.get("order");
+				builder.addPropertyValue("order", order);
+			}
 			registry.registerBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME,
 					builder.getBeanDefinition());
 		}
@@ -71,17 +79,17 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 					registry.getBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME);
 			MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
 			PropertyValue defaultChannelPropertyValue = propertyValues.getPropertyValue("defaultChannelName");
-			if (StringUtils.hasText(value)) {
+			if (StringUtils.hasText(defaultChannel)) {
 				if (defaultChannelPropertyValue == null) {
-					propertyValues.addPropertyValue("defaultChannelName", value);
+					propertyValues.addPropertyValue("defaultChannelName", defaultChannel);
 					if (logger.isInfoEnabled()) {
-						logger.info("Setting '@Publisher' default-output-channel to '" + value + "'.");
+						logger.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
 					}
 				}
-				else if (!value.equals(defaultChannelPropertyValue.getValue())) {
+				else if (!defaultChannel.equals(defaultChannelPropertyValue.getValue())) {
 					throw new BeanDefinitionStoreException("When more than one enable publisher definition " +
-							"(@EnablePublisher or <annotation-config>)" +
-							" is found in the context, they all must have the same 'default-publisher-channel' value.");
+							"(@EnablePublisher or <annotation-config>) is found in the context, " +
+							"they all must have the same 'default-publisher-channel' attribute value.");
 				}
 			}
 		}
