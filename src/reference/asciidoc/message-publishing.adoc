@@ -142,7 +142,7 @@ public class IntegrationConfiguration {
 ----
 ====
 
-Starting with version 5.1.3, the `<int:enable-publisher>` component, as well as `@EnablePublisher` annotation are supplied with the `proxy-target-class` and `order` attributes for tuning a `ProxyFactory` configuration.
+Starting with version 5.1.3, the `<int:enable-publisher>` component, as well as the `@EnablePublisher` annotation have the `proxy-target-class` and `order` attributes for tuning the `ProxyFactory` configuration.
 
 Similar to other Spring annotations (`@Component`, `@Scheduled`, and so on), you can also use `@Publisher` as a meta-annotation.
 This means that you can define your own annotations that are treated in the same way as the `@Publisher` itself.

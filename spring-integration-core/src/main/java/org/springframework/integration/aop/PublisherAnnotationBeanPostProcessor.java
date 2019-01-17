@@ -81,7 +81,7 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 		catch (NoUniqueBeanDefinitionException ex) {
 			throw new BeanCreationNotAllowedException(this.name,
 					"Only one 'PublisherAnnotationBeanPostProcessor' bean can be defined in the application context." +
-							" Consider do not use '@EnablePublisher' (or '<int:enable-publisher>') if you declare" +
+							" Do not use '@EnablePublisher' (or '<int:enable-publisher>') if you declare a" +
 							" 'PublisherAnnotationBeanPostProcessor' bean definition manually. " +
 							"Bean names found: " + ex.getBeanNamesFound());
 		}
