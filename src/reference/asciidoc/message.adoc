@@ -195,16 +195,17 @@ The following table describes headers that also appear in the `IntegrationMessag
 | Header Type
 | Usage
 
-| `IntegrationMessageHeaderAccessor.
-SEQUENCE_DETAILS`
-| `java.util.`
-`List<List<Object>>`
-| A stack of correlation data used when nested correlation is needed (for example, `splitter->...->splitter->...->aggregator->...->aggregator`).
+| IntegrationMessageHeaderAccessor.
+SEQUENCE_DETAILS
+| java.util.
+List<List<Object>>
+| A stack of correlation data used when nested correlation is needed (for example,
+`splitter->...->splitter->...->aggregator->...->aggregator`).
 
-| `IntegrationMessageHeaderAccessor.
-ROUTING_SLIP`
-| `java.util.`
-`Map<List<Object>, Integer>`
+| IntegrationMessageHeaderAccessor.
+ROUTING_SLIP
+| java.util.
+Map<List<Object>, Integer>
 | See <<routing-slip>>.
 |===
 

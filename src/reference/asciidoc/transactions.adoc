@@ -207,8 +207,10 @@ The following example shows how to use the namespace to configure a file inbound
 </int-file:inbound-channel-adapter>
 
 <int:transaction-synchronization-factory id="syncFactory">
-    <int:after-commit expression="payload.renameTo('/success/' + payload.name)" channel="committedChannel" />
-    <int:after-rollback expression="payload.renameTo('/failed/' + payload.name)" channel="rolledBackChannel" />
+    <int:after-commit expression="payload.renameTo(new java.io.File('/success/' + payload.name))"
+        channel="committedChannel" />
+    <int:after-rollback expression="payload.renameTo(new java.io.File('/failed/' + payload.name))"
+        channel="rolledBackChannel" />
 </int:transaction-synchronization-factory>
 ----
 ====
