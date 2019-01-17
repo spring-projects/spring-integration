@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class MailOutboundChannelAdapterParserTests {
 
@@ -66,7 +67,7 @@ public class MailOutboundChannelAdapterParserTests {
 		Object adapter = context.getBean("advised.adapter");
 		MessageHandler handler = (MessageHandler)
 				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertEquals(1, adviceCalled);
 		context.close();
 	}
@@ -105,7 +106,7 @@ public class MailOutboundChannelAdapterParserTests {
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 		Properties javaMailProperties = (Properties) TestUtils.getPropertyValue(mailSender, "javaMailProperties");
-		assertEquals(7, javaMailProperties.size());
+		assertEquals(9, javaMailProperties.size());
 		assertNotNull(javaMailProperties);
 		assertEquals("true", javaMailProperties.get("mail.smtps.auth"));
 		context.close();
@@ -114,10 +115,11 @@ public class MailOutboundChannelAdapterParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled++;
 			return null;
 		}
 
 	}
+
 }

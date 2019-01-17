@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.Assert;
@@ -33,6 +32,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'mail' namespace.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
@@ -41,20 +41,28 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailSendingMessageHandler.class);
 		String mailSenderRef = element.getAttribute("mail-sender");
 		String host = element.getAttribute("host");
+		boolean hasHost = StringUtils.hasText(host);
 		String port = element.getAttribute("port");
 		String username = element.getAttribute("username");
 		String password = element.getAttribute("password");
+		String javaMailProperties = element.getAttribute("java-mail-properties");
+		boolean hasJavaMailProperties = StringUtils.hasText(javaMailProperties);
 		if (StringUtils.hasText(mailSenderRef)) {
-			Assert.isTrue(!StringUtils.hasText(host) && !StringUtils.hasText(username) && !StringUtils.hasText(password),
+			Assert.isTrue(!hasHost
+							&& !StringUtils.hasText(username)
+							&& !StringUtils.hasText(password),
 					"The 'host', 'username', and 'password' properties " +
-					"should not be provided when using a 'mail-sender' reference.");
+							"should not be provided when using a 'mail-sender' reference.");
 			builder.addConstructorArgReference(mailSenderRef);
 		}
 		else {
-			Assert.hasText(host, "Either a 'mail-sender' reference or 'host' property is required.");
+			Assert.isTrue(!hasHost || !hasJavaMailProperties,
+					"Either a 'mail-sender' or 'java-mail-properties' reference or 'host' property is required.");
 			BeanDefinitionBuilder mailSenderBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(JavaMailSenderImpl.class);
-			mailSenderBuilder.addPropertyValue("host", host);
+			if (hasHost) {
+				mailSenderBuilder.addPropertyValue("host", host);
+			}
 			if (StringUtils.hasText(username)) {
 				mailSenderBuilder.addPropertyValue("username", username);
 			}
@@ -64,11 +72,13 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			if (StringUtils.hasText(port)) {
 				mailSenderBuilder.addPropertyValue("port", port);
 			}
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
-					mailSenderBuilder, element, "java-mail-properties", "javaMailProperties");
+			if (hasJavaMailProperties) {
+				mailSenderBuilder.addPropertyReference("javaMailProperties", javaMailProperties);
+			}
 
-			String mailSenderBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					mailSenderBuilder.getBeanDefinition(), parserContext.getRegistry());
+			String mailSenderBeanName =
+					BeanDefinitionReaderUtils.registerWithGeneratedName(mailSenderBuilder.getBeanDefinition(),
+							parserContext.getRegistry());
 			builder.addConstructorArgReference(mailSenderBeanName);
 		}
 		return builder.getBeanDefinition();

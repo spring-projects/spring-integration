@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,51 @@
 package org.springframework.integration.mail.dsl;
 
 import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.transformer.MailToStringTransformer;
+import org.springframework.lang.Nullable;
+import org.springframework.mail.MailSender;
 
 /**
  * The factory for Spring Integration Mail components.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public final class Mail {
 
-	public static MailSendingMessageHandlerSpec outboundAdapter(String host) {
+	/**
+	 * A {@link MailSendingMessageHandlerSpec} factory.
+	 * Note: the Java Mail properties must be provided with the particular host.
+	 * @return the {@link MailSendingMessageHandlerSpec} instance.
+	 * @since 5.1.3
+	 * @see MailSendingMessageHandlerSpec#javaMailProperties
+	 */
+	public static MailSendingMessageHandlerSpec outboundAdapter() {
+		return new MailSendingMessageHandlerSpec(null);
+	}
+
+	/**
+	 * A {@link MailSendingMessageHandlerSpec} factory based on provide {@code host}.
+	 * @param host the mail host to connect to.
+	 * @return the {@link MailSendingMessageHandlerSpec} instance.
+	 */
+	public static MailSendingMessageHandlerSpec outboundAdapter(@Nullable String host) {
 		return new MailSendingMessageHandlerSpec(host);
+	}
+
+	/**
+	 * A convenient factory method to produce {@link MailSendingMessageHandler}
+	 * based on provided {@link MailSender}.
+	 * @param mailSender the {@link MailSender} to use mail sending operations.
+	 * @return the {@link MailSendingMessageHandler} instance.
+	 * @since 5.1.3
+	 */
+	public static MailSendingMessageHandler outboundAdapter(MailSender mailSender) {
+		return new MailSendingMessageHandler(mailSender);
 	}
 
 	/**

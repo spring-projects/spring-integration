@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import javax.activation.FileTypeMap;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.support.PropertiesBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class MailSendingMessageHandlerSpec
@@ -36,7 +38,7 @@ public class MailSendingMessageHandlerSpec
 
 	private final JavaMailSenderImpl sender = new JavaMailSenderImpl();
 
-	MailSendingMessageHandlerSpec(String host) {
+	MailSendingMessageHandlerSpec(@Nullable String host) {
 		this.sender.setHost(host);
 		this.target = new MailSendingMessageHandler(this.sender);
 	}
@@ -70,7 +72,7 @@ public class MailSendingMessageHandlerSpec
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setProtocol(String)
 	 */
-	public MailSendingMessageHandlerSpec protocol(String protocol) {
+	public MailSendingMessageHandlerSpec protocol(@Nullable String protocol) {
 		this.sender.setProtocol(protocol);
 		return this;
 	}
@@ -94,8 +96,22 @@ public class MailSendingMessageHandlerSpec
 	 * @see JavaMailSenderImpl#setUsername(String)
 	 * @see JavaMailSenderImpl#setPassword(String)
 	 */
-	public MailSendingMessageHandlerSpec credentials(String username, String password) {
+	public MailSendingMessageHandlerSpec credentials(@Nullable String username, @Nullable String password) {
 		this.sender.setUsername(username);
+		this.sender.setPassword(password);
+		return this;
+	}
+
+	/**
+	 * Set the mail user password.
+	 * A convenient method when {@code username} is provided in the Java mail properties.
+	 * @param password the password.
+	 * @return the spec.
+	 * @since 5.1.3
+	 * @see JavaMailSenderImpl#setPassword(String)
+	 * @see #javaMailProperties(Properties)
+	 */
+	public MailSendingMessageHandlerSpec password(@Nullable String password) {
 		this.sender.setPassword(password);
 		return this;
 	}
@@ -106,7 +122,7 @@ public class MailSendingMessageHandlerSpec
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setDefaultEncoding(String)
 	 */
-	public MailSendingMessageHandlerSpec defaultEncoding(String defaultEncoding) {
+	public MailSendingMessageHandlerSpec defaultEncoding(@Nullable String defaultEncoding) {
 		this.sender.setDefaultEncoding(defaultEncoding);
 		return this;
 	}
@@ -117,7 +133,7 @@ public class MailSendingMessageHandlerSpec
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setDefaultFileTypeMap(FileTypeMap)
 	 */
-	public MailSendingMessageHandlerSpec defaultFileTypeMap(FileTypeMap defaultFileTypeMap) {
+	public MailSendingMessageHandlerSpec defaultFileTypeMap(@Nullable FileTypeMap defaultFileTypeMap) {
 		this.sender.setDefaultFileTypeMap(defaultFileTypeMap);
 		return this;
 	}
