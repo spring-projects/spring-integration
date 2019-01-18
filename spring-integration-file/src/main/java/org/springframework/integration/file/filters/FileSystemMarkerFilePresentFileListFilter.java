@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,20 +29,20 @@ import java.util.function.Function;
  */
 public class FileSystemMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<File> {
 
-	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter) {
+	public FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter) {
 		super(filter);
 	}
 
-	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter, String suffix) {
+	public FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter, String suffix) {
 		super(filter, suffix);
 	}
 
-	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter,
+	public FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter,
 			Function<String, String> function) {
 		super(filter, function);
 	}
 
-	FileSystemMarkerFilePresentFileListFilter(
+	public FileSystemMarkerFilePresentFileListFilter(
 			Map<FileListFilter<File>, Function<String, String>> filtersAndFunctions) {
 		super(filtersAndFunctions);
 	}

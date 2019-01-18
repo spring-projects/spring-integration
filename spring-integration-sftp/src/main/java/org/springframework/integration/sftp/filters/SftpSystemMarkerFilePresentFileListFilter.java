@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,20 +33,20 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpSystemMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<LsEntry> {
 
-	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter) {
+	public SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter) {
 		super(filter);
 	}
 
-	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter, String suffix) {
+	public SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter, String suffix) {
 		super(filter, suffix);
 	}
 
-	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter,
+	public SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter,
 			Function<String, String> function) {
 		super(filter, function);
 	}
 
-	SftpSystemMarkerFilePresentFileListFilter(
+	public SftpSystemMarkerFilePresentFileListFilter(
 			Map<FileListFilter<LsEntry>, Function<String, String>> filtersAndFunctions) {
 		super(filtersAndFunctions);
 	}
