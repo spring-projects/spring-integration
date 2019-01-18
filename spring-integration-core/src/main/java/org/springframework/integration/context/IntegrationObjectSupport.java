@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-	private static final IdGenerator idGenerator = new AlternativeJdkIdGenerator(); // NOSONAR lower case
+	private static final IdGenerator ID_GENERATOR = new AlternativeJdkIdGenerator();
 
 	/**
 	 * Logger that is available to subclasses
@@ -104,6 +104,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
+	}
+
+	@Override
+	public String getBeanName() {
+		return this.beanName;
 	}
 
 	/**
@@ -224,7 +229,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 			if (this.conversionService == null && this.logger.isDebugEnabled()) {
 				this.logger.debug("Unable to attempt conversion of Message payload types. Component '" +
-						this.getComponentName() + "' has no explicit ConversionService reference, " +
+						getComponentName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'integrationConversionService' bean within the context.");
 			}
 		}
@@ -301,7 +306,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	public static UUID generateId() {
-		return idGenerator.generateId();
+		return ID_GENERATOR.generateId();
 	}
 
 }

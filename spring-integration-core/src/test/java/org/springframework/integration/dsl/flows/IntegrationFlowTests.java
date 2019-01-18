@@ -72,6 +72,7 @@ import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.GenericHandler;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
@@ -698,10 +699,15 @@ public class IntegrationFlowTests {
 		}
 
 		@Bean
+		public MessageHandler loggingMessageHandler() {
+			return new LoggingHandler(LoggingHandler.Level.DEBUG);
+		}
+
+		@Bean
 		public IntegrationFlow wireTapFlow1() {
 			return IntegrationFlows.from("tappedChannel1")
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
-					.channel("nullChannel")
+					.handle(loggingMessageHandler())
 					.get();
 		}
 
@@ -709,7 +715,7 @@ public class IntegrationFlowTests {
 		public IntegrationFlow wireTapFlow2() {
 			return f -> f
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
-					.channel("nullChannel");
+					.handle(loggingMessageHandler());
 		}
 
 		@Bean
@@ -717,7 +723,7 @@ public class IntegrationFlowTests {
 			return f -> f
 					.transform("payload")
 					.wireTap("tapChannel", wt -> wt.selector("payload == 'foo'"))
-					.channel("nullChannel");
+					.handle(loggingMessageHandler());
 		}
 
 		@Bean

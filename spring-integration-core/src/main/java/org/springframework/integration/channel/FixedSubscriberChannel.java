@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,18 @@ import org.springframework.messaging.SubscribableChannel;
  * <b>Note: Stopping ({@link #unsubscribe(MessageHandler)}) the subscribed ({@link MessageHandler}) has no effect.</b>
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
 public final class FixedSubscriberChannel implements SubscribableChannel, BeanNameAware, NamedComponent {
 
-	private final Log logger = LogFactory.getLog(FixedSubscriberChannel.class);
+	private static final Log LOGGER = LogFactory.getLog(FixedSubscriberChannel.class);
 
 	private final MessageHandler handler;
 
-	private volatile String beanName;
+	private String beanName;
 
 	public FixedSubscriberChannel() {
 		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
@@ -60,8 +62,13 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 	}
 
 	@Override
+	public String getBeanName() {
+		return this.beanName;
+	}
+
+	@Override
 	public boolean send(Message<?> message) {
-		return this.send(message, 0);
+		return send(message, 0);
 	}
 
 	@Override
@@ -83,23 +90,23 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		if (handler != this.handler && this.logger.isDebugEnabled()) {
-			this.logger.debug(this.getComponentName() + ": cannot be subscribed to (it has a fixed single subscriber).");
+		if (handler != this.handler && LOGGER.isDebugEnabled()) {
+			LOGGER.debug(getComponentName() + ": cannot be subscribed to (it has a fixed single subscriber).");
 		}
 		return false;
 	}
 
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug(this.getComponentName() + ": cannot be unsubscribed from (it has a fixed single subscriber).");
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug(getComponentName() + ": cannot be unsubscribed from (it has a fixed single subscriber).");
 		}
 		return false;
 	}
 
 	@Override
 	public String getComponentType() {
-		return "Fixed Subscriber Channel";
+		return "fixed-subscriber-channel";
 	}
 
 	@Override

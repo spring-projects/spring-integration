@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 package org.springframework.integration.endpoint;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -60,9 +60,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private String managedName;
 
-	private volatile boolean countsEnabled;
+	private boolean countsEnabled;
 
-	private volatile boolean loggingEnabled = true;
+	private boolean loggingEnabled = true;
 
 	private MetricsCaptor metricsCaptor;
 
@@ -81,6 +81,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
+	}
+
+	@Override
+	public String getBeanName() {
+		return this.beanName;
 	}
 
 	@Override
@@ -216,14 +221,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	private Map<String, Object> evaluateHeaders() {
-		Map<String, Object> results = new HashMap<>();
-		for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
-			Object headerValue = this.evaluateExpression(entry.getValue());
-			if (headerValue != null) {
-				results.put(entry.getKey(), headerValue);
-			}
-		}
-		return results;
+		return ExpressionEvalMap.from(this.headerExpressions)
+				.usingEvaluationContext(getEvaluationContext())
+				.build();
 	}
 
 	/**
