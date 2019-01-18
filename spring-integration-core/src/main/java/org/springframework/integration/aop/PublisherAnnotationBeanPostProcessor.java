@@ -17,7 +17,7 @@
 package org.springframework.integration.aop;
 
 import org.springframework.aop.framework.autoproxy.AbstractBeanFactoryAwareAdvisingPostProcessor;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,7 +44,7 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 
 	private String defaultChannelName;
 
-	private String name;
+	private String beanName;
 
 	private BeanFactory beanFactory;
 
@@ -60,7 +60,7 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 
 	@Override
 	public void setBeanName(String name) {
-		this.name = name;
+		this.beanName = name;
 	}
 
 	@Override
@@ -74,16 +74,15 @@ public class PublisherAnnotationBeanPostProcessor extends AbstractBeanFactoryAwa
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		try {
 			this.beanFactory.getBean(PublisherAnnotationBeanPostProcessor.class);
 		}
 		catch (NoUniqueBeanDefinitionException ex) {
-			throw new BeanCreationNotAllowedException(this.name,
+			throw new BeanCreationException(this.beanName,
 					"Only one 'PublisherAnnotationBeanPostProcessor' bean can be defined in the application context." +
 							" Do not use '@EnablePublisher' (or '<int:enable-publisher>') if you declare a" +
-							" 'PublisherAnnotationBeanPostProcessor' bean definition manually. " +
-							"Bean names found: " + ex.getBeanNamesFound());
+							" 'PublisherAnnotationBeanPostProcessor' bean definition manually.", ex);
 		}
 	}
 
