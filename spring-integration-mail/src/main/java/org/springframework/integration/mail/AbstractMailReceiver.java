@@ -342,28 +342,32 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	public Object[] receive() throws javax.mail.MessagingException {
 		this.folderReadLock.lock();
 		try {
-			obtainFolder();
-			MimeMessage[] filteredMessages = searchAndFilterMessages();
-			if (this.headerMapper != null) {
-				org.springframework.messaging.Message<?>[] converted =
-						new org.springframework.messaging.Message<?>[filteredMessages.length];
-				int n = 0;
-				for (MimeMessage message : filteredMessages) {
-					Map<String, Object> headers = this.headerMapper.toHeaders(message);
-					converted[n++] =
-							getMessageBuilderFactory()
-									.withPayload(extractContent(message, headers))
-									.copyHeaders(headers)
-									.build();
+			try {
+				obtainFolder();
+				MimeMessage[] filteredMessages = searchAndFilterMessages();
+				if (this.headerMapper != null) {
+					org.springframework.messaging.Message<?>[] converted =
+							new org.springframework.messaging.Message<?>[filteredMessages.length];
+					int n = 0;
+					for (MimeMessage message : filteredMessages) {
+						Map<String, Object> headers = this.headerMapper.toHeaders(message);
+						converted[n++] =
+								getMessageBuilderFactory()
+										.withPayload(extractContent(message, headers))
+										.copyHeaders(headers)
+										.build();
+					}
+					return converted;
 				}
-				return converted;
+				else {
+					return filteredMessages;
+				}
 			}
-			else {
-				return filteredMessages;
+			finally {
+				MailTransportUtils.closeFolder(folder, this.shouldDeleteMessages);
 			}
 		}
 		finally {
-			MailTransportUtils.closeFolder(folder, this.shouldDeleteMessages);
 			this.folderReadLock.unlock();
 		}
 	}
