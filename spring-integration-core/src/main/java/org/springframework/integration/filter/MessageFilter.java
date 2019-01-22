@@ -110,8 +110,9 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	public MessageChannel getDiscardChannel() {
-		if (this.discardChannelName != null) {
-			this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
+		String channelName = this.discardChannelName;
+		if (channelName != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(channelName);
 			this.discardChannelName = null;
 		}
 		return this.discardChannel;
