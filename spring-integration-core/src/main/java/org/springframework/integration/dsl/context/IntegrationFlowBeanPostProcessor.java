@@ -389,7 +389,7 @@ public class IntegrationFlowBeanPostProcessor
 	@SuppressWarnings("unchecked")
 	private boolean noBeanPresentForComponent(Object instance, String parentBeanName) {
 		if (instance instanceof NamedComponent) {
-			String beanName = ((NamedComponent) instance).getComponentName();
+			String beanName = ((NamedComponent) instance).getBeanName();
 			if (beanName != null) {
 				if (this.beanFactory.containsBean(beanName)) {
 					BeanDefinition existingBeanDefinition = this.beanFactory.getBeanDefinition(beanName);
@@ -445,10 +445,11 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	private String generateBeanName(Object instance, String prefix, String fallbackId, boolean useFlowIdAsPrefix) {
-		if (instance instanceof NamedComponent && ((NamedComponent) instance).getComponentName() != null) {
+		if (instance instanceof NamedComponent && ((NamedComponent) instance).getBeanName() != null) {
+			String beanName = ((NamedComponent) instance).getBeanName();
 			return useFlowIdAsPrefix
-					? prefix + ((NamedComponent) instance).getComponentName()
-					: ((NamedComponent) instance).getComponentName();
+					? prefix + beanName
+					: beanName;
 		}
 		else if (fallbackId != null) {
 			return useFlowIdAsPrefix

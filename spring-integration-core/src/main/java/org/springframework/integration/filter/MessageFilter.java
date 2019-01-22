@@ -16,6 +16,7 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
@@ -47,11 +48,11 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	private final MessageSelector selector;
 
-	private volatile boolean throwExceptionOnRejection;
+	private boolean throwExceptionOnRejection;
 
-	private volatile MessageChannel discardChannel;
+	private MessageChannel discardChannel;
 
-	private volatile String discardChannelName;
+	private String discardChannelName;
 
 	/**
 	 * Create a MessageFilter that will delegate to the given {@link MessageSelector}.
@@ -109,13 +110,10 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 
 	@Override
 	public MessageChannel getDiscardChannel() {
-		if (this.discardChannelName != null) {
-			synchronized (this) {
-				if (this.discardChannelName != null) {
-					this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
-					this.discardChannelName = null;
-				}
-			}
+		String channelName = this.discardChannelName;
+		if (channelName != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			this.discardChannelName = null;
 		}
 		return this.discardChannel;
 	}
@@ -129,15 +127,16 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	@Override
 	protected void doInit() {
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
-					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
+				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			ConversionService conversionService = getConversionService();
 			if (conversionService != null) {
 				((AbstractMessageProcessingSelector) this.selector).setConversionService(conversionService);
 			}
 		}
-		if (this.selector instanceof BeanFactoryAware && this.getBeanFactory() != null) {
-			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (this.selector instanceof BeanFactoryAware && beanFactory != null) {
+			((BeanFactoryAware) this.selector).setBeanFactory(beanFactory);
 		}
 	}
 
@@ -178,8 +177,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 				this.messagingTemplate.send(channel, message);
 			}
 			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName()
-						+ "' rejected Message");
+				throw new MessageRejectedException(message, "MessageFilter '" + getBeanName() + "' rejected Message");
 			}
 		}
 		return result;

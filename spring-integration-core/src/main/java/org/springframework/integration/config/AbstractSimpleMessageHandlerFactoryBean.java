@@ -219,7 +219,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				else if (this.logger.isDebugEnabled()) {
 					String name = this.componentName;
 					if (name == null && actualHandler instanceof NamedComponent) {
-						name = ((NamedComponent) actualHandler).getComponentName();
+						name = ((NamedComponent) actualHandler).getBeanName();
 					}
 					this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
 							+ (name == null ? "" : (", " + name)) + ".");

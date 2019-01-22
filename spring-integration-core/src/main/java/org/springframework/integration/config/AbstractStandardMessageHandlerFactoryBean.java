@@ -167,7 +167,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
 				"An AbstractMessageProducingMessageHandler may only be referenced once (" +
-						replyHandler.getComponentName() + ") - use scope=\"prototype\"");
+						replyHandler.getBeanName() + ") - use scope=\"prototype\"");
 		referencedReplyProducers.add(replyHandler);
 		this.replyHandler = replyHandler;
 	}
@@ -213,7 +213,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 			else {
 				if (this.requiresReply && logger.isDebugEnabled()) {
 					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler " +
-							"or its subclass, " + handler.getComponentName() + " doesn't support it.");
+							"or its subclass, " + handler.getBeanName() + " doesn't support it.");
 				}
 			}
 		}

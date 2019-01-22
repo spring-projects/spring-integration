@@ -216,9 +216,13 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	}
 
 	private String generateBeanName(Object instance, String parentName) {
-		if (instance instanceof NamedComponent && ((NamedComponent) instance).getComponentName() != null) {
-			return ((NamedComponent) instance).getComponentName();
+		if (instance instanceof NamedComponent) {
+			String beanName = ((NamedComponent) instance).getBeanName();
+			if (beanName != null) {
+				return beanName;
+			}
 		}
+
 		String generatedBeanName = (parentName != null ? parentName : "") + instance.getClass().getName();
 		String id = generatedBeanName;
 		int counter = -1;
