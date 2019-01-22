@@ -364,7 +364,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				}
 			}
 			finally {
-				MailTransportUtils.closeFolder(folder, this.shouldDeleteMessages);
+				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			}
 		}
 		finally {
