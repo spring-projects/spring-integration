@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 
 import org.apache.commons.logging.Log;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,7 +112,7 @@ import com.sun.mail.imap.IMAPFolder;
 @DirtiesContext
 public class ImapMailReceiverTests {
 
-	private static final ImapServer imapIdleServer = TestMailServer.imap(0);
+	private final ImapServer imapIdleServer = TestMailServer.imap(0);
 
 	@Rule
 	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
@@ -123,24 +123,24 @@ public class ImapMailReceiverTests {
 	@Autowired
 	private ApplicationContext context;
 
-	@BeforeClass
-	public static void setup() throws InterruptedException {
+	@Before
+	public void setup() throws InterruptedException {
 		int n = 0;
-		while (n++ < 100 && (!imapIdleServer.isListening())) {
+		while (n++ < 100 && (!this.imapIdleServer.isListening())) {
 			Thread.sleep(100);
 		}
 		assertTrue(n < 100);
 	}
 
-	@AfterClass
-	public static void tearDown() {
-		imapIdleServer.stop();
+	@After
+	public void tearDown() {
+		this.imapIdleServer.stop();
 	}
 
 	@Test
 	public void testIdleWithServerCustomSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
 		receiver.setSearchTermStrategy((supportedFlags, folder) -> {
 			try {
 				FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
@@ -156,15 +156,15 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
 		testIdleWithServerGuts(receiver, false);
-		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
+		assertTrue(this.imapIdleServer.assertReceived("searchWithUserFlag"));
 	}
 
 	@Test
 	public void testIdleWithMessageMapping() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true);
 	}
@@ -172,16 +172,16 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleWithServerDefaultSearchSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		testIdleWithServerGuts(receiver, false, true);
-		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
+		assertTrue(this.imapIdleServer.assertReceived("searchWithUserFlag"));
 	}
 
 	@Test
 	public void testIdleWithMessageMappingSimple() throws Exception {
 		ImapMailReceiver receiver =
-				new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX");
+				new ImapMailReceiver("imap://user:pw@localhost:" + this.imapIdleServer.getPort() + "/INBOX");
 		receiver.setSimpleContent(true);
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		testIdleWithServerGuts(receiver, true, true);
@@ -192,7 +192,7 @@ public class ImapMailReceiverTests {
 	}
 
 	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
-		imapIdleServer.resetServer();
+		this.imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
 		mailProps.put("mail.imap.connectionpool.debug", "true");
@@ -256,7 +256,7 @@ public class ImapMailReceiverTests {
 
 		adapter.stop();
 		taskScheduler.shutdown();
-		assertTrue(imapIdleServer.assertReceived("storeUserFlag"));
+		assertTrue(this.imapIdleServer.assertReceived("storeUserFlag"));
 	}
 
 	@Test

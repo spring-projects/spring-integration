@@ -341,66 +341,77 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	@Override
 	public Object[] receive() throws javax.mail.MessagingException {
 		this.folderReadLock.lock();
+		try {
+			try {
+				obtainFolder();
+				MimeMessage[] filteredMessages = searchAndFilterMessages();
+				if (this.headerMapper != null) {
+					org.springframework.messaging.Message<?>[] converted =
+							new org.springframework.messaging.Message<?>[filteredMessages.length];
+					int n = 0;
+					for (MimeMessage message : filteredMessages) {
+						Map<String, Object> headers = this.headerMapper.toHeaders(message);
+						converted[n++] =
+								getMessageBuilderFactory()
+										.withPayload(extractContent(message, headers))
+										.copyHeaders(headers)
+										.build();
+					}
+					return converted;
+				}
+				else {
+					return filteredMessages;
+				}
+			}
+			finally {
+				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
+			}
+		}
+		finally {
+			this.folderReadLock.unlock();
+		}
+	}
+
+	private void obtainFolder() throws MessagingException {
 		Folder folder = getFolder();
 		if (folder == null || !folder.isOpen()) {
 			this.folderReadLock.unlock();
 			this.folderWriteLock.lock();
 			try {
 				openFolder();
-				folder = getFolder();
 				this.folderReadLock.lock();
 			}
 			finally {
 				this.folderWriteLock.unlock();
 			}
 		}
-		try {
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info("attempting to receive mail from folder [" + folder.getFullName() + "]");
-			}
-			Message[] messages = searchForNewMessages();
-			if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
-				Message[] reducedMessages = new Message[this.maxFetchSize];
-				System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
-				messages = reducedMessages;
-			}
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("found " + messages.length + " new messages");
-			}
-			if (messages.length > 0) {
-				fetchMessages(messages);
-			}
+	}
 
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Received " + messages.length + " messages");
-			}
-
-			MimeMessage[] filteredMessages = filterMessagesThruSelector(messages);
-
-			postProcessFilteredMessages(filteredMessages);
-
-			if (this.headerMapper != null) {
-				org.springframework.messaging.Message<?>[] converted =
-						new org.springframework.messaging.Message<?>[filteredMessages.length];
-				int n = 0;
-				for (MimeMessage message : filteredMessages) {
-					Map<String, Object> headers = this.headerMapper.toHeaders(message);
-					converted[n++] =
-							getMessageBuilderFactory()
-									.withPayload(extractContent(message, headers))
-									.copyHeaders(headers)
-									.build();
-				}
-				return converted;
-			}
-			else {
-				return filteredMessages;
-			}
+	private MimeMessage[] searchAndFilterMessages() throws MessagingException {
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info("attempting to receive mail from folder [" + this.folder.getFullName() + "]");
 		}
-		finally {
-			MailTransportUtils.closeFolder(folder, this.shouldDeleteMessages);
-			this.folderReadLock.unlock();
+		Message[] messages = searchForNewMessages();
+		if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
+			Message[] reducedMessages = new Message[this.maxFetchSize];
+			System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
+			messages = reducedMessages;
 		}
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("found " + messages.length + " new messages");
+		}
+		if (messages.length > 0) {
+			fetchMessages(messages);
+		}
+
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Received " + messages.length + " messages");
+		}
+
+		MimeMessage[] filteredMessages = filterMessagesThruSelector(messages);
+
+		postProcessFilteredMessages(filteredMessages);
+		return filteredMessages;
 	}
 
 	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
@@ -525,7 +536,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Fetches the specified messages from this receiver's folder. Default
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
 	 * every {@link javax.mail.FetchProfile.Item}.
-	 *
 	 * @param messages the messages to fetch
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -539,7 +549,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Deletes the given messages from this receiver's folder.
-	 *
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -552,7 +561,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	/**
 	 * Optional method allowing you to set additional flags.
 	 * Currently only implemented in IMapMailReceiver.
-	 *
 	 * @param message The message.
 	 * @throws MessagingException A MessagingException.
 	 */
@@ -593,9 +601,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Since we copy the message to eagerly fetch the message, it has no folder.
 	 * However, we need to make a folder available in case the user wants to
 	 * perform operations on the message in the folder later in the flow.
-	 * @author Gary Russell
-	 * @since 2.2
 	 *
+	 * @author Gary Russell
+	 *
+	 * @since 2.2
 	 */
 	private final class IntegrationMimeMessage extends MimeMessage {
 
@@ -625,7 +634,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		@Override
 		public Folder getFolder() {
 			try {
-				return AbstractMailReceiver.this.obtainFolderInstance();
+				return obtainFolderInstance();
 			}
 			catch (MessagingException e) {
 				throw new org.springframework.messaging.MessagingException("Unable to obtain the mail folder", e);
