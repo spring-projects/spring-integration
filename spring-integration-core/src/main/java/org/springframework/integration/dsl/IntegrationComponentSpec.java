@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -35,7 +37,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @since 5.0
  */
 public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T>
-		implements FactoryBean<T>, InitializingBean, DisposableBean {
+		extends AbstractFactoryBean<T>
+		implements SmartLifecycle {
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -71,26 +74,73 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	@Override
-	public T getObject() {
-		return get();
-	}
-
-	@Override
 	public Class<?> getObjectType() {
 		return get().getClass();
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (this.target instanceof InitializingBean) {
-			((InitializingBean) this.target).afterPropertiesSet();
+	protected T createInstance() throws Exception {
+		T instance = get();
+		if (instance instanceof InitializingBean) {
+			((InitializingBean) instance).afterPropertiesSet();
+		}
+		return instance;
+	}
+
+	@Override
+	protected void destroyInstance(T instance) throws Exception {
+		if (instance instanceof DisposableBean) {
+			((DisposableBean) instance).destroy();
 		}
 	}
 
 	@Override
-	public void destroy() throws Exception {
-		if (this.target instanceof DisposableBean) {
-			((DisposableBean) this.target).destroy();
+	public void start() {
+		T instance = get();
+		if (instance instanceof Lifecycle) {
+			((Lifecycle) instance).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		T instance = get();
+		if (instance instanceof Lifecycle) {
+			((Lifecycle) instance).stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		T instance = get();
+		return !(instance instanceof Lifecycle) || ((Lifecycle) instance).isRunning();
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		T instance = get();
+		return instance instanceof SmartLifecycle && ((SmartLifecycle) instance).isAutoStartup();
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		T instance = get();
+		if (instance instanceof SmartLifecycle) {
+			((SmartLifecycle) instance).stop(callback);
+		}
+		else {
+			callback.run();
+		}
+	}
+
+	@Override
+	public int getPhase() {
+		T instance = get();
+		if (instance instanceof SmartLifecycle) {
+			return ((SmartLifecycle) instance).getPhase();
+		}
+		else {
+			return 0;
 		}
 	}
 
