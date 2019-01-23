@@ -343,25 +343,19 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.folderReadLock.lock();
 		try {
 			try {
-				obtainFolder();
-				MimeMessage[] filteredMessages = searchAndFilterMessages();
-				if (this.headerMapper != null) {
-					org.springframework.messaging.Message<?>[] converted =
-							new org.springframework.messaging.Message<?>[filteredMessages.length];
-					int n = 0;
-					for (MimeMessage message : filteredMessages) {
-						Map<String, Object> headers = this.headerMapper.toHeaders(message);
-						converted[n++] =
-								getMessageBuilderFactory()
-										.withPayload(extractContent(message, headers))
-										.copyHeaders(headers)
-										.build();
+				Folder folderToCheck = getFolder();
+				if (folderToCheck == null || !folderToCheck.isOpen()) {
+					this.folderReadLock.unlock();
+					this.folderWriteLock.lock();
+					try {
+						openFolder();
+						this.folderReadLock.lock();
 					}
-					return converted;
+					finally {
+						this.folderWriteLock.unlock();
+					}
 				}
-				else {
-					return filteredMessages;
-				}
+				return convertMessagesIfNecessary(searchAndFilterMessages());
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
@@ -369,21 +363,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		finally {
 			this.folderReadLock.unlock();
-		}
-	}
-
-	private void obtainFolder() throws MessagingException {
-		Folder folder = getFolder();
-		if (folder == null || !folder.isOpen()) {
-			this.folderReadLock.unlock();
-			this.folderWriteLock.lock();
-			try {
-				openFolder();
-				this.folderReadLock.lock();
-			}
-			finally {
-				this.folderWriteLock.unlock();
-			}
 		}
 	}
 
@@ -412,6 +391,26 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		postProcessFilteredMessages(filteredMessages);
 		return filteredMessages;
+	}
+
+	private Object[] convertMessagesIfNecessary(MimeMessage[] filteredMessages) {
+		if (this.headerMapper != null) {
+			org.springframework.messaging.Message<?>[] converted =
+					new org.springframework.messaging.Message<?>[filteredMessages.length];
+			int n = 0;
+			for (MimeMessage message : filteredMessages) {
+				Map<String, Object> headers = this.headerMapper.toHeaders(message);
+				converted[n++] =
+						getMessageBuilderFactory()
+								.withPayload(extractContent(message, headers))
+								.copyHeaders(headers)
+								.build();
+			}
+			return converted;
+		}
+		else {
+			return filteredMessages;
+		}
 	}
 
 	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
