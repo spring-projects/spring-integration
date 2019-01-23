@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.w3c.dom.Element;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class OperationInvokingChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -39,7 +41,8 @@ public class OperationInvokingChannelAdapterParser extends AbstractOutboundChann
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(OperationInvokingMessageHandler.class);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
+		builder.addConstructorArgReference(element.getAttribute("server"));
+		builder.addPropertyValue("expectReply", false);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "operation-name");
 		return builder.getBeanDefinition();
