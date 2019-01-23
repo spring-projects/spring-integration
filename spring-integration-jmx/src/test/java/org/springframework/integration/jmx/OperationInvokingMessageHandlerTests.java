@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,7 @@ public class OperationInvokingMessageHandlerTests {
 	@Test
 	public void invocationWithMapPayload() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
@@ -93,8 +92,7 @@ public class OperationInvokingMessageHandlerTests {
 	@Test
 	public void invocationWithPayloadNoReturnValue() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("y");
@@ -107,8 +105,7 @@ public class OperationInvokingMessageHandlerTests {
 	@Test(expected = MessagingException.class)
 	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
@@ -126,8 +123,7 @@ public class OperationInvokingMessageHandlerTests {
 	@Test
 	public void invocationWithListPayload() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
