@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.time.Duration;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -29,6 +30,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * variants.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -38,6 +40,10 @@ public final class Pollers {
 		return new PollerSpec(trigger);
 	}
 
+	public static PollerSpec fixedRate(Duration period) {
+		return fixedRate(period.toMillis());
+	}
+
 	public static PollerSpec fixedRate(long period) {
 		return fixedRate(period, null);
 	}
@@ -45,6 +51,11 @@ public final class Pollers {
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
 		return fixedRate(period, timeUnit, 0);
 	}
+
+	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
+		return fixedRate(period.toMillis(), initialDelay.toMillis());
+	}
+
 	public static PollerSpec fixedRate(long period, long initialDelay) {
 		return periodicTrigger(period, null, true, initialDelay);
 	}
@@ -53,8 +64,16 @@ public final class Pollers {
 		return periodicTrigger(period, timeUnit, true, initialDelay);
 	}
 
+	public static PollerSpec fixedDelay(Duration period) {
+		return fixedDelay(period.toMillis());
+	}
+
 	public static PollerSpec fixedDelay(long period) {
 		return fixedDelay(period, null);
+	}
+
+	public static PollerSpec fixedDelay(Duration period, Duration initialDelay) {
+		return fixedDelay(period.toMillis(), initialDelay.toMillis());
 	}
 
 	public static PollerSpec fixedDelay(long period, TimeUnit timeUnit) {
