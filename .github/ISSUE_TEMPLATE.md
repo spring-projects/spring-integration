@@ -1,4 +1,10 @@
 <!--
+!!! To report Security Vulnerabilities, please go to https://pivotal.io/security !!!
+-->
+**Affects Version(s):** \<Spring Integration version>
+
+---
+<!--
 Thanks for raising a Spring Integration issue. What sort of issue are you raising?
 
 ## Question
@@ -18,9 +24,4 @@ we have fixed it.
 
 Please start by describing the problem that you are trying to solve. There may already
 be a solution, or there may be a way to solve it that you hadn't considered.
-
-## JIRA
-
-While we will accept GitHub issues for the project, we generally prefer to use
-[JIRA](https://jira.spring.io/browse/INT) to track issues.
 -->
