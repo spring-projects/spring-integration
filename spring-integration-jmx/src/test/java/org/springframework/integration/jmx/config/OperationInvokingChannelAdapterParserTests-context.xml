@@ -21,7 +21,7 @@
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
 			operation-name="test">
 		<jmx:request-handler-advice-chain>
-			<bean class="org.springframework.integration.jmx.config.OperationInvokingChannelAdapterParserTests$FooADvice" />
+			<bean class="org.springframework.integration.jmx.config.OperationInvokingChannelAdapterParserTests.FooAdvice" />
 		</jmx:request-handler-advice-chain>
 	</jmx:operation-invoking-channel-adapter>
 
@@ -37,8 +37,8 @@
 				operation-name="test"/>
 	</si:chain>
 
-	<si:chain input-channel="operationWithinChainWithNonNullReturn">
-		<jmx:operation-invoking-channel-adapter
+	<si:chain id="chainWithOperation" input-channel="operationWithinChainWithNonNullReturn">
+		<jmx:operation-invoking-channel-adapter id="operationWithinChainWithNonNullReturnHandler"
 				object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
 				operation-name="testWithReturn"/>
 	</si:chain>
