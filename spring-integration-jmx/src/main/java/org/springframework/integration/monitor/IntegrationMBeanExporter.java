@@ -1034,7 +1034,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	private String getInternalComponentName(String name) {
-		return name.substring('_' + SI_PACKAGE.length() + 1);
+		return name.substring(('_' + SI_PACKAGE).length() + 1);
 	}
 
 	private MessageSourceMetrics enhanceSourceMonitor(MessageSourceMetrics monitor) {

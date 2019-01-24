@@ -111,14 +111,14 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 	private Object checkAndConvert(Object input) {
 		Object converted = null;
-		if (input.getClass().isArray()) {
-			converted = convertFromArray(input);
-		}
-		else if (input instanceof CompositeData) {
+		if (input instanceof CompositeData) {
 			converted = convertFromCompositeData((CompositeData) input);
 		}
 		else if (input instanceof TabularData) {
 			converted = convertFromTabularData((TabularData) input);
+		}
+		else if (input != null && input.getClass().isArray()) {
+			converted = convertFromArray(input);
 		}
 
 		if (converted != null) {
