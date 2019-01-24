@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -143,6 +144,10 @@ public class PollerAdviceTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
 		adapter.setTrigger(new OnlyOnceTrigger());
+		AtomicBoolean ehCalled = new AtomicBoolean();
+		adapter.setErrorHandler(t -> {
+			ehCalled.set(true);
+		});
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<>();
 		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
@@ -153,6 +158,7 @@ public class PollerAdviceTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertFalse(latch.await(10, TimeUnit.MILLISECONDS));
+		assertFalse(ehCalled.get());
 		adapter.stop();
 		skipper.reset();
 		latch = new CountDownLatch(1);
