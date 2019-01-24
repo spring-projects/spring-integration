@@ -191,25 +191,9 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 					hasNoArgOption = true;
 				}
 				if (paramInfoArray.length == paramsFromMessage.size()) {
-					int index = 0;
 					Object[] values = new Object[paramInfoArray.length];
 					String[] signature = new String[paramInfoArray.length];
-					for (MBeanParameterInfo paramInfo : paramInfoArray) {
-						Object value = paramsFromMessage.get(paramInfo.getName());
-						if (value == null) {
-							/*
-							 * With Spring 3.2.3 and greater, the parameter names are
-							 * registered instead of the JVM's default p1, p2 etc.
-							 * Fall back to that naming style if not found.
-							 */
-							value = paramsFromMessage.get("p" + (index + 1));
-						}
-						if (value != null && valueTypeMatchesParameterType(value, paramInfo)) {
-							values[index] = value;
-							signature[index] = paramInfo.getType();
-							index++;
-						}
-					}
+					int index = populateValuesAndSignature(paramsFromMessage, paramInfoArray, values, signature);
 					if (index == paramInfoArray.length) {
 						return this.server.invoke(objectName, operation, values, signature);
 					}
@@ -224,6 +208,29 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 					+ operation + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
 					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage);
 		}
+	}
+
+	private int populateValuesAndSignature(Map<String, Object> paramsFromMessage, MBeanParameterInfo[] paramInfoArray,
+			Object[] values, String[] signature) {
+
+		int index = 0;
+		for (MBeanParameterInfo paramInfo : paramInfoArray) {
+			Object value = paramsFromMessage.get(paramInfo.getName());
+			if (value == null) {
+				/*
+				 * With Spring 3.2.3 and greater, the parameter names are
+				 * registered instead of the JVM's default p1, p2 etc.
+				 * Fall back to that naming style if not found.
+				 */
+				value = paramsFromMessage.get("p" + (index + 1));
+			}
+			if (value != null && valueTypeMatchesParameterType(value, paramInfo)) {
+				values[index] = value;
+				signature[index] = paramInfo.getType();
+				index++;
+			}
+		}
+		return index;
 	}
 
 	private boolean valueTypeMatchesParameterType(Object value, MBeanParameterInfo paramInfo) {

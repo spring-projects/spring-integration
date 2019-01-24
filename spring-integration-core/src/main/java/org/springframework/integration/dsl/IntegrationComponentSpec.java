@@ -79,18 +79,28 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	@Override
-	protected T createInstance() throws Exception {
+	protected T createInstance() {
 		T instance = get();
 		if (instance instanceof InitializingBean) {
-			((InitializingBean) instance).afterPropertiesSet();
+			try {
+				((InitializingBean) instance).afterPropertiesSet();
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Cannot initialize bean: " + instance, e);
+			}
 		}
 		return instance;
 	}
 
 	@Override
-	protected void destroyInstance(T instance) throws Exception {
+	protected void destroyInstance(T instance)  {
 		if (instance instanceof DisposableBean) {
-			((DisposableBean) instance).destroy();
+			try {
+				((DisposableBean) instance).destroy();
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Cannot destroy bean: " + instance, e);
+			}
 		}
 	}
 
@@ -145,7 +155,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	@SuppressWarnings("unchecked")
-	protected final S _this() {
+	protected final S _this() { // NOSONAR
 		return (S) this;
 	}
 
