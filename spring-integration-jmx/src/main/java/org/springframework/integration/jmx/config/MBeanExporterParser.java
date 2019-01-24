@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
@@ -56,17 +58,19 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		Object mbeanServer = getMBeanServer(element, parserContext);
+		Object mbeanServer = getMBeanServer(element);
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "managed-components", "componentNamePatterns");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy", "namingStrategy");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "managed-components",
+				"componentNamePatterns");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-naming-strategy",
+				"namingStrategy");
 
 		builder.addPropertyValue("server", mbeanServer);
 	}
 
-	private Object getMBeanServer(Element element, ParserContext parserContext) {
+	private Object getMBeanServer(Element element) {
 		String mbeanServer = element.getAttribute("server");
 		if (StringUtils.hasText(mbeanServer)) {
 			return new RuntimeBeanReference(mbeanServer);
@@ -77,12 +81,14 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+
 		String id = super.resolveId(element, definition, parserContext);
 		if (MBEAN_EXPORTER_NAME.equals(id)) {
 			parserContext.getReaderContext().error(
 					"Illegal bean id for <jmx:mbean-export/>: " + MBEAN_EXPORTER_NAME +
-					" (clashes with <context:mbean-export/> default).  Please choose another bean id.",
+							" (clashes with <context:mbean-export/> default).  Please choose another bean id.",
 					definition);
 		}
 		if (id.matches(IntegrationMBeanExporter.class.getName() + "#[0-9]+")) {
