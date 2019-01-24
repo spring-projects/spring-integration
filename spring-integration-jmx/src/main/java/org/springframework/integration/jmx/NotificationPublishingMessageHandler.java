@@ -22,6 +22,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.Notification;
 import javax.management.ObjectName;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -60,7 +61,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	private String defaultNotificationType;
 
-	@Nullable
 	private OutboundMessageMapper<Notification> notificationMapper;
 
 
@@ -109,11 +109,12 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	@Override
 	public final void onInit() {
-		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
+		BeanFactory beanFactory = getBeanFactory();
+		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		Map<String, MBeanExporter> exporters =
-				BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory) getBeanFactory(),
+				BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory) beanFactory,
 						MBeanExporter.class);
-		Assert.isTrue(exporters.size() > 0, "No MBeanExporter is available in the current context.");
+		Assert.state(exporters.size() > 0, "No MBeanExporter is available in the current context.");
 		MBeanExporter exporter = null;
 		for (MBeanExporter exp : exporters.values()) {
 			exporter = exp;
@@ -124,9 +125,11 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		if (this.notificationMapper == null) {
 			this.notificationMapper = new DefaultNotificationMapper(this.objectName, this.defaultNotificationType);
 		}
-		exporter.registerManagedResource(this.delegate, this.objectName);
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
+		if (exporter != null) {
+			exporter.registerManagedResource(this.delegate, this.objectName);
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
+			}
 		}
 	}
 
