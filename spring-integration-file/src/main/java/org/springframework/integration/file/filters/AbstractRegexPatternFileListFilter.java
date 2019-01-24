@@ -58,6 +58,15 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 		this.pattern = pattern;
 	}
 
+	/**
+	 * @deprecated since 5.1.3. Will be removed in the next 5.2 version.
+	 */
+	@Override
+	@Deprecated
+	public void afterPropertiesSet() {
+
+	}
+
 	@Override
 	public boolean accept(F file) {
 		return alwaysAccept(file) || (file != null && this.pattern.matcher(getFilename(file)).matches());

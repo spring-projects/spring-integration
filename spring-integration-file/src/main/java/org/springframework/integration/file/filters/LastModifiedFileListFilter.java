@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.springframework.lang.Nullable;
+
 /**
  * The {@link FileListFilter} implementation to filter those files which
  * {@link File#lastModified()} is less than the {@link #age} in comparison
@@ -48,6 +50,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 
 	private volatile long age = DEFAULT_AGE;
 
+	@Nullable
 	private Consumer<File> discardCallback;
 
 	public LastModifiedFileListFilter() {
@@ -72,7 +75,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	 * @param unit the timeUnit.
 	 */
 	public void setAge(long age, TimeUnit unit) {
-		setAge(unit.toSeconds(age));
+		this.age = unit.toSeconds(age);
 	}
 
 	/**
@@ -103,7 +106,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	}
 
 	@Override
-	public void addDiscardCallback(Consumer<File> discardCallback) {
+	public void addDiscardCallback(@Nullable Consumer<File> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
