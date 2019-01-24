@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -103,15 +104,15 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 */
 	private final Queue<File> toBeReceived;
 
-	private volatile File directory;
+	private File directory;
 
-	private volatile DirectoryScanner scanner = new DefaultDirectoryScanner();
+	private DirectoryScanner scanner = new DefaultDirectoryScanner();
 
-	private volatile boolean scannerExplicitlySet;
+	private boolean scannerExplicitlySet;
 
-	private volatile boolean autoCreateDirectory = true;
+	private boolean autoCreateDirectory = true;
 
-	private volatile boolean scanEachPoll = false;
+	private boolean scanEachPoll = false;
 
 	private FileListFilter<File> filter;
 
@@ -119,7 +120,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 	private boolean useWatchService;
 
-	private WatchEventType[] watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+	private WatchEventType[] watchEvents = { WatchEventType.CREATE };
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -132,7 +133,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 * Creates a FileReadingMessageSource with a bounded queue of the given
 	 * capacity. This can be used to reduce the memory footprint of this
 	 * component when reading from a large directory.
-	 *
 	 * @param internalQueueCapacity
 	 *            the size of the queue used to cache files to be received
 	 *            internally. This queue can be made larger to optimize the
@@ -151,26 +151,22 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 	/**
 	 * Creates a FileReadingMessageSource with a {@link PriorityBlockingQueue}
-	 * ordered with the passed in {@link Comparator}
-	 * <p>
-	 * The size of the queue used should be large enough to hold all the files
+	 * ordered with the passed in {@link Comparator}.
+	 * <p> The size of the queue used should be large enough to hold all the files
 	 * in the input directory in order to sort all of them, so restricting the
 	 * size of the queue is mutually exclusive with ordering. No guarantees
 	 * about file delivery order can be made under concurrent access.
-	 * <p>
-	 *
 	 * @param receptionOrderComparator
 	 *            the comparator to be used to order the files in the internal
 	 *            queue
 	 */
-	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
+	public FileReadingMessageSource(@Nullable Comparator<File> receptionOrderComparator) {
 		this.toBeReceived = new PriorityBlockingQueue<>(DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
 	}
 
 
 	/**
 	 * Specify the input directory.
-	 *
 	 * @param directory to monitor
 	 */
 	public void setDirectory(File directory) {
@@ -181,7 +177,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	/**
 	 * Optionally specify a custom scanner, for example the
 	 * {@link WatchServiceDirectoryScanner}
-	 *
 	 * @param scanner scanner implementation
 	 */
 	public void setScanner(DirectoryScanner scanner) {
@@ -207,7 +202,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 * <em>true</em>. If set to <em>false</em> and the
 	 * source directory does not exist, an Exception will be thrown upon
 	 * initialization.
-	 *
 	 * @param autoCreateDirectory
 	 *            should the directory to be monitored be created when this
 	 *            component starts up?
@@ -224,8 +218,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 * If multiple filters are required a
 	 * {@link org.springframework.integration.file.filters.CompositeFileListFilter}
 	 * can be used to group them together.
-	 * <p>
-	 * <b>The supplied filter must be thread safe.</b>.
+	 * <p> <b>The supplied filter must be thread safe.</b>.
 	 * @param filter a filter
 	 */
 	public void setFilter(FileListFilter<File> filter) {
@@ -256,7 +249,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	 * will more likely be out of sync with the file system if this flag is set
 	 * to <code>false</code>, but it will change more often (causing expensive
 	 * reordering) if it is set to <code>true</code>.
-	 *
 	 * @param scanEachPoll
 	 *            whether or not the component should re-scan (as opposed to not
 	 *            rescanning until the entire backlog has been delivered)
@@ -305,14 +297,16 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	public void start() {
 		if (!this.running.getAndSet(true)) {
 			if (!this.directory.exists() && this.autoCreateDirectory) {
-				this.directory.mkdirs();
+				if (!this.directory.mkdirs()) {
+					throw new IllegalStateException("Cannot create directory or ita parents: " + this.directory);
+				}
 			}
 			Assert.isTrue(this.directory.exists(),
-					"Source directory [" + this.directory + "] does not exist.");
+					() -> "Source directory [" + this.directory + "] does not exist.");
 			Assert.isTrue(this.directory.isDirectory(),
-					"Source path [" + this.directory + "] does not point to a directory.");
+					() -> "Source path [" + this.directory + "] does not point to a directory.");
 			Assert.isTrue(this.directory.canRead(),
-					"Source directory [" + this.directory + "] is not readable.");
+					() -> "Source directory [" + this.directory + "] is not readable.");
 			if (this.scanner instanceof Lifecycle) {
 				((Lifecycle) this.scanner).start();
 			}
@@ -336,7 +330,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 		Assert.notNull(this.directory, "'directory' must not be null");
 
 		Assert.state(!(this.scannerExplicitlySet && this.useWatchService),
-				"The 'scanner' and 'useWatchService' options are mutually exclusive: " + this.scanner);
+				() -> "The 'scanner' and 'useWatchService' options are mutually exclusive: " + this.scanner);
 
 		if (this.useWatchService) {
 			this.scanner = new WatchServiceDirectoryScanner();
@@ -345,8 +339,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 		// Check that the filter and locker options are _NOT_ set if an external scanner has been set.
 		// The external scanner is responsible for the filter and locker options in that case.
 		Assert.state(!(this.scannerExplicitlySet && (this.filter != null || this.locker != null)),
-				"When using an external scanner the 'filter' and 'locker' options should not be used. Instead, set these options on the external DirectoryScanner: "
-						+ this.scanner);
+				() -> "When using an external scanner the 'filter' and 'locker' options should not be used. " +
+						"Instead, set these options on the external DirectoryScanner: " + this.scanner);
 		if (this.filter != null) {
 			this.scanner.setFilter(this.filter);
 		}
@@ -492,7 +486,7 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 			files.addAll(filesFromEvents());
 
-			return files.toArray(new File[files.size()]);
+			return files.toArray(new File[0]);
 		}
 
 		private Set<File> filesFromEvents() {
@@ -504,63 +498,72 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 					if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE ||
 							event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ||
 							event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-						Path item = (Path) event.context();
-						File file = new File(parentDir, item.toFile().getName());
-						if (logger.isDebugEnabled()) {
-							logger.debug("Watch event [" + event.kind() + "] for file [" + file + "]");
-						}
 
-						if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-							if (getFilter() instanceof ResettableFileListFilter) {
-								((ResettableFileListFilter<File>) getFilter()).remove(file);
-							}
-							boolean fileRemoved = files.remove(file);
-							if (fileRemoved && logger.isDebugEnabled()) {
-								logger.debug("The file [" + file +
-										"] has been removed from the queue because of DELETE event.");
-							}
-						}
-						else {
-							if (file.exists()) {
-								if (file.isDirectory()) {
-									files.addAll(walkDirectory(file.toPath(), event.kind()));
-								}
-								else {
-									files.remove(file);
-									files.add(file);
-								}
-							}
-							else {
-								if (logger.isDebugEnabled()) {
-									logger.debug("A file [" + file + "] for the event [" + event.kind() +
-											"] doesn't exist. Ignored.");
-								}
-							}
-						}
+						processFilesFromNormalEvent(files, parentDir, event);
 					}
 					else if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Watch event [" + StandardWatchEventKinds.OVERFLOW +
-									"] with context [" + event.context() + "]");
-						}
-
-						for (WatchKey watchKey : this.pathKeys.values()) {
-							watchKey.cancel();
-						}
-						this.pathKeys.clear();
-
-						if (event.context() != null && event.context() instanceof Path) {
-							files.addAll(walkDirectory((Path) event.context(), event.kind()));
-						}
-						else {
-							files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
-						}
+						processFilesFromOverflowEvent(files, event);
 					}
 				}
 				key.reset();
 				key = this.watcher.poll();
 			}
 			return files;
+		}
+
+		private void processFilesFromNormalEvent(Set<File> files, File parentDir, WatchEvent<?> event) {
+			Path item = (Path) event.context();
+			File file = new File(parentDir, item.toFile().getName());
+			if (logger.isDebugEnabled()) {
+				logger.debug("Watch event [" + event.kind() + "] for file [" + file + "]");
+			}
+
+			if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+				if (getFilter() instanceof ResettableFileListFilter) {
+					((ResettableFileListFilter<File>) getFilter()).remove(file);
+				}
+				boolean fileRemoved = files.remove(file);
+				if (fileRemoved && logger.isDebugEnabled()) {
+					logger.debug("The file [" + file +
+							"] has been removed from the queue because of DELETE event.");
+				}
+			}
+			else {
+				if (file.exists()) {
+					if (file.isDirectory()) {
+						files.addAll(walkDirectory(file.toPath(), event.kind()));
+					}
+					else {
+						files.remove(file);
+						files.add(file);
+					}
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("A file [" + file + "] for the event [" + event.kind() +
+								"] doesn't exist. Ignored.");
+					}
+				}
+			}
+		}
+
+		private void processFilesFromOverflowEvent(Set<File> files, WatchEvent<?> event) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Watch event [" + StandardWatchEventKinds.OVERFLOW +
+						"] with context [" + event.context() + "]");
+			}
+
+			for (WatchKey watchKey : this.pathKeys.values()) {
+				watchKey.cancel();
+			}
+			this.pathKeys.clear();
+
+			if (event.context() != null && event.context() instanceof Path) {
+				files.addAll(walkDirectory((Path) event.context(), event.kind()));
+			}
+			else {
+				files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
+			}
 		}
 
 		private Set<File> walkDirectory(Path directory, final WatchEvent.Kind<?> kind) {

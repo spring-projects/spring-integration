@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.springframework.lang.Nullable;
+
 /**
  * {@link FileListFilter} that passes files only one time. This can
  * conveniently be used to prevent duplication of files, as is done in
@@ -32,11 +34,12 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell
- * @since 1.0.0
+ * @author Artem Bilan
  */
 public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> implements ReversibleFileListFilter<F>,
 		ResettableFileListFilter<F> {
 
+	@Nullable
 	private final Queue<F> seen;
 
 	private final Set<F> seenSet = new HashSet<F>();
@@ -48,7 +51,6 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	 * Creates an AcceptOnceFileListFilter that is based on a bounded queue. If the queue overflows,
 	 * files that fall out will be passed through this filter again if passed to the
 	 * {@link #filterFiles(Object[])}
-	 *
 	 * @param maxCapacity the maximum number of Files to maintain in the 'seen' queue.
 	 */
 	public AcceptOnceFileListFilter(int maxCapacity) {
@@ -69,22 +71,16 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 			if (this.seenSet.contains(file)) {
 				return false;
 			}
-			if (this.seen != null) {
-				if (!this.seen.offer(file)) {
-					F removed = this.seen.poll();
-					this.seenSet.remove(removed);
-					this.seen.add(file);
-				}
+			if (this.seen != null && !this.seen.offer(file)) {
+				F removed = this.seen.poll();
+				this.seenSet.remove(removed);
+				this.seen.add(file);
 			}
 			this.seenSet.add(file);
 			return true;
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * @since 4.0.4
-	 */
 	@Override
 	public void rollback(F file, List<F> files) {
 		synchronized (this.monitor) {

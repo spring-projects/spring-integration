@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,37 +25,37 @@ import org.springframework.util.Assert;
  * Filters a listing of files by qualifying their 'name'
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
+ * @param <F> the type of file entry
+ *
  * @author Iwein Fuld
  * @author Josh Long
- * @param <F> the type of file entry
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F>
-		implements InitializingBean {
+		implements InitializingBean { // TODO Remove in the next version
 
-	private volatile Pattern pattern;
+	private Pattern pattern;
 
 
 	public AbstractRegexPatternFileListFilter(String pattern) {
-		this.pattern = Pattern.compile(pattern);
+		this(Pattern.compile(pattern));
 	}
 
 	public AbstractRegexPatternFileListFilter(Pattern pattern) {
+		Assert.notNull(pattern, "'pattern' must not be null!");
 		this.pattern = pattern;
 	}
 
-
-	public void setPattern(Pattern pattern) {
-		this.pattern = pattern;
-	}
 
 	public void setPattern(String pattern) {
-		this.pattern = Pattern.compile(pattern);
+		setPattern(Pattern.compile(pattern));
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.pattern, "'pattern' must not be null!");
+	public void setPattern(Pattern pattern) {
+		Assert.notNull(pattern, "'pattern' must not be null!");
+		this.pattern = pattern;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class CompositeFileListFilter<F>
 					((InitializingBean) elf).afterPropertiesSet();
 				}
 				catch (Exception e) {
-					throw new RuntimeException(e);
+					throw new IllegalStateException(e);
 				}
 			}
 		}
@@ -127,7 +127,7 @@ public class CompositeFileListFilter<F>
 	@Override
 	public List<F> filterFiles(F[] files) {
 		Assert.notNull(files, "'files' should not be null");
-		List<F> results = new ArrayList<F>(Arrays.asList(files));
+		List<F> results = new ArrayList<>(Arrays.asList(files));
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
 			List<F> currentResults = fileFilter.filterFiles(files);
 			results.retainAll(currentResults);

@@ -32,7 +32,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,9 +41,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
@@ -111,13 +108,24 @@ import org.springframework.util.StringUtils;
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, MessageTriggerAction {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private static final int DEFAULT_BUFFER_SIZE = 8192;
 
 	private static final long DEFAULT_FLUSH_INTERVAL = 30000L;
 
-	private final Map<String, FileState> fileStates = new HashMap<String, FileState>();
+	private static final PosixFilePermission[] POSIX_FILE_PERMISSIONS =
+			{
+					PosixFilePermission.OTHERS_EXECUTE,
+					PosixFilePermission.OTHERS_WRITE,
+					PosixFilePermission.OTHERS_READ,
+					PosixFilePermission.GROUP_EXECUTE,
+					PosixFilePermission.GROUP_WRITE,
+					PosixFilePermission.GROUP_READ,
+					PosixFilePermission.OWNER_EXECUTE,
+					PosixFilePermission.OWNER_WRITE,
+					PosixFilePermission.OWNER_READ
+			};
+
+	private final Map<String, FileState> fileStates = new HashMap<>();
 
 	private final Expression destinationDirectoryExpression;
 
@@ -335,7 +343,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
-	}
+	} // NOSONAR Increase visibility
 
 	/**
 	 * Set a {@link MessageFlushPredicate} to use when flushing files when
@@ -370,7 +378,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
-		setChmod(Integer.parseInt(chmod, 8));
+		setChmod(Integer.parseInt(chmod, 8)); // NOSONAR 8-bit
 	}
 
 	/**
@@ -382,53 +390,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 5.0
 	 */
 	public void setChmod(int chmod) {
-		Assert.isTrue(chmod >= 0 && chmod <= 0777, "'chmod' must be between 0 and 0777 (octal)");
+		Assert.isTrue(chmod >= 0 && chmod <= 0777, // NOSONAR permissions octal
+				"'chmod' must be between 0 and 0777 (octal)");
 		if (!FileUtils.IS_POSIX) {
 			this.logger.error("'chmod' setting ignored - the file system does not support Posix attributes");
 			return;
 		}
-		/*
-		 * Bitset.valueOf(byte[]) takes a little-endian array of bytes to create a BitSet.
-		 * Since we are interested in 9 bits, we construct an array with the low-order byte
-		 * (bits 0-7) followed by the second order byte (bit 8).
-		 * BitSet.stream() returns a stream of ints representing those bits that are set.
-		 * We use that stream with a switch to create the set of PosixFilePermissions
-		 * representing the bits that were set in the chmod value.
-		 */
 		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
-		final Set<PosixFilePermission> posixPermissions = new HashSet<>();
-		bits.stream().forEach(b -> {
-			switch (b) {
-				case 0:
-					posixPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
-					break;
-				case 1:
-					posixPermissions.add(PosixFilePermission.OTHERS_WRITE);
-					break;
-				case 2:
-					posixPermissions.add(PosixFilePermission.OTHERS_READ);
-					break;
-				case 3:
-					posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
-					break;
-				case 4:
-					posixPermissions.add(PosixFilePermission.GROUP_WRITE);
-					break;
-				case 5:
-					posixPermissions.add(PosixFilePermission.GROUP_READ);
-					break;
-				case 6:
-					posixPermissions.add(PosixFilePermission.OWNER_EXECUTE);
-					break;
-				case 7:
-					posixPermissions.add(PosixFilePermission.OWNER_WRITE);
-					break;
-				case 8:
-					posixPermissions.add(PosixFilePermission.OWNER_READ);
-					break;
-			}
-		});
-		this.permissions = posixPermissions;
+		this.permissions = bits.stream()
+				.boxed()
+				.map((b) -> POSIX_FILE_PERMISSIONS[b])
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -449,7 +421,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
 			final File directory = ExpressionUtils.expressionToFile(this.destinationDirectoryExpression,
-						this.evaluationContext, null, "destinationDirectoryExpression");
+					this.evaluationContext, null, "destinationDirectoryExpression");
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
@@ -469,7 +441,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			TaskScheduler taskScheduler = getTaskScheduler();
 			Assert.state(taskScheduler != null, "'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
-			this.flushTask = taskScheduler.scheduleAtFixedRate(new Flusher(), this.flushInterval / 3);
+			this.flushTask = taskScheduler.scheduleAtFixedRate(new Flusher(), this.flushInterval / 3); // NOSONAR
 		}
 	}
 
@@ -485,7 +457,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		flusher.run();
 		boolean needInterrupt = this.fileStates.size() > 0;
 		int n = 0;
-		while (n++ < 10 && this.fileStates.size() > 0) {
+		while (n++ < 10 && this.fileStates.size() > 0) { // NOSONAR
 			try {
 				Thread.sleep(1);
 			}
@@ -522,9 +494,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.notNull(requestMessage, "message must not be null");
 		Object payload = requestMessage.getPayload();
-		Assert.notNull(payload, "message payload must not be null");
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);
 
@@ -543,7 +513,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (payload instanceof File) {
 			timestamp = ((File) payload).lastModified();
 		}
-		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode)
+		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode) // NOSONAR
 				&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
 				|| ((exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(this.fileExistsMode))
 				&& (timestamp instanceof Number
@@ -556,41 +526,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					resultFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 				}
 
-				if (payload instanceof File) {
-					resultFile = handleFileMessage((File) payload, tempFile, resultFile, requestMessage);
-				}
-				else if (payload instanceof InputStream) {
-					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
-							resultFile, requestMessage);
-				}
-				else if (payload instanceof byte[]) {
-					resultFile = this.handleByteArrayMessage(
-							(byte[]) payload, originalFileFromHeader, tempFile, resultFile, requestMessage);
-				}
-				else if (payload instanceof String) {
-					resultFile = this.handleStringMessage(
-							(String) payload, originalFileFromHeader, tempFile, resultFile, requestMessage);
-				}
-				else {
-					throw new IllegalArgumentException(
-							"unsupported Message payload type [" + payload.getClass().getName() + "]");
-				}
-				if (this.preserveTimestamp) {
-					if (timestamp instanceof Number) {
-						resultFile.setLastModified(((Number) timestamp).longValue());
-					}
-					else {
-						if (this.logger.isWarnEnabled()) {
-							this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
-									+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
-						}
-					}
-				}
+				resultFile = writeMessageToFile(requestMessage, originalFileFromHeader, tempFile, resultFile,
+						timestamp);
 			}
 			catch (Exception e) {
 				throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
 			}
-
 		}
 
 		if (!this.expectReply) {
@@ -599,11 +540,52 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (resultFile != null) {
 			if (originalFileFromHeader == null && payload instanceof File) {
-				return this.getMessageBuilderFactory().withPayload(resultFile)
+				return getMessageBuilderFactory()
+						.withPayload(resultFile)
 						.setHeader(FileHeaders.ORIGINAL_FILE, payload);
 			}
 		}
 		return resultFile;
+	}
+
+	private File writeMessageToFile(Message<?> requestMessage, File originalFileFromHeader, File tempFile,
+			File resultFile, Object timestamp) throws IOException {
+
+		File fileToReturn = null;
+		Object payload = requestMessage.getPayload();
+		if (payload instanceof File) {
+			fileToReturn = handleFileMessage((File) payload, tempFile, resultFile, requestMessage);
+		}
+		else if (payload instanceof InputStream) {
+			fileToReturn = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
+					resultFile, requestMessage);
+		}
+		else if (payload instanceof byte[]) {
+			fileToReturn = handleByteArrayMessage((byte[]) payload, originalFileFromHeader, tempFile, resultFile,
+					requestMessage);
+		}
+		else if (payload instanceof String) {
+			fileToReturn = handleStringMessage((String) payload, originalFileFromHeader, tempFile, resultFile,
+					requestMessage);
+		}
+		else {
+			throw new IllegalArgumentException(
+					"Unsupported Message payload type [" + payload.getClass().getName() + "]");
+		}
+
+		if (this.preserveTimestamp) {
+			if (timestamp instanceof Number) {
+				if (!fileToReturn.setLastModified(((Number) timestamp).longValue())) {
+					throw new IllegalStateException("Could not set last modified '" + timestamp
+							+ "' timestamp on file: " + fileToReturn);
+				}
+			}
+			else if (this.logger.isWarnEnabled()) {
+					this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+							+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
+				}
+		}
+		return fileToReturn;
 	}
 
 	/**
@@ -1101,6 +1083,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				this.lock.unlock();
 			}
 		}
+
 	}
 
 	private final class Flusher implements Runnable {
