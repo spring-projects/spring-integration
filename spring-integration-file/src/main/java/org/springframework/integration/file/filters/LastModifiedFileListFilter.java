@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@
 package org.springframework.integration.file.filters;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import org.springframework.lang.Nullable;
 
 /**
  * The {@link FileListFilter} implementation to filter those files which
@@ -40,10 +43,13 @@ import java.util.function.Consumer;
  */
 public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<File> {
 
+	private static final long ONE_SECOND = 1000;
+
 	private static final long DEFAULT_AGE = 60;
 
 	private volatile long age = DEFAULT_AGE;
 
+	@Nullable
 	private Consumer<File> discardCallback;
 
 	public LastModifiedFileListFilter() {
@@ -65,6 +71,30 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	 * is filtered. The resolution is seconds.
 	 * Defaults to 60 seconds.
 	 * @param age the age
+	 * @param unit the timeUnit.
+	 */
+	public void setAge(long age, TimeUnit unit) {
+		this.age = unit.toSeconds(age);
+	}
+
+	/**
+	 * Set the age that files have to be before being passed by this filter.
+	 * If {@link File#lastModified()} plus age is greater than the current time, the file
+	 * is filtered. The resolution is seconds.
+	 * Defaults to 60 seconds.
+	 * @param age the age
+	 * @since 5.1.3
+	 */
+	public void setAge(Duration age) {
+		setAge(age.getSeconds());
+	}
+
+	/**
+	 * Set the age that files have to be before being passed by this filter.
+	 * If {@link File#lastModified()} plus age is greater than the current time, the file
+	 * is filtered. The resolution is seconds.
+	 * Defaults to 60 seconds.
+	 * @param age the age
 	 */
 	public void setAge(long age) {
 		setAge(age, TimeUnit.SECONDS);
@@ -74,29 +104,17 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 		return this.age;
 	}
 
-	/**
-	 * Set the age that files have to be before being passed by this filter.
-	 * If {@link File#lastModified()} plus age is greater than the current time, the file
-	 * is filtered. The resolution is seconds.
-	 * Defaults to 60 seconds.
-	 * @param age the age
-	 * @param unit the timeUnit.
-	 */
-	public void setAge(long age, TimeUnit unit) {
-		this.age = unit.toSeconds(age);
-	}
-
 	@Override
-	public void addDiscardCallback(Consumer<File> discardCallback) {
+	public void addDiscardCallback(@Nullable Consumer<File> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
 	@Override
 	public List<File> filterFiles(File[] files) {
 		List<File> list = new ArrayList<>();
-		long now = System.currentTimeMillis() / 1000;
+		long now = System.currentTimeMillis() / ONE_SECOND;
 		for (File file : files) {
-			if (file.lastModified() / 1000 + this.age <= now) {
+			if (file.lastModified() / ONE_SECOND + this.age <= now) {
 				list.add(file);
 			}
 			else if (this.discardCallback != null) {

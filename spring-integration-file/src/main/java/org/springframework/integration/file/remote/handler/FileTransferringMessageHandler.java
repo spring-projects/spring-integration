@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,13 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
-	protected final RemoteFileTemplate<F> remoteFileTemplate;
+	protected final RemoteFileTemplate<F> remoteFileTemplate; // NOSONAR
 
 	private final FileExistsMode mode;
 
@@ -175,7 +176,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
-		setChmod(Integer.parseInt(chmod, 8));
+		setChmod(Integer.parseInt(chmod, 8)); // NOSONAR
 	}
 
 	/**
@@ -200,7 +201,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		String path = this.remoteFileTemplate.send(message, this.mode);
 		if (this.chmod != null && isChmodCapable()) {
 			doChmod(this.remoteFileTemplate, path, this.chmod);

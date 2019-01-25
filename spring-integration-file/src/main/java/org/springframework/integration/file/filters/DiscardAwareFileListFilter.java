@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.file.filters;
 
 import java.util.function.Consumer;
 
+import org.springframework.lang.Nullable;
+
 /**
  * The {@link FileListFilter} modification which can accept a {@link Consumer}
  * which can be called when filter discards the file.
@@ -28,6 +30,6 @@ import java.util.function.Consumer;
  */
 public interface DiscardAwareFileListFilter<F> extends FileListFilter<F> {
 
-	void addDiscardCallback(Consumer<F> discardCallback);
+	void addDiscardCallback(@Nullable Consumer<F> discardCallback);
 
 }
