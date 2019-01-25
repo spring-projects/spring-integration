@@ -75,7 +75,7 @@ import org.springframework.util.StringUtils;
  */
 public class FileSplitter extends AbstractMessageSplitter {
 
-	private static final JsonObjectMapper<?, ?> objectMapper =
+	private static final JsonObjectMapper<?, ?> OBJECT_MAPPER =
 			JsonObjectMapperProvider.jsonAvailable() ? JsonObjectMapperProvider.newInstance() : null;
 
 	private final boolean returnIterator;
@@ -140,7 +140,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 		if (markers) {
 			setApplySequence(false);
 			if (markersJson) {
-				Assert.notNull(objectMapper, "'markersJson' requires an object mapper");
+				Assert.notNull(OBJECT_MAPPER, "'markersJson' requires an object mapper");
 			}
 		}
 		this.markersJson = markersJson;
@@ -170,7 +170,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	protected Object splitMessage(final Message<?> message) {
 		Object payload = message.getPayload();
 
-		Reader reader = null;
+		Reader reader;
 
 		final String filePath;
 
@@ -214,22 +214,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return message;
 		}
 
-		final BufferedReader bufferedReader = new BufferedReader(reader) {
-
-			@Override
-			public void close() throws IOException {
-				try {
-					super.close();
-				}
-				finally {
-					Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
-					if (closeableResource != null) {
-						closeableResource.close();
-					}
-				}
-			}
-
-		};
+		BufferedReader bufferedReader = wrapToBufferedReader(message, reader);
 
 		String firstLineAsHeader;
 
@@ -245,130 +230,37 @@ public class FileSplitter extends AbstractMessageSplitter {
 			firstLineAsHeader = null;
 		}
 
-		Iterator<Object> iterator = new CloseableIterator<Object>() {
-
-			boolean markers = FileSplitter.this.markers;
-
-			boolean sof = this.markers;
-
-			boolean eof;
-
-			boolean done;
-
-			String line;
-
-			long lineCount;
-
-			boolean hasNextCalled;
-
-			@Override
-			public boolean hasNext() {
-				this.hasNextCalled = true;
-				try {
-					if (!this.done && this.line == null) {
-						this.line = bufferedReader.readLine();
-					}
-					boolean ready = !this.done && this.line != null;
-					if (!ready) {
-						if (this.markers) {
-							this.eof = true;
-							if (this.sof) {
-								this.done = true;
-							}
-						}
-						bufferedReader.close();
-					}
-					return this.sof || ready || this.eof;
-				}
-				catch (IOException e) {
-					try {
-						this.done = true;
-						bufferedReader.close();
-					}
-					catch (IOException e1) {
-						// ignored
-					}
-					throw new MessageHandlingException(message, "IOException while iterating", e);
-				}
-			}
-
-			@Override
-			public Object next() {
-				if (!this.hasNextCalled) {
-					hasNext();
-				}
-				this.hasNextCalled = false;
-				if (this.sof) {
-					this.sof = false;
-					return markerToReturn(new FileMarker(filePath, Mark.START, 0));
-				}
-				if (this.eof) {
-					this.eof = false;
-					this.markers = false;
-					this.done = true;
-					return markerToReturn(new FileMarker(filePath, Mark.END, this.lineCount));
-				}
-				if (this.line != null) {
-					String line = this.line;
-					this.line = null;
-					this.lineCount++;
-
-					AbstractIntegrationMessageBuilder<String> messageBuilder =
-							getMessageBuilderFactory()
-									.withPayload(line);
-
-					if (firstLineAsHeader != null) {
-						messageBuilder.setHeader(FileSplitter.this.firstLineHeaderName, firstLineAsHeader);
-					}
-
-					return messageBuilder;
-				}
-				else {
-					this.done = true;
-					throw new NoSuchElementException(filePath + " has been consumed");
-				}
-			}
-
-			private AbstractIntegrationMessageBuilder<Object> markerToReturn(FileMarker fileMarker) {
-				Object payload;
-				if (FileSplitter.this.markersJson) {
-					try {
-						payload = objectMapper.toJson(fileMarker);
-					}
-					catch (Exception e) {
-						throw new MessageHandlingException(message, "Failed to convert marker to JSON", e);
-					}
-				}
-				else {
-					payload = fileMarker;
-				}
-				return getMessageBuilderFactory().withPayload(payload)
-						.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
-			}
-
-			@Override
-			public void close() {
-				try {
-					this.done = true;
-					bufferedReader.close();
-				}
-				catch (IOException e) {
-					// ignored
-				}
-			}
-
-		};
+		Iterator<Object> iterator = new FileIterator(message, bufferedReader, firstLineAsHeader, filePath);
 
 		if (this.returnIterator) {
 			return iterator;
 		}
 		else {
-			List<Object> lines = new ArrayList<Object>();
+			List<Object> lines = new ArrayList<>();
 			while (iterator.hasNext()) {
 				lines.add(iterator.next());
 			}
 			return lines;
 		}
+	}
+
+	private BufferedReader wrapToBufferedReader(Message<?> message, Reader reader) {
+		return new BufferedReader(reader) {
+
+			@Override
+			public void close() throws IOException {
+				try {
+					super.close();
+				}
+				finally {
+					Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
+					if (closeableResource != null) {
+						closeableResource.close();
+					}
+				}
+			}
+
+		};
 	}
 
 	@Override
@@ -405,6 +297,137 @@ public class FileSplitter extends AbstractMessageSplitter {
 		else {
 			return defaultPath;
 		}
+	}
+
+	private class FileIterator implements CloseableIterator<Object> {
+
+		private final Message<?> message;
+
+		private final BufferedReader bufferedReader;
+
+		private final String firstLineAsHeader;
+
+		private final String filePath;
+
+		private boolean markers = FileSplitter.this.markers;
+
+		private boolean sof = this.markers;
+
+		private boolean eof;
+
+		private boolean done;
+
+		private String line;
+
+		private long lineCount;
+
+		private boolean hasNextCalled;
+
+		FileIterator(Message<?> message, BufferedReader bufferedReader, String firstLineAsHeader,
+				String filePath) {
+
+			this.message = message;
+			this.bufferedReader = bufferedReader;
+			this.firstLineAsHeader = firstLineAsHeader;
+			this.filePath = filePath;
+		}
+
+		@Override
+		public boolean hasNext() {
+			this.hasNextCalled = true;
+			try {
+				if (!this.done && this.line == null) {
+					this.line = this.bufferedReader.readLine();
+				}
+				boolean ready = !this.done && this.line != null;
+				if (!ready) {
+					if (this.markers) {
+						this.eof = true;
+						if (this.sof) {
+							this.done = true;
+						}
+					}
+					this.bufferedReader.close();
+				}
+				return this.sof || ready || this.eof;
+			}
+			catch (IOException e) {
+				try {
+					this.done = true;
+					this.bufferedReader.close();
+				}
+				catch (IOException e1) {
+					// ignored
+				}
+				throw new MessageHandlingException(this.message, "IOException while iterating", e);
+			}
+		}
+
+		@Override
+		public Object next() {
+			if (!this.hasNextCalled) {
+				hasNext();
+			}
+			this.hasNextCalled = false;
+			if (this.sof) {
+				this.sof = false;
+				return markerToReturn(new FileMarker(this.filePath, Mark.START, 0));
+			}
+			if (this.eof) {
+				this.eof = false;
+				this.markers = false;
+				this.done = true;
+				return markerToReturn(new FileMarker(this.filePath, Mark.END, this.lineCount));
+			}
+			if (this.line != null) {
+				String line = this.line;
+				this.line = null;
+				this.lineCount++;
+
+				AbstractIntegrationMessageBuilder<String> messageBuilder =
+						getMessageBuilderFactory()
+								.withPayload(line);
+
+				if (this.firstLineAsHeader != null) {
+					messageBuilder.setHeader(FileSplitter.this.firstLineHeaderName, this.firstLineAsHeader);
+				}
+
+				return messageBuilder;
+			}
+			else {
+				this.done = true;
+				throw new NoSuchElementException(this.filePath + " has been consumed");
+			}
+		}
+
+		private AbstractIntegrationMessageBuilder<Object> markerToReturn(FileMarker fileMarker) {
+			Object payload;
+			if (FileSplitter.this.markersJson) {
+				try {
+					payload = OBJECT_MAPPER.toJson(fileMarker);
+				}
+				catch (Exception e) {
+					throw new MessageHandlingException(this.message, "Failed to convert marker to JSON", e);
+				}
+			}
+			else {
+				payload = fileMarker;
+			}
+			return getMessageBuilderFactory().withPayload(payload)
+					.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
+		}
+
+		@Override
+		public void close() {
+			try {
+				this.done = true;
+				this.bufferedReader.close();
+			}
+			catch (IOException e) {
+				// ignored
+			}
+		}
+
 	}
 
 	public static class FileMarker implements Serializable {
@@ -451,11 +474,12 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		@Override
 		public String toString() {
-			if (this.mark.equals(Mark.START)) {
+			if (Mark.START.equals(this.mark)) {
 				return "FileMarker [filePath=" + this.filePath + ", mark=" + this.mark + "]";
 			}
 			else {
-				return "FileMarker [filePath=" + this.filePath + ", mark=" + this.mark + ", lineCount=" + this.lineCount + "]";
+				return "FileMarker [filePath=" + this.filePath + ", mark=" + this.mark +
+						", lineCount=" + this.lineCount + "]";
 			}
 		}
 

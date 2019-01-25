@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String filterBeanName = this.registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
 		if (filterBeanName != null) {
-			builder.addPropertyReference("filter", filterBeanName);
+			builder.addPropertyReference(FileParserUtils.FILTER_ATTRIBUTE, filterBeanName);
 		}
 		if (lockerBeanName != null) {
 			builder.addPropertyReference("locker", lockerBeanName);
@@ -83,14 +83,14 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		return lockerBeanName;
 	}
 
-	private String registerFilter(Element element, ParserContext parserContext) {
+	private String registerFilter(Element element, ParserContext parserContext) { // NOSONAR
 		String filenamePattern = element.getAttribute("filename-pattern");
 		String filenameRegex = element.getAttribute("filename-regex");
 		String preventDuplicates = element.getAttribute("prevent-duplicates");
 		String ignoreHidden = element.getAttribute("ignore-hidden");
-		String filter = element.getAttribute("filter");
+		String filter = element.getAttribute(FileParserUtils.FILTER_ATTRIBUTE);
 		String filterExpression = element.getAttribute("filter-expression");
-		if (!StringUtils.hasText(filter)
+		if (!StringUtils.hasText(filter) // NOSONAR
 				&& !StringUtils.hasText(filenamePattern)
 				&& !StringUtils.hasText(filenameRegex)
 				&& !StringUtils.hasText(preventDuplicates)
@@ -102,7 +102,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 				BeanDefinitionBuilder.genericBeanDefinition(FileListFilterFactoryBean.class);
 		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
 		if (StringUtils.hasText(filter)) {
-			factoryBeanBuilder.addPropertyReference("filter", filter);
+			factoryBeanBuilder.addPropertyReference(FileParserUtils.FILTER_ATTRIBUTE, filter);
 		}
 		if (StringUtils.hasText(filterExpression)) {
 			if (StringUtils.hasText(filter)) {
@@ -113,7 +113,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
 							.addConstructorArgValue(filterExpression)
 							.getBeanDefinition();
-			factoryBeanBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
+			factoryBeanBuilder.addPropertyValue(FileParserUtils.FILTER_ATTRIBUTE, expressionFilterBeanDefinition);
 		}
 		if (StringUtils.hasText(filenamePattern)) {
 			if (StringUtils.hasText(filter)) {

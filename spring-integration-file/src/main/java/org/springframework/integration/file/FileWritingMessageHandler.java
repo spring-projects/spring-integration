@@ -346,8 +346,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param taskScheduler the {@link TaskScheduler} to use.
 	 */
 	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		// Overridden to increase visibility.
+	public void setTaskScheduler(TaskScheduler taskScheduler) { // NOSONAR
 		super.setTaskScheduler(taskScheduler);
 	}
 
@@ -499,7 +498,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected Object handleRequestMessage(Message<?> requestMessage) { // NOSONAR
 		Object payload = requestMessage.getPayload();
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.util.Comparator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -39,36 +34,29 @@ import org.springframework.integration.file.locking.AbstractFileLockerFilter;
  *
  * @since 1.0.3
  */
-public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileReadingMessageSource>,
-		BeanFactoryAware {
+public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<FileReadingMessageSource> {
 
-	private static Log logger = LogFactory.getLog(FileReadingMessageSourceFactoryBean.class);
+	private FileReadingMessageSource source;
 
-	private volatile FileReadingMessageSource source;
+	private File directory;
 
-	private volatile File directory;
+	private FileListFilter<File> filter;
 
-	private volatile FileListFilter<File> filter;
+	private AbstractFileLockerFilter locker;
 
-	private volatile AbstractFileLockerFilter locker;
+	private Comparator<File> comparator;
 
-	private volatile Comparator<File> comparator;
-
-	private volatile DirectoryScanner scanner;
+	private DirectoryScanner scanner;
 
 	private boolean useWatchService;
 
 	private FileReadingMessageSource.WatchEventType[] watchEvents;
 
-	private volatile Boolean scanEachPoll;
+	private Boolean scanEachPoll;
 
-	private volatile Boolean autoCreateDirectory;
+	private Boolean autoCreateDirectory;
 
-	private volatile Integer queueSize;
-
-	private volatile BeanFactory beanFactory;
-
-	private final Object initializationMonitor = new Object();
+	private Integer queueSize;
 
 	public void setDirectory(File directory) {
 		this.directory = directory;
@@ -114,86 +102,82 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+	public Class<?> getObjectType() {
+		return FileReadingMessageSource.class;
 	}
 
 	@Override
-	public FileReadingMessageSource getObject() throws Exception {
+	protected FileReadingMessageSource createInstance() {
 		if (this.source == null) {
 			initSource();
 		}
 		return this.source;
 	}
 
-	@Override
-	public Class<?> getObjectType() {
-		return FileReadingMessageSource.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
-	private void initSource() throws Exception {
-		synchronized (this.initializationMonitor) {
-			if (this.source != null) {
-				return;
+	private void initSource() { // NOSONAR
+		if (this.source != null) {
+			return;
+		}
+		boolean comparatorSet = this.comparator != null;
+		boolean queueSizeSet = this.queueSize != null;
+		if (comparatorSet) {
+			if (queueSizeSet) {
+				logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
 			}
-			boolean comparatorSet = this.comparator != null;
-			boolean queueSizeSet = this.queueSize != null;
-			if (comparatorSet) {
-				if (queueSizeSet) {
-					logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
-				}
-				this.source = new FileReadingMessageSource(this.comparator);
+			this.source = new FileReadingMessageSource(this.comparator);
+		}
+		else if (queueSizeSet) {
+			this.source = new FileReadingMessageSource(this.queueSize);
+		}
+		else {
+			this.source = new FileReadingMessageSource();
+		}
+		this.source.setDirectory(this.directory);
+		if (this.scanner != null) {
+			this.source.setScanner(this.scanner);
+		}
+		else {
+			this.source.setUseWatchService(this.useWatchService);
+			if (this.watchEvents != null) {
+				this.source.setWatchEvents(this.watchEvents);
 			}
-			else if (queueSizeSet) {
-				this.source = new FileReadingMessageSource(this.queueSize);
+		}
+		if (this.filter != null) {
+			if (this.locker == null) {
+				this.source.setFilter(this.filter);
 			}
 			else {
-				this.source = new FileReadingMessageSource();
-			}
-			this.source.setDirectory(this.directory);
-			if (this.scanner != null) {
-				this.source.setScanner(this.scanner);
-			}
-			else {
-				this.source.setUseWatchService(this.useWatchService);
-				if (this.watchEvents != null) {
-					this.source.setWatchEvents(this.watchEvents);
-				}
-			}
-			if (this.filter != null) {
-				if (this.locker == null) {
-					this.source.setFilter(this.filter);
-				}
-				else {
-					CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<File>();
-					compositeFileListFilter.addFilter(this.filter);
-					compositeFileListFilter.addFilter(this.locker);
-					this.source.setFilter(compositeFileListFilter);
-					this.source.setLocker(this.locker);
-				}
-			}
-			else if (this.locker != null) {
-				CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<File>();
-				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
+				CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<>();
+				compositeFileListFilter.addFilter(this.filter);
 				compositeFileListFilter.addFilter(this.locker);
 				this.source.setFilter(compositeFileListFilter);
 				this.source.setLocker(this.locker);
 			}
-			if (this.scanEachPoll != null) {
-				this.source.setScanEachPoll(this.scanEachPoll);
+		}
+		else if (this.locker != null) {
+			CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<>();
+			try {
+				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
 			}
-			if (this.autoCreateDirectory != null) {
-				this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+			catch (Exception e) {
+				throw new IllegalStateException(e);
 			}
-			if (this.beanFactory != null) {
-				this.source.setBeanFactory(this.beanFactory);
-			}
+			compositeFileListFilter.addFilter(this.locker);
+			this.source.setFilter(compositeFileListFilter);
+			this.source.setLocker(this.locker);
+		}
+		if (this.scanEachPoll != null) {
+			this.source.setScanEachPoll(this.scanEachPoll);
+		}
+		if (this.autoCreateDirectory != null) {
+			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+		}
+		this.source.setBeanFactory(getBeanFactory());
+		try {
 			this.source.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
 		}
 	}
 

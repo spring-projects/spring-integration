@@ -67,7 +67,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	protected final SessionFactory<F> sessionFactory;
+	protected final SessionFactory<F> sessionFactory; // NOSONAR
 
 	/*
 	 * Not static as normal since we want this TL to be scoped within the template instance.
@@ -294,53 +294,44 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			try {
-				return this.execute(session -> {
-					String fileName = inputStreamHolder.getName();
-					try {
-						String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
+			return execute(session -> {
+				String fileName = inputStreamHolder.name;
+				try (InputStream stream = inputStreamHolder.stream) {
+					String remoteDirectory = this.directoryExpressionProcessor
+							.processMessage(message);
+					remoteDirectory = normalizeDirectoryPath(remoteDirectory);
+					if (StringUtils.hasText(subDirectory)) {
+						if (subDirectory.startsWith(this.remoteFileSeparator)) {
+							remoteDirectory += subDirectory.substring(1);
+						}
+						else {
+							remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
+						}
+					}
+					String temporaryRemoteDirectory = remoteDirectory;
+					if (this.temporaryDirectoryExpressionProcessor != null) {
+						temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor
 								.processMessage(message);
-						remoteDirectory = RemoteFileTemplate.this.normalizeDirectoryPath(remoteDirectory);
-						if (StringUtils.hasText(subDirectory)) {
-							if (subDirectory.startsWith(RemoteFileTemplate.this.remoteFileSeparator)) {
-								remoteDirectory += subDirectory.substring(1);
-							}
-							else {
-								remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
-							}
-						}
-						String temporaryRemoteDirectory = remoteDirectory;
-						if (RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor != null) {
-							temporaryRemoteDirectory = RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor
-									.processMessage(message);
-						}
-						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
-						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
-								temporaryRemoteDirectory, remoteDirectory, fileName, session, mode);
-						return remoteDirectory + fileName;
 					}
-					catch (FileNotFoundException e) {
-						throw new MessageDeliveryException(message, "File [" + inputStreamHolder.getName()
-								+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
-					}
-					catch (IOException e) {
-						throw new MessageDeliveryException(message, "Failed to transfer file ["
-								+ inputStreamHolder.getName() + " -> " + fileName
-								+ "] from local directory to remote directory.", e);
-					}
-					catch (Exception e) {
-						throw new MessageDeliveryException(message, "Error handling message for file ["
-								+ inputStreamHolder.getName() + " -> " + fileName + "]", e);
-					}
-				});
-			}
-			finally {
-				try {
-					inputStreamHolder.getStream().close();
+					fileName = this.fileNameGenerator.generateFileName(message);
+					sendFileToRemoteDirectory(stream, temporaryRemoteDirectory, remoteDirectory, fileName, session,
+							mode);
+					return remoteDirectory + fileName;
+				}
+				catch (FileNotFoundException e) {
+					throw new MessageDeliveryException(message, "File [" + inputStreamHolder.name
+							+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
 				}
 				catch (IOException e) {
+					throw new MessageDeliveryException(message, "Failed to transfer file ["
+							+ inputStreamHolder.name + " -> " + fileName
+							+ "] from local directory to remote directory.", e);
 				}
-			}
+				catch (Exception e) {
+					throw new MessageDeliveryException(message, "Error handling message for file ["
+							+ inputStreamHolder.name + " -> " + fileName + "]", e);
+				}
+			});
 		}
 		else {
 			// A null holder means a File payload that does not exist.
@@ -391,16 +382,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	public boolean get(final String remotePath, final InputStreamCallback callback) {
 		Assert.notNull(remotePath, "'remotePath' cannot be null");
 		return execute(session -> {
-			InputStream inputStream = null;
-			try {
-				inputStream = session.readRaw(remotePath);
+			try (InputStream inputStream = session.readRaw(remotePath)) {
 				callback.doWithInputStream(inputStream);
 				return session.finalizeRaw();
-			}
-			finally {
-				if (inputStream != null) {
-					inputStream.close();
-				}
 			}
 		});
 	}
@@ -441,24 +425,22 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			return callback.doInSession(session);
 		}
-		catch (Exception e) {
+		catch (MessagingException ex) {
+			throw ex;
+		}
+		catch (Exception ex) {
+			throw new MessagingException("Failed to execute on session", ex);
+		}
+		finally {
 			if (session != null) {
 				session.dirty();
 			}
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
-			}
-			throw new MessagingException("Failed to execute on session", e);
-		}
-		finally {
 			if (!invokeScope && session != null) {
 				try {
 					session.close();
 				}
 				catch (Exception ignored) {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("failed to close Session", ignored);
-					}
+					this.logger.debug("failed to close Session", ignored);
 				}
 			}
 		}
@@ -616,14 +598,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		private StreamHolder(InputStream stream, String name) {
 			this.stream = stream;
 			this.name = name;
-		}
-
-		public InputStream getStream() {
-			return this.stream;
-		}
-
-		public String getName() {
-			return this.name;
 		}
 
 	}

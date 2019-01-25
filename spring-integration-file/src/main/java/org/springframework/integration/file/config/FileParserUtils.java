@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,8 @@ import org.springframework.util.StringUtils;
  *
  */
 public final class FileParserUtils {
+
+	public static final String FILTER_ATTRIBUTE = "filter";
 
 	private FileParserUtils() {
 	}
@@ -100,7 +102,7 @@ public final class FileParserUtils {
 	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
 			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass,
 			Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> persistentAcceptOnceFileListFilterClass) {
-		String filter = element.getAttribute("filter");
+		String filter = element.getAttribute(FILTER_ATTRIBUTE);
 		String filterExpression = element.getAttribute("filter-expression");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String fileNameRegex = element.getAttribute("filename-regex");
@@ -128,14 +130,14 @@ public final class FileParserUtils {
 						element);
 			}
 			if (hasFilter) {
-				synchronizerBuilder.addPropertyReference("filter", filter);
+				synchronizerBuilder.addPropertyReference(FILTER_ATTRIBUTE, filter);
 			}
 			else if (hasFilterExpression) {
 				BeanDefinition expressionFilterBeanDefinition =
 						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
 								.addConstructorArgValue(filterExpression)
 								.getBeanDefinition();
-				synchronizerBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
+				synchronizerBuilder.addPropertyValue(FILTER_ATTRIBUTE, expressionFilterBeanDefinition);
 			}
 			else if (hasFileNamePattern) {
 				BeanDefinition patternFilter =
@@ -175,7 +177,7 @@ public final class FileParserUtils {
 				BeanDefinitionBuilder.genericBeanDefinition(CompositeFileListFilter.class)
 						.addConstructorArgValue(filters)
 						.getBeanDefinition();
-		synchronizerBuilder.addPropertyValue("filter", compositeFilterDefinition);
+		synchronizerBuilder.addPropertyValue(FILTER_ATTRIBUTE, compositeFilterDefinition);
 	}
 
 }

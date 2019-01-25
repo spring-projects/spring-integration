@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-
 		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, false,
 				getTemplateClass());
 
@@ -66,8 +65,9 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
-		this.configureFilter(builder, element, parserContext, "filter", "filename", "filter");
-		this.configureFilter(builder, element, parserContext, "mput-filter", "mput", "mputFilter");
+		configureFilter(builder, element, parserContext, FileParserUtils.FILTER_ATTRIBUTE, "filename",
+				FileParserUtils.FILTER_ATTRIBUTE);
+		configureFilter(builder, element, parserContext, "mput-filter", "mput", "mputFilter");
 
 		BeanDefinition localDirExpressionDef = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("local-directory", "local-directory-expression",
@@ -92,6 +92,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext,
 			String filterAttribute, String patternPrefix, String propertyName) {
+
 		String filter = element.getAttribute(filterAttribute);
 		String filterExpression = element.getAttribute(filterAttribute + "-expression");
 		String fileNamePattern = element.getAttribute(patternPrefix + "-pattern");
@@ -107,36 +108,55 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		if (count > 1) {
 			parserContext.getReaderContext()
 					.error("at most one of '" + patternPrefix + "-pattern', " +
-					"'" + patternPrefix + "-regex', '" + filterAttribute +
-					"' or '" + filterAttribute + "-expression' is allowed on a remote file outbound gateway",
+									"'" + patternPrefix + "-regex', '" + filterAttribute +
+									"' or '" + filterAttribute + "-expression' is allowed on a remote file outbound " +
+									"gateway",
 							element);
 		}
 		else if (hasFilter) {
 			builder.addPropertyReference(propertyName, filter);
 		}
 		else if (hasFilterExpression) {
-			BeanDefinition expressionFilterBeanDefinition =
-					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
-							.addConstructorArgValue(filterExpression)
-							.getBeanDefinition();
-			builder.addPropertyValue(propertyName, expressionFilterBeanDefinition);
+			registerExpressionFilter(builder, propertyName, filterExpression);
 		}
 		else if (hasFileNamePattern) {
-			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"filter".equals(filterAttribute) ?
-							this.getSimplePatternFileListFilterClassName() :
-							SimplePatternFileListFilter.class.getName());
-			filterBuilder.addConstructorArgValue(fileNamePattern);
-			builder.addPropertyValue(propertyName, filterBuilder.getBeanDefinition());
+			registerPatternFilter(builder, filterAttribute, propertyName, fileNamePattern);
 		}
 		else if (hasFileNameRegex) {
-			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"filter".equals(filterAttribute) ?
-							this.getRegexPatternFileListFilterClassName() :
-							RegexPatternFileListFilter.class.getName());
-			filterBuilder.addConstructorArgValue(fileNameRegex);
-			builder.addPropertyValue(propertyName, filterBuilder.getBeanDefinition());
+			registerRegexFilter(builder, filterAttribute, propertyName, fileNameRegex);
 		}
+	}
+
+	private void registerRegexFilter(BeanDefinitionBuilder builder, String filterAttribute, String propertyName,
+			String fileNameRegex) {
+
+		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				FileParserUtils.FILTER_ATTRIBUTE.equals(filterAttribute) ?
+						getRegexPatternFileListFilterClassName() :
+						RegexPatternFileListFilter.class.getName());
+		filterBuilder.addConstructorArgValue(fileNameRegex);
+		builder.addPropertyValue(propertyName, filterBuilder.getBeanDefinition());
+	}
+
+	private void registerPatternFilter(BeanDefinitionBuilder builder, String filterAttribute, String propertyName,
+			String fileNamePattern) {
+
+		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				FileParserUtils.FILTER_ATTRIBUTE.equals(filterAttribute) ?
+						getSimplePatternFileListFilterClassName() :
+						SimplePatternFileListFilter.class.getName());
+		filterBuilder.addConstructorArgValue(fileNamePattern);
+		builder.addPropertyValue(propertyName, filterBuilder.getBeanDefinition());
+	}
+
+	private void registerExpressionFilter(BeanDefinitionBuilder builder, String propertyName,
+			String filterExpression) {
+
+		BeanDefinition expressionFilterBeanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
+						.addConstructorArgValue(filterExpression)
+						.getBeanDefinition();
+		builder.addPropertyValue(propertyName, expressionFilterBeanDefinition);
 	}
 
 	protected abstract String getRegexPatternFileListFilterClassName();
