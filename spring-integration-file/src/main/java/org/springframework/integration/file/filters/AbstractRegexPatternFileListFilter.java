@@ -50,6 +50,7 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 
 
 	public void setPattern(String pattern) {
+		Assert.notNull(pattern, "'pattern' must not be null!");
 		setPattern(Pattern.compile(pattern));
 	}
 

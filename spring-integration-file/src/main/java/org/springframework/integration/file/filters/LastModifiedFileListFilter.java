@@ -18,7 +18,6 @@ package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -87,7 +86,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	 * @since 5.1.3
 	 */
 	public void setAge(Duration age) {
-		setAge(age.get(ChronoUnit.SECONDS));
+		setAge(age.getSeconds());
 	}
 
 	/**

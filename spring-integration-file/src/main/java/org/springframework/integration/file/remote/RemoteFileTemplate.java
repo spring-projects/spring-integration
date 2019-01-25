@@ -603,7 +603,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 		private final String name;
 
-		private StreamHolder(InputStream stream, String name) {
+		StreamHolder(InputStream stream, String name) {
 			this.stream = stream;
 			this.name = name;
 		}
