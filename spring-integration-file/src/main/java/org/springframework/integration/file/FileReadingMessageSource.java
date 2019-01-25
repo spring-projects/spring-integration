@@ -296,10 +296,8 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	@Override
 	public void start() {
 		if (!this.running.getAndSet(true)) {
-			if (!this.directory.exists() && this.autoCreateDirectory) {
-				if (!this.directory.mkdirs()) {
-					throw new IllegalStateException("Cannot create directory or ita parents: " + this.directory);
-				}
+			if (!this.directory.exists() && this.autoCreateDirectory && !this.directory.mkdirs()) {
+				throw new IllegalStateException("Cannot create directory or ita parents: " + this.directory);
 			}
 			Assert.isTrue(this.directory.exists(),
 					() -> "Source directory [" + this.directory + "] does not exist.");

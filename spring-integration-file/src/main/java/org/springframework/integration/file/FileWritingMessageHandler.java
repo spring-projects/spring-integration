@@ -636,39 +636,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 					}
 
-					FileState state = getFileState(fileToWriteTo, false);
-					BufferedOutputStream bos = null;
-					try {
-						bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
-						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
-						int bytesRead = -1;
-						while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
-							bos.write(buffer, 0, bytesRead);
-						}
-						if (FileWritingMessageHandler.this.appendNewLine) {
-							bos.write(System.lineSeparator().getBytes());
-						}
-					}
-					finally {
-						try {
-							sourceFileInputStream.close();
-						}
-						catch (IOException ex) {
-						}
-						try {
-							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-								if (bos != null) {
-									bos.close();
-								}
-								clearState(fileToWriteTo, state);
-							}
-							else {
-								state.lastWrite = System.currentTimeMillis();
-							}
-						}
-						catch (IOException ex) {
-						}
-					}
+					appendStreamToFile(fileToWriteTo, sourceFileInputStream);
 				}
 
 			};
@@ -710,6 +678,42 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
+	private void appendStreamToFile(File fileToWriteTo, InputStream sourceFileInputStream) throws IOException {
+		FileState state = getFileState(fileToWriteTo, false);
+		BufferedOutputStream bos = null;
+		try {
+			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
+			byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
+			int bytesRead = -1;
+			while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
+				bos.write(buffer, 0, bytesRead);
+			}
+			if (FileWritingMessageHandler.this.appendNewLine) {
+				bos.write(System.lineSeparator().getBytes());
+			}
+		}
+		finally {
+			try {
+				sourceFileInputStream.close();
+			}
+			catch (IOException ex) {
+			}
+			try {
+				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+					if (bos != null) {
+						bos.close();
+					}
+					clearState(fileToWriteTo, state);
+				}
+				else {
+					state.lastWrite = System.currentTimeMillis();
+				}
+			}
+			catch (IOException ex) {
+			}
+		}
+	}
+
 	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile,
 			Message<?> requestMessage) throws IOException {
 
@@ -727,36 +731,40 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
-				FileState state = getFileState(fileToWriteTo, false);
-				BufferedOutputStream bos = null;
-				try {
-					bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
-					bos.write(bytes);
-					if (FileWritingMessageHandler.this.appendNewLine) {
-						bos.write(System.lineSeparator().getBytes());
-					}
-				}
-				finally {
-					try {
-						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-							if (bos != null) {
-								bos.close();
-							}
-							clearState(fileToWriteTo, state);
-						}
-						else {
-							state.lastWrite = System.currentTimeMillis();
-						}
-					}
-					catch (IOException ex) {
-					}
-				}
+				writeBytesToFile(fileToWriteTo, append, bytes);
 			}
 
 		};
 		whileLockedProcessor.doWhileLocked();
-		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+		cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
+	}
+
+	private void writeBytesToFile(File fileToWriteTo, boolean append, byte[] bytes) throws IOException {
+		FileState state = getFileState(fileToWriteTo, false);
+		BufferedOutputStream bos = null;
+		try {
+			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
+			bos.write(bytes);
+			if (FileWritingMessageHandler.this.appendNewLine) {
+				bos.write(System.lineSeparator().getBytes());
+			}
+		}
+		finally {
+			try {
+				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+					if (bos != null) {
+						bos.close();
+					}
+					clearState(fileToWriteTo, state);
+				}
+				else {
+					state.lastWrite = System.currentTimeMillis();
+				}
+			}
+			catch (IOException ex) {
+			}
+		}
 	}
 
 	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile,
@@ -776,38 +784,41 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
-				FileState state = getFileState(fileToWriteTo, true);
-				BufferedWriter writer = null;
-				try {
-					writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
-					writer.write(content);
-					if (FileWritingMessageHandler.this.appendNewLine) {
-						writer.newLine();
-					}
-				}
-				finally {
-					try {
-						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-							if (writer != null) {
-								writer.close();
-							}
-							clearState(fileToWriteTo, state);
-						}
-						else {
-							state.lastWrite = System.currentTimeMillis();
-						}
-					}
-					catch (IOException ex) {
-					}
-				}
-
+				writeStringToFile(fileToWriteTo, append, content);
 			}
 
 		};
 		whileLockedProcessor.doWhileLocked();
 
-		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+		cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
+	}
+
+	private void writeStringToFile(File fileToWriteTo, boolean append, String content) throws IOException {
+		FileState state = getFileState(fileToWriteTo, true);
+		BufferedWriter writer = null;
+		try {
+			writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
+			writer.write(content);
+			if (FileWritingMessageHandler.this.appendNewLine) {
+				writer.newLine();
+			}
+		}
+		finally {
+			try {
+				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+					if (writer != null) {
+						writer.close();
+					}
+					clearState(fileToWriteTo, state);
+				}
+				else {
+					state.lastWrite = System.currentTimeMillis();
+				}
+			}
+			catch (IOException ex) {
+			}
+		}
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile) {
