@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -340,10 +341,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.flushWhenIdle = flushWhenIdle;
 	}
 
+	/**
+	 * Configure a {@link TaskScheduler} for flush operations.
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 */
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		// Overridden to increase visibility.
 		super.setTaskScheduler(taskScheduler);
-	} // NOSONAR Increase visibility
+	}
 
 	/**
 	 * Set a {@link MessageFlushPredicate} to use when flushing files when
@@ -396,7 +402,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			this.logger.error("'chmod' setting ignored - the file system does not support Posix attributes");
 			return;
 		}
-		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
+		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) }); // NOSONAR
 		this.permissions = bits.stream()
 				.boxed()
 				.map((b) -> POSIX_FILE_PERMISSIONS[b])
@@ -498,7 +504,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);
 
-		final File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
+		File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
 
 		File tempFile = new File(destinationDirectoryToUse, generatedFileName + this.temporaryFileSuffix);
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
@@ -538,12 +544,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			return null;
 		}
 
-		if (resultFile != null) {
-			if (originalFileFromHeader == null && payload instanceof File) {
-				return getMessageBuilderFactory()
-						.withPayload(resultFile)
-						.setHeader(FileHeaders.ORIGINAL_FILE, payload);
-			}
+		if (resultFile != null && originalFileFromHeader == null && payload instanceof File) {
+			return getMessageBuilderFactory()
+					.withPayload(resultFile)
+					.setHeader(FileHeaders.ORIGINAL_FILE, payload);
 		}
 		return resultFile;
 	}
@@ -581,9 +585,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 			}
 			else if (this.logger.isWarnEnabled()) {
-					this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
-							+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
-				}
+				this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+						+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
+			}
 		}
 		return fileToReturn;
 	}
@@ -646,32 +650,19 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else {
 
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize);
+			try (InputStream inputStream = sourceFileInputStream;
+					OutputStream outputStream =
+							new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize)) {
+
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
-				int bytesRead = -1;
-				while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
-					bos.write(buffer, 0, bytesRead);
+				int bytesRead;
+				while ((bytesRead = inputStream.read(buffer)) != -1) {
+					outputStream.write(buffer, 0, bytesRead);
 				}
 				if (this.appendNewLine) {
-					bos.write(System.lineSeparator().getBytes());
+					outputStream.write(System.lineSeparator().getBytes());
 				}
-				bos.flush();
-			}
-			finally {
-				try {
-					sourceFileInputStream.close();
-				}
-				catch (IOException ex) {
-				}
-				try {
-					if (bos != null) {
-						bos.close();
-					}
-				}
-				catch (IOException ex) {
-				}
+				outputStream.flush();
 			}
 			cleanUpAfterCopy(tempFile, resultFile, originalFile);
 			return resultFile;
@@ -681,11 +672,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private void appendStreamToFile(File fileToWriteTo, InputStream sourceFileInputStream) throws IOException {
 		FileState state = getFileState(fileToWriteTo, false);
 		BufferedOutputStream bos = null;
-		try {
+		try (InputStream inputStream = sourceFileInputStream) {
 			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 			byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 			int bytesRead = -1;
-			while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
+			while ((bytesRead = inputStream.read(buffer)) != -1) {
 				bos.write(buffer, 0, bytesRead);
 			}
 			if (FileWritingMessageHandler.this.appendNewLine) {
@@ -693,11 +684,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		finally {
-			try {
-				sourceFileInputStream.close();
-			}
-			catch (IOException ex) {
-			}
 			try {
 				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 					if (bos != null) {
@@ -746,13 +732,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		try {
 			bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
 			bos.write(bytes);
-			if (FileWritingMessageHandler.this.appendNewLine) {
+			if (this.appendNewLine) {
 				bos.write(System.lineSeparator().getBytes());
 			}
 		}
 		finally {
 			try {
-				if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+				if (state == null || this.flushTask == null) {
 					if (bos != null) {
 						bos.close();
 					}
@@ -849,8 +835,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 
-		if (this.deleteSourceFiles && originalFile != null) {
-			originalFile.delete();
+		if (this.deleteSourceFiles && originalFile != null && !originalFile.delete()) {
+			throw new IllegalStateException("Could not delete original file: " + originalFile);
 		}
 
 		setPermissions(resultFile);
@@ -902,7 +888,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (appendNoFlush) {
 			String absolutePath = fileToWriteTo.getAbsolutePath();
 			state = this.fileStates.get(absolutePath);
-			if (state != null && ((isString && state.stream != null) || (!isString && state.writer != null))) {
+			if (state != null // NOSONAR
+					&& ((isString && state.stream != null) || (!isString && state.writer != null))) {
 				state.close();
 				state = null;
 				this.fileStates.remove(absolutePath);
