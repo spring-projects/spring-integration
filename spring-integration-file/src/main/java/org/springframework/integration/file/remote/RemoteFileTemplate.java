@@ -294,44 +294,16 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			return execute(session -> {
-				String fileName = inputStreamHolder.name;
-				try (InputStream stream = inputStreamHolder.stream) {
-					String remoteDirectory = this.directoryExpressionProcessor
-							.processMessage(message);
-					remoteDirectory = normalizeDirectoryPath(remoteDirectory);
-					if (StringUtils.hasText(subDirectory)) {
-						if (subDirectory.startsWith(this.remoteFileSeparator)) {
-							remoteDirectory += subDirectory.substring(1);
-						}
-						else {
-							remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
-						}
-					}
-					String temporaryRemoteDirectory = remoteDirectory;
-					if (this.temporaryDirectoryExpressionProcessor != null) {
-						temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor
-								.processMessage(message);
-					}
-					fileName = this.fileNameGenerator.generateFileName(message);
-					sendFileToRemoteDirectory(stream, temporaryRemoteDirectory, remoteDirectory, fileName, session,
-							mode);
-					return remoteDirectory + fileName;
-				}
-				catch (FileNotFoundException e) {
-					throw new MessageDeliveryException(message, "File [" + inputStreamHolder.name
-							+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+			try {
+				return execute(session -> doSend(message, subDirectory, mode, inputStreamHolder, session));
+			}
+			finally {
+				try {
+					inputStreamHolder.stream.close();
 				}
 				catch (IOException e) {
-					throw new MessageDeliveryException(message, "Failed to transfer file ["
-							+ inputStreamHolder.name + " -> " + fileName
-							+ "] from local directory to remote directory.", e);
 				}
-				catch (Exception e) {
-					throw new MessageDeliveryException(message, "Error handling message for file ["
-							+ inputStreamHolder.name + " -> " + fileName + "]", e);
-				}
-			});
+			}
 		}
 		else {
 			// A null holder means a File payload that does not exist.
@@ -339,6 +311,45 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				this.logger.warn("File " + message.getPayload() + " does not exist");
 			}
 			return null;
+		}
+	}
+
+	private String doSend(Message<?> message, String subDirectory, FileExistsMode mode,
+			StreamHolder inputStreamHolder, Session<F> session) {
+
+		String fileName = inputStreamHolder.name;
+		try {
+			String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
+			remoteDirectory = normalizeDirectoryPath(remoteDirectory);
+			if (StringUtils.hasText(subDirectory)) {
+				if (subDirectory.startsWith(this.remoteFileSeparator)) {
+					remoteDirectory += subDirectory.substring(1);
+				}
+				else {
+					remoteDirectory += normalizeDirectoryPath(subDirectory);
+				}
+			}
+			String temporaryRemoteDirectory = remoteDirectory;
+			if (this.temporaryDirectoryExpressionProcessor != null) {
+				temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor.processMessage(message);
+			}
+			fileName = this.fileNameGenerator.generateFileName(message);
+			sendFileToRemoteDirectory(inputStreamHolder.stream, temporaryRemoteDirectory, remoteDirectory, fileName,
+					session, mode);
+			return remoteDirectory + fileName;
+		}
+		catch (FileNotFoundException e) {
+			throw new MessageDeliveryException(message, "File [" + inputStreamHolder.name
+					+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+		}
+		catch (IOException e) {
+			throw new MessageDeliveryException(message, "Failed to transfer file ["
+					+ inputStreamHolder.name + " -> " + fileName
+					+ "] from local directory to remote directory.", e);
+		}
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "Error handling message for file ["
+					+ inputStreamHolder.name + " -> " + fileName + "]", e);
 		}
 	}
 
@@ -425,16 +436,16 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			return callback.doInSession(session);
 		}
-		catch (MessagingException ex) {
-			throw ex;
-		}
-		catch (Exception ex) {
-			throw new MessagingException("Failed to execute on session", ex);
-		}
-		finally {
+		catch (Exception e) {
 			if (session != null) {
 				session.dirty();
 			}
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			throw new MessagingException("Failed to execute on session", e);
+		}
+		finally {
 			if (!invokeScope && session != null) {
 				try {
 					session.close();
