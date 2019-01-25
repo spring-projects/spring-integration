@@ -497,8 +497,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				() -> "Destination directory [" + destinationDirectory + "] is not writable.");
 	}
 
-	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) { // NOSONAR
+	@Override // NOSONAR
+	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object payload = requestMessage.getPayload();
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = retrieveOriginalFileFromHeader(requestMessage);

@@ -99,9 +99,11 @@ public final class FileParserUtils {
 		return templateBuilder.getBeanDefinition();
 	}
 
-	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
-			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass,
+	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, // NOSONAR
+			ParserContext parserContext, Class<? extends FileListFilter<?>> patternClass,
+			Class<? extends FileListFilter<?>> regexClass,
 			Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> persistentAcceptOnceFileListFilterClass) {
+
 		String filter = element.getAttribute(FILTER_ATTRIBUTE);
 		String filterExpression = element.getAttribute("filter-expression");
 		String fileNamePattern = element.getAttribute("filename-pattern");

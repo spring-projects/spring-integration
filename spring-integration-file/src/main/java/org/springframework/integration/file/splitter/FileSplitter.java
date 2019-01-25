@@ -172,7 +172,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		Reader reader;
 
-		final String filePath;
+		String filePath;
 
 		if (payload instanceof String) {
 			try {
@@ -214,23 +214,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return message;
 		}
 
-		BufferedReader bufferedReader = wrapToBufferedReader(message, reader);
-
-		String firstLineAsHeader;
-
-		if (this.firstLineHeaderName != null) {
-			try {
-				firstLineAsHeader = bufferedReader.readLine();
-			}
-			catch (IOException e) {
-				throw new MessageHandlingException(message, "IOException while reading first line", e);
-			}
-		}
-		else {
-			firstLineAsHeader = null;
-		}
-
-		Iterator<Object> iterator = new FileIterator(message, bufferedReader, firstLineAsHeader, filePath);
+		Iterator<Object> iterator = messageToFileIterator(message, reader, filePath);
 
 		if (this.returnIterator) {
 			return iterator;
@@ -242,6 +226,23 @@ public class FileSplitter extends AbstractMessageSplitter {
 			}
 			return lines;
 		}
+	}
+
+	private Iterator<Object> messageToFileIterator(Message<?> message, Reader reader, String filePath) {
+		BufferedReader bufferedReader = wrapToBufferedReader(message, reader);
+
+		String firstLineAsHeader = null;
+
+		if (this.firstLineHeaderName != null) {
+			try {
+				firstLineAsHeader = bufferedReader.readLine();
+			}
+			catch (IOException e) {
+				throw new MessageHandlingException(message, "IOException while reading first line", e);
+			}
+		}
+
+		return new FileIterator(message, bufferedReader, firstLineAsHeader, filePath);
 	}
 
 	private BufferedReader wrapToBufferedReader(Message<?> message, Reader reader) {
@@ -336,20 +337,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 		public boolean hasNext() {
 			this.hasNextCalled = true;
 			try {
-				if (!this.done && this.line == null) {
-					this.line = this.bufferedReader.readLine();
-				}
-				boolean ready = !this.done && this.line != null;
-				if (!ready) {
-					if (this.markers) {
-						this.eof = true;
-						if (this.sof) {
-							this.done = true;
-						}
-					}
-					this.bufferedReader.close();
-				}
-				return this.sof || ready || this.eof;
+				return hasNextLine();
 			}
 			catch (IOException e) {
 				try {
@@ -361,6 +349,23 @@ public class FileSplitter extends AbstractMessageSplitter {
 				}
 				throw new MessageHandlingException(this.message, "IOException while iterating", e);
 			}
+		}
+
+		private boolean hasNextLine() throws IOException {
+			if (!this.done && this.line == null) {
+				this.line = this.bufferedReader.readLine();
+			}
+			boolean ready = !this.done && this.line != null;
+			if (!ready) {
+				if (this.markers) {
+					this.eof = true;
+					if (this.sof) {
+						this.done = true;
+					}
+				}
+				this.bufferedReader.close();
+			}
+			return this.sof || ready || this.eof;
 		}
 
 		@Override
@@ -380,13 +385,13 @@ public class FileSplitter extends AbstractMessageSplitter {
 				return markerToReturn(new FileMarker(this.filePath, Mark.END, this.lineCount));
 			}
 			if (this.line != null) {
-				String line = this.line;
+				String payload = this.line;
 				this.line = null;
 				this.lineCount++;
 
 				AbstractIntegrationMessageBuilder<String> messageBuilder =
 						getMessageBuilderFactory()
-								.withPayload(line);
+								.withPayload(payload);
 
 				if (this.firstLineAsHeader != null) {
 					messageBuilder.setHeader(FileSplitter.this.firstLineHeaderName, this.firstLineAsHeader);

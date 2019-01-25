@@ -363,8 +363,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
-			Session<F> session) throws IOException {
+	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, // NOSONAR
+			File localDirectory, Session<F> session) throws IOException {
 
 		String remoteFileName = getFilename(remoteFile);
 		String localFileName = generateLocalFileName(remoteFileName);
@@ -413,8 +413,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 						this.logger.debug("deleted remote file: " + remoteFilePath);
 					}
 				}
-				if (this.preserveTimestamp) {
-					localFile.setLastModified(modified);
+				if (this.preserveTimestamp && !localFile.setLastModified(modified)) {
+					throw new IllegalStateException("Could not sent last modified on file: " + localFile);
 				}
 				return true;
 			}

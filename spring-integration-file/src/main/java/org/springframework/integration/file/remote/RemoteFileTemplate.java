@@ -550,13 +550,13 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 		}
 
-		try {
+		try (InputStream stream = inputStream) {
 			boolean rename = this.useTemporaryFileName;
 			if (FileExistsMode.REPLACE.equals(mode)) {
-				session.write(inputStream, tempFilePath);
+				session.write(stream, tempFilePath);
 			}
 			else if (FileExistsMode.APPEND.equals(mode)) {
-				session.append(inputStream, tempFilePath);
+				session.append(stream, tempFilePath);
 			}
 			else {
 				if (exists(remoteFilePath)) {
@@ -572,7 +572,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 					rename = false;
 				}
 				else {
-					session.write(inputStream, tempFilePath);
+					session.write(stream, tempFilePath);
 				}
 			}
 			// then rename it to its final name if necessary
@@ -582,9 +582,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
-		}
-		finally {
-			inputStream.close();
 		}
 	}
 
