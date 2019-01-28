@@ -23,14 +23,9 @@ import javax.mail.Session;
 import javax.mail.URLName;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.ImapMailReceiver;
@@ -38,6 +33,7 @@ import org.springframework.integration.mail.MailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,73 +41,71 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
-public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean, BeanFactoryAware {
+public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	private String storeUri;
 
-	private volatile String storeUri;
+	private String protocol;
 
-	private volatile String protocol;
+	private Session session;
 
-	private volatile Session session;
+	private MailReceiver receiver;
 
-	private volatile MailReceiver receiver;
+	private Properties javaMailProperties;
 
-	private volatile Properties javaMailProperties;
-
-	private volatile Authenticator authenticator;
+	private Authenticator authenticator;
 
 	/**
 	 * Indicates whether retrieved messages should be deleted from the server.
 	 * This value will be <code>null</code> <i>unless</i> explicitly configured.
 	 */
-	private volatile Boolean shouldDeleteMessages = null;
+	private Boolean shouldDeleteMessages = null;
 
-	private volatile Boolean shouldMarkMessagesAsRead = null;
+	private Boolean shouldMarkMessagesAsRead = null;
 
-	private volatile int maxFetchSize = 1;
+	private int maxFetchSize = 1;
 
-	private volatile Expression selectorExpression;
+	private Expression selectorExpression;
 
-	private volatile SearchTermStrategy searchTermStrategy;
+	private SearchTermStrategy searchTermStrategy;
 
-	private volatile String userFlag;
+	private String userFlag;
 
-	private volatile BeanFactory beanFactory;
-
-	private volatile HeaderMapper<MimeMessage> headerMapper;
+	private HeaderMapper<MimeMessage> headerMapper;
 
 	private Boolean embeddedPartsAsBytes;
 
 	private Boolean simpleContent;
 
-	public void setStoreUri(String storeUri) {
+	public void setStoreUri(@Nullable String storeUri) {
 		this.storeUri = storeUri;
 	}
 
-	public void setProtocol(String protocol) {
+	public void setProtocol(@Nullable String protocol) {
 		this.protocol = protocol;
 	}
 
-	public void setSession(Session session) {
+	public void setSession(@Nullable Session session) {
 		this.session = session;
 	}
 
-	public void setJavaMailProperties(Properties javaMailProperties) {
+	public void setJavaMailProperties(@Nullable Properties javaMailProperties) {
 		this.javaMailProperties = javaMailProperties;
 	}
 
-	public void setAuthenticator(Authenticator authenticator) {
+	public void setAuthenticator(@Nullable Authenticator authenticator) {
 		this.authenticator = authenticator;
 	}
 
-	public void setShouldDeleteMessages(Boolean shouldDeleteMessages) {
+	public void setShouldDeleteMessages(@Nullable Boolean shouldDeleteMessages) {
 		this.shouldDeleteMessages = shouldDeleteMessages;
 	}
 
-	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
+	public void setShouldMarkMessagesAsRead(@Nullable Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 
@@ -123,37 +117,32 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		this.maxFetchSize = maxFetchSize;
 	}
 
-	public void setSelectorExpression(Expression selectorExpression) {
+	public void setSelectorExpression(@Nullable Expression selectorExpression) {
 		this.selectorExpression = selectorExpression;
 	}
 
-	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {
+	public void setSearchTermStrategy(@Nullable SearchTermStrategy searchTermStrategy) {
 		this.searchTermStrategy = searchTermStrategy;
 	}
 
-	public void setUserFlag(String userFlag) {
+	public void setUserFlag(@Nullable String userFlag) {
 		this.userFlag = userFlag;
 	}
 
-	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
+	public void setHeaderMapper(@Nullable HeaderMapper<MimeMessage> headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 
-	public void setEmbeddedPartsAsBytes(Boolean embeddedPartsAsBytes) {
+	public void setEmbeddedPartsAsBytes(@Nullable Boolean embeddedPartsAsBytes) {
 		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
 	}
 
-	public void setSimpleContent(Boolean simpleContent) {
+	public void setSimpleContent(@Nullable Boolean simpleContent) {
 		this.simpleContent = simpleContent;
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
-	@Override
-	public MailReceiver getObject() throws Exception {
+	protected MailReceiver createInstance() {
 		if (this.receiver == null) {
 			this.receiver = this.createReceiver();
 		}
@@ -165,30 +154,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		return (this.receiver != null) ? this.receiver.getClass() : MailReceiver.class;
 	}
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
-	private void verifyProtocol() {
-		if (StringUtils.hasText(this.storeUri)) {
-			URLName urlName = new URLName(this.storeUri);
-			if (this.protocol == null) {
-				this.protocol = urlName.getProtocol();
-			}
-			else {
-				Assert.isTrue(this.protocol.equals(urlName.getProtocol()),
-						"The provided 'protocol' does not match that in the 'storeUri'.");
-			}
-		}
-		else {
-			Assert.hasText(this.protocol, "Either the 'storeUri' or 'protocol' is required.");
-		}
-		Assert.hasText(this.protocol, "Unable to resolve protocol.");
-	}
-
-	private MailReceiver createReceiver() {
-		this.verifyProtocol();
+	private MailReceiver createReceiver() { // NOSONAR
+		verifyProtocol();
 		boolean isPop3 = this.protocol.toLowerCase().startsWith("pop3");
 		boolean isImap = this.protocol.toLowerCase().startsWith("imap");
 		Assert.isTrue(isPop3 || isImap, "the store URI must begin with 'pop3' or 'imap'");
@@ -196,8 +163,10 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 				? new Pop3MailReceiver(this.storeUri)
 				: new ImapMailReceiver(this.storeUri);
 		if (this.session != null) {
-			Assert.isNull(this.javaMailProperties, "JavaMail Properties are not allowed when a Session has been provided.");
-			Assert.isNull(this.authenticator, "A JavaMail Authenticator is not allowed when a Session has been provided.");
+			Assert.isNull(this.javaMailProperties,
+					"JavaMail Properties are not allowed when a Session has been provided.");
+			Assert.isNull(this.authenticator,
+					"A JavaMail Authenticator is not allowed when a Session has been provided.");
 			mailReceiver.setSession(this.session);
 		}
 		if (this.searchTermStrategy != null) {
@@ -222,15 +191,16 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 
 		if (isPop3) {
-			if (this.isShouldMarkMessagesAsRead() && this.logger.isWarnEnabled()) {
+			if (isShouldMarkMessagesAsRead()) {
 				this.logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
 			}
 		}
-		else if (isImap) {
+		else {
 			((ImapMailReceiver) mailReceiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 		}
-		if (this.beanFactory != null) {
-			mailReceiver.setBeanFactory(this.beanFactory);
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			mailReceiver.setBeanFactory(beanFactory);
 		}
 		if (this.headerMapper != null) {
 			mailReceiver.setHeaderMapper(this.headerMapper);
@@ -245,10 +215,32 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		return mailReceiver;
 	}
 
+	private void verifyProtocol() {
+		if (StringUtils.hasText(this.storeUri)) {
+			URLName urlName = new URLName(this.storeUri);
+			if (this.protocol == null) {
+				this.protocol = urlName.getProtocol();
+			}
+			else {
+				Assert.isTrue(this.protocol.equals(urlName.getProtocol()),
+						"The provided 'protocol' does not match that in the 'storeUri'.");
+			}
+		}
+		else {
+			Assert.hasText(this.protocol, "Either the 'storeUri' or 'protocol' is required.");
+		}
+		Assert.hasText(this.protocol, "Unable to resolve protocol.");
+	}
+
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.receiver != null && this.receiver instanceof DisposableBean) {
-			((DisposableBean) this.receiver).destroy();
+			try {
+				((DisposableBean) this.receiver).destroy();
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
 		}
 	}
 

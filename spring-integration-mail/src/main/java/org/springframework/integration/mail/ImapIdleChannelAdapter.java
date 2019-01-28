@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,7 +154,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		final TaskScheduler scheduler = this.getTaskScheduler();
+		TaskScheduler scheduler = getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null");
 		if (this.sendingTaskExecutor == null) {
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
@@ -182,39 +182,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
-	private Runnable createMessageSendingTask(final Object mailMessage) {
-		Runnable sendingTask = () -> {
-			@SuppressWarnings("unchecked")
-			org.springframework.messaging.Message<?> message =
-					mailMessage instanceof Message
-							? getMessageBuilderFactory().withPayload(mailMessage).build()
-							: (org.springframework.messaging.Message<Object>) mailMessage;
-
-			if (TransactionSynchronizationManager.isActualTransactionActive()) {
-				if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
-					TransactionSynchronization synchronization =
-							ImapIdleChannelAdapter.this.transactionSynchronizationFactory
-									.create(ImapIdleChannelAdapter.this);
-					if (synchronization != null) {
-						TransactionSynchronizationManager.registerSynchronization(synchronization);
-
-						if (synchronization instanceof IntegrationResourceHolderSynchronization
-								&& !TransactionSynchronizationManager.hasResource(ImapIdleChannelAdapter.this)) {
-
-							TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this,
-									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder());
-						}
-
-						Object resourceHolder =
-								TransactionSynchronizationManager.getResource(ImapIdleChannelAdapter.this);
-						if (resourceHolder instanceof IntegrationResourceHolder) {
-							((IntegrationResourceHolder) resourceHolder).setMessage(message);
-						}
-					}
-				}
-			}
-			sendMessage(message);
-		};
+	private Runnable createMessageSendingTask(Object mailMessage) {
+		Runnable sendingTask = prepareSendingTask(mailMessage);
 
 		// wrap in the TX proxy if necessary
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
@@ -227,6 +196,38 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			sendingTask = (Runnable) proxyFactory.getProxy(this.classLoader);
 		}
 		return sendingTask;
+	}
+
+	private Runnable prepareSendingTask(Object mailMessage) {
+		return () -> {
+			@SuppressWarnings("unchecked")
+			org.springframework.messaging.Message<?> message =
+					mailMessage instanceof Message
+							? getMessageBuilderFactory().withPayload(mailMessage).build()
+							: (org.springframework.messaging.Message<Object>) mailMessage;
+
+			if (TransactionSynchronizationManager.isActualTransactionActive()
+					&& this.transactionSynchronizationFactory != null) {
+
+				TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(this);
+				if (synchronization != null) {
+					TransactionSynchronizationManager.registerSynchronization(synchronization);
+
+					if (synchronization instanceof IntegrationResourceHolderSynchronization
+							&& !TransactionSynchronizationManager.hasResource(this)) {
+
+						TransactionSynchronizationManager.bindResource(this,
+								((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder());
+					}
+
+					Object resourceHolder = TransactionSynchronizationManager.getResource(this);
+					if (resourceHolder instanceof IntegrationResourceHolder) {
+						((IntegrationResourceHolder) resourceHolder).setMessage(message);
+					}
+				}
+			}
+			sendMessage(message);
+		};
 	}
 
 	private void publishException(Exception e) {
@@ -262,6 +263,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				publishException(e);
 			}
 		}
+
 	}
 
 

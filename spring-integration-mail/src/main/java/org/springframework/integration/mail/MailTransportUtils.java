@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2018 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,17 @@ import org.springframework.util.StringUtils;
  *
  * @author Arjen Poutsma
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class MailTransportUtils {
 
-	private static final Log logger = LogFactory.getLog(MailTransportUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(MailTransportUtils.class);
 
 
 	/**
-	 * Close the given JavaMail Service and ignore any thrown exception. This is useful for typical <code>finally</code>
+	 * Close the given JavaMail Service and ignore any thrown exception. This is useful for typical
+	 * <code>finally</code>
 	 * blocks in manual JavaMail code.
-	 *
 	 * @param service the JavaMail Service to close (may be <code>null</code>)
 	 * @see javax.mail.Transport
 	 * @see javax.mail.Store
@@ -51,26 +52,25 @@ public abstract class MailTransportUtils {
 				service.close();
 			}
 			catch (MessagingException ex) {
-				logger.debug("Could not close JavaMail Service", ex);
+				LOGGER.debug("Could not close JavaMail Service", ex);
 			}
 		}
 	}
 
-//    /**
-//     * Close the given JavaMail Folder and ignore any thrown exception. This is
-//     * useful for typical <code>finally</code> blocks in manual JavaMail code.
-//     *
-//     * @param folder the JavaMail Folder to close (may be <code>null</code>)
-//     */
-//
-//    public static void closeFolder(Folder folder) {
-//        closeFolder(folder, false);
-//    }
+	//    /**
+	//     * Close the given JavaMail Folder and ignore any thrown exception. This is
+	//     * useful for typical <code>finally</code> blocks in manual JavaMail code.
+	//     *
+	//     * @param folder the JavaMail Folder to close (may be <code>null</code>)
+	//     */
+	//
+	//    public static void closeFolder(Folder folder) {
+	//        closeFolder(folder, false);
+	//    }
 
 	/**
 	 * Close the given JavaMail Folder and ignore any thrown exception. This is
 	 * useful for typical <code>finally</code> blocks in manual JavaMail code.
-	 *
 	 * @param folder  the JavaMail Folder to close (may be <code>null</code>)
 	 * @param expunge whether all deleted messages should be expunged from the folder
 	 */
@@ -80,11 +80,7 @@ public abstract class MailTransportUtils {
 				folder.close(expunge);
 			}
 			catch (MessagingException ex) {
-				logger.debug("Could not close JavaMail Folder", ex);
-			}
-			catch (NullPointerException ex) {
-				// JavaMail prior to 1.4.1 may throw this
-				logger.debug("Could not close JavaMail Folder", ex);
+				LOGGER.debug("Could not close JavaMail Folder", ex);
 			}
 		}
 	}
@@ -92,7 +88,6 @@ public abstract class MailTransportUtils {
 	/**
 	 * Returns a string representation of the given {@link URLName}, where the
 	 * password has been protected.
-	 *
 	 * @param name The URL name.
 	 * @return The result with password protection.
 	 */
@@ -104,7 +99,7 @@ public abstract class MailTransportUtils {
 		int port = name.getPort();
 		String file = name.getFile();
 		String ref = name.getRef();
-		StringBuffer tempURL = new StringBuffer();
+		StringBuilder tempURL = new StringBuilder();
 		if (protocol != null) {
 			tempURL.append(protocol).append(':');
 		}
@@ -121,7 +116,7 @@ public abstract class MailTransportUtils {
 				tempURL.append(host);
 			}
 			if (port != -1) {
-				tempURL.append(':').append(Integer.toString(port));
+				tempURL.append(':').append(port);
 			}
 			if (StringUtils.hasLength(file)) {
 				tempURL.append('/');

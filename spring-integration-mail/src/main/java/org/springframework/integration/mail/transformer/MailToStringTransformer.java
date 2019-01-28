@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,26 +33,27 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MailToStringTransformer extends AbstractMailMessageTransformer<String> {
 
-	private volatile String charset = "UTF-8";
-
+	private String charset = "UTF-8";
 
 	/**
 	 * Specify the name of the Charset to use when converting from bytes.
 	 * The default is UTF-8.
-	 *
 	 * @param charset The charset.
 	 */
 	public void setCharset(String charset) {
 		Assert.notNull(charset, "charset must not be null");
-		Assert.isTrue(Charset.isSupported(charset), "unsupported charset '" + charset + "'");
+		Assert.isTrue(Charset.isSupported(charset), () -> "unsupported charset '" + charset + "'");
 		this.charset = charset;
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<String> doTransform(javax.mail.Message mailMessage) throws Exception {
+	protected AbstractIntegrationMessageBuilder<String> doTransform(javax.mail.Message mailMessage)
+			throws Exception { // NOSONAR
+
 		Object content = mailMessage.getContent();
 		if (content instanceof String) {
 			return this.getMessageBuilderFactory().withPayload((String) content);

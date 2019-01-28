@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.URLName;
@@ -32,18 +33,20 @@ import org.springframework.util.Assert;
  */
 public class Pop3MailReceiver extends AbstractMailReceiver {
 
+	public static final String PROTOCOL = "pop3";
+
 	public Pop3MailReceiver() {
 		super();
-		this.setProtocol("pop3");
+		setProtocol(PROTOCOL);
 	}
 
 	public Pop3MailReceiver(String url) {
 		super(url);
 		if (url != null) {
-			Assert.isTrue(url.startsWith("pop3"), "url must start with 'pop3'");
+			Assert.isTrue(url.startsWith(PROTOCOL), "url must start with 'pop3'");
 		}
 		else {
-			this.setProtocol("pop3");
+			setProtocol(PROTOCOL);
 		}
 	}
 
@@ -53,22 +56,22 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	}
 
 	public Pop3MailReceiver(String host, int port, String username, String password) {
-		super(new URLName("pop3", host, port, "INBOX", username, password));
+		super(new URLName(PROTOCOL, host, port, "INBOX", username, password));
 	}
 
 
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {
-		int messageCount = this.getFolder().getMessageCount();
+		Folder folderToUse = getFolder();
+		int messageCount = folderToUse.getMessageCount();
 		if (messageCount == 0) {
 			return new Message[0];
 		}
-		return this.getFolder().getMessages();
+		return folderToUse.getMessages();
 	}
 
 	/**
 	 * Deletes the given messages from this receiver's folder, and closes it to expunge deleted messages.
-	 *
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -76,8 +79,9 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	protected void deleteMessages(Message[] messages) throws MessagingException {
 		super.deleteMessages(messages);
 		// expunge deleted mails, and make sure we've retrieved them before closing the folder
-		for (int i = 0; i < messages.length; i++) {
-			new MimeMessage((MimeMessage) messages[i]);
+		for (Message message : messages) {
+			new MimeMessage((MimeMessage) message);
 		}
 	}
+
 }
