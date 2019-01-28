@@ -339,7 +339,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	@Override
 	public Object[] receive() throws javax.mail.MessagingException {
-		this.folderReadLock.lock();
+		this.folderReadLock.lock(); // NOSONAR - guarded with the getReadHoldCount()
 		try {
 			try {
 				Folder folderToCheck = getFolder();

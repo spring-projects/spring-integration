@@ -349,13 +349,13 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 						"System flag 'Flag.FLAGGED' will be used to prevent duplicates during email fetch.");
 				notFlagged = new NotTerm(new FlagTerm(new Flags(Flag.FLAGGED), true));
 			}
+
 			if (searchTerm == null) {
-				searchTerm = notFlagged;
+				return notFlagged;
 			}
 			else {
-				searchTerm = new AndTerm(searchTerm, notFlagged);
+				return new AndTerm(searchTerm, notFlagged);
 			}
-			return searchTerm;
 		}
 
 	}
