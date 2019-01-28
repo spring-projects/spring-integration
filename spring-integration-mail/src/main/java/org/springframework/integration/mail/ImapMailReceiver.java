@@ -253,10 +253,15 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 		@Override
 		public void run() {
-			Folder folder = getFolder();
-			logger.debug("Canceling IDLE");
-			if (folder != null) {
-				folder.isOpen(); // resets idle state
+			try {
+				Folder folder = getFolder();
+				logger.debug("Canceling IDLE");
+				if (folder != null) {
+					folder.isOpen(); // resets idle state
+				}
+			}
+			catch (Exception ex) {
+				logger.error("Error during resetting idle state.", ex);
 			}
 		}
 

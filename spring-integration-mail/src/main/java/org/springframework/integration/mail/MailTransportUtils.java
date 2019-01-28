@@ -57,17 +57,6 @@ public abstract class MailTransportUtils {
 		}
 	}
 
-	//    /**
-	//     * Close the given JavaMail Folder and ignore any thrown exception. This is
-	//     * useful for typical <code>finally</code> blocks in manual JavaMail code.
-	//     *
-	//     * @param folder the JavaMail Folder to close (may be <code>null</code>)
-	//     */
-	//
-	//    public static void closeFolder(Folder folder) {
-	//        closeFolder(folder, false);
-	//    }
-
 	/**
 	 * Close the given JavaMail Folder and ignore any thrown exception. This is
 	 * useful for typical <code>finally</code> blocks in manual JavaMail code.
