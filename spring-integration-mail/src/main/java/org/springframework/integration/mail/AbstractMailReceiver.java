@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.mail.Authenticator;
@@ -72,7 +71,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private final URLName url;
 
-	private final ReadWriteLock folderLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock folderLock = new ReentrantReadWriteLock();
 
 	private final Lock folderReadLock = this.folderLock.readLock();
 
@@ -340,7 +339,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	@Override
 	public Object[] receive() throws javax.mail.MessagingException {
-		this.folderReadLock.lock();
+		this.folderReadLock.lock(); // NOSONAR - guarded with the getReadHoldCount()
 		try {
 			try {
 				Folder folderToCheck = getFolder();
@@ -362,7 +361,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 		finally {
-			this.folderReadLock.unlock();
+			if (this.folderLock.getReadHoldCount() > 0) {
+				this.folderReadLock.unlock();
+			}
 		}
 	}
 
@@ -416,21 +417,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
 		Object content;
 		try {
-			MimeMessage theMessage;
+			MimeMessage theMessage = message;
 			if (this.simpleContent) {
 				theMessage = new IntegrationMimeMessage(message);
 			}
-			else {
-				theMessage = message;
-			}
 			content = theMessage.getContent();
 			if (content instanceof String) {
+				headers.put(MessageHeaders.CONTENT_TYPE, "text/plain");
 				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
 				if (mailContentType != null && mailContentType.toLowerCase().startsWith("text")) {
 					headers.put(MessageHeaders.CONTENT_TYPE, mailContentType);
-				}
-				else {
-					headers.put(MessageHeaders.CONTENT_TYPE, "text/plain");
 				}
 			}
 			else if (content instanceof InputStream) {

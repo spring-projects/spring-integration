@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public abstract class
@@ -52,9 +53,9 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 		extends MessageSourceSpec<S, MailReceivingMessageSource>
 		implements ComponentsRegistration {
 
-	protected final R receiver;
+	protected final R receiver; // NOSONAR
 
-	protected final boolean externalReceiver;
+	protected final boolean externalReceiver; // NOSONAR
 
 	private boolean sessionProvided;
 
@@ -81,7 +82,8 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 	}
 
 	protected void assertReceiver() {
-		Assert.state(!this.externalReceiver, "An external 'receiver' [" + this.receiver + "] can't be modified.");
+		Assert.state(!this.externalReceiver,
+				() -> "An external 'receiver' [" + this.receiver + "] can't be modified.");
 	}
 
 	/**
@@ -107,7 +109,7 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 	 */
 	public S selector(Function<MimeMessage, Boolean> selectorFunction) {
 		assertReceiver();
-		this.receiver.setSelectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
+		this.receiver.setSelectorExpression(new FunctionExpression<>(selectorFunction));
 		return _this();
 	}
 
@@ -227,8 +229,7 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 	 * {@link javax.mail.Multipart} content is rendered as a byte[] in the payload.
 	 * Otherwise, leave as a {@link javax.mail.Part}. These objects are not suitable for
 	 * downstream serialization. Default: true.
-	 * <p>
-	 * This has no effect if there is no header mapper, in that case the payload is the
+	 * <p> This has no effect if there is no header mapper, in that case the payload is the
 	 * {@link MimeMessage}.
 	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
 	 * @return the spec.

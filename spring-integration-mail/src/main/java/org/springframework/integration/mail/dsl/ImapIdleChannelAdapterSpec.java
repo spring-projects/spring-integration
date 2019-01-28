@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class ImapIdleChannelAdapterSpec
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
-	protected final boolean externalReceiver;
+	protected final boolean externalReceiver; // NOSONAR
 
 	private boolean sessionProvided;
 
@@ -106,7 +106,8 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	private void assertReceiver() {
-		Assert.state(!this.externalReceiver, "An external 'receiver' [" + this.receiver + "] can't be modified.");
+		Assert.state(!this.externalReceiver,
+				() -> "An external 'receiver' [" + this.receiver + "] can't be modified.");
 	}
 
 	/**
@@ -118,7 +119,7 @@ public class ImapIdleChannelAdapterSpec
 	 * @see FunctionExpression
 	 */
 	public ImapIdleChannelAdapterSpec selector(Function<MimeMessage, Boolean> selectorFunction) {
-		return selectorExpression(new FunctionExpression<MimeMessage>(selectorFunction));
+		return selectorExpression(new FunctionExpression<>(selectorFunction));
 	}
 
 	/**
@@ -277,6 +278,7 @@ public class ImapIdleChannelAdapterSpec
 	 */
 	public ImapIdleChannelAdapterSpec transactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
+
 		this.target.setTransactionSynchronizationFactory(transactionSynchronizationFactory);
 		return this;
 	}
