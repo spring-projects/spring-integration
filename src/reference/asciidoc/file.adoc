@@ -454,7 +454,7 @@ public class FileReadingJavaApplication {
     @Bean
     public IntegrationFlow fileReadingFlow() {
          return IntegrationFlows
-                  .from(s -> s.file(new File(INBOUND_PATH))
+                  .from(Files.inboundAdapter(new File(INBOUND_PATH))
                               .patternFilter("*.txt"),
                           e -> e.poller(Pollers.fixedDelay(1000)))
                   .transform(Files.toStringTransformer())
@@ -573,7 +573,6 @@ In the following example, `IdleEventInterval` is set to `5000`, meaning that, if
 ====
 
 This can be useful when you need to stop the adapter.
-// TODO How does this stop the adapter?
 
 The following example creates an Apache `commons-io` `Tailer` adapter that examines the file for new lines every two seconds and checks for existence of a missing file every ten seconds:
 
@@ -923,7 +922,7 @@ public class FileWritingJavaApplication {
    	    return IntegrationFlows.from("fileWritingInput")
    		        .enrichHeaders(h -> h.header(FileHeaders.FILENAME, "foo.txt")
    		                  .header("directory", new File(tmpDir.getRoot(), "fileWritingFlow")))
-   	            .handleWithAdapter(a -> a.fileGateway(m -> m.getHeaders().get("directory")))
+   	            .handle(Files.outboundGateway(m -> m.getHeaders().get("directory")))
    	            .channel(MessageChannels.queue("fileWritingResultChannel"))
    	            .get();
     }

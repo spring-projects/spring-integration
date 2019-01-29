@@ -44,8 +44,7 @@ Pollers use triggers to determine the time of the next poll.
 The `PollSkipAdvice` can be used to suppress (skip) a poll, perhaps because there is some downstream condition that would prevent the message being processed.
 To use this advice, you have to provide it with an implementation of a `PollSkipStrategy`.
 Starting with version 4.2.5, a `SimplePollSkipStrategy` is provided.
-To use it, you can add an instance as a bean to the application context, inject it into a `PollSkipAdvice`, and add that to the poller's
-advice chain.
+To use it, you can add an instance as a bean to the application context, inject it into a `PollSkipAdvice`, and add that to the poller's advice chain.
 To skip polling, call `skipPolls()`.
 To resume polling, call `reset()`.
 Version 4.2 added more flexibility in this area.
@@ -58,7 +57,7 @@ For more information regarding messaging endpoints in general and polling consum
 ==== Deferred Acknowledgment Pollable Message Source
 
 Starting with version 5.0.1, certain modules provide `MessageSource` implementations that support deferring acknowledgment until the downstream flow completes (or hands off the message to another thread).
-This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the https://github.com/spring-projects/spring-integration-kafka[`spring-kafka-integration` extension project, version 3.0.1 or higher].
+This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the `spring-integration-kafka` https://github.com/spring-projects/spring-integration-kafka[extension project].
 
 With these message sources, the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header (see <<message-header-accessor>>) is added to the message.
 The value of the header is an instance of `AcknowledgmentCallback`, as the following example shows:
@@ -68,7 +67,7 @@ The value of the header is an instance of `AcknowledgmentCallback`, as the follo
 @FunctionalInterface
 public interface AcknowledgmentCallback {
 
-    void acknlowledge(Status status);
+    void acknowledge(Status status);
 
     boolean isAcknowledged();
 
@@ -197,14 +196,12 @@ To use this advice where you wish to use async operations after the result of a 
 This advice allows the selection of one of two triggers based on whether a poll returns a message or not.
 Consider a poller that uses a `CronTrigger`.
 `CronTrigger` instances are immutable, so they cannot be altered once constructed.
-Consider a use case where we want to use a cron expression to trigger a poll once each hour but, if no message is
-received, poll once per minute and, when a message is retrieved, revert to using the cron expression.
+Consider a use case where we want to use a cron expression to trigger a poll once each hour but, if no message is received, poll once per minute and, when a message is retrieved, revert to using the cron expression.
 
 The advice (and poller) use a `CompoundTrigger` for this purpose.
 The trigger's `primary` trigger can be a `CronTrigger`.
 When the advice detects that no message is received, it adds the secondary trigger to the `CompoundTrigger`.
-When the `CompoundTrigger` instance's `nextExecutionTime` method is invoked, it delegates to the secondary trigger, if
-present.
+When the `CompoundTrigger` instance's `nextExecutionTime` method is invoked, it delegates to the secondary trigger, if present.
 Otherwise, it delegates to the primary trigger.
 
 The poller must also have a reference to the same `CompoundTrigger`.

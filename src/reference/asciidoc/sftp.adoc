@@ -560,7 +560,7 @@ public class SftpJavaApplication {
     @Bean
     public IntegrationFlow sftpInboundFlow() {
         return IntegrationFlows
-            .from(s -> s.sftp(this.sftpSessionFactory)
+            .from(Sftp.inboundAdapter(this.sftpSessionFactory)
                     .preserveTimestamp(true)
                     .remoteDirectory("foo")
                     .regexFilter(".*\\.txt$")
@@ -1295,9 +1295,8 @@ public class SftpJavaApplication {
     @Bean
     public IntegrationFlow sftpMGetFlow() {
         return IntegrationFlows.from("sftpMgetInputChannel")
-            .handleWithAdapter(h ->
-                h.sftpGateway(sftpSessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET,
-                    "payload")
+            .handle(Sftp.outboundGateway(sftpSessionFactory(),
+                            AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
                     .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
                     .regexFileNameFilter("(subSftpSource|.*1.txt)")
                     .localDirectoryExpression("'myDir/' + #remoteDirectory")

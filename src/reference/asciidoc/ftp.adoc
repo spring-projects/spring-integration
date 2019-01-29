@@ -559,7 +559,7 @@ public class FtpJavaApplication {
     @Bean
     public IntegrationFlow ftpInboundFlow() {
         return IntegrationFlows
-            .from(s -> s.ftp(this.ftpSessionFactory)
+            .from(Fpt.inboundAdapter(this.ftpSessionFactory)
                     .preserveTimestamp(true)
                     .remoteDirectory("foo")
                     .regexFilter(".*\\.txt$")
