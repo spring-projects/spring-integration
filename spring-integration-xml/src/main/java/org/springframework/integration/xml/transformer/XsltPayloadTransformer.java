@@ -240,18 +240,12 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.templates == null) {
-			TransformerFactory transformerFactory;
-			if (this.transformerFactoryClassName != null) {
-				transformerFactory = TransformerFactory.newInstance(this.transformerFactoryClassName,
-						this.classLoader);
-			}
-			else {
-				transformerFactory = TransformerFactoryUtils.newInstance();
-			}
-			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file,jar:file");
 			try {
+			TransformerFactory transformerFactory = createTransformerFactory();
 				this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalStateException(e);
 			}
 			catch (TransformerConfigurationException e) {
 				throw new IllegalStateException(e);
@@ -260,6 +254,29 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 				throw new IllegalStateException(e);
 			}
 		}
+	}
+
+	private TransformerFactory createTransformerFactory() throws ClassNotFoundException {
+		TransformerFactory transformerFactory;
+		if (this.transformerFactoryClassName != null) {
+			@SuppressWarnings("unchecked")
+			Class<TransformerFactory> transformerFactoryClass =
+					(Class<TransformerFactory>) ClassUtils.forName(this.transformerFactoryClassName, this.classLoader);
+			transformerFactory = TransformerFactoryUtils.newInstance(transformerFactoryClass);
+		}
+		else {
+			transformerFactory = TransformerFactoryUtils.newInstance();
+		}
+		try {
+			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file,jar:file");
+		}
+		catch (IllegalArgumentException ex) {
+			if (logger.isInfoEnabled()) {
+				logger.info("The '" + XMLConstants.ACCESS_EXTERNAL_STYLESHEET + "' property is not supported by "
+						+ transformerFactory.getClass().getCanonicalName());
+			}
+		}
+		return transformerFactory;
 	}
 
 	@Override
