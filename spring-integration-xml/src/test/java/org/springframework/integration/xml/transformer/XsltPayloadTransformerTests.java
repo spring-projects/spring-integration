@@ -26,7 +26,6 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
@@ -161,10 +160,12 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testXsltPayloadWithBadTransformerFactoryClassName() throws IOException {
-		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText(), "foo.bar.Baz");
+		XsltPayloadTransformer transformer =
+				new XsltPayloadTransformer(getXslResourceThatOutputsText(), "foo.bar.Baz");
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		assertThatThrownBy(transformer::afterPropertiesSet)
-				.isExactlyInstanceOf(TransformerFactoryConfigurationError.class);
+				.isExactlyInstanceOf(IllegalStateException.class)
+				.hasCauseExactlyInstanceOf(ClassNotFoundException.class);
 	}
 
 	@Test
