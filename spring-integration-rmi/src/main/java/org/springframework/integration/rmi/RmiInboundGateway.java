@@ -139,11 +139,11 @@ public class RmiInboundGateway extends MessagingGatewaySupport
 
 	@Override
 	public void destroy() {
-		super.destroy();
 		try {
+			super.destroy();
 			this.exporter.destroy();
 		}
-		catch (RemoteException e) {
+		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
 	}

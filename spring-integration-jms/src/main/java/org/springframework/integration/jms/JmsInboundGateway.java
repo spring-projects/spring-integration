@@ -101,7 +101,12 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 	@Override
 	public void destroy() {
 		this.endpoint.destroy();
-		super.destroy();
+		try {
+			super.destroy();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override

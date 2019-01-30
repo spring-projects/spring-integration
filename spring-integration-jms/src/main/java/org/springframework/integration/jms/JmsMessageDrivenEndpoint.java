@@ -218,7 +218,12 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport
 			this.stop();
 		}
 		this.listenerContainer.destroy();
-		super.destroy();
+		try {
+			super.destroy();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
