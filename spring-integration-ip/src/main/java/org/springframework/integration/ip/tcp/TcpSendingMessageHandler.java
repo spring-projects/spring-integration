@@ -116,15 +116,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			try {
 				connection.send(message);
 			}
-			catch (Exception e) {
-				logger.error("Error sending message", e);
+			catch (Exception ex) {
+				logger.error("Error sending message", ex);
 				connection.close();
-				if (e instanceof MessageHandlingException) { // NOSONAR
-					throw (MessageHandlingException) e;
-				}
-				else {
-					throw new MessageHandlingException(message, "Error sending message", e);
-				}
+				throw wrapToMessageHandlingExceptionIfNecessary(message, "Error sending message", ex);
 			}
 			finally {
 				if (this.isSingleUse) { // close after replying
@@ -138,6 +133,17 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					new MessageHandlingException(message, "Unable to find outbound socket");
 			publishNoConnectionEvent(messageHandlingException, connectionId);
 			throw messageHandlingException;
+		}
+	}
+
+	private MessageHandlingException wrapToMessageHandlingExceptionIfNecessary(Message<?> message, String description,
+			Throwable cause) {
+
+		if (cause instanceof MessageHandlingException) {
+			throw (MessageHandlingException) cause;
+		}
+		else {
+			throw new MessageHandlingException(message, description, cause);
 		}
 	}
 
@@ -183,15 +189,13 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 			connection.send(message);
 		}
-		catch (MessageHandlingException ex) {
-			throw ex;
-		}
 		catch (Exception ex) {
 			String connectionId = null;
 			if (connection != null) {
 				connectionId = connection.getConnectionId();
 			}
-			throw new MessageHandlingException(message, "Failed to handle message using " + connectionId, ex);
+			throw wrapToMessageHandlingExceptionIfNecessary(message,
+					"Failed to handle message using " + connectionId, ex);
 		}
 		return connection;
 	}

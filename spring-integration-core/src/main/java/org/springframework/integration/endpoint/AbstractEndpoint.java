@@ -119,7 +119,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void destroy() {
+	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
 		if (this.roleController != null) {
 			this.roleController.removeLifecycle(this);
 		}
