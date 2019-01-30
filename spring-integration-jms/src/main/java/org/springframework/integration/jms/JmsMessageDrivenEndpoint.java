@@ -36,7 +36,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements DisposableBean, OrderlyShutdownCapable {
+public class JmsMessageDrivenEndpoint extends MessageProducerSupport
+		implements DisposableBean, OrderlyShutdownCapable {
 
 	private final AbstractMessageListenerContainer listenerContainer;
 
@@ -73,7 +74,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 			ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
-		if (logger.isWarnEnabled() && listenerContainer.getMessageListener() != null) {
+		if (listenerContainer.getMessageListener() != null) {
 			logger.warn("The provided listener container already has a MessageListener implementation, " +
 					"but it will be overridden by the provided ChannelPublishingJmsMessageListener.");
 		}
@@ -212,7 +213,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.isRunning()) {
 			this.stop();
 		}
