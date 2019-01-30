@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -158,8 +159,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the {@link Expression} that should be checked for a delay period (in
-	 * milliseconds) or a Date to delay until. If this property is set, the result of the
+	 * Specify the {@link Expression} that should be checked for a delay period
+	 * (in milliseconds) or a {@link Date}, or {@link Instant} to delay until.
+	 * If this property is set, the result of the
 	 * expression evaluation (if not null) will take precedence over this handler's
 	 * default delay.
 	 * @param delayExpression The delay expression.
@@ -169,8 +171,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the {@code Expression} that should be checked for a delay period (in
-	 * milliseconds) or a Date to delay until. If this property is set, the result of the
+	 * Specify the {@code Expression} that should be checked for a delay period
+	 * (in milliseconds) or a {@link Date}, or {@link Instant} to delay until.
+	 * If this property is set, the result of the
 	 * expression evaluation (if not null) will take precedence over this handler's
 	 * default delay.
 	 * @param delayExpression The delay expression.
@@ -364,6 +367,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						: System.currentTimeMillis();
 				delay = ((Date) delayValue).getTime() - current;
 			}
+			else if (delayValue instanceof Instant) {
+				long current = delayedMessageWrapper != null
+						? delayedMessageWrapper.getRequestDate()
+						: Instant.now().toEpochMilli();
+				delay = ((Instant) delayValue).minusMillis(current).toEpochMilli();
+			}
 			else if (delayValue != null) {
 				try {
 					delay = Long.valueOf(delayValue.toString());
@@ -391,8 +400,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
 		Message<?> delayedMessage = message;
-
-		DelayedMessageWrapper messageWrapper = null;
+		DelayedMessageWrapper messageWrapper;
 		if (message.getPayload() instanceof DelayedMessageWrapper) {
 			messageWrapper = (DelayedMessageWrapper) message.getPayload();
 		}
