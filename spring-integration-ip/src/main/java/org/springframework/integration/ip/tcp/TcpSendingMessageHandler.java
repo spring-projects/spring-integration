@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorr
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -43,35 +42,43 @@ import org.springframework.util.Assert;
  * send data - if the connection factory is a server
  * factory, the TcpListener owns the connections. If it is
  * a client factory, this object owns the connection.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
 public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		TcpSender, Lifecycle, ClientModeCapable {
 
-	private volatile AbstractConnectionFactory clientConnectionFactory;
+	/**
+	 * A default retry interval for the {@link ClientModeConnectionManager} rescheduling.
+	 */
+	public static final long DEFAULT_RETRY_INTERVAL = 60000;
 
-	private volatile AbstractConnectionFactory serverConnectionFactory;
+	protected final Object lifecycleMonitor = new Object(); // NOSONAR
 
-	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<>();
 
-	private volatile boolean isClientMode;
+	private AbstractConnectionFactory clientConnectionFactory;
 
-	private volatile boolean isSingleUse;
+	private AbstractConnectionFactory serverConnectionFactory;
 
-	private volatile long retryInterval = 60000;
+	private boolean isClientMode;
+
+	private boolean isSingleUse;
+
+	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
 	private volatile ScheduledFuture<?> scheduledFuture;
 
 	private volatile ClientModeConnectionManager clientModeConnectionManager;
 
-	protected final Object lifecycleMonitor = new Object();
-
 	private volatile boolean active;
 
 	protected TcpConnection obtainConnection(Message<?> message) {
-		TcpConnection connection = null;
+		TcpConnection connection;
 		Assert.notNull(this.clientConnectionFactory, "'clientConnectionFactory' cannot be null");
 		try {
 			connection = this.clientConnectionFactory.getConnection();
@@ -89,69 +96,75 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 * @see org.springframework.messaging.MessageHandler#handleMessage(org.springframework.messaging.Message)
 	 */
 	@Override
-	public void handleMessageInternal(final Message<?> message) throws
-			MessageHandlingException {
+	public void handleMessageInternal(final Message<?> message) {
 		if (this.serverConnectionFactory != null) {
-			// We don't own the connection, we are asynchronously replying
-			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
-			TcpConnection connection = null;
-			if (connectionId != null) {
-				connection = this.connections.get(connectionId);
-			}
-			if (connection != null) {
-				try {
-					connection.send(message);
-				}
-				catch (Exception e) {
-					logger.error("Error sending message", e);
-					connection.close();
-					if (e instanceof MessageHandlingException) {
-						throw (MessageHandlingException) e;
-					}
-					else {
-						throw new MessageHandlingException(message, "Error sending message", e);
-					}
-				}
-				finally {
-					if (this.isSingleUse) { // close after replying
-						connection.close();
-					}
-				}
-			}
-			else {
-				logger.error("Unable to find outbound socket for " + message);
-				MessageHandlingException messageHandlingException = new MessageHandlingException(message,
-						"Unable to find outbound socket");
-				publishNoConnectionEvent(messageHandlingException, (String) connectionId);
-				throw messageHandlingException;
-			}
-			return;
+			handleMessageAsServer(message);
 		}
 		else {
-			// we own the connection
-			TcpConnection connection = null;
+			handleMessageAsClient(message);
+		}
+	}
+
+	private void handleMessageAsServer(Message<?> message) {
+		// We don't own the connection, we are asynchronously replying
+		String connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
+		TcpConnection connection = null;
+		if (connectionId != null) {
+			connection = this.connections.get(connectionId);
+		}
+		if (connection != null) {
 			try {
-				connection = doWrite(message);
+				connection.send(message);
 			}
-			catch (MessageHandlingException e) {
-				// retry - socket may have closed
-				if (e.getCause() instanceof IOException) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Fail on first write attempt", e);
-					}
-					connection = doWrite(message);
+			catch (Exception e) {
+				logger.error("Error sending message", e);
+				connection.close();
+				if (e instanceof MessageHandlingException) { // NOSONAR
+					throw (MessageHandlingException) e;
 				}
 				else {
-					throw e;
+					throw new MessageHandlingException(message, "Error sending message", e);
 				}
 			}
 			finally {
-				if (connection != null && this.isSingleUse
-						&& this.clientConnectionFactory.getListener() == null) {
-					// if there's no collaborating inbound adapter, close immediately, otherwise
-					// it will close after receiving the reply.
+				if (this.isSingleUse) { // close after replying
 					connection.close();
 				}
+			}
+		}
+		else {
+			logger.error("Unable to find outbound socket for " + message);
+			MessageHandlingException messageHandlingException =
+					new MessageHandlingException(message, "Unable to find outbound socket");
+			publishNoConnectionEvent(messageHandlingException, connectionId);
+			throw messageHandlingException;
+		}
+	}
+
+	private void handleMessageAsClient(Message<?> message) {
+		// we own the connection
+		TcpConnection connection = null;
+		try {
+			connection = doWrite(message);
+		}
+		catch (MessageHandlingException e) {
+			// retry - socket may have closed
+			if (e.getCause() instanceof IOException) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Fail on first write attempt", e);
+				}
+				connection = doWrite(message);
+			}
+			else {
+				throw e;
+			}
+		}
+		finally {
+			if (connection != null && this.isSingleUse
+					&& this.clientConnectionFactory.getListener() == null) {
+				// if there's no collaborating inbound adapter, close immediately, otherwise
+				// it will close after receiving the reply.
+				connection.close();
 			}
 		}
 	}
@@ -170,15 +183,15 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 			connection.send(message);
 		}
-		catch (Exception e) {
+		catch (MessageHandlingException ex) {
+			throw ex;
+		}
+		catch (Exception ex) {
 			String connectionId = null;
 			if (connection != null) {
 				connectionId = connection.getConnectionId();
 			}
-			if (e instanceof MessageHandlingException) {
-				throw (MessageHandlingException) e;
-			}
-			throw new MessageHandlingException(message, "Failed to handle message using " + connectionId, e);
+			throw new MessageHandlingException(message, "Failed to handle message using " + connectionId, ex);
 		}
 		return connection;
 	}
@@ -189,7 +202,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(
-				new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
+					new TcpConnectionFailedCorrelationEvent(this, connectionId, messageHandlingException));
 		}
 	}
 
@@ -230,8 +243,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	protected void onInit() {
 		super.onInit();
 		if (this.isClientMode) {
-			Assert.notNull(this.clientConnectionFactory,
-					"For client-mode, connection factory must be type='client'");
+			Assert.notNull(this.clientConnectionFactory, "For client-mode, connection factory must be type='client'");
 			Assert.isTrue(!this.clientConnectionFactory.isSingleUse(),
 					"For client-mode, connection factory must have single-use='false'");
 		}
@@ -249,11 +261,13 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					this.serverConnectionFactory.start();
 				}
 				if (this.isClientMode) {
-					ClientModeConnectionManager manager = new ClientModeConnectionManager(
-							this.clientConnectionFactory);
+					Assert.notNull(this.clientConnectionFactory,
+							"For client-mode, connection factory must be type='client'");
+					ClientModeConnectionManager manager =
+							new ClientModeConnectionManager(this.clientConnectionFactory);
 					this.clientModeConnectionManager = manager;
-					Assert.state(this.getTaskScheduler() != null, "Client mode requires a task scheduler");
-					this.scheduledFuture = this.getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+					Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
+					this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
 				}
 			}
 		}
@@ -317,11 +331,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
-	}
-
-	@Override // super class is protected
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
 	}
 
 	/**

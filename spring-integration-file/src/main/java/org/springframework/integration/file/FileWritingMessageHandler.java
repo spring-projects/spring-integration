@@ -342,15 +342,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * Configure a {@link TaskScheduler} for flush operations.
-	 * @param taskScheduler the {@link TaskScheduler} to use.
-	 */
-	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) { // NOSONAR
-		super.setTaskScheduler(taskScheduler);
-	}
-
-	/**
 	 * Set a {@link MessageFlushPredicate} to use when flushing files when
 	 * {@link FileExistsMode#APPEND_NO_FLUSH} is being used.
 	 * See {@link #trigger(Message)}.

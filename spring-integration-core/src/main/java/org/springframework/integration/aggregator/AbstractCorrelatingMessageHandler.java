@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
 import org.aopalliance.aop.Advice;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -57,7 +55,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -95,8 +92,6 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
 		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware, Lifecycle {
-
-	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
@@ -286,11 +281,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.popSequence = popSequence;
 	}
 
-	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
-	}
-
 	protected boolean isReleaseLockBeforeSend() {
 		return this.releaseLockBeforeSend;
 	}
@@ -444,7 +434,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) throws InterruptedException {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Assert.state(correlationKey != null,
 				"Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");

@@ -48,6 +48,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -142,7 +143,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	public DelayHandler(String messageGroupId, TaskScheduler taskScheduler) {
 		this(messageGroupId);
-		this.setTaskScheduler(taskScheduler);
+		setTaskScheduler(taskScheduler);
 	}
 
 	/**
@@ -272,11 +273,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		if (this.delayedMessageErrorChannel != null) {
 			return this.delayedMessageErrorChannel;
 		}
-		if (this.delayedMessageErrorChannelName != null) {
-			if (getChannelResolver() != null) {
-				this.delayedMessageErrorChannel = getChannelResolver()
-						.resolveDestination(this.delayedMessageErrorChannelName);
-			}
+		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
+		if (this.delayedMessageErrorChannelName != null && channelResolver != null) {
+			this.delayedMessageErrorChannel = channelResolver.resolveDestination(this.delayedMessageErrorChannelName);
 		}
 		return this.delayedMessageErrorChannel;
 	}
@@ -516,11 +515,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			}
 			handleMessageInternal(message);
 		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No message in the Message Store to release: " + message +
-						". Likely another instance has already released it.");
-			}
+		else if (logger.isDebugEnabled()) {
+			logger.debug("No message in the Message Store to release: " + message +
+					". Likely another instance has already released it.");
 		}
 	}
 
