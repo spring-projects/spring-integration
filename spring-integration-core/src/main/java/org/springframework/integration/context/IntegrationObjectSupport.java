@@ -205,6 +205,20 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		return this.beanFactory;
 	}
 
+	/**
+	 * Configure a {@link TaskScheduler} for those components which logic relies
+	 * on the scheduled tasks.
+	 * If not provided, falls back to the global {@code taskScheduler} bean
+	 * in the application context, provided by the Spring Integration infrastructure.
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 * @since 5.1.3
+	 * @see #getTaskScheduler()
+	 */
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
+		this.taskScheduler = taskScheduler;
+	}
+
 	protected TaskScheduler getTaskScheduler() {
 		if (this.taskScheduler == null && this.beanFactory != null) {
 			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
@@ -217,11 +231,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 		}
 		return this.channelResolver;
-	}
-
-	protected void setTaskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "taskScheduler must not be null");
-		this.taskScheduler = taskScheduler;
 	}
 
 	public ConversionService getConversionService() {

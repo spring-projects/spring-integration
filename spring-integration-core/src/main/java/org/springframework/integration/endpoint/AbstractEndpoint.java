@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.SmartLifecycleRoleController;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
@@ -56,9 +55,9 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	private volatile boolean running;
 
-	protected final ReentrantLock lifecycleLock = new ReentrantLock();
+	protected final ReentrantLock lifecycleLock = new ReentrantLock(); // NOSONAR
 
-	protected final Condition lifecycleCondition = this.lifecycleLock.newCondition();
+	protected final Condition lifecycleCondition = this.lifecycleLock.newCondition(); // NOSONAR
 
 	private String role;
 
@@ -87,11 +86,6 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 	public String getRole() {
 		return this.role;
-	}
-
-	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
 	}
 
 	@Override
@@ -125,7 +119,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
 		if (this.roleController != null) {
 			this.roleController.removeLifecycle(this);
 		}
