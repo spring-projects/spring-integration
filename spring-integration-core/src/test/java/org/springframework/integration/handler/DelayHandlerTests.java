@@ -50,7 +50,6 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -94,16 +93,13 @@ public class DelayHandlerTests {
 
 	@Before
 	public void setup() {
-		this.context.registerBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
-				new IntegrationEvaluationContextFactoryBean());
-		this.context.refresh();
 		input.setBeanName("input");
 		output.setBeanName("output");
 		taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
 		delayHandler.setOutputChannel(output);
-		delayHandler.setBeanFactory(this.context);
+		delayHandler.setBeanFactory(mock(BeanFactory.class));
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 	}
@@ -234,18 +230,6 @@ public class DelayHandlerTests {
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
-	}
-
-	@Test
-	public void delayHeaderIsInstantInTheFutureAndDefaultDelayWouldTimeout() {
-		this.delayHandler.setDefaultDelay(5000);
-		this.delayHandler.setDelayExpressionString("T(Instant).now().plusMillis(150)");
-		startDelayerHandler();
-		Message<?> message = new GenericMessage<>("test");
-		this.input.send(message);
-		waitForLatch(10000);
-		assertSame(message.getPayload(), this.resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), this.resultHandler.lastThread);
 	}
 
 	@Test

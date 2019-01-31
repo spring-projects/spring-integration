@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.expression.BeanResolver;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
@@ -66,7 +65,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationContextFactoryBean
 		implements FactoryBean<StandardEvaluationContext> {
 
-	private TypeLocator typeLocator;
+	private volatile TypeLocator typeLocator;
 
 	private BeanResolver beanResolver;
 
@@ -88,19 +87,10 @@ public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationC
 	}
 
 	@Override
-	public StandardEvaluationContext getObject() {
+	public StandardEvaluationContext getObject() throws Exception {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		if (this.typeLocator != null) {
 			evaluationContext.setTypeLocator(this.typeLocator);
-		}
-
-		TypeLocator typeLocator = evaluationContext.getTypeLocator();
-		if (typeLocator instanceof StandardTypeLocator) {
-			/*
-			 * Register the 'java.time' package so its classes don't need a FQCN,
-			 * for example ' T(Instant).now().plusSeconds(5)'.
-			 */
-			((StandardTypeLocator) typeLocator).registerImport("java.time");
 		}
 
 		evaluationContext.setBeanResolver(this.beanResolver);
