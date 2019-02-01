@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.jdbc;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -35,7 +34,9 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -44,6 +45,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -84,10 +86,9 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private final PreparedStatementCreator generatedKeysStatementCreator =
-			con -> con.prepareStatement(JdbcMessageHandler.this.updateSql, Statement.RETURN_GENERATED_KEYS);
-
 	private String updateSql;
+
+	private PreparedStatementCreator generatedKeysStatementCreator;
 
 	private SqlParameterSourceFactory sqlParameterSourceFactory;
 
@@ -102,8 +103,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param updateSql query to execute
 	 */
 	public JdbcMessageHandler(DataSource dataSource, String updateSql) {
-		this.jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
-		this.updateSql = updateSql;
+		this(new JdbcTemplate(dataSource), updateSql);
 	}
 
 	/**
@@ -113,8 +113,10 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param updateSql query to execute
 	 */
 	public JdbcMessageHandler(JdbcOperations jdbcOperations, String updateSql) {
+		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null.");
+		Assert.hasText(updateSql, "'updateSql' must not be empty.");
 		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations);
-		setUpdateSql(updateSql);
+		this.updateSql = updateSql;
 	}
 
 	/**
@@ -129,7 +131,9 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Configure an SQL statement to perform an UPDATE on the target database.
 	 * @param updateSql the SQL statement to perform.
+	 * @deprecated since 5.1.3 in favor of constructor argument.
 	 */
+	@Deprecated
 	public final void setUpdateSql(String updateSql) {
 		Assert.hasText(updateSql, "'updateSql' must not be empty.");
 		this.updateSql = updateSql;
@@ -146,8 +150,15 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param preparedStatementSetter the {@link MessagePreparedStatementSetter} to set.
 	 * @since 4.2
 	 */
-	public void setPreparedStatementSetter(MessagePreparedStatementSetter preparedStatementSetter) {
+	public void setPreparedStatementSetter(@Nullable MessagePreparedStatementSetter preparedStatementSetter) {
 		this.preparedStatementSetter = preparedStatementSetter;
+		if (preparedStatementSetter != null) {
+			PreparedStatementCreatorFactory preparedStatementCreatorFactory =
+					new PreparedStatementCreatorFactory(this.updateSql);
+			preparedStatementCreatorFactory.setReturnGeneratedKeys(true);
+			this.generatedKeysStatementCreator =
+					preparedStatementCreatorFactory.newPreparedStatementCreator((Object[]) null);
+		}
 	}
 
 	@Override

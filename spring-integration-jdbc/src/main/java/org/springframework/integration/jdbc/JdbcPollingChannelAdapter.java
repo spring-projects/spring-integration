@@ -16,12 +16,15 @@
 
 package org.springframework.integration.jdbc;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -29,9 +32,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlProvider;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -87,24 +92,22 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 			@Override
 			protected PreparedStatementCreator getPreparedStatementCreator(String sql,
-					SqlParameterSource paramSource, Consumer<PreparedStatementCreatorFactory> customizer) {
+					SqlParameterSource paramSource, @Nullable Consumer<PreparedStatementCreatorFactory> customizer) {
 
 				PreparedStatementCreator preparedStatementCreator =
 						super.getPreparedStatementCreator(sql, paramSource, customizer);
 
-				return con -> {
-					PreparedStatement preparedStatement = preparedStatementCreator.createPreparedStatement(con);
-					preparedStatement.setMaxRows(JdbcPollingChannelAdapter.this.maxRows);
-					return preparedStatement;
-				};
+				return new PreparedStatementCreatorWithMaxRows(preparedStatementCreator,
+						JdbcPollingChannelAdapter.this.maxRows);
 			}
+
 		};
 
 		this.selectQuery = selectQuery;
 		this.rowMapper = new ColumnMapRowMapper();
 	}
 
-	public void setRowMapper(RowMapper<?> rowMapper) {
+	public void setRowMapper(@Nullable RowMapper<?> rowMapper) {
 		this.rowMapper = rowMapper;
 		if (rowMapper == null) {
 			this.rowMapper = new ColumnMapRowMapper();
@@ -120,6 +123,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	public void setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		Assert.notNull(sqlParameterSourceFactory, "'sqlParameterSourceFactory' must be null.");
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 		this.sqlParameterSourceFactorySet = true;
 	}
@@ -128,7 +132,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * A source of parameters for the select query used for polling.
 	 * @param sqlQueryParameterSource the sql query parameter source to set
 	 */
-	public void setSelectSqlParameterSource(SqlParameterSource sqlQueryParameterSource) {
+	public void setSelectSqlParameterSource(@Nullable SqlParameterSource sqlQueryParameterSource) {
 		this.sqlQueryParameterSource = sqlQueryParameterSource;
 	}
 
@@ -155,9 +159,10 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	@Override
 	protected void onInit() {
-		if (!this.sqlParameterSourceFactorySet && getBeanFactory() != null) {
+		BeanFactory beanFactory = getBeanFactory();
+		if (!this.sqlParameterSourceFactorySet && beanFactory != null) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
-					.setBeanFactory(getBeanFactory());
+					.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -190,7 +195,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		return payload;
 	}
 
-	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
+	protected List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
 		if (sqlQueryParameterSource != null) {
 			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
 		}
@@ -200,8 +205,32 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	private void executeUpdateQuery(Object obj) {
-		SqlParameterSource updateParameterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
-		this.jdbcOperations.update(this.updateSql, updateParameterSource);
+		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
+	}
+
+	private static final class PreparedStatementCreatorWithMaxRows implements PreparedStatementCreator, SqlProvider {
+
+		private final PreparedStatementCreator delegate;
+
+		private final int maxRows;
+
+		private PreparedStatementCreatorWithMaxRows(PreparedStatementCreator delegate, int maxRows) {
+			this.delegate = delegate;
+			this.maxRows = maxRows;
+		}
+
+		@Override
+		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+			PreparedStatement preparedStatement = this.delegate.createPreparedStatement(con);
+			preparedStatement.setMaxRows(this.maxRows); // We can't mutate provided JdbOperations for this option
+			return preparedStatement;
+		}
+
+		@Override
+		public String getSql() {
+			return ((SqlProvider) this.delegate).getSql();
+		}
+
 	}
 
 }

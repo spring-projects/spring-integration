@@ -20,7 +20,8 @@
 	<beans:bean id="messagePreparedStatementSetter"
 				class="org.springframework.integration.jdbc.config.JdbcOutboundGatewayParserTests$TestMessagePreparedStatementSetter"/>
 
-	<outbound-gateway update="insert into bars (status, name) values (0, ?)"
+	<outbound-gateway id="insertGatewayWithSetter"
+					  update="insert into bars (status, name) values (0, ?)"
 					  request-channel="setterRequest"
 					  reply-channel="output"
 					  data-source="dataSource"

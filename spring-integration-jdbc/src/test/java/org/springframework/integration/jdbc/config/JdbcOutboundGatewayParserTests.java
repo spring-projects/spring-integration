@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -28,6 +31,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -97,6 +101,7 @@ public class JdbcOutboundGatewayParserTests {
 	@SuppressWarnings("unchecked")
 	public void testKeyGeneration() {
 		setUp("handlingKeyGenerationJdbcOutboundGatewayTest.xml", getClass());
+
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 
 		this.channel.send(message);
@@ -114,8 +119,19 @@ public class JdbcOutboundGatewayParserTests {
 
 		this.jdbcTemplate.execute("DELETE FROM BARS");
 
+		Object insertGateway = this.context.getBean("insertGatewayWithSetter.handler");
+		JdbcTemplate handlerJdbcTemplate =
+				TestUtils.getPropertyValue(insertGateway,
+						"handler.jdbcOperations.classicJdbcTemplate", JdbcTemplate.class);
+
+		Log logger = spy(TestUtils.getPropertyValue(handlerJdbcTemplate, "logger", Log.class));
+
+		given(logger.isDebugEnabled()).willReturn(true);
+
+		new DirectFieldAccessor(handlerJdbcTemplate).setPropertyValue("logger", logger);
+
 		MessageChannel setterRequest = this.context.getBean("setterRequest", MessageChannel.class);
-		setterRequest.send(new GenericMessage<String>("bar2"));
+		setterRequest.send(new GenericMessage<>("bar2"));
 		reply = this.messagingTemplate.receive();
 		assertNotNull(reply);
 
@@ -125,6 +141,8 @@ public class JdbcOutboundGatewayParserTests {
 		map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
 		assertEquals("Wrong id", id, map.get("ID"));
 		assertEquals("Wrong name", "bar2", map.get("name"));
+
+		verify(logger).debug("Executing prepared SQL statement [insert into bars (status, name) values (0, ?)]");
 	}
 
 	@Test
@@ -142,8 +160,21 @@ public class JdbcOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testWithPoller() throws Exception {
+	public void testWithPoller() {
 		setUp("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
+
+		Object insertGateway = this.context.getBean("jdbcOutboundGateway.handler");
+		JdbcTemplate pollerJdbcTemplate =
+				TestUtils.getPropertyValue(insertGateway,
+						"poller.jdbcOperations.classicJdbcTemplate", JdbcTemplate.class);
+
+		Log logger = spy(TestUtils.getPropertyValue(pollerJdbcTemplate, "logger", Log.class));
+
+		given(logger.isDebugEnabled()).willReturn(true);
+
+		new DirectFieldAccessor(pollerJdbcTemplate).setPropertyValue("logger", logger);
+
+
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 
 		this.channel.send(message);
@@ -157,10 +188,12 @@ public class JdbcOutboundGatewayParserTests {
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from BAZZ");
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
 		assertEquals("Wrong name", "bar", map.get("name"));
+
+		verify(logger).debug("Executing prepared SQL statement [select * from bazz where id=?]");
 	}
 
 	@Test
-	public void testWithSelectQueryOnly() throws Exception {
+	public void testWithSelectQueryOnly() {
 		setUp("JdbcOutboundGatewayWithSelectTest-context.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload(100).build();
 
