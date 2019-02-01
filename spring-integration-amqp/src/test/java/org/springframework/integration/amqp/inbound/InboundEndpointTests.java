@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -52,6 +54,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -61,6 +64,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.ManualAckListenerExecutionFailedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
@@ -248,12 +252,31 @@ public class InboundEndpointTests {
 
 		});
 		adapter.afterPropertiesSet();
+		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
+		MessageProperties props = new MessageProperties();
+		props.setDeliveryTag(42L);
+		given(message.getMessageProperties()).willReturn(props);
 		((ChannelAwareMessageListener) container.getMessageListener())
-				.onMessage(mock(org.springframework.amqp.core.Message.class), null);
-		assertNull(outputChannel.receive(0));
+				.onMessage(message, null);
+		assertThat(outputChannel.receive(0)).isNull();
 		Message<?> received = errorChannel.receive(0);
-		assertNotNull(received);
-		assertNotNull(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload().getClass()).isEqualTo(ListenerExecutionFailedException.class);
+
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		Channel channel = mock(Channel.class);
+		((ChannelAwareMessageListener) container.getMessageListener())
+				.onMessage(message, channel);
+		assertThat(outputChannel.receive(0)).isNull();
+		received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
+		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
+				.getPayload();
+		assertThat(ex.getChannel()).isEqualTo(channel);
+		assertThat(ex.getDeliveryTag()).isEqualTo(props.getDeliveryTag());
 	}
 
 	@Test
@@ -284,12 +307,30 @@ public class InboundEndpointTests {
 
 		});
 		adapter.afterPropertiesSet();
+		org.springframework.amqp.core.Message message = mock(org.springframework.amqp.core.Message.class);
+		MessageProperties props = new MessageProperties();
+		props.setDeliveryTag(42L);
+		given(message.getMessageProperties()).willReturn(props);
 		((ChannelAwareMessageListener) container.getMessageListener())
-				.onMessage(mock(org.springframework.amqp.core.Message.class), null);
-		assertNull(outputChannel.receive(0));
+				.onMessage(message, null);
+		assertThat(outputChannel.receive(0)).isNull();
 		Message<?> received = errorChannel.receive(0);
-		assertNotNull(received);
-		assertNotNull(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+
+		container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		Channel channel = mock(Channel.class);
+		((ChannelAwareMessageListener) container.getMessageListener())
+				.onMessage(message, channel);
+		assertThat(outputChannel.receive(0)).isNull();
+		received = errorChannel.receive(0);
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(ManualAckListenerExecutionFailedException.class);
+		ManualAckListenerExecutionFailedException ex = (ManualAckListenerExecutionFailedException) received
+				.getPayload();
+		assertThat(ex.getChannel()).isEqualTo(channel);
+		assertThat(ex.getDeliveryTag()).isEqualTo(props.getDeliveryTag());
 	}
 
 	@Test

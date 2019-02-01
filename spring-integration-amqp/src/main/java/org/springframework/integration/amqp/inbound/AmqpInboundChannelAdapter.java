@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
-import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -34,6 +33,7 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.EndpointUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageUtils;
@@ -217,8 +217,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			catch (MessageConversionException e) {
 				if (getErrorChannel() != null) {
 					setAttributesIfNecessary(message, null);
-					getMessagingTemplate().send(getErrorChannel(), buildErrorMessage(null,
-							new ListenerExecutionFailedException("Message conversion failed", e, message)));
+					getMessagingTemplate()
+						.send(getErrorChannel(), buildErrorMessage(null,
+								EndpointUtils.errorMessagePayload(message, channel, isManualAck(), e)));
 				}
 				else {
 					throw e;
@@ -241,8 +242,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
 			Map<String, Object> headers = AmqpInboundChannelAdapter.this.headerMapper
 					.toHeadersFromRequest(message.getMessageProperties());
-			if (AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
-					== AcknowledgeMode.MANUAL) {
+			if (isManualAck()) {
 				headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 				headers.put(AmqpHeaders.CHANNEL, channel);
 			}
@@ -254,6 +254,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 					.copyHeaders(headers)
 					.build();
 			return messagingMessage;
+		}
+
+		private boolean isManualAck() {
+			return AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
+					== AcknowledgeMode.MANUAL;
 		}
 
 	}
