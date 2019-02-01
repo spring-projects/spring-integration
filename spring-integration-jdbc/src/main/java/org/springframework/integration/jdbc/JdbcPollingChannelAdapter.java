@@ -29,8 +29,10 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ParameterDisposer;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlProvider;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -208,7 +210,8 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
 	}
 
-	private static final class PreparedStatementCreatorWithMaxRows implements PreparedStatementCreator, SqlProvider {
+	private static final class PreparedStatementCreatorWithMaxRows
+			implements PreparedStatementCreator, PreparedStatementSetter, SqlProvider, ParameterDisposer {
 
 		private final PreparedStatementCreator delegate;
 
@@ -228,7 +231,26 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 		@Override
 		public String getSql() {
-			return ((SqlProvider) this.delegate).getSql();
+			if (this.delegate instanceof SqlProvider) {
+				return ((SqlProvider) this.delegate).getSql();
+			}
+			else {
+				return null;
+			}
+		}
+
+		@Override
+		public void setValues(PreparedStatement ps) throws SQLException {
+			if (this.delegate instanceof PreparedStatementSetter) {
+				((PreparedStatementSetter) this.delegate).setValues(ps);
+			}
+		}
+
+		@Override
+		public void cleanupParameters() {
+			if (this.delegate instanceof ParameterDisposer) {
+				((ParameterDisposer) this.delegate).cleanupParameters();
+			}
 		}
 
 	}
