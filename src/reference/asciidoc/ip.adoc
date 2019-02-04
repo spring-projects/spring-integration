@@ -291,6 +291,8 @@ public IntegrationFlow udpEchoUpcaseServer() {
 [[tcp-connection-factories]]
 === TCP Connection Factories
 
+==== Overview
+
 For TCP, the configuration of the underlying connection is provided by using a connection factory.
 Two types of connection factory are provided: a client connection factory and a server connection factory.
 Client connection factories establish outgoing connections.
@@ -371,6 +373,8 @@ The following example shows a client connection factory that uses `java.net.Sock
 ----
 ====
 
+==== Message Demarcation (Serializers and Deserializers)
+
 TCP is a streaming protocol.
 This means that some structure has to be provided to data transported over TCP so that the receiver can demarcate the data into discrete messages.
 Connection factories are configured to use serializers and deserializers to convert between the message payload and the bits that are sent over TCP.
@@ -437,6 +441,8 @@ This is similar to the deserializer side of `ByteArrayRawSerializer` above, exce
 Internally, it uses a `ByteArrayOutputStream` that lets the buffer grow as needed.
 The client must close the socket in an orderly manner to signal end of message.
 
+WARNING: This deserializer should only be used when the peer is trusted; it is susceptible to a DoS attach due to out of memory conditions.
+
 The `MapJsonSerializer` uses a Jackson `ObjectMapper` to convert between a `Map` and JSON.
 You can use this serializer in conjunction with a `MessageConvertingTcpMessageMapper` and a `MapMessageConverter` to transfer selected headers and the payload in JSON.
 
@@ -446,8 +452,6 @@ By default, a `ByteArrayLfSerializer` is used, resulting in messages with a form
 
 The final standard serializer is `org.springframework.core.serializer.DefaultSerializer`, which you can use to convert serializable objects with Java serialization.
 `org.springframework.core.serializer.DefaultDeserializer` is provided for inbound deserialization of streams that contain serializable objects.
-
-To implement a custom serializer and deserializer pair, implement the `org.springframework.core.serializer.Deserializer` and `org.springframework.core.serializer.Serializer` interfaces.
 
 If you do not wish to use the default serializer and deserializer (`ByteArrayCrLfSerializer`), you must set the `serializer` and `deserializer` attributes on the connection factory.
 The following example shows how to do so:
@@ -479,6 +483,15 @@ You can override this default behavior by setting the `lookup-host` attribute to
 NOTE: You can also modify the attributes of sockets and socket factories.
 See <<ssl-tls>>.
 As noted there, such modifications are possible whether or not SSL is being used.
+
+==== Custom Serializers and Deserializers
+
+If your data is not in a format supported by one of the standard deserializers, you can implement your own; you can also implement a custom serializer.
+
+To implement a custom serializer and deserializer pair, implement the `org.springframework.core.serializer.Deserializer` and `org.springframework.core.serializer.Serializer` interfaces.
+
+When the deserializer detects a closed input stream between messages, it must throw a `SoftEndOfStreamException`; this is a signal to the framework to indicate that the close was "normal".
+If the stream is closed while decoding a message, some other exception should be thrown instead.
 
 [[caching-cf]]
 ==== TCP Caching Client Connection Factory

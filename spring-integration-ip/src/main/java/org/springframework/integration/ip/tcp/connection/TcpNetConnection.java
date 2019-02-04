@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2018 the original author or authors.
+ * Copyright 2001-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 */
 	@Override
 	public void close() {
-		this.setNoReadErrorOnClose(true);
+		setNoReadErrorOnClose(true);
 		try {
 			this.socket.close();
 		}
@@ -111,8 +111,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {
-			this.publishConnectionExceptionEvent(new MessagingException(message, "Failed TCP serialization", e));
-			this.closeConnection(true);
+			publishConnectionExceptionEvent(new MessagingException(message, "Failed TCP serialization", e));
+			closeConnection(true);
 			throw e;
 		}
 		if (logger.isDebugEnabled()) {
@@ -122,7 +122,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	public Object getPayload() throws Exception {
-		return this.getDeserializer().deserialize(inputStream());
+		return getDeserializer()
+				.deserialize(inputStream());
 	}
 
 	@Override
@@ -172,16 +173,16 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	public void run() {
 		boolean okToRun = true;
 		if (logger.isDebugEnabled()) {
-			logger.debug(this.getConnectionId() + " Reading...");
+			logger.debug(getConnectionId() + " Reading...");
 		}
 		while (okToRun) {
 			Message<?> message = null;
 			try {
-				message = this.getMapper().toMessage(this);
+				message = getMapper().toMessage(this);
 				this.lastRead = System.currentTimeMillis();
 			}
 			catch (Exception e) {
-				this.publishConnectionExceptionEvent(e);
+				publishConnectionExceptionEvent(e);
 				if (handleReadException(e)) {
 					okToRun = false;
 				}
@@ -218,7 +219,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		 * For client connections, we have to wait for 2 timeouts if the last
 		 * send was within the current timeout.
 		 */
-		if (!this.isServer() && e instanceof SocketTimeoutException) {
+		if (!isServer() && e instanceof SocketTimeoutException) {
 			long now = System.currentTimeMillis();
 			try {
 				int soTimeout = this.socket.getSoTimeout();
@@ -226,7 +227,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					doClose = false;
 				}
 				if (!doClose && logger.isDebugEnabled()) {
-					logger.debug("Skipping a socket timeout because we have a recent send " + this.getConnectionId());
+					logger.debug("Skipping a socket timeout because we have a recent send " + getConnectionId());
 				}
 			}
 			catch (SocketException e1) {
@@ -234,39 +235,39 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			}
 		}
 		if (doClose) {
-			boolean noReadErrorOnClose = this.isNoReadErrorOnClose();
+			boolean noReadErrorOnClose = isNoReadErrorOnClose();
 			closeConnection(true);
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Closed socket after timeout:" + this.getConnectionId());
+						logger.debug("Closed socket after timeout:" + getConnectionId());
 					}
 				}
 				else {
 					if (noReadErrorOnClose) {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Read exception " +
-									this.getConnectionId(), e);
+									getConnectionId(), e);
 						}
 						else if (logger.isDebugEnabled()) {
 							logger.debug("Read exception " +
-									this.getConnectionId() + " " +
+									getConnectionId() + " " +
 									e.getClass().getSimpleName() +
 									":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 						}
 					}
 					else if (logger.isTraceEnabled()) {
 						logger.error("Read exception " +
-								this.getConnectionId(), e);
+								getConnectionId(), e);
 					}
 					else {
 						logger.error("Read exception " +
-								this.getConnectionId() + " " +
+								getConnectionId() + " " +
 								e.getClass().getSimpleName() +
 								":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 					}
 				}
-				this.sendExceptionToListener(e);
+				sendExceptionToListener(e);
 			}
 		}
 		return doClose;
