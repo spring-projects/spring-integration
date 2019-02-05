@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
@@ -550,8 +552,9 @@ public class RouterTests {
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(String.class));
 		List<?> topSequenceDetails =
-				(List<?>) bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, List.class)
-				.get(0);
+				(List<?>) bestQuoteMessage.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, List.class)
+						.get(0);
 
 		assertEquals(request.getHeaders().getId(),
 				bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
@@ -566,6 +569,26 @@ public class RouterTests {
 				topSequenceDetails.get(2));
 	}
 
+	@Autowired
+	@Qualifier("scatterGatherAndExecutorChannelSubFlow.input")
+	private MessageChannel scatterGatherAndExecutorChannelSubFlowInput;
+
+	@Test
+	public void testScatterGatherWithExecutorChannelSubFlow() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> testMessage =
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.build();
+
+		this.scatterGatherAndExecutorChannelSubFlowInput.send(testMessage);
+
+		Message<?> receive = replyChannel.receive(10_000);
+		assertNotNull(receive);
+		Object payload = receive.getPayload();
+		assertThat(payload, instanceOf(List.class));
+		assertThat(((List) payload).get(1), instanceOf(RuntimeException.class));
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -689,7 +712,9 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow routeMultiMethodInvocationFlow() {
 			return IntegrationFlows.from("routerMultiInput")
-					.route(String.class, p -> p.equals("foo") || p.equals("bar") ? new String[] { "foo", "bar" } : null,
+					.route(String.class, p -> p.equals("foo") || p.equals("bar")
+									? new String[] { "foo", "bar" }
+									: null,
 							s -> s.suffix("-channel"))
 					.get();
 		}
@@ -830,6 +855,30 @@ public class RouterTests {
 							source.stream()
 									.map(s -> "- " + s)
 									.collect(Collectors.joining("\n")));
+		}
+
+
+		@ServiceActivator(inputChannel = "scatterGatherErrorChannel")
+		public Message<?> processAsyncScatterError(MessagingException payload) {
+			return MessageBuilder.withPayload(payload.getCause().getCause())
+					.copyHeaders(payload.getFailedMessage().getHeaders())
+					.build();
+		}
+
+		@Bean
+		public IntegrationFlow scatterGatherAndExecutorChannelSubFlow() {
+			return f -> f
+					.scatterGather(
+							scatterer -> scatterer
+									.applySequence(true)
+									.recipientFlow(f1 -> f1.transform(p -> "Sub-flow#1"))
+									.recipientFlow(f2 -> f2
+											.channel(c -> c.executor(Executors.newSingleThreadExecutor()))
+											.transform(p -> {
+												throw new RuntimeException("Sub-flow#2");
+											})),
+							null,
+							s -> s.errorChannel("scatterGatherErrorChannel"));
 		}
 
 	}

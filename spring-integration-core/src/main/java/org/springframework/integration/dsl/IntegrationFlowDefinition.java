@@ -86,6 +86,7 @@ import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.util.ClassUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -2847,7 +2848,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Can be {@code null}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer) {
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, @Nullable Consumer<AggregatorSpec> gatherer) {
 		return scatterGather(scatterer, gatherer, null);
 	}
 
@@ -2861,8 +2862,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * {@link ScatterGatherHandler} and its endpoint. Can be {@code null}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer,
-			Consumer<ScatterGatherSpec> scatterGather) {
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, @Nullable Consumer<AggregatorSpec> gatherer,
+			@Nullable Consumer<ScatterGatherSpec> scatterGather) {
+
 		Assert.notNull(scatterer, "'scatterer' must not be null");
 		RecipientListRouterSpec recipientListRouterSpec = new RecipientListRouterSpec();
 		scatterer.accept(recipientListRouterSpec);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.messaging.MessageChannel;
 
@@ -55,6 +56,18 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	 */
 	public ScatterGatherSpec gatherTimeout(long gatherTimeout) {
 		this.handler.setGatherTimeout(gatherTimeout);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link MessageChannel} bean name for async errors processing.
+	 * Defaults to {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
+	 * @param errorChannel the {@link MessageChannel} bean name for async errors processing.
+	 * @return the current {@link ScatterGatherSpec} instance.
+	 * @since 5.1.3
+	 */
+	public ScatterGatherSpec errorChannel(String errorChannel) {
+		this.handler.setErrorChannelName(errorChannel);
 		return this;
 	}
 
