@@ -555,8 +555,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected abstract boolean doSend(Message<?> message, long timeout);
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
 		this.meters.forEach(MeterFacade::remove);
+		this.meters.clear();
 	}
 
 	/**

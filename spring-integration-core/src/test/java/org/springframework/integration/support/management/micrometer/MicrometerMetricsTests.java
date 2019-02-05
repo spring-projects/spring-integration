@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.support.management.micrometer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,11 +42,13 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -58,6 +62,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  *
  */
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class MicrometerMetricsTests {
 
 	@Autowired
@@ -84,17 +89,26 @@ public class MicrometerMetricsTests {
 	@Autowired
 	private NullChannel nullChannel;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSend() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		this.channel.send(message);
 		try {
-			this.channel.send(this.source.receive());
+			this.channel.send(this.source.receive()); // "bar"
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
 			assertThat(e.getCause().getMessage()).isEqualTo("testErrorCount");
 		}
+		try {
+			this.channel.send(new GenericMessage<>("bar"));
+			fail("Expected exception");
+		}
+		catch (MessagingException e) {
+			assertThat(e.getCause().getMessage()).isEqualTo("testErrorCount");
+		}
+		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(2);
 		this.channel2.send(message);
 		this.queue.send(message);
 		this.queue.send(message);
@@ -141,12 +155,12 @@ public class MicrometerMetricsTests {
 		assertThat(registry.get("spring.integration.send")
 				.tag("name", "channel")
 				.tag("result", "failure")
-				.timer().count()).isEqualTo(1);
+				.timer().count()).isEqualTo(2);
 
 		assertThat(registry.get("spring.integration.send")
 				.tag("name", "eipMethod.handler")
 				.tag("result", "failure")
-				.timer().count()).isEqualTo(1);
+				.timer().count()).isEqualTo(2);
 
 		assertThat(registry.get("spring.integration.receive")
 				.tag("name", "queue")
@@ -202,6 +216,9 @@ public class MicrometerMetricsTests {
 		catch (MeterNotFoundException e) {
 			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.receive' was found");
 		}
+		this.channel.destroy();
+		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(0);
+
 	}
 
 	@Configuration

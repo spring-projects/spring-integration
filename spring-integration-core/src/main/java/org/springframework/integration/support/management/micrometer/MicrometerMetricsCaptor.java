@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,6 +195,19 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 			this.timer.record(time, unit);
 		}
 
+		@Override
+		public int hashCode() {
+			return this.timer.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!MicroTimer.class.equals(obj.getClass())) {
+				return false;
+			}
+			return this.timer.equals(((MicroTimer) obj).timer);
+		}
+
 	}
 
 	protected static class MicroCounterBuilder implements CounterBuilder {
@@ -246,6 +259,19 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 			this.counter.increment();
 		}
 
+		@Override
+		public int hashCode() {
+			return this.counter.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!MicroCounter.class.equals(obj.getClass())) {
+				return false;
+			}
+			return this.counter.equals(((MicroCounter) obj).counter);
+		}
+
 	}
 
 	protected static class MicroGaugeBuilder implements GaugeBuilder {
@@ -290,6 +316,19 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		@Override
 		protected Gauge getMeter() {
 			return this.gauge;
+		}
+
+		@Override
+		public int hashCode() {
+			return this.gauge.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!MicroGauge.class.equals(obj.getClass())) {
+				return false;
+			}
+			return this.gauge.equals(((MicroGauge) obj).gauge);
 		}
 
 	}
