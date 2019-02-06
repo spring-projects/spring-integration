@@ -1163,7 +1163,6 @@ public class EnableIntegrationTests {
 		@Bean
 		public Advice myHandlerAdvice() {
 			ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-			advice.setOnSuccessExpressionString("payload");
 			advice.setSuccessChannel(myHandlerSuccessChannel());
 			return advice;
 		}

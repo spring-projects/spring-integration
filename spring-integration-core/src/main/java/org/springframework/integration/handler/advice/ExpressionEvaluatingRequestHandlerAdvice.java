@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,21 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Used to advise {@link org.springframework.messaging.MessageHandler}s.
@@ -36,53 +40,62 @@ import org.springframework.messaging.support.ErrorMessage;
  * containing the evaluation result in its payload and the {@code inputMessage} property containing
  * the original message that was sent to the endpoint.
  * The failure expression is NOT evaluated if the success expression throws an exception.
+ * <p>
+ * When expressions are not configured, but channels are, the default expression is evaluated
+ * just into a {@code payload} from the message.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
 public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 
-	private volatile Expression  onSuccessExpression;
-
-	private volatile MessageChannel successChannel;
-
-	private volatile String successChannelName;
-
-	private volatile Expression onFailureExpression;
-
-	private volatile MessageChannel failureChannel;
-
-	private volatile String failureChannelName;
+	private static final Expression DEFAULT_EXPRESSION = new FunctionExpression<Message<?>>(Message::getPayload);
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile boolean trapException = false;
+	private Expression onSuccessExpression;
 
-	private volatile boolean returnFailureExpressionResult = false;
+	private MessageChannel successChannel;
 
-	private volatile boolean propagateOnSuccessEvaluationFailures;
+	private String successChannelName;
 
-	private volatile EvaluationContext evaluationContext;
+	private Expression onFailureExpression;
+
+	private MessageChannel failureChannel;
+
+	private String failureChannelName;
+
+	private boolean trapException = false;
+
+	private boolean returnFailureExpressionResult = false;
+
+	private boolean propagateOnSuccessEvaluationFailures;
+
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Set the expression to evaluate against the message after a successful
 	 * handler invocation.
+	 * Defaults to {@code payload}, if {@code successChannel} is configured.
 	 * @param onSuccessExpression the SpEL expression.
 	 * @since 4.3.7
 	 */
 	public void setOnSuccessExpressionString(String onSuccessExpression) {
-		this.onSuccessExpression = new SpelExpressionParser().parseExpression(onSuccessExpression);
+		setOnSuccessExpression(EXPRESSION_PARSER.parseExpression(onSuccessExpression));
 	}
 
 	/**
 	 * Set the expression to evaluate against the message after a successful
 	 * handler invocation.
+	 * Defaults to {@code payload}, if {@code successChannel} is configured.
 	 * @param onSuccessExpression the SpEL expression.
 	 * @since 5.0
 	 */
 	public void setOnSuccessExpression(Expression onSuccessExpression) {
+		Assert.notNull(onSuccessExpression, "'onSuccessExpression' must not be null");
 		this.onSuccessExpression = onSuccessExpression;
 	}
 
@@ -94,26 +107,29 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 */
 	@Deprecated
 	public void setExpressionOnSuccess(Expression onSuccessExpression) {
-		this.onSuccessExpression = onSuccessExpression;
+		setOnSuccessExpression(onSuccessExpression);
 	}
 
 	/**
 	 * Set the expression to evaluate against the root message after a failed
-	 * handler invocation. The exception is available as the variable {@code #exception}
+	 * handler invocation. The exception is available as the variable {@code #exception}.
+	 * Defaults to {@code payload}, if {@code failureChannel} is configured.
 	 * @param onFailureExpression the SpEL expression.
 	 * @since 4.3.7
 	 */
 	public void setOnFailureExpressionString(String onFailureExpression) {
-		this.onFailureExpression = new SpelExpressionParser().parseExpression(onFailureExpression);
+		setOnFailureExpression(EXPRESSION_PARSER.parseExpression(onFailureExpression));
 	}
 
 	/**
 	 * Set the expression to evaluate against the root message after a failed
-	 * handler invocation. The exception is available as the variable {@code #exception}
+	 * handler invocation. The exception is available as the variable {@code #exception}.
+	 * Defaults to {@code payload}, if {@code failureChannel} is configured.
 	 * @param onFailureExpression the SpEL expression.
 	 * @since 5.0
 	 */
 	public void setOnFailureExpression(Expression onFailureExpression) {
+		Assert.notNull(onFailureExpression, "'onFailureExpression' must not be null");
 		this.onFailureExpression = onFailureExpression;
 	}
 
@@ -125,7 +141,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 */
 	@Deprecated
 	public void setExpressionOnFailure(Expression onFailureExpression) {
-		this.onFailureExpression = onFailureExpression;
+		setOnFailureExpression(onFailureExpression);
 	}
 
 	/**
@@ -178,7 +194,6 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	/**
 	 * If true, the result of evaluating the onFailureExpression will
 	 * be returned as the result of AbstractReplyProducingMessageHandler.handleRequestMessage(Message).
-	 *
 	 * @param returnFailureExpressionResult true to return the result of the evaluation.
 	 */
 	public void setReturnFailureExpressionResult(boolean returnFailureExpressionResult) {
@@ -200,24 +215,39 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.getBeanFactory() != null) {
-			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
+		}
+
+		if (this.onSuccessExpression == null
+				&& (this.successChannel != null || StringUtils.hasText(this.successChannelName))) {
+
+			this.onSuccessExpression = DEFAULT_EXPRESSION;
+		}
+
+		if (this.onFailureExpression == null
+				&& (this.failureChannel != null || StringUtils.hasText(this.failureChannelName))) {
+
+			this.onFailureExpression = DEFAULT_EXPRESSION;
 		}
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message)
+			throws Exception { // NOSONAR
+
 		try {
 			Object result = callback.execute();
 			if (this.onSuccessExpression != null) {
-				this.evaluateSuccessExpression(message);
+				evaluateSuccessExpression(message);
 			}
 			return result;
 		}
 		catch (Exception e) {
-			Exception actualException = this.unwrapExceptionIfNecessary(e);
+			Exception actualException = unwrapExceptionIfNecessary(e);
 			if (this.onFailureExpression != null) {
-				Object evalResult = this.evaluateFailureExpression(message, actualException);
+				Object evalResult = evaluateFailureExpression(message, actualException);
 				if (this.returnFailureExpressionResult) {
 					return evalResult;
 				}
@@ -229,68 +259,69 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 	}
 
-	private void evaluateSuccessExpression(Message<?> message) throws Exception {
+	private void evaluateSuccessExpression(Message<?> message) throws Exception { // NOSONAR
 		Object evalResult;
-		boolean evaluationFailed = false;
 		try {
-			evalResult = this.onSuccessExpression.getValue(this.prepareEvaluationContextToUse(null), message);
+			evalResult = this.onSuccessExpression.getValue(prepareEvaluationContextToUse(null), message);
 		}
 		catch (Exception e) {
 			evalResult = e;
-			evaluationFailed = true;
 		}
-		if (this.successChannel == null && this.successChannelName != null && getChannelResolver() != null) {
-			this.successChannel = getChannelResolver().resolveDestination(this.successChannelName);
+		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
+		if (this.successChannel == null && this.successChannelName != null && channelResolver != null) {
+			this.successChannel = channelResolver.resolveDestination(this.successChannelName);
 		}
 		if (evalResult != null && this.successChannel != null) {
-			AdviceMessage<?> resultMessage = new AdviceMessage<Object>(evalResult, message);
+			AdviceMessage<?> resultMessage = new AdviceMessage<>(evalResult, message);
 			this.messagingTemplate.send(this.successChannel, resultMessage);
 		}
-		if (evaluationFailed && this.propagateOnSuccessEvaluationFailures) {
+		if (evalResult instanceof Exception && this.propagateOnSuccessEvaluationFailures) {
 			throw (Exception) evalResult;
 		}
 	}
 
-	private Object evaluateFailureExpression(Message<?> message, Exception exception) throws Exception {
+	private Object evaluateFailureExpression(Message<?> message, Exception exception) {
 		Object evalResult;
 		try {
-			evalResult = this.onFailureExpression.getValue(this.prepareEvaluationContextToUse(exception), message);
+			evalResult = this.onFailureExpression.getValue(prepareEvaluationContextToUse(exception), message);
 		}
 		catch (Exception e) {
 			evalResult = e;
 			logger.error("Failure expression evaluation failed for " + message + ": " + e.getMessage());
 		}
-		if (this.failureChannel == null && this.failureChannelName != null && getChannelResolver() != null) {
-			this.failureChannel = getChannelResolver().resolveDestination(this.failureChannelName);
+		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
+		if (this.failureChannel == null && this.failureChannelName != null && channelResolver != null) {
+			this.failureChannel = channelResolver.resolveDestination(this.failureChannelName);
 		}
 		if (evalResult != null && this.failureChannel != null) {
-			MessagingException messagingException = new MessageHandlingExpressionEvaluatingAdviceException(message,
-					"Handler Failed", this.unwrapThrowableIfNecessary(exception), evalResult);
-			ErrorMessage resultMessage = new ErrorMessage(messagingException);
-			this.messagingTemplate.send(this.failureChannel, resultMessage);
+			MessagingException messagingException =
+					new MessageHandlingExpressionEvaluatingAdviceException(message, "Handler Failed",
+							unwrapThrowableIfNecessary(exception), evalResult);
+			ErrorMessage errorMessage = new ErrorMessage(messagingException);
+			this.messagingTemplate.send(this.failureChannel, errorMessage);
 		}
 		return evalResult;
 	}
 
 	protected StandardEvaluationContext createEvaluationContext() {
-		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		return ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	/**
 	 * If we don't need variables (i.e., exception is null)
 	 * we can use a singleton context; otherwise we need a new one each time.
-	 * @param exception
+	 * @param exception the {@link Exception} to use in the context.
 	 * @return The context.
 	 */
 	private EvaluationContext prepareEvaluationContextToUse(Exception exception) {
 		EvaluationContext evaluationContextToUse;
 		if (exception != null) {
-			evaluationContextToUse = this.createEvaluationContext();
+			evaluationContextToUse = createEvaluationContext();
 			evaluationContextToUse.setVariable("exception", exception);
 		}
 		else {
 			if (this.evaluationContext == null) {
-				this.evaluationContext = this.createEvaluationContext();
+				this.evaluationContext = createEvaluationContext();
 			}
 			evaluationContextToUse = this.evaluationContext;
 		}
@@ -305,6 +336,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 		public MessageHandlingExpressionEvaluatingAdviceException(Message<?> message, String description,
 				Throwable cause, Object evaluationResult) {
+
 			super(message, description, cause);
 			this.evaluationResult = evaluationResult;
 		}

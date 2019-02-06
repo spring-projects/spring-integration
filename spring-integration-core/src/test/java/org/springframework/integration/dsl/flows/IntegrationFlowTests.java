@@ -644,7 +644,6 @@ public class IntegrationFlowTests {
 		@Bean
 		public Advice expressionAdvice() {
 			ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
-			advice.setOnSuccessExpressionString("payload");
 			advice.setSuccessChannel(this.successChannel);
 			return advice;
 		}
