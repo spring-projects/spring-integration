@@ -584,7 +584,8 @@ result.addCallback(new ListenableFutureCallback<String>() {
 By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.SimpleAsyncTaskExecutor` when submitting internal `AsyncInvocationTask` instances for any gateway method whose return type is a `Future`.
 However, the `async-executor` attribute in the `<gateway/>` element's configuration lets you provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
 
-The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively. See <<gw-completable-future>>.
+The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively.
+See <<gw-completable-future>>.
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name), as the following example shows:
 
 ====

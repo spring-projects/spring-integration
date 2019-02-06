@@ -188,7 +188,8 @@ However if, for some reason, you need to access the full `MessageGroup`, you sho
 When handling potentially large groups, you should understand how these methods are invoked, because the release strategy may be invoked multiple times before the group is released.
 The most efficient is an implementation of `ReleaseStrategy`, because the aggregator can invoke it directly.
 The second most efficient is a POJO method with a `Collection<Message<?>>` parameter type.
-The least efficient is a POJO method with a `Collection<Something>` type. The framework has to copy the payloads from the messages in the group into a new collection (and possibly attempt conversion on the payloads to `Something`) every time the release strategy is called.
+The least efficient is a POJO method with a `Collection<Something>` type.
+The framework has to copy the payloads from the messages in the group into a new collection (and possibly attempt conversion on the payloads to `Something`) every time the release strategy is called.
 Using `Collection<?>` avoids the conversion but still requires creating the new `Collection`.
 
 For these reasons, for large groups, we recommended that you implement `ReleaseStrategy`.
@@ -597,7 +598,8 @@ Since Spring Integration 2.0, you can handle the various strategies (correlation
 Suppose you have a legacy component that was designed to receive an array of objects.
 We know that the default release strategy assembles all aggregated messages in the `List`.
 Now we have two problems.
-First, we need to extract individual messages from the list. Second, we need to extract the payload of each message and assemble the array of objects.
+First, we need to extract individual messages from the list.
+Second, we need to extract the payload of each message and assemble the array of objects.
 The following example solves both problems:
 
 ====

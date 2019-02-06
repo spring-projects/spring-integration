@@ -54,8 +54,8 @@ The second and third are used with the `MessageCodec`, which is initialized with
 
 By default, Kryo delegates unknown Java types to its `FieldSerializer`.
 Kryo also registers default serializers for each primitive type, along with `String`, `Collection`, and `Map`.
-`FieldSerializer` uses reflection to navigate the object graph. A more efficient approach is to implement a custom
-serializer that is aware of the object's structure and can directly serialize selected primitive fields.
+`FieldSerializer` uses reflection to navigate the object graph.
+A more efficient approach is to implement a custom serializer that is aware of the object's structure and can directly serialize selected primitive fields.
 The following example shows such a serializer:
 
 ====

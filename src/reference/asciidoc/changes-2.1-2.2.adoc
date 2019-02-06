@@ -50,7 +50,7 @@ Spring Integration now uses Spring 3.1.
 The ability to add an `<advice-chain/>` to a poller has been available for some time.
 However, the behavior added by this affects the entire integration flow.
 It did not address the ability to add (for example) retry to an individual endpoint.
-The 2.2. release introduced the `<request-handler-advice-chain/>` to many endpoints.
+The 2.2 release introduced the `<request-handler-advice-chain/>` to many endpoints.
 
 In addition, we added three standard advice classes for this purpose:
 

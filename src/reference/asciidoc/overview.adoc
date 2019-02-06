@@ -550,9 +550,9 @@ Each of these online schemas has a warning similar to the following:
 
 [IMPORTANT]
 ====
-This schema is for the 1.0 version of Spring Integration Core. We cannot update it to the current schema
-because that will break any applications using 1.0.3 or lower. For subsequent versions, the unversioned
-schema is resolved from the classpath and obtained from the jar.
+This schema is for the 1.0 version of Spring Integration Core.
+We cannot update it to the current schema because that will break any applications using 1.0.3 or lower.
+For subsequent versions, the unversioned schema is resolved from the classpath and obtained from the jar.
 Please refer to github:
 
 https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config

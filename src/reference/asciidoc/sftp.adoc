@@ -1176,7 +1176,8 @@ Using the `rm` Command
 
 The `rm` command has no options.
 
-If the remove operation was successful, the resulting message payload is `Boolean.TRUE`. Otherwise, the message payload is `Boolean.FALSE`.
+If the remove operation was successful, the resulting message payload is `Boolean.TRUE`.
+Otherwise, the message payload is `Boolean.FALSE`.
 The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
 ==== Using the `mv` Command
@@ -1228,11 +1229,11 @@ The payload of the message sent to the `toSplitter` channel is a list of `String
 If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
 You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
 
-Starting with version 4.2, the `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode`
-when using the namespace support). This affects the behavior when the local file exists (`GET` and `MGET`) or the remote
-file exists (`PUT` and `MPUT`). The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
-For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`. For `GET` and `MGET`
-operations, the default is `FAIL`.
+Starting with version 4.2, the `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
+This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).
+The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
+For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`.
+For `GET` and `MGET` operations, the default is `FAIL`.
 
 ==== Configuring with Java Configuration
 

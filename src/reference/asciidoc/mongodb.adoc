@@ -127,7 +127,8 @@ For example, there is no ability to configure custom converters for complex doma
 There is also no way to provide a custom `MongoTemplate` (or `MappingMongoConverter`).
 To achieve these capabilities, an alternative MongoDB `MessageStore` implementation has been introduced (we describe it next).
 
-Spring Integration 3.0 introduced the `ConfigurableMongoDbMessageStore`. It implements both the `MessageStore` and `MessageGroupStore` interfaces.
+Spring Integration 3.0 introduced the `ConfigurableMongoDbMessageStore`.
+It implements both the `MessageStore` and `MessageGroupStore` interfaces.
 This class can receive, as a constructor argument, a `MongoTemplate`, with which you can, for example, configure a custom `WriteConcern`.
 Another constructor requires a `MappingMongoConverter` and a `MongoDbFactory`, which lets you provide some custom conversions for `Message` instances and their properties.
 Note that, by default, the `ConfigurableMongoDbMessageStore` uses standard Java serialization to write and read `Message` instances to and from MongoDB (see `MongoDbMessageBytesConverter`) and relies on default values for other properties from `MongoTemplate`.
@@ -226,7 +227,8 @@ As the preceding configuration shows, you configure a MongoDb inbound channel ad
 * `query`: A JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDB Querying])
 * `query-expression`: A SpEL expression that is evaluated to a JSON query string (as the `query` attribute above) or to an instance of `o.s.data.mongodb.core.query.Query`.
 Mutually exclusive with the `query` attribute.
-* `entity-class`: The type of the payload object. If not supplied, a `com.mongodb.DBObject` is returned.
+* `entity-class`: The type of the payload object.
+If not supplied, a `com.mongodb.DBObject` is returned.
 * `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
 * `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`
 * `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`
@@ -289,10 +291,11 @@ You can declare your poller to be transactional by using the `transactional` ele
 This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
 If you do not have a "`real`" transaction, you can use an instance of `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Mongo adapter when there is no actual transaction.
 
-IMPORTANT: Doing so does not make MongoDB itself transactional. It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
+IMPORTANT: Doing so does not make MongoDB itself transactional.
+It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
 
 Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
-`TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
+A `TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
 For your convenience, we have exposed a default SpEL-based `TransactionSynchronizationFactory` that lets you configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
 Expressions for before-commit, after-commit, and after-rollback events are supported, together with a channel for each event where the evaluation result (if any) is sent.
 For each child element, you can specify `expression` and `channel` attributes.

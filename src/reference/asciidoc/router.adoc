@@ -777,7 +777,8 @@ The following example shows a sample configuration for `ErrorMessageExceptionTyp
 [[router-namespace]]
 ==== Configuring a Generic Router
 
-Spring Integration provides a generic router. You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
+Spring Integration provides a generic router.
+You can use it for general-purpose routing (as opposed to the other routers provided by Spring Integration, each of which has some form of specialization).
 
 ===== Configuring a Content-based Router with XML
 
@@ -1221,7 +1222,8 @@ For an arbitrary domain object, these properties are not available.
 For this reason, be careful when you use routing slips in conjunction with POJO methods if the result is used to determine the
 next path.
 
-IMPORTANT: If a routing slip is involved in a distributed environment, we recommend not using inline expressions for the Routing Slip `path`. This recommendation applies to distributed environments such as cross-JVM applications, using a `request-reply` through a message broker (such as<<amqp>> or <<jms>>), or using a persistent `MessageStore` (<<message-store>>) in the integration flow.
+IMPORTANT: If a routing slip is involved in a distributed environment, we recommend not using inline expressions for the Routing Slip `path`.
+This recommendation applies to distributed environments such as cross-JVM applications, using a `request-reply` through a message broker (such as<<amqp>> or <<jms>>), or using a persistent `MessageStore` (<<message-store>>) in the integration flow.
 The framework uses `RoutingSlipHeaderValueMessageProcessor` to convert them to `ExpressionEvaluatingRoutingSlipRouteStrategy` objects, and they are used in the `routingSlip` message header.
 Since this class is not `Serializable` (it cannot be, because it depends on the `BeanFactory`), the entire `Message` becomes non-serializable and, in any distributed operation, we end up with a `NotSerializableException`.
 To overcome this limitation, register an `ExpressionEvaluatingRoutingSlipRouteStrategy` bean with the desired SpEL and use its bean name in the routing slip `path` configuration.

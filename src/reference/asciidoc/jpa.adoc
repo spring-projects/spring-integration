@@ -570,7 +570,9 @@ One of the things we can achieve by using native queries is to perform database 
 Below is a small xml fragment that demonstrates the use of native query to insert values in a table.
 
 IMPORTANT: Named parameters may not be supported by your JPA provider in conjunction with native SQL queries.
-While they work fine with Hibernate, OpenJPA and EclipseLink do not support them. See https://issues.apache.org/jira/browse/OPENJPA-111. Section 3.8.12 of the JPA 2.0 spec states: "`Only positional parameter binding and positional access to result items may be portably used for native queries.`"
+While they work fine with Hibernate, OpenJPA and EclipseLink do not support them.
+See https://issues.apache.org/jira/browse/OPENJPA-111.
+Section 3.8.12 of the JPA 2.0 spec states: "`Only positional parameter binding and positional access to result items may be portably used for native queries.`"
 
 The following example configures an outbound-channel-adapter with a native query:
 
@@ -593,7 +595,8 @@ Note that the other attributes (such as `channel` and `entity-manager`) and the 
 ==== Using Named Queries
 
 Using named queries is similar to using <<jpa-using-jpaql,JPA QL>> or a <<jpa-using-native-queries,native query>>, except that we specify a named query instead of a query.
-First, we cover how to define a JPA named query. Then we cover how to declare an outbound channel adapter to work with a named query.
+First, we cover how to define a JPA named query.
+Then we cover how to declare an outbound channel adapter to work with a named query.
 If we have an entity called `Student`, we can use annotations on the `Student` class to define two named queries: `selectStudent` and `updateStudent`.
 The following example shows how to do so:
 
@@ -932,7 +935,8 @@ The value is specified in milliseconds.
 Optional.
 ====
 
-The remaining attributes are described earlier in this chapter. See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
+The remaining attributes are described earlier in this chapter.
+See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
 ==== Configuring with Java Configuration
 

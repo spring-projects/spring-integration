@@ -220,7 +220,8 @@ These attributes are mutually exclusive.
 [[redis-queue-inbound-channel-adapter]]
 ==== Redis Queue Inbound Channel Adapter
 
-Spring Integration 3.0 introduced a queue inbound channel adapter to "`pop`" messages from a Redis list. By default, it uses "`right pop`", but you can configure it to use "`left pop`" instead.
+Spring Integration 3.0 introduced a queue inbound channel adapter to "`pop`" messages from a Redis list.
+By default, it uses "`right pop`", but you can configure it to use "`left pop`" instead.
 The adapter is message-driven.
 It uses an internal listener thread and does not use a poller.
 
@@ -273,7 +274,8 @@ Its default is `false`.
 It is used for the underlying listening task.
 It defaults to a `SimpleAsyncTaskExecutor`.
 <13> Specifies whether this endpoint should use "`right pop`" (when `true`) or "`left pop`" (when `false`) to read messages from the Redis list.
-If `true`, the Redis List acts as a `FIFO` queue when used with a default Redis queue outbound channel adapter. Set it to `false` to use with software that writes to the list with "`right push`" or to achieve a stack-like message order.
+If `true`, the Redis List acts as a `FIFO` queue when used with a default Redis queue outbound channel adapter.
+Set it to `false` to use with software that writes to the list with "`right push`" or to achieve a stack-like message order.
 Its default is `true`.
 Since version 4.3.
 ====
@@ -541,7 +543,8 @@ You can declare your poller to be transactional by using a `transactional` eleme
 This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
 If you do not have a "`real`" transaction, you can use an `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Redis adapter when there is no actual transaction.
 
-IMPORTANT: This does not make the Redis activities themselves transactional. It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
+IMPORTANT: This does not make the Redis activities themselves transactional.
+It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
 
 Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
 `TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.

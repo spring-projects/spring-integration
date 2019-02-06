@@ -1,7 +1,8 @@
 [[transactions]]
 == Transaction Support
 
-This chapter covers Spring Integration's support for transactions. It covers the following topics:
+This chapter covers Spring Integration's support for transactions.
+It covers the following topics:
 
 * <<understanding-transaction>>
 * <<transaction-boundaries>>

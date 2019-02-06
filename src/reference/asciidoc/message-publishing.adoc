@@ -315,7 +315,8 @@ The following example shows how to an asynchronous `publishing-interceptor`:
 ----
 ====
 
-Another way of handling this type of scenario is with a wire-tap. See <<channel-wiretap>>.
+Another way of handling this type of scenario is with a wire-tap.
+See <<channel-wiretap>>.
 
 [[scheduled-producer]]
 ==== Producing and Publishing Messages Based on a Scheduled Trigger

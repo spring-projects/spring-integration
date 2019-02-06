@@ -1,15 +1,18 @@
 [[resequencer]]
 === Resequencer
 
-The resequencer is related to the aggregator but serves a different purpose. While the aggregator combines messages, the resequencer passes messages through without changing them.
+The resequencer is related to the aggregator but serves a different purpose.
+While the aggregator combines messages, the resequencer passes messages through without changing them.
 
 [[resequencer-functionality]]
 ==== Functionality
 
-The resequencer works in a similar way to the aggregator, in the sense that it uses the `CORRELATION_ID` to store messages in groups. he difference is that the Resequencer does not process the messages in any way.
+The resequencer works in a similar way to the aggregator, in the sense that it uses the `CORRELATION_ID` to store messages in groups.
+The difference is that the Resequencer does not process the messages in any way.
 Instead, it releases them in the order of their `SEQUENCE_NUMBER` header values.
 
-With respect to that, you can opt to release all messages at once (after the whole sequence, according to the `SEQUENCE_SIZE`, and other possibilities) or as soon as a valid sequence is available. (We cover what we mean by "a valid sequence" later in this chapter.)
+With respect to that, you can opt to release all messages at once (after the whole sequence, according to the `SEQUENCE_SIZE`, and other possibilities) or as soon as a valid sequence is available.
+(We cover what we mean by "a valid sequence" later in this chapter.)
 
 IMPORTANT: The resequencer is intended to resequence relatively short sequences of messages with small gaps.
 If you have a large number of disjoint sequences with many gaps, you may experience performance issues.
@@ -61,11 +64,14 @@ Optional.
 <4> The channel to which the resequencer  sends the messages that timed out (if `send-partial-result-on-timeout` is set to `false`).
 Optional.
 <5> Whether to send out ordered sequences as soon as they are available or only after the whole message group arrives.
-Optional. (The default is `false`.)
+Optional.
+(The default is `false`.)
 <6> A reference to a `MessageGroupStore` that can be used to store groups of messages under their correlation key until they are complete.
-Optional. (The default is a volatile in-memory store.)
+Optional.
+(The default is a volatile in-memory store.)
 <7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing).
-Optional. (The default is false.)
+Optional.
+(The default is false.)
 See <<reaper>>.
 <8> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
 Defaults to `-1`, which blocks indefinitely.
@@ -77,7 +83,8 @@ Optional.
 <9> A reference to a bean that implements the message correlation (grouping) algorithm.
 The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
 In the latter case, the `correlation-strategy-method` attribute must also be defined.
-Optional. (By default, the aggregator uses the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header.)
+Optional.
+(By default, the aggregator uses the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header.)
 <10> A method that is defined on the bean referenced by `correlation-strategy` and that implements the correlation decision algorithm.
 Optional, with restrictions (requires `correlation-strategy` to be present).
 <11> A SpEL expression representing the correlation strategy.

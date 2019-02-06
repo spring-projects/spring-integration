@@ -301,7 +301,7 @@ public IntegrationFlow clientTcpFlow() {
 }
 ----
 
-i.e. they are not merged, only the `testAdvice()` bean is used in this case.
+That is they are not merged, only the `testAdvice()` bean is used in this case.
 
 [[java-dsl-transformers]]
 === Transformers

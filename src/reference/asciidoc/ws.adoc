@@ -236,10 +236,13 @@ NOTE: Rather than using the wildcard (`*`), we recommend using the following com
 Doing so avoids mapping `request` headers to the reply.
 
 Starting with version 4.3, you can negate patterns in the header mappings by preceding the pattern with `!`.
-Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`. It does map the standard headers, `thing4`, and `qux`.
-(Note that `thing1` is included in both non-negated and negated forms. Because negated values take precedence, `thing1` is not mapped.)
+Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`.
+It does map the standard headers, `thing4`, and `qux`.
+(Note that `thing1` is included in both non-negated and negated forms.
+Because negated values take precedence, `thing1` is not mapped.)
 
-IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you can escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`. `!myBangHeader` is then mapped.
+IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you can escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
+A `!myBangHeader` is then mapped.
 
 Inbound SOAP headers (request headers for the inbound gateway and reply headers for the outbound gateway) are mapped as `SoapHeaderElement` objects.
 You can explore the contents by accessing the `Source`:

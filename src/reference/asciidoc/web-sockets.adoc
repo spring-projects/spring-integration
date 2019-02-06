@@ -129,7 +129,7 @@ The `WebSocketOutboundChannelAdapter`:
 
 On the client side, the `WebSocketSession` `id` message header is not required, because `ClientWebSocketContainer` deals only with a single connection and its `WebSocketSession` respectively.
 
-To use the STOMP subprotocol, you should configure this adapter with a `StompSubProtocolHandler`.
+To use the STOMP sub-protocol, you should configure this adapter with a `StompSubProtocolHandler`.
 Then you can send any STOMP message type to this adapter, using `StompHeaderAccessor.create(StompCommand...)` and a `MessageBuilder`, or just using a `HeaderEnricher` (see <<header-enricher>>).
 
 The rest of this chapter covers largely additional configuration options.

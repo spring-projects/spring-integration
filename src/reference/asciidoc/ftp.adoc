@@ -395,7 +395,7 @@ The job of the inbound FTP adapter consists of two tasks:
 
 . Communicate with a remote server in order to transfer files from a remote directory to a local directory.
 . For each transferred file, generate a message with that file as a payload and send it to the channel identified by the 'channel' attribute.
-That is why they are called "'channeladapters'" rather than just "'adapters'".
+That is why they are called "'channel adapters'" rather than just "'adapters'".
 The main job of such an adapter is to generate a message to send to a message channel.
 Essentially, the second task takes precedence in such a way that, if your local directory already has one or more files, it first generates messages from those.
 Only when all local files have been processed does it initiate the remote communication to retrieve more files.
@@ -1231,11 +1231,13 @@ The new path is in the `file_renameTo` header.
 
 The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
 It defines a SpEL expression to generate the name of local files during the transfer.
-The root object of the evaluation context is the request message. The `remoteFileName` variable, which is particularly useful for `mget`, is also available -- for example, `local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.something"`.
+The root object of the evaluation context is the request message.
+ The `remoteFileName` variable, which is particularly useful for `mget`, is also available -- for example, `local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.something"`.
 
 The `get` and `mget` commands support the `local-directory-expression` attribute.
 It defines a SpEL expression to generate the name of local directories during the transfer.
-The root object of the evaluation context is the request message but. The `remoteDirectory` variable, which is particularly useful for `mget`, is also available -- for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.something"`.
+The root object of the evaluation context is the request message but.
+The `remoteDirectory` variable, which is particularly useful for `mget`, is also available -- for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.something"`.
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway provides the path on which the command acts.
@@ -1260,11 +1262,11 @@ The payload of the message sent to the `toSplitter` channel is a list of `String
 If the `command-options` attribute was omitted, it holds `FileInfo` objects.
 It uses space-delimited options -- for example, `command-options="-1 -dirs -links"`.
 
-Starting with version 4.2, the `GET`, `MGET`, `PUT` and `MPUT` commands support a `FileExistsMode` property (`mode`
-when using the namespace support). This affects the behavior when the local file exists (`GET` and `MGET`) or the remote
-file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
-For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`. For `GET` and `MGET`
-operations, the default is `FAIL`.
+Starting with version 4.2, the `GET`, `MGET`, `PUT` and `MPUT` commands support a `FileExistsMode` property (`mode` when using the namespace support).
+This affects the behavior when the local file exists (`GET` and `MGET`) or the remote file exists (`PUT` and `MPUT`).
+Supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
+For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`.
+For `GET` and `MGET` operations, the default is `FAIL`.
 
 Starting with version 5.0, the `setWorkingDirExpression()` (`working-dir-expression` in XML) option is provided on the `FtpOutboundGateway` (`<int-ftp:outbound-gateway>` in XML).
 It lets you change the client working directory at runtime.

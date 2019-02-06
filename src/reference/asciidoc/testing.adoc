@@ -21,7 +21,8 @@ See the documentation for those projects for further information.
 Thanks to the canonical implementation of the EIP in Spring Integration Framework and its first-class citizens (such as `MessageChannel`, `Endpoint` and `MessageHandler`), abstractions, and loose coupling principles, you can implement integration solutions of any complexity.
 With the Spring Integration API for the flow definitions, you can improve, modify or even replace some part of the flow without impacting (mostly) other components in the integration solution.
 Testing such an integration solution is still a challenge, both from an end-to-end approach and from an in-isolation approach.
-Several existing tools can help to test or mock some integration protocols, and they work well with Spring Integration channel adapters. Examples of such tools include the following:
+Several existing tools can help to test or mock some integration protocols, and they work well with Spring Integration channel adapters.
+Examples of such tools include the following:
 
 * Spring `MockMVC` and its `MockRestServiceServer` can be used for testing HTTP.
 * Some RDBMS vendors provide embedded data bases for JDBC or JPA support.
@@ -251,7 +252,8 @@ public class MyIntegrationTests {
 ====
 
 The `@SpringIntegrationTest` annotation populates a `MockIntegrationContext` bean, which you can autowire to the test class to access its methods.
-With the `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting. The endpoints are matched to the provided patterns, which support the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*`, and `xxx*yyy`.
+With the `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting.
+The endpoints are matched to the provided patterns, which support the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*`, and `xxx*yyy`.
 
 This is useful when we would like to not have real connections to the target systems from inbound channel adapters (for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
 

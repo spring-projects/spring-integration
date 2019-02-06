@@ -1,7 +1,8 @@
 [[metrics-management]]
 === Metrics and Management
 
-This section describes how to capture metrics for Spring Integration. In recent versions, we have relied more on Micrometer (see http://micrometer.io), and we plan to use Micrometer even more in future releases.
+This section describes how to capture metrics for Spring Integration.
+In recent versions, we have relied more on Micrometer (see http://micrometer.io), and we plan to use Micrometer even more in future releases.
 
 [[configuring-metrics-capture]]
 ==== Configuring Metrics Capture
@@ -213,7 +214,8 @@ The error ratio is: 1 - success ratio.
 [[mgmt-handler-features]]
 ==== MessageHandler Metric Features
 
-These legacy metrics will be removed in a future release. See <<micrometer-integration>>.
+These legacy metrics will be removed in a future release.
+See <<micrometer-integration>>.
 
 The following table shows the statistics maintained for message handlers.
 Some metrics are simple counters (message count and error count), and one is an estimate of averages of send duration.

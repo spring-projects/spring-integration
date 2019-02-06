@@ -857,7 +857,8 @@ Instead, Spring Integration focuses on a single unified approach to configuring 
 What makes certain parts of the message flow synchronous or asynchronous is the type of Message Channel that has been configured within that flow.
 That is one of the primary benefits of the message channel abstraction.
 From the inception of the framework, we have always emphasized the need and the value of the message channel as a first-class citizen of the framework.
-It is not just an internal, implicit realization of the EIP pattern. It is fully exposed as a configurable component to the end user.
+It is not just an internal, implicit realization of the EIP pattern.
+It is fully exposed as a configurable component to the end user.
 So, the wire tap component is only responsible for performing the following tasks:
 
 * Intercept a message flow by tapping into a channel (for example, `channelA`)

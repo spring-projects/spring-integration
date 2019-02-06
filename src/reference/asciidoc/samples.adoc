@@ -49,7 +49,8 @@ $ git pull
 
 === Submitting Samples or Sample Requests
 
-You can submit both new samples and requests for samples. We greatly appreciate any effort toward improving the samples, including the sharing of good ideas.
+You can submit both new samples and requests for samples.
+We greatly appreciate any effort toward improving the samples, including the sharing of good ideas.
 
 [[samples-how-can-i-contribute]]
 ==== How Can I Contribute My Own Samples?
@@ -124,7 +125,8 @@ This category targets developers and architects who have a good understanding of
 In other words, the emphasis of the samples in this category is business use cases and how they can be solved with a message-driven architecture and Spring Integration in particular.
 For example, if you want to see how a loan broker or travel agent process could be implemented and automated with Spring Integration, this is the right place to find these types of samples.
 
-IMPORTANT: Spring Integration is a community-driven framework. Therefore community participation is IMPORTANT.
+IMPORTANT: Spring Integration is a community-driven framework.
+Therefore community participation is IMPORTANT.
 That includes samples.
 If you cannot find what you are looking for, let us know!
 

@@ -154,7 +154,8 @@ All of this is demonstrated in the following configuration example, where the ex
 ----
 ====
 
-If the `ExpressionSource` bean is named `expressionSource`, you need not provide the` source` attribute on the `<expression>` element. However, in the preceding example, we show it for completeness.
+If the `ExpressionSource` bean is named `expressionSource`, you need not provide the` source` attribute on the `<expression>` element.
+However, in the preceding example, we show it for completeness.
 
 The 'config/integration/expressions.properties' file (or any more-specific version with a locale extension to be resolved in the typical way that resource-bundles are loaded) can contain a key/value pair, as the following example shows:
 

@@ -22,8 +22,8 @@ If you need to persist metadata between application context restarts, the framew
 
 The `PropertiesPersistingMetadataStore` is backed by a properties file and a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html[`PropertiesPersister`].
 
-By default, it persists only the state when the application context is closed normally. It implements `Flushable` so that you
-can persist the state at will, by invoking `flush()`.
+By default, it persists only the state when the application context is closed normally.
+It implements `Flushable` so that you can persist the state at will, by invoking `flush()`.
 The following example shows how to configure a 'PropertiesPersistingMetadataStore' with XML:
 
 [source,xml]

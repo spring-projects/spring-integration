@@ -551,16 +551,14 @@ If that is not customized at all, the default is `PERSISTENT`.
 Optional.
 <10> An expression that defines correlation data.
 When provided, this configures the underlying AMQP template to receive publisher confirmations.
-Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to
-`true`. When a publisher confirmation is received and correlation data is supplied, it is written to either the
-`confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type. The payload of the confirmation is
-the correlation data, as defined by this expression.
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to `true`.
+When a publisher confirmation is received and correlation data is supplied, it is written to either the `confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type.
+The payload of the confirmation is the correlation data, as defined by this expression.
 The message has an 'amqp_publishConfirm' header set to `true` (`ack`) or `false` (`nack`).
 Examples: `headers['myCorrelationData']` and `payload`.
 Version 4.1 introduced the `amqp_publishConfirmNackCause` message header.
 It contains the `cause` of a 'nack' for a publisher confirmation.
-Starting with version 4.2, if the expression resolves to a `Message<?>` instance (such as `#this`), the message
-emitted on the `ack`/`nack` channel is based on that message, with the additional header(s) added.
+Starting with version 4.2, if the expression resolves to a `Message<?>` instance (such as `#this`), the message emitted on the `ack`/`nack` channel is based on that message, with the additional header(s) added.
 Previously, a new message was created with the correlation data as its payload, regardless of type.
 Optional.
 <11> The channel to which positive (`ack`) publisher confirms are sent.
@@ -964,28 +962,25 @@ If that is not customized, the default is `PERSISTENT`.
 Optional.
 <13> An expression that defines correlation data.
 When provided, this configures the underlying AMQP template to receive publisher confirmations.
-Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with its `publisherConfirms` property set to
-`true`. When a publisher confirmation is received and correlation data is supplied, the confirmation is written to either the
-`confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type. The payload of the confirmation is
-the correlation data as defined by this expression, and the message has its 'amqp_publishConfirm' header set to `true`
-(`ack`) or `false` (`nack`).
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with its `publisherConfirms` property set to `true`.
+When a publisher confirmation is received and correlation data is supplied, the confirmation is written to either the `confirm-ack-channel` or the `confirm-nack-channel`, depending on the confirmation type.
+The payload of the confirmation is the correlation data as defined by this expression, and the message has its 'amqp_publishConfirm' header set to `true` (`ack`) or `false` (`nack`).
 For `nack` instances, an additional header (`amqp_publishConfirmNackCause`) is provided.
 Examples: `headers['myCorrelationData']`, `payload`.
-If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message
-emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
+If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message emitted on the `ack`/`nack` channel is based on that message, with the additional headers added.
 Optional.
 <14> The channel to which positive (`ack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
 Optional (the default is `nullChannel`).
-<15> Since version 4.2. The channel to which negative (`nack`) publisher confirmations are sent.
+<15> Since version 4.2.
+The channel to which negative (`nack`) publisher confirmations are sent.
 The payload is the correlation data defined by the `confirm-correlation-expression`.
 Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to `true`.
 Optional (the default is `nullChannel`).
 <16> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the gateway.
-The message is constructed from the data received from AMQP, with the following additional headers:
-`amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
+The message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, and `amqp_returnRoutingKey`.
 Requires the underlying `AsyncRabbitTemplate` to have its `mandatory` property set to `true`.
 Optional.
 <17> When set to `false`, the endpoint tries to connect to the broker during application context initialization.
@@ -1391,13 +1386,11 @@ It also does not map the `deliveryMode` to the `amqp_deliveryMode` header, to av
 Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapped on output.
 
 Starting with version 4.3, patterns in the header mappings can be negated by preceding the pattern with `!`.
-Negated patterns get priority, so a list such as
-`STANDARD_REQUEST_HEADERS,thing1,ba*,!thing2,!thing3,qux,!thing1` does not map `thing1`
-(nor `thing2` nor `thing3`).
+Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,ba*,!thing2,!thing3,qux,!thing1` does not map `thing1` (nor `thing2` nor `thing3`).
 The standard headers plus `bad` and `qux` are mapped.
 
-IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with
-`\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`. The header named `!myBangHeader` is now mapped.
+IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you need to escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`.
+The header named `!myBangHeader` is now mapped.
 
 NOTE: Starting with _version 5.1_, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
 Inbound properties will be mapped to the `amqp_*` headers as before.
@@ -1407,7 +1400,7 @@ It is useful to populate the `messageId` property when message consumers are usi
 ==== contentType Header
 
 Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
-E.g. an inbound HTTP message sent to a RabbitMQ queue.
+For example an inbound HTTP message sent to a RabbitMQ queue.
 
 The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ's `content_type` property.
 

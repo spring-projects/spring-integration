@@ -147,7 +147,8 @@ If you want the script to be checked on each poll, you would need to coordinate 
 ====
 
 See also the `cacheSeconds` property on the `ReloadableResourceBundleExpressionSource` when using the `<expression/>` sub-element.
-For more information regarding expressions, see <<spel>>. For scripts, see <<groovy>> and <<scripting>>.
+For more information regarding expressions, see <<spel>>.
+For scripts, see <<groovy>> and <<scripting>>.
 
 IMPORTANT: The `<int:inbound-channel-adapter/>` is endpoint starts a message flow by periodically triggering to poll some underlying `MessageSource`.
 Since, at the time of polling, there is no message object, expressions and scripts do not have access to a root `Message`, so there are no payload or headers properties that are available in most other messaging SpEL expressions.

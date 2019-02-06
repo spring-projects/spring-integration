@@ -448,7 +448,8 @@ You can use this serializer in conjunction with a `MessageConvertingTcpMessageMa
 
 NOTE: The Jackson `ObjectMapper` cannot demarcate messages in the stream.
 Therefore, the `MapJsonSerializer` needs to delegate to another serializer or deserializer to handle message demarcation.
-By default, a `ByteArrayLfSerializer` is used, resulting in messages with a format of `<json><LF>` on the wire, but you can configure it to use others instead. (The next example shows how to do so.)
+By default, a `ByteArrayLfSerializer` is used, resulting in messages with a format of `<json><LF>` on the wire, but you can configure it to use others instead.
+(The next example shows how to do so.)
 
 The final standard serializer is `org.springframework.core.serializer.DefaultSerializer`, which you can use to convert serializable objects with Java serialization.
 `org.springframework.core.serializer.DefaultDeserializer` is provided for inbound deserialization of streams that contain serializable objects.
@@ -636,7 +637,8 @@ Beginning with version 3.0, changes to `TcpConnection` instances are reported by
 * `connectionId`: The connection identifier, which you can use in a message header to send data to the connection.
 * `connectionFactoryName`: The bean name of the connection factory to which the connection belongs.
 * `throwable`: The `Throwable` (for `TcpConnectionExceptionEvent` events only).
-* `source`: The `TcpConnection`. You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
+* `source`: The `TcpConnection`.
+You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
 
 In addition, since version 4.0, the standard deserializers discussed in <<tcp-connection-factories>> now emit `TcpDeserializationExceptionEvent` instances when they encounter problems while decoding the data stream.
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point where the exception occurred.
@@ -733,7 +735,8 @@ In some cases, you may want to establish the connection in reverse, such that th
 This topology is supported by setting `client-mode="true"` on the inbound adapter.
 In this case, the connection factory must be of type `client` and must have `single-use` set to `false`.
 
-Two additional attributes support this mechanism. `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
+Two additional attributes support this mechanism.
+The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
 `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
 If you don't provide a scheduler, the framework's default <<namespace-taskscheduler, taskScheduler>> bean is used.
@@ -993,7 +996,8 @@ You should keep in mind some important considerations when you use a fixed threa
 
 The following does not apply if you do not use a fixed thread pool.
 
-With NIO connections, there are three distinct task types. The I/O selector processing is performed on one dedicated thread (detecting events, accepting new connections, and dispatching the I/O read operations to other threads by using the task executor).
+With NIO connections, there are three distinct task types.
+The I/O selector processing is performed on one dedicated thread (detecting events, accepting new connections, and dispatching the I/O read operations to other threads by using the task executor).
 When an I/O reader thread (to which the read operation is dispatched) reads data, it hands off to another thread to assemble the incoming message.
 Large messages can take several reads to complete.
 These "`assembler`" threads can block while waiting for data.
@@ -2107,16 +2111,15 @@ public static class Config {
 
 <2> Searches for `@MessagingGateway` interfaces.
 
-<3> The entry point to the client-side of the flow. The calling application can use `@Autowired` for this `Gateway` bean
-and invoke its method.
+<3> The entry point to the client-side of the flow.
+The calling application can use `@Autowired` for this `Gateway` bean and invoke its method.
 
-<4> Outbound endpoints consist of a `MessageHandler` and a consumer that wraps it. In this scenario, the
-`@ServiceActivator` configures the endpoint, according to the channel type.
+<4> Outbound endpoints consist of a `MessageHandler` and a consumer that wraps it.
+In this scenario, the `@ServiceActivator` configures the endpoint, according to the channel type.
 
 <5> Inbound endpoints (in the TCP/UDP module) are all message-driven and so only need to be declared as simple `@Bean` instances.
 
-<6> This class provides a number of POJO methods for use in this sample flow (a `@Transformer` and `@ServiceActivator`
-on the server side and a `@Transformer` on the client side).
+<6> This class provides a number of POJO methods for use in this sample flow (a `@Transformer` and `@ServiceActivator` on the server side and a `@Transformer` on the client side).
 
 <7> The client-side connection factory.
 

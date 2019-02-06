@@ -153,7 +153,8 @@ Such classes implement the following methods:
 
 * `beforeReceive(MessageSource<?> source)`
 This method is called before the `MessageSource.receive()` method.
-It lets you examine and reconfigure the source. Returning `false` cancels this poll (similar to the `PollSkipAdvice` mentioned earlier).
+It lets you examine and reconfigure the source.
+Returning `false` cancels this poll (similar to the `PollSkipAdvice` mentioned earlier).
 
 * `Message<?> afterReceive(Message<?> result, MessageSource<?> source)`
 This method is called after the `receive()` method.

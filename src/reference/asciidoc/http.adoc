@@ -73,7 +73,8 @@ The following example bean defines an HTTP inbound endpoint:
 
 The `HttpRequestHandlingMessagingGateway` accepts a list of `HttpMessageConverter` instances or else relies on a default list.
 The converters allow customization of the mapping from `HttpServletRequest` to `Message`.
-The default converters encapsulate simple strategies, which (for example) create a `String` message for a `POST` request where the content type starts with `text`. See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for full details.
+The default converters encapsulate simple strategies, which (for example) create a `String` message for a `POST` request where the content type starts with `text`.
+See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for full details.
 An additional flag (`mergeWithDefaultConverters`) can be set along with the list of custom `HttpMessageConverter` to add the default converters after the custom converters.
 By default, this flag is set to `false`, meaning that the custom converters replace the default list.
 
@@ -307,7 +308,8 @@ The following example shows how to configure it on an inbound gateway:
 ----
 ====
 
-Based on the preceding configuration, the namespace parser creates an instance of the `IntegrationRequestMappingHandlerMapping` (if none exists) and an `HttpRequestHandlingController` bean and associates with it an instance of http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html[`RequestMapping`]. This `RequestMapping` instance is, in turn, converted to the Spring MVC http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html[`RequestMappingInfo`].
+Based on the preceding configuration, the namespace parser creates an instance of the `IntegrationRequestMappingHandlerMapping` (if none exists) and an `HttpRequestHandlingController` bean and associates with it an instance of http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html[`RequestMapping`].
+This `RequestMapping` instance is, in turn, converted to the Spring MVC http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html[`RequestMappingInfo`].
 
 The `<request-mapping>` element provides the following attributes:
 
@@ -405,7 +407,8 @@ Starting with version 4.2, the default response status code when no reply is rec
 is `500 Internal Server Error`.
 There are two ways to modify this behavior:
 
-* Add a `reply-timeout-status-code-expression`. This has the same semantics as the `status-code-expression` on the inbound adapter.
+* Add a `reply-timeout-status-code-expression`.
+This has the same semantics as the `status-code-expression` on the inbound adapter.
 * Add an `error-channel` and return an appropriate message with an HTTP status code header, as the following example shows:
 +
 ====
@@ -524,7 +527,8 @@ Alternatively, you may wish to consider using JSON instead, which is enabled by 
 =====
 
 Beginning with Spring Integration 2.2, you can also determine the HTTP method dynamically by using SpEL and the `http-method-expression` attribute.
-Note that this attribute is mutually exclusive with `http-method`. You can also use the `expected-response-type-expression` attribute instead of `expected-response-type` and provide any valid SpEL expression that determines the type of the response.
+Note that this attribute is mutually exclusive with `http-method`.
+You can also use the `expected-response-type-expression` attribute instead of `expected-response-type` and provide any valid SpEL expression that determines the type of the response.
 The following configuration example uses `expected-response-type-expression`:
 
 ====

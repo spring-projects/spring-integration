@@ -762,7 +762,8 @@ The following example defines a property and uses it with the `output-properties
 Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults to `true`).
 This allows the "`streaming`" of split nodes in the downstream flow.
 With the `iterator` mode set to `true`, each node is transformed while iterating.
-When `false`, all entries are first transformed, before the split nodes start being sent to the output channel. (You can think of the difference as "`transform, send, transform, send`" versus "`transform, transform, send, send`".)
+When `false`, all entries are first transformed, before the split nodes start being sent to the output channel.
+(You can think of the difference as "`transform, send, transform, send`" versus "`transform, transform, send, send`".)
 See <<splitter>> for more information.
 
 [[xml-xpath-routing]]

@@ -160,7 +160,8 @@ If the service returns a `ListenableFuture<?>` when this the `async` attribute i
 This is particularly advantageous for long-running services that use a `PollableChannel`, because the poller thread is released to perform other services within the framework.
 
 If the service completes the future with an `Exception`, normal error processing occurs.
-An `ErrorMessage` is sent to the `errorChannel` message header, if present. Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
+An `ErrorMessage` is sent to the `errorChannel` message header, if present.
+Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
 
 
 [[service-activator-return-type]]

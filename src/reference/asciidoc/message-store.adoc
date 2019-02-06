@@ -62,7 +62,8 @@ Currently, they are not serializable, but, even if they were, the deserialized c
 
 Beginning with Spring Integration version 3.0, you can resolve this issue with a header enricher configured to replace these headers with a name after registering the channel with the `HeaderChannelRegistry`.
 
-Also, consider what happens when you configure a message-flow as follows: gateway -> queue-channel (backed by a persistent Message Store) -> service-activator. That gateway creates a temporary reply channel, which is lost by the time the service-activator's poller reads from the queue.
+Also, consider what happens when you configure a message-flow as follows: gateway -> queue-channel (backed by a persistent Message Store) -> service-activator.
+That gateway creates a temporary reply channel, which is lost by the time the service-activator's poller reads from the queue.
 Again, you can use the header enricher to replace the headers with a `String` representation.
 
 For more information, see <<header-enricher>>.
@@ -105,7 +106,8 @@ This defaults to a `SimpleMessageGroupFactory`, which produces `SimpleMessageGro
 (`LinkedHashSet`) internal collection.
 Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
 previous `SimpleMessageGroup` behavior.
-Also the `PERSISTENT` option is available. See the next section for more information.
+Also the `PERSISTENT` option is available.
+See the next section for more information.
 Starting with version 5.0.1, the `LIST` option is also available for when the order and uniqueness of messages in the group does not matter.
 
 [[lazy-load-message-group]]

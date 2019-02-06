@@ -118,7 +118,8 @@ See <<feed>> for more details.
 
 [[new-other]]
 ==== Other Additions
-Spring Integration adds a number of other features. This section describes them.
+Spring Integration adds a number of other features.
+This section describes them.
 
 [[new-groovy]]
 ===== Groovy Support
@@ -165,7 +166,8 @@ We have also switched our build system to http://gradle.org/[Gradle].
 ==== New Spring Integration Samples
 
 With Spring Integration 2.0, we have decoupled the samples from our main release distribution.
-Please read the following blog to get more information: http://blog.springsource.com/2010/09/29/new-spring-integration-samples/[New Spring Integration Samples]. We have also created many new samples, including samples for every new adapter.
+Please read the following blog to get more information: http://blog.springsource.com/2010/09/29/new-spring-integration-samples/[New Spring Integration Samples].
+We have also created many new samples, including samples for every new adapter.
 
 [[new-sts]]
 ==== Spring Tool Suite Visual Editor for Spring Integration

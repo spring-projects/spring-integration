@@ -264,7 +264,8 @@ Therefore, you can also leave off the `prevent-duplicates` and `ignore-hidden` a
 
 [IMPORTANT]
 =====
-Spring Integration 4.2 introduced the `ignore-hidden` attribute. In prior versions, hidden files were included.
+Spring Integration 4.2 introduced the `ignore-hidden` attribute.
+In prior versions, hidden files were included.
 =====
 
 The second channel adapter example uses a custom filter, the third uses the `filename-pattern` attribute to add an `AntPathMatcher` based filter, and the fourth uses the `filename-regex` attribute to add a regular expression pattern-based filter to the `FileReadingMessageSource`.
@@ -754,7 +755,8 @@ However, this can cause data loss in the event of a failure.
 
 Spring Integration provides several flushing strategies to mitigate this data loss:
 
-* Use `flushInterval`. If a file is not written to for this period of time, it is automatically flushed.
+* Use `flushInterval`.
+If a file is not written to for this period of time, it is automatically flushed.
 This is approximate and may be up to `1.33x` this time (with an average of `1.167x`).
 * Send a message containing a regular expression to the message handler's `trigger` method.
 Files with absolute path names matching the pattern are flushed.

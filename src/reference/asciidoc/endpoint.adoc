@@ -149,7 +149,8 @@ The `receiveTimeout` property specifies the amount of time the poller should wai
 For example, consider two options that seem similar on the surface but are actually quite different: The first has an interval trigger of 5 seconds and a receive timeout of 50 milliseconds, while the second has an interval trigger of 50 milliseconds and a receive timeout of 5 seconds.
 The first one may receive a message up to 4950 milliseconds later than it arrived on the channel (if that message arrived immediately after one of its poll calls returned).
 On the other hand, the second configuration never misses a message by more than 50 milliseconds.
-The difference is that the second option requires a thread to wait. However, as a result, it can respond much more quickly to arriving messages.
+The difference is that the second option requires a thread to wait.
+However, as a result, it can respond much more quickly to arriving messages.
 This technique, known as "`long polling`", can be used to emulate event-driven behavior on a polled source.
 
 A polling consumer can also delegate to a Spring `TaskExecutor`, as the following example shows:
@@ -770,7 +771,8 @@ public Map<String, Boolean> getEndpointsRunningStatus(String role) <4>
 
 <3> Returns `true` if none of the endpoints in the role are running.
 
-<4> Returns a map of `component name : running status`. The component name is usually the bean name.
+<4> Returns a map of `component name : running status`.
+The component name is usually the bean name.
 
 [[leadership-event-handling]]
 === Leadership Event Handling

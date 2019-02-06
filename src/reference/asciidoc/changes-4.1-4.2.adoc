@@ -213,7 +213,8 @@ See <<jms-outbound-gateway>> for more information.
 
 ===== Conversion Errors in Message-Driven Endpoints
 
-The `error-channel` is now used for the conversion errors. In previous versions, they caused transaction rollback and message redelivery.
+The `error-channel` is now used for the conversion errors.
+In previous versions, they caused transaction rollback and message redelivery.
 
 See <<jms-message-driven-channel-adapter>> and <<jms-inbound-gateway>> for more information.
 
