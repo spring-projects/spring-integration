@@ -202,7 +202,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (!MicroTimer.class.equals(obj.getClass())) {
+			if (obj == null || !getClass().equals(obj.getClass())) {
 				return false;
 			}
 			return this.timer.equals(((MicroTimer) obj).timer);
@@ -266,7 +266,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (!MicroCounter.class.equals(obj.getClass())) {
+			if (obj == null || !getClass().equals(obj.getClass())) {
 				return false;
 			}
 			return this.counter.equals(((MicroCounter) obj).counter);
@@ -325,7 +325,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (!MicroGauge.class.equals(obj.getClass())) {
+			if (obj == null || !getClass().equals(obj.getClass())) {
 				return false;
 			}
 			return this.gauge.equals(((MicroGauge) obj).gauge);
