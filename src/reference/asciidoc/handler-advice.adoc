@@ -406,7 +406,7 @@ An additional property, called `inputMessage`, contains the original message sen
 A message sent to the `failureChannel` (when the handler throws an exception) is an `ErrorMessage` with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
 Like all `MessagingException` instances, this payload has `failedMessage` and `cause` properties, as well as an additional property called `evaluationResult`, which contains the result of the expression evaluation.
 
-NOTE: Starting with version 5.1.3, if channels are configured, but expressions are not provided, the default expression is used to evaluate to a `payload` of the message.
+NOTE: Starting with version 5.1.3, if channels are configured, but expressions are not provided, the default expression is used to evaluate to the `payload` of the message.
 
 When an exception is thrown in the scope of the advice, by default, that exception is thrown to the caller after any `failureExpression` is evaluated.
 If you wish to suppress throwing the exception, set the `trapException` property to `true`.

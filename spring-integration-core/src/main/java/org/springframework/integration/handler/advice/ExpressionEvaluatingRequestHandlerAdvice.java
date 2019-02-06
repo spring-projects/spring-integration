@@ -24,12 +24,12 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.message.AdviceMessage;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -94,8 +94,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 * @param onSuccessExpression the SpEL expression.
 	 * @since 5.0
 	 */
-	public void setOnSuccessExpression(Expression onSuccessExpression) {
-		Assert.notNull(onSuccessExpression, "'onSuccessExpression' must not be null");
+	public void setOnSuccessExpression(@Nullable Expression onSuccessExpression) {
 		this.onSuccessExpression = onSuccessExpression;
 	}
 
@@ -128,8 +127,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 * @param onFailureExpression the SpEL expression.
 	 * @since 5.0
 	 */
-	public void setOnFailureExpression(Expression onFailureExpression) {
-		Assert.notNull(onFailureExpression, "'onFailureExpression' must not be null");
+	public void setOnFailureExpression(@Nullable Expression onFailureExpression) {
 		this.onFailureExpression = onFailureExpression;
 	}
 
