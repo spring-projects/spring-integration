@@ -20,7 +20,7 @@ Take a look at GitHub's excellent documentation: https://help.github.com/article
 
 Is there already an issue that addresses your concern?
 Search the https://github.com/spring-projects/spring-integration/issues[GitHub issue tracker] (or https://jira.springsource.org/browse/INT[JIRA issue tracker]) to see if you can find something similar.
-If not, please create a new issue before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
+If not, please create a new issue in GitHub before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 
 == Sign the contributor license agreement
 
@@ -43,7 +43,7 @@ Signing the CLA does not grant anyone commit rights to the main repository, but 
 _you should see only 'origin' - which is the fork you created for your own github account_
 4. `git remote add upstream git@github.com:spring-projects/spring-integration.git`
 5. `git remote show`
-_you should now see 'upstream' in addition to 'origin' where 'upstream' is the SpringSource repository from which releases are built_
+_you should now see 'upstream' in addition to 'origin' where 'upstream' is the Spring repository from which releases are built_
 6. `git fetch --all`
 7. `git branch -a`
 _you should see branches on origin as well as upstream, including 'master'_
