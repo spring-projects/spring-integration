@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -404,13 +405,15 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		// private key
 		if (this.privateKey != null) {
-			byte[] keyByteArray = FileCopyUtils.copyToByteArray(this.privateKey.getInputStream());
-			String passphrase = this.userInfoWrapper.getPassphrase();
-			if (StringUtils.hasText(passphrase)) {
-				this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
-			}
-			else {
-				this.jsch.addIdentity(this.user, keyByteArray, null, null);
+			try(InputStream keyInputStream = this.privateKey.getInputStream()) {
+				byte[] keyByteArray = FileCopyUtils.copyToByteArray(keyInputStream);
+				String passphrase = this.userInfoWrapper.getPassphrase();
+				if (StringUtils.hasText(passphrase)) {
+					this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
+				}
+				else {
+					this.jsch.addIdentity(this.user, keyByteArray, null, null);
+				}
 			}
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
