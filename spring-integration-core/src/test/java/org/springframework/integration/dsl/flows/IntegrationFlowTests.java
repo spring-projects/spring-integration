@@ -54,7 +54,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -91,7 +90,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -179,14 +177,6 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("lambdasInput")
 	private MessageChannel lambdasInput;
-
-	@Autowired
-	@Qualifier("gatewayInput")
-	private MessageChannel gatewayInput;
-
-	@Autowired
-	@Qualifier("gatewayError")
-	private PollableChannel gatewayError;
 
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
@@ -334,32 +324,6 @@ public class IntegrationFlowTests {
 
 		assertEquals(1, this.messageStore.getMessageCount());
 		assertSame(message, this.messageStore.getMessage(message.getHeaders().getId()));
-	}
-
-	@Test
-	public void testGatewayFlow() {
-		PollableChannel replyChannel = new QueueChannel();
-		Message<String> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
-
-		this.gatewayInput.send(message);
-
-		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("From Gateway SubFlow: FOO", receive.getPayload());
-		assertNull(this.gatewayError.receive(1));
-
-		message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
-
-		this.gatewayInput.send(message);
-
-		receive = replyChannel.receive(1);
-		assertNull(receive);
-
-		receive = this.gatewayError.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive, instanceOf(ErrorMessage.class));
-		assertThat(receive.getPayload(), instanceOf(MessageRejectedException.class));
-		assertThat(((Exception) receive.getPayload()).getMessage(), containsString("' rejected Message"));
 	}
 
 	@Autowired
@@ -843,27 +807,6 @@ public class IntegrationFlowTests {
 					.filter(String.class, "World"::equals)
 					.transform(String.class, "Hello "::concat)
 					.get();
-		}
-
-		@Bean
-		public IntegrationFlow gatewayFlow() {
-			return IntegrationFlows.from("gatewayInput")
-					.gateway("gatewayRequest", g -> g.errorChannel("gatewayError").replyTimeout(10L))
-					.gateway(f -> f.transform("From Gateway SubFlow: "::concat))
-					.get();
-		}
-
-		@Bean
-		public IntegrationFlow gatewayRequestFlow() {
-			return IntegrationFlows.from("gatewayRequest")
-					.filter("foo"::equals, f -> f.throwExceptionOnRejection(true))
-					.<String, String>transform(String::toUpperCase)
-					.get();
-		}
-
-		@Bean
-		public MessageChannel gatewayError() {
-			return MessageChannels.queue().get();
 		}
 
 		@Bean
