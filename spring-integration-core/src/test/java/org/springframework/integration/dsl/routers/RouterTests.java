@@ -28,7 +28,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -858,27 +858,27 @@ public class RouterTests {
 		}
 
 
-		@ServiceActivator(inputChannel = "scatterGatherErrorChannel")
-		public Message<?> processAsyncScatterError(MessagingException payload) {
-			return MessageBuilder.withPayload(payload.getCause().getCause())
-					.copyHeaders(payload.getFailedMessage().getHeaders())
-					.build();
-		}
-
 		@Bean
-		public IntegrationFlow scatterGatherAndExecutorChannelSubFlow() {
+		public IntegrationFlow scatterGatherAndExecutorChannelSubFlow(TaskExecutor taskExecutor) {
 			return f -> f
 					.scatterGather(
 							scatterer -> scatterer
 									.applySequence(true)
 									.recipientFlow(f1 -> f1.transform(p -> "Sub-flow#1"))
 									.recipientFlow(f2 -> f2
-											.channel(c -> c.executor(Executors.newSingleThreadExecutor()))
+											.channel(c -> c.executor(taskExecutor))
 											.transform(p -> {
 												throw new RuntimeException("Sub-flow#2");
 											})),
 							null,
 							s -> s.errorChannel("scatterGatherErrorChannel"));
+		}
+
+		@ServiceActivator(inputChannel = "scatterGatherErrorChannel")
+		public Message<?> processAsyncScatterError(MessagingException payload) {
+			return MessageBuilder.withPayload(payload.getCause().getCause())
+					.copyHeaders(payload.getFailedMessage().getHeaders())
+					.build();
 		}
 
 	}

@@ -153,3 +153,56 @@ Mutually exclusive with `scatter-channel` attribute.
 <13> The `<aggregator>` options.
 Required.
 ====
+
+[[scatter-gather-error-handling]]
+==== Error Handling
+
+Since Scatter-Gather is a multi request-reply component, it is not a surprise that error handling is not so simple task to process requests and aggregate reply properly.
+In some cases it is better to just catch and ignore downstream exceptions if the `ReleaseStrategy` allows to finish with less replies than requests.
+In other cases something like "`compensation message`" should be considered for returning from sub-flow, when an error happens.
+
+Every async sub-flow should be configured with a `errorChannel` header for the proper error message sending from the `MessagePublishingErrorHandler`.
+Otherwise an error will settle in the global `errorChannel` with the common error handling logic.
+See <<namespace-errorhandler>> for more information about async error processing.
+
+The sync flows may use an `ExpressionEvaluatingRequestHandlerAdvice` for ignoring or returning compensation messages.
+When exception is thrown from one of the sub-flows into the `ScatterGatherHandler`, it is just re-thrown to upstream.
+This way all other sub-flows will work for nothing and their replies are going to be ignored in the `ScatterGatherHandler`.
+This might be an expected behavior sometimes, but in most cases it would be better to handle error in the particular sub-flow without impacting all others and expectation in the gatherer.
+
+Starting with version 5.1.3, the `ScatterGatherHandler` is supplied with the `errorChannelName` option.
+It is populated to the `errorChannel` header of the scatter message and is used in the  when async error happens or can be used in the regular sync sub-flow for direct error message sending.
+
+The sample configuration below demonstrates an async error handling as a compensation message:
+
+====
+[source,java]
+----
+@Bean
+public IntegrationFlow scatterGatherAndExecutorChannelSubFlow(TaskExecutor taskExecutor) {
+    return f -> f
+            .scatterGather(
+                    scatterer -> scatterer
+                            .applySequence(true)
+                            .recipientFlow(f1 -> f1.transform(p -> "Sub-flow#1"))
+                            .recipientFlow(f2 -> f2
+                                    .channel(c -> c.executor(taskExecutor))
+                                    .transform(p -> {
+                                        throw new RuntimeException("Sub-flow#2");
+                                    })),
+                    null,
+                    s -> s.errorChannel("scatterGatherErrorChannel"));
+}
+
+@ServiceActivator(inputChannel = "scatterGatherErrorChannel")
+public Message<?> processAsyncScatterError(MessagingException payload) {
+    return MessageBuilder.withPayload(payload.getCause().getCause())
+            .copyHeaders(payload.getFailedMessage().getHeaders())
+            .build();
+}
+----
+====
+
+For a proper reply producing we have to copy headers (including `replyChannel` and `errorChannel`) from the `failedMessage` of the `MessagingException` that has been sent to the `scatterGatherErrorChannel` by the `MessagePublishingErrorHandler`.
+This way the target exception is returned to the gatherer of the `ScatterGatherHandler` for reply messages group completion.
+Such an exception `payload` can be filtered out in the `MessageGroupProcessor` of the gatherer or processed other way in the downstream, after scatter-gather endpoint.

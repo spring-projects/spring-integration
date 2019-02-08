@@ -60,9 +60,9 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	}
 
 	/**
-	 * Specify a {@link MessageChannel} bean name for async errors processing.
+	 * Specify a {@link MessageChannel} bean name for async error processing.
 	 * Defaults to {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
-	 * @param errorChannel the {@link MessageChannel} bean name for async errors processing.
+	 * @param errorChannel the {@link MessageChannel} bean name for async error processing.
 	 * @return the current {@link ScatterGatherSpec} instance.
 	 * @since 5.1.3
 	 */

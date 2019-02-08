@@ -69,6 +69,13 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	private HeaderChannelRegistry replyChannelRegistry;
 
 
+	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
+		this(new FixedSubscriberChannel(scatterer), gatherer);
+		Assert.notNull(scatterer, "'scatterer' must not be null");
+		Class<?> scattererClass = AopUtils.getTargetClass(scatterer);
+		checkClass(scattererClass, "org.springframework.integration.router.RecipientListRouter", "scatterer");
+	}
+
 	public ScatterGatherHandler(MessageChannel scatterChannel, MessageHandler gatherer) {
 		Assert.notNull(scatterChannel, "'scatterChannel' must not be null");
 		Assert.notNull(gatherer, "'gatherer' must not be null");
@@ -76,13 +83,6 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		checkClass(gathererClass, "org.springframework.integration.aggregator.AggregatingMessageHandler", "gatherer");
 		this.scatterChannel = scatterChannel;
 		this.gatherer = gatherer;
-	}
-
-	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
-		this(new FixedSubscriberChannel(scatterer), gatherer);
-		Assert.notNull(scatterer, "'scatterer' must not be null");
-		Class<?> scattererClass = AopUtils.getTargetClass(scatterer);
-		checkClass(scattererClass, "org.springframework.integration.router.RecipientListRouter", "scatterer");
 	}
 
 	public void setGatherChannel(MessageChannel gatherChannel) {
@@ -94,9 +94,9 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	}
 
 	/**
-	 * Specify a {@link MessageChannel} bean name for async errors processing.
+	 * Specify a {@link MessageChannel} bean name for async error processing.
 	 * Defaults to {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
-	 * @param errorChannelName the {@link MessageChannel} bean name for async errors processing.
+	 * @param errorChannelName the {@link MessageChannel} bean name for async error processing.
 	 * @since 5.1.3
 	 */
 	public void setErrorChannelName(String errorChannelName) {
