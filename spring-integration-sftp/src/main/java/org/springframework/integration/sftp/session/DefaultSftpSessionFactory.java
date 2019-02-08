@@ -405,7 +405,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		// private key
 		if (this.privateKey != null) {
-			try(InputStream keyInputStream = this.privateKey.getInputStream()) {
+			try (InputStream keyInputStream = this.privateKey.getInputStream()) {
 				byte[] keyByteArray = FileCopyUtils.copyToByteArray(keyInputStream);
 				String passphrase = this.userInfoWrapper.getPassphrase();
 				if (StringUtils.hasText(passphrase)) {
