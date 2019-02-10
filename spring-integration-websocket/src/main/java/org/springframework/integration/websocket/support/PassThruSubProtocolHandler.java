@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,12 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  * on 'send' part and vise versa - on 'receive' part.
  *
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class PassThruSubProtocolHandler implements SubProtocolHandler {
 
-	final List<String> supportedProtocols = new ArrayList<String>();
+	private final List<String> supportedProtocols = new ArrayList<>();
 
 	public void setSupportedProtocols(String... supportedProtocols) {
 		Assert.noNullElements(supportedProtocols, "'supportedProtocols' must not be empty");
@@ -59,7 +60,8 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 
 	@Override
 	public void handleMessageFromClient(WebSocketSession session, WebSocketMessage<?> webSocketMessage,
-			MessageChannel outputChannel) throws Exception {
+			MessageChannel outputChannel) {
+
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
 		headerAccessor.setSessionId(session.getId());
 		headerAccessor.setSessionAttributes(session.getAttributes());
@@ -78,7 +80,9 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 	}
 
 	@Override
-	public void handleMessageToClient(WebSocketSession session, Message<?> message) throws Exception {
+	public void handleMessageToClient(WebSocketSession session, Message<?> message)
+			throws Exception { // NOSONAR
+
 		Object payload = message.getPayload();
 		if (payload instanceof String) {
 			session.sendMessage(new TextMessage((String) payload));
@@ -91,7 +95,7 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 		}
 		else {
 			throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass()
-					+ ". Can be one of: " + Arrays.<Class<?>>asList(String.class, byte[].class, ByteBuffer.class));
+					+ ". Can be one of: " + Arrays.asList(String.class, byte[].class, ByteBuffer.class));
 		}
 	}
 
@@ -101,13 +105,12 @@ public class PassThruSubProtocolHandler implements SubProtocolHandler {
 	}
 
 	@Override
-	public void afterSessionStarted(WebSocketSession session, MessageChannel outputChannel) throws Exception {
+	public void afterSessionStarted(WebSocketSession session, MessageChannel outputChannel) {
 		// Subclasses might implement this method
 	}
 
 	@Override
-	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus, MessageChannel outputChannel)
-			throws Exception {
+	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus, MessageChannel outputChannel) {
 		// Subclasses might implement this method
 	}
 

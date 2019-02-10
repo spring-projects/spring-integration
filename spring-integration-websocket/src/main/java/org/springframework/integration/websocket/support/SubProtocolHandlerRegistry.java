@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,25 @@ public final class SubProtocolHandlerRegistry {
 
 	public SubProtocolHandlerRegistry(List<SubProtocolHandler> protocolHandlers,
 			SubProtocolHandler defaultProtocolHandler) {
+
 		Assert.state(!CollectionUtils.isEmpty(protocolHandlers) || defaultProtocolHandler != null,
 				"One of 'protocolHandlers' or 'defaultProtocolHandler' must be provided");
 
+		configureProtocolHandlers(protocolHandlers);
+
+		if (this.protocolHandlers.size() == 1 && defaultProtocolHandler == null) {
+			this.defaultProtocolHandler = this.protocolHandlers.values().iterator().next();
+		}
+		else {
+			this.defaultProtocolHandler = defaultProtocolHandler;
+			if (this.protocolHandlers.isEmpty() && this.defaultProtocolHandler != null) {
+				List<String> protocols = this.defaultProtocolHandler.getSupportedProtocols();
+				populateProtocolsForHandler(this.defaultProtocolHandler, protocols);
+			}
+		}
+	}
+
+	private void configureProtocolHandlers(List<SubProtocolHandler> protocolHandlers) {
 		if (!CollectionUtils.isEmpty(protocolHandlers)) {
 			for (SubProtocolHandler handler : protocolHandlers) {
 				List<String> protocols = handler.getSupportedProtocols();
@@ -74,30 +90,17 @@ public final class SubProtocolHandlerRegistry {
 					}
 					continue;
 				}
-				for (String protocol : protocols) {
-					SubProtocolHandler replaced = this.protocolHandlers.put(protocol, handler);
-					if (replaced != null) {
-						throw new IllegalStateException("Failed to map handler " + handler
-								+ " to protocol '" + protocol + "', it is already mapped to handler " + replaced);
-					}
-				}
+				populateProtocolsForHandler(handler, protocols);
 			}
 		}
+	}
 
-		if (this.protocolHandlers.size() == 1 && defaultProtocolHandler == null) {
-			this.defaultProtocolHandler = this.protocolHandlers.values().iterator().next();
-		}
-		else {
-			this.defaultProtocolHandler = defaultProtocolHandler;
-			if (this.protocolHandlers.isEmpty() && this.defaultProtocolHandler != null) {
-				List<String> protocols = this.defaultProtocolHandler.getSupportedProtocols();
-				for (String protocol : protocols) {
-					SubProtocolHandler replaced = this.protocolHandlers.put(protocol, this.defaultProtocolHandler);
-					if (replaced != null) {
-						throw new IllegalStateException("Failed to map handler " + this.defaultProtocolHandler
-								+ " to protocol '" + protocol + "', it is already mapped to handler " + replaced);
-					}
-				}
+	private void populateProtocolsForHandler(SubProtocolHandler handler, List<String> protocols) {
+		for (String protocol : protocols) {
+			SubProtocolHandler replaced = this.protocolHandlers.put(protocol, handler);
+			if (replaced != null) {
+				throw new IllegalStateException("Failed to map handler " + handler
+						+ " to protocol '" + protocol + "', it is already mapped to handler " + replaced);
 			}
 		}
 	}

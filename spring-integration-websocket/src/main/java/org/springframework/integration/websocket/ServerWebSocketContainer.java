@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -46,6 +47,7 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class ServerWebSocketContainer extends IntegrationWebSocketContainer
@@ -142,47 +144,38 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 				.addInterceptors(this.interceptors)
 				.setAllowedOrigins(this.origins);
 
+		configureSockJsOptionsIfAny(registration);
+	}
+
+	private void configureSockJsOptionsIfAny(WebSocketHandlerRegistration registration) {
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
-			if (this.sockJsServiceOptions.webSocketEnabled != null) {
-				sockJsServiceRegistration.setWebSocketEnabled(this.sockJsServiceOptions.webSocketEnabled);
-			}
-			if (this.sockJsServiceOptions.clientLibraryUrl != null) {
-				sockJsServiceRegistration.setClientLibraryUrl(this.sockJsServiceOptions.clientLibraryUrl);
-			}
-			if (this.sockJsServiceOptions.disconnectDelay != null) {
-				sockJsServiceRegistration.setDisconnectDelay(this.sockJsServiceOptions.disconnectDelay);
-			}
-			if (this.sockJsServiceOptions.heartbeatTime != null) {
-				sockJsServiceRegistration.setHeartbeatTime(this.sockJsServiceOptions.heartbeatTime);
-			}
-			if (this.sockJsServiceOptions.httpMessageCacheSize != null) {
-				sockJsServiceRegistration.setHttpMessageCacheSize(this.sockJsServiceOptions.httpMessageCacheSize);
-			}
-			if (this.sockJsServiceOptions.heartbeatTime != null) {
-				sockJsServiceRegistration.setHeartbeatTime(this.sockJsServiceOptions.heartbeatTime);
-			}
-			if (this.sockJsServiceOptions.sessionCookieNeeded != null) {
-				sockJsServiceRegistration.setSessionCookieNeeded(this.sockJsServiceOptions.sessionCookieNeeded);
-			}
-			if (this.sockJsServiceOptions.streamBytesLimit != null) {
-				sockJsServiceRegistration.setStreamBytesLimit(this.sockJsServiceOptions.streamBytesLimit);
-			}
-			if (this.sockJsServiceOptions.transportHandlers != null) {
-				sockJsServiceRegistration.setTransportHandlers(this.sockJsServiceOptions.transportHandlers);
-			}
-			if (this.sockJsServiceOptions.taskScheduler != null) {
-				sockJsServiceRegistration.setTaskScheduler(this.sockJsServiceOptions.taskScheduler);
-			}
-			if (this.sockJsServiceOptions.messageCodec != null) {
-				sockJsServiceRegistration.setMessageCodec(this.sockJsServiceOptions.messageCodec);
-			}
-			if (this.sockJsServiceOptions.suppressCors != null) {
-				sockJsServiceRegistration.setSupressCors(this.sockJsServiceOptions.suppressCors);
-			}
-
+			JavaUtils.INSTANCE
+					.acceptIfNotNull(this.sockJsServiceOptions.webSocketEnabled,
+							sockJsServiceRegistration::setWebSocketEnabled)
+					.acceptIfNotNull(this.sockJsServiceOptions.clientLibraryUrl,
+							sockJsServiceRegistration::setClientLibraryUrl)
+					.acceptIfNotNull(this.sockJsServiceOptions.disconnectDelay,
+							sockJsServiceRegistration::setDisconnectDelay)
+					.acceptIfNotNull(this.sockJsServiceOptions.heartbeatTime,
+							sockJsServiceRegistration::setHeartbeatTime)
+					.acceptIfNotNull(this.sockJsServiceOptions.httpMessageCacheSize,
+							sockJsServiceRegistration::setHttpMessageCacheSize)
+					.acceptIfNotNull(this.sockJsServiceOptions.heartbeatTime,
+							sockJsServiceRegistration::setHeartbeatTime)
+					.acceptIfNotNull(this.sockJsServiceOptions.sessionCookieNeeded,
+							sockJsServiceRegistration::setSessionCookieNeeded)
+					.acceptIfNotNull(this.sockJsServiceOptions.streamBytesLimit,
+							sockJsServiceRegistration::setStreamBytesLimit)
+					.acceptIfNotNull(this.sockJsServiceOptions.transportHandlers,
+							sockJsServiceRegistration::setTransportHandlers)
+					.acceptIfNotNull(this.sockJsServiceOptions.taskScheduler,
+							sockJsServiceRegistration::setTaskScheduler)
+					.acceptIfNotNull(this.sockJsServiceOptions.messageCodec,
+							sockJsServiceRegistration::setMessageCodec)
+					.acceptIfNotNull(this.sockJsServiceOptions.suppressCors,
+							sockJsServiceRegistration::setSupressCors);
 		}
-
 	}
 
 	public void setAutoStartup(boolean autoStartup) {

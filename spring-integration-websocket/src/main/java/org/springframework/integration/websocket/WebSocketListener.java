@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import org.springframework.web.socket.WebSocketSession;
  *
  * @author Andy Wilkinson
  * @author Artem Bilan
+ *
  * @since 4.1
+ *
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
  */
 public interface WebSocketListener extends SubProtocolCapable {
@@ -42,14 +44,15 @@ public interface WebSocketListener extends SubProtocolCapable {
 	 * @param message the WebSocket message
 	 * @throws Exception the 'onMessage' Exception
 	 */
-	void onMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception;
+	void onMessage(WebSocketSession session, WebSocketMessage<?> message)
+			throws Exception; // NOSONAR Remove in 5.2
 
 	/**
 	 * Invoked after a {@link WebSocketSession} has started.
 	 * @param session the WebSocket session
 	 * @throws Exception the 'afterSessionStarted' Exception
 	 */
-	void afterSessionStarted(WebSocketSession session) throws Exception;
+	void afterSessionStarted(WebSocketSession session) throws Exception; // NOSONAR Remove in 5.2
 
 	/**
 	 * Invoked after a {@link WebSocketSession} has ended.
@@ -57,6 +60,7 @@ public interface WebSocketListener extends SubProtocolCapable {
 	 * @param closeStatus the reason why the session was closed
 	 * @throws Exception the 'afterSessionEnded' Exception
 	 */
-	void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) throws Exception;
+	void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus)
+			throws Exception; // NOSONAR Remove in 5.2
 
 }
