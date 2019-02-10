@@ -470,7 +470,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return (Message<?>) doSendAndReceive(object, false);
 	}
 
-	@Nullable
+	@Nullable // NOSONAR
 	private Object doSendAndReceive(Object object, boolean shouldConvert) {
 		initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
@@ -481,8 +481,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		registerReplyMessageCorrelatorIfNecessary();
 
-		Object reply = null;
-		Throwable error = null;
+		Object reply;
 		Message<?> requestMessage = null;
 		try {
 			if (this.countsEnabled) {
@@ -491,9 +490,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			if (shouldConvert) {
 				reply = this.messagingTemplate.convertSendAndReceive(channel, object, Object.class,
 						this.historyWritingPostProcessor);
-				if (reply instanceof Throwable) {
-					error = (Throwable) reply;
-				}
 			}
 			else {
 				requestMessage = (object instanceof Message<?>)
@@ -501,27 +497,24 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				Assert.state(requestMessage != null, () -> "request mapper resulted in no message for " + object);
 				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
 				reply = this.messagingTemplate.sendAndReceive(channel, requestMessage);
-				if (reply instanceof ErrorMessage) {
-					error = ((ErrorMessage) reply).getPayload();
-				}
 			}
+
 			if (reply == null && this.errorOnTimeout) {
-				if (object instanceof Message) {
-					error = new MessageTimeoutException((Message<?>) object, "No reply received within timeout");
-				}
-				else {
-					error = new MessageTimeoutException("No reply received within timeout");
-				}
+				throwMessageTimeoutException(object, "No reply received within timeout");
 			}
 		}
 		catch (Exception ex) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("failure occurred in gateway sendAndReceive: " + ex.getMessage());
 			}
-			error = ex;
+			reply = ex;
 		}
 
-		if (error != null) {
+		if (reply instanceof Throwable || reply instanceof ErrorMessage) {
+			Throwable error =
+					reply instanceof ErrorMessage
+							? ((ErrorMessage) reply).getPayload()
+							: (Throwable) reply;
 			return handleSendAndReceiveError(object, requestMessage, error, shouldConvert);
 		}
 		return reply;
@@ -534,43 +527,51 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		MessageChannel errorChan = getErrorChannel();
 		if (errorChan != null) {
 			ErrorMessage errorMessage = buildErrorMessage(requestMessage, error);
-			Message<?> errorFlowReply = null;
-			try {
-				errorFlowReply = this.messagingTemplate.sendAndReceive(errorChan, errorMessage);
-			}
-			catch (Exception errorFlowFailure) {
-				throw new MessagingException(errorMessage, "failure occurred in error-handling flow",
-						errorFlowFailure);
-			}
-			if (shouldConvert) {
-				Object result = (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
-				if (result instanceof Throwable) {
-					rethrow((Throwable) result, "error flow returned Exception");
-				}
-				return result;
-			}
-			if (errorFlowReply != null && errorFlowReply.getPayload() instanceof Throwable) {
-				rethrow((Throwable) errorFlowReply.getPayload(), "error flow returned an Error Message");
-			}
+			Message<?> errorFlowReply = sendErrorMessageAndReceive(errorChan, errorMessage);
 			if (errorFlowReply == null && this.errorOnTimeout) {
-				if (object instanceof Message) {
-					throw new MessageTimeoutException((Message<?>) object,
-							"No reply received from error channel within timeout");
-				}
-				else {
-					throw new MessageTimeoutException("No reply received from error channel within timeout");
-				}
+				throwMessageTimeoutException(object, "No reply received from error channel within timeout");
+				return null; // unreachable
 			}
-			return errorFlowReply;
+			else {
+				return shouldConvert && errorFlowReply != null
+						? errorFlowReply.getPayload()
+						: errorFlowReply;
+			}
 		}
 		else {
+			Throwable errorToReThrow = error;
 			if (error instanceof MessagingException &&
 					requestMessage != null && requestMessage.getHeaders().getErrorChannel() != null) {
 				// We are in nested flow where upstream expects errors in its own errorChannel header.
-				error = new MessageHandlingException(requestMessage, error);
+				errorToReThrow = new MessageHandlingException(requestMessage, error);
 			}
-			rethrow(error, "gateway received checked Exception");
+			rethrow(errorToReThrow, "gateway received checked Exception");
 			return null; // unreachable
+		}
+	}
+
+	@Nullable
+	private Message<?> sendErrorMessageAndReceive(MessageChannel errorChan, ErrorMessage errorMessage) {
+		Message<?> errorFlowReply;
+		try {
+			errorFlowReply = this.messagingTemplate.sendAndReceive(errorChan, errorMessage);
+		}
+		catch (Exception errorFlowFailure) {
+			throw new MessagingException(errorMessage, "failure occurred in error-handling flow",
+					errorFlowFailure);
+		}
+		if (errorFlowReply != null && errorFlowReply.getPayload() instanceof Throwable) {
+			rethrow((Throwable) errorFlowReply.getPayload(), "error flow returned an Error Message");
+		}
+		return errorFlowReply;
+	}
+
+	private void throwMessageTimeoutException(Object object, String exceptionMessage) {
+		if (object instanceof Message) {
+			throw new MessageTimeoutException((Message<?>) object, exceptionMessage);
+		}
+		else {
+			throw new MessageTimeoutException(exceptionMessage);
 		}
 	}
 
