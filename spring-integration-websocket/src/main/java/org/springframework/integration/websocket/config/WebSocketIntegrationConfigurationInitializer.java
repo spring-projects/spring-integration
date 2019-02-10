@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,9 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
  */
 public class WebSocketIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
-	private static final Log logger = // NOSONAR lower case
-			LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
+	private static final Log LOGGER = LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
 
-	private static final boolean servletPresent = // NOSONAR lower case
+	private static final boolean SERVLET_PRESENT =
 			ClassUtils.isPresent("javax.servlet.Servlet",
 					WebSocketIntegrationConfigurationInitializer.class.getClassLoader());
 
@@ -64,7 +63,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 			this.registerEnableWebSocketIfNecessary((BeanDefinitionRegistry) beanFactory);
 		}
 		else {
-			logger.warn("'DelegatingWebSocketConfiguration' isn't registered because 'beanFactory'" +
+			LOGGER.warn("'DelegatingWebSocketConfiguration' isn't registered because 'beanFactory'" +
 					" isn't an instance of `BeanDefinitionRegistry`.");
 		}
 	}
@@ -86,7 +85,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	 * applications when {@link org.springframework.integration.config.EnableIntegration} is in use.
 	 */
 	private void registerEnableWebSocketIfNecessary(BeanDefinitionRegistry registry) {
-		if (servletPresent) {
+		if (SERVLET_PRESENT) {
 			if (!registry.containsBeanDefinition("defaultSockJsTaskScheduler")) {
 				BeanDefinitionBuilder sockJsTaskSchedulerBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class)
@@ -156,13 +155,17 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 	private static class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandlerRegistry {
 
+		IntegrationServletWebSocketHandlerRegistry() {
+			super();
+		}
+
 		@Override
-		public boolean requiresTaskScheduler() {
+		public boolean requiresTaskScheduler() { // NOSONAR visibility
 			return super.requiresTaskScheduler();
 		}
 
 		@Override
-		public void setTaskScheduler(TaskScheduler scheduler) {
+		public void setTaskScheduler(TaskScheduler scheduler) { // NOSONAR visibility
 			super.setTaskScheduler(scheduler);
 		}
 

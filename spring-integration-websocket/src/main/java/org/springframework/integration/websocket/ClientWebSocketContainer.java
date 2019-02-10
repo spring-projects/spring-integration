@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.web.socket.client.WebSocketClient;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
@@ -221,7 +222,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		}
 
 		@Override
-		public void stopInternal() throws Exception {
+		public void stopInternal() throws Exception { // NOSONAR honor super
 			if (this.syncClientLifecycle) {
 				((Lifecycle) this.client).stop();
 			}
@@ -236,7 +237,9 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 		@Override
 		protected void openConnection() {
-			logger.info("Connecting to WebSocket at " + getUri());
+			if (logger.isInfoEnabled()) {
+				logger.info("Connecting to WebSocket at " + getUri());
+			}
 			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(getSubProtocols());
 			ListenableFuture<WebSocketSession> future =
 					this.client.doHandshake(ClientWebSocketContainer.this.webSocketHandler,
@@ -262,10 +265,9 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 		}
 
 		@Override
-		protected void closeConnection() throws Exception {
+		protected void closeConnection() throws Exception { // NOSONAR
 			if (ClientWebSocketContainer.this.clientSession != null) {
-				ClientWebSocketContainer.this.closeSession(ClientWebSocketContainer.this.clientSession,
-						CloseStatus.NORMAL);
+				closeSession(ClientWebSocketContainer.this.clientSession, CloseStatus.NORMAL);
 			}
 		}
 

@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.SubProtocolCapable;
 import org.springframework.web.socket.WebSocketHandler;
@@ -52,25 +53,31 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
+ *
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
  * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
  */
 public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	public static final int DEFAULT_SEND_TIME_LIMIT = 10 * 1000;
 
-	protected final WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler();
+	public static final int DEFAULT_SEND_BUFFER_SIZE = 512 * 1024;
 
-	protected final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<String, WebSocketSession>();
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
-	private final List<String> supportedProtocols = new ArrayList<String>();
+	protected final WebSocketHandler webSocketHandler = new IntegrationWebSocketHandler(); // NOSONAR
+
+	protected final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>(); // NOSONAR
+
+	private final List<String> supportedProtocols = new ArrayList<>();
 
 	private volatile WebSocketListener messageListener;
 
-	private volatile int sendTimeLimit = 10 * 1000;
+	private volatile int sendTimeLimit = DEFAULT_SEND_TIME_LIMIT;
 
-	private volatile int sendBufferSizeLimit = 512 * 1024;
+	private volatile int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
 
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
@@ -98,7 +105,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	}
 
 	public List<String> getSubProtocols() {
-		List<String> protocols = new ArrayList<String>();
+		List<String> protocols = new ArrayList<>();
 		if (this.messageListener != null) {
 			protocols.addAll(this.messageListener.getSubProtocols());
 		}
@@ -116,14 +123,16 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		return session;
 	}
 
-	public void closeSession(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+	public void closeSession(WebSocketSession session, CloseStatus closeStatus)
+			throws Exception { // NOSONAR
+
 		// Session may be unresponsive so clear first
 		session.close(closeStatus);
 		this.webSocketHandler.afterConnectionClosed(session, closeStatus);
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		try {
 			// Notify sessions to stop flushing messages
 			for (WebSocketSession session : this.sessions.values()) {
@@ -159,15 +168,19 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		}
 
 		@Override
-		public void afterConnectionEstablished(WebSocketSession sessionToDecorate) throws Exception { // NOSONAR SF ifce
-			WebSocketSession session = new ConcurrentWebSocketSessionDecorator(sessionToDecorate,
-					IntegrationWebSocketContainer.this.sendTimeLimit,
-					IntegrationWebSocketContainer.this.sendBufferSizeLimit);
+		public void afterConnectionEstablished(WebSocketSession sessionToDecorate)
+				throws Exception { // NOSONAR
+
+			WebSocketSession session =
+					new ConcurrentWebSocketSessionDecorator(sessionToDecorate,
+							IntegrationWebSocketContainer.this.sendTimeLimit,
+							IntegrationWebSocketContainer.this.sendBufferSizeLimit);
 
 			IntegrationWebSocketContainer.this.sessions.put(session.getId(), session);
 			if (IntegrationWebSocketContainer.this.logger.isDebugEnabled()) {
-				IntegrationWebSocketContainer.this.logger.debug("Started WebSocket session = " + session.getId() + ", number of sessions = "
-						+ IntegrationWebSocketContainer.this.sessions.size());
+				IntegrationWebSocketContainer.this.logger.debug("Started WebSocket session = " 	+
+						session.getId() + ", number of sessions = "	+
+						IntegrationWebSocketContainer.this.sessions.size());
 			}
 			if (IntegrationWebSocketContainer.this.messageListener != null) {
 				IntegrationWebSocketContainer.this.messageListener.afterSessionStarted(session);
@@ -175,29 +188,34 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		}
 
 		@Override
-		public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+		public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus)
+				throws Exception { // NOSONAR
+
 			WebSocketSession removed = IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			if (removed != null) {
-				if (IntegrationWebSocketContainer.this.messageListener != null) {
-					IntegrationWebSocketContainer.this.messageListener.afterSessionEnded(session, closeStatus);
-				}
+			if (removed != null && IntegrationWebSocketContainer.this.messageListener != null) {
+				IntegrationWebSocketContainer.this.messageListener.afterSessionEnded(session, closeStatus);
 			}
 		}
 
 		@Override
-		public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+		public void handleTransportError(WebSocketSession session, Throwable exception)
+				throws Exception { // NOSONAR
+
 			IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			throw new Exception(exception);
+			ReflectionUtils.rethrowException(exception);
 		}
 
 		@Override
-		public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+		public void handleMessage(WebSocketSession session, WebSocketMessage<?> message)
+				throws Exception { // NOSONAR
+
 			if (IntegrationWebSocketContainer.this.messageListener != null) {
 				IntegrationWebSocketContainer.this.messageListener.onMessage(session, message);
 			}
 			else if (IntegrationWebSocketContainer.this.logger.isInfoEnabled()) {
-				IntegrationWebSocketContainer.this.logger.info("This 'WebSocketHandlerContainer' isn't configured with 'WebSocketMessageListener'."
-						+ " Received messages are ignored. Current message is: " + message);
+				IntegrationWebSocketContainer.this.logger.info("This 'WebSocketHandlerContainer' isn't " +
+						"configured with 'WebSocketMessageListener'." +
+						" Received messages are ignored. Current message is: " + message);
 			}
 		}
 
