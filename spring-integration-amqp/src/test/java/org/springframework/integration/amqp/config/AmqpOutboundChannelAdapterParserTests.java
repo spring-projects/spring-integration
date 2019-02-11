@@ -16,13 +16,8 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -107,14 +102,14 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public void verifyIdAsChannel() {
 		Object channel = context.getBean("rabbitOutbound");
 		Object adapter = context.getBean("rabbitOutbound.adapter");
-		assertEquals(DirectChannel.class, channel.getClass());
-		assertEquals(EventDrivenConsumer.class, adapter.getClass());
+		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
+		assertThat(adapter.getClass()).isEqualTo(EventDrivenConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
-		assertTrue(handler instanceof NamedComponent);
-		assertEquals("amqp:outbound-channel-adapter", ((NamedComponent) handler).getComponentType());
+		assertThat(handler instanceof NamedComponent).isTrue();
+		assertThat(((NamedComponent) handler).getComponentType()).isEqualTo("amqp:outbound-channel-adapter");
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
-		assertTrue(TestUtils.getPropertyValue(handler, "lazyConnect", Boolean.class));
+		assertThat(adviceCalled).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(handler, "lazyConnect", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -123,12 +118,12 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
-		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
-		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
-		assertEquals("42",
-				TestUtils.getPropertyValue(endpoint, "delayExpression", org.springframework.expression.Expression.class)
-						.getExpressionString());
-		assertFalse(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class)).isFalse();
+		assertThat(TestUtils
+				.getPropertyValue(endpoint, "delayExpression", org.springframework.expression.Expression.class)
+				.getExpressionString()).isEqualTo("42");
+		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -140,11 +135,12 @@ public class AmqpOutboundChannelAdapterParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpMessage.getMessageProperties();
-			assertEquals("foo", properties.getHeaders().get("foo"));
-			assertEquals("foobar", properties.getHeaders().get("foobar"));
-			assertNull(properties.getHeaders().get("bar"));
-			assertEquals(shouldBePersistent.get() ? MessageDeliveryMode.PERSISTENT
-					: MessageDeliveryMode.NON_PERSISTENT, properties.getDeliveryMode());
+			assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
+			assertThat(properties.getHeaders().get("foobar")).isEqualTo("foobar");
+			assertThat(properties.getHeaders().get("bar")).isNull();
+			assertThat(properties.getDeliveryMode()).isEqualTo(shouldBePersistent.get() ?
+					MessageDeliveryMode.PERSISTENT
+					: MessageDeliveryMode.NON_PERSISTENT);
 			return null;
 		})
 				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
@@ -178,9 +174,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 				AmqpOutboundEndpoint.class);
 		NullChannel nullChannel = context.getBean(NullChannel.class);
 		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
-		assertSame(ackChannel, TestUtils.getPropertyValue(endpoint, "confirmAckChannel"));
-		assertSame(nullChannel, TestUtils.getPropertyValue(endpoint, "confirmNackChannel"));
-		assertSame(context.getBean("ems"), TestUtils.getPropertyValue(endpoint, "errorMessageStrategy"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
+		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nullChannel);
+		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -191,7 +187,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		List chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
-		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -202,8 +198,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpMessage.getMessageProperties();
-			assertEquals("hello", new String(amqpMessage.getBody()));
-			assertEquals(MessageDeliveryMode.PERSISTENT, properties.getDeliveryMode());
+			assertThat(new String(amqpMessage.getBody())).isEqualTo("hello");
+			assertThat(properties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.PERSISTENT);
 			return null;
 		})
 				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
@@ -226,9 +222,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {
-			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("The 'channel' attribute isn't allowed for " +
-					"'amqp:outbound-channel-adapter' when it is used as a nested element"));
+			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
+			assertThat(e.getMessage().contains("The 'channel' attribute isn't allowed for " +
+					"'amqp:outbound-channel-adapter' when it is used as a nested element")).isTrue();
 		}
 	}
 
@@ -292,8 +288,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
-					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+			assertThat(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'")).isTrue();
 		}
 	}
 
@@ -301,9 +297,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public void testInt2971AmqpOutboundChannelAdapterWithCustomHeaderMapper() {
 		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
 				"headerMapper", AmqpHeaderMapper.class);
-		assertSame(this.context.getBean("customHeaderMapper"), headerMapper);
-		assertTrue(TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
-				"headersMappedLast", Boolean.class));
+		assertThat(headerMapper).isSameAs(this.context.getBean("customHeaderMapper"));
+		assertThat(TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
+				"headersMappedLast", Boolean.class)).isTrue();
 	}
 
 	@Test

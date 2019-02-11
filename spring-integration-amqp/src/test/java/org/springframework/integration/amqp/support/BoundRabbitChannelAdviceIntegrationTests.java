@@ -17,7 +17,6 @@
 package org.springframework.integration.amqp.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
@@ -75,8 +74,8 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 			return i.callRealMethod();
 		}).given(logger).debug(anyString());
 		this.gate.send("a,b,c");
-		assertTrue(this.config.latch.await(10, TimeUnit.SECONDS));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.received).containsExactly("A", "B", "C");
 	}
 

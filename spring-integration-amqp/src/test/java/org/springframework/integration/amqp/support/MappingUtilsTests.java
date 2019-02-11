@@ -16,9 +16,8 @@
 
 package org.springframework.integration.amqp.support;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 
@@ -48,23 +47,23 @@ public class MappingUtilsTests {
 		boolean headersMappedLast = false;
 		org.springframework.amqp.core.Message mapped = MappingUtils.mapMessage(requestMessage, converter, headerMapper,
 				defaultDeliveryMode, headersMappedLast);
-		assertThat(mapped.getMessageProperties().getContentType(), equalTo("text/plain"));
+		assertThat(mapped.getMessageProperties().getContentType()).isEqualTo("text/plain");
 
 		headersMappedLast = true;
 		mapped = MappingUtils.mapMessage(requestMessage, converter, headerMapper,
 				defaultDeliveryMode, headersMappedLast);
-		assertThat(mapped.getMessageProperties().getContentType(), equalTo("my/ct"));
+		assertThat(mapped.getMessageProperties().getContentType()).isEqualTo("my/ct");
 
 		ContentTypeDelegatingMessageConverter ctdConverter = new ContentTypeDelegatingMessageConverter();
 		ctdConverter.addDelegate("my/ct", converter);
 		mapped = MappingUtils.mapMessage(requestMessage, ctdConverter, headerMapper,
 				defaultDeliveryMode, headersMappedLast);
-		assertThat(mapped.getMessageProperties().getContentType(), equalTo("my/ct"));
+		assertThat(mapped.getMessageProperties().getContentType()).isEqualTo("my/ct");
 
 		headersMappedLast = false;
 		mapped = MappingUtils.mapMessage(requestMessage, ctdConverter, headerMapper,
 				defaultDeliveryMode, headersMappedLast);
-		assertThat(mapped.getMessageProperties().getContentType(), equalTo("text/plain"));
+		assertThat(mapped.getMessageProperties().getContentType()).isEqualTo("text/plain");
 
 		headersMappedLast = true;
 		requestMessage = MessageBuilder.withPayload("foo")
@@ -76,8 +75,8 @@ public class MappingUtilsTests {
 			fail("Expected IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),
-					equalTo("contentType header must be a MimeType or String, found: java.lang.Integer"));
+			assertThat(e.getMessage())
+					.isEqualTo("contentType header must be a MimeType or String, found: java.lang.Integer");
 		}
 	}
 

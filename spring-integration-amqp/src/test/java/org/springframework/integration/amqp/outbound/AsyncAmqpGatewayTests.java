@@ -16,11 +16,7 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -153,14 +149,14 @@ public class AsyncAmqpGatewayTests {
 		gateway.handleMessage(message);
 
 		Message<?> ack = ackChannel.receive(10000);
-		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
-		assertEquals(true, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+		assertThat(ack).isNotNull();
+		assertThat(ack.getPayload()).isEqualTo("foo");
+		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(true);
 		waitForAckBeforeReplying.countDown();
 
 		Message<?> received = outputChannel.receive(10000);
-		assertNotNull(received);
-		assertEquals("FOO", received.getPayload());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("FOO");
 
 		// timeout tests
 		asyncTemplate.setReceiveTimeout(10);
@@ -169,7 +165,7 @@ public class AsyncAmqpGatewayTests {
 		// reply timeout with no requiresReply
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
-		assertTrue(replyTimeoutLatch.await(10, TimeUnit.SECONDS));
+		assertThat(replyTimeoutLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		// reply timeout with requiresReply
 		gateway.setRequiresReply(true);
@@ -177,10 +173,10 @@ public class AsyncAmqpGatewayTests {
 		gateway.handleMessage(message);
 
 		received = errorChannel.receive(10000);
-		assertThat(received, instanceOf(ErrorMessage.class));
+		assertThat(received).isInstanceOf(ErrorMessage.class);
 		ErrorMessage error = (ErrorMessage) received;
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertThat(error.getPayload().getCause(), instanceOf(AmqpReplyTimeoutException.class));
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(error.getPayload().getCause()).isInstanceOf(AmqpReplyTimeoutException.class);
 		asyncTemplate.setReceiveTimeout(30000);
 		receiver.setMessageListener(messageListener);
 
@@ -194,20 +190,20 @@ public class AsyncAmqpGatewayTests {
 		message = MessageBuilder.withPayload("qux").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 		received = errorChannel.receive(10000);
-		assertThat(received, instanceOf(ErrorMessage.class));
+		assertThat(received).isInstanceOf(ErrorMessage.class);
 		error = (ErrorMessage) received;
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertEquals("QUX", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo("QUX");
 
 		gateway.setRoutingKey(UUID.randomUUID().toString());
 		message = MessageBuilder.withPayload("fiz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 		Message<?> returned = returnChannel.receive(10000);
-		assertNotNull(returned);
-		assertThat(returned, instanceOf(ErrorMessage.class));
-		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		assertThat(returned).isNotNull();
+		assertThat(returned).isInstanceOf(ErrorMessage.class);
+		assertThat(returned.getPayload()).isInstanceOf(ReturnedAmqpMessageException.class);
 		ReturnedAmqpMessageException payload = (ReturnedAmqpMessageException) returned.getPayload();
-		assertEquals("fiz", payload.getFailedMessage().getPayload());
+		assertThat(payload.getFailedMessage().getPayload()).isEqualTo("fiz");
 		ackChannel.receive(10000);
 		ackChannel.purge(null);
 
@@ -226,12 +222,12 @@ public class AsyncAmqpGatewayTests {
 		gateway.handleMessage(message);
 
 		ack = ackChannel.receive(10000);
-		assertNotNull(ack);
-		assertThat(returned, instanceOf(ErrorMessage.class));
-		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		assertThat(ack).isNotNull();
+		assertThat(returned).isInstanceOf(ErrorMessage.class);
+		assertThat(returned.getPayload()).isInstanceOf(ReturnedAmqpMessageException.class);
 		NackedAmqpMessageException nack = (NackedAmqpMessageException) ack.getPayload();
-		assertEquals("buz", nack.getFailedMessage().getPayload());
-		assertEquals("nacknack", nack.getNackReason());
+		assertThat(nack.getFailedMessage().getPayload()).isEqualTo("buz");
+		assertThat(nack.getNackReason()).isEqualTo("nacknack");
 
 		asyncTemplate.stop();
 		receiver.stop();

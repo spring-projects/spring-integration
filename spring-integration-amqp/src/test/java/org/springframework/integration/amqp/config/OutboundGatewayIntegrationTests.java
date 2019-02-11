@@ -16,8 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -58,8 +57,8 @@ public class OutboundGatewayIntegrationTests {
 		String payload = "foo";
 		this.toRabbit.send(new GenericMessage<String>(payload));
 		Message<?> receive = this.fromRabbit.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload.toUpperCase(), receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload.toUpperCase());
 	}
 
 

@@ -16,10 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
 import java.lang.reflect.Field;
@@ -72,28 +69,31 @@ public class AmqpInboundGatewayParserTests {
 		MessageConverter gatewayConverter = TestUtils.getPropertyValue(gateway, "amqpMessageConverter", MessageConverter.class);
 		MessageConverter templateConverter = TestUtils.getPropertyValue(gateway, "amqpTemplate.messageConverter", MessageConverter.class);
 		TestConverter testConverter = context.getBean("testConverter", TestConverter.class);
-		assertSame(testConverter, gatewayConverter);
-		assertSame(testConverter, templateConverter);
-		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(gateway, "autoStartup"));
-		assertEquals(0, TestUtils.getPropertyValue(gateway, "phase"));
-		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "replyTimeout", Long.class));
-		assertEquals(Long.valueOf(1234L), TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout", Long.class));
-		assertTrue(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		assertThat(gatewayConverter).isSameAs(testConverter);
+		assertThat(templateConverter).isSameAs(testConverter);
+		assertThat(TestUtils.getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.getPropertyValue(gateway, "phase")).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(gateway, "replyTimeout", Long.class)).isEqualTo(Long.valueOf(1234L));
+		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout", Long.class))
+				.isEqualTo(Long.valueOf(1234L));
+		assertThat(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+				.isTrue();
 	}
 
 	@Test
 	public void verifyLifeCycle() {
 		Object gateway = context.getBean("autoStartFalseGateway");
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
-		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
-		assertFalse(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.getPropertyValue(gateway, "phase")).isEqualTo(123);
+		assertThat(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+				.isFalse();
 		Object amqpTemplate = context.getBean("amqpTemplate");
-		assertSame(amqpTemplate, TestUtils.getPropertyValue(gateway, "amqpTemplate"));
+		assertThat(TestUtils.getPropertyValue(gateway, "amqpTemplate")).isSameAs(amqpTemplate);
 		Address defaultReplyTo = TestUtils.getPropertyValue(gateway, "defaultReplyTo", Address.class);
 		Address expected = new Address("fooExchange/barRoutingKey");
-		assertEquals(expected.getExchangeName(), defaultReplyTo.getExchangeName());
-		assertEquals(expected.getRoutingKey(), defaultReplyTo.getRoutingKey());
-		assertEquals(expected, defaultReplyTo);
+		assertThat(defaultReplyTo.getExchangeName()).isEqualTo(expected.getExchangeName());
+		assertThat(defaultReplyTo.getRoutingKey()).isEqualTo(expected.getRoutingKey());
+		assertThat(defaultReplyTo).isEqualTo(expected);
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class AmqpInboundGatewayParserTests {
 			Object[] args = invocation.getArguments();
 			Message amqpReplyMessage = (Message) args[2];
 			MessageProperties properties = amqpReplyMessage.getMessageProperties();
-			assertEquals("bar", properties.getHeaders().get("bar"));
+			assertThat(properties.getHeaders().get("bar")).isEqualTo("bar");
 			return null;
 		}).when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), isNull());
@@ -150,8 +150,8 @@ public class AmqpInboundGatewayParserTests {
 					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
-					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+			assertThat(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'")).isTrue();
 		}
 	}
 

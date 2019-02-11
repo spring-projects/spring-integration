@@ -16,11 +16,8 @@
 
 package org.springframework.integration.amqp.channel;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -87,8 +84,8 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage(),
-					containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
+			assertThat(e.getMessage())
+					.contains("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
 		}
 	}
 
@@ -135,19 +132,18 @@ public class DispatcherHasNoSubscribersTests {
 	}
 
 	private void verifyLogReceived(final List<String> logList) {
-		assertTrue("Failed to get expected exception", logList.size() > 0);
+		assertThat(logList.size() > 0).as("Failed to get expected exception").isTrue();
 		boolean expectedExceptionFound = false;
 		while (logList.size() > 0) {
 			String message = logList.remove(0);
-			assertNotNull("Failed to get expected exception", message);
+			assertThat(message).as("Failed to get expected exception").isNotNull();
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertThat(message,
-						containsString("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'."));
+				assertThat(message).contains("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.");
 				break;
 			}
 		}
-		assertTrue("Failed to get expected exception", expectedExceptionFound);
+		assertThat(expectedExceptionFound).as("Failed to get expected exception").isTrue();
 	}
 
 }

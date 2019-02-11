@@ -16,8 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -77,7 +76,7 @@ public class JsonConverterCompatibilityTests {
 		});
 
 		Object received = this.rabbitTemplate.receiveAndConvert(JSON_TESTQ);
-		assertThat(received, instanceOf(Foo.class));
+		assertThat(received).isInstanceOf(Foo.class);
 	}
 
 	public static class Foo {

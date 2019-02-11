@@ -16,12 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
 import java.lang.reflect.Field;
@@ -74,32 +69,32 @@ public class AmqpOutboundGatewayParserTests {
 	@Test
 	public void testGatewayConfig() {
 		Object edc = this.context.getBean("rabbitGateway");
-		assertFalse(TestUtils.getPropertyValue(edc, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(edc, "autoStartup", Boolean.class)).isFalse();
 		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
-		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
-		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+		assertThat(gateway.getComponentType()).isEqualTo("amqp:outbound-gateway");
+		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
 		checkGWProps(this.context, gateway);
 
 		AsyncAmqpOutboundGateway async = this.context.getBean("asyncGateway.handler", AsyncAmqpOutboundGateway.class);
-		assertEquals("amqp:outbound-async-gateway", async.getComponentType());
+		assertThat(async.getComponentType()).isEqualTo("amqp:outbound-async-gateway");
 		checkGWProps(this.context, async);
-		assertSame(this.context.getBean("asyncTemplate"), TestUtils.getPropertyValue(async, "template"));
-		assertSame(this.context.getBean("ems"), TestUtils.getPropertyValue(gateway, "errorMessageStrategy"));
+		assertThat(TestUtils.getPropertyValue(async, "template")).isSameAs(this.context.getBean("asyncTemplate"));
+		assertThat(TestUtils.getPropertyValue(gateway, "errorMessageStrategy")).isSameAs(this.context.getBean("ems"));
 	}
 
 	protected void checkGWProps(ApplicationContext context, Orderable gateway) {
-		assertEquals(5, gateway.getOrder());
-		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
+		assertThat(gateway.getOrder()).isEqualTo(5);
+		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isEqualTo(context.getBean("fromRabbit"));
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
-		assertSame(returnChannel, TestUtils.getPropertyValue(gateway, "returnChannel"));
+		assertThat(TestUtils.getPropertyValue(gateway, "returnChannel")).isSameAs(returnChannel);
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 
-		assertEquals(Long.valueOf(777), sendTimeout);
-		assertTrue(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class));
-		assertEquals("42",
-				TestUtils.getPropertyValue(gateway, "delayExpression", org.springframework.expression.Expression.class)
-						.getExpressionString());
+		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
+		assertThat(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class)).isTrue();
+		assertThat(TestUtils
+				.getPropertyValue(gateway, "delayExpression", org.springframework.expression.Expression.class)
+				.getExpressionString()).isEqualTo("42");
 	}
 
 	@Test
@@ -108,11 +103,11 @@ public class AmqpOutboundGatewayParserTests {
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
-		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
-		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class)).isFalse();
 
-		assertFalse(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isTrue();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -124,9 +119,10 @@ public class AmqpOutboundGatewayParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertEquals("foo", properties.getHeaders().get("foo"));
-			assertEquals(shouldBePersistent.get() ? MessageDeliveryMode.PERSISTENT
-					: MessageDeliveryMode.NON_PERSISTENT, properties.getDeliveryMode());
+			assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
+			assertThat(properties.getDeliveryMode()).isEqualTo(shouldBePersistent.get() ?
+					MessageDeliveryMode.PERSISTENT
+					: MessageDeliveryMode.NON_PERSISTENT);
 			// mock reply AMQP message
 			MessageProperties amqpProperties = new MessageProperties();
 			amqpProperties.setAppId("test.appId");
@@ -149,13 +145,13 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = this.context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
-		assertNotNull(replyMessage);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
-		assertNull(replyMessage.getHeaders().get("foobar"));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertThat(replyMessage).isNotNull();
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("foo")).isEqualTo("foo"); // copied from request Message
+		assertThat(replyMessage.getHeaders().get("foobar")).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNull();
 
 		shouldBePersistent.set(true);
 		message = MessageBuilder.withPayload("hello")
@@ -164,7 +160,7 @@ public class AmqpOutboundGatewayParserTests {
 				.build();
 		requestChannel.send(message);
 		replyMessage = queueChannel.receive(0);
-		assertNotNull(replyMessage);
+		assertThat(replyMessage).isNotNull();
 	}
 
 	@Test
@@ -173,8 +169,8 @@ public class AmqpOutboundGatewayParserTests {
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
-		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
-		assertFalse(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
+		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -185,13 +181,13 @@ public class AmqpOutboundGatewayParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertEquals("foo", properties.getHeaders().get("foo"));
+			assertThat(properties.getHeaders().get("foo")).isEqualTo("foo");
 			// mock reply AMQP message
 			MessageProperties amqpProperties = new MessageProperties();
 			amqpProperties.setAppId("test.appId");
 			amqpProperties.setHeader("foobar", "foobar");
 			amqpProperties.setHeader("bar", "bar");
-			assertEquals(MessageDeliveryMode.PERSISTENT, properties.getDeliveryMode());
+			assertThat(properties.getDeliveryMode()).isEqualTo(MessageDeliveryMode.PERSISTENT);
 			amqpProperties.setReceivedDeliveryMode(properties.getDeliveryMode());
 			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		})
@@ -210,12 +206,12 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = this.context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
-		assertNull(replyMessage.getHeaders().get("foobar"));
-		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.RECEIVED_DELIVERY_MODE));
-		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
-		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("foo")).isEqualTo("foo"); // copied from request Message
+		assertThat(replyMessage.getHeaders().get("foobar")).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.RECEIVED_DELIVERY_MODE)).isNotNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNotNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNotNull();
 	}
 
 	@Test
@@ -234,7 +230,7 @@ public class AmqpOutboundGatewayParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertNull(properties.getHeaders().get("foo"));
+			assertThat(properties.getHeaders().get("foo")).isNull();
 			// mock reply AMQP message
 			MessageProperties amqpProperties = new MessageProperties();
 			amqpProperties.setAppId("test.appId");
@@ -257,13 +253,13 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
-		assertNull(replyMessage.getHeaders().get("bar"));
-		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
-		assertNull(replyMessage.getHeaders().get("foobar"));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
-		assertEquals(1, adviceCalled);
+		assertThat(replyMessage.getHeaders().get("bar")).isNull();
+		assertThat(replyMessage.getHeaders().get("foo")).isEqualTo("foo"); // copied from request Message
+		assertThat(replyMessage.getHeaders().get("foobar")).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNull();
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test //INT-1029
@@ -283,7 +279,7 @@ public class AmqpOutboundGatewayParserTests {
 			Object[] args = invocation.getArguments();
 			org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 			MessageProperties properties = amqpRequestMessage.getMessageProperties();
-			assertNull(properties.getHeaders().get("foo"));
+			assertThat(properties.getHeaders().get("foo")).isNull();
 			// mock reply AMQP message
 			MessageProperties amqpProperties = new MessageProperties();
 			amqpProperties.setAppId("test.appId");
@@ -307,13 +303,13 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = this.context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
-		assertEquals("hello", new String((byte[]) replyMessage.getPayload()));
-		assertNull(replyMessage.getHeaders().get("bar"));
-		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
-		assertNull(replyMessage.getHeaders().get("foobar"));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
-		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertThat(new String((byte[]) replyMessage.getPayload())).isEqualTo("hello");
+		assertThat(replyMessage.getHeaders().get("bar")).isNull();
+		assertThat(replyMessage.getHeaders().get("foo")).isEqualTo("foo"); // copied from request Message
+		assertThat(replyMessage.getHeaders().get("foobar")).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNull();
+		assertThat(replyMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNull();
 
 	}
 
@@ -324,8 +320,8 @@ public class AmqpOutboundGatewayParserTests {
 					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
-					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+			assertThat(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'")).isTrue();
 		}
 	}
 

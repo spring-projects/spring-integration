@@ -16,9 +16,7 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Rule;
@@ -89,16 +87,16 @@ public class ManualAckTests {
 		adapter.start();
 		this.template.convertAndSend("Hello, world");
 		Message<?> out = bar.receive(5000);
-		assertNotNull(out);
-		assertEquals(1, out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo(1);
 		out = bar.receive(5000);
-		assertNotNull(out);
-		assertEquals(2, out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo(2);
 		out = bar.receive(5000);
-		assertNotNull(out);
-		assertEquals(3, out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo(3);
 		out = bar.receive(1000);
-		assertNull(out);
+		assertThat(out).isNull();
 		adapter.stop();
 	}
 
