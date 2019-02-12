@@ -26,9 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
 
@@ -101,7 +99,7 @@ public class AmqpMessageSourceTests {
 		testNackOrRequeue(false);
 	}
 
-	private void testNackOrRequeue(boolean requeue) throws IOException, TimeoutException {
+	private void testNackOrRequeue(boolean requeue) throws Exception {
 		Channel channel = mock(Channel.class);
 		willReturn(true).given(channel).isOpen();
 		Envelope envelope = new Envelope(123L, false, "ex", "rk");
