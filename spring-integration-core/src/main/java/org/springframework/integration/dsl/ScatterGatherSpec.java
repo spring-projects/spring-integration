@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.messaging.MessageChannel;
 
@@ -24,6 +23,7 @@ import org.springframework.messaging.MessageChannel;
  * A {@link GenericEndpointSpec} extension for the {@link ScatterGatherHandler}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
@@ -60,9 +60,10 @@ public class ScatterGatherSpec extends ConsumerEndpointSpec<ScatterGatherSpec, S
 	}
 
 	/**
-	 * Specify a {@link MessageChannel} bean name for async error processing.
-	 * Defaults to {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
-	 * @param errorChannel the {@link MessageChannel} bean name for async error processing.
+	 * Specify a {@link MessageChannel} bean name for async error processing. Defaults to
+	 * {@link org.springframework.integration.context.IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
+	 * @param errorChannel the {@link MessageChannel} bean name for async error
+	 * processing.
 	 * @return the current {@link ScatterGatherSpec} instance.
 	 * @since 5.1.3
 	 */
