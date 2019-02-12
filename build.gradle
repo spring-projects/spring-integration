@@ -13,6 +13,7 @@ buildscript {
 plugins {
 	id 'org.sonarqube' version '2.6.2'
 	id 'org.asciidoctor.convert' version '1.5.9.2'
+	id 'org.ajoberstar.grgit' version '3.0.0'
 }
 
 description = 'Spring Integration'
@@ -25,6 +26,9 @@ ext {
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
 	docResourcesVersion = '0.1.0.RELEASE'
+
+	modifiedFiles =
+			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 }
 
 allprojects {
@@ -188,25 +192,59 @@ subprojects { subproject ->
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
 	task checkTestConfigs {
-		doLast {
-			def configFiles = []
-			sourceSets.test.java.srcDirs.each {
-				fileTree(it).include('**/*.xml').exclude('**/log4j2-test.xml').each { configFile ->
-					def configXml = new XmlParser(false, false).parse(configFile)
+		def configFiles = []
+		sourceSets.test.java.srcDirs.each {
+			fileTree(it).include('**/*.xml').exclude('**/log4j2-test.xml').each { configFile ->
+				def configXml = new XmlParser(false, false).parse(configFile)
 
-					if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
-						configFiles << configFile
-					}
+				if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
+					configFiles << configFile
 				}
 			}
-			if (configFiles) {
+		}
+		inputs.files(configFiles)
+		outputs.dir('build')
+		doLast {
+			if (!inputs.files.empty) {
 				throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
-						configFiles.collect {relativePath(it)}.join('\n') +
+						inputs.files.collect {relativePath(it) }.join('\n') +
 						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds ' +
 						'on different versions of dependencies.')
 			}
 		}
 	}
+
+	task updateCopyrights {
+		onlyIf { !System.getenv('TRAVIS') && !System.getenv('bamboo_buildKey') }
+		inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
+		outputs.dir('build')
+
+		doLast {
+			def now = Calendar.instance.get(Calendar.YEAR) as String
+			inputs.files.each { file ->
+				def line
+				file.withReader { reader ->
+					while (line = reader.readLine()) {
+						def matcher = line =~ /Copyright (20\d\d)-?(20\d\d)?/
+						if (matcher.count) {
+							def beginningYear = matcher[0][1]
+							println matcher[0]
+							if (now != beginningYear || now != matcher[0][2]) {
+								def years = "$beginningYear-$now"
+								def sourceCode = file.text
+								sourceCode = sourceCode.replaceFirst(/20\d\d(-20\d\d)?/, years)
+								file.write(sourceCode)
+								println "Copyright updated for file: $file"
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
+	processResources.dependsOn updateCopyrights
 
 	jacocoTestReport {
 		reports {
@@ -975,3 +1013,5 @@ task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds -dist, -docs and -schema distribution archives.'
 }
+
+
