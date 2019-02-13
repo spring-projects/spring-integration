@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 
 package org.springframework.integration.kafka.dsl
 
-import assertk.assert
-import assertk.assertions.*
+import assertk.assertThat
+import assertk.assertions.contains
+import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
+import assertk.assertions.isNull
+import assertk.assertions.isSameAs
+import assertk.assertions.isTrue
 import assertk.catch
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
@@ -44,7 +50,11 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.integration.test.util.TestUtils
 import org.springframework.kafka.annotation.EnableKafka
-import org.springframework.kafka.core.*
+import org.springframework.kafka.core.ConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.GenericMessageListenerContainer
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
@@ -143,80 +153,74 @@ class KafkaDslKotlinTests {
     fun testKafkaAdapters() {
 
         val exception = catch { this.sendToKafkaFlowInput.send(GenericMessage("foo")) }
-        assert(exception!!.message).isNotNull {
-            it.contains("10 is not in the range")
-        }
+        assertThat(exception!!.message).isNotNull().contains("10 is not in the range")
 
         this.kafkaProducer1.setPartitionIdExpression(ValueExpression(0))
         this.kafkaProducer2.setPartitionIdExpression(ValueExpression(0))
         this.sendToKafkaFlowInput.send(GenericMessage("foo", hashMapOf<String, Any>("foo" to "bar")))
 
-        assert(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper)
+        assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper)
 
         for (i in 0..99) {
             val receive = this.listeningFromKafkaResults1.receive(20000)
-            assert(receive).isNotNull()
-            assert(receive!!.payload).isEqualTo("FOO")
+            assertThat(receive).isNotNull()
+            assertThat(receive!!.payload).isEqualTo("FOO")
             val headers = receive.headers
-            assert(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
+            assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
             val acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment::class.java)
             acknowledgment?.acknowledge()
-            assert(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC1)
-            assert(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
-            assert(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
-            assert(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
-            assert(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
-            assert(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048633L)
-            assert(headers["foo"]).isEqualTo("bar")
+            assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC1)
+            assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
+            assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
+            assertThat(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
+            assertThat(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
+            assertThat(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048633L)
+            assertThat(headers["foo"]).isEqualTo("bar")
         }
 
         for (i in 0..99) {
             val receive = this.listeningFromKafkaResults2.receive(20000)
-            assert(receive).isNotNull()
-            assert(receive!!.payload).isEqualTo("FOO")
+            assertThat(receive).isNotNull()
+            assertThat(receive!!.payload).isEqualTo("FOO")
             val headers = receive.headers
-            assert(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
+            assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
             val acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment::class.java)
             acknowledgment?.acknowledge()
-            assert(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC2)
-            assert(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
-            assert(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
-            assert(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
-            assert(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
-            assert(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048644L)
+            assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC2)
+            assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
+            assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
+            assertThat(headers[KafkaHeaders.OFFSET]).isEqualTo(i.toLong())
+            assertThat(headers[KafkaHeaders.TIMESTAMP_TYPE]).isEqualTo("CREATE_TIME")
+            assertThat(headers[KafkaHeaders.RECEIVED_TIMESTAMP]).isEqualTo(1487694048644L)
         }
 
         val message = MessageBuilder.withPayload("BAR").setHeader(KafkaHeaders.TOPIC, TEST_TOPIC2).build()
 
         this.sendToKafkaFlowInput.send(message)
 
-        assert(this.listeningFromKafkaResults1.receive(10)).isNull()
+        assertThat(this.listeningFromKafkaResults1.receive(10)).isNull()
 
         val error = this.errorChannel.receive(10000)
 
-        assert(error).isNotNull() {
-            it.isInstanceOf(ErrorMessage::class.java)
-        }
+        assertThat(error).isNotNull().isInstanceOf(ErrorMessage::class.java)
 
         val payload = error?.payload
 
-        assert(payload).isNotNull() {
-            it.isInstanceOf(MessageRejectedException::class.java)
-        }
+        assertThat(payload).isNotNull().isInstanceOf(MessageRejectedException::class.java)
 
-        assert(this.messageListenerContainer).isNotNull()
-        assert(this.kafkaTemplateTopic1).isNotNull()
-        assert(this.kafkaTemplateTopic2).isNotNull()
+        assertThat(this.messageListenerContainer).isNotNull()
+        assertThat(this.kafkaTemplateTopic1).isNotNull()
+        assertThat(this.kafkaTemplateTopic2).isNotNull()
 
         this.kafkaTemplateTopic1.send(TEST_TOPIC3, "foo")
-        assert(this.config.sourceFlowLatch.await(10, TimeUnit.SECONDS)).isTrue()
-        assert(this.config.fromSource).isEqualTo("foo")
+        assertThat(this.config.sourceFlowLatch.await(10, TimeUnit.SECONDS)).isTrue()
+        assertThat(this.config.fromSource).isEqualTo("foo")
     }
 
     @Test
     fun testGateways() {
-        assert(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS))
-        assert(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO")
+        assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS))
+        assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO")
     }
 
     @Configuration
