@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jms.dsl
 
-import assertk.assert
+import assertk.all
+import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
@@ -71,17 +72,17 @@ class JmsDslKotlinTests {
 
 		val payload = receive?.payload
 
-		assert(payload).isNotNull {
-			it.isEqualTo("foo")
-		}
+		assertThat(payload).isNotNull().isEqualTo("foo")
 
-		assert(receive?.headers).isNotNull {
-			it.contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
-			it.contains(JmsHeaders.DELIVERY_MODE, 1)
-		}
+		assertThat(receive?.headers)
+				.isNotNull()
+				.all {
+					contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
+					contains(JmsHeaders.DELIVERY_MODE, 1)
+				}
 
 		val expiration = receive!!.headers[JmsHeaders.EXPIRATION] as Long
-		assert(expiration).isGreaterThan(System.currentTimeMillis())
+		assertThat(expiration).isGreaterThan(System.currentTimeMillis())
 	}
 
 	@Configuration
