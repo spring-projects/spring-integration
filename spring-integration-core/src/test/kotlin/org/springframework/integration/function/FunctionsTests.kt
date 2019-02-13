@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.function
 
-import assertk.assert
+import assertk.all
+import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
@@ -85,20 +86,20 @@ class FunctionsTests {
 
 		val payload = receive?.payload
 
-		assertk.assert(payload).isNotNull {
-			it.isEqualTo("FOO")
-		}
+		assertThat(payload)
+				.isNotNull()
+				.isEqualTo("FOO")
 	}
 
 	@Test
 	fun `invoke consumer via service activator`() {
 		this.messageConsumerServiceChannel.send(GenericMessage("bar"))
 
-		assert(this.messageCollector).size().isEqualTo(1)
+		assertThat(this.messageCollector).size().isEqualTo(1)
 
 		val message = this.messageCollector[0]
 
-		assert(message.payload).isEqualTo("bar")
+		assertThat(message.payload).isEqualTo("bar")
 	}
 
 	@Test
@@ -107,7 +108,7 @@ class FunctionsTests {
 		this.counterChannel.subscribe { countDownLatch.countDown() }
 		this.kotlinSupplierInboundChannelAdapter.start()
 
-		assert(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue()
+		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue()
 	}
 
 	@Configuration

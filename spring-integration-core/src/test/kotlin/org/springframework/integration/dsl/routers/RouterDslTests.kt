@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dsl.routers
 
-import assertk.assert
+import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
@@ -62,11 +62,10 @@ class RouterDslTests {
 
 		val payload = receive?.payload
 
-		assert(payload).isNotNull {
-			it.isInstanceOf(List::class.java)
-		}
-
-		assert(payload).isEqualTo(listOf(3, 4, 9, 8, 15, 12))
+		assertThat(payload)
+				.isNotNull()
+				.isInstanceOf(List::class.java)
+				.isEqualTo(listOf(3, 4, 9, 8, 15, 12))
 	}
 
 
@@ -88,10 +87,10 @@ class RouterDslTests {
 
 		val payload = receive?.payload
 
-		assert(payload).isNotNull {
-			it.isInstanceOf(List::class.java)
-			it.isEqualTo(listOf("even", "odd", "even"))
-		}
+		assertThat(payload)
+				.isNotNull()
+				.isInstanceOf(List::class.java)
+				.isEqualTo(listOf("even", "odd", "even"))
 	}
 
 	@Configuration
