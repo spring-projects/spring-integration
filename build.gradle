@@ -135,11 +135,11 @@ subprojects { subproject ->
 		servletApiVersion = '4.0.0'
 		smackVersion = '4.3.1'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.4.RELEASE'
-		springDataJpaVersion = '2.1.4.RELEASE'
-		springDataMongoVersion = '2.1.4.RELEASE'
-		springDataRedisVersion = '2.1.4.RELEASE'
-		springGemfireVersion = '2.1.4.RELEASE'
-		springSecurityVersion = '5.1.3.RELEASE'
+		springDataJpaVersion = '2.1.5.RELEASE'
+		springDataMongoVersion = '2.1.5.RELEASE'
+		springDataRedisVersion = '2.1.5.RELEASE'
+		springGemfireVersion = '2.1.5.RELEASE'
+		springSecurityVersion = '5.1.4.RELEASE'
 		springRetryVersion = '1.2.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.5.RELEASE'
 		springWsVersion = '3.0.6.RELEASE'
@@ -930,12 +930,12 @@ task docsZip(type: Zip, dependsOn: reference) {
 		}
 
 	    from ('build/asciidoc/html5') {
-		     into 'reference'
+		     into 'reference/html'
 	    }
 
 	    from ('build/asciidoc/pdf') {
 		     include 'index.pdf'
-		     into 'reference'
+		     into 'reference/pdf'
 	    }
 }
 
