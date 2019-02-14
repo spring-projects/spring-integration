@@ -66,6 +66,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 @IntegrationManagedResource
+@SuppressWarnings("deprecation")
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
@@ -243,7 +244,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * Return a read-only list of the configured interceptors.
 	 */
 	@Override
-	public List<ChannelInterceptor> getChannelInterceptors() {
+	public List<ChannelInterceptor> getInterceptors() {
 		return this.interceptors.getInterceptors();
 	}
 
@@ -259,10 +260,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Exposes the interceptor list for subclasses.
+	 * Exposes the interceptor list instance for subclasses.
 	 * @return The channel interceptor list.
 	 */
-	protected ChannelInterceptorList getInterceptors() {
+	protected ChannelInterceptorList getIChannelInterceptorList() {
 		return this.interceptors;
 	}
 

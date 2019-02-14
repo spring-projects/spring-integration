@@ -92,7 +92,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	@Override
 	@Nullable
 	public Message<?> receive(long timeout) {
-		ChannelInterceptorList interceptorList = getInterceptors();
+		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();

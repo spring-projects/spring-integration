@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 
 /**
  * @author Oleg Zhurakousky
@@ -42,8 +42,8 @@ public class GlobalChannelInterceptorTests {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"GlobalChannelInterceptorTests-context.xml",  GlobalChannelInterceptorTests.class);
-		ChannelInterceptorAware jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
-		List<ChannelInterceptor> interceptors = jmsChannel.getChannelInterceptors();
+		InterceptableChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
+		List<ChannelInterceptor> interceptors = jmsChannel.getInterceptors();
 		assertThat(interceptors).isNotNull();
 		assertThat(interceptors.size()).isEqualTo(1);
 		assertThat(interceptors.get(0) instanceof SampleInterceptor).isTrue();

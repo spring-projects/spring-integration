@@ -620,9 +620,9 @@ public IntegrationFlow loggingFlow() {
 
 [IMPORTANT]
 ====
-If the `MessageChannel` is an instance of `ChannelInterceptorAware`, the `log()` or `wireTap()` operators are applied to the current `MessageChannel`.
+If the `MessageChannel` is an instance of `InterceptableChannel`, the `log()` or `wireTap()` operators are applied to the current `MessageChannel`.
 Otherwise, an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
-In the following example, the `WireTap` interceptor is added to `myChannel` directly, because `DirectChannel` implements `ChannelInterceptorAware`:
+In the following example, the `WireTap` interceptor is added to `myChannel` directly, because `DirectChannel` implements `InterceptableChannel`:
 
 [source,java]
 ----
@@ -638,7 +638,7 @@ MessageChannel myChannel() {
 ----
 ====
 
-When the current `MessageChannel` does not implement `ChannelInterceptorAware`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow`, and the `WireTap` is added to this new `DirectChannel`.
+When the current `MessageChannel` does not implement `InterceptableChannel`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow`, and the `WireTap` is added to this new `DirectChannel`.
 The following example does not have any channel declaration:
 
 ====

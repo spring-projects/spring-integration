@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -35,7 +32,6 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
@@ -79,6 +75,7 @@ public final class GlobalChannelInterceptorProcessor
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void afterSingletonsInstantiated() {
 		Collection<GlobalChannelInterceptorWrapper> interceptors =
 				this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class).values();
@@ -86,29 +83,28 @@ public final class GlobalChannelInterceptorProcessor
 			logger.debug("No global channel interceptors.");
 		}
 		else {
-			for (GlobalChannelInterceptorWrapper channelInterceptor : interceptors) {
-				if (channelInterceptor.getOrder() >= 0) {
-					this.positiveOrderInterceptors.add(channelInterceptor);
+			interceptors.forEach(interceptor -> {
+				if (interceptor.getOrder() >= 0) {
+					this.positiveOrderInterceptors.add(interceptor);
 				}
 				else {
-					this.negativeOrderInterceptors.add(channelInterceptor);
+					this.negativeOrderInterceptors.add(interceptor);
 				}
-			}
+			});
 
-			Map<String, ChannelInterceptorAware> channels =
-					this.beanFactory.getBeansOfType(ChannelInterceptorAware.class);
-			for (Entry<String, ChannelInterceptorAware> entry : channels.entrySet()) {
-				addMatchingInterceptors(entry.getValue(), entry.getKey());
-			}
+			this.beanFactory.getBeansOfType(org.springframework.integration.channel.ChannelInterceptorAware.class)
+					.forEach((key, value) -> addMatchingInterceptors(value, key));
 		}
 
 		this.singletonsInstantiated = true;
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (this.singletonsInstantiated && bean instanceof ChannelInterceptorAware) {
-			addMatchingInterceptors((ChannelInterceptorAware) bean, beanName);
+		if (this.singletonsInstantiated
+				&& bean instanceof org.springframework.integration.channel.ChannelInterceptorAware) {
+			addMatchingInterceptors((org.springframework.integration.channel.ChannelInterceptorAware) bean, beanName);
 		}
 		return bean;
 	}
@@ -118,41 +114,36 @@ public final class GlobalChannelInterceptorProcessor
 	 * @param channel the message channel to add interceptors.
 	 * @param beanName the message channel bean name to match the pattern.
 	 */
-	public void addMatchingInterceptors(ChannelInterceptorAware channel, String beanName) {
+	@SuppressWarnings("deprecation")
+	public void addMatchingInterceptors(org.springframework.integration.channel.ChannelInterceptorAware channel,
+			String beanName) {
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying global interceptors on channel '" + beanName + "'");
 		}
 
 		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<>();
-		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
-			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-			patterns = StringUtils.trimArrayElements(patterns);
-			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
-				tempInterceptors.add(globalChannelInterceptorWrapper);
-			}
-		}
 
-		Collections.sort(tempInterceptors, this.comparator);
+		this.positiveOrderInterceptors
+				.forEach(interceptorWrapper ->
+						addMatchingInterceptors(beanName, tempInterceptors, interceptorWrapper));
 
-		for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
-			ChannelInterceptor channelInterceptor = next.getChannelInterceptor();
-			if (!(channelInterceptor instanceof VetoCapableInterceptor)
-					|| ((VetoCapableInterceptor) channelInterceptor).shouldIntercept(beanName, channel)) {
-				channel.addInterceptor(channelInterceptor);
-			}
-		}
+		tempInterceptors.sort(this.comparator);
+
+		tempInterceptors
+				.stream()
+				.map(GlobalChannelInterceptorWrapper::getChannelInterceptor)
+				.filter(interceptor -> !(interceptor instanceof VetoCapableInterceptor)
+						|| ((VetoCapableInterceptor) interceptor).shouldIntercept(beanName, channel))
+				.forEach(channel::addInterceptor);
 
 		tempInterceptors.clear();
 
-		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
-			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-			patterns = StringUtils.trimArrayElements(patterns);
-			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
-				tempInterceptors.add(globalChannelInterceptorWrapper);
-			}
-		}
+		this.negativeOrderInterceptors
+				.forEach(interceptorWrapper ->
+						addMatchingInterceptors(beanName, tempInterceptors, interceptorWrapper));
 
-		Collections.sort(tempInterceptors, this.comparator);
+		tempInterceptors.sort(this.comparator);
 
 		if (!tempInterceptors.isEmpty()) {
 			for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
@@ -162,6 +153,17 @@ public final class GlobalChannelInterceptorProcessor
 					channel.addInterceptor(0, channelInterceptor);
 				}
 			}
+		}
+	}
+
+	private static void addMatchingInterceptors(String beanName,
+			List<GlobalChannelInterceptorWrapper> tempInterceptors,
+			GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper) {
+
+		String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+		patterns = StringUtils.trimArrayElements(patterns);
+		if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
+			tempInterceptors.add(globalChannelInterceptorWrapper);
 		}
 	}
 

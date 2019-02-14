@@ -32,11 +32,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -57,20 +57,20 @@ public class GlobalChannelInterceptorTests {
 
 	@Autowired
 	@Qualifier("inputC")
-	ChannelInterceptorAware inputCChannel;
+	InterceptableChannel inputCChannel;
 
 
 	@Test
-	public void validateGlobalInterceptor() throws Exception {
-		Map<String, ChannelInterceptorAware> channels = applicationContext.getBeansOfType(ChannelInterceptorAware.class);
+	public void validateGlobalInterceptor() {
+		Map<String, InterceptableChannel> channels = applicationContext.getBeansOfType(InterceptableChannel.class);
 		for (String channelName : channels.keySet()) {
-			ChannelInterceptorAware channel = channels.get(channelName);
+			InterceptableChannel channel = channels.get(channelName);
 			if (channelName.equals("nullChannel")) {
 				continue;
 			}
 
-			ChannelInterceptor[] interceptors = channel.getChannelInterceptors()
-					.toArray(new ChannelInterceptor[channel.getChannelInterceptors().size()]);
+			ChannelInterceptor[] interceptors = channel.getInterceptors()
+					.toArray(new ChannelInterceptor[channel.getInterceptors().size()]);
 			if (channelName.equals("inputA")) { // 328741
 				assertThat(interceptors.length == 10).isTrue();
 				assertThat(interceptors[0].toString()).isEqualTo("interceptor-three");
@@ -133,7 +133,7 @@ public class GlobalChannelInterceptorTests {
 	@Test
 	public void testWildCardPatternMatch() {
 
-		List<ChannelInterceptor> channelInterceptors = this.inputCChannel.getChannelInterceptors();
+		List<ChannelInterceptor> channelInterceptors = this.inputCChannel.getInterceptors();
 		List<String> interceptorNames = new ArrayList<String>();
 		for (ChannelInterceptor interceptor : channelInterceptors) {
 			interceptorNames.add(interceptor.toString());

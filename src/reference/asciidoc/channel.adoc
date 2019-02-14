@@ -304,6 +304,7 @@ Also, starting with version 5.1, `ChannelInterceptor.postReceive()` is no longer
 Previously, the method was called.
 If you have an interceptor that relies on the previous behavior, implement `afterReceiveCompleted()` instead, since that method is invoked, regardless of whether a message is received or not.
 
+NOTE: Starting with version 5.1.3, the `ChannelInterceptorAware` is deprecated in favor of `InterceptableChannel` from Spring Messaging module, which it extends now for backward compatibility.
 
 [[channel-template]]
 ==== `MessagingTemplate`
