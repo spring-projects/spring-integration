@@ -192,22 +192,22 @@ subprojects { subproject ->
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
 	task checkTestConfigs {
-		def configFiles = []
-		sourceSets.test.java.srcDirs.each {
-			fileTree(it).include('**/*.xml').exclude('**/log4j2-test.xml').each { configFile ->
-				def configXml = new XmlParser(false, false).parse(configFile)
-
-				if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
-					configFiles << configFile
-				}
-			}
-		}
-		inputs.files(configFiles)
+		inputs.files(
+				sourceSets.test.java.srcDirs.collect {
+							fileTree(it)
+								.include('**/*.xml')
+								.exclude('**/log4j2-test.xml')
+				})
 		outputs.dir('build')
 		doLast {
-			if (!inputs.files.empty) {
+			def wrongConfigs = inputs.files.filter {
+				new XmlParser(false, false)
+						.parse(it)
+						.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/
+			}
+			if (!wrongConfigs.empty) {
 				throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
-						inputs.files.collect {relativePath(it) }.join('\n') +
+						wrongConfigs.collect { relativePath(it) }.join('\n') +
 						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds ' +
 						'on different versions of dependencies.')
 			}
