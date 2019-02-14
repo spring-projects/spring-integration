@@ -208,6 +208,6 @@ This way the target exception is returned to the gatherer of the `ScatterGatherH
 Such an exception `payload` can be filtered out in the `MessageGroupProcessor` of the gatherer or processed other way downstream, after the scatter-gather endpoint.
 
 NOTE: Before sending scattering results to the gatherer, `ScatterGatherHandler` reinstates the request message headers, including reply and error channels if any.
-This way errors from the `AggregatingMessageHandler` are going to be propagated to the caller, even if async hand off is applied for scatter recipients.
+This way errors from the `AggregatingMessageHandler` are going to be propagated to the caller, even if async an hand off is applied in scatter recipient subflows.
 In this case a reasonable, finite `gatherTimeout` must be configured for the `ScatterGatherHandler`.
-Otherwise it is going to be blocked waiting for reply from the gatherer forever by default.
+Otherwise it is going to be blocked waiting for a reply from the gatherer forever, by default.

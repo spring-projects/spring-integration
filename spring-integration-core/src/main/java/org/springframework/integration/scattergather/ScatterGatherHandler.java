@@ -139,7 +139,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 					}
 					else {
 						throw new MessageDeliveryException(message,
-								"The 'gatherResultChannel' header is required to delivery gather result.");
+								"The 'gatherResultChannel' header is required to deliver the gather result.");
 					}
 				}));
 	}
