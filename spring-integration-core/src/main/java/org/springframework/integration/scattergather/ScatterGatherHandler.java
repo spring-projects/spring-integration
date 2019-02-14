@@ -20,6 +20,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -30,7 +31,6 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -38,6 +38,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -65,8 +66,6 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	private long gatherTimeout = -1;
 
 	private AbstractEndpoint gatherEndpoint;
-
-	private HeaderChannelRegistry replyChannelRegistry;
 
 
 	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
@@ -134,52 +133,64 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		((MessageProducer) this.gatherer)
 				.setOutputChannel(new FixedSubscriberChannel(message -> {
 					MessageHeaders headers = message.getHeaders();
-					if (headers.containsKey(GATHER_RESULT_CHANNEL)) {
-						Object gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL);
-						if (gatherResultChannel instanceof MessageChannel) {
-							messagingTemplate.send((MessageChannel) gatherResultChannel, message);
-						}
-						else if (gatherResultChannel instanceof String) {
-							messagingTemplate.send((String) gatherResultChannel, message);
-						}
+					MessageChannel gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL, MessageChannel.class);
+					if (gatherResultChannel != null) {
+						this.messagingTemplate.send(gatherResultChannel, message);
 					}
 					else {
 						throw new MessageDeliveryException(message,
-								"The 'gatherResultChannel' header is required to delivery gather result.");
+								"The 'gatherResultChannel' header is required to deliver the gather result.");
 					}
 				}));
-
-		this.replyChannelRegistry =
-				beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-						HeaderChannelRegistry.class);
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		PollableChannel gatherResultChannel = new QueueChannel();
 
-		Object gatherResultChannelName = this.replyChannelRegistry.channelToChannelName(gatherResultChannel);
+		MessageChannel replyChannel = this.gatherChannel;
+
+		if (replyChannel instanceof ChannelInterceptorAware) {
+			((ChannelInterceptorAware) replyChannel)
+					.addInterceptor(0,
+							new ChannelInterceptor() {
+
+								@Override
+								public Message<?> preSend(Message<?> message, MessageChannel channel) {
+									return enhanceScatterReplyMessage(message, gatherResultChannel, requestMessage);
+								}
+
+							});
+		}
+		else {
+			replyChannel =
+					new FixedSubscriberChannel(message ->
+							this.messagingTemplate.send(this.gatherChannel,
+									enhanceScatterReplyMessage(message, gatherResultChannel, requestMessage)));
+		}
 
 		Message<?> scatterMessage =
 				getMessageBuilderFactory()
 						.fromMessage(requestMessage)
-						.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannelName)
-						.setReplyChannel(this.gatherChannel)
+						.setReplyChannel(replyChannel)
 						.setErrorChannelName(this.errorChannelName)
 						.build();
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
-		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
-		if (gatherResult != null) {
-			return getMessageBuilderFactory()
-					.fromMessage(gatherResult)
-					.removeHeader(GATHER_RESULT_CHANNEL)
-					.setHeader(MessageHeaders.REPLY_CHANNEL, requestMessage.getHeaders().getReplyChannel())
-					.setHeader(MessageHeaders.ERROR_CHANNEL, requestMessage.getHeaders().getErrorChannel());
-		}
+		return gatherResultChannel.receive(this.gatherTimeout);
+	}
 
-		return null;
+	private Message<?> enhanceScatterReplyMessage(Message<?> message, PollableChannel gatherResultChannel,
+			Message<?> requestMessage) {
+
+		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
+		return getMessageBuilderFactory()
+				.fromMessage(message)
+				.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannel)
+				.setHeader(MessageHeaders.REPLY_CHANNEL, requestMessageHeaders.getReplyChannel())
+				.setHeader(MessageHeaders.ERROR_CHANNEL, requestMessageHeaders.getErrorChannel())
+				.build();
 	}
 
 	@Override
@@ -201,11 +212,11 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		return this.gatherEndpoint == null || this.gatherEndpoint.isRunning();
 	}
 
-	private void checkClass(Class<?> gathererClass, String className, String type) throws LinkageError {
+	private static void checkClass(Class<?> gathererClass, String className, String type) throws LinkageError {
 		try {
 			Class<?> clazz = ClassUtils.forName(className, ClassUtils.getDefaultClassLoader());
-			Assert.isAssignable(clazz, gathererClass, () -> "the '" + type + "' must be an " + className + " " +
-					"instance");
+			Assert.isAssignable(clazz, gathererClass,
+					() -> "the '" + type + "' must be an " + className + " " + "instance");
 		}
 		catch (ClassNotFoundException e) {
 			throw new IllegalStateException("The class for '" + className + "' cannot be loaded", e);

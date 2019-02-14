@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.routers;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -29,6 +30,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -590,6 +592,16 @@ public class RouterTests {
 		assertThat(((List) payload).get(1), instanceOf(RuntimeException.class));
 	}
 
+	@Autowired
+	@Qualifier("propagateErrorFromGatherer.gateway")
+	private Function<Object, ?> propagateErrorFromGathererGateway;
+
+	@Test
+	public void propagateErrorFromGatherer() {
+		assertThatThrownBy(() -> propagateErrorFromGathererGateway.apply("bar"))
+				.hasMessage("intentional");
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -879,6 +891,22 @@ public class RouterTests {
 			return MessageBuilder.withPayload(payload.getCause().getCause())
 					.copyHeaders(payload.getFailedMessage().getHeaders())
 					.build();
+		}
+
+		@Bean
+		public IntegrationFlow propagateErrorFromGatherer(TaskExecutor taskExecutor) {
+			return IntegrationFlows.from(Function.class)
+					.scatterGather(s -> s
+									.applySequence(true)
+									.recipientFlow(subFlow -> subFlow
+											.channel(c -> c.executor(taskExecutor))
+											.transform(p -> "foo")),
+							g -> g
+									.outputProcessor(group -> {
+										throw new RuntimeException("intentional");
+									}),
+							sg -> sg.gatherTimeout(100))
+					.get();
 		}
 
 	}

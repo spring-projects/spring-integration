@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -278,8 +278,8 @@ public class ScatterGatherHandlerIntegrationTests {
 		}
 
 		@Bean
-		public SubscribableChannel scatterAuctionWithGatherChannel() {
-			PublishSubscribeChannel channel = new PublishSubscribeChannel(Executors.newCachedThreadPool());
+		public SubscribableChannel scatterAuctionWithGatherChannel(Executor executor) {
+			PublishSubscribeChannel channel = new PublishSubscribeChannel(executor);
 			channel.setApplySequence(true);
 			return channel;
 		}
@@ -296,7 +296,8 @@ public class ScatterGatherHandlerIntegrationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "inputAuctionWithGatherChannel")
 		public MessageHandler scatterGatherAuctionWithGatherChannel() {
-			ScatterGatherHandler handler = new ScatterGatherHandler(scatterAuctionWithGatherChannel(), gatherer2());
+			ScatterGatherHandler handler =
+					new ScatterGatherHandler(scatterAuctionWithGatherChannel(null), gatherer2());
 			handler.setGatherChannel(gatherChannel());
 			handler.setOutputChannel(output());
 			return handler;
