@@ -432,7 +432,7 @@ The `@IntegrationConverter` annotation marks `Converter`, `GenericConverter`, or
 This annotation is an analogue of the `<int:converter>` XML element (see <<payload-type-conversion>>).
 You can place `@IntegrationConverter` annotations at the class level (with a `@Component` stereotype annotation) or on `@Bean` methods within `@Configuration` classes.
 
-See <<annotations>> for more information about messaging mnnotations.
+See <<annotations>> for more information about messaging annotations.
 
 [[programming-considerations]]
 === Programming Considerations
