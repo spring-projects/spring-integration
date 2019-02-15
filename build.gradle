@@ -109,7 +109,7 @@ subprojects { subproject ->
 		hsqldbVersion = '2.4.1'
 		h2Version = '1.4.197'
 		jackson2Version = '2.9.8'
-		javaxActivationVersion = '1.1.1'
+		javaxActivationVersion = '1.2.0'
 		javaxMailVersion = '1.6.2'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
@@ -132,16 +132,16 @@ subprojects { subproject ->
 		reactorNettyVersion = '0.8.5.RELEASE'
 		reactorVersion = '3.2.6.RELEASE'
 		romeToolsVersion = '1.9.0'
-		servletApiVersion = '4.0.0'
+		servletApiVersion = '4.0.1'
 		smackVersion = '4.3.1'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.4.RELEASE'
-		springDataJpaVersion = '2.1.5.RELEASE'
-		springDataMongoVersion = '2.1.5.RELEASE'
-		springDataRedisVersion = '2.1.5.RELEASE'
-		springGemfireVersion = '2.1.5.RELEASE'
-		springSecurityVersion = '5.1.4.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.BUILD-SNAPSHOT'
+		springDataJpaVersion = '2.2.0.BUILD-SNAPSHOT'
+		springDataMongoVersion = '2.2.0.BUILD-SNAPSHOT'
+		springDataRedisVersion = '2.2.0.BUILD-SNAPSHOT'
+		springGemfireVersion = '2.2.0.BUILD-SNAPSHOT'
+		springSecurityVersion = '5.2.0.BUILD-SNAPSHOT'
 		springRetryVersion = '1.2.4.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.5.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.BUILD-SNAPSHOT'
 		springWsVersion = '3.0.6.RELEASE'
 		tomcatVersion = "9.0.16"
 		xstreamVersion = '1.4.11.1'
@@ -418,7 +418,7 @@ project('spring-integration-ftp') {
 		compile project(":spring-integration-file")
 		compile "commons-net:commons-net:$commonsNetVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
+		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
 
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile project(":spring-integration-file").sourceSets.test.output
@@ -555,7 +555,7 @@ project('spring-integration-mail') {
 		compile("javax.mail:javax.mail-api:$javaxMailVersion", provided)
 		compile("com.sun.mail:imap:$javaxMailVersion", provided)
 		compile("com.sun.mail:javax.mail:$javaxMailVersion", provided);
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
+		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
 	}
 
 	// suppress javax.activation path warnings
@@ -630,7 +630,7 @@ project('spring-integration-sftp') {
 		compile project(":spring-integration-stream")
 		compile "com.jcraft:jsch:$jschVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
+		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
 
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 		testCompile "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
