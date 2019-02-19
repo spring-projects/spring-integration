@@ -189,11 +189,6 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 		return createRequestMappingInfo(requestMappingAnnotation, getCustomTypeCondition(endpoint.getClass()));
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		// No-op in favor of onApplicationEvent
-	}
-
 	/**
 	 * {@link HttpRequestHandlingEndpointSupport}s may depend on auto-created
 	 * {@code requestChannel}s, so MVC Handlers detection should be postponed
@@ -202,9 +197,14 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (!this.initialized.getAndSet(true)) {
+		if (event.getApplicationContext().equals(getApplicationContext()) && !this.initialized.getAndSet(true)) {
 			super.afterPropertiesSet();
 		}
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		// No-op in favor of onApplicationEvent
 	}
 
 }
