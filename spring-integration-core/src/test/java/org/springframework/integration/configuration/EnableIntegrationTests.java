@@ -585,13 +585,13 @@ public class EnableIntegrationTests {
 	public void testBridgeAnnotations() {
 		GenericMessage<?> testMessage = new GenericMessage<Object>("foo");
 		this.bridgeInput.send(testMessage);
-		Message<?> receive = this.bridgeOutput.receive(2000);
+		Message<?> receive = this.bridgeOutput.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, testMessage);
 		assertNull(this.bridgeOutput.receive(10));
 
 		this.pollableBridgeInput.send(testMessage);
-		receive = this.pollableBridgeOutput.receive(2000);
+		receive = this.pollableBridgeOutput.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, testMessage);
 		assertNull(this.pollableBridgeOutput.receive(10));
@@ -609,13 +609,13 @@ public class EnableIntegrationTests {
 				Lifecycle.class).start();
 
 		this.metaBridgeInput.send(testMessage);
-		receive = this.metaBridgeOutput.receive(2000);
+		receive = this.metaBridgeOutput.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, testMessage);
 		assertNull(this.metaBridgeOutput.receive(10));
 
 		this.bridgeToInput.send(testMessage);
-		receive = this.bridgeToOutput.receive(2000);
+		receive = this.bridgeToOutput.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, testMessage);
 		assertNull(this.bridgeToOutput.receive(10));
@@ -623,7 +623,7 @@ public class EnableIntegrationTests {
 		PollableChannel replyChannel = new QueueChannel();
 		Message<?> bridgeMessage = MessageBuilder.fromMessage(testMessage).setReplyChannel(replyChannel).build();
 		this.pollableBridgeToInput.send(bridgeMessage);
-		receive = replyChannel.receive(2000);
+		receive = replyChannel.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, bridgeMessage);
 		assertNull(replyChannel.receive(10));
@@ -641,7 +641,7 @@ public class EnableIntegrationTests {
 				Lifecycle.class).start();
 
 		this.myBridgeToInput.send(bridgeMessage);
-		receive = replyChannel.receive(2000);
+		receive = replyChannel.receive(10_000);
 		assertNotNull(receive);
 		assertSame(receive, bridgeMessage);
 		assertNull(replyChannel.receive(10));
