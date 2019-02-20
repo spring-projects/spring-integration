@@ -274,7 +274,7 @@ It is not used if a custom `converter` is supplied.
 The default is `headers[mqtt_retained]`.
 <9> The default topic to which the message is sent (used if no `mqtt_topic` header is found).
 <10> An expression to evaluate to determine the destination topic.
-The default is `headers['topic']`.
+The default is `headers['mqtt_topic']`.
 <11> When `true`, the caller does not block.
 Rather, it waits for delivery confirmation when a message is sent.
 The default is `false` (the send blocks until delivery is confirmed).
