@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gemfire.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.createFakeParserContext;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
 
@@ -56,12 +56,12 @@ public class GemfireInboundChannelAdapterParserTests {
 
 	@Test
 	public void testPhase() {
-		assertEquals(2, adapter1.getPhase());
+		assertThat(adapter1.getPhase()).isEqualTo(2);
 	}
 
 	@Test
 	public void testAutoStart() {
-		assertEquals(false, adapter1.isAutoStartup());
+		assertThat(adapter1.isAutoStartup()).isEqualTo(false);
 	}
 
 }

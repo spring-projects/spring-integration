@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -71,41 +67,41 @@ public class WireTapParserTests {
 
 	@Test
 	public void simpleWireTap() {
-		assertNull(wireTapChannel.receive(0));
+		assertThat(wireTapChannel.receive(0)).isNull();
 		Message<?> original = new GenericMessage<String>("test");
 		noSelectors.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test
 	public void simpleWireTapWithIdAndSelectorExpression() {
-		assertThat(TestUtils.getPropertyValue(wireTap, "selector"), instanceOf(ExpressionEvaluatingSelector.class));
+		assertThat(TestUtils.getPropertyValue(wireTap, "selector")).isInstanceOf(ExpressionEvaluatingSelector.class);
 		Message<?> original = new GenericMessage<String>("test");
 		withId.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test
 	public void wireTapWithAcceptingSelector() {
-		assertNull(wireTapChannel.receive(0));
+		assertThat(wireTapChannel.receive(0)).isNull();
 		Message<?> original = new GenericMessage<String>("test");
 		accepting.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test
 	public void wireTapWithRejectingSelector() {
-		assertNull(wireTapChannel.receive(0));
+		assertThat(wireTapChannel.receive(0)).isNull();
 		Message<?> original = new GenericMessage<String>("test");
 		rejecting.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
-		assertNull(intercepted);
+		assertThat(intercepted).isNull();
 	}
 
 	@Test
@@ -125,9 +121,9 @@ public class WireTapParserTests {
 				otherTimeoutCount++;
 			}
 		}
-		assertEquals(4, defaultTimeoutCount);
-		assertEquals(1, expectedTimeoutCount);
-		assertEquals(0, otherTimeoutCount);
+		assertThat(defaultTimeoutCount).isEqualTo(4);
+		assertThat(expectedTimeoutCount).isEqualTo(1);
+		assertThat(otherTimeoutCount).isEqualTo(0);
 	}
 
 }

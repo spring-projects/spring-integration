@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -69,9 +67,9 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
 		postProcessor.postProcessAfterInitialization(bean, "testBean");
-		assertTrue(context.containsBean("testBean.test.serviceActivator"));
+		assertThat(context.containsBean("testBean.test.serviceActivator")).isTrue();
 		Object endpoint = context.getBean("testBean.test.serviceActivator");
-		assertTrue(endpoint instanceof AbstractEndpoint);
+		assertThat(endpoint instanceof AbstractEndpoint).isTrue();
 		context.close();
 	}
 
@@ -83,7 +81,7 @@ public class MessagingAnnotationPostProcessorTests {
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("hello world", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("hello world");
 		context.close();
 	}
 
@@ -98,13 +96,13 @@ public class MessagingAnnotationPostProcessorTests {
 		GenericMessage<String> messageToSend = new GenericMessage<String>("world");
 		inputChannel.send(messageToSend);
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("hello world", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world");
 
 		inputChannel = context.getBean("advisedIn", MessageChannel.class);
 		outputChannel = context.getBean("advisedOut", PollableChannel.class);
 		inputChannel.send(messageToSend);
 		message = outputChannel.receive(1000);
-		assertEquals("hello world advised", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world advised");
 		context.close();
 	}
 
@@ -117,7 +115,7 @@ public class MessagingAnnotationPostProcessorTests {
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("hello world", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world");
 		context.close();
 	}
 
@@ -130,7 +128,7 @@ public class MessagingAnnotationPostProcessorTests {
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new GenericMessage<>("123"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals(246, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(246);
 		context.close();
 	}
 
@@ -149,8 +147,8 @@ public class MessagingAnnotationPostProcessorTests {
 		MessageChannel testChannel = channelResolver.resolveDestination("testChannel");
 		testChannel.send(new GenericMessage<String>("foo"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals("foo", testBean.getMessageText());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(testBean.getMessageText()).isEqualTo("foo");
 		context.close();
 	}
 
@@ -180,10 +178,10 @@ public class MessagingAnnotationPostProcessorTests {
 				.setReplyChannelName("outputChannel").build();
 		inputChannel.send(message);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 
 		eventBus.send(new GenericMessage<>("foo"));
-		assertTrue(bean.getInvoked());
+		assertThat(bean.getInvoked()).isTrue();
 
 		context.close();
 	}
@@ -204,7 +202,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("hello world", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world");
 		context.close();
 	}
 
@@ -222,7 +220,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("hello world", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world");
 		context.close();
 	}
 
@@ -242,7 +240,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("world"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("hello world", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello world");
 		context.close();
 	}
 
@@ -260,7 +258,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("test-ABC", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test-ABC");
 		context.close();
 	}
 
@@ -278,7 +276,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("test-ABC", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test-ABC");
 		context.close();
 	}
 
@@ -298,7 +296,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
-		assertEquals("test-ABC", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test-ABC");
 		context.close();
 	}
 
@@ -317,7 +315,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("foo"));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 		context.close();
 	}
 

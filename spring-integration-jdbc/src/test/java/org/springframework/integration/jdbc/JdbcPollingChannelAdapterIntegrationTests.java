@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.sql.ResultSet;
@@ -78,13 +76,13 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		assertTrue("Wrong payload type", payload instanceof List<?>);
+		assertThat(payload instanceof List<?>).as("Wrong payload type").isTrue();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?, ?>);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(1);
+		assertThat(rows.get(0) instanceof Map<?, ?>).as("Returned row not a map").isTrue();
 		Map<?, ?> row = (Map<?, ?>) rows.get(0);
-		assertEquals("Wrong id", 1, row.get("id"));
-		assertEquals("Wrong status", 2, row.get("status"));
+		assertThat(row.get("id")).as("Wrong id").isEqualTo(1);
+		assertThat(row.get("status")).as("Wrong status").isEqualTo(2);
 	}
 
 	@Test
@@ -117,13 +115,13 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		assertTrue("Wrong payload type", payload instanceof List<?>);
+		assertThat(payload instanceof List<?>).as("Wrong payload type").isTrue();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?, ?>);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(1);
+		assertThat(rows.get(0) instanceof Map<?, ?>).as("Returned row not a map").isTrue();
 		Map<?, ?> row = (Map<?, ?>) rows.get(0);
-		assertEquals("Wrong id", 1, row.get("id"));
-		assertEquals("Wrong status", 2, row.get("status"));
+		assertThat(row.get("id")).as("Wrong id").isEqualTo(1);
+		assertThat(row.get("status")).as("Wrong status").isEqualTo(2);
 	}
 
 	@Test
@@ -134,11 +132,11 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(1);
+		assertThat(rows.get(0) instanceof Item).as("Wrong payload type").isTrue();
 		Item item = (Item) rows.get(0);
-		assertEquals("Wrong id", 1, item.getId());
-		assertEquals("Wrong status", 2, item.getStatus());
+		assertThat(item.getId()).as("Wrong id").isEqualTo(1);
+		assertThat(item.getStatus()).as("Wrong status").isEqualTo(2);
 	}
 
 	@Test
@@ -156,17 +154,17 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 2, rows.size());
-		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(2);
+		assertThat(rows.get(0) instanceof Item).as("Wrong payload type").isTrue();
 		Item item = (Item) rows.get(0);
-		assertEquals("Wrong id", 1, item.getId());
-		assertEquals("Wrong status", 2, item.getStatus());
+		assertThat(item.getId()).as("Wrong id").isEqualTo(1);
+		assertThat(item.getStatus()).as("Wrong status").isEqualTo(2);
 
 		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
+		assertThat(countOfStatusTwo).as("Status not updated incorrect number of rows with status 2").isEqualTo(0);
 
 		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
+		assertThat(countOfStatusTen).as("Status not updated incorrect number of rows with status 10").isEqualTo(2);
 	}
 
 	@Test
@@ -185,17 +183,17 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 2, rows.size());
-		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(2);
+		assertThat(rows.get(0) instanceof Item).as("Wrong payload type").isTrue();
 		Item item = (Item) rows.get(0);
-		assertEquals("Wrong id", 1, item.getId());
-		assertEquals("Wrong status", 2, item.getStatus());
+		assertThat(item.getId()).as("Wrong id").isEqualTo(1);
+		assertThat(item.getStatus()).as("Wrong status").isEqualTo(2);
 
 		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
+		assertThat(countOfStatusTwo).as("Status not updated incorrect number of rows with status 2").isEqualTo(0);
 
 		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
+		assertThat(countOfStatusTen).as("Status not updated incorrect number of rows with status 10").isEqualTo(2);
 	}
 
 	@Test
@@ -215,17 +213,17 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(1);
+		assertThat(rows.get(0) instanceof Item).as("Wrong payload type").isTrue();
 		Item item = (Item) rows.get(0);
-		assertEquals("Wrong id", 1, item.getId());
-		assertEquals("Wrong status", 2, item.getStatus());
+		assertThat(item.getId()).as("Wrong id").isEqualTo(1);
+		assertThat(item.getStatus()).as("Wrong status").isEqualTo(2);
 
 		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 2", 2, countOfStatusTwo);
+		assertThat(countOfStatusTwo).as("Status not updated incorrect number of rows with status 2").isEqualTo(2);
 
 		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from copy where status = 10", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 10", 1, countOfStatusTen);
+		assertThat(countOfStatusTen).as("Status not updated incorrect number of rows with status 10").isEqualTo(1);
 	}
 
 	@Test
@@ -246,24 +244,24 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
-		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		assertThat(rows.size()).as("Wrong number of elements").isEqualTo(1);
+		assertThat(rows.get(0) instanceof Item).as("Wrong payload type").isTrue();
 		Item item = (Item) rows.get(0);
-		assertEquals("Wrong id", 2, item.getId());
-		assertEquals("Wrong status", 2, item.getStatus());
+		assertThat(item.getId()).as("Wrong id").isEqualTo(2);
+		assertThat(item.getStatus()).as("Wrong status").isEqualTo(2);
 
 		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
+		assertThat(countOfStatusTwo).as("Status not updated incorrect number of rows with status 2").isEqualTo(0);
 
 		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
+		assertThat(countOfStatusTen).as("Status not updated incorrect number of rows with status 10").isEqualTo(2);
 	}
 
 	@Test
 	public void testEmptyPoll() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase, "select * from item");
 		Message<Object> message = adapter.receive();
-		assertNull("Message received when no rows in table", message);
+		assertThat(message).as("Message received when no rows in table").isNull();
 	}
 
 	private static class Item {

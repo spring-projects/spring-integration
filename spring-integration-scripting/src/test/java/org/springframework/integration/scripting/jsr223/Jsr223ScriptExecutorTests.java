@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,24 +54,24 @@ public class Jsr223ScriptExecutorTests {
 		Resource resource = new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb");
 		String result = (String) executor.executeScript(new ResourceScriptSource(resource), variables);
 
-		assertEquals("payload modified", result.substring(0, "payload modified".length()));
+		assertThat(result.substring(0, "payload modified".length())).isEqualTo("payload modified");
 	}
 
 	@Test
 	public void testJs() {
 		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("js");
 		Object obj = executor.executeScript(new StaticScriptSource("function js(){ return 'js';} js();"));
-		assertEquals("js", obj.toString());
+		assertThat(obj.toString()).isEqualTo("js");
 	}
 
 	@Test
 	public void testPython() {
 		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("python");
 		Object obj = executor.executeScript(new StaticScriptSource("x=2"));
-		assertEquals(2, obj);
+		assertThat(obj).isEqualTo(2);
 
 		obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
-		assertEquals(2, obj);
+		assertThat(obj).isEqualTo(2);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

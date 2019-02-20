@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.redis.channel;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -70,7 +68,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		channel.send(new GenericMessage<String>("1"));
 		channel.send(new GenericMessage<String>("2"));
 		channel.send(new GenericMessage<String>("3"));
-		assertTrue(latch.await(20, TimeUnit.SECONDS));
+		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -97,10 +95,12 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		}
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
-			assertNotNull(cause);
-			assertThat(cause.getMessage(),
-					containsString("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel)."));
+			assertThat(cause).isNotNull();
+			assertThat(cause.getMessage())
+					.contains("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel)" +
+							".");
 		}
 
 	}
+
 }

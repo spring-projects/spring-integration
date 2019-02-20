@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -52,7 +51,7 @@ public class ExceptionHandlingSiConsumerTests {
 			return message;
 		});
 		Message message = jmsTemplate.receive(reply);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		applicationContext.close();
 	}
 
@@ -71,8 +70,8 @@ public class ExceptionHandlingSiConsumerTests {
 			return message;
 		});
 		Message message = jmsTemplate.receive(reply);
-		assertNotNull(message);
-		assertEquals("echoWithException", ((TextMessage) message).getText());
+		assertThat(message).isNotNull();
+		assertThat(((TextMessage) message).getText()).isEqualTo("echoWithException");
 		applicationContext.close();
 	}
 
@@ -82,7 +81,7 @@ public class ExceptionHandlingSiConsumerTests {
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
 		String reply = gateway.echo("echoWithExceptionChannel");
-		assertEquals("echoWithException", reply);
+		assertThat(reply).isEqualTo("echoWithException");
 		applicationContext.close();
 	}
 

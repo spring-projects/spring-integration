@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.hamcrest.Matchers;
 import org.hibernate.TypeMismatchException;
 import org.junit.After;
 import org.junit.Test;
@@ -36,7 +33,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.matcher.HeaderMatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -108,27 +104,27 @@ public class JpaOutboundGatewayIntegrationTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void retrieveFromSecondRecordAndMaximumOneRecord() throws Exception {
+	public void retrieveFromSecondRecordAndMaximumOneRecord() {
 		this.handler = message -> {
-			assertEquals(2, ((List<?>) message.getPayload()).size());
-			assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
-			assertThat(message, HeaderMatcher.hasHeader("maxResults", "10"));
+			assertThat(((List<?>) message.getPayload()).size()).isEqualTo(2);
+			assertThat(entityManager.createQuery("from Student").getResultList().size()).isEqualTo(1);
+			assertThat(message.getHeaders()).containsEntry("maxResults", "10");
 		};
 		this.responseChannel.subscribe(this.handler);
 
-		Message<Integer> message = MessageBuilder
-						.withPayload(1)
+		Message<Integer> message =
+				MessageBuilder.withPayload(1)
 						.setHeader("maxResults", "10")
 						.build();
 		this.requestChannel.send(message);
 	}
 
 	@Test
-	public void testFindByEntityClass() throws Exception {
+	public void testFindByEntityClass() {
 		this.handler = message -> {
-			assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+			assertThat(message.getPayload()).isInstanceOf(StudentDomain.class);
 			StudentDomain student = (StudentDomain) message.getPayload();
-			assertEquals("First One", student.getFirstName());
+			assertThat(student.getFirstName()).isEqualTo("First One");
 		};
 		this.responseChannel.subscribe(this.handler);
 
@@ -137,11 +133,11 @@ public class JpaOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	public void testFindByPayloadType() throws Exception {
+	public void testFindByPayloadType() {
 		this.handler = message -> {
-			assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+			assertThat(message.getPayload()).isInstanceOf(StudentDomain.class);
 			StudentDomain student = (StudentDomain) message.getPayload();
-			assertEquals("First Two", student.getFirstName());
+			assertThat(student.getFirstName()).isEqualTo("First Two");
 		};
 		this.responseChannel.subscribe(this.handler);
 
@@ -152,34 +148,34 @@ public class JpaOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	public void testFindAndDelete() throws Exception {
+	public void testFindAndDelete() {
 		Message<Long> message = MessageBuilder.withPayload(1001L).build();
 		this.findAndDeleteChannel.send(message);
 
 		Message<?> receive = this.findResultChannel.receive(2000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		try {
 			this.findAndDeleteChannel.send(message);
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+			assertThat(e).isInstanceOf(ReplyRequiredException.class);
 		}
 	}
 
 	@Test
-	public void testInvalidIdType() throws Exception {
+	public void testInvalidIdType() {
 		Message<Integer> message = MessageBuilder.withPayload(1).build();
 		try {
 			this.invalidIdTypeChannel.send(message);
 			fail("PersistenceException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(e.getCause().getCause(), Matchers.instanceOf(TypeMismatchException.class));
-			assertThat(e.getCause().getMessage(),
-					Matchers.containsString("Expected: class java.lang.Long, got class java.lang.Integer"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(TypeMismatchException.class);
+			assertThat(e.getCause().getMessage())
+					.contains("Expected: class java.lang.Long, got class java.lang.Integer");
 		}
 	}
 

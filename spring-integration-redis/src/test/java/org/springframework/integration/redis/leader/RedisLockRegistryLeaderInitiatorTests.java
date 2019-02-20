@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.leader;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +72,7 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 			initiator.start();
 		}
 
-		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted.await(10, TimeUnit.SECONDS)).isTrue();
 
 		LockRegistryLeaderInitiator initiator1 = countingPublisher.initiator;
 
@@ -87,10 +85,10 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 			}
 		}
 
-		assertNotNull(initiator2);
+		assertThat(initiator2).isNotNull();
 
-		assertThat(initiator1.getContext().isLeader(), is(true));
-		assertThat(initiator2.getContext().isLeader(), is(false));
+		assertThat(initiator1.getContext().isLeader()).isTrue();
+		assertThat(initiator2.getContext().isLeader()).isFalse();
 
 		final CountDownLatch granted1 = new CountDownLatch(1);
 		final CountDownLatch granted2 = new CountDownLatch(1);
@@ -108,22 +106,22 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked1.await(20, TimeUnit.SECONDS), is(true));
-		assertThat(granted2.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(revoked1.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(granted2.await(20, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(initiator2.getContext().isLeader(), is(true));
-		assertThat(initiator1.getContext().isLeader(), is(false));
+		assertThat(initiator2.getContext().isLeader()).isTrue();
+		assertThat(initiator1.getContext().isLeader()).isFalse();
 
 		initiator1.setBusyWaitMillis(LockRegistryLeaderInitiator.DEFAULT_BUSY_WAIT_TIME);
 		initiator2.setBusyWaitMillis(1000);
 
 		initiator2.getContext().yield();
 
-		assertThat(revoked2.await(20, TimeUnit.SECONDS), is(true));
-		assertThat(granted1.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(revoked2.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(granted1.await(20, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(initiator1.getContext().isLeader(), is(true));
-		assertThat(initiator2.getContext().isLeader(), is(false));
+		assertThat(initiator1.getContext().isLeader()).isTrue();
+		assertThat(initiator2.getContext().isLeader()).isFalse();
 
 		initiator2.stop();
 
@@ -133,8 +131,8 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked11.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(initiator1.getContext().isLeader(), is(false));
+		assertThat(revoked11.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(initiator1.getContext().isLeader()).isFalse();
 
 		initiator1.stop();
 	}

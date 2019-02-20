@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,8 +54,8 @@ public class FixedSubscriberChannelTests {
 	public void testHappyDay() {
 		this.in.send(new GenericMessage<String>("foo"));
 		Message<?> out = this.out.receive(0);
-		assertEquals("FOO", out.getPayload());
-		assertThat(this.in, instanceOf(FixedSubscriberChannel.class));
+		assertThat(out.getPayload()).isEqualTo("FOO");
+		assertThat(this.in).isInstanceOf(FixedSubscriberChannel.class);
 	}
 
 	@Test
@@ -70,10 +67,10 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanCreationException.class));
-			assertThat(e.getCause(), instanceOf(BeanInstantiationException.class));
-			assertThat(e.getCause().getCause(), instanceOf(IllegalArgumentException.class));
-			assertThat(e.getCause().getCause().getMessage(), Matchers.containsString("Cannot instantiate a"));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause()).isInstanceOf(BeanInstantiationException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause().getCause().getMessage()).contains("Cannot instantiate a");
 		}
 		if (context != null) {
 			context.close();
@@ -89,8 +86,8 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a FixedSubscriberChannel."));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage()).contains("Only one subscriber is allowed for a FixedSubscriberChannel.");
 		}
 		if (context != null) {
 			context.close();
@@ -106,8 +103,8 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Only one subscriber is allowed for a FixedSubscriberChannel."));
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("Only one subscriber is allowed for a FixedSubscriberChannel.");
 		}
 		if (context != null) {
 			context.close();
@@ -123,8 +120,8 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Cannot have interceptors when 'fixed-subscriber=\"true\"'"));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage()).contains("Cannot have interceptors when 'fixed-subscriber=\"true\"'");
 		}
 		if (context != null) {
 			context.close();
@@ -140,8 +137,8 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'"));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage()).contains("Cannot have 'datatype' when 'fixed-subscriber=\"true\"'");
 		}
 		if (context != null) {
 			context.close();
@@ -157,8 +154,8 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'"));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage()).contains("Cannot have 'message-converter' when 'fixed-subscriber=\"true\"'");
 		}
 		if (context != null) {
 			context.close();
@@ -174,8 +171,9 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present."));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage())
+					.contains("The 'fixed-subscriber' attribute is not allowed when a <queue/> child element is present.");
 		}
 		if (context != null) {
 			context.close();
@@ -191,8 +189,9 @@ public class FixedSubscriberChannelTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanDefinitionParsingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present."));
+			assertThat(e).isInstanceOf(BeanDefinitionParsingException.class);
+			assertThat(e.getMessage())
+					.contains("The 'fixed-subscriber' attribute is not allowed when a <dispatcher/> child element is present.");
 		}
 		if (context != null) {
 			context.close();

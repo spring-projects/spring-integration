@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.amqp.channel;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
@@ -34,9 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.AmqpTemplate;
@@ -79,9 +72,6 @@ public class ChannelTests {
 	@ClassRule
 	public static final BrokerRunning brokerIsRunning =
 			BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP", "testConvertFail");
-
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
 
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
@@ -136,8 +126,8 @@ public class ChannelTests {
 		this.pubSubWithEP.destroy();
 		this.withEP.destroy();
 		this.pollableWithEP.destroy();
-		assertEquals(0,
-				TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class).size());
+		assertThat(TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class)
+				.size()).isEqualTo(0);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -147,7 +137,8 @@ public class ChannelTests {
 		final Object consumersMonitor = TestUtils.getPropertyValue(channel, "container.consumersMonitor");
 		int n = 0;
 		while (n++ < 100) {
-			Set<BlockingQueueConsumer> consumers = TestUtils.getPropertyValue(channel, "container.consumers", Set.class);
+			Set<BlockingQueueConsumer> consumers = TestUtils
+					.getPropertyValue(channel, "container.consumers", Set.class);
 			synchronized (consumersMonitor) {
 				if (!consumers.isEmpty()) {
 					BlockingQueueConsumer newConsumer = consumers.iterator().next();
@@ -158,7 +149,7 @@ public class ChannelTests {
 			}
 			Thread.sleep(100);
 		}
-		assertTrue("Failed to restart consumer", n < 100);
+		assertThat(n < 100).as("Failed to restart consumer").isTrue();
 	}
 
 	/*
@@ -177,21 +168,21 @@ public class ChannelTests {
 		channel.afterPropertiesSet();
 		channel.onCreate(null);
 
-		assertNotNull(admin.getQueueProperties("implicit"));
+		assertThat(admin.getQueueProperties("implicit")).isNotNull();
 
 		admin.deleteQueue("explicit");
 		channel.setQueueName("explicit");
 		channel.afterPropertiesSet();
 		channel.onCreate(null);
 
-		assertNotNull(admin.getQueueProperties("explicit"));
+		assertThat(admin.getQueueProperties("explicit")).isNotNull();
 
 		admin.deleteQueue("explicit");
 		admin.declareQueue(new Queue("explicit", false)); // verify no declaration if exists with non-standard props
 		channel.afterPropertiesSet();
 		channel.onCreate(null);
 
-		assertNotNull(admin.getQueueProperties("explicit"));
+		assertThat(admin.getQueueProperties("explicit")).isNotNull();
 		admin.deleteQueue("explicit");
 	}
 
@@ -203,7 +194,7 @@ public class ChannelTests {
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.afterPropertiesSet();
 		AbstractAmqpChannel channel = channelFactoryBean.getObject();
-		assertThat(channel, instanceOf(PointToPointSubscribableAmqpChannel.class));
+		assertThat(channel).isInstanceOf(PointToPointSubscribableAmqpChannel.class);
 
 		channelFactoryBean = new AmqpChannelFactoryBean();
 		channelFactoryBean.setBeanFactory(mock(BeanFactory.class));
@@ -212,7 +203,7 @@ public class ChannelTests {
 		channelFactoryBean.setPubSub(true);
 		channelFactoryBean.afterPropertiesSet();
 		channel = channelFactoryBean.getObject();
-		assertThat(channel, instanceOf(PublishSubscribeAmqpChannel.class));
+		assertThat(channel).isInstanceOf(PublishSubscribeAmqpChannel.class);
 
 		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.connectionFactory);
 		rabbitAdmin.deleteQueue("testChannel");
@@ -225,24 +216,24 @@ public class ChannelTests {
 		Message<?> message = MessageBuilder.withPayload(foo).setHeader("baz", "qux").build();
 		this.pollableWithEP.send(message);
 		Message<?> received = this.pollableWithEP.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), equalTo(foo));
-		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo(foo);
+		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
 
 		this.withEP.send(message);
 		received = this.out.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), equalTo(foo));
-		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo(foo);
+		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
 
 		this.pubSubWithEP.send(message);
 		received = this.out.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), equalTo(foo));
-		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo(foo);
+		assertThat(received.getHeaders().get("baz")).isEqualTo("qux");
 
-		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"));
-		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper"));
+		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper")).isSameAs(this.mapperIn);
+		assertThat(TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper")).isSameAs(this.mapperOut);
 	}
 
 	@Test
@@ -257,9 +248,9 @@ public class ChannelTests {
 				MessageListener.class);
 		willThrow(new MessageConversionException("foo", new IllegalStateException("bar")))
 				.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
-		this.exception.expect(MessageConversionException.class);
-		this.exception.expectCause(instanceOf(IllegalStateException.class));
-		listener.onMessage(mock(org.springframework.amqp.core.Message.class));
+		assertThatThrownBy(() -> listener.onMessage(mock(org.springframework.amqp.core.Message.class)))
+				.isInstanceOf(MessageConversionException.class)
+				.hasCauseInstanceOf(IllegalStateException.class);
 	}
 
 	public static class Foo {

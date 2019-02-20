@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -81,13 +79,13 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	}
 
 	@Test
-	public void testGetNonExistentMessageFromGroup() throws Exception {
+	public void testGetNonExistentMessageFromGroup() {
 		Message<?> result = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
-	public void testAddAndGet() throws Exception {
+	public void testAddAndGet() {
 		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny")
 				.setHeader("homeTown", "Southpark")
 				.build();
@@ -107,8 +105,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 
-		assertNotNull(messageFromDb);
-		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
+		assertThat(messageFromDb).isNotNull();
+		assertThat(messageFromDb.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test
@@ -129,8 +127,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 			}
 		});
 		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
-		assertNotNull(messageFromDb);
-		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
+		assertThat(messageFromDb).isNotNull();
+		assertThat(messageFromDb.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
 	}
 
 	private ChannelMessageStorePreparedStatementSetter getMessageGroupPreparedStatementSetter() {

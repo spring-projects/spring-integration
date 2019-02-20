@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.file.remote;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -26,12 +28,10 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.InputStream;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -43,6 +43,8 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.1.7
  *
  */
@@ -61,7 +63,7 @@ public class RemoteFileTemplateTests {
 	@Before
 	public void setUp() throws Exception {
 		SessionFactory<Object> sessionFactory = mock(SessionFactory.class);
-		this.template = new RemoteFileTemplate<Object>(sessionFactory);
+		this.template = new RemoteFileTemplate<>(sessionFactory);
 		this.template.setRemoteDirectoryExpression(new LiteralExpression("/foo"));
 		this.template.setBeanFactory(mock(BeanFactory.class));
 		this.template.afterPropertiesSet();
@@ -72,49 +74,49 @@ public class RemoteFileTemplateTests {
 
 	@Test
 	public void testReplace() throws Exception {
-		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.REPLACE);
-		verify(this.session).write(Mockito.any(InputStream.class), Mockito.anyString());
+		this.template.send(new GenericMessage<>(this.file), FileExistsMode.REPLACE);
+		verify(this.session).write(any(InputStream.class), anyString());
 	}
 
 	@Test
 	public void testAppend() throws Exception {
 		this.template.setUseTemporaryFileName(false);
-		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.APPEND);
-		verify(this.session).append(Mockito.any(InputStream.class), Mockito.anyString());
+		this.template.send(new GenericMessage<>(this.file), FileExistsMode.APPEND);
+		verify(this.session).append(any(InputStream.class), anyString());
 	}
 
 	@Test
 	public void testFailExists() throws Exception {
-		when(session.exists(Mockito.anyString())).thenReturn(true);
+		when(session.exists(anyString())).thenReturn(true);
 		try {
-			this.template.send(new GenericMessage<File>(this.file), FileExistsMode.FAIL);
+			this.template.send(new GenericMessage<>(this.file), FileExistsMode.FAIL);
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(), Matchers.containsString("The destination file already exists"));
+			assertThat(e.getMessage()).contains("The destination file already exists");
 		}
-		verify(this.session, never()).write(Mockito.any(InputStream.class), Mockito.anyString());
+		verify(this.session, never()).write(any(InputStream.class), anyString());
 	}
 
 	@Test
 	public void testIgnoreExists() throws Exception {
-		when(session.exists(Mockito.anyString())).thenReturn(true);
-		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.IGNORE);
-		verify(this.session, never()).write(Mockito.any(InputStream.class), Mockito.anyString());
+		when(session.exists(anyString())).thenReturn(true);
+		this.template.send(new GenericMessage<>(this.file), FileExistsMode.IGNORE);
+		verify(this.session, never()).write(any(InputStream.class), anyString());
 	}
 
 	@Test
 	public void testFailNotExists() throws Exception {
-		when(session.exists(Mockito.anyString())).thenReturn(false);
-		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.FAIL);
-		verify(this.session).write(Mockito.any(InputStream.class), Mockito.anyString());
+		when(session.exists(anyString())).thenReturn(false);
+		this.template.send(new GenericMessage<>(this.file), FileExistsMode.FAIL);
+		verify(this.session).write(any(InputStream.class), anyString());
 	}
 
 	@Test
 	public void testIgnoreNotExists() throws Exception {
-		when(session.exists(Mockito.anyString())).thenReturn(false);
-		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.IGNORE);
-		verify(this.session).write(Mockito.any(InputStream.class), Mockito.anyString());
+		when(session.exists(anyString())).thenReturn(false);
+		this.template.send(new GenericMessage<>(this.file), FileExistsMode.IGNORE);
+		verify(this.session).write(any(InputStream.class), anyString());
 	}
 
 }

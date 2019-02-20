@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.stream.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -85,12 +84,12 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stdoutAdapterWithDefaultCharset() throws IOException {
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
-		assertEquals(OutputStreamWriter.class, writer.getClass());
+		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertEquals(Charset.defaultCharset(), writerCharset);
+		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
-		assertEquals(System.out, lock);
+		assertThat(lock).isEqualTo(System.out);
 
 		bufferedWriter = Mockito.spy(bufferedWriter);
 
@@ -100,19 +99,19 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		this.stdoutAdapterWithDefaultCharsetHandler.handleMessage(new GenericMessage<String>("foo"));
 
 		verify(bufferedWriter, times(1)).write(eq("foo"));
-		assertEquals(23, TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order"));
+		assertThat(TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order")).isEqualTo(23);
 	}
 
 	@Test
 	public void stdoutAdapterWithProvidedCharset() throws IOException {
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
-		assertEquals(OutputStreamWriter.class, writer.getClass());
+		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertEquals(Charset.forName("UTF-8"), writerCharset);
+		assertThat(writerCharset).isEqualTo(Charset.forName("UTF-8"));
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
-		assertEquals(System.out, lock);
+		assertThat(lock).isEqualTo(System.out);
 
 		bufferedWriter = Mockito.spy(bufferedWriter);
 
@@ -135,19 +134,19 @@ public class ConsoleOutboundChannelAdapterParserTests {
 			beanCreationException = e;
 		}
 		Throwable rootCause = beanCreationException.getRootCause();
-		assertEquals(UnsupportedEncodingException.class, rootCause.getClass());
+		assertThat(rootCause.getClass()).isEqualTo(UnsupportedEncodingException.class);
 	}
 
 	@Test
 	public void stderrAdapter() throws IOException {
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stderrAdapterHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
-		assertEquals(OutputStreamWriter.class, writer.getClass());
+		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertEquals(Charset.defaultCharset(), writerCharset);
+		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
-		assertEquals(System.err, lock);
+		assertThat(lock).isEqualTo(System.err);
 
 		bufferedWriter = Mockito.spy(bufferedWriter);
 
@@ -159,19 +158,19 @@ public class ConsoleOutboundChannelAdapterParserTests {
 
 		verify(bufferedWriter, times(1)).write(eq("bar"));
 
-		assertEquals(34, TestUtils.getPropertyValue(this.stderrAdapterHandler, "order"));
+		assertThat(TestUtils.getPropertyValue(this.stderrAdapterHandler, "order")).isEqualTo(34);
 	}
 
 	@Test
 	public void stdoutAdatperWithAppendNewLine() throws IOException {
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
-		assertEquals(OutputStreamWriter.class, writer.getClass());
+		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertEquals(Charset.defaultCharset(), writerCharset);
+		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
-		assertEquals(System.out, lock);
+		assertThat(lock).isEqualTo(System.out);
 
 		bufferedWriter = Mockito.spy(bufferedWriter);
 
@@ -188,22 +187,22 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	@Test //INT-2275
 	public void stdoutInsideNestedChain() throws IOException {
 		List<?> handlers = TestUtils.getPropertyValue(this.stdoutChainHandler, "handlers", List.class);
-		assertEquals(2, handlers.size());
+		assertThat(handlers.size()).isEqualTo(2);
 		Object chainHandler = handlers.get(1);
-		assertTrue(chainHandler instanceof MessageHandlerChain);
+		assertThat(chainHandler instanceof MessageHandlerChain).isTrue();
 		List<?> nestedChainHandlers = TestUtils.getPropertyValue(chainHandler, "handlers", List.class);
-		assertEquals(1, nestedChainHandlers.size());
+		assertThat(nestedChainHandlers.size()).isEqualTo(1);
 		Object stdoutHandler = nestedChainHandlers.get(0);
-		assertTrue(stdoutHandler instanceof CharacterStreamWritingMessageHandler);
+		assertThat(stdoutHandler instanceof CharacterStreamWritingMessageHandler).isTrue();
 
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(stdoutHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
-		assertEquals(OutputStreamWriter.class, writer.getClass());
+		assertThat(writer.getClass()).isEqualTo(OutputStreamWriter.class);
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
-		assertEquals(Charset.defaultCharset(), writerCharset);
+		assertThat(writerCharset).isEqualTo(Charset.defaultCharset());
 
 		Object lock = TestUtils.getPropertyValue(writer, "lock");
-		assertEquals(System.out, lock);
+		assertThat(lock).isEqualTo(System.out);
 
 		bufferedWriter = Mockito.spy(bufferedWriter);
 

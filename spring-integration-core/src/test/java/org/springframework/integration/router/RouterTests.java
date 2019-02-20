@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public class RouterTests {
 		context.refresh();
 		router.handleMessage(new GenericMessage<>("test"));
 		Message<?> reply = testChannel.receive(0);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -164,10 +164,10 @@ public class RouterTests {
 		router.handleMessage(new GenericMessage<>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
-		assertEquals("test", reply1.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("test");
 
 		Message<?> reply2 = testChannel2.receive(0);
-		assertEquals("test", reply2.getPayload());
+		assertThat(reply2.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -212,7 +212,7 @@ public class RouterTests {
 		context.refresh();
 		router.handleMessage(new GenericMessage<>("test"));
 		Message<?> reply = testChannel.receive(0);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -237,7 +237,7 @@ public class RouterTests {
 		context.refresh();
 		router.handleMessage(new GenericMessage<>("test"));
 		Message<?> reply = testChannel.receive(0);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -286,7 +286,7 @@ public class RouterTests {
 		context.refresh();
 		router.handleMessage(new GenericMessage<>("test"));
 		Message<?> reply = testChannel.receive(0);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -347,10 +347,10 @@ public class RouterTests {
 		router.handleMessage(new GenericMessage<>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
-		assertEquals("test", reply1.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("test");
 
 		Message<?> reply2 = testChannel2.receive(0);
-		assertEquals("test", reply2.getPayload());
+		assertThat(reply2.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -388,10 +388,10 @@ public class RouterTests {
 		router.handleMessage(new GenericMessage<>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
-		assertEquals("test", reply1.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("test");
 
 		Message<?> reply2 = testChannel2.receive(0);
-		assertEquals("test", reply2.getPayload());
+		assertThat(reply2.getPayload()).isEqualTo("test");
 
 		context.close();
 	}
@@ -421,10 +421,10 @@ public class RouterTests {
 		router.handleMessage(new GenericMessage<>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
-		assertEquals("test", reply1.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("test");
 
 		Message<?> reply2 = testChannel2.receive(0);
-		assertEquals("test", reply2.getPayload());
+		assertThat(reply2.getPayload()).isEqualTo("test");
 
 		context.close();
 	}

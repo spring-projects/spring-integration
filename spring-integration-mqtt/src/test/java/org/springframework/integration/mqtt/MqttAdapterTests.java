@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -173,15 +166,15 @@ public class MqttAdapterTests {
 		final AtomicBoolean connectCalled = new AtomicBoolean();
 		willAnswer(invocation -> {
 			MqttConnectOptions options = invocation.getArgument(0);
-			assertEquals(23, options.getConnectionTimeout());
-			assertEquals(45, options.getKeepAliveInterval());
-			assertEquals("pass", new String(options.getPassword()));
-			assertSame(socketFactory, options.getSocketFactory());
-			assertSame(props, options.getSSLProperties());
-			assertEquals("user", options.getUserName());
-			assertEquals("foo", options.getWillDestination());
-			assertEquals("bar", new String(options.getWillMessage().getPayload()));
-			assertEquals(2, options.getWillMessage().getQos());
+			assertThat(options.getConnectionTimeout()).isEqualTo(23);
+			assertThat(options.getKeepAliveInterval()).isEqualTo(45);
+			assertThat(new String(options.getPassword())).isEqualTo("pass");
+			assertThat(options.getSocketFactory()).isSameAs(socketFactory);
+			assertThat(options.getSSLProperties()).isSameAs(props);
+			assertThat(options.getUserName()).isEqualTo("user");
+			assertThat(options.getWillDestination()).isEqualTo("foo");
+			assertThat(new String(options.getWillMessage().getPayload())).isEqualTo("bar");
+			assertThat(options.getWillMessage().getQos()).isEqualTo(2);
 			connectCalled.set(true);
 			return token;
 		}).given(client).connect(any(MqttConnectOptions.class));
@@ -190,9 +183,9 @@ public class MqttAdapterTests {
 		final MqttDeliveryToken deliveryToken = mock(MqttDeliveryToken.class);
 		final AtomicBoolean publishCalled = new AtomicBoolean();
 		willAnswer(invocation -> {
-			assertEquals("mqtt-foo", invocation.getArguments()[0]);
+			assertThat(invocation.getArguments()[0]).isEqualTo("mqtt-foo");
 			MqttMessage message = invocation.getArgument(1);
-			assertEquals("Hello, world!", new String(message.getPayload()));
+			assertThat(new String(message.getPayload())).isEqualTo("Hello, world!");
 			publishCalled.set(true);
 			return deliveryToken;
 		}).given(client).publish(anyString(), any(MqttMessage.class));
@@ -200,7 +193,7 @@ public class MqttAdapterTests {
 		handler.handleMessage(new GenericMessage<String>("Hello, world!"));
 
 		verify(client, times(1)).connect(any(MqttConnectOptions.class));
-		assertTrue(connectCalled.get());
+		assertThat(connectCalled.get()).isTrue();
 	}
 
 	@Test
@@ -238,15 +231,15 @@ public class MqttAdapterTests {
 				throw reconnectException;
 			}
 			MqttConnectOptions options = invocation.getArgument(0);
-			assertEquals(23, options.getConnectionTimeout());
-			assertEquals(45, options.getKeepAliveInterval());
-			assertEquals("pass", new String(options.getPassword()));
-			assertSame(socketFactory, options.getSocketFactory());
-			assertSame(props, options.getSSLProperties());
-			assertEquals("user", options.getUserName());
-			assertEquals("foo", options.getWillDestination());
-			assertEquals("bar", new String(options.getWillMessage().getPayload()));
-			assertEquals(2, options.getWillMessage().getQos());
+			assertThat(options.getConnectionTimeout()).isEqualTo(23);
+			assertThat(options.getKeepAliveInterval()).isEqualTo(45);
+			assertThat(new String(options.getPassword())).isEqualTo("pass");
+			assertThat(options.getSocketFactory()).isSameAs(socketFactory);
+			assertThat(options.getSSLProperties()).isSameAs(props);
+			assertThat(options.getUserName()).isEqualTo("user");
+			assertThat(options.getWillDestination()).isEqualTo("foo");
+			assertThat(new String(options.getWillMessage().getPayload())).isEqualTo("bar");
+			assertThat(options.getWillMessage().getQos()).isEqualTo(2);
 			connectCalled.set(true);
 			goodConnection.countDown();
 			return null;
@@ -280,17 +273,17 @@ public class MqttAdapterTests {
 		adapter.start();
 
 		verify(client, times(1)).connect(any(MqttConnectOptions.class));
-		assertTrue(connectCalled.get());
+		assertThat(connectCalled.get()).isTrue();
 
 		MqttMessage message = new MqttMessage("qux".getBytes());
 		callback.get().messageArrived("baz", message);
 		Message<?> outMessage = outputChannel.receive(0);
-		assertNotNull(outMessage);
-		assertEquals("qux", outMessage.getPayload());
+		assertThat(outMessage).isNotNull();
+		assertThat(outMessage.getPayload()).isEqualTo("qux");
 
 		MqttIntegrationEvent event = events.poll(10, TimeUnit.SECONDS);
-		assertThat(event, instanceOf(MqttSubscribedEvent.class));
-		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+		assertThat(event).isInstanceOf(MqttSubscribedEvent.class);
+		assertThat(((MqttSubscribedEvent) event).getMessage()).isEqualTo("Connected and subscribed to [baz, fix]");
 
 		// lose connection and make first reconnect fail
 		failConnection.set(true);
@@ -298,24 +291,24 @@ public class MqttAdapterTests {
 		adapter.connectionLost(e);
 
 		event = events.poll(10, TimeUnit.SECONDS);
-		assertThat(event, instanceOf(MqttConnectionFailedEvent.class));
-		assertSame(event.getCause(), e);
+		assertThat(event).isInstanceOf(MqttConnectionFailedEvent.class);
+		assertThat(e).isSameAs(event.getCause());
 
-		assertTrue(failInProcess.await(10, TimeUnit.SECONDS));
+		assertThat(failInProcess.await(10, TimeUnit.SECONDS)).isTrue();
 		waitToFail.countDown();
 		failConnection.set(false);
 		event = events.poll(10, TimeUnit.SECONDS);
-		assertThat(event, instanceOf(MqttConnectionFailedEvent.class));
-		assertSame(event.getCause(), reconnectException);
+		assertThat(event).isInstanceOf(MqttConnectionFailedEvent.class);
+		assertThat(reconnectException).isSameAs(event.getCause());
 
 		// reconnect can now succeed; however, we might have other failures on a slow server (500ms retry).
-		assertTrue(goodConnection.await(10, TimeUnit.SECONDS));
+		assertThat(goodConnection.await(10, TimeUnit.SECONDS)).isTrue();
 		int n = 0;
 		while (!(event instanceof MqttSubscribedEvent) && n++ < 20) {
 			event = events.poll(10, TimeUnit.SECONDS);
 		}
-		assertThat(event, instanceOf(MqttSubscribedEvent.class));
-		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+		assertThat(event).isInstanceOf(MqttSubscribedEvent.class);
+		assertThat(((MqttSubscribedEvent) event).getMessage()).isEqualTo("Connected and subscribed to [baz, fix]");
 		taskScheduler.destroy();
 	}
 
@@ -373,22 +366,18 @@ public class MqttAdapterTests {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
 		MqttPahoMessageHandler handler = ctx.getBean("handler", MqttPahoMessageHandler.class);
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertEquals("fooTopic",
-				TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class).processMessage(message));
-		assertEquals(1,
-				TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
-						.processMessage(message));
-		assertEquals(Boolean.TRUE,
-				TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
-						.processMessage(message));
+		assertThat(TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo("fooTopic");
+		assertThat(TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo(Boolean.TRUE);
 
 		handler = ctx.getBean("handlerWithNullExpressions", MqttPahoMessageHandler.class);
-		assertEquals(1,
-				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
-						.fromMessage(message, null).getQos());
-		assertEquals(Boolean.TRUE,
-				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
-						.fromMessage(message, null).isRetained());
+		assertThat(TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+				.fromMessage(message, null).getQos()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+				.fromMessage(message, null).isRetained()).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
 
@@ -416,7 +405,7 @@ public class MqttAdapterTests {
 		verify(client).close();
 		Thread.sleep(1000);
 		// the following assertion should be equalTo, but leq to protect against a slow CI server
-		assertThat(attemptingReconnectCount.get(), lessThanOrEqualTo(2));
+		assertThat(attemptingReconnectCount.get()).isLessThanOrEqualTo(2);
 		adapter.stop();
 		taskScheduler.destroy();
 	}
@@ -459,15 +448,15 @@ public class MqttAdapterTests {
 			m.setAccessible(true);
 			method.set(m);
 		}, m -> m.getName().equals("connectAndSubscribe"));
-		assertNotNull(method.get());
+		assertThat(method.get()).isNotNull();
 		try {
 			method.get().invoke(adapter);
 			fail("Expected InvocationTargetException");
 		}
 		catch (InvocationTargetException e) {
-			assertThat(e.getCause(), instanceOf(MqttException.class));
-			assertThat(((MqttException) e.getCause()).getReasonCode(),
-					equalTo((int) MqttException.REASON_CODE_SUBSCRIBE_FAILED));
+			assertThat(e.getCause()).isInstanceOf(MqttException.class);
+			assertThat(((MqttException) e.getCause()).getReasonCode())
+					.isEqualTo((int) MqttException.REASON_CODE_SUBSCRIBE_FAILED);
 		}
 	}
 
@@ -509,7 +498,7 @@ public class MqttAdapterTests {
 			m.setAccessible(true);
 			method.set(m);
 		}, m -> m.getName().equals("connectAndSubscribe"));
-		assertNotNull(method.get());
+		assertThat(method.get()).isNotNull();
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		given(logger.isWarnEnabled()).willReturn(true);

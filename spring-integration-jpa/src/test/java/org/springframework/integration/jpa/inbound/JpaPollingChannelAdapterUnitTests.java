@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jpa.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +40,7 @@ public class JpaPollingChannelAdapterUnitTests {
 		when(jpaExecutor.poll()).thenReturn(null);
 
 		JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
-		assertNull(jpaPollingChannelAdapter.receive());
+		assertThat(jpaPollingChannelAdapter.receive()).isNull();
 	}
 
 	@Test
@@ -52,8 +50,8 @@ public class JpaPollingChannelAdapterUnitTests {
 		when(jpaExecutor.poll()).thenReturn("Spring");
 
 		JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
-		assertNotNull("Expecting a Message to be returned.", jpaPollingChannelAdapter.receive());
-		assertEquals("Spring", jpaPollingChannelAdapter.receive().getPayload());
+		assertThat(jpaPollingChannelAdapter.receive()).as("Expecting a Message to be returned.").isNotNull();
+		assertThat(jpaPollingChannelAdapter.receive().getPayload()).isEqualTo("Spring");
 	}
 
 	@Test
@@ -61,7 +59,7 @@ public class JpaPollingChannelAdapterUnitTests {
 		JpaExecutor jpaExecutor = mock(JpaExecutor.class);
 
 		JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
-		assertEquals("jpa:inbound-channel-adapter", jpaPollingChannelAdapter.getComponentType());
+		assertThat(jpaPollingChannelAdapter.getComponentType()).isEqualTo("jpa:inbound-channel-adapter");
 	}
 
 }

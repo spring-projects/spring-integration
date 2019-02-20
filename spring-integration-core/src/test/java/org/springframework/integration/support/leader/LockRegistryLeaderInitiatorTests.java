@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors.
+ * Copyright 2012-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.support.leader;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -80,27 +76,27 @@ public class LockRegistryLeaderInitiatorTests {
 
 	@Test
 	public void startAndStop() throws Exception {
-		assertThat(this.initiator.getContext().isLeader(), is(false));
+		assertThat(this.initiator.getContext().isLeader()).isFalse();
 		this.initiator.start();
-		assertThat(this.initiator.isRunning(), is(true));
-		assertTrue(this.granted.await(10, TimeUnit.SECONDS));
-		assertThat(this.initiator.getContext().isLeader(), is(true));
+		assertThat(this.initiator.isRunning()).isTrue();
+		assertThat(this.granted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.initiator.getContext().isLeader()).isTrue();
 		Thread.sleep(200L);
-		assertThat(this.initiator.getContext().isLeader(), is(true));
+		assertThat(this.initiator.getContext().isLeader()).isTrue();
 		this.initiator.stop();
-		assertTrue(this.revoked.await(10, TimeUnit.SECONDS));
-		assertThat(this.initiator.getContext().isLeader(), is(false));
+		assertThat(this.revoked.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.initiator.getContext().isLeader()).isFalse();
 	}
 
 	@Test
 	public void yield() throws Exception {
-		assertThat(this.initiator.getContext().isLeader(), is(false));
+		assertThat(this.initiator.getContext().isLeader()).isFalse();
 		this.initiator.start();
-		assertThat(this.initiator.isRunning(), is(true));
-		assertTrue(this.granted.await(10, TimeUnit.SECONDS));
-		assertThat(this.initiator.getContext().isLeader(), is(true));
+		assertThat(this.initiator.isRunning()).isTrue();
+		assertThat(this.granted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.initiator.getContext().isLeader()).isTrue();
 		this.initiator.getContext().yield();
-		assertThat(this.revoked.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(this.revoked.await(10, TimeUnit.SECONDS)).isTrue();
 		this.initiator.stop();
 	}
 
@@ -112,11 +108,11 @@ public class LockRegistryLeaderInitiatorTests {
 		CountDownLatch other = new CountDownLatch(1);
 		another.setLeaderEventPublisher(new CountingPublisher(other));
 		this.initiator.start();
-		assertThat(this.granted.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(this.granted.await(20, TimeUnit.SECONDS)).isTrue();
 		another.start();
 		this.initiator.stop();
-		assertThat(other.await(20, TimeUnit.SECONDS), is(true));
-		assertThat(another.getContext().isLeader(), is(true));
+		assertThat(other.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(another.getContext().isLeader()).isTrue();
 		another.stop();
 	}
 
@@ -130,12 +126,12 @@ public class LockRegistryLeaderInitiatorTests {
 		another.setLeaderEventPublisher(new CountingPublisher(other, new CountDownLatch(1), failedAcquireLatch));
 		another.setPublishFailedEvents(true);
 		this.initiator.start();
-		assertThat(this.granted.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(this.granted.await(20, TimeUnit.SECONDS)).isTrue();
 		another.start();
-		assertThat(failedAcquireLatch.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(failedAcquireLatch.await(20, TimeUnit.SECONDS)).isTrue();
 		this.initiator.stop();
-		assertThat(other.await(20, TimeUnit.SECONDS), is(true));
-		assertThat(another.getContext().isLeader(), is(true));
+		assertThat(other.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(another.getContext().isLeader()).isTrue();
 		another.stop();
 	}
 
@@ -159,8 +155,8 @@ public class LockRegistryLeaderInitiatorTests {
 
 		this.initiator.start();
 
-		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
-		assertTrue(initiator.getContext().isLeader());
+		assertThat(onGranted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(initiator.getContext().isLeader()).isTrue();
 
 		this.initiator.stop();
 	}
@@ -209,18 +205,18 @@ public class LockRegistryLeaderInitiatorTests {
 		second.start();
 
 		// first initiator should lead and publish granted event
-		assertThat(firstGranted.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(first.getContext().isLeader(), is(true));
-		assertThat(second.getContext().isLeader(), is(false));
+		assertThat(firstGranted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(first.getContext().isLeader()).isTrue();
+		assertThat(second.getContext().isLeader()).isFalse();
 
 		// simulate first registry instance unable to obtain lock, for example due to lock timeout
 		firstLocked.set(false);
 
 		// second initiator should take lead and publish granted event, first initiator should publish revoked event
-		assertThat(secondGranted.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(firstRevoked.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(second.getContext().isLeader(), is(true));
-		assertThat(first.getContext().isLeader(), is(false));
+		assertThat(secondGranted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(firstRevoked.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(second.getContext().isLeader()).isTrue();
+		assertThat(first.getContext().isLeader()).isFalse();
 
 		first.stop();
 		second.stop();
@@ -266,7 +262,7 @@ public class LockRegistryLeaderInitiatorTests {
 		another.start();
 
 		Throwable throwable = throwableAtomicReference.get();
-		assertNull(throwable);
+		assertThat(throwable).isNull();
 	}
 
 	@Test
@@ -294,9 +290,9 @@ public class LockRegistryLeaderInitiatorTests {
 
 		another.start();
 
-		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
-		assertTrue(another.getContext().isLeader());
-		assertTrue(exceptionThrown.get());
+		assertThat(onGranted.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(another.getContext().isLeader()).isTrue();
+		assertThat(exceptionThrown.get()).isTrue();
 
 		another.stop();
 	}
@@ -309,7 +305,7 @@ public class LockRegistryLeaderInitiatorTests {
 		ExecutorService executorService =
 				TestUtils.getPropertyValue(this.initiator, "executorService", ExecutorService.class);
 
-		assertTrue(executorService.isShutdown());
+		assertThat(executorService.isShutdown()).isTrue();
 	}
 
 	@Test
@@ -321,7 +317,7 @@ public class LockRegistryLeaderInitiatorTests {
 		another.start();
 		another.destroy();
 
-		assertFalse(executorService.isShutdown());
+		assertThat(executorService.isShutdown()).isFalse();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {

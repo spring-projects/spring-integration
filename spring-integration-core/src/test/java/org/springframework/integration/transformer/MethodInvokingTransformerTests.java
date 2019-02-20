@@ -16,8 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -48,7 +47,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>("foo");
 		Message<?> result = transformer.transform(message);
-		assertEquals("FOO!", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("FOO!");
 	}
 
 	@Test
@@ -58,7 +57,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
-		assertEquals("FOO!", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("FOO!");
 	}
 
 	@Test
@@ -69,7 +68,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
-		assertEquals("123!", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("123!");
 	}
 
 	@Test
@@ -79,7 +78,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>(123);
 		Message<?> result = transformer.transform(message);
-		assertEquals("123!", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("123!");
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -108,7 +107,7 @@ public class MethodInvokingTransformerTests {
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("foo123", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo123");
 	}
 
 	@Test
@@ -119,7 +118,7 @@ public class MethodInvokingTransformerTests {
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("foo123", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo123");
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -140,7 +139,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 99).build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("foo99", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo99");
 	}
 
 	@Test
@@ -151,7 +150,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("foonull", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foonull");
 	}
 
 	@Test
@@ -162,7 +161,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -172,7 +171,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -187,14 +186,14 @@ public class MethodInvokingTransformerTests {
 		props.setProperty("prop3", "baz");
 		Message<Properties> message = new GenericMessage<>(props);
 		Message<Properties> result = (Message<Properties>) transformer.transform(message);
-		assertEquals(Properties.class, result.getPayload().getClass());
+		assertThat(result.getPayload().getClass()).isEqualTo(Properties.class);
 		Properties payload = result.getPayload();
-		assertEquals("foo", payload.getProperty("prop1"));
-		assertEquals("bar", payload.getProperty("prop2"));
-		assertEquals("baz", payload.getProperty("prop3"));
-		assertNull(result.getHeaders().get("prop1"));
-		assertNull(result.getHeaders().get("prop2"));
-		assertNull(result.getHeaders().get("prop3"));
+		assertThat(payload.getProperty("prop1")).isEqualTo("foo");
+		assertThat(payload.getProperty("prop2")).isEqualTo("bar");
+		assertThat(payload.getProperty("prop3")).isEqualTo("baz");
+		assertThat(result.getHeaders().get("prop1")).isNull();
+		assertThat(result.getHeaders().get("prop2")).isNull();
+		assertThat(result.getHeaders().get("prop3")).isNull();
 	}
 
 	@Test
@@ -208,14 +207,14 @@ public class MethodInvokingTransformerTests {
 		props.setProperty("prop3", "baz");
 		Message<Properties> message = new GenericMessage<>(props);
 		Message<Properties> result = (Message<Properties>) transformer.transform(message);
-		assertEquals(Properties.class, result.getPayload().getClass());
+		assertThat(result.getPayload().getClass()).isEqualTo(Properties.class);
 		Properties payload = result.getPayload();
-		assertEquals("foo", payload.getProperty("prop1"));
-		assertEquals("bar", payload.getProperty("prop2"));
-		assertEquals("baz", payload.getProperty("prop3"));
-		assertNull(result.getHeaders().get("prop1"));
-		assertNull(result.getHeaders().get("prop2"));
-		assertNull(result.getHeaders().get("prop3"));
+		assertThat(payload.getProperty("prop1")).isEqualTo("foo");
+		assertThat(payload.getProperty("prop2")).isEqualTo("bar");
+		assertThat(payload.getProperty("prop3")).isEqualTo("baz");
+		assertThat(result.getHeaders().get("prop1")).isNull();
+		assertThat(result.getHeaders().get("prop2")).isNull();
+		assertThat(result.getHeaders().get("prop3")).isNull();
 	}
 
 	@Test
@@ -225,7 +224,7 @@ public class MethodInvokingTransformerTests {
 		transformer.setBeanFactory(mock(BeanFactory.class));
 		GenericMessage<String> message = new GenericMessage<>("test");
 		Message<?> result = transformer.transform(message);
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -242,10 +241,10 @@ public class MethodInvokingTransformerTests {
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
-		assertEquals("foo", result.getHeaders().get("prop1"));
-		assertEquals("bar", result.getHeaders().get("prop2"));
-		assertEquals("baz", result.getHeaders().get("prop3"));
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("prop1")).isEqualTo("foo");
+		assertThat(result.getHeaders().get("prop2")).isEqualTo("bar");
+		assertThat(result.getHeaders().get("prop3")).isEqualTo("baz");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -262,10 +261,10 @@ public class MethodInvokingTransformerTests {
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
-		assertEquals("foo", result.getHeaders().get("prop1"));
-		assertEquals("bar", result.getHeaders().get("prop2"));
-		assertEquals("baz", result.getHeaders().get("prop3"));
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("prop1")).isEqualTo("foo");
+		assertThat(result.getHeaders().get("prop2")).isEqualTo("bar");
+		assertThat(result.getHeaders().get("prop3")).isEqualTo("baz");
 	}
 
 

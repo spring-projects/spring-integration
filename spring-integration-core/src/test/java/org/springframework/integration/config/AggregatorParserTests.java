@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,14 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -92,14 +82,15 @@ public class AggregatorParserTests {
 
 		outboundMessages.forEach(input::send);
 
-		assertEquals("One and only one message must have been aggregated", 1,
-				aggregatorBean.getAggregatedMessages().size());
+		assertThat(aggregatorBean.getAggregatedMessages().size())
+				.as("One and only one message must have been aggregated").isEqualTo(1);
 		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
-		assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage.getPayload());
+		assertThat(aggregatedMessage.getPayload()).as("The aggregated message payload is not correct")
+				.isEqualTo("123456789");
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReference.handler");
-		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
-		assertTrue(TestUtils.getPropertyValue(handler, "releaseLockBeforeSend", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory")).isSameAs(mbf);
+		assertThat(TestUtils.getPropertyValue(handler, "releaseLockBeforeSend", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -114,10 +105,10 @@ public class AggregatorParserTests {
 
 		outboundMessages.forEach(input::send);
 
-		assertEquals(3, output.getQueueSize());
+		assertThat(output.getQueueSize()).isEqualTo(3);
 		output.purge(null);
-		assertFalse(TestUtils.getPropertyValue(context.getBean("aggregatorWithMGPReference.handler"),
-				"releaseLockBeforeSend", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(context.getBean("aggregatorWithMGPReference.handler"),
+				"releaseLockBeforeSend", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -132,7 +123,7 @@ public class AggregatorParserTests {
 
 		outboundMessages.forEach(input::send);
 
-		assertEquals(3, output.getQueueSize());
+		assertThat(output.getQueueSize()).isEqualTo(3);
 		output.purge(null);
 	}
 
@@ -149,12 +140,12 @@ public class AggregatorParserTests {
 
 		outboundMessages.forEach(input::send);
 
-		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload()
-				.toString());
+		assertThat(aggregatedMessage.get().getPayload()
+				.toString()).as("The aggregated message payload is not correct").isEqualTo("[123]");
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithExpressions.handler");
-		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
-		assertTrue(TestUtils.getPropertyValue(handler, "expireGroupsUponTimeout", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory")).isSameAs(mbf);
+		assertThat(TestUtils.getPropertyValue(handler, "expireGroupsUponTimeout", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -165,40 +156,46 @@ public class AggregatorParserTests {
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertThat(consumer, is(instanceOf(AggregatingMessageHandler.class)));
+		assertThat(consumer).isInstanceOf(AggregatingMessageHandler.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethods");
-		assertNull(handlerMethods);
+		assertThat(handlerMethods).isNull();
 		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethod");
-		assertTrue(handlerMethod.toString().contains("createSingleMessageFromGroup"));
-		assertEquals("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
-				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
-		assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
-				correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
-		assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
-				outputChannel, accessor.getPropertyValue("outputChannel"));
-		assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
-				discardChannel, accessor.getPropertyValue("discardChannel"));
-		assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000L,
-				TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
-		assertEquals(
-				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "expireGroupsUponTimeout", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(consumer, "expireGroupsUponCompletion", Boolean.class));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "minimumTimeoutForEmptyGroups"));
-		assertEquals("456", TestUtils.getPropertyValue(consumer, "groupTimeoutExpression", Expression.class)
-				.getExpressionString());
-		assertSame(this.context.getBean(LockRegistry.class), TestUtils.getPropertyValue(consumer, "lockRegistry"));
-		assertSame(this.context.getBean("scheduler"), TestUtils.getPropertyValue(consumer, "taskScheduler"));
-		assertSame(this.context.getBean("store"), TestUtils.getPropertyValue(consumer, "messageStore"));
-		assertEquals(5, TestUtils.getPropertyValue(consumer, "order"));
-		assertNotNull(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "popSequence", Boolean.class));
+		assertThat(handlerMethod.toString().contains("createSingleMessageFromGroup")).isTrue();
+		assertThat(accessor.getPropertyValue("releaseStrategy"))
+				.as("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance")
+				.isEqualTo(releaseStrategy);
+		assertThat(accessor.getPropertyValue("correlationStrategy"))
+				.as("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance")
+				.isEqualTo(correlationStrategy);
+		assertThat(accessor.getPropertyValue("outputChannel"))
+				.as("The AggregatorEndpoint is not injected with the appropriate output channel")
+				.isEqualTo(outputChannel);
+		assertThat(accessor.getPropertyValue("discardChannel"))
+				.as("The AggregatorEndpoint is not injected with the appropriate discard channel")
+				.isEqualTo(discardChannel);
+		assertThat(TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"))
+				.as("The AggregatorEndpoint is not set with the appropriate timeout value").isEqualTo(86420000L);
+		assertThat(accessor.getPropertyValue("sendPartialResultOnExpiry"))
+				.as("The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' " +
+						"flag")
+				.isEqualTo(true);
+		assertThat(TestUtils.getPropertyValue(consumer, "expireGroupsUponTimeout", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(consumer, "expireGroupsUponCompletion", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(consumer, "minimumTimeoutForEmptyGroups")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "groupTimeoutExpression", Expression.class)
+				.getExpressionString()).isEqualTo("456");
+		assertThat(TestUtils.getPropertyValue(consumer, "lockRegistry"))
+				.isSameAs(this.context.getBean(LockRegistry.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "taskScheduler")).isSameAs(this.context.getBean("scheduler"));
+		assertThat(TestUtils.getPropertyValue(consumer, "messageStore")).isSameAs(this.context.getBean("store"));
+		assertThat(TestUtils.getPropertyValue(consumer, "order")).isEqualTo(5);
+		assertThat(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(consumer, "popSequence", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -211,10 +208,10 @@ public class AggregatorParserTests {
 		outboundMessages.forEach(input::send);
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive(10);
-		Assert.assertEquals(6L, response.getPayload());
+		assertThat(response.getPayload()).isEqualTo(6L);
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReferenceAndMethod.handler");
-		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+		assertThat(TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory")).isSameAs(mbf);
 	}
 
 	@Test
@@ -224,7 +221,7 @@ public class AggregatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertThat(e.getMessage(), containsString("Adder] has no eligible methods"));
+			assertThat(e.getMessage()).contains("Adder] has no eligible methods");
 		}
 	}
 
@@ -235,7 +232,7 @@ public class AggregatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy' available"));
+			assertThat(e.getMessage()).contains("No bean named 'testReleaseStrategy' available");
 		}
 	}
 
@@ -246,23 +243,23 @@ public class AggregatorParserTests {
 		EventDrivenConsumer endpoint = this.context.getBean("aggregatorWithPojoReleaseStrategy", EventDrivenConsumer.class);
 		ReleaseStrategy releaseStrategy =
 				TestUtils.getPropertyValue(endpoint, "handler.releaseStrategy", ReleaseStrategy.class);
-		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		assertThat(releaseStrategy instanceof MethodInvokingReleaseStrategy).isTrue();
 		MessagingMethodInvokerHelper<Long> methodInvokerHelper =
 				TestUtils.getPropertyValue(releaseStrategy, "adapter.delegate", MessagingMethodInvokerHelper.class);
 		Object handlerMethods = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethods");
-		assertNull(handlerMethods);
+		assertThat(handlerMethods).isNull();
 		Object handlerMethod = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethod");
-		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
+		assertThat(handlerMethod.toString().contains("checkCompleteness")).isTrue();
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
 		input.send(createMessage(2L, "correlationId", 4, 1, null));
 		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
-		Assert.assertNull(reply);
+		assertThat(reply).isNull();
 		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
-		Assert.assertNotNull(reply);
-		assertEquals(11L, reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(11L);
 	}
 
 	@Test // see INT-2011
@@ -271,23 +268,23 @@ public class AggregatorParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategyAsCollection");
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
 				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
-		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		assertThat(releaseStrategy instanceof MethodInvokingReleaseStrategy).isTrue();
 		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
 				.getPropertyValue("adapter")).getPropertyValue("delegate"));
 		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
-		assertNull(handlerMethods);
+		assertThat(handlerMethods).isNull();
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
-		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
+		assertThat(handlerMethod.toString().contains("checkCompleteness")).isTrue();
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
 		input.send(createMessage(2L, "correlationId", 4, 1, null));
 		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
-		Assert.assertNull(reply);
+		assertThat(reply).isNull();
 		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
-		Assert.assertNotNull(reply);
-		assertEquals(11L, reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(11L);
 	}
 
 	@Test
@@ -297,7 +294,7 @@ public class AggregatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertThat(e.getMessage(), containsString("TestReleaseStrategy] has no eligible methods"));
+			assertThat(e.getMessage()).contains("TestReleaseStrategy] has no eligible methods");
 		}
 	}
 
@@ -306,15 +303,17 @@ public class AggregatorParserTests {
 		EventDrivenConsumer aggregatorConsumer = (EventDrivenConsumer) context.getBean("aggregatorWithExpressionsAndPojoAggregator");
 		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) TestUtils.getPropertyValue(aggregatorConsumer, "handler");
 		MethodInvokingMessageGroupProcessor messageGroupProcessor = (MethodInvokingMessageGroupProcessor) TestUtils.getPropertyValue(aggregatingMessageHandler, "outputProcessor");
-		Object messageGroupProcessorTargetObject = TestUtils.getPropertyValue(messageGroupProcessor, "processor.delegate.targetObject");
-		assertSame(context.getBean("aggregatorBean"), messageGroupProcessorTargetObject);
+		Object messageGroupProcessorTargetObject = TestUtils.getPropertyValue(messageGroupProcessor, "processor" +
+				".delegate.targetObject");
+		assertThat(messageGroupProcessorTargetObject).isSameAs(context.getBean("aggregatorBean"));
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "releaseStrategy");
 		CorrelationStrategy correlationStrategy = (CorrelationStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "correlationStrategy");
-		Long minimumTimeoutForEmptyGroups = TestUtils.getPropertyValue(aggregatingMessageHandler, "minimumTimeoutForEmptyGroups", Long.class);
+		Long minimumTimeoutForEmptyGroups = TestUtils.getPropertyValue(aggregatingMessageHandler,
+				"minimumTimeoutForEmptyGroups", Long.class);
 
-		assertTrue(ExpressionEvaluatingReleaseStrategy.class.equals(releaseStrategy.getClass()));
-		assertTrue(ExpressionEvaluatingCorrelationStrategy.class.equals(correlationStrategy.getClass()));
-		assertEquals(60000L, minimumTimeoutForEmptyGroups.longValue());
+		assertThat(ExpressionEvaluatingReleaseStrategy.class.equals(releaseStrategy.getClass())).isTrue();
+		assertThat(ExpressionEvaluatingCorrelationStrategy.class.equals(correlationStrategy.getClass())).isTrue();
+		assertThat(minimumTimeoutForEmptyGroups.longValue()).isEqualTo(60000L);
 	}
 
 	@Test
@@ -323,8 +322,8 @@ public class AggregatorParserTests {
 			new ClassPathXmlApplicationContext("aggregatorParserFailTests.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertThat(e.getMessage(), containsString(
-					"Exactly one of the 'release-strategy' or 'release-strategy-expression' attribute is allowed."));
+			assertThat(e.getMessage())
+					.contains("Exactly one of the 'release-strategy' or 'release-strategy-expression' attribute is allowed.");
 		}
 	}
 

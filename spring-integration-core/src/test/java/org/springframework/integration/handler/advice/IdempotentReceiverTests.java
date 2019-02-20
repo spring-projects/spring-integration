@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -101,22 +97,22 @@ public class IdempotentReceiverTests {
 		idempotentReceiver = (MessageHandler) proxyFactory.getProxy();
 
 		idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
-		assertEquals(1, TestUtils.getPropertyValue(store, "metadata", Map.class).size());
-		assertNotNull(store.get("foo"));
+		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(store.get("foo")).isNotNull();
 
 		try {
 			idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageRejectedException.class));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
 		}
 
 		idempotentReceiverInterceptor.setThrowExceptionOnRejection(false);
 		idempotentReceiver.handleMessage(new GenericMessage<>("foo"));
-		assertTrue(handled.get().getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE,
-				Boolean.class));
-		assertEquals(1, TestUtils.getPropertyValue(store, "metadata", Map.class).size());
+		assertThat(handled.get().getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE,
+				Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
 	}
 
 	@Test
@@ -124,38 +120,40 @@ public class IdempotentReceiverTests {
 		Message<String> message = new GenericMessage<>("foo");
 		this.input.send(message);
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(1, this.fooAdvice.adviceCalled);
-		assertEquals(1, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
-		assertNotNull(this.store.get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(this.fooAdvice.adviceCalled).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(this.store.get("foo")).isNotNull();
 
 		try {
 			this.input.send(message);
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageRejectedException.class));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
 		}
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(false);
 		this.input.send(message);
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(2, this.fooAdvice.adviceCalled);
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
-		assertEquals(1, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
+		assertThat(receive).isNotNull();
+		assertThat(this.fooAdvice.adviceCalled).isEqualTo(2);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
 
 		message = new GenericMessage<>("bar");
 		for (int i = 0; i < 2; i++) {
 			this.input2.send(message);
 			receive = this.output.receive(10000);
-			assertNotNull(receive);
+			assertThat(receive).isNotNull();
 		}
 
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
-		assertEquals(2, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
-		assertNotNull(this.store.get("bar"));
-		assertEquals(1, TestUtils.getPropertyValue(this.store2, "metadata", Map.class).size());
-		assertNotNull(this.store2.get("BAR"));
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(2);
+		assertThat(this.store.get("bar")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.store2, "metadata", Map.class).size()).isEqualTo(1);
+		assertThat(this.store2.get("BAR")).isNotNull();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

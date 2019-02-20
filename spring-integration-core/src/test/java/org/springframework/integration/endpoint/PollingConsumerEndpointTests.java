@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -90,7 +90,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(1, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(1);
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(5, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(5);
 	}
 
 	@Test
@@ -112,7 +112,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(5, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(5);
 	}
 
 	@Test
@@ -132,7 +132,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(1, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(1);
 		this.errorHandler.throwLastErrorIfAvailable();
 	}
 
@@ -143,7 +143,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(1, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(1);
 		this.errorHandler.throwLastErrorIfAvailable();
 	}
 
@@ -155,7 +155,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(0, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(0);
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class PollingConsumerEndpointTests {
 		this.endpoint.start();
 		this.trigger.await();
 		this.endpoint.stop();
-		assertEquals(1, this.consumer.counter.get());
+		assertThat(this.consumer.counter.get()).isEqualTo(1);
 	}
 
 

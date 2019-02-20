@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.springframework.integration.transformer;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -150,8 +142,8 @@ public class ContentEnricherTests {
 			enricher.handleMessage(requestMessage);
 		}
 		catch (ReplyRequiredException e) {
-			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.",
-					e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.");
 			return;
 		}
 		finally {
@@ -186,8 +178,8 @@ public class ContentEnricherTests {
 			enricher.handleMessage(requestMessage);
 		}
 		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage(), equalToIgnoringCase("failed to send message to channel '" + requestChannelName
-					+ "' within timeout: " + requestTimeout));
+			assertThat(e.getMessage()).isEqualToIgnoringCase("failed to send message to channel '" + requestChannelName
+					+ "' within timeout: " + requestTimeout);
 		}
 
 	}
@@ -217,7 +209,7 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("Doe, John", ((Target) reply.getPayload()).getName());
+		assertThat(((Target) reply.getPayload()).getName()).isEqualTo("Doe, John");
 	}
 
 	@Test
@@ -233,7 +225,8 @@ public class ContentEnricherTests {
 			enricher.afterPropertiesSet();
 		}
 		catch (IllegalStateException e) {
-			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("If the replyChannel is set, then the requestChannel must not be null");
 			return;
 		}
 
@@ -250,7 +243,7 @@ public class ContentEnricherTests {
 			enricher.setReplyTimeout(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("replyTimeout must not be null", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("replyTimeout must not be null");
 			return;
 		}
 
@@ -267,7 +260,7 @@ public class ContentEnricherTests {
 			enricher.setRequestTimeout(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("requestTimeout must not be null", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("requestTimeout must not be null");
 			return;
 		}
 
@@ -288,7 +281,7 @@ public class ContentEnricherTests {
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("just a static string", ((Target) reply.getPayload()).getName());
+		assertThat(((Target) reply.getPayload()).getName()).isEqualTo("just a static string");
 	}
 
 	@Test
@@ -302,7 +295,8 @@ public class ContentEnricherTests {
 			enricher.afterPropertiesSet();
 		}
 		catch (IllegalStateException e) {
-			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("If the replyChannel is set, then the requestChannel must not be null");
 			return;
 		}
 
@@ -334,8 +328,8 @@ public class ContentEnricherTests {
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
 		Target result = (Target) reply.getPayload();
-		assertEquals("test", result.getName());
-		assertEquals("Doe, John", result.getChild().getName());
+		assertThat(result.getName()).isEqualTo("test");
+		assertThat(result.getChild().getName()).isEqualTo("Doe, John");
 	}
 
 	@Test
@@ -364,8 +358,8 @@ public class ContentEnricherTests {
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
 		Target result = (Target) reply.getPayload();
-		assertEquals("Doe, John", result.getName());
-		assertNotSame(target, result);
+		assertThat(result.getName()).isEqualTo("Doe, John");
+		assertThat(result).isNotSameAs(target);
 	}
 
 	@Test
@@ -396,9 +390,9 @@ public class ContentEnricherTests {
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
 		TargetUser result = (TargetUser) reply.getPayload();
-		assertEquals("Doe, John", result.getName());
+		assertThat(result.getName()).isEqualTo("Doe, John");
 
-		assertSame(target, result);
+		assertThat(result).isSameAs(target);
 	}
 
 	@Test
@@ -431,7 +425,7 @@ public class ContentEnricherTests {
 			enricher.handleMessage(requestMessage);
 		}
 		catch (MessageHandlingException e) {
-			assertThat(e.getMessage(), containsString("Failed to clone payload object"));
+			assertThat(e.getMessage()).contains("Failed to clone payload object");
 			return;
 		}
 
@@ -446,9 +440,9 @@ public class ContentEnricherTests {
 
 		enricher.afterPropertiesSet();
 
-		assertTrue(enricher.isRunning());
+		assertThat(enricher.isRunning()).isTrue();
 		enricher.stop();
-		assertTrue(enricher.isRunning());
+		assertThat(enricher.isRunning()).isTrue();
 	}
 
 	@Test
@@ -469,11 +463,11 @@ public class ContentEnricherTests {
 		enricher.afterPropertiesSet();
 
 		enricher.start();
-		assertTrue(enricher.isRunning());
+		assertThat(enricher.isRunning()).isTrue();
 		enricher.stop();
-		assertFalse(enricher.isRunning());
+		assertThat(enricher.isRunning()).isFalse();
 		enricher.start();
-		assertTrue(enricher.isRunning());
+		assertThat(enricher.isRunning()).isTrue();
 
 		enricher.stop();
 	}
@@ -525,7 +519,7 @@ public class ContentEnricherTests {
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(10000);
 		Target result = (Target) reply.getPayload();
-		assertEquals("failed target", result.getName());
+		assertThat(result.getName()).isEqualTo("failed target");
 	}
 
 	@Test
@@ -540,8 +534,9 @@ public class ContentEnricherTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("ContentEnricher cannot override 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
 		}
 	}
 
@@ -557,8 +552,9 @@ public class ContentEnricherTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("ContentEnricher cannot override 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.");
 		}
 	}
 

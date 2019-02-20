@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,50 +64,50 @@ public class EndpointRoleParserTests {
 
 	@Test
 	public void test() {
-		assertFalse(this.in.isRunning());
-		assertFalse(this.out1.isRunning());
-		assertFalse(this.out2.isRunning());
-		assertFalse(this.out3.isRunning());
-		assertFalse(this.out4.isRunning());
-		assertFalse(this.bridge.isRunning());
+		assertThat(this.in.isRunning()).isFalse();
+		assertThat(this.out1.isRunning()).isFalse();
+		assertThat(this.out2.isRunning()).isFalse();
+		assertThat(this.out3.isRunning()).isFalse();
+		assertThat(this.out4.isRunning()).isFalse();
+		assertThat(this.bridge.isRunning()).isFalse();
 
 		this.controller.startLifecyclesInRole("cluster");
 
-		assertTrue(this.in.isRunning());
-		assertTrue(this.out1.isRunning());
-		assertTrue(this.out2.isRunning());
-		assertTrue(this.out3.isRunning());
-		assertFalse(this.out4.isRunning());
-		assertTrue(this.bridge.isRunning());
+		assertThat(this.in.isRunning()).isTrue();
+		assertThat(this.out1.isRunning()).isTrue();
+		assertThat(this.out2.isRunning()).isTrue();
+		assertThat(this.out3.isRunning()).isTrue();
+		assertThat(this.out4.isRunning()).isFalse();
+		assertThat(this.bridge.isRunning()).isTrue();
 
 		this.controller.stopLifecyclesInRole("cluster");
 
-		assertFalse(this.in.isRunning());
-		assertFalse(this.out1.isRunning());
-		assertFalse(this.out2.isRunning());
-		assertFalse(this.out3.isRunning());
-		assertFalse(this.out4.isRunning());
-		assertFalse(this.bridge.isRunning());
+		assertThat(this.in.isRunning()).isFalse();
+		assertThat(this.out1.isRunning()).isFalse();
+		assertThat(this.out2.isRunning()).isFalse();
+		assertThat(this.out3.isRunning()).isFalse();
+		assertThat(this.out4.isRunning()).isFalse();
+		assertThat(this.bridge.isRunning()).isFalse();
 
 		this.controller.onApplicationEvent(new OnGrantedEvent("foo", null, "cluster"));
 
-		assertTrue(this.in.isRunning());
-		assertTrue(this.out1.isRunning());
-		assertTrue(this.out2.isRunning());
-		assertTrue(this.out3.isRunning());
-		assertFalse(this.out4.isRunning());
-		assertTrue(this.bridge.isRunning());
+		assertThat(this.in.isRunning()).isTrue();
+		assertThat(this.out1.isRunning()).isTrue();
+		assertThat(this.out2.isRunning()).isTrue();
+		assertThat(this.out3.isRunning()).isTrue();
+		assertThat(this.out4.isRunning()).isFalse();
+		assertThat(this.bridge.isRunning()).isTrue();
 
 		this.controller.onApplicationEvent(new OnRevokedEvent("foo", null, "cluster"));
 
-		assertFalse(this.in.isRunning());
-		assertFalse(this.out1.isRunning());
-		assertFalse(this.out2.isRunning());
-		assertFalse(this.out3.isRunning());
-		assertFalse(this.out4.isRunning());
-		assertFalse(this.bridge.isRunning());
+		assertThat(this.in.isRunning()).isFalse();
+		assertThat(this.out1.isRunning()).isFalse();
+		assertThat(this.out2.isRunning()).isFalse();
+		assertThat(this.out3.isRunning()).isFalse();
+		assertThat(this.out4.isRunning()).isFalse();
+		assertThat(this.bridge.isRunning()).isFalse();
 
-		assertFalse(this.controller.allEndpointsRunning("cluster"));
+		assertThat(this.controller.allEndpointsRunning("cluster")).isFalse();
 	}
 
 	public static class Sink {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -69,13 +66,13 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "paramHeadersWithStartWildCharacter", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("xml:xslt-transformer", componentHistoryRecord.get("type"));
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
-		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
-		assertFalse(((String) resultMessage.getPayload()).contains("FOO"));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("xml:xslt-transformer");
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
+		assertThat(((String) resultMessage.getPayload()).contains("testParamValue")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("FOO")).isFalse();
 	}
 
 	@Test
@@ -87,9 +84,9 @@ public class XsltTransformerTests {
 				build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
-		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
-		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
+		assertThat(((String) resultMessage.getPayload()).contains("testParamValue")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("FOO")).isTrue();
 	}
 
 	@Test
@@ -101,10 +98,10 @@ public class XsltTransformerTests {
 				build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
-		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
-		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
-		assertTrue(((String) resultMessage.getPayload()).contains("hello"));
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
+		assertThat(((String) resultMessage.getPayload()).contains("testParamValue")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("FOO")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("hello")).isTrue();
 	}
 
 	@Test
@@ -116,10 +113,10 @@ public class XsltTransformerTests {
 				build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
-		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
-		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
-		assertTrue(((String) resultMessage.getPayload()).contains("hello"));
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
+		assertThat(((String) resultMessage.getPayload()).contains("testParamValue")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("FOO")).isTrue();
+		assertThat(((String) resultMessage.getPayload()).contains("hello")).isTrue();
 	}
 
 
@@ -130,9 +127,9 @@ public class XsltTransformerTests {
 				build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
 		String stringPayload = (String) resultMessage.getPayload();
-		assertEquals("Wrong content of payload", "hello world text", stringPayload.trim());
+		assertThat(stringPayload.trim()).as("Wrong content of payload").isEqualTo("hello world text");
 	}
 
 	@Test
@@ -141,9 +138,9 @@ public class XsltTransformerTests {
 		Message<?> message = MessageBuilder.withPayload(new ClassPathResource("org/springframework/integration/xml/transformer/xsl-text-file.xml").getFile()).build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
 		String stringPayload = (String) resultMessage.getPayload();
-		assertEquals("Wrong content of payload", "hello world text", stringPayload.trim());
+		assertThat(stringPayload.trim()).as("Wrong content of payload").isEqualTo("hello world text");
 	}
 }
 

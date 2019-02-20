@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
@@ -80,11 +75,9 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		server.close();
 		done.countDown();
 	}
@@ -99,11 +92,9 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		server.close();
 		done.countDown();
 	}
@@ -118,11 +109,9 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		server.close();
 		done.countDown();
 	}
@@ -137,8 +126,7 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		server.close();
 	}
 
@@ -152,8 +140,7 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayElasticRawDeserializer serializer = new ByteArrayElasticRawDeserializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(out));
+		assertThat(new String(out)).as("Data").isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		try {
 			serializer.deserialize(socket.getInputStream());
 			fail("Expected end of Stream");
@@ -174,9 +161,9 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		DefaultDeserializer deserializer = new DefaultDeserializer();
 		Object out = deserializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING, out);
+		assertThat(out).as("Data").isEqualTo(SocketTestUtils.TEST_STRING);
 		out = deserializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING, out);
+		assertThat(out).as("Data").isEqualTo(SocketTestUtils.TEST_STRING);
 		server.close();
 		done.countDown();
 	}
@@ -306,10 +293,10 @@ public class DeserializationTests {
 
 		try {
 			byte[] bytes = serializer.deserialize(inputStream);
-			assertEquals(1, bytes.length);
-			assertEquals("s".getBytes()[0], bytes[0]);
+			assertThat(bytes.length).isEqualTo(1);
+			assertThat(bytes[0]).isEqualTo("s".getBytes()[0]);
 			bytes = serializer.deserialize(inputStream);
-			assertEquals(0, bytes.length);
+			assertThat(bytes.length).isEqualTo(0);
 		}
 		finally {
 			inputStream.close();
@@ -322,19 +309,19 @@ public class DeserializationTests {
 		doDeserialize(new ByteArrayLengthHeaderSerializer(), "Message length 1718579042 exceeds max message length: 5");
 		TcpDeserializationExceptionEvent event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
 				"Stream closed after 3 of 4", new byte[] { 0, 0, 0 }, 5); // closed during header read
-		assertEquals(-1, event.getOffset());
-		assertEquals(new String(new byte[] { 0, 0, 0 }), new String(event.getBuffer()).substring(0, 3));
+		assertThat(event.getOffset()).isEqualTo(-1);
+		assertThat(new String(event.getBuffer()).substring(0, 3)).isEqualTo(new String(new byte[] { 0, 0, 0 }));
 		event = doDeserialize(new ByteArrayLengthHeaderSerializer(),
 				"Stream closed after 1 of 2", new byte[] { 0, 0, 0, 2, 7 }, 5); // closed during data read
-		assertEquals(-1, event.getOffset());
-		assertEquals(new String(new byte[] { 7 }), new String(event.getBuffer()).substring(0, 1));
+		assertThat(event.getOffset()).isEqualTo(-1);
+		assertThat(new String(event.getBuffer()).substring(0, 1)).isEqualTo(new String(new byte[] { 7 }));
 		doDeserialize(new ByteArrayLfSerializer(), "Terminator '0xa' not found before max message length: 5");
 		doDeserialize(new ByteArrayRawSerializer(), "Socket was not closed before max message length: 5");
 		doDeserialize(new ByteArraySingleTerminatorSerializer((byte) 0xfe), "Terminator '0xfe' not found before max message length: 5");
 		doDeserialize(new ByteArrayStxEtxSerializer(), "Expected STX to begin message");
 		event = doDeserialize(new ByteArrayStxEtxSerializer(),
 				"Socket closed during message assembly", new byte[] { 0x02, 0, 0 }, 5);
-		assertEquals(2, event.getOffset());
+		assertThat(event.getOffset()).isEqualTo(2);
 	}
 
 	private TcpDeserializationExceptionEvent doDeserialize(AbstractByteArraySerializer deser, String expectedMessage) {
@@ -367,9 +354,9 @@ public class DeserializationTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertNotNull(event.get());
-			assertSame(e, event.get().getCause());
-			assertThat(e.getMessage(), containsString(expectedMessage));
+			assertThat(event.get()).isNotNull();
+			assertThat(event.get().getCause()).isSameAs(e);
+			assertThat(e.getMessage()).contains(expectedMessage);
 		}
 		return event.get();
 	}
@@ -427,12 +414,12 @@ public class DeserializationTests {
 		// short reply should not be received.
 		exec.execute(command);
 		message = serverSideChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 		String shortReply = reply.substring(0, reply.length() - 1);
 		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(shortReply));
 		message = outputChannel.receive(6000);
-		assertNull(message);
+		assertThat(message).isNull();
 
 		// good message should be received
 		if ((deserializer instanceof ByteArrayRawSerializer)) { // restore old behavior
@@ -440,12 +427,12 @@ public class DeserializationTests {
 		}
 		exec.execute(command);
 		message = serverSideChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(reply));
 		message = outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals(reply, new String(((byte[]) message.getPayload())));
+		assertThat(message).isNotNull();
+		assertThat(new String(((byte[]) message.getPayload()))).isEqualTo(reply);
 	}
 
 	private static class CustomDeserializer extends AbstractByteArraySerializer {

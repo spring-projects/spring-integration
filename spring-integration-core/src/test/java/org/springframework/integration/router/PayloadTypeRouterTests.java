@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -58,27 +56,27 @@ public class PayloadTypeRouterTests {
 
 		Message<String> message1 = new GenericMessage<>("test");
 		Message<Integer> message2 = new GenericMessage<>(123);
-		assertEquals(1, router.getChannelKeys(message1).size());
+		assertThat(router.getChannelKeys(message1).size()).isEqualTo(1);
 
-		assertNull(stringChannel.receive(0));
+		assertThat(stringChannel.receive(0)).isNull();
 		router.handleMessage(message1);
-		assertEquals(message1, stringChannel.receive(0));
+		assertThat(stringChannel.receive(0)).isEqualTo(message1);
 
-		assertEquals(1, router.getChannelKeys(message2).size());
+		assertThat(router.getChannelKeys(message2).size()).isEqualTo(1);
 
-		assertNull(integerChannel.receive(0));
+		assertThat(integerChannel.receive(0)).isNull();
 		router.handleMessage(message2);
-		assertEquals(message2, integerChannel.receive(0));
+		assertThat(integerChannel.receive(0)).isEqualTo(message2);
 
 		// validate dynamics
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(String.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message1).size());
+		assertThat(router.getChannelKeys(message1).size()).isEqualTo(1);
 
-		assertNull(newChannel.receive(0));
+		assertThat(newChannel.receive(0)).isNull();
 		router.handleMessage(message1);
-		assertEquals(message1, newChannel.receive(0));
+		assertThat(newChannel.receive(0)).isEqualTo(message1);
 
 		// validate exception is thrown if mappings were removed and
 		// channelResolutionRequires = true (which is the default)
@@ -90,7 +88,7 @@ public class PayloadTypeRouterTests {
 
 		try {
 			router.handleMessage(message1);
-			fail();
+			fail("Exception expected");
 		}
 		catch (Exception e) {
 			// ignore
@@ -116,18 +114,18 @@ public class PayloadTypeRouterTests {
 		Message<Integer> message = new GenericMessage<>(99);
 		router.handleMessage(message);
 		Message<?> result = numberChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(99, result.getPayload());
-		assertNull(defaultChannel.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(99);
+		assertThat(defaultChannel.receive(0)).isNull();
 
 		// validate dynamics
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message).size());
+		assertThat(router.getChannelKeys(message).size()).isEqualTo(1);
 		router.handleMessage(message);
 		result = newChannel.receive(10);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
@@ -156,10 +154,10 @@ public class PayloadTypeRouterTests {
 		Message<Integer> message = new GenericMessage<>(99);
 		router.handleMessage(message);
 		Message<?> result = integerChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(99, result.getPayload());
-		assertNull(numberChannel.receive(0));
-		assertNull(defaultChannel.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(99);
+		assertThat(numberChannel.receive(0)).isNull();
+		assertThat(defaultChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -184,9 +182,9 @@ public class PayloadTypeRouterTests {
 		Message<Integer> message = new GenericMessage<>(99);
 		router.handleMessage(message);
 		Message<?> result = comparableChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(99, result.getPayload());
-		assertNull(defaultChannel.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(99);
+		assertThat(defaultChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -211,7 +209,7 @@ public class PayloadTypeRouterTests {
 		Message<C1> message = new GenericMessage<>(new C1());
 		router.handleMessage(message);
 		Message<?> result = i2Channel.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
@@ -241,8 +239,8 @@ public class PayloadTypeRouterTests {
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<>(new C1());
 		router.handleMessage(message);
-		assertNotNull(serializableChannel.receive(0));
-		assertNull(i3Channel.receive(0));
+		assertThat(serializableChannel.receive(0)).isNotNull();
+		assertThat(i3Channel.receive(0)).isNull();
 	}
 
 	@Test
@@ -273,7 +271,7 @@ public class PayloadTypeRouterTests {
 		Message<C1> message = new GenericMessage<>(new C1());
 		router.handleMessage(message);
 		Message<?> result = c3Channel.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
@@ -304,7 +302,7 @@ public class PayloadTypeRouterTests {
 		Message<C1> message = new GenericMessage<>(new C1());
 		router.handleMessage(message);
 		Message<?> result = i1AChannel.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
@@ -333,19 +331,19 @@ public class PayloadTypeRouterTests {
 		Message<Integer> message = new GenericMessage<>(99);
 		router.handleMessage(message);
 		Message<?> result = comparableChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(99, result.getPayload());
-		assertNull(numberChannel.receive(0));
-		assertNull(defaultChannel.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(99);
+		assertThat(numberChannel.receive(0)).isNull();
+		assertThat(defaultChannel.receive(0)).isNull();
 
 		// validate dynamics
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message).size());
+		assertThat(router.getChannelKeys(message).size()).isEqualTo(1);
 		router.handleMessage(message);
 		result = newChannel.receive(10);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -401,10 +399,10 @@ public class PayloadTypeRouterTests {
 		Message<Integer> message = new GenericMessage<>(99);
 		router.handleMessage(message);
 		Message<?> result = numberChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(99, result.getPayload());
-		assertNull(serializableChannel.receive(0));
-		assertNull(defaultChannel.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(99);
+		assertThat(serializableChannel.receive(0)).isNull();
+		assertThat(defaultChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -432,8 +430,8 @@ public class PayloadTypeRouterTests {
 		router.handleMessage(message2);
 		Message<?> reply1 = stringChannel.receive(0);
 		Message<?> reply2 = integerChannel.receive(0);
-		assertEquals("test", reply1.getPayload());
-		assertEquals(123, reply2.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("test");
+		assertThat(reply2.getPayload()).isEqualTo(123);
 	}
 
 	@Test
@@ -460,11 +458,11 @@ public class PayloadTypeRouterTests {
 		router.handleMessage(message1);
 		router.handleMessage(message2);
 		Message<?> result1 = stringChannel.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test");
 		Message<?> result2 = defaultChannel.receive(25);
-		assertNotNull(result2);
-		assertEquals(123, result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo(123);
 	}
 
 	@Test
@@ -498,7 +496,7 @@ public class PayloadTypeRouterTests {
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<>(new C1());
 		router.handleMessage(message);
-		assertNotNull(c2Channel.receive(100));
+		assertThat(c2Channel.receive(100)).isNotNull();
 	}
 
 	@Test(expected = MessageHandlingException.class)

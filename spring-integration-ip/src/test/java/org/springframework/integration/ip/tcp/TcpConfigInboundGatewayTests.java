@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -175,7 +175,7 @@ public class TcpConfigInboundGatewayTests {
 				break;
 			}
 		}
-		assertEquals("echo:" + greetings + "\r\n", sb.toString());
+		assertThat(sb.toString()).isEqualTo("echo:" + greetings + "\r\n");
 	}
 
 	@Test
@@ -210,7 +210,7 @@ public class TcpConfigInboundGatewayTests {
 			}
 			sb.append((char) c);
 		}
-		assertEquals("echo:" + greetings, sb.toString());
+		assertThat(sb.toString()).isEqualTo("echo:" + greetings);
 	}
 
 	@Test
@@ -232,7 +232,7 @@ public class TcpConfigInboundGatewayTests {
 		String greetings = "Hello World!";
 		new ObjectOutputStream(socket.getOutputStream()).writeObject(greetings);
 		String echo = (String) new ObjectInputStream(socket.getInputStream()).readObject();
-		assertEquals("echo:" + greetings, echo);
+		assertThat(echo).isEqualTo("echo:" + greetings);
 	}
 
 	@Test
@@ -274,7 +274,7 @@ public class TcpConfigInboundGatewayTests {
 				break;
 			}
 		}
-		assertEquals("echo:" + greetings, sb.toString());
+		assertThat(sb.toString()).isEqualTo("echo:" + greetings);
 	}
 
 	private void waitListening(TcpInboundGateway gateway) throws Exception {

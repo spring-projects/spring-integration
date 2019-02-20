@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -64,15 +62,15 @@ public class XPathMessageSplitterParserTests {
 						+ "order='2' send-timeout='123' auto-startup='false' phase='-1' "
 						+ "input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		consumer.start();
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getQueueSize());
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of split messages ").isEqualTo(2);
 	}
 
 	@Test
@@ -87,11 +85,11 @@ public class XPathMessageSplitterParserTests {
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getQueueSize());
-		assertTrue("Splitter failed to create documents ",
-				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
-		assertTrue("Splitter failed to create documents ",
-				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of split messages ").isEqualTo(2);
+		assertThat(((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document)
+				.as("Splitter failed to create documents ").isTrue();
+		assertThat(((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document)
+				.as("Splitter failed to create documents ").isTrue();
 	}
 
 	@Test
@@ -105,7 +103,8 @@ public class XPathMessageSplitterParserTests {
 		Object handler = fieldAccessor.getPropertyValue("handler");
 		fieldAccessor = new DirectFieldAccessor(handler);
 		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
-		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
+		assertThat(documnetBuilderFactory instanceof DocumentBuilderFactory)
+				.as("DocumnetBuilderFactory was not expected stub ").isTrue();
 	}
 
 	@Test
@@ -120,7 +119,8 @@ public class XPathMessageSplitterParserTests {
 		Object handler = fieldAccessor.getPropertyValue("handler");
 		fieldAccessor = new DirectFieldAccessor(handler);
 		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
-		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
+		assertThat(documnetBuilderFactory instanceof DocumentBuilderFactory)
+				.as("DocumnetBuilderFactory was not expected stub ").isTrue();
 	}
 
 }

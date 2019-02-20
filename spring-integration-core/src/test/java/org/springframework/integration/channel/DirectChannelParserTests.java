@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -37,9 +36,10 @@ public class DirectChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"directChannelParserTests.xml", DirectChannelParserTests.class);
 		Object channel = context.getBean("channel");
-		assertEquals(DirectChannel.class, channel.getClass());
+		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
 		DirectFieldAccessor dcAccessor = new DirectFieldAccessor(((DirectChannel) channel).getDispatcher());
-		assertTrue(dcAccessor.getPropertyValue("loadBalancingStrategy") instanceof RoundRobinLoadBalancingStrategy);
+		assertThat(dcAccessor.getPropertyValue("loadBalancingStrategy") instanceof RoundRobinLoadBalancingStrategy)
+				.isTrue();
 		context.close();
 	}
 

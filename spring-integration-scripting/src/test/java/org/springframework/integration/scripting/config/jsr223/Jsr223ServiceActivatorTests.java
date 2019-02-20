@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -75,26 +70,26 @@ public class Jsr223ServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		assertTrue(value1.startsWith("python-test-1-foo (foo2) - bar"));
-		assertTrue(value2.startsWith("python-test-2-foo (foo2) - bar"));
-		assertTrue(value3.startsWith("python-test-3-foo (foo2) - bar"));
+		assertThat(value1.startsWith("python-test-1-foo (foo2) - bar")).isTrue();
+		assertThat(value2.startsWith("python-test-2-foo (foo2) - bar")).isTrue();
+		assertThat(value3.startsWith("python-test-3-foo (foo2) - bar")).isTrue();
 
 		// because we are using 'prototype bean the suffix date will be
 		// different
-		assertFalse(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
-				.equals(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))));
-		assertFalse(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
-				.equals(value1.substring(value1.lastIndexOf(":"))));
+		assertThat(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":")))).isFalse();
+		assertThat(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value1.substring(value1.lastIndexOf(":")))).isFalse();
 
-		assertFalse(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
-				.equals(value3.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))));
+		assertThat(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
+				.equals(value3.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":")))).isFalse();
 
-		assertFalse(value1.substring(value1.lastIndexOf(":") + 1)
-				.equals(value2.substring(value1.lastIndexOf(":") + 1)));
-		assertFalse(value2.substring(value1.lastIndexOf(":") + 1)
-				.equals(value3.substring(value1.lastIndexOf(":") + 1)));
+		assertThat(value1.substring(value1.lastIndexOf(":") + 1)
+				.equals(value2.substring(value1.lastIndexOf(":") + 1))).isFalse();
+		assertThat(value2.substring(value1.lastIndexOf(":") + 1)
+				.equals(value3.substring(value1.lastIndexOf(":") + 1))).isFalse();
 
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -110,16 +105,16 @@ public class Jsr223ServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		assertTrue(value1.startsWith("ruby-test-1-foo - bar"));
-		assertTrue(value2.startsWith("ruby-test-2-foo - bar"));
-		assertTrue(value3.startsWith("ruby-test-3-foo - bar"));
+		assertThat(value1.startsWith("ruby-test-1-foo - bar")).isTrue();
+		assertThat(value2.startsWith("ruby-test-2-foo - bar")).isTrue();
+		assertThat(value3.startsWith("ruby-test-3-foo - bar")).isTrue();
 		// because we are using 'prototype bean the suffix date will be
 		// different
 
-		assertFalse(value1.substring(26).equals(value2.substring(26)));
-		assertFalse(value2.substring(26).equals(value3.substring(26)));
+		assertThat(value1.substring(26).equals(value2.substring(26))).isFalse();
+		assertThat(value2.substring(26).equals(value3.substring(26))).isFalse();
 
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -133,16 +128,16 @@ public class Jsr223ServiceActivatorTests {
 		}
 		String payload = (String) replyChannel.receive(0).getPayload();
 
-		assertThat(payload, startsWith("inline-test-1 - FOO"));
+		assertThat(payload).startsWith("inline-test-1 - FOO");
 
 		payload = (String) replyChannel.receive(0).getPayload();
-		assertThat(payload, startsWith("inline-test-2 - FOO"));
+		assertThat(payload).startsWith("inline-test-2 - FOO");
 
 		payload = (String) replyChannel.receive(0).getPayload();
-		assertThat(payload, startsWith("inline-test-3 - FOO"));
-		assertTrue(payload.substring(payload.indexOf(":") + 1).matches(".+\\d{2}:\\d{2}:\\d{2}.+"));
+		assertThat(payload).startsWith("inline-test-3 - FOO");
+		assertThat(payload.substring(payload.indexOf(":") + 1).matches(".+\\d{2}:\\d{2}:\\d{2}.+")).isTrue();
 
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 
 	}
 
@@ -154,8 +149,8 @@ public class Jsr223ServiceActivatorTests {
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
-			assertThat(e.getMessage(),
-					containsString("'script-variable-generator' and 'variable' sub-elements are mutually exclusive."));
+			assertThat(e.getMessage())
+					.contains("'script-variable-generator' and 'variable' sub-elements are mutually exclusive.");
 		}
 	}
 
@@ -167,7 +162,7 @@ public class Jsr223ServiceActivatorTests {
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
-			assertThat(e.getMessage(), containsString("Duplicated variable: foo"));
+			assertThat(e.getMessage()).contains("Duplicated variable: foo");
 		}
 	}
 

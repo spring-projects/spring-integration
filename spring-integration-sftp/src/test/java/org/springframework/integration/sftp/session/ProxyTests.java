@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.sftp.session;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -94,9 +92,9 @@ public class ProxyTests {
 	}
 
 	private void assertProxy(Proxy proxy, Class<? extends Proxy> clazz) {
-		assertThat(proxy, instanceOf(clazz));
-		assertEquals("ftptest", TestUtils.getPropertyValue(proxy, "user"));
-		assertEquals("pass", TestUtils.getPropertyValue(proxy, "passwd"));
+		assertThat(proxy).isInstanceOf(clazz);
+		assertThat(TestUtils.getPropertyValue(proxy, "user")).isEqualTo("ftptest");
+		assertThat(TestUtils.getPropertyValue(proxy, "passwd")).isEqualTo("pass");
 	}
 
 }

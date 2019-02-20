@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import javax.mail.Authenticator;
 
@@ -74,51 +69,51 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3ShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrue");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
-		assertTrue(value);
-		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
-		assertNotNull(receiverAccessor.getPropertyValue("headerMapper"));
+		assertThat(value).isTrue();
+		assertThat(receiverAccessor.getPropertyValue("embeddedPartsAsBytes")).isEqualTo(Boolean.FALSE);
+		assertThat(receiverAccessor.getPropertyValue("headerMapper")).isNotNull();
 	}
 
 	@Test
 	public void imapShouldMarkMessagesAsRead() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldMarkAsReadTrue");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead");
-		assertTrue(value);
-		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
-		assertNull(receiverAccessor.getPropertyValue("headerMapper"));
+		assertThat(value).isTrue();
+		assertThat(receiverAccessor.getPropertyValue("embeddedPartsAsBytes")).isEqualTo(Boolean.TRUE);
+		assertThat(receiverAccessor.getPropertyValue("headerMapper")).isNull();
 	}
 
 	@Test
 	public void pop3ShouldDeleteFalse() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteFalse");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
-		assertFalse(value);
+		assertThat(value).isFalse();
 	}
 
 	@Test
 	public void imapShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteTrue");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
-		assertTrue(value);
-		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("simpleContent"));
+		assertThat(value).isTrue();
+		assertThat(receiverAccessor.getPropertyValue("simpleContent")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void imapShouldDeleteFalse() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteFalse");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
-		assertFalse(value);
-		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("simpleContent"));
+		assertThat(value).isFalse();
+		assertThat(receiverAccessor.getPropertyValue("simpleContent")).isEqualTo(Boolean.FALSE);
 	}
 
 
@@ -127,34 +122,34 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3ShouldDeleteTrueProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrueProperty");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
-		assertTrue(value);
+		assertThat(value).isTrue();
 	}
 
 	@Test
 	public void pop3ShouldDeleteFalseProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteFalseProperty");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
-		assertFalse(value);
+		assertThat(value).isFalse();
 	}
 
 	@Test
 	public void imapShouldDeleteTrueProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteTrueProperty");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
-		assertTrue(value);
-		assertNotNull(TestUtils.getPropertyValue(receiver, "evaluationContext.beanResolver"));
+		assertThat(value).isTrue();
+		assertThat(TestUtils.getPropertyValue(receiver, "evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test
 	public void imapShouldDeleteFalseProperty() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteFalseProperty");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
-		assertFalse(value);
+		assertThat(value).isFalse();
 	}
 
 
@@ -163,28 +158,28 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3WithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithAuthenticator");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
-		assertNotNull(authenticator);
-		assertEquals(context.getBean("testAuthenticator"), authenticator);
+		assertThat(authenticator).isNotNull();
+		assertThat(authenticator).isEqualTo(context.getBean("testAuthenticator"));
 	}
 
 	@Test
 	public void imapWithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithAuthenticator");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
-		assertNotNull(authenticator);
-		assertEquals(context.getBean("testAuthenticator"), authenticator);
+		assertThat(authenticator).isNotNull();
+		assertThat(authenticator).isEqualTo(context.getBean("testAuthenticator"));
 	}
 
 	@Test
 	public void imapIdleWithAuthenticator() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithAuthenticator");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object authenticator = new DirectFieldAccessor(receiver).getPropertyValue("javaMailAuthenticator");
-		assertNotNull(authenticator);
-		assertEquals(context.getBean("testAuthenticator"), authenticator);
+		assertThat(authenticator).isNotNull();
+		assertThat(authenticator).isEqualTo(context.getBean("testAuthenticator"));
 	}
 
 
@@ -198,33 +193,33 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3WithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithMaxFetchSize");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
-		assertEquals(11, value);
+		assertThat(value).isEqualTo(11);
 	}
 
 	@Test
 	public void pop3WithMaxFetchSizeFallsBackToPollerMax() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithMaxFetchSizeFallsBackToPollerMax");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
-		assertEquals(99, value);
+		assertThat(value).isEqualTo(99);
 	}
 
 	@Test
 	public void imapWithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithMaxFetchSize");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
-		assertEquals(22, value);
+		assertThat(value).isEqualTo(22);
 	}
 
 	@Test
 	public void imapIdleWithMaxFetchSize() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithMaxFetchSize");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object value = new DirectFieldAccessor(receiver).getPropertyValue("maxFetchSize");
-		assertEquals(33, value);
+		assertThat(value).isEqualTo(33);
 	}
 
 
@@ -233,28 +228,28 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3WithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithSession");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
-		assertNotNull(session);
-		assertEquals(context.getBean("testSession"), session);
+		assertThat(session).isNotNull();
+		assertThat(session).isEqualTo(context.getBean("testSession"));
 	}
 
 	@Test
 	public void imapWithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithSession");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
-		assertNotNull(session);
-		assertEquals(context.getBean("testSession"), session);
+		assertThat(session).isNotNull();
+		assertThat(session).isEqualTo(context.getBean("testSession"));
 	}
 
 	@Test
 	public void imapIdleWithSession() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithSession");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object session = new DirectFieldAccessor(receiver).getPropertyValue("session");
-		assertNotNull(session);
-		assertEquals(context.getBean("testSession"), session);
+		assertThat(session).isNotNull();
+		assertThat(session).isEqualTo(context.getBean("testSession"));
 	}
 
 
@@ -263,25 +258,25 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void pop3WithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3WithoutStoreUri");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
-		assertNull(url);
+		assertThat(url).isNull();
 	}
 
 	@Test
 	public void imapWithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithoutStoreUri");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
-		assertNull(url);
+		assertThat(url).isNull();
 	}
 
 	@Test
 	public void imapIdleWithoutStoreUri() {
 		AbstractMailReceiver receiver = this.getReceiver("imapIdleWithoutStoreUri");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		Object url = new DirectFieldAccessor(receiver).getPropertyValue("url");
-		assertNull(url);
+		assertThat(url).isNull();
 	}
 
 
@@ -296,7 +291,7 @@ public class InboundChannelAdapterParserTests {
 			fail("expected a parser error");
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertEquals(SAXParseException.class, e.getCause().getClass());
+			assertThat(e.getCause().getClass()).isEqualTo(SAXParseException.class);
 		}
 	}
 
@@ -306,12 +301,12 @@ public class InboundChannelAdapterParserTests {
 	@Test
 	public void imapWithSearchTermStrategy() {
 		AbstractMailReceiver receiver = this.getReceiver("imapWithSearch");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Object sts = receiverAccessor.getPropertyValue("searchTermStrategy");
-		assertNotNull(sts);
-		assertSame(context.getBean(SearchTermStrategy.class), sts);
-		assertEquals("flagged", receiverAccessor.getPropertyValue("userFlag"));
+		assertThat(sts).isNotNull();
+		assertThat(sts).isSameAs(context.getBean(SearchTermStrategy.class));
+		assertThat(receiverAccessor.getPropertyValue("userFlag")).isEqualTo("flagged");
 	}
 
 	@Test
@@ -323,7 +318,7 @@ public class InboundChannelAdapterParserTests {
 			fail("expected a parser error");
 		}
 		catch (BeanCreationException e) {
-			assertTrue(e.getMessage().contains("searchTermStrategy is only allowed with imap"));
+			assertThat(e.getMessage().contains("searchTermStrategy is only allowed with imap")).isTrue();
 		}
 	}
 
@@ -339,7 +334,7 @@ public class InboundChannelAdapterParserTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -71,7 +67,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		messagingTemplate.setReceiveTimeout(1);
 		Message<?> message = messagingTemplate.receive();
-		assertNull("Message found ", message);
+		assertThat(message).as("Message found ").isNull();
 	}
 
 	@Test
@@ -79,13 +75,13 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull("No message found ", message);
-		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
+		assertThat(message).as("No message found ").isNotNull();
+		assertThat(message.getPayload() instanceof List<?>).as("Wrong payload type expected instance of List").isTrue();
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("jdbc:inbound-channel-adapter", componentHistoryRecord.get("type"));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("jdbc:inbound-channel-adapter");
 
 	}
 
@@ -94,10 +90,10 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingForMapJdbcInboundChannelAdapterWithUpdateTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		messagingTemplate.setReceiveTimeout(1);
 		message = messagingTemplate.receive();
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@Test
@@ -105,10 +101,10 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingForMapJdbcInboundChannelAdapterWithNestedUpdateTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		messagingTemplate.setReceiveTimeout(1);
 		message = messagingTemplate.receive();
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@Test
@@ -116,7 +112,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingWithJdbcOperationsJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 	}
 
 	@Test
@@ -124,10 +120,10 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingWithParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM item WHERE status=1");
-		assertEquals(1, list.size());
-		assertEquals("BAR", list.get(0).get("NAME"));
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list.get(0).get("NAME")).isEqualTo("BAR");
 	}
 
 	@Test
@@ -135,13 +131,13 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingWithSelectParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',42)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
-		assertEquals(42, ((Map<?, ?>) ((List<?>) message.getPayload()).get(0)).get("STATUS"));
+		assertThat(message).isNotNull();
+		assertThat(((Map<?, ?>) ((List<?>) message.getPayload()).get(0)).get("STATUS")).isEqualTo(42);
 		this.jdbcTemplate.update("insert into item values(2,'',84)");
 		this.appCtx.getBean(Status.class).which = 84;
 		message = messagingTemplate.receive();
-		assertNotNull(message);
-		assertEquals(84, ((Map<?, ?>) ((List<?>) message.getPayload()).get(0)).get("STATUS"));
+		assertThat(message).isNotNull();
+		assertThat(((Map<?, ?>) ((List<?>) message.getPayload()).get(0)).get("STATUS")).isEqualTo(84);
 	}
 
 	@Test
@@ -149,7 +145,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingWithParametersForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 	}
 
 	@Test
@@ -166,9 +162,9 @@ public class JdbcPollingChannelAdapterParserTests {
 		while (count < 4) {
 			@SuppressWarnings("unchecked")
 			Message<List<?>> message = (Message<List<?>>) messagingTemplate.receive();
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			int payloadSize = message.getPayload().size();
-			assertTrue(payloadSize <= 2);
+			assertThat(payloadSize <= 2).isTrue();
 			count += payloadSize;
 		}
 	}
@@ -178,7 +174,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("autoChannelJdbcPollingChannelAdapterParserTests-context.xml", getClass());
 		MessageChannel autoChannel = appCtx.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = appCtx.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@After

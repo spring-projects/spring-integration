@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Set;
@@ -62,11 +60,11 @@ public class PresenceListeningEndpointTests {
 		rosterEndpoint.setOutputChannel(new QueueChannel());
 		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
 		rosterEndpoint.afterPropertiesSet();
-		assertEquals(0, rosterSet.size());
+		assertThat(rosterSet.size()).isEqualTo(0);
 		rosterEndpoint.start();
-		assertEquals(1, rosterSet.size());
+		assertThat(rosterSet.size()).isEqualTo(1);
 		rosterEndpoint.stop();
-		assertEquals(0, rosterSet.size());
+		assertThat(rosterSet.size()).isEqualTo(0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -89,7 +87,7 @@ public class PresenceListeningEndpointTests {
 		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
 		rosterListener.presenceChanged(presence);
 		Message<?> message = channel.receive(10);
-		assertEquals(presence, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(presence);
 	}
 
 	@Test
@@ -100,7 +98,7 @@ public class PresenceListeningEndpointTests {
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
-		assertNotNull(TestUtils.getPropertyValue(endpoint, "xmppConnection"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -134,9 +132,9 @@ public class PresenceListeningEndpointTests {
 
 		ErrorMessage msg =
 				(ErrorMessage) errorChannel.receive();
-		assertSame(presence, ((MessagingException) msg.getPayload())
-						.getFailedMessage()
-						.getPayload());
+		assertThat(((MessagingException) msg.getPayload())
+				.getFailedMessage()
+				.getPayload()).isSameAs(presence);
 	}
 
 }

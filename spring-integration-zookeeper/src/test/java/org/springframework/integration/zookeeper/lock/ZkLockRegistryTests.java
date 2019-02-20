@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.springframework.integration.zookeeper.lock;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -56,7 +48,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -65,7 +57,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		Thread.sleep(10);
 		registry.expireUnusedOlderThan(0);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 		registry.destroy();
 	}
 
@@ -76,7 +68,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -93,7 +85,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			lock1.lock();
 			try {
 				Lock lock2 = registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lock();
 				lock2.unlock();
 			}
@@ -112,7 +104,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
 			}
@@ -131,7 +123,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = registry.obtain("bar");
-				assertNotSame(lock1, lock2);
+				assertThat(lock2).isNotSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
 			}
@@ -161,12 +153,12 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			}
 			return null;
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		Object ise = result.get(10, TimeUnit.SECONDS);
-		assertThat(ise, instanceOf(IllegalMonitorStateException.class));
-		assertThat(((Exception) ise).getMessage(), containsString("You do not own"));
+		assertThat(ise).isInstanceOf(IllegalMonitorStateException.class);
+		assertThat(((Exception) ise).getMessage()).contains("You do not own");
 		registry.destroy();
 	}
 
@@ -195,12 +187,12 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				latch3.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(locked.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isTrue();
 		registry.destroy();
 	}
 
@@ -230,12 +222,12 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				latch3.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(locked.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isTrue();
 		registry1.destroy();
 		registry2.destroy();
 	}
@@ -257,12 +249,12 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			}
 			return null;
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock.unlock();
 		Object imse = result.get(10, TimeUnit.SECONDS);
-		assertThat(imse, instanceOf(IllegalMonitorStateException.class));
-		assertThat(((Exception) imse).getMessage(), containsString("You do not own"));
+		assertThat(imse).isInstanceOf(IllegalMonitorStateException.class);
+		assertThat(((Exception) imse).getMessage()).contains("You do not own");
 		registry.destroy();
 	}
 
@@ -274,7 +266,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -287,9 +279,9 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			fail("expected exception");
 		}
 		catch (IllegalStateException e) {
-			assertThat(e.getMessage(), containsString("expiry is not supported"));
+			assertThat(e.getMessage()).contains("expiry is not supported");
 		}
-		assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 		registry.destroy();
 	}
 
@@ -304,19 +296,19 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 		Lock lock2 = registry.obtain("bar");
 
-		assertFalse("Should not have been able to lock with zookeeper server stopped!",
-				lock2.tryLock(1, TimeUnit.SECONDS));
+		assertThat(lock2.tryLock(1, TimeUnit.SECONDS))
+				.as("Should not have been able to lock with zookeeper server stopped!").isFalse();
 
 		testingServer.restart();
 
-		assertTrue("Should have been able to lock with zookeeper server restarted!",
-				lock2.tryLock(10, TimeUnit.SECONDS));
+		assertThat(lock2.tryLock(10, TimeUnit.SECONDS))
+				.as("Should have been able to lock with zookeeper server restarted!").isTrue();
 
-		assertTrue("Should have still held lock1", lock1.tryLock(1, TimeUnit.SECONDS));
+		assertThat(lock1.tryLock(1, TimeUnit.SECONDS)).as("Should have still held lock1").isTrue();
 
 		Lock lock3 = registry.obtain("foobar");
 
-		assertTrue("Should have been able to a obtain new lock!", lock3.tryLock(1, TimeUnit.SECONDS));
+		assertThat(lock3.tryLock(1, TimeUnit.SECONDS)).as("Should have been able to a obtain new lock!").isTrue();
 
 		lock1.unlock();
 		lock1.unlock();
@@ -335,7 +327,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			while (!lock.tryLock() && n++ < 100) {
 				Thread.sleep(100);
 			}
-			assertThat(n, lessThan(100));
+			assertThat(n).isLessThan(100);
 
 			lock.unlock();
 		}

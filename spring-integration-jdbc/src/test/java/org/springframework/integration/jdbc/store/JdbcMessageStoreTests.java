@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -46,6 +40,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -82,24 +77,24 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	public void testGetNonExistent() throws Exception {
+	public void testGetNonExistent() {
 		Message<?> result = messageStore.getMessage(UUID.randomUUID());
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
-	public void testAddAndGet() throws Exception {
+	public void testAddAndGet() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNotNull(result);
-		assertThat(saved, sameExceptIgnorableHeaders(result));
+		assertThat(result).isNotNull();
+		assertThat(saved).matches(new MessagePredicate(result));
 	}
 
 	@Test
-	public void testWithMessageHistory() throws Exception {
+	public void testWithMessageHistory() {
 
-		Message<?> message = new GenericMessage<String>("Hello");
+		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
@@ -110,93 +105,93 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessage(message);
 		message = messageStore.getMessage(message.getHeaders().getId());
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
-	public void testSize() throws Exception {
+	public void testSize() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessage(message);
-		assertEquals(1, messageStore.getMessageCount());
+		assertThat(messageStore.getMessageCount()).isEqualTo(1);
 	}
 
 	@Test
-	public void testSerializer() throws Exception {
+	public void testSerializer() {
 		// N.B. these serializers are not realistic (just for test purposes)
 		messageStore.setSerializer((object, outputStream) -> {
-			outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
+			outputStream.write(object.getPayload().toString().getBytes());
 			outputStream.flush();
 		});
 		messageStore.setDeserializer(inputStream -> {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-			return new GenericMessage<String>(reader.readLine());
+			return new GenericMessage<>(reader.readLine());
 		});
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
+		assertThat(messageStore.getMessage(message.getHeaders().getId())).isNotNull();
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
-	public void testAddAndGetWithDifferentRegion() throws Exception {
+	public void testAddAndGetWithDifferentRegion() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		messageStore.setRegion("FOO");
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
-	public void testAddAndUpdate() throws Exception {
+	public void testAddAndUpdate() {
 		Message<?> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
 		message = messageStore.addMessage(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.addMessage(message);
 		message = messageStore.getMessage(message.getHeaders().getId());
-		assertEquals("Y", new IntegrationMessageHeaderAccessor(message).getCorrelationId());
+		assertThat(new IntegrationMessageHeaderAccessor(message).getCorrelationId()).isEqualTo("Y");
 	}
 
 	@Test
-	public void testAddAndUpdateAlreadySaved() throws Exception {
+	public void testAddAndUpdateAlreadySaved() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		Message<String> result = messageStore.addMessage(message);
-		assertEquals(message, result);
+		assertThat(result).isEqualTo(message);
 	}
 
 	@Test
-	public void testAddAndUpdateAlreadySavedAndCopied() throws Exception {
+	public void testAddAndUpdateAlreadySavedAndCopied() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).build();
 		Message<String> result = messageStore.addMessage(copy);
-		assertEquals(copy, result);
-		assertEquals(saved, result);
-		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
+		assertThat(result).isEqualTo(copy);
+		assertThat(result).isEqualTo(saved);
+		assertThat(messageStore.getMessage(saved.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
-	public void testAddAndUpdateWithChange() throws Exception {
+	public void testAddAndUpdateWithChange() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
-		assertNotSame(saved, result);
-		assertThat(saved, sameExceptIgnorableHeaders(result, "newHeader"));
-		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
+		assertThat(result).isNotSameAs(saved);
+		assertThat(saved).matches(new MessagePredicate(result, "newHeader"));
+		assertThat(messageStore.getMessage(saved.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
 	public void testAddAndRemoveMessageGroup() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
-		assertNotNull(messageStore.removeMessage(message.getHeaders().getId()));
+		assertThat(messageStore.removeMessage(message.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
@@ -206,8 +201,8 @@ public class JdbcMessageStoreTests {
 		long now = System.currentTimeMillis();
 		messageStore.addMessagesToGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
-		assertTrue("Timestamp too early: " + group.getTimestamp() + "<" + now, group.getTimestamp() >= now);
+		assertThat(group.size()).isEqualTo(1);
+		assertThat(group.getTimestamp() >= now).as("Timestamp too early: " + group.getTimestamp() + "<" + now).isTrue();
 	}
 
 	@Test
@@ -217,7 +212,7 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -231,10 +226,10 @@ public class JdbcMessageStoreTests {
 		}
 		this.messageStore.addMessagesToGroup(groupId, messages.toArray(new Message<?>[messages.size()]));
 		MessageGroup group = this.messageStore.getMessageGroup(groupId);
-		assertEquals(25, group.size());
+		assertThat(group.size()).isEqualTo(25);
 		this.messageStore.removeMessagesFromGroup(groupId, messages);
 		group = this.messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -247,11 +242,11 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.removeMessageGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 
 		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
-		assertTrue(template.queryForList(
-				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = ?", uuidGroupId).size() == 0);
+		assertThat(template.queryForList(
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = ?", uuidGroupId).size() == 0).isTrue();
 	}
 
 	@Test
@@ -261,8 +256,8 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.completeGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertTrue(group.isComplete());
-		assertEquals(1, group.size());
+		assertThat(group.isComplete()).isTrue();
+		assertThat(group.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -272,7 +267,7 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.setLastReleasedSequenceNumberForGroup(groupId, 5);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(5, group.getLastReleasedMessageSequenceNumber());
+		assertThat(group.getLastReleasedMessageSequenceNumber()).isEqualTo(5);
 	}
 
 	@Test
@@ -280,7 +275,7 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessagesToGroup(groupId, message);
-		assertEquals(1, messageStore.getMessageGroupCount());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
 	}
 
 	@Test
@@ -288,7 +283,7 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessagesToGroup(groupId, message);
-		assertEquals(1, messageStore.getMessageCountForAllMessageGroups());
+		assertThat(messageStore.getMessageCountForAllMessageGroups()).isEqualTo(1);
 	}
 
 	@Test
@@ -301,9 +296,9 @@ public class JdbcMessageStoreTests {
 		this.messageStore.addMessagesToGroup(groupId,
 				MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		MessageGroup group = this.messageStore.getMessageGroup(groupId);
-		assertEquals(2, group.size());
-		assertEquals("foo", this.messageStore.pollMessageFromGroup(groupId).getPayload());
-		assertEquals("bar", this.messageStore.pollMessageFromGroup(groupId).getPayload());
+		assertThat(group.size()).isEqualTo(2);
+		assertThat(this.messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("foo");
+		assertThat(this.messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -319,7 +314,7 @@ public class JdbcMessageStoreTests {
 
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 
@@ -336,8 +331,8 @@ public class JdbcMessageStoreTests {
 		messageStore.expireMessageGroups(2000);
 
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
-		assertTrue(groupRemovalLatch.await(10, TimeUnit.SECONDS));
+		assertThat(group.size()).isEqualTo(0);
+		assertThat(groupRemovalLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -346,7 +341,8 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.setTimeoutOnIdle(true);
 		messageStore.addMessagesToGroup(groupId, message);
-		messageStore.registerMessageGroupExpiryCallback((messageGroupStore, group) -> messageGroupStore.removeMessageGroup(group.getGroupId()));
+		messageStore.registerMessageGroupExpiryCallback((messageGroupStore, group) -> messageGroupStore
+				.removeMessageGroup(group.getGroupId()));
 
 		JdbcTemplate template = new JdbcTemplate(this.dataSource);
 		template.afterPropertiesSet();
@@ -355,19 +351,19 @@ public class JdbcMessageStoreTests {
 
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 
 		updateMessageGroup(template, groupId, 2000);
 
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(2, group.size());
+		assertThat(group.size()).isEqualTo(2);
 
 		updateMessageGroup(template, groupId, 2000);
 
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	private void updateMessageGroup(JdbcTemplate template, final String groupId, final long timeout) {
@@ -394,21 +390,21 @@ public class JdbcMessageStoreTests {
 				MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
 
 		MessageGroup group = messageStore.getMessageGroup("X");
-		assertEquals(3, group.size());
+		assertThat(group.size()).isEqualTo(3);
 
 		Message<?> message1 = messageStore.pollMessageFromGroup("X");
-		assertNotNull(message1);
-		assertEquals("foo", message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("foo");
 
 		group = messageStore.getMessageGroup("X");
-		assertEquals(2, group.size());
+		assertThat(group.size()).isEqualTo(2);
 
 		Message<?> message2 = messageStore.pollMessageFromGroup("X");
-		assertNotNull(message2);
-		assertEquals("bar", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("bar");
 
 		group = messageStore.getMessageGroup("X");
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -434,11 +430,11 @@ public class JdbcMessageStoreTests {
 		final Message<?> messageFromGroup1 = messageStore.pollMessageFromGroup(group1Id);
 		final Message<?> messageFromGroup2 = messageStore.pollMessageFromGroup(group2Id);
 
-		assertNotNull(messageFromGroup1);
-		assertNotNull(messageFromGroup2);
+		assertThat(messageFromGroup1).isNotNull();
+		assertThat(messageFromGroup2).isNotNull();
 
-		assertEquals(1, messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(2, messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertThat(messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(1);
+		assertThat(messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 
 	}
 
@@ -472,11 +468,11 @@ public class JdbcMessageStoreTests {
 		final Message<?> messageFromRegion1 = messageStore1.pollMessageFromGroup(groupId);
 		final Message<?> messageFromRegion2 = messageStore2.pollMessageFromGroup(groupId);
 
-		assertNotNull(messageFromRegion1);
-		assertNotNull(messageFromRegion2);
+		assertThat(messageFromRegion1).isNotNull();
+		assertThat(messageFromRegion2).isNotNull();
 
-		assertEquals(1, messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(2, messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertThat(messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(1);
+		assertThat(messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
 
 	}
 
@@ -510,8 +506,8 @@ public class JdbcMessageStoreTests {
 		//add to the messageStore
 		messageStore.addMessagesToGroup(groupId, oneOfTwo, twoOfTwo);
 		//check that 2 messages are there
-		assertTrue(messageStore.getMessageGroupCount() == 1);
-		assertTrue(messageStore.getMessageCount() == 2);
+		assertThat(messageStore.getMessageGroupCount() == 1).isTrue();
+		assertThat(messageStore.getMessageCount() == 2).isTrue();
 		//retrieve the group (like in the aggregator)
 		MessageGroup messageGroup = messageStore.getMessageGroup(groupId);
 		//'complete' the group
@@ -523,7 +519,7 @@ public class JdbcMessageStoreTests {
 		//'add' the other message --> emulated by getting the messageGroup
 		messageGroup = messageStore.getMessageGroup(groupId);
 		//should be marked 'complete' --> old behavior it would not
-		assertTrue(messageGroup.isComplete());
+		assertThat(messageGroup.isComplete()).isTrue();
 	}
 
 }

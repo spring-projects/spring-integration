@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,7 +24,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -82,201 +77,205 @@ public class WebServiceOutboundGatewayParserTests {
 	@Test
 	public void simpleGatewayWithReplyChannel() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithReplyChannel", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object expected = this.context.getBean("outputChannel");
-		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
-		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
+		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(expected);
+		assertThat(accessor.getPropertyValue("requiresReply")).isEqualTo(Boolean.FALSE);
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(endpoint,
 				"handler.headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertTrue(requestHeaderMatcher.matchHeader("testRequest"));
-		assertFalse(requestHeaderMatcher.matchHeader("testReply"));
+		assertThat(requestHeaderMatcher.matchHeader("testRequest")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("testReply")).isFalse();
 
 		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(endpoint,
 				"handler.headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertFalse(replyHeaderMatcher.matchHeader("testRequest"));
-		assertTrue(replyHeaderMatcher.matchHeader("testReply"));
+		assertThat(replyHeaderMatcher.matchHeader("testRequest")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("testReply")).isTrue();
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
-		assertEquals(Long.valueOf(777), sendTimeout);
+		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
 
-		assertSame(this.context.getBean("webServiceTemplate"),
-				TestUtils.getPropertyValue(gateway, "webServiceTemplate"));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate"))
+				.isSameAs(this.context.getBean("webServiceTemplate"));
 	}
 
 	@Test
 	public void simpleGatewayWithIgnoreEmptyResponseTrueByDefault() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithReplyChannel", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreEmptyResponses"));
-		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
+		assertThat(accessor.getPropertyValue("ignoreEmptyResponses")).isEqualTo(Boolean.TRUE);
+		assertThat(accessor.getPropertyValue("requiresReply")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	public void simpleGatewayWithIgnoreEmptyResponses() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithIgnoreEmptyResponsesFalseAndRequiresReplyTrue",
 				AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreEmptyResponses"));
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayload"));
+		assertThat(accessor.getPropertyValue("ignoreEmptyResponses")).isEqualTo(Boolean.FALSE);
+		assertThat(accessor.getPropertyValue("requiresReply")).isEqualTo(Boolean.TRUE);
+		assertThat(accessor.getPropertyValue("extractPayload")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	public void simpleGatewayWithDefaultSourceExtractor() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithDefaultSourceExtractor", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals("DefaultSourceExtractor", accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName());
+		assertThat(accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName())
+				.isEqualTo("DefaultSourceExtractor");
 	}
 
 	@Test
 	public void simpleGatewayWithCustomSourceExtractor() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomSourceExtractor", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
-		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
+		assertThat(accessor.getPropertyValue("sourceExtractor")).isEqualTo(sourceExtractor);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomRequestCallback() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomRequestCallback", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
-		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
+		assertThat(accessor.getPropertyValue("requestCallback")).isEqualTo(callback);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomMessageFactory() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomMessageFactory", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
-		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
+		assertThat(accessor.getPropertyValue("messageFactory")).isEqualTo(factory);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomSourceExtractorAndMessageFactory() {
 		AbstractEndpoint endpoint = context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory", AbstractEndpoint.class);
 		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
+		assertThat(accessor.getPropertyValue("sourceExtractor")).isEqualTo(sourceExtractor);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
-		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
+		assertThat(accessor.getPropertyValue("messageFactory")).isEqualTo(factory);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomFaultMessageResolver() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomFaultMessageResolver", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		FaultMessageResolver resolver = (FaultMessageResolver) context.getBean("faultMessageResolver");
-		assertEquals(resolver, accessor.getPropertyValue("faultMessageResolver"));
+		assertThat(accessor.getPropertyValue("faultMessageResolver")).isEqualTo(resolver);
 	}
 
 
 	@Test
 	public void simpleGatewayWithCustomMessageSender() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomMessageSender", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
-		assertEquals(messageSender, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0]);
+		assertThat(((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0])
+				.isEqualTo(messageSender);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomMessageSenderList() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomMessageSenderList", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
-		assertEquals(messageSender, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0]);
-		assertEquals("Wrong number of message senders ",
-				2, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders")).length);
+		assertThat(((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0])
+				.isEqualTo(messageSender);
+		assertThat(((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders")).length)
+				.as("Wrong number of message senders ").isEqualTo(2);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomInterceptor() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomInterceptor", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		ClientInterceptor interceptor = context.getBean("interceptor", ClientInterceptor.class);
-		assertEquals(interceptor, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]);
+		assertThat(((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]).isEqualTo(interceptor);
 	}
 
 	@Test
 	public void simpleGatewayWithCustomInterceptorList() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomInterceptorList", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		ClientInterceptor interceptor = context.getBean("interceptor", ClientInterceptor.class);
-		assertEquals(interceptor, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]);
-		assertEquals("Wrong number of interceptors ",
-				2, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors")).length);
+		assertThat(((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]).isEqualTo(interceptor);
+		assertThat(((ClientInterceptor[]) accessor.getPropertyValue("interceptors")).length)
+				.as("Wrong number of interceptors ").isEqualTo(2);
 	}
 
 	@Test
 	public void simpleGatewayWithPoller() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithPoller", AbstractEndpoint.class);
-		assertEquals(PollingConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(PollingConsumer.class);
 		Object triggerObject = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
-		assertEquals(PeriodicTrigger.class, triggerObject.getClass());
+		assertThat(triggerObject.getClass()).isEqualTo(PeriodicTrigger.class);
 		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		assertEquals("PeriodicTrigger had wrong period",
-				5000, ((Long) accessor.getPropertyValue("period")).longValue());
+		assertThat(((Long) accessor.getPropertyValue("period")).longValue()).as("PeriodicTrigger had wrong period")
+				.isEqualTo(5000);
 	}
 
 	@Test
 	public void simpleGatewayWithOrder() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithOrderAndAutoStartupFalse", AbstractEndpoint.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(99, new DirectFieldAccessor(gateway).getPropertyValue("order"));
+		assertThat(new DirectFieldAccessor(gateway).getPropertyValue("order")).isEqualTo(99);
 	}
 
 	@Test
 	public void simpleGatewayWithStartupFalse() {
-		AbstractEndpoint endpoint = this.context.getBean("gatewayWithOrderAndAutoStartupFalse", AbstractEndpoint.class);
-		assertEquals(Boolean.FALSE, new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup"));
+		AbstractEndpoint endpoint = this.context.getBean("gatewayWithOrderAndAutoStartupFalse",
+				AbstractEndpoint.class);
+		assertThat(new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -284,11 +283,13 @@ public class WebServiceOutboundGatewayParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshaller");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+				.isSameAs(marshaller);
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+				.isSameAs(marshaller);
 		context.close();
 	}
 
@@ -297,12 +298,14 @@ public class WebServiceOutboundGatewayParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshaller");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
 		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
-		assertSame(unmarshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+				.isSameAs(marshaller);
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+				.isSameAs(unmarshaller);
 		context.close();
 	}
 
@@ -311,12 +314,12 @@ public class WebServiceOutboundGatewayParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomRequestCallback");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(MarshallingWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
-		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
+		assertThat(accessor.getPropertyValue("requestCallback")).isEqualTo(callback);
 		context.close();
 	}
 
@@ -324,15 +327,18 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithAllInOneMarshallerAndMessageFactory() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshallerAndMessageFactory");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean(
+				"gatewayWithAllInOneMarshallerAndMessageFactory");
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+				.isSameAs(marshaller);
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+				.isSameAs(marshaller);
 
 		WebServiceMessageFactory messageFactory = (WebServiceMessageFactory) context.getBean("messageFactory");
-		assertEquals(messageFactory, TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory"));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isEqualTo(messageFactory);
 		context.close();
 	}
 
@@ -340,45 +346,49 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean(
+				"gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 
 		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 
 		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
 		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
 
-		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
-		assertSame(unmarshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class))
+				.isSameAs(marshaller);
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class))
+				.isSameAs(unmarshaller);
 
 		WebServiceMessageFactory messageFactory = context.getBean("messageFactory", WebServiceMessageFactory.class);
-		assertEquals(messageFactory, TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory"));
+		assertThat(TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory")).isEqualTo(messageFactory);
 		context.close();
 	}
 
 	@Test
 	public void simpleGatewayWithDestinationProvider() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithDestinationProvider", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		StubDestinationProvider stubProvider = (StubDestinationProvider) context.getBean("destinationProvider");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		assertThat(gateway.getClass()).isEqualTo(SimpleWebServiceOutboundGateway.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals("Wrong DestinationProvider", stubProvider, accessor.getPropertyValue("destinationProvider"));
-		assertNull(accessor.getPropertyValue("uri"));
+		assertThat(accessor.getPropertyValue("destinationProvider")).as("Wrong DestinationProvider")
+				.isEqualTo(stubProvider);
+		assertThat(accessor.getPropertyValue("uri")).isNull();
 		Object destinationProviderObject = new DirectFieldAccessor(
 				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
-		assertEquals("Wrong DestinationProvider", stubProvider, destinationProviderObject);
+		assertThat(destinationProviderObject).as("Wrong DestinationProvider").isEqualTo(stubProvider);
 	}
 
 	@Test
 	public void advised() {
 		adviceCalled = 0;
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithAdvice", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
@@ -386,17 +396,17 @@ public class WebServiceOutboundGatewayParserTests {
 		adviceCalled = 0;
 		MessageChannel channel = context.getBean("gatewayWithAdviceInsideAChain", MessageChannel.class);
 		channel.send(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void jmsUri() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithJmsUri", AbstractEndpoint.class);
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		assertNull(TestUtils.getPropertyValue(handler, "destinationProvider"));
-		assertFalse(TestUtils.getPropertyValue(handler, "encodeUri", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(handler, "destinationProvider")).isNull();
+		assertThat(TestUtils.getPropertyValue(handler, "encodeUri", Boolean.class)).isFalse();
 
 		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(handler, "webServiceTemplate",
 				WebServiceTemplate.class);

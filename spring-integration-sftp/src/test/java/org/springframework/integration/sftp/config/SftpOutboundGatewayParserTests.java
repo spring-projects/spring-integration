@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,12 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -85,77 +79,83 @@ public class SftpOutboundGatewayParserTests {
 	public void testGateway1() {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway1,
 				"handler", SftpOutboundGateway.class);
-		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
-		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
-		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator")).isEqualTo("X");
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"))
+				.isEqualTo("local-test-dir");
+		assertThat((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory")).isFalse();
+		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(gateway, "filter")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "command")).isEqualTo(Command.LS);
 		@SuppressWarnings("unchecked")
 		Set<Option> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
-		assertTrue(options.contains(Option.NAME_ONLY));
-		assertTrue(options.contains(Option.NOSORT));
+		assertThat(options.contains(Option.NAME_ONLY)).isTrue();
+		assertThat(options.contains(Option.NOSORT)).isTrue();
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
-		assertEquals(Long.valueOf(777), sendTimeout);
-		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(RegexPatternFileListFilter.class));
+		assertThat(sendTimeout).isEqualTo(Long.valueOf(777));
+		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter")).isInstanceOf(RegexPatternFileListFilter.class);
 	}
 
 	@Test
 	public void testGateway2() throws Exception {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway2,
 				"handler", SftpOutboundGateway.class);
-		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory") instanceof CachingSessionFactory);
-		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
-		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
-		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
-		assertFalse(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator")).isEqualTo("X");
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory")).isNotNull();
+		assertThat(TestUtils
+				.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory") instanceof CachingSessionFactory)
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"))
+				.isEqualTo("local-test-dir");
+		assertThat((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory")).isFalse();
+		assertThat(TestUtils.getPropertyValue(gateway, "command")).isEqualTo(Command.GET);
+		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isFalse();
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
-		assertTrue(options.contains(Option.PRESERVE_TIMESTAMP));
+		assertThat(options.contains(Option.PRESERVE_TIMESTAMP)).isTrue();
 
 		//INT-3129
-		assertNotNull(TestUtils.getPropertyValue(gateway, "localFilenameGeneratorExpression"));
+		assertThat(TestUtils.getPropertyValue(gateway, "localFilenameGeneratorExpression")).isNotNull();
 		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(SftpOutboundGateway.class, method -> {
 			method.setAccessible(true);
 			genMethod.set(method);
 		}, method -> "generateLocalFileName".equals(method.getName()));
-		assertEquals("FOO.afoo", genMethod.get().invoke(gateway, new GenericMessage<String>(""), "foo"));
-		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(SimplePatternFileListFilter.class));
+		assertThat(genMethod.get().invoke(gateway, new GenericMessage<String>(""), "foo")).isEqualTo("FOO.afoo");
+		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter")).isInstanceOf(SimplePatternFileListFilter.class);
 	}
 
 	@Test
 	public void testGatewayMv() {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway3,
 				"handler", SftpOutboundGateway.class);
-		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(Command.MV, TestUtils.getPropertyValue(gateway, "command"));
-		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "command")).isEqualTo(Command.MV);
+		assertThat(TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression")).isEqualTo("'foo'");
 	}
 
 	@Test
 	public void testGatewayMPut() {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway4,
 				"handler", SftpOutboundGateway.class);
-		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(Command.MPUT, TestUtils.getPropertyValue(gateway, "command"));
-		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
-		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(RegexPatternFileListFilter.class));
-		assertSame(generator, TestUtils.getPropertyValue(gateway, "remoteFileTemplate.fileNameGenerator"));
-		assertEquals("/foo",
-				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.directoryExpressionProcessor.expression", Expression.class)
-						.getExpressionString());
-		assertEquals("/bar",
-				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.temporaryDirectoryExpressionProcessor.expression", Expression.class)
-						.getExpressionString());
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "outputChannel")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(gateway, "command")).isEqualTo(Command.MPUT);
+		assertThat(TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression")).isEqualTo("'foo'");
+		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter")).isInstanceOf(RegexPatternFileListFilter.class);
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.fileNameGenerator")).isSameAs(generator);
+		assertThat(TestUtils
+				.getPropertyValue(gateway, "remoteFileTemplate.directoryExpressionProcessor.expression",
+						Expression.class)
+				.getExpressionString()).isEqualTo("/foo");
+		assertThat(TestUtils
+				.getPropertyValue(gateway, "remoteFileTemplate.temporaryDirectoryExpressionProcessor.expression",
+						Expression.class)
+				.getExpressionString()).isEqualTo("/bar");
 	}
 
 	@Test
@@ -163,7 +163,7 @@ public class SftpOutboundGatewayParserTests {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(advised,
 				"handler", SftpOutboundGateway.class);
 		gateway.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

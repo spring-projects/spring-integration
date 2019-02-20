@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -133,11 +130,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Arrays.asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertNull(resultMessage.getHeaders().get("k1"));
-		assertNull(resultMessage.getHeaders().get("k2"));
+		assertThat(resultMessage.getHeaders().get("k1")).isNull();
+		assertThat(resultMessage.getHeaders().get("k2")).isNull();
 
 		headers1 = new HashMap<>();
 		headers1.put("k1", "foo");
@@ -156,8 +153,8 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		group = new SimpleMessageGroup(messages, 1);
 		result = processor.processMessageGroup(group);
 		resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertNull(resultMessage.getHeaders().get("k1"));
-		assertNull(resultMessage.getHeaders().get("k2"));
+		assertThat(resultMessage.getHeaders().get("k1")).isNull();
+		assertThat(resultMessage.getHeaders().get("k2")).isNull();
 	}
 
 
@@ -169,11 +166,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Collections.singletonList(message);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals("value1", resultMessage.getHeaders().get("k1"));
-		assertEquals(2, resultMessage.getHeaders().get("k2"));
+		assertThat(resultMessage.getHeaders().get("k1")).isEqualTo("value1");
+		assertThat(resultMessage.getHeaders().get("k2")).isEqualTo(2);
 	}
 
 	private void twoMessagesWithoutConflicts(MessageGroupProcessor processor) {
@@ -185,11 +182,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Arrays.asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals("value1", resultMessage.getHeaders().get("k1"));
-		assertEquals(2, resultMessage.getHeaders().get("k2"));
+		assertThat(resultMessage.getHeaders().get("k1")).isEqualTo("value1");
+		assertThat(resultMessage.getHeaders().get("k2")).isEqualTo(2);
 	}
 
 	private void twoMessagesWithConflicts(MessageGroupProcessor processor) {
@@ -204,11 +201,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Arrays.asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertNull(resultMessage.getHeaders().get("k1"));
-		assertEquals(123, resultMessage.getHeaders().get("k2"));
+		assertThat(resultMessage.getHeaders().get("k1")).isNull();
+		assertThat(resultMessage.getHeaders().get("k2")).isEqualTo(123);
 	}
 
 	private void missingValuesDoNotConflict(MessageGroupProcessor processor) {
@@ -235,17 +232,17 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Arrays.asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals("value1", resultMessage.getHeaders().get("only1"));
-		assertEquals("value2", resultMessage.getHeaders().get("only2"));
-		assertEquals("value3", resultMessage.getHeaders().get("only3"));
-		assertEquals("foo", resultMessage.getHeaders().get("commonTo1And2"));
-		assertEquals("bar", resultMessage.getHeaders().get("commonTo2And3"));
-		assertEquals(123, resultMessage.getHeaders().get("commonToAll"));
-		assertNull(resultMessage.getHeaders().get("conflictBetween1And2"));
-		assertNull(resultMessage.getHeaders().get("conflictBetween2And3"));
+		assertThat(resultMessage.getHeaders().get("only1")).isEqualTo("value1");
+		assertThat(resultMessage.getHeaders().get("only2")).isEqualTo("value2");
+		assertThat(resultMessage.getHeaders().get("only3")).isEqualTo("value3");
+		assertThat(resultMessage.getHeaders().get("commonTo1And2")).isEqualTo("foo");
+		assertThat(resultMessage.getHeaders().get("commonTo2And3")).isEqualTo("bar");
+		assertThat(resultMessage.getHeaders().get("commonToAll")).isEqualTo(123);
+		assertThat(resultMessage.getHeaders().get("conflictBetween1And2")).isNull();
+		assertThat(resultMessage.getHeaders().get("conflictBetween2And3")).isNull();
 	}
 
 	private void multipleValuesConflict(MessageGroupProcessor processor) {
@@ -264,11 +261,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		List<Message<?>> messages = Arrays.asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
 		Object result = processor.processMessageGroup(group);
-		assertNotNull(result);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result).isNotNull();
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals("valueForAll", resultMessage.getHeaders().get("common"));
-		assertNull(resultMessage.getHeaders().get("conflict"));
+		assertThat(resultMessage.getHeaders().get("common")).isEqualTo("valueForAll");
+		assertThat(resultMessage.getHeaders().get("conflict")).isNull();
 	}
 
 	private static Message<?> correlatedMessage(Object correlationId, Integer sequenceSize,

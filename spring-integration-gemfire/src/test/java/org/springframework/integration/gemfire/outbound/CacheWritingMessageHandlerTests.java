@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gemfire.outbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -82,7 +82,7 @@ public class CacheWritingMessageHandlerTests {
 
 	@Test
 	public void mapPayloadWritesToCache() throws Exception {
-		assertEquals(0, region.size());
+		assertThat(region.size()).isEqualTo(0);
 
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -92,13 +92,13 @@ public class CacheWritingMessageHandlerTests {
 		map.put("foo", "bar");
 		Message<?> message = MessageBuilder.withPayload(map).build();
 		handler.handleMessage(message);
-		assertEquals(1, region.size());
-		assertEquals("bar", region.get("foo"));
+		assertThat(region.size()).isEqualTo(1);
+		assertThat(region.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
 	public void ExpressionsWriteToCache() throws Exception {
-		assertEquals(0, region.size());
+		assertThat(region.size()).isEqualTo(0);
 
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
 
@@ -113,16 +113,16 @@ public class CacheWritingMessageHandlerTests {
 				.copyHeaders(Collections.singletonMap("bar", "bar"))
 				.build();
 		handler.handleMessage(message);
-		assertEquals(2, region.size());
-		assertEquals("BAR", region.get("FOO"));
-		assertEquals("bar", region.get("foo"));
+		assertThat(region.size()).isEqualTo(2);
+		assertThat(region.get("FOO")).isEqualTo("BAR");
+		assertThat(region.get("foo")).isEqualTo("bar");
 
 		handler.setCacheEntryExpressions(Collections.<Expression, Expression>singletonMap(new LiteralExpression("baz"),
 				new ValueExpression<Long>(10L)));
 
 		handler.handleMessage(new GenericMessage<String>("test"));
-		assertEquals(3, region.size());
-		assertEquals(10L, region.get("baz"));
+		assertThat(region.size()).isEqualTo(3);
+		assertThat(region.get("baz")).isEqualTo(10L);
 	}
 
 }

@@ -16,12 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,11 +113,11 @@ public class MessageProducerSupportTests {
 		mps.start();
 		Message<?> message = new GenericMessage<>("hello");
 		mps.sendMessage(message);
-		assertThat(errorService.lastMessage, instanceOf(ErrorMessage.class));
+		assertThat(errorService.lastMessage).isInstanceOf(ErrorMessage.class);
 		ErrorMessage errorMessage = (ErrorMessage) errorService.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
 		MessageDeliveryException exception = (MessageDeliveryException) errorMessage.getPayload();
-		assertEquals(message, exception.getFailedMessage());
+		assertThat(exception.getFailedMessage()).isEqualTo(message);
 	}
 
 	@Test
@@ -137,21 +132,21 @@ public class MessageProducerSupportTests {
 		mps.setBeanFactory(this.context);
 		mps.afterPropertiesSet();
 		mps.start();
-		assertSame(outChannel, mps.getOutputChannel());
+		assertThat(mps.getOutputChannel()).isSameAs(outChannel);
 	}
 
 	@Test
 	public void customDoStop() {
 		final CustomEndpoint endpoint = new CustomEndpoint();
-		assertEquals(0, endpoint.getCount());
-		assertTrue(endpoint.isStopped());
+		assertThat(endpoint.getCount()).isEqualTo(0);
+		assertThat(endpoint.isStopped()).isTrue();
 		endpoint.start();
-		assertFalse(endpoint.isStopped());
+		assertThat(endpoint.isStopped()).isFalse();
 		endpoint.stop(() -> {
 			// Do nothing
 		});
-		assertEquals(1, endpoint.getCount());
-		assertTrue(endpoint.isStopped());
+		assertThat(endpoint.getCount()).isEqualTo(1);
+		assertThat(endpoint.isStopped()).isTrue();
 	}
 
 	private static class SuccessfulErrorService {

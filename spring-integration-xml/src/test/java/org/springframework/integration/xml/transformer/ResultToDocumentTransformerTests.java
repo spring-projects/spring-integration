@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
@@ -50,18 +49,18 @@ public class ResultToDocumentTransformerTests {
 	public void testWithDomResult() throws Exception {
 		DOMResult result = XmlTestUtil.getDomResultForString(startDoc);
 		Object transformed = resToDocTransformer.transformResult(result);
-		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
+		assertThat(transformed instanceof Document).as("Wrong transformed type expected Document").isTrue();
 		Document doc = (Document) transformed;
-		assertEquals("Wrong root element name", "order", doc.getDocumentElement().getNodeName());
+		assertThat(doc.getDocumentElement().getNodeName()).as("Wrong root element name").isEqualTo("order");
 	}
 
 	@Test
 	public void testWithStringResult() throws Exception {
 		StringResult result = XmlTestUtil.getStringResultForString(startDoc);
 		Object transformed = resToDocTransformer.transformResult(result);
-		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
+		assertThat(transformed instanceof Document).as("Wrong transformed type expected Document").isTrue();
 		Document doc = (Document) transformed;
-		assertEquals("Wrong root element name", "order", doc.getDocumentElement().getNodeName());
+		assertThat(doc.getDocumentElement().getNodeName()).as("Wrong root element name").isEqualTo("order");
 	}
 
 	@Test(expected = MessagingException.class)

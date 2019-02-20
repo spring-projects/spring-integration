@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.routingslip;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,17 +88,18 @@ public class RoutingSlipTests {
 				.setHeader("myRoutingSlipChannel", "channel5").build();
 		this.input.send(request);
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		List<Message<?>> messages = (List<Message<?>>) reply.getPayload();
 		for (Message<?> message : messages) {
 			Map<List<String>, Integer> routingSlip = message.getHeaders()
 					.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
-			assertEquals(routingSlip.keySet().iterator().next().size(), routingSlip.values().iterator().next().intValue());
+			assertThat(routingSlip.values().iterator().next().intValue())
+					.isEqualTo(routingSlip.keySet().iterator().next().size());
 			MessageHistory messageHistory = MessageHistory.read(message);
 			List<String> channelNames = Arrays.asList("input", "split", "process", "channel1", "channel2",
 					"channel3", "channel4", "channel5", "aggregate");
 			for (Properties properties : messageHistory) {
-				assertTrue(channelNames.contains(properties.getProperty("name")));
+				assertThat(channelNames.contains(properties.getProperty("name"))).isTrue();
 			}
 		}
 	}
@@ -112,13 +108,13 @@ public class RoutingSlipTests {
 	public void testDynamicRoutingSlipRoutStrategy() {
 		this.routingSlipHeaderChannel.send(new GenericMessage<>("foo"));
 		Message<?> result = this.resultsChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("FOO", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("FOO");
 
 		this.routingSlipHeaderChannel.send(new GenericMessage<>(2));
 		result = this.resultsChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals(4, result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(4);
 	}
 
 	@Test
@@ -128,19 +124,18 @@ public class RoutingSlipTests {
 			fail("IllegalArgumentException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(),
-					containsString("The RoutingSlip can contain " +
-							"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
-							"or MessageChannel and RoutingSlipRouteStrategy instances"));
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("The RoutingSlip can contain " +
+					"only bean names of MessageChannel or RoutingSlipRouteStrategy, " +
+					"or MessageChannel and RoutingSlipRouteStrategy instances");
 		}
 		try {
 			this.invalidRoutingSlipChannel.send(new GenericMessage<>("foo"));
 			fail("MessagingException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("replyChannel must be a MessageChannel or String"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("replyChannel must be a MessageChannel or String");
 		}
 	}
 

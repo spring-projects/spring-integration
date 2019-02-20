@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -60,7 +56,7 @@ public class ConnectionTimeoutTests {
 		TcpConnection connection = client.getConnection();
 		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
 		// should default to 0 (infinite) timeout
-		assertEquals(0, socket.getSoTimeout());
+		assertThat(socket.getSoTimeout()).isEqualTo(0);
 		connection.close();
 		server.stop();
 		client.stop();
@@ -80,9 +76,9 @@ public class ConnectionTimeoutTests {
 		client.start();
 		TcpConnection connection = client.getConnection();
 		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
-		assertEquals(1000, socket.getSoTimeout());
-		assertTrue(clientCloseLatch.await(3, TimeUnit.SECONDS));
-		assertFalse(connection.isOpen());
+		assertThat(socket.getSoTimeout()).isEqualTo(1000);
+		assertThat(clientCloseLatch.await(3, TimeUnit.SECONDS)).isTrue();
+		assertThat(connection.isOpen()).isFalse();
 		server.stop();
 		client.stop();
 	}
@@ -131,10 +127,10 @@ public class ConnectionTimeoutTests {
 		TcpConnection connection = client.getConnection();
 		Thread.sleep(1000);
 		connection.send(MessageBuilder.withPayload("foo").build());
-		assertTrue(replyLatch.await(5, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
-		assertTrue(clientClosedLatch.await(10, TimeUnit.SECONDS));
-		assertFalse(connection.isOpen());
+		assertThat(replyLatch.await(5, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
+		assertThat(clientClosedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(connection.isOpen()).isFalse();
 		server.stop();
 		client.stop();
 	}
@@ -170,14 +166,14 @@ public class ConnectionTimeoutTests {
 		client.start();
 		TcpConnection connection = client.getConnection();
 		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);
-		assertEquals(2000, socket.getSoTimeout());
+		assertThat(socket.getSoTimeout()).isEqualTo(2000);
 		Thread.sleep(1000);
 		connection.send(MessageBuilder.withPayload("foo").build());
 		Thread.sleep(1400);
-		assertTrue(connection.isOpen());
-		assertTrue(clientCloseLatch.await(2000, TimeUnit.SECONDS));
-		assertNull(reply.get());
-		assertFalse(connection.isOpen());
+		assertThat(connection.isOpen()).isTrue();
+		assertThat(clientCloseLatch.await(2000, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNull();
+		assertThat(connection.isOpen()).isFalse();
 		server.stop();
 		client.stop();
 	}
@@ -209,10 +205,10 @@ public class ConnectionTimeoutTests {
 		Thread.sleep(500);
 		connection.send(MessageBuilder.withPayload("foo").build());
 		Thread.sleep(700);
-		assertTrue(connection.isOpen());
-		assertTrue(clientCloseLatch.await(2, TimeUnit.SECONDS));
-		assertNull(reply.get());
-		assertFalse(connection.isOpen());
+		assertThat(connection.isOpen()).isTrue();
+		assertThat(clientCloseLatch.await(2, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNull();
+		assertThat(connection.isOpen()).isFalse();
 		server.stop();
 		client.stop();
 	}

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -89,12 +89,12 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithDefaults() {
-		assertEquals(0, testBean.messages.size());
+		assertThat(testBean.messages.size()).isEqualTo(0);
 		input.send(new GenericMessage<>("test1"));
 		input.send(new GenericMessage<>("test2"));
 		input.send(new GenericMessage<>("test3"));
-		assertEquals(3, testBean.messages.size());
-		assertEquals(3, adviceCalled);
+		assertThat(testBean.messages.size()).isEqualTo(3);
+		assertThat(adviceCalled).isEqualTo(3);
 	}
 
 	@Test
@@ -118,17 +118,17 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Test
 	// Headers should be ignored
 	public void adapterWitJmxHeaders() {
-		assertEquals(0, testBean.messages.size());
+		assertThat(testBean.messages.size()).isEqualTo(0);
 		input.send(this.createMessage("1"));
 		input.send(this.createMessage("2"));
 		input.send(this.createMessage("3"));
-		assertEquals(3, testBean.messages.size());
+		assertThat(testBean.messages.size()).isEqualTo(3);
 	}
 
 	@Test //INT-2275
 	public void testInvokeOperationWithinChain() {
 		operationInvokingWithinChain.send(new GenericMessage<>("test1"));
-		assertEquals(1, testBean.messages.size());
+		assertThat(testBean.messages.size()).isEqualTo(1);
 	}
 
 	@Test

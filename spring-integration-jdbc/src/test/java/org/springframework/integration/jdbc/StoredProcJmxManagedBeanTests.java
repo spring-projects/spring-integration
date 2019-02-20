@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,7 +65,7 @@ public class StoredProcJmxManagedBeanTests {
 	public void testCollectJmxAttributes() throws Exception {
 
 		final List<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
-		assertEquals(1, servers.size());
+		assertThat(servers.size()).isEqualTo(1);
 
 		final MBeanServer server = servers.iterator().next();
 
@@ -76,34 +75,34 @@ public class StoredProcJmxManagedBeanTests {
 			ObjectName.getInstance(
 				"org.springframework.integration.jdbc.test:name=outboundChannelAdapter.adapter.storedProcExecutor,*"),
 				null);
-		assertEquals(1, messageHandlerObjectNames.size());
+		assertThat(messageHandlerObjectNames.size()).isEqualTo(1);
 		ObjectName messageHandlerObjectName = messageHandlerObjectNames.iterator().next();
 		Map<String, Object> messageHandlerCacheStatistics = (Map<String, Object>) server
 				.getAttribute(messageHandlerObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
-		assertEquals(11, messageHandlerCacheStatistics.size());
+		assertThat(messageHandlerCacheStatistics.size()).isEqualTo(11);
 
-		assertEquals(0L, messageHandlerCacheStatistics.get("hitCount"));
-		assertEquals(0L, messageHandlerCacheStatistics.get("loadCount"));
-		assertEquals(0L, messageHandlerCacheStatistics.get("loadExceptionCount"));
-		assertEquals(0L, messageHandlerCacheStatistics.get("loadSuccessCount"));
-		assertEquals(0L, messageHandlerCacheStatistics.get("missCount"));
+		assertThat(messageHandlerCacheStatistics.get("hitCount")).isEqualTo(0L);
+		assertThat(messageHandlerCacheStatistics.get("loadCount")).isEqualTo(0L);
+		assertThat(messageHandlerCacheStatistics.get("loadExceptionCount")).isEqualTo(0L);
+		assertThat(messageHandlerCacheStatistics.get("loadSuccessCount")).isEqualTo(0L);
+		assertThat(messageHandlerCacheStatistics.get("missCount")).isEqualTo(0L);
 
 		// StoredProcOutboundGateway
 		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(ObjectName
 				.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"), null);
-		assertEquals(1, storedProcOutboundGatewayObjectNames.size());
+		assertThat(storedProcOutboundGatewayObjectNames.size()).isEqualTo(1);
 		ObjectName storedProcOutboundGatewayObjectName = storedProcOutboundGatewayObjectNames.iterator().next();
 		Map<String, Object> storedProcOutboundGatewayCacheStatistics = (Map<String, Object>) server
 				.getAttribute(storedProcOutboundGatewayObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
-		assertEquals(11, messageHandlerCacheStatistics.size());
+		assertThat(messageHandlerCacheStatistics.size()).isEqualTo(11);
 
-		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("hitCount"));
-		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadCount"));
-		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount"));
-		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount"));
-		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("missCount"));
+		assertThat(storedProcOutboundGatewayCacheStatistics.get("hitCount")).isEqualTo(0L);
+		assertThat(storedProcOutboundGatewayCacheStatistics.get("loadCount")).isEqualTo(0L);
+		assertThat(storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount")).isEqualTo(0L);
+		assertThat(storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount")).isEqualTo(0L);
+		assertThat(storedProcOutboundGatewayCacheStatistics.get("missCount")).isEqualTo(0L);
 
 		// StoredProcPollingChannelAdapter
 
@@ -111,19 +110,19 @@ public class StoredProcJmxManagedBeanTests {
 				ObjectName.getInstance(
 						"org.springframework.integration.jdbc.test:name=inbound-channel-adapter.storedProcExecutor,*"),
 				null);
-		assertEquals(1, storedProcPollingChannelAdapterObjectNames.size());
+		assertThat(storedProcPollingChannelAdapterObjectNames.size()).isEqualTo(1);
 		ObjectName storedProcPollingChannelAdapterObjectName = storedProcPollingChannelAdapterObjectNames.iterator()
 				.next();
 		Map<String, Object> storedProcPollingChannelAdapterCacheStatistics = (Map<String, Object>) server
 				.getAttribute(storedProcPollingChannelAdapterObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
-		assertEquals(11, storedProcPollingChannelAdapterCacheStatistics.size());
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.size()).isEqualTo(11);
 
-		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("hitCount"));
-		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadCount"));
-		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount"));
-		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount"));
-		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("missCount"));
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.get("hitCount")).isEqualTo(0L);
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.get("loadCount")).isEqualTo(0L);
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount")).isEqualTo(0L);
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount")).isEqualTo(0L);
+		assertThat(storedProcPollingChannelAdapterCacheStatistics.get("missCount")).isEqualTo(0L);
 
 	}
 
@@ -132,25 +131,25 @@ public class StoredProcJmxManagedBeanTests {
 	public void testOutboundGateWayJmxAttributes() throws Exception {
 
 		final List<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
-		assertEquals(1, servers.size());
+		assertThat(servers.size()).isEqualTo(1);
 
 		final MBeanServer server = servers.iterator().next();
 
 		final Set<ObjectName> objectNames = server.queryNames(
 				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"),
 				null);
-		assertEquals(1, objectNames.size());
+		assertThat(objectNames.size()).isEqualTo(1);
 		ObjectName name = objectNames.iterator().next();
 		Map<String, Object> cacheStatistics =
 				(Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
 
-		assertEquals(11, cacheStatistics.size());
+		assertThat(cacheStatistics.size()).isEqualTo(11);
 
-		assertEquals(0L, cacheStatistics.get("hitCount"));
-		assertEquals(0L, cacheStatistics.get("loadCount"));
-		assertEquals(0L, cacheStatistics.get("loadExceptionCount"));
-		assertEquals(0L, cacheStatistics.get("loadSuccessCount"));
-		assertEquals(0L, cacheStatistics.get("missCount"));
+		assertThat(cacheStatistics.get("hitCount")).isEqualTo(0L);
+		assertThat(cacheStatistics.get("loadCount")).isEqualTo(0L);
+		assertThat(cacheStatistics.get("loadExceptionCount")).isEqualTo(0L);
+		assertThat(cacheStatistics.get("loadSuccessCount")).isEqualTo(0L);
+		assertThat(cacheStatistics.get("missCount")).isEqualTo(0L);
 
 		userService.createUser(new User("myUsername", "myPassword", "myEmail"));
 
@@ -160,19 +159,19 @@ public class StoredProcJmxManagedBeanTests {
 
 		Message<Collection<User>> message = received.get(0);
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Map<String, Object> cacheStatistics2 =
 				(Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
 
-		assertEquals(11, cacheStatistics2.size());
+		assertThat(cacheStatistics2.size()).isEqualTo(11);
 
-		assertEquals(0L, cacheStatistics2.get("hitCount"));
-		assertEquals(1L, cacheStatistics2.get("loadCount"));
-		assertEquals(0L, cacheStatistics2.get("loadExceptionCount"));
-		assertEquals(1L, cacheStatistics2.get("loadSuccessCount"));
-		assertEquals(1L, cacheStatistics2.get("missCount"));
+		assertThat(cacheStatistics2.get("hitCount")).isEqualTo(0L);
+		assertThat(cacheStatistics2.get("loadCount")).isEqualTo(1L);
+		assertThat(cacheStatistics2.get("loadExceptionCount")).isEqualTo(0L);
+		assertThat(cacheStatistics2.get("loadSuccessCount")).isEqualTo(1L);
+		assertThat(cacheStatistics2.get("missCount")).isEqualTo(1L);
 
 	}
 

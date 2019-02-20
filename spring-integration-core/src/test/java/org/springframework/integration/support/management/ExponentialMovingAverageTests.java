@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.support.management;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.data.Offset;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -33,7 +33,8 @@ public class ExponentialMovingAverageTests {
 	private final ExponentialMovingAverage history = new ExponentialMovingAverage(10);
 
 
-	@Test @Ignore // used to compare LinkedList to ArrayDeque which was 35% faster
+	@Test
+	@Ignore // used to compare LinkedList to ArrayDeque which was 35% faster
 	public void perf() {
 		for (int i = 0; i < 100000000; i++) {
 			history.append(0.0);
@@ -42,43 +43,44 @@ public class ExponentialMovingAverageTests {
 
 	@Test
 	public void testGetCount() {
-		assertEquals(0, history.getCount());
+		assertThat(history.getCount()).isEqualTo(0);
 		history.append(1);
-		assertEquals(1, history.getCount());
+		assertThat(history.getCount()).isEqualTo(1);
 	}
 
 	@Test
-	public void testGetMean() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+	public void testGetMean() {
+		assertThat(history.getMean()).isCloseTo(0, Offset.offset(0.01));
 		history.append(1);
 		history.append(1);
-		assertEquals(1, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 	}
 
 	@Test
-	public void testGetStandardDeviation() throws Exception {
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+	public void testGetStandardDeviation() {
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 		history.append(1);
 		history.append(1);
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 	}
 
 	@Test
-	public void testReset() throws Exception {
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+	public void testReset() {
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 		history.append(1);
 		history.append(2);
-		assertFalse(0 == history.getStandardDeviation());
+		assertThat(0 == history.getStandardDeviation()).isFalse();
 		history.reset();
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 		// INT-2165
-		assertEquals(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d), history.toString());
+		assertThat(history.toString())
+				.isEqualTo(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d));
 		history.append(1);
-		assertEquals(1, history.getMin(), 0.01);
+		assertThat(history.getMin()).isCloseTo(1, Offset.offset(0.01));
 	}
 
 	@Test
-	public void testAv() throws Exception {
+	public void testAv() {
 		ExponentialMovingAverage av = new ExponentialMovingAverage(10);
 		for (int i = 0; i < 10000; i++) {
 			switch (i % 3) {
@@ -93,29 +95,30 @@ public class ExponentialMovingAverageTests {
 					break;
 			}
 		}
-		assertEquals(40, av.getMax(), 0.1);
-		assertEquals(20, av.getMin(), 0.1);
-		assertEquals(30, av.getMean(), 1.0);
+		assertThat(av.getMax()).isCloseTo(40, Offset.offset(0.1));
+		assertThat(av.getMin()).isCloseTo(20, Offset.offset(0.1));
+		assertThat(av.getMean()).isCloseTo(30, Offset.offset(1.0));
 	}
 
-	@Test @Ignore
-	public void testPerf() throws Exception {
+	@Test
+	@Ignore
+	public void testPerf() {
 		ExponentialMovingAverage av = new ExponentialMovingAverage(10);
 		for (int i = 0; i < 10000000; i++) {
 			switch (i % 4) {
-			case 0:
-				av.append(20);
-				break;
-			case 1:
-				av.append(30);
-				break;
-			case 2:
-				av.append(40);
-				break;
+				case 0:
+					av.append(20);
+					break;
+				case 1:
+					av.append(30);
+					break;
+				case 2:
+					av.append(40);
+					break;
 
-			case 3:
-				av.append(50);
-				break;
+				case 3:
+					av.append(50);
+					break;
 			}
 		}
 	}

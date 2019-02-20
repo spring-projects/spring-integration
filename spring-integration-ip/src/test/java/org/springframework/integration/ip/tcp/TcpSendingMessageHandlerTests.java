@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -119,7 +117,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -137,11 +135,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply2");
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -172,7 +170,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -199,11 +197,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply2");
 		done.set(true);
 		handler.stop();
 		handler.start();
@@ -238,7 +236,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -257,13 +255,13 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Set<String> results = new HashSet<String>();
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
-		assertTrue(results.remove("Reply1"));
-		assertTrue(results.remove("Reply2"));
+		assertThat(results.remove("Reply1")).isTrue();
+		assertThat(results.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -294,7 +292,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -312,11 +310,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply2");
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -347,7 +345,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -366,13 +364,13 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Set<String> results = new HashSet<String>();
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
-		assertTrue(results.remove("Reply1"));
-		assertTrue(results.remove("Reply2"));
+		assertThat(results.remove("Reply1")).isTrue();
+		assertThat(results.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -406,7 +404,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -424,11 +422,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
+		assertThat(mOut).isNotNull();
+		assertThat(new String((byte[]) mOut.getPayload())).isEqualTo("Reply2");
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -462,7 +460,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -481,13 +479,13 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Set<String> results = new HashSet<String>();
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add(new String((byte[]) mOut.getPayload()));
-		assertTrue(results.remove("Reply1"));
-		assertTrue(results.remove("Reply2"));
+		assertThat(results.remove("Reply1")).isTrue();
+		assertThat(results.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -518,7 +516,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -535,11 +533,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", mOut.getPayload());
+		assertThat(mOut).isNotNull();
+		assertThat(mOut.getPayload()).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", mOut.getPayload());
+		assertThat(mOut).isNotNull();
+		assertThat(mOut.getPayload()).isEqualTo("Reply2");
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -570,7 +568,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -588,13 +586,13 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Set<String> results = new HashSet<String>();
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add((String) mOut.getPayload());
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
+		assertThat(mOut).isNotNull();
 		results.add((String) mOut.getPayload());
-		assertTrue(results.remove("Reply1"));
-		assertTrue(results.remove("Reply2"));
+		assertThat(results.remove("Reply1")).isTrue();
+		assertThat(results.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -627,7 +625,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -641,7 +639,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.setConnectionFactory(ccf);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		assertTrue(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS)).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -674,7 +672,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -688,7 +686,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.setConnectionFactory(ccf);
 		handler.handleMessage(MessageBuilder.withPayload("Test.1").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test.2").build());
-		assertTrue(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS)).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -722,7 +720,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -740,15 +738,15 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS)).isTrue();
 		Set<String> replies = new HashSet<String>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
-			assertNotNull(mOut);
+			assertThat(mOut).isNotNull();
 			replies.add(new String((byte[]) mOut.getPayload()));
 		}
-		assertTrue(replies.remove("Reply1"));
-		assertTrue(replies.remove("Reply2"));
+		assertThat(replies.remove("Reply1")).isTrue();
+		assertThat(replies.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -782,7 +780,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -800,15 +798,15 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		adapter.setOutputChannel(channel);
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS)).isTrue();
 		Set<String> replies = new HashSet<String>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
-			assertNotNull(mOut);
+			assertThat(mOut).isNotNull();
 			replies.add(new String((byte[]) mOut.getPayload()));
 		}
-		assertTrue(replies.remove("Reply1"));
-		assertTrue(replies.remove("Reply2"));
+		assertThat(replies.remove("Reply1")).isTrue();
+		assertThat(replies.remove("Reply2")).isTrue();
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -858,7 +856,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -885,15 +883,15 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			e.printStackTrace();
 			fail("Exception at " + i);
 		}
-		assertTrue(semaphore.tryAcquire(100, 20000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(100, 20000, TimeUnit.MILLISECONDS)).isTrue();
 		Set<String> replies = new HashSet<String>();
 		for (i = 100; i < 200; i++) {
 			Message<?> mOut = channel.receive(20000);
-			assertNotNull(mOut);
+			assertThat(mOut).isNotNull();
 			replies.add(new String((byte[]) mOut.getPayload()));
 		}
 		for (i = 0; i < 100; i++) {
-			assertTrue("Reply" + i + " missing", replies.remove("Reply" + i));
+			assertThat(replies.remove("Reply" + i)).as("Reply" + i + " missing").isTrue();
 		}
 		done.set(true);
 		ccf.stop();
@@ -938,7 +936,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -961,11 +959,11 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply1", mOut.getPayload());
+		assertThat(mOut).isNotNull();
+		assertThat(mOut.getPayload()).isEqualTo("Reply1");
 		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		assertEquals("Reply2", mOut.getPayload());
+		assertThat(mOut).isNotNull();
+		assertThat(mOut.getPayload()).isEqualTo("Reply2");
 		done.set(true);
 		ccf.stop();
 		serverSocket.get().close();
@@ -1005,7 +1003,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -1028,12 +1026,12 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		Set<String> results = new TreeSet<String>();
 		for (int i = 0; i < 1000; i++) {
 			Message<?> mOut = channel.receive(10000);
-			assertNotNull(mOut);
+			assertThat(mOut).isNotNull();
 			results.add((String) mOut.getPayload());
 		}
 		logger.debug("results: " + results);
 		for (int i = 100; i < 1100; i++) {
-			assertTrue("Missing Reply" + i, results.remove("Reply" + i));
+			assertThat(results.remove("Reply" + i)).as("Missing Reply" + i).isTrue();
 		}
 		done.set(true);
 		ccf.stop();
@@ -1074,7 +1072,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -1131,7 +1129,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				}
 			}
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -1168,8 +1166,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		String testPayload = "Hello, world!";
 		channelAdapterWithinChain.send(new GenericMessage<String>(testPayload));
 		Message<?> m = inbound.receive(1000);
-		assertNotNull(m);
-		assertEquals(testPayload, new String((byte[]) m.getPayload()));
+		assertThat(m).isNotNull();
+		assertThat(new String((byte[]) m.getPayload())).isEqualTo(testPayload);
 		ctx.close();
 	}
 
@@ -1186,10 +1184,10 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertTrue(e instanceof MessagingException);
-			assertTrue(e.getCause() != null);
-			assertTrue(e.getCause() instanceof SocketException);
-			assertEquals("Failed to connect", e.getCause().getMessage());
+			assertThat(e instanceof MessagingException).isTrue();
+			assertThat(e.getCause() != null).isTrue();
+			assertThat(e.getCause() instanceof SocketException).isTrue();
+			assertThat(e.getCause().getMessage()).isEqualTo("Failed to connect");
 		}
 	}
 

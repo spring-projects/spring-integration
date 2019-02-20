@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +66,7 @@ public class CorrelatingMessageBarrierTests {
 	public void shouldPassMessage() {
 		Message<Object> message = testMessage();
 		barrier.handleMessage(message);
-		assertThat(barrier.receive(), is(message));
+		assertThat(barrier.receive()).isEqualTo(message);
 	}
 
 	@Test
@@ -78,10 +75,10 @@ public class CorrelatingMessageBarrierTests {
 		Message<Object> message2 = testMessage();
 		barrier.handleMessage(message);
 		verify(correlationStrategy).getCorrelationKey(message);
-		assertThat(barrier.receive(), is(notNullValue()));
+		assertThat(barrier.receive()).isNotNull();
 		barrier.handleMessage(message2);
-		assertThat(barrier.receive(), is(notNullValue()));
-		assertThat(barrier.receive(), is(nullValue()));
+		assertThat(barrier.receive()).isNotNull();
+		assertThat(barrier.receive()).isNull();
 	}
 
 	@Test(timeout = 10000)
@@ -103,10 +100,10 @@ public class CorrelatingMessageBarrierTests {
 			Thread.currentThread().interrupt();
 		}
 
-		assertThat((barrier.receive()), is(notNullValue()));
+		assertThat((barrier.receive())).isNotNull();
 		for (int i = 0; i < 199; i++) {
 			trackingReleaseStrategy.release("foo");
-			assertThat((barrier.receive()), is(notNullValue()));
+			assertThat((barrier.receive())).isNotNull();
 		}
 		exec.shutdownNow();
 	}

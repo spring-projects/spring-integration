@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.DeliveryMode;
 
@@ -54,8 +51,9 @@ public class JmsOutboundChannelAdapterParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class));
+		assertThat(accessor.getPropertyValue("jmsTemplate")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class))
+				.isTrue();
 		context.close();
 	}
 
@@ -66,7 +64,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 		context.close();
 	}
 
@@ -77,8 +75,9 @@ public class JmsOutboundChannelAdapterParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
-		assertFalse(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class));
+		assertThat(accessor.getPropertyValue("jmsTemplate")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.jmsTemplate.sessionTransacted", Boolean.class))
+				.isFalse();
 		context.close();
 	}
 
@@ -89,7 +88,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+		assertThat(accessor.getPropertyValue("jmsTemplate")).isNotNull();
 		context.close();
 	}
 
@@ -101,7 +100,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		Object order = accessor.getPropertyValue("order");
-		assertEquals(123, order);
+		assertThat(order).isEqualTo(123);
 		context.close();
 	}
 
@@ -113,8 +112,8 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
-		assertNotNull(headerMapper);
-		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());
+		assertThat(headerMapper).isNotNull();
+		assertThat(headerMapper.getClass()).isEqualTo(TestJmsHeaderMapper.class);
 		context.close();
 	}
 
@@ -125,8 +124,8 @@ public class JmsOutboundChannelAdapterParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
-		assertNotNull(jmsTemplate);
-		assertEquals(context.getBean("template"), jmsTemplate);
+		assertThat(jmsTemplate).isNotNull();
+		assertThat(jmsTemplate).isEqualTo(context.getBean("template"));
 		context.close();
 	}
 
@@ -138,13 +137,15 @@ public class JmsOutboundChannelAdapterParserTests {
 		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
-		assertNotNull(jmsTemplate);
-		assertEquals(context.getBean("template"), jmsTemplate);
-		assertTrue(jmsTemplate.isExplicitQosEnabled());
-		assertEquals(7, jmsTemplate.getPriority());
-		assertEquals(12345, jmsTemplate.getTimeToLive());
-		assertEquals("1", TestUtils.getPropertyValue(handler, "deliveryModeExpression.expression", String.class));
-		assertEquals("100", TestUtils.getPropertyValue(handler, "timeToLiveExpression.expression", String.class));
+		assertThat(jmsTemplate).isNotNull();
+		assertThat(jmsTemplate).isEqualTo(context.getBean("template"));
+		assertThat(jmsTemplate.isExplicitQosEnabled()).isTrue();
+		assertThat(jmsTemplate.getPriority()).isEqualTo(7);
+		assertThat(jmsTemplate.getTimeToLive()).isEqualTo(12345);
+		assertThat(TestUtils.getPropertyValue(handler, "deliveryModeExpression.expression", String.class))
+				.isEqualTo("1");
+		assertThat(TestUtils.getPropertyValue(handler, "timeToLiveExpression.expression", String.class))
+				.isEqualTo("100");
 		context.close();
 	}
 
@@ -157,8 +158,8 @@ public class JmsOutboundChannelAdapterParserTests {
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		JmsTemplate jmsTemlate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
 		MessageConverter messageConverter = jmsTemlate.getMessageConverter();
-		assertNotNull(messageConverter);
-		assertEquals(TestMessageConverter.class, messageConverter.getClass());
+		assertThat(messageConverter).isNotNull();
+		assertThat(messageConverter.getClass()).isEqualTo(TestMessageConverter.class);
 		context.close();
 	}
 
@@ -168,7 +169,7 @@ public class JmsOutboundChannelAdapterParserTests {
 			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertTrue(e.getMessage().contains("connection-factory"));
+			assertThat(e.getMessage().contains("connection-factory")).isTrue();
 			throw e;
 		}
 	}
@@ -181,10 +182,10 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"))
 						.getPropertyValue("jmsTemplate"));
-		assertEquals(true, accessor.getPropertyValue("explicitQosEnabled"));
-		assertEquals(12345L, accessor.getPropertyValue("timeToLive"));
-		assertEquals(7, accessor.getPropertyValue("priority"));
-		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("deliveryMode"));
+		assertThat(accessor.getPropertyValue("explicitQosEnabled")).isEqualTo(true);
+		assertThat(accessor.getPropertyValue("timeToLive")).isEqualTo(12345L);
+		assertThat(accessor.getPropertyValue("priority")).isEqualTo(7);
+		assertThat(accessor.getPropertyValue("deliveryMode")).isEqualTo(DeliveryMode.NON_PERSISTENT);
 		context.close();
 	}
 
@@ -196,7 +197,7 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"))
 						.getPropertyValue("jmsTemplate"));
-		assertEquals(false, accessor.getPropertyValue("explicitQosEnabled"));
+		assertThat(accessor.getPropertyValue("explicitQosEnabled")).isEqualTo(false);
 		context.close();
 	}
 

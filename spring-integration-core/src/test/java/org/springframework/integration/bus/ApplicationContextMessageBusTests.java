@@ -16,10 +16,7 @@
 
 package org.springframework.integration.bus;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
@@ -78,7 +75,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		Message<?> result = targetChannel.receive(10000);
-		assertEquals("test", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test");
 		context.close();
 	}
 
@@ -92,7 +89,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerChannel("targetChannel", targetChannel);
 		context.refresh();
 		Message<?> result = targetChannel.receive(10);
-		assertNull(result);
+		assertThat(result).isNull();
 		context.close();
 	}
 
@@ -105,7 +102,7 @@ public class ApplicationContextMessageBusTests {
 		sourceChannel.send(new GenericMessage<>("test"));
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
 		Message<?> result = targetChannel.receive(10000);
-		assertEquals("test", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test");
 		context.close();
 	}
 
@@ -145,7 +142,7 @@ public class ApplicationContextMessageBusTests {
 		Message<?> message1 = outputChannel1.receive(10000);
 		Message<?> message2 = outputChannel2.receive(0);
 		context.close();
-		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
+		assertThat(message1 == null ^ message2 == null).as("exactly one message should be null").isTrue();
 	}
 
 	@Test
@@ -183,12 +180,12 @@ public class ApplicationContextMessageBusTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<String>("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals("both handlers should have been invoked", 0, latch.getCount());
+		assertThat(latch.getCount()).as("both handlers should have been invoked").isEqualTo(0);
 		Message<?> message1 = outputChannel1.receive(500);
 		Message<?> message2 = outputChannel2.receive(500);
 		context.close();
-		assertNotNull("both handlers should have replied to the message", message1);
-		assertNotNull("both handlers should have replied to the message", message2);
+		assertThat(message1).as("both handlers should have replied to the message").isNotNull();
+		assertThat(message2).as("both handlers should have replied to the message").isNotNull();
 	}
 
 	@Test
@@ -208,11 +205,11 @@ public class ApplicationContextMessageBusTests {
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
 		context.close();
-		assertNull(outputChannel.receive(100));
-		assertNotNull("message should not be null", message);
-		assertTrue(message instanceof ErrorMessage);
+		assertThat(outputChannel.receive(100)).isNull();
+		assertThat(message).as("message should not be null").isNotNull();
+		assertThat(message instanceof ErrorMessage).isTrue();
 		Throwable exception = ((ErrorMessage) message).getPayload();
-		assertEquals("intentional test failure", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional test failure");
 	}
 
 	@Test
@@ -235,7 +232,7 @@ public class ApplicationContextMessageBusTests {
 		context.refresh();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals("handler should have received error message", 0, latch.getCount());
+		assertThat(latch.getCount()).as("handler should have received error message").isEqualTo(0);
 		context.close();
 	}
 

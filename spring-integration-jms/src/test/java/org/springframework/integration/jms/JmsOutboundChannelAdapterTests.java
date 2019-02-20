@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.ConnectionFactory;
 
@@ -55,12 +54,12 @@ public class JmsOutboundChannelAdapterTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate(connectionFactory);
 		template.convertAndSend("outcatQ1", "Hello, world!");
 		template.setReceiveTimeout(20000);
-		assertNotNull(template.receive("outcatQ2"));
+		assertThat(template.receive("outcatQ2")).isNotNull();
 
 		this.aborter.abort = true;
 		template.convertAndSend("outcatQ1", "Hello, world!");
 		template.setReceiveTimeout(1000);
-		assertNull(template.receive("outcatQ2"));
+		assertThat(template.receive("outcatQ2")).isNull();
 		endpoint.stop();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -78,12 +77,12 @@ public class SharedConnectionTests {
 		QueueChannel replies = ctx.getBean("replies", QueueChannel.class);
 		Message<?> message = replies.receive(10000);
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundClient", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("ip:tcp-inbound-channel-adapter", componentHistoryRecord.getProperty("type"));
-		assertNotNull(message);
-		assertEquals("Test", message.getPayload());
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.getProperty("type")).isEqualTo("ip:tcp-inbound-channel-adapter");
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("Test");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.scattergather.config;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -63,29 +60,29 @@ public class ScatterGatherTests {
 	public void testAuction() {
 		this.inputAuction.send(new GenericMessage<String>("foo"));
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
 	}
 
 	@Test
 	public void testDistribution() {
 		this.inputDistribution.send(new GenericMessage<String>("foo"));
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
 	}
 
 	@Test
 	public void testGatewayScatterGather() {
 		Message<?> bestQuoteMessage = this.gateway.exchange(new GenericMessage<String>("foo"));
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
 	}
 
 	@Test
@@ -93,7 +90,7 @@ public class ScatterGatherTests {
 		this.scatterGatherWithinChain.send(new GenericMessage<String>("foo"));
 		for (int i = 0; i < 3; i++) {
 			Message<?> result = this.output.receive(10000);
-			assertNotNull(result);
+			assertThat(result).isNotNull();
 		}
 	}
 

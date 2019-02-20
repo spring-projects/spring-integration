@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +42,7 @@ public class MessageStoreTests {
 	public void shouldRegisterCallbacks() throws Exception {
 		TestMessageStore store = new TestMessageStore();
 		store.setExpiryCallbacks(Collections.<MessageGroupCallback>singletonList((messageGroupStore, group) -> { }));
-		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
+		assertThat(((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size()).isEqualTo(1);
 	}
 
 	@Test
@@ -56,21 +56,21 @@ public class MessageStoreTests {
 		});
 
 		store.expireMessageGroups(-10000);
-		assertEquals("[foo]", list.toString());
-		assertEquals(0, store.getMessageGroup("bar").size());
+		assertThat(list.toString()).isEqualTo("[foo]");
+		assertThat(store.getMessageGroup("bar").size()).isEqualTo(0);
 
 	}
 
 	@Test
 	public void testGroupCount() throws Exception {
 		TestMessageStore store = new TestMessageStore();
-		assertEquals(1, store.getMessageGroupCount());
+		assertThat(store.getMessageGroupCount()).isEqualTo(1);
 	}
 
 	@Test
 	public void testGroupSizes() throws Exception {
 		TestMessageStore store = new TestMessageStore();
-		assertEquals(1, store.getMessageCountForAllMessageGroups());
+		assertThat(store.getMessageCountForAllMessageGroups()).isEqualTo(1);
 	}
 
 	private static class TestMessageStore extends SimpleMessageStore  {

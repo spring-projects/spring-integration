@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -61,15 +57,15 @@ public class XPathFilterParserTests {
 	@Test
 	public void testParse() throws Exception {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
@@ -81,10 +77,10 @@ public class XPathFilterParserTests {
 		Message<?> shouldBeRejected = MessageBuilder.withPayload("<other>outputOne</other>").setReplyChannel(replyChannel).build();
 		inputChannel.send(shouldBeAccepted);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -98,10 +94,10 @@ public class XPathFilterParserTests {
 		Message<?> shouldBeRejected = MessageBuilder.withPayload(docToReject).setReplyChannel(replyChannel).build();
 		inputChannel.send(shouldBeAccepted);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -115,10 +111,10 @@ public class XPathFilterParserTests {
 		Message<?> shouldBeRejected = MessageBuilder.withPayload(docToReject).setReplyChannel(replyChannel).build();
 		inputChannel.send(shouldBeAccepted);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -132,10 +128,10 @@ public class XPathFilterParserTests {
 		Message<?> shouldBeRejected = MessageBuilder.withPayload(docToReject).setReplyChannel(replyChannel).build();
 		inputChannel.send(shouldBeAccepted);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -152,11 +148,11 @@ public class XPathFilterParserTests {
 		inputChannel.send(shouldBeAccepted1);
 		inputChannel.send(shouldBeAccepted2);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted1, replyChannel.receive(0));
-		assertEquals(shouldBeAccepted2, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted1);
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted2);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -173,11 +169,11 @@ public class XPathFilterParserTests {
 		inputChannel.send(shouldBeAccepted1);
 		inputChannel.send(shouldBeAccepted2);
 		inputChannel.send(shouldBeRejected);
-		assertEquals(shouldBeAccepted1, replyChannel.receive(0));
-		assertEquals(shouldBeAccepted2, replyChannel.receive(0));
-		assertEquals(shouldBeRejected, discardChannel.receive(0));
-		assertNull(replyChannel.receive(0));
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted1);
+		assertThat(replyChannel.receive(0)).isEqualTo(shouldBeAccepted2);
+		assertThat(discardChannel.receive(0)).isEqualTo(shouldBeRejected);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 }

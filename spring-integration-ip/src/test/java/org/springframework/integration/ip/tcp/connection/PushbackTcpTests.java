@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,14 +68,14 @@ public class PushbackTcpTests {
 				Collections.singletonMap(MessageHeaders.REPLY_CHANNEL, replies));
 		channel1.send(message);
 		channel2.send(message);
-		assertThat(replies.getQueueSize(), equalTo(2));
+		assertThat(replies.getQueueSize()).isEqualTo(2);
 		Message<?> replyA = replies.receive(0);
 		Message<?> replyB = replies.receive(0);
-		assertThat((String) replyA.getPayload(), containsString("ip_connectionId:pushback:"));
-		assertThat(replyB.getPayload(), not(equalTo(replyA.getPayload())));
+		assertThat((String) replyA.getPayload()).contains("ip_connectionId:pushback:");
+		assertThat(replyB.getPayload()).isNotEqualTo(replyA.getPayload());
 		CompositeDeserializer deserializer = server.getBean(CompositeDeserializer.class);
-		assertTrue(deserializer.receivedCrLf);
-		assertTrue(deserializer.receivedStxEtx);
+		assertThat(deserializer.receivedCrLf).isTrue();
+		assertThat(deserializer.receivedStxEtx).isTrue();
 		System.getProperties().remove(PORT);
 		client.close();
 		server.close();
@@ -99,14 +95,14 @@ public class PushbackTcpTests {
 				Collections.singletonMap(MessageHeaders.REPLY_CHANNEL, replies));
 		channel1.send(message);
 		channel2.send(message);
-		assertThat(replies.getQueueSize(), equalTo(2));
+		assertThat(replies.getQueueSize()).isEqualTo(2);
 		Message<?> replyA = replies.receive(0);
 		Message<?> replyB = replies.receive(0);
-		assertThat((String) replyA.getPayload(), containsString("ip_connectionId:pushback:"));
-		assertThat(replyB.getPayload(), not(equalTo(replyA.getPayload())));
+		assertThat((String) replyA.getPayload()).contains("ip_connectionId:pushback:");
+		assertThat(replyB.getPayload()).isNotEqualTo(replyA.getPayload());
 		CompositeDeserializer deserializer = server.getBean(CompositeDeserializer.class);
-		assertTrue(deserializer.receivedCrLf);
-		assertTrue(deserializer.receivedStxEtx);
+		assertThat(deserializer.receivedCrLf).isTrue();
+		assertThat(deserializer.receivedStxEtx).isTrue();
 		System.getProperties().remove(PORT);
 		client.close();
 		server.close();
@@ -128,14 +124,14 @@ public class PushbackTcpTests {
 				Collections.singletonMap(MessageHeaders.REPLY_CHANNEL, replies));
 		channel1.send(message);
 		channel2.send(message);
-		assertThat(replies.getQueueSize(), equalTo(2));
+		assertThat(replies.getQueueSize()).isEqualTo(2);
 		Message<?> replyA = replies.receive(0);
 		Message<?> replyB = replies.receive(0);
-		assertThat((String) replyA.getPayload(), containsString("ip_connectionId:pushback:"));
-		assertThat(replyB.getPayload(), not(equalTo(replyA.getPayload())));
+		assertThat((String) replyA.getPayload()).contains("ip_connectionId:pushback:");
+		assertThat(replyB.getPayload()).isNotEqualTo(replyA.getPayload());
 		CompositeDeserializer deserializer = server.getBean(CompositeDeserializer.class);
-		assertTrue(deserializer.receivedCrLf);
-		assertTrue(deserializer.receivedStxEtx);
+		assertThat(deserializer.receivedCrLf).isTrue();
+		assertThat(deserializer.receivedStxEtx).isTrue();
 		System.getProperties().remove(PORT);
 		client.close();
 		server.close();
@@ -148,7 +144,7 @@ public class PushbackTcpTests {
 			Thread.sleep(100);
 			port = serverCF.getPort();
 		}
-		assertTrue(n < 200);
+		assertThat(n < 200).isTrue();
 		return port;
 	}
 

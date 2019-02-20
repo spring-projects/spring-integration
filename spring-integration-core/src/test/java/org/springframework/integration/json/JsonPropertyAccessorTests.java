@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,13 +57,13 @@ public class JsonPropertyAccessorTests {
 	public void testSimpleLookup() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
 		Object value = evaluate(json, "foo", Object.class);
-		assertThat(value, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
-		assertEquals("bar", value.toString());
+		assertThat(value).isInstanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class);
+		assertThat(value.toString()).isEqualTo("bar");
 		Object json2 = mapper.readTree("{\"foo\": \"bar\"}");
 		Object value2 = evaluate(json2, "foo", Object.class);
-		assertThat(value2, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
-		assertTrue(value.equals(value2));
-		assertEquals(value.hashCode(), value2.hashCode());
+		assertThat(value2).isInstanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class);
+		assertThat(value.equals(value2)).isTrue();
+		assertThat(value2.hashCode()).isEqualTo(value.hashCode());
 	}
 
 	@Test(expected = SpelEvaluationException.class)
@@ -88,13 +84,13 @@ public class JsonPropertyAccessorTests {
 		// JsonNode actual = evaluate("1", json, JsonNode.class); // Does not work
 		// Have to wrap the root array because ArrayNode itself is not a container
 		Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Object.class);
-		assertEquals("4", actual.toString());
+		assertThat(actual.toString()).isEqualTo("4");
 	}
 
 	@Test
 	public void testArrayNegativeIndex() throws Exception {
 		JsonNode json = mapper.readTree("{\"foo\":[3, 4, 5]}");
-		assertNull(evaluate(json, "foo[-1]", Object.class));
+		assertThat(evaluate(json, "foo[-1]", Object.class)).isNull();
 	}
 
 	@Test(expected = SpelEvaluationException.class)
@@ -108,7 +104,7 @@ public class JsonPropertyAccessorTests {
 		Object json = mapper.readTree("[3, 4, 5]");
 		// JsonNode actual = evaluate("'1'", json, JsonNode.class); // Does not work
 		Object actual = evaluate(json, "['1']", Object.class);
-		assertEquals("4", actual.toString());
+		assertThat(actual.toString()).isEqualTo("4");
 	}
 
 	@Test
@@ -116,7 +112,7 @@ public class JsonPropertyAccessorTests {
 		ArrayNode json = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
 		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
 		Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1][1]", Object.class);
-		assertEquals("5", actual.toString());
+		assertThat(actual.toString()).isEqualTo("5");
 	}
 
 	@Test
@@ -124,7 +120,7 @@ public class JsonPropertyAccessorTests {
 		Object json = mapper.readTree("[[3], [4, 5], []]");
 		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
 		Object actual = evaluate(json, "['1']['1']", Object.class);
-		assertEquals("5", actual.toString());
+		assertThat(actual.toString()).isEqualTo("5");
 	}
 
 	@Test
@@ -134,10 +130,10 @@ public class JsonPropertyAccessorTests {
 		// Filter the bar array to return only the fizz value of each element (to prove that SPeL considers bar
 		// an array/list)
 		List<?> actualArray = evaluate(json, "foo.bar.![fizz]", List.class);
-		assertEquals("Array size", 3, actualArray.size());
-		assertEquals("[0]", "5", evaluate(actualArray, "[0]", Object.class).toString());
-		assertEquals("[1]", "7", evaluate(actualArray, "[1]", Object.class).toString());
-		assertEquals("[2]", "8", evaluate(actualArray, "[2]", Object.class).toString());
+		assertThat(actualArray.size()).as("Array size").isEqualTo(3);
+		assertThat(evaluate(actualArray, "[0]", Object.class).toString()).as("[0]").isEqualTo("5");
+		assertThat(evaluate(actualArray, "[1]", Object.class).toString()).as("[1]").isEqualTo("7");
+		assertThat(evaluate(actualArray, "[2]", Object.class).toString()).as("[2]").isEqualTo("8");
 	}
 
 	@Test
@@ -146,21 +142,21 @@ public class JsonPropertyAccessorTests {
 				"{\"foo\": {\"bar\": [ { \"fizz\": 5, \"buzz\": 6 }, {\"fizz\": 7}, {\"fizz\": 8} ] } }");
 		// Filter bar objects so that none match
 		List<?> actualArray = evaluate(json, "foo.bar.?[fizz=='0']", List.class);
-		assertEquals(0, actualArray.size());
+		assertThat(actualArray.size()).isEqualTo(0);
 	}
 
 	@Test
 	public void testNestedHashConstruct() throws Exception {
 		Object json = mapper.readTree("{\"foo\": {\"bar\": 4, \"fizz\": 5} }");
 		Object actual = evaluate(json, "foo.fizz", Object.class);
-		assertEquals("5", actual.toString());
+		assertThat(actual.toString()).isEqualTo("5");
 	}
 
 	@Test
 	public void testImplicitStringConversion() throws Exception {
 		String json = "{\"foo\": {\"bar\": 4, \"fizz\": 5} }";
 		Object actual = evaluate(json, "foo.fizz", Object.class);
-		assertEquals("5", actual.toString());
+		assertThat(actual.toString()).isEqualTo("5");
 	}
 
 	@Test(expected = SpelEvaluationException.class)
@@ -180,11 +176,11 @@ public class JsonPropertyAccessorTests {
 		Expression expression = parser.parseExpression("foo");
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
 		Object value = expression.getValue(this.context, json);
-		assertThat(value, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
-		assertEquals("bar", value.toString());
+		assertThat(value).isInstanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class);
+		assertThat(value.toString()).isEqualTo("bar");
 		Object json2 = mapper.readTree("{}");
 		Object value2 = expression.getValue(this.context, json2);
-		assertNull(value2);
+		assertThat(value2).isNull();
 	}
 
 	private <T> T evaluate(Object target, String expression, Class<T> expectedType) {

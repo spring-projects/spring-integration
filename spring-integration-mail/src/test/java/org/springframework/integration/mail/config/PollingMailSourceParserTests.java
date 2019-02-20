@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -50,39 +50,39 @@ public class PollingMailSourceParserTests {
 	@Test
 	public void imapAdapter() {
 		Object adapter = context.getBean("imapAdapter");
-		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
+		assertThat(adapter.getClass()).isEqualTo(SourcePollingChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertThat(adapterAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 		Object channel = context.getBean("channel");
-		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertThat(adapterAccessor.getPropertyValue("outputChannel")).isEqualTo(channel);
 		Object source = adapterAccessor.getPropertyValue("source");
-		assertEquals(MailReceivingMessageSource.class, source.getClass());
+		assertThat(source.getClass()).isEqualTo(MailReceivingMessageSource.class);
 		Object receiver = new DirectFieldAccessor(source).getPropertyValue("mailReceiver");
-		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(ImapMailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Object url = receiverAccessor.getPropertyValue("url");
-		assertEquals(new URLName("imap:foo"), url);
+		assertThat(url).isEqualTo(new URLName("imap:foo"));
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals("bar", properties.getProperty("foo"));
+		assertThat(properties.getProperty("foo")).isEqualTo("bar");
 	}
 
 	@Test
 	public void pop3Adapter() {
 		Object adapter = context.getBean("pop3Adapter");
-		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
+		assertThat(adapter.getClass()).isEqualTo(SourcePollingChannelAdapter.class);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertThat(adapterAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 		Object channel = context.getBean("channel");
-		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertThat(adapterAccessor.getPropertyValue("outputChannel")).isEqualTo(channel);
 		Object source = adapterAccessor.getPropertyValue("source");
-		assertEquals(MailReceivingMessageSource.class, source.getClass());
+		assertThat(source.getClass()).isEqualTo(MailReceivingMessageSource.class);
 		Object receiver = new DirectFieldAccessor(source).getPropertyValue("mailReceiver");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		assertThat(receiver.getClass()).isEqualTo(Pop3MailReceiver.class);
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Object url = receiverAccessor.getPropertyValue("url");
-		assertEquals(new URLName("pop3:bar"), url);
+		assertThat(url).isEqualTo(new URLName("pop3:bar"));
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals("bar", properties.getProperty("foo"));
+		assertThat(properties.getProperty("foo")).isEqualTo("bar");
 	}
 
 }

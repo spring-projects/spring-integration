@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.channel.reactive;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,14 +82,14 @@ public class FluxMessageChannelTests {
 
 		for (int i = 0; i < 9; i++) {
 			Message<?> receive = replyChannel.receive(10000);
-			assertNotNull(receive);
-			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isIn("0", "1", "2", "3", "4", "6", "7", "8", "9");
 		}
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 
 		Message<?> error = this.errorChannel.receive(0);
-		assertNotNull(error);
-		assertEquals(5, ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertThat(error).isNotNull();
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo(5);
 	}
 
 	@Test
@@ -112,8 +106,8 @@ public class FluxMessageChannelTests {
 		this.queueChannel.send(new GenericMessage<>("foo"));
 		this.queueChannel.send(new GenericMessage<>("bar"));
 
-		assertTrue(done.await(10, TimeUnit.SECONDS));
-		assertThat(results, contains("FOO", "BAR"));
+		assertThat(done.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(results).containsExactly("FOO", "BAR");
 	}
 
 	@Test
@@ -134,9 +128,9 @@ public class FluxMessageChannelTests {
 
 		flowRegistration.getInputChannel().send(new GenericMessage<>("foo"));
 
-		assertTrue(finishLatch.await(10, TimeUnit.SECONDS));
+		assertThat(finishLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertTrue(TestUtils.getPropertyValue(flux, "publishers", Map.class).isEmpty());
+		assertThat(TestUtils.getPropertyValue(flux, "publishers", Map.class).isEmpty()).isTrue();
 
 		flowRegistration.destroy();
 	}

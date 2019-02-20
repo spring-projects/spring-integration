@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,14 +76,14 @@ public class MessageStoreReaperTests {
 	@Test
 	public void testExpiry() throws Exception {
 		messageStore.addMessageToGroup("FOO", new GenericMessage<String>("foo"));
-		assertEquals(1, messageStore.getMessageGroup("FOO").size());
+		assertThat(messageStore.getMessageGroup("FOO").size()).isEqualTo(1);
 		// wait for expiry...
 		int n = 0;
 		while (n++ < 200 & messageStore.getMessageGroup("FOO").size() > 0) {
 			Thread.sleep(50);
 		}
-		assertEquals(0, messageStore.getMessageGroup("FOO").size());
-		assertEquals(1, expiryCallback.groups.size());
+		assertThat(messageStore.getMessageGroup("FOO").size()).isEqualTo(0);
+		assertThat(expiryCallback.groups.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -93,7 +91,7 @@ public class MessageStoreReaperTests {
 		GenericMessage<String> testMessage = new GenericMessage<String>("foo");
 
 		messageStore2.addMessageToGroup("FOO", testMessage);
-		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(1);
 
 		reaper2.setExpireOnDestroy(true);
 		reaper2.setTimeout(0);
@@ -103,27 +101,27 @@ public class MessageStoreReaperTests {
 			reaper2.start();
 		}
 
-		assertTrue(reaper2.isRunning());
+		assertThat(reaper2.isRunning()).isTrue();
 
 		//reaper timeout is set to 0, but need to ensure positive elapsed time
 		Thread.sleep(1L);
 
 		reaper2.stop();
-		assertTrue(!reaper2.isRunning());
+		assertThat(!reaper2.isRunning()).isTrue();
 
-		assertEquals(0, messageStore2.getMessageGroup("FOO").size());
-		assertEquals(1, expiryCallback2.groups.size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(0);
+		assertThat(expiryCallback2.groups.size()).isEqualTo(1);
 
 		messageStore2.addMessageToGroup("FOO", testMessage);
-		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(1);
 		reaper2.run();
-		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(1);
 		reaper2.stop();
-		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(1);
 		reaper2.start();
 		reaper2.run();
-		assertEquals(0, messageStore2.getMessageGroup("FOO").size());
-		assertEquals(2, expiryCallback2.groups.size());
+		assertThat(messageStore2.getMessageGroup("FOO").size()).isEqualTo(0);
+		assertThat(expiryCallback2.groups.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -134,8 +132,8 @@ public class MessageStoreReaperTests {
 				.setSequenceNumber(1)
 				.build());
 		Message<?> discard = this.discards.receive(10000);
-		assertNotNull(discard);
-		assertEquals("foo", discard.getPayload());
+		assertThat(discard).isNotNull();
+		assertThat(discard.getPayload()).isEqualTo("foo");
 	}
 
 	public static class ExpiryCallback implements MessageGroupCallback {

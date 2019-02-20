@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -86,7 +82,7 @@ public class SpelTransformerIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("bar", 123).build();
 		this.simpleInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("test123", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test123");
 	}
 
 	@Test
@@ -94,7 +90,7 @@ public class SpelTransformerIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		this.beanResolvingInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("testFOO", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("testFOO");
 	}
 
 	@Test
@@ -103,7 +99,7 @@ public class SpelTransformerIntegrationTests {
 			this.transformerChainInput.send(new GenericMessage<String>("foo"));
 		}
 		catch (ReplyRequiredException e) {
-			assertThat(e.getMessage(), Matchers.containsString("No reply produced by handler 'transformerChain$child#0'"));
+			assertThat(e.getMessage()).contains("No reply produced by handler 'transformerChain$child#0'");
 		}
 	}
 
@@ -114,10 +110,11 @@ public class SpelTransformerIntegrationTests {
 		Foo foo = new Foo("baz");
 		fooHandler.handleMessage(new GenericMessage<Foo>(foo));
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertTrue(reply.getPayload() instanceof String);
-		assertEquals("baz", reply.getPayload());
-		assertEquals(3, TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", Map.class).size());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload() instanceof String).isTrue();
+		assertThat(reply.getPayload()).isEqualTo("baz");
+		assertThat(TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", Map.class).size())
+				.isEqualTo(3);
 	}
 
 	@Test
@@ -126,8 +123,8 @@ public class SpelTransformerIntegrationTests {
 		barHandler.setOutputChannel(outputChannel);
 		barHandler.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("bar", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -135,7 +132,7 @@ public class SpelTransformerIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("  foo   ").build();
 		this.spelFunctionInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("foo", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	static class TestBean {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -40,8 +38,8 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(channel);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(3, purgedMessages.size());
-		assertNull(channel.receive(0));
+		assertThat(purgedMessages.size()).isEqualTo(3);
+		assertThat(channel.receive(0)).isNull();
 	}
 
 	@Test
@@ -52,8 +50,8 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(message -> false, channel);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(3, purgedMessages.size());
-		assertNull(channel.receive(0));
+		assertThat(purgedMessages.size()).isEqualTo(3);
+		assertThat(channel.receive(0)).isNull();
 	}
 
 	@Test
@@ -64,10 +62,10 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(message -> true, channel);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(0, purgedMessages.size());
-		assertNotNull(channel.receive(0));
-		assertNotNull(channel.receive(0));
-		assertNotNull(channel.receive(0));
+		assertThat(purgedMessages.size()).isEqualTo(0);
+		assertThat(channel.receive(0)).isNotNull();
+		assertThat(channel.receive(0)).isNotNull();
+		assertThat(channel.receive(0)).isNotNull();
 	}
 
 	@Test
@@ -78,11 +76,11 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(message -> (message.getPayload().equals("test2")), channel);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(2, purgedMessages.size());
+		assertThat(purgedMessages.size()).isEqualTo(2);
 		Message<?> message = channel.receive(0);
-		assertNotNull(message);
-		assertEquals("test2", message.getPayload());
-		assertNull(channel.receive(0));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("test2");
+		assertThat(channel.receive(0)).isNull();
 	}
 
 	@Test
@@ -95,9 +93,9 @@ public class ChannelPurgerTests {
 		channel2.send(new GenericMessage<String>("test2"));
 		ChannelPurger purger = new ChannelPurger(channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(4, purgedMessages.size());
-		assertNull(channel1.receive(0));
-		assertNull(channel2.receive(0));
+		assertThat(purgedMessages.size()).isEqualTo(4);
+		assertThat(channel1.receive(0)).isNull();
+		assertThat(channel2.receive(0)).isNull();
 	}
 
 	@Test
@@ -112,15 +110,15 @@ public class ChannelPurgerTests {
 		channel2.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(message -> (message.getPayload().equals("test2")), channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(4, purgedMessages.size());
+		assertThat(purgedMessages.size()).isEqualTo(4);
 		Message<?> message1 = channel1.receive(0);
-		assertNotNull(message1);
-		assertEquals("test2", message1.getPayload());
-		assertNull(channel1.receive(0));
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("test2");
+		assertThat(channel1.receive(0)).isNull();
 		Message<?> message2 = channel2.receive(0);
-		assertNotNull(message2);
-		assertEquals("test2", message2.getPayload());
-		assertNull(channel2.receive(0));
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("test2");
+		assertThat(channel2.receive(0)).isNull();
 	}
 
 	@Test
@@ -133,11 +131,11 @@ public class ChannelPurgerTests {
 		channel2.send(new GenericMessage<String>("test2"));
 		ChannelPurger purger = new ChannelPurger(message -> true, channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
-		assertEquals(0, purgedMessages.size());
-		assertNotNull(channel1.receive(0));
-		assertNotNull(channel1.receive(0));
-		assertNotNull(channel2.receive(0));
-		assertNotNull(channel2.receive(0));
+		assertThat(purgedMessages.size()).isEqualTo(0);
+		assertThat(channel1.receive(0)).isNotNull();
+		assertThat(channel1.receive(0)).isNotNull();
+		assertThat(channel2.receive(0)).isNotNull();
+		assertThat(channel2.receive(0)).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)

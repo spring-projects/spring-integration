@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -30,8 +27,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -71,25 +68,22 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	private EventDrivenConsumer bridgeWithSendTimeout;
 
 
-	@Factory
-	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-		return new MessageMatcher(expected);
-	}
-
 	@Test
 	public void pollableChannel() {
-		Message<?> message = new GenericMessage<String>("test1");
+		Message<?> message = new GenericMessage<>("test1");
 		this.pollableChannel.send(message);
 		Message<?> reply = this.output1.receive(6000);
-		assertThat(message, sameExceptImmutableHeaders(reply));
+		assertThat(reply).isNotNull();
+		assertThat(message).matches(new MessagePredicate(reply));
 	}
 
 	@Test
 	public void subscribableChannel() {
-		Message<?> message = new GenericMessage<String>("test2");
+		Message<?> message = new GenericMessage<>("test2");
 		this.subscribableChannel.send(message);
 		Message<?> reply = this.output2.receive(0);
-		assertThat(message, sameExceptImmutableHeaders(reply));
+		assertThat(reply).isNotNull();
+		assertThat(message).matches(new MessagePredicate(reply));
 	}
 
 	@Test
@@ -98,7 +92,8 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 		Message<?> message = MessageBuilder.withPayload("test3").setReplyChannel(replyChannel).build();
 		this.stopperChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertThat(message, sameExceptImmutableHeaders(reply));
+		assertThat(reply).isNotNull();
+		assertThat(message).matches(new MessagePredicate(reply));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -109,9 +104,11 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void bridgeWithSendTimeout() {
-		BridgeHandler handler = (BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
-		MessagingTemplate template = (MessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
-		assertEquals(new Long(1234), new DirectFieldAccessor(template).getPropertyValue("sendTimeout"));
+		BridgeHandler handler =
+				(BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
+		MessagingTemplate template =
+				(MessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
+		assertThat(new DirectFieldAccessor(template).getPropertyValue("sendTimeout")).isEqualTo(1234L);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.expression;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -50,12 +47,12 @@ public class ExpressionUtilsTests {
 				new RootBeanDefinition(ConversionServiceFactoryBean.class));
 		context.refresh();
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
-		assertNotNull(evalContext.getBeanResolver());
-		assertNotNull(evalContext.getTypeConverter());
+		assertThat(evalContext.getBeanResolver()).isNotNull();
+		assertThat(evalContext.getTypeConverter()).isNotNull();
 		IntegrationEvaluationContextFactoryBean factory =
 				context.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 						IntegrationEvaluationContextFactoryBean.class);
-		assertSame(evalContext.getTypeConverter(), TestUtils.getPropertyValue(factory, "typeConverter"));
+		assertThat(TestUtils.getPropertyValue(factory, "typeConverter")).isSameAs(evalContext.getTypeConverter());
 	}
 
 
@@ -66,11 +63,11 @@ public class ExpressionUtilsTests {
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.refresh();
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
-		assertNotNull(evalContext.getBeanResolver());
+		assertThat(evalContext.getBeanResolver()).isNotNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
-		assertNotNull(typeConverter);
-		assertSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
+		assertThat(typeConverter).isNotNull();
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
 
 	@Test
@@ -80,22 +77,22 @@ public class ExpressionUtilsTests {
 				new RootBeanDefinition(ConversionServiceFactoryBean.class));
 		context.refresh();
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
-		assertNotNull(evalContext.getBeanResolver());
+		assertThat(evalContext.getBeanResolver()).isNotNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
-		assertNotNull(typeConverter);
-		assertNotSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
-		assertSame(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
+		assertThat(typeConverter).isNotNull();
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+				.isNotSameAs(DefaultConversionService.getSharedInstance());
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+				.isSameAs(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME));
 	}
 
 	@Test
 	public void testEvaluationContextNoBeanFactory() {
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext();
-		assertNull(evalContext.getBeanResolver());
+		assertThat(evalContext.getBeanResolver()).isNull();
 		TypeConverter typeConverter = evalContext.getTypeConverter();
-		assertNotNull(typeConverter);
-		assertSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
+		assertThat(typeConverter).isNotNull();
+		assertThat(TestUtils.getPropertyValue(typeConverter, "conversionService"))
+				.isSameAs(DefaultConversionService.getSharedInstance());
 	}
 }

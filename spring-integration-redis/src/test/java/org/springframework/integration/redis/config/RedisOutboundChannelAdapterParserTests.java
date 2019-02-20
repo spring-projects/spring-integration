@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,21 +84,21 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		EventDrivenConsumer adapter = context.getBean("outboundAdapter", EventDrivenConsumer.class);
 		Object handler = context.getBean("outboundAdapter.handler");
 
-		assertEquals("outboundAdapter", adapter.getComponentName());
+		assertThat(adapter.getComponentName()).isEqualTo("outboundAdapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
 		Object topicExpression = accessor.getPropertyValue("topicExpression");
-		assertNotNull(topicExpression);
-		assertEquals("headers['topic'] ?: 'foo'", ((Expression) topicExpression).getExpressionString());
+		assertThat(topicExpression).isNotNull();
+		assertThat(((Expression) topicExpression).getExpressionString()).isEqualTo("headers['topic'] ?: 'foo'");
 		Object converterBean = context.getBean("testConverter");
-		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
-		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+		assertThat(accessor.getPropertyValue("messageConverter")).isEqualTo(converterBean);
+		assertThat(accessor.getPropertyValue("serializer")).isEqualTo(context.getBean("serializer"));
 
 		Object endpointHandler = TestUtils.getPropertyValue(adapter, "handler");
 
-		assertTrue(AopUtils.isAopProxy(endpointHandler));
+		assertThat(AopUtils.isAopProxy(endpointHandler)).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(endpointHandler, "h.advised.advisors[0].advice"),
-				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+		assertThat(TestUtils.getPropertyValue(endpointHandler, "h.advised.advisors[0].advice"))
+				.isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 	@Test
@@ -114,15 +110,15 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		sendChannel.send(new GenericMessage<>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Hello Redis", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("Hello Redis");
 
 		sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(MessageBuilder.withPayload("Hello Redis").setHeader("topic", "bar").build());
 		receiveChannel = context.getBean("barChannel", QueueChannel.class);
 		message = receiveChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Hello Redis", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("Hello Redis");
 	}
 
 	@Test //INT-2275
@@ -134,8 +130,8 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		sendChannel.send(new GenericMessage<>("Hello Redis from chain"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Hello Redis from chain", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("Hello Redis from chain");
 	}
 
 

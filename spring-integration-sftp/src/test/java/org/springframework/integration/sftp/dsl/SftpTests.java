@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,13 @@
 
 package org.springframework.integration.sftp.dsl;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -87,18 +80,18 @@ public class SftpTests extends SftpTestSupport {
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertThat(payload, instanceOf(File.class));
+		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;
-		assertThat(file.getName(), isOneOf(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a"));
-		assertThat(file.getAbsolutePath(), containsString("localTarget"));
+		assertThat(file.getName()).isIn(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a");
+		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		message = out.receive(10_000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		file = (File) message.getPayload();
-		assertThat(file.getName(), isOneOf(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a"));
-		assertThat(file.getAbsolutePath(), containsString("localTarget"));
+		assertThat(file.getName()).isIn(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a");
+		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		registration.destroy();
 	}
@@ -115,16 +108,16 @@ public class SftpTests extends SftpTestSupport {
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" sftpSource1.txt", "sftpSource2.txt");
 		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" sftpSource1.txt", "sftpSource2.txt");
 		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
@@ -146,8 +139,8 @@ public class SftpTests extends SftpTestSupport {
 		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
 		ChannelSftp.LsEntry[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
-		assertEquals(1, files.length);
-		assertEquals(3, files[0].getAttrs().getSize());
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
 
 		registration.destroy();
 	}
@@ -168,17 +161,16 @@ public class SftpTests extends SftpTestSupport {
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
 		Message<?> result = out.receive(10_000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 		// should have filtered sftpSource2.txt
-		assertEquals(2, localFiles.size());
+		assertThat(localFiles.size()).isEqualTo(2);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					Matchers.containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				Matchers.containsString(dir + "subSftpSource"));
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subSftpSource");
 
 		registration.destroy();
 	}
@@ -192,11 +184,11 @@ public class SftpTests extends SftpTestSupport {
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		registration.getInputChannel().send(new GenericMessage<>("sftpSource"));
 		Message<?> receive = out.receive(10_000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(ChannelSftp.LsEntry[].class));
+		assertThat(payload).isInstanceOf(ChannelSftp.LsEntry[].class);
 
-		assertTrue(((ChannelSftp.LsEntry[]) payload).length > 0);
+		assertThat(((ChannelSftp.LsEntry[]) payload).length > 0).isTrue();
 
 		registration.destroy();
 	}

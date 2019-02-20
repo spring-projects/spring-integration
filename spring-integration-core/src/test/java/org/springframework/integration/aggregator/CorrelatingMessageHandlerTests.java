@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
@@ -118,7 +117,7 @@ public class CorrelatingMessageHandlerTests {
 			fail("Expected MessageHandlingException");
 		}
 		catch (MessageHandlingException e) {
-			assertEquals(0, store.getMessageGroup(correlationKey).size());
+			assertThat(store.getMessageGroup(correlationKey).size()).isEqualTo(0);
 		}
 
 		verify(correlationStrategy).getCorrelationKey(message1);
@@ -154,9 +153,9 @@ public class CorrelatingMessageHandlerTests {
 			bothMessagesHandled.countDown();
 		});
 
-		assertTrue(bothMessagesHandled.await(10, TimeUnit.SECONDS));
+		assertThat(bothMessagesHandled.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertEquals(0, store.expireMessageGroups(10000));
+		assertThat(store.expireMessageGroups(10000)).isEqualTo(0);
 		exec.shutdownNow();
 	}
 

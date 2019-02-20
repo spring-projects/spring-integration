@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +58,7 @@ public class MethodInvokingAggregatorReturningMessageTests {
 		List<String> payload = Collections.singletonList("test");
 		this.pojoInput.send(MessageBuilder.withPayload(payload).build());
 		Message<?> result = this.pojoOutput.receive();
-		assertFalse(Message.class.isAssignableFrom(result.getPayload().getClass()));
+		assertThat(Message.class.isAssignableFrom(result.getPayload().getClass())).isFalse();
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class MethodInvokingAggregatorReturningMessageTests {
 		List<String> payload = Collections.singletonList("test");
 		this.defaultInput.send(MessageBuilder.withPayload(payload).build());
 		Message<?> result = this.defaultOutput.receive();
-		assertFalse(Message.class.isAssignableFrom(result.getPayload().getClass()));
+		assertThat(Message.class.isAssignableFrom(result.getPayload().getClass())).isFalse();
 	}
 
 

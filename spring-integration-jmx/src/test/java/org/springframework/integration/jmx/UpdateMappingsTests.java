@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +68,7 @@ public class UpdateMappingsTests {
 		Message<?> message = MessageBuilder.withPayload("Hello, world!")
 				.setHeader("routing.header", "baz").build();
 		in.send(message);
-		assertNotNull(qux.receive());
+		assertThat(qux.receive()).isNotNull();
 	}
 
 	@Test
@@ -79,16 +78,16 @@ public class UpdateMappingsTests {
 		messagingTemplate.convertAndSend(control,
 				"@'router.handler'.replaceChannelMappings('foo=bar \n baz=qux')");
 		Map<?, ?> mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
-		assertNotNull(mappings);
-		assertEquals(2, mappings.size());
-		assertEquals("bar", mappings.get("foo"));
-		assertEquals("qux", mappings.get("baz"));
+		assertThat(mappings).isNotNull();
+		assertThat(mappings.size()).isEqualTo(2);
+		assertThat(mappings.get("foo")).isEqualTo("bar");
+		assertThat(mappings.get("baz")).isEqualTo("qux");
 		messagingTemplate.convertAndSend(control,
 				"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')");
 		mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
-		assertEquals(2, mappings.size());
-		assertEquals("bar", mappings.get("baz"));
-		assertEquals("qux", mappings.get("foo"));
+		assertThat(mappings.size()).isEqualTo(2);
+		assertThat(mappings.get("baz")).isEqualTo("bar");
+		assertThat(mappings.get("foo")).isEqualTo("qux");
 	}
 
 	@Test
@@ -98,7 +97,7 @@ public class UpdateMappingsTests {
 		Set<ObjectName> names = this.server.queryNames(ObjectName
 				.getInstance("update.mapping.domain:type=MessageHandler,name=router,bean=endpoint"),
 				null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("foo", "bar");
 		map.put("baz", "qux");
@@ -106,10 +105,10 @@ public class UpdateMappingsTests {
 		this.server.invoke(names.iterator().next(), "setChannelMappings", params,
 				new String[] { "java.util.Map" });
 		Map<?, ?> mappings = messagingTemplate.convertSendAndReceive(control, "@'router.handler'.getChannelMappings()", Map.class);
-		assertNotNull(mappings);
-		assertEquals(2, mappings.size());
-		assertEquals("bar", mappings.get("foo"));
-		assertEquals("qux", mappings.get("baz"));
+		assertThat(mappings).isNotNull();
+		assertThat(mappings.size()).isEqualTo(2);
+		assertThat(mappings.get("foo")).isEqualTo("bar");
+		assertThat(mappings.get("baz")).isEqualTo("qux");
 	}
 
 }

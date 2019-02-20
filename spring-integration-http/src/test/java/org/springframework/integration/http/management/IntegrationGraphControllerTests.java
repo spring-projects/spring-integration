@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.http.management;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -94,7 +89,7 @@ public class IntegrationGraphControllerTests {
 				.andExpect(jsonPath("$.nodes..name")
 						.value(Matchers.containsInAnyOrder("nullChannel", "errorChannel",
 								"_org.springframework.integration.errorLogger")))
-//				.andDo(print())
+				//				.andDo(print())
 				.andExpect(jsonPath("$.contentDescriptor.name").value("testApplication"))
 				.andExpect(jsonPath("$.links").exists());
 	}
@@ -117,19 +112,19 @@ public class IntegrationGraphControllerTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		HandlerExecutionChain executionChain = handlerMapping.getHandler(request);
-		assertNotNull(executionChain);
+		assertThat(executionChain).isNotNull();
 
 		Object handler = executionChain.getHandler();
 
 		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
 			// Assert the CORS config
-			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+			assertThat(handlerInterceptor.preHandle(request, response, handler)).isTrue();
 		}
 
 		handlerAdapter.handle(request, response, handler);
-		assertEquals(HttpStatus.OK.value(), response.getStatus());
-		assertThat(response.getContentAsString(), containsString("\"name\":\"nullChannel\","));
-		assertThat(response.getContentAsString(), not(containsString("\"name\":\"myChannel\",")));
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+		assertThat(response.getContentAsString()).contains("\"name\":\"nullChannel\",");
+		assertThat(response.getContentAsString()).doesNotContain("\"name\":\"myChannel\",");
 
 		context.getBeanFactory().registerSingleton("myChannel", new DirectChannel());
 
@@ -139,18 +134,18 @@ public class IntegrationGraphControllerTests {
 		response = new MockHttpServletResponse();
 
 		executionChain = handlerMapping.getHandler(request);
-		assertNotNull(executionChain);
+		assertThat(executionChain).isNotNull();
 
 		handler = executionChain.getHandler();
 
 		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
 			// Assert the CORS config
-			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+			assertThat(handlerInterceptor.preHandle(request, response, handler)).isTrue();
 		}
 
 		handlerAdapter.handle(request, response, handler);
-		assertEquals(HttpStatus.OK.value(), response.getStatus());
-		assertThat(response.getContentAsString(), containsString("\"name\":\"myChannel\","));
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+		assertThat(response.getContentAsString()).contains("\"name\":\"myChannel\",");
 
 		context.close();
 	}

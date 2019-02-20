@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
@@ -45,12 +41,12 @@ public class PriorityChannelTests {
 	@Test
 	public void testCapacityEnforced() {
 		PriorityChannel channel = new PriorityChannel(3);
-		assertTrue(channel.send(new GenericMessage<>("test1"), 0));
-		assertTrue(channel.send(new GenericMessage<>("test2"), 0));
-		assertTrue(channel.send(new GenericMessage<>("test3"), 0));
-		assertFalse(channel.send(new GenericMessage<>("test4"), 0));
+		assertThat(channel.send(new GenericMessage<>("test1"), 0)).isTrue();
+		assertThat(channel.send(new GenericMessage<>("test2"), 0)).isTrue();
+		assertThat(channel.send(new GenericMessage<>("test3"), 0)).isTrue();
+		assertThat(channel.send(new GenericMessage<>("test4"), 0)).isFalse();
 		channel.receive(0);
-		assertTrue(channel.send(new GenericMessage<>("test5")));
+		assertThat(channel.send(new GenericMessage<>("test5"))).isTrue();
 	}
 
 	@Test
@@ -60,7 +56,7 @@ public class PriorityChannelTests {
 			channel.send(new GenericMessage<>(i));
 		}
 		for (int i = 0; i < 1000; i++) {
-			assertEquals(i, channel.receive().getPayload());
+			assertThat(channel.receive().getPayload()).isEqualTo(i);
 		}
 	}
 
@@ -77,11 +73,11 @@ public class PriorityChannelTests {
 		channel.send(priority5);
 		channel.send(priority1);
 		channel.send(priority2);
-		assertEquals("test:10", channel.receive(0).getPayload());
-		assertEquals("test:7", channel.receive(0).getPayload());
-		assertEquals("test:0", channel.receive(0).getPayload());
-		assertEquals("test:-3", channel.receive(0).getPayload());
-		assertEquals("test:-99", channel.receive(0).getPayload());
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:10");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:7");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:0");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:-3");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:-99");
 	}
 
 	// although this test has no assertions it results in ConcurrentModificationException
@@ -110,11 +106,11 @@ public class PriorityChannelTests {
 		channel.send(messageE);
 		channel.send(messageD);
 		channel.send(messageB);
-		assertEquals("A", channel.receive(0).getPayload());
-		assertEquals("B", channel.receive(0).getPayload());
-		assertEquals("C", channel.receive(0).getPayload());
-		assertEquals("D", channel.receive(0).getPayload());
-		assertEquals("E", channel.receive(0).getPayload());
+		assertThat(channel.receive(0).getPayload()).isEqualTo("A");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("B");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("C");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("D");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("E");
 	}
 
 	@Test
@@ -149,14 +145,14 @@ public class PriorityChannelTests {
 		Object receivedSeven = channel.receive(0).getPayload();
 		Object receivedEight = channel.receive(0).getPayload();
 
-		assertEquals(7, receivedOne);
-		assertEquals(8, receivedTwo);
-		assertEquals(5, receivedThree);
-		assertEquals(6, receivedFour);
-		assertEquals(1, receivedFive);
-		assertEquals(2, receivedSix);
-		assertEquals(3, receivedSeven);
-		assertEquals(4, receivedEight);
+		assertThat(receivedOne).isEqualTo(7);
+		assertThat(receivedTwo).isEqualTo(8);
+		assertThat(receivedThree).isEqualTo(5);
+		assertThat(receivedFour).isEqualTo(6);
+		assertThat(receivedFive).isEqualTo(1);
+		assertThat(receivedSix).isEqualTo(2);
+		assertThat(receivedSeven).isEqualTo(3);
+		assertThat(receivedEight).isEqualTo(4);
 	}
 
 	@Test
@@ -187,13 +183,13 @@ public class PriorityChannelTests {
 		Object receivedSix = channel.receive(0).getPayload();
 		Object receivedSeven = channel.receive(0).getPayload();
 
-		assertEquals(4, receivedOne);
-		assertEquals(5, receivedTwo);
-		assertEquals(1, receivedThree);
-		assertEquals(2, receivedFour);
-		assertEquals(3, receivedFive);
-		assertEquals(6, receivedSix);
-		assertEquals(7, receivedSeven);
+		assertThat(receivedOne).isEqualTo(4);
+		assertThat(receivedTwo).isEqualTo(5);
+		assertThat(receivedThree).isEqualTo(1);
+		assertThat(receivedFour).isEqualTo(2);
+		assertThat(receivedFive).isEqualTo(3);
+		assertThat(receivedSix).isEqualTo(6);
+		assertThat(receivedSeven).isEqualTo(7);
 	}
 
 	@Test
@@ -205,9 +201,9 @@ public class PriorityChannelTests {
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
-		assertEquals("test:5", channel.receive(0).getPayload());
-		assertEquals("test:NULL", channel.receive(0).getPayload());
-		assertEquals("test:-5", channel.receive(0).getPayload());
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:5");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:NULL");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:-5");
 	}
 
 	@Test
@@ -219,9 +215,9 @@ public class PriorityChannelTests {
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
-		assertEquals("test:5", channel.receive(0).getPayload());
-		assertEquals("test:NULL", channel.receive(0).getPayload());
-		assertEquals("test:-5", channel.receive(0).getPayload());
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:5");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:NULL");
+		assertThat(channel.receive(0).getPayload()).isEqualTo("test:-5");
 	}
 
 	@Test
@@ -231,15 +227,15 @@ public class PriorityChannelTests {
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<>("test-1"));
 		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), 10)));
-		assertFalse(sentSecondMessage.get());
+		assertThat(sentSecondMessage.get()).isFalse();
 
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 		Message<?> message1 = channel.receive(10000);
-		assertNotNull(message1);
-		assertEquals("test-1", message1.getPayload());
-		assertFalse(sentSecondMessage.get());
-		assertNull(channel.receive(0));
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("test-1");
+		assertThat(sentSecondMessage.get()).isFalse();
+		assertThat(channel.receive(0)).isNull();
 	}
 
 	@Test
@@ -253,16 +249,16 @@ public class PriorityChannelTests {
 			sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), 3000));
 			latch.countDown();
 		});
-		assertFalse(sentSecondMessage.get());
+		assertThat(sentSecondMessage.get()).isFalse();
 		Thread.sleep(10);
 		Message<?> message1 = channel.receive();
-		assertNotNull(message1);
-		assertEquals("test-1", message1.getPayload());
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
-		assertTrue(sentSecondMessage.get());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("test-1");
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(sentSecondMessage.get()).isTrue();
 		Message<?> message2 = channel.receive();
-		assertNotNull(message2);
-		assertEquals("test-2", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("test-2");
 		executor.shutdownNow();
 	}
 
@@ -273,17 +269,17 @@ public class PriorityChannelTests {
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), -1)));
-		assertFalse(sentSecondMessage.get());
+		assertThat(sentSecondMessage.get()).isFalse();
 		Thread.sleep(10);
 		Message<?> message1 = channel.receive(10000);
-		assertNotNull(message1);
-		assertEquals("test-1", message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("test-1");
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
-		assertTrue(sentSecondMessage.get());
+		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(sentSecondMessage.get()).isTrue();
 		Message<?> message2 = channel.receive();
-		assertNotNull(message2);
-		assertEquals("test-2", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("test-2");
 	}
 
 

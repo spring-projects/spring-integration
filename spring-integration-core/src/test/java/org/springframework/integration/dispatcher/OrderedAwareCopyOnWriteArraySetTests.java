@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +42,11 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		setToTest.add("foo");
 		setToTest.add("bar");
 		setToTest.add("baz");
-		assertEquals(3, setToTest.size());
+		assertThat(setToTest.size()).isEqualTo(3);
 		Object[] elements =  setToTest.toArray();
-		assertEquals("foo", elements[0]);
-		assertEquals("bar", elements[1]);
-		assertEquals("baz", elements[2]);
+		assertThat(elements[0]).isEqualTo("foo");
+		assertThat(elements[1]).isEqualTo("bar");
+		assertThat(elements[2]).isEqualTo("baz");
 	}
 	/**
 	 * Tests that semantics of TreeSet(Comparator) were not broken.
@@ -80,18 +80,18 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		setToTest.add(o8);
 		setToTest.add(o9);
 		setToTest.add(o10);
-		assertEquals(10, setToTest.size());
+		assertThat(setToTest.size()).isEqualTo(10);
 		Object[] elements = setToTest.toArray();
-		assertEquals(o7, elements[0]);
-		assertEquals(o8, elements[1]);
-		assertEquals(o2, elements[2]);
-		assertEquals(o3, elements[3]);
-		assertEquals(o4, elements[4]);
-		assertEquals(o10, elements[5]);
-		assertEquals(o1, elements[6]);
-		assertEquals(o9, elements[7]);
-		assertEquals(o5, elements[8]);
-		assertEquals(o6, elements[9]);
+		assertThat(elements[0]).isEqualTo(o7);
+		assertThat(elements[1]).isEqualTo(o8);
+		assertThat(elements[2]).isEqualTo(o2);
+		assertThat(elements[3]).isEqualTo(o3);
+		assertThat(elements[4]).isEqualTo(o4);
+		assertThat(elements[5]).isEqualTo(o10);
+		assertThat(elements[6]).isEqualTo(o1);
+		assertThat(elements[7]).isEqualTo(o9);
+		assertThat(elements[8]).isEqualTo(o5);
+		assertThat(elements[9]).isEqualTo(o6);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -118,20 +118,20 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		tempList.add(o8);
 		tempList.add(o9);
 		tempList.add(o10);
-		assertEquals(10, tempList.size());
+		assertThat(tempList.size()).isEqualTo(10);
 		OrderedAwareCopyOnWriteArraySet orderAwareSet = new OrderedAwareCopyOnWriteArraySet();
 		orderAwareSet.addAll(tempList);
 		Object[] elements = orderAwareSet.toArray();
-		assertEquals(o7, elements[0]);
-		assertEquals(o8, elements[1]);
-		assertEquals(o2, elements[2]);
-		assertEquals(o4, elements[3]);
-		assertEquals(o1, elements[4]);
-		assertEquals(o9, elements[5]);
-		assertEquals(o5, elements[6]);
-		assertEquals(o6, elements[7]);
-		assertEquals(o3, elements[8]);
-		assertEquals(o10, elements[9]);
+		assertThat(elements[0]).isEqualTo(o7);
+		assertThat(elements[1]).isEqualTo(o8);
+		assertThat(elements[2]).isEqualTo(o2);
+		assertThat(elements[3]).isEqualTo(o4);
+		assertThat(elements[4]).isEqualTo(o1);
+		assertThat(elements[5]).isEqualTo(o9);
+		assertThat(elements[6]).isEqualTo(o5);
+		assertThat(elements[7]).isEqualTo(o6);
+		assertThat(elements[8]).isEqualTo(o3);
+		assertThat(elements[9]).isEqualTo(o10);
 	}
 
 	@Test
@@ -188,7 +188,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		}
 
 
-		assertEquals(15, setToTest.size());
+		assertThat(setToTest.size()).isEqualTo(15);
 	}
 	/**
 	 * Will test addAll operation including the removal and adding an object in the concurrent environment
@@ -263,7 +263,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 			throw new RuntimeException(e);
 		}
 		Object[] elements = orderAwareSet.toArray();
-		assertEquals(18, elements.length);
+		assertThat(elements.length).isEqualTo(18);
 	}
 
 	private static class Foo implements Ordered {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +61,7 @@ public class GemfireMessageStoreTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
-		assertEquals(message, retrieved);
+		assertThat(retrieved).isEqualTo(message);
 	}
 
 	@Test
@@ -74,7 +72,7 @@ public class GemfireMessageStoreTests {
 		region.afterPropertiesSet();
 
 		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
-		assertSame(region.getObject(), TestUtils.getPropertyValue(store, "messageStoreRegion"));
+		assertThat(TestUtils.getPropertyValue(store, "messageStoreRegion")).isSameAs(region.getObject());
 
 		region.destroy();
 	}
@@ -94,11 +92,11 @@ public class GemfireMessageStoreTests {
 		store.addMessage(message);
 		message = store.getMessage(message.getHeaders().getId());
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
@@ -113,10 +111,10 @@ public class GemfireMessageStoreTests {
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(25, group.size());
+		assertThat(group.size()).isEqualTo(25);
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -134,12 +132,12 @@ public class GemfireMessageStoreTests {
 		MessageGroupMetadata messageGroupMetadata =
 				(MessageGroupMetadata) region.get("foo_" + "MESSAGE_GROUP_" + groupId);
 
-		assertNotNull(messageGroupMetadata);
-		assertEquals(25, messageGroupMetadata.size());
+		assertThat(messageGroupMetadata).isNotNull();
+		assertThat(messageGroupMetadata.size()).isEqualTo(25);
 
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Before

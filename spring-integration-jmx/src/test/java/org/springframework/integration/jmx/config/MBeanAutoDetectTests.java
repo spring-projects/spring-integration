@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -54,7 +54,7 @@ public class MBeanAutoDetectTests {
 		// System . err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class MBeanAutoDetectTests {
 		// System . err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 }

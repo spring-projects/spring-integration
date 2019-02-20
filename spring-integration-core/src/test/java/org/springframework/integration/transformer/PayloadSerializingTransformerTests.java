@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -40,12 +38,12 @@ public class PayloadSerializingTransformerTests {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
 		Object payload = result.getPayload();
-		assertNotNull(payload);
-		assertTrue(payload instanceof byte[]);
+		assertThat(payload).isNotNull();
+		assertThat(payload instanceof byte[]).isTrue();
 		ByteArrayInputStream byteStream = new ByteArrayInputStream((byte[]) payload);
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		Object deserialized = objectStream.readObject();
-		assertEquals("foo", deserialized);
+		assertThat(deserialized).isEqualTo("foo");
 	}
 
 	@Test
@@ -54,13 +52,13 @@ public class PayloadSerializingTransformerTests {
 		TestBean testBean = new TestBean("test");
 		Message<?> result = transformer.transform(new GenericMessage<TestBean>(testBean));
 		Object payload = result.getPayload();
-		assertNotNull(payload);
-		assertTrue(payload instanceof byte[]);
+		assertThat(payload).isNotNull();
+		assertThat(payload instanceof byte[]).isTrue();
 		ByteArrayInputStream byteStream = new ByteArrayInputStream((byte[]) payload);
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		Object deserialized = objectStream.readObject();
-		assertEquals(TestBean.class, deserialized.getClass());
-		assertEquals(testBean.name, ((TestBean) deserialized).name);
+		assertThat(deserialized.getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) deserialized).name).isEqualTo(testBean.name);
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -74,7 +72,7 @@ public class PayloadSerializingTransformerTests {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
 		transformer.setConverter(source -> "Converted".getBytes());
 		Message<?> message = transformer.transform(MessageBuilder.withPayload("Test").build());
-		assertEquals("Converted", new String((byte[]) message.getPayload()));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Converted");
 	}
 
 

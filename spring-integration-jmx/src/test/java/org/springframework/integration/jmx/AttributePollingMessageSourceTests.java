@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -49,12 +48,12 @@ public class AttributePollingMessageSourceTests {
 		source.setObjectName("test:name=counter");
 		source.setServer(server);
 		Message<?> message1 = source.receive();
-		assertNotNull(message1);
-		assertEquals(0, message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo(0);
 		counter.increment();
 		Message<?> message2 = source.receive();
-		assertNotNull(message2);
-		assertEquals(1, message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo(1);
 
 		factoryBean.destroy();
 	}

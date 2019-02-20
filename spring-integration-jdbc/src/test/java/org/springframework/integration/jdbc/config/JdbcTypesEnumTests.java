@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.sql.Types;
 
@@ -31,8 +29,8 @@ public class JdbcTypesEnumTests {
 	public void testGetCode() {
 
 		JdbcTypesEnum jdbcTypesEnum = JdbcTypesEnum.convertToJdbcTypesEnum("VARCHAR");
-		assertNotNull("Expected not null jdbcTypesEnum.", jdbcTypesEnum);
-		assertEquals(Integer.valueOf(Types.VARCHAR), Integer.valueOf(jdbcTypesEnum.getCode()));
+		assertThat(jdbcTypesEnum).as("Expected not null jdbcTypesEnum.").isNotNull();
+		assertThat(Integer.valueOf(jdbcTypesEnum.getCode())).isEqualTo(Integer.valueOf(Types.VARCHAR));
 
 	}
 
@@ -40,7 +38,7 @@ public class JdbcTypesEnumTests {
 	public void testConvertToJdbcTypesEnumWithInvalidParameter() {
 
 		JdbcTypesEnum jdbcTypesEnum = JdbcTypesEnum.convertToJdbcTypesEnum("KENNY4JDBC");
-		assertNull("Expected null return value.", jdbcTypesEnum);
+		assertThat(jdbcTypesEnum).as("Expected null return value.").isNull();
 
 	}
 
@@ -51,7 +49,7 @@ public class JdbcTypesEnumTests {
 			JdbcTypesEnum.convertToJdbcTypesEnum(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Parameter sqlTypeAsString, must not be null nor empty");
 			return;
 		}
 
@@ -66,7 +64,7 @@ public class JdbcTypesEnumTests {
 			JdbcTypesEnum.convertToJdbcTypesEnum("   ");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Parameter sqlTypeAsString, must not be null nor empty");
 			return;
 		}
 

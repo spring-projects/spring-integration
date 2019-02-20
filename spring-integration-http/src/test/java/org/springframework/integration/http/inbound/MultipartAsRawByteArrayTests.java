@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -90,9 +87,9 @@ public class MultipartAsRawByteArrayTests {
 		RequestContextHolder.setRequestAttributes(mock(RequestAttributes.class));
 		gw.handleRequest(request, mock(HttpServletResponse.class));
 		Message<?> received = requestChannel.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), instanceOf(byte[].class));
-		assertEquals("foo", new String((byte[]) received.getPayload()));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(byte[].class);
+		assertThat(new String((byte[]) received.getPayload())).isEqualTo("foo");
 	}
 
 }

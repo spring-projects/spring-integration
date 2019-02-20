@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package org.springframework.integration.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ByteStreamSourceTests {
 
@@ -35,14 +37,15 @@ public class ByteStreamSourceTests {
 		byte[] bytes = new byte[] {1, 2, 3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
 		byte[] payload = (byte[]) message1.getPayload();
-		assertEquals(3, payload.length);
-		assertEquals(1, payload[0]);
-		assertEquals(2, payload[1]);
-		assertEquals(3, payload[2]);
+		assertThat(payload.length).isEqualTo(3);
+		assertThat(payload[0]).isEqualTo((byte) 1);
+		assertThat(payload[1]).isEqualTo((byte) 2);
+		assertThat(payload[2]).isEqualTo((byte) 3);
 		Message<?> message2 = source.receive();
-		assertNull(message2);
+		assertThat(message2).isNull();
 	}
 
 	@Test
@@ -51,12 +54,13 @@ public class ByteStreamSourceTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertEquals(4, ((byte[]) message1.getPayload()).length);
+		assertThat(((byte[]) message1.getPayload()).length).isEqualTo(4);
 		Message<?> message2 = source.receive();
-		assertEquals(2, ((byte[]) message2.getPayload()).length);
+		assertThat(((byte[]) message2.getPayload()).length).isEqualTo(2);
 		Message<?> message3 = source.receive();
-		assertNull(message3);
+		assertThat(message3).isNull();
 	}
 
 	@Test
@@ -66,16 +70,17 @@ public class ByteStreamSourceTests {
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);
 		source.setShouldTruncate(false);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertEquals(4, ((byte[]) message1.getPayload()).length);
+		assertThat(((byte[]) message1.getPayload()).length).isEqualTo(4);
 		Message<?> message2 = source.receive();
-		assertEquals(4, ((byte[]) message2.getPayload()).length);
-		assertEquals(4, ((byte[]) message2.getPayload())[0]);
-		assertEquals(5, ((byte[]) message2.getPayload())[1]);
-		assertEquals(0, ((byte[]) message2.getPayload())[2]);
-		assertEquals(0, ((byte[]) message2.getPayload())[3]);
+		assertThat(((byte[]) message2.getPayload()).length).isEqualTo(4);
+		assertThat(((byte[]) message2.getPayload())[0]).isEqualTo((byte) 4);
+		assertThat(((byte[]) message2.getPayload())[1]).isEqualTo((byte) 5);
+		assertThat(((byte[]) message2.getPayload())[2]).isEqualTo((byte) 0);
+		assertThat(((byte[]) message2.getPayload())[3]).isEqualTo((byte) 0);
 		Message<?> message3 = source.receive();
-		assertNull(message3);
+		assertThat(message3).isNull();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,13 +52,13 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		context.refresh();
 		SimpleServiceActivatorAnnotationTestBean testBean =
 				context.getBean("testBean", SimpleServiceActivatorAnnotationTestBean.class);
-		assertEquals(1, latch.getCount());
-		assertNull(testBean.getMessageText());
+		assertThat(latch.getCount()).isEqualTo(1);
+		assertThat(testBean.getMessageText()).isNull();
 		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
 		testChannel.send(new GenericMessage<>("test-123"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals("test-123", testBean.getMessageText());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(testBean.getMessageText()).isEqualTo("test-123");
 		context.close();
 	}
 

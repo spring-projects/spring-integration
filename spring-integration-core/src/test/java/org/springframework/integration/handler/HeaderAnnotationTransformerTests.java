@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -52,9 +50,9 @@ public class HeaderAnnotationTransformerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.handleMessage(MessageBuilder.withPayload("test").setCorrelationId("abc").build());
 		Message<?> result = outputChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("testabc", result.getPayload());
-		assertEquals("abc", new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("testabc");
+		assertThat(new IntegrationMessageHeaderAccessor(result).getCorrelationId()).isEqualTo("abc");
 	}
 
 	@Test // INT-1082
@@ -68,9 +66,9 @@ public class HeaderAnnotationTransformerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.handleMessage(MessageBuilder.withPayload("test").setCorrelationId("abc").build());
 		Message<?> result = outputChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("ABC", result.getPayload());
-		assertEquals("abc", new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("ABC");
+		assertThat(new IntegrationMessageHeaderAccessor(result).getCorrelationId()).isEqualTo("abc");
 	}
 
 	@Test
@@ -84,9 +82,9 @@ public class HeaderAnnotationTransformerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.handleMessage(MessageBuilder.withPayload("test").setHeader("foo", "bar").build());
 		Message<?> result = outputChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("testbar", result.getPayload());
-		assertEquals("bar", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("testbar");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -100,9 +98,9 @@ public class HeaderAnnotationTransformerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.handleMessage(MessageBuilder.withPayload("test").setHeader("foo", "bar").build());
 		Message<?> result = outputChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("BAR", result.getPayload());
-		assertEquals("bar", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("BAR");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 
@@ -122,9 +120,9 @@ public class HeaderAnnotationTransformerTests {
 						.setHeader("foo", "bar")
 						.build());
 		Message<?> result = outputChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("BAR", result.getPayload());
-		assertFalse(result.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("BAR");
+		assertThat(result.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CORRELATION_ID)).isFalse();
 	}
 
 	public static class TestTransformer {

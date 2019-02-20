@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -58,8 +58,8 @@ public class MethodInvokerTests {
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MethodInvoker:type=MessageHandler,*"), null);
 		// System . err.println(names);
 		// the router and the error handler...
-		assertEquals(2, names.size());
-		underscores.subscribe(message -> assertEquals("foo", message.getPayload()));
+		assertThat(names.size()).isEqualTo(2);
+		underscores.subscribe(message -> assertThat(message.getPayload()).isEqualTo("foo"));
 		echos.send(MessageBuilder.withPayload("foo").setHeader("entity-type", "underscore").build());
 	}
 

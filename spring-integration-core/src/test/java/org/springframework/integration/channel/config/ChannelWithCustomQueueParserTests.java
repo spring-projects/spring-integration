@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -54,16 +51,16 @@ public class ChannelWithCustomQueueParserTests {
 
 	@Test
 	public void parseConfig() throws Exception {
-		assertNotNull(customQueueChannel);
+		assertThat(customQueueChannel).isNotNull();
 	}
 
 	@Test
 	public void queueTypeSet() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(customQueueChannel);
 		Object queue = accessor.getPropertyValue("queue");
-		assertNotNull(queue);
-		assertThat(queue, is(instanceOf(ArrayBlockingQueue.class)));
-		assertThat(((BlockingQueue<?>) queue).remainingCapacity(), is(2));
+		assertThat(queue).isNotNull();
+		assertThat(queue).isInstanceOf(ArrayBlockingQueue.class);
+		assertThat(((BlockingQueue<?>) queue).remainingCapacity()).isEqualTo(2);
 	}
 
 }

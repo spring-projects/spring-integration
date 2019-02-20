@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,18 +83,18 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 		Message<Collection<User>> message = received.get(0);
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<User> allUsers = message.getPayload();
 
-		assertTrue(allUsers.size() == 1);
+		assertThat(allUsers.size() == 1).isTrue();
 
 		User userFromDb = allUsers.iterator().next();
 
-		assertEquals("Wrong username", "myUsername", userFromDb.getUsername());
-		assertEquals("Wrong password", "myPassword", userFromDb.getPassword());
-		assertEquals("Wrong email",    "'myEmail'",    userFromDb.getEmail());
+		assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
+		assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
+		assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("'myEmail'");
 
 	}
 
@@ -110,18 +108,18 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		@SuppressWarnings("unchecked")
 		Message<Collection<User>> message = (Message<Collection<User>>) replyChannel.receive();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<User> allUsers = message.getPayload();
 
-		assertTrue(allUsers.size() == 1);
+		assertThat(allUsers.size() == 1).isTrue();
 
 		User userFromDb = allUsers.iterator().next();
 
-		assertEquals("Wrong username", "myUsername", userFromDb.getUsername());
-		assertEquals("Wrong password", "myPassword", userFromDb.getPassword());
-		assertEquals("Wrong email",    "myEmail",    userFromDb.getEmail());
+		assertThat(userFromDb.getUsername()).as("Wrong username").isEqualTo("myUsername");
+		assertThat(userFromDb.getPassword()).as("Wrong password").isEqualTo("myPassword");
+		assertThat(userFromDb.getEmail()).as("Wrong email").isEqualTo("myEmail");
 
 	}
 

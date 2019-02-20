@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
 
@@ -65,11 +65,11 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
 		Message<?> claimCheckMessage = checkin.transform(originalMessage);
-		assertEquals(originalMessage.getHeaders().getId(), claimCheckMessage.getPayload());
+		assertThat(claimCheckMessage.getPayload()).isEqualTo(originalMessage.getHeaders().getId());
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
-		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
-		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
-		assertEquals(originalMessage, checkedOutMessage);
+		assertThat(checkedOutMessage.getHeaders().getId()).isEqualTo(claimCheckMessage.getPayload());
+		assertThat(checkedOutMessage.getPayload()).isEqualTo(originalMessage.getPayload());
+		assertThat(checkedOutMessage).isEqualTo(originalMessage);
 	}
 
 	@Test
@@ -86,11 +86,11 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		payload.setIced(false);
 		Message<?> originalMessage = MessageBuilder.withPayload(payload).build();
 		Message<?> claimCheckMessage = checkin.transform(originalMessage);
-		assertEquals(originalMessage.getHeaders().getId(), claimCheckMessage.getPayload());
+		assertThat(claimCheckMessage.getPayload()).isEqualTo(originalMessage.getHeaders().getId());
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
-		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
-		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
-		assertEquals(originalMessage, checkedOutMessage);
+		assertThat(checkedOutMessage.getPayload()).isEqualTo(originalMessage.getPayload());
+		assertThat(checkedOutMessage.getHeaders().getId()).isEqualTo(claimCheckMessage.getPayload());
+		assertThat(checkedOutMessage).isEqualTo(originalMessage);
 	}
 
 	@Test
@@ -104,11 +104,11 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
 		Message<?> claimCheckMessage = checkin.transform(originalMessage);
-		assertEquals(originalMessage.getHeaders().getId(), claimCheckMessage.getPayload());
+		assertThat(claimCheckMessage.getPayload()).isEqualTo(originalMessage.getHeaders().getId());
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
-		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
-		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
-		assertEquals(originalMessage, checkedOutMessage);
+		assertThat(checkedOutMessage.getHeaders().getId()).isEqualTo(claimCheckMessage.getPayload());
+		assertThat(checkedOutMessage.getPayload()).isEqualTo(originalMessage.getPayload());
+		assertThat(checkedOutMessage).isEqualTo(originalMessage);
 	}
 
 	@Test
@@ -126,11 +126,11 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		payload.setIced(false);
 		Message<?> originalMessage = MessageBuilder.withPayload(payload).build();
 		Message<?> claimCheckMessage = checkin.transform(originalMessage);
-		assertEquals(originalMessage.getHeaders().getId(), claimCheckMessage.getPayload());
+		assertThat(claimCheckMessage.getPayload()).isEqualTo(originalMessage.getHeaders().getId());
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
-		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
-		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
-		assertEquals(originalMessage, checkedOutMessage);
+		assertThat(checkedOutMessage.getPayload()).isEqualTo(originalMessage.getPayload());
+		assertThat(checkedOutMessage.getHeaders().getId()).isEqualTo(claimCheckMessage.getPayload());
+		assertThat(checkedOutMessage).isEqualTo(originalMessage);
 	}
 
 	@SuppressWarnings("serial")

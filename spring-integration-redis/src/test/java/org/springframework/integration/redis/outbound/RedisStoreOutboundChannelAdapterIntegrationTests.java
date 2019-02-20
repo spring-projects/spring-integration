@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -144,7 +144,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@RedisAvailable
 	public void testListWithKeyAsHeader() {
 		RedisList<String> redisList = new DefaultRedisList<String>("pepboys", this.redisTemplate);
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		List<String> pepboys = new ArrayList<String>();
 		pepboys.add("Manny");
@@ -153,7 +153,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<List<String>> message = MessageBuilder.withPayload(pepboys).setHeader(RedisHeaders.KEY, "pepboys").build();
 		this.listWithKeyAsHeaderChannel.send(message);
 
-		assertEquals(3, redisList.size());
+		assertThat(redisList.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -161,19 +161,19 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	public void testListWithKeyAsHeaderSimple() {
 		redisTemplate.delete("foo");
 		RedisList<String> redisList = new DefaultRedisList<String>("foo", this.redisTemplate);
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar").setHeader("redis_key", "foo").build();
 		this.listWithKeyAsHeaderChannel.send(message);
 
-		assertEquals(1, redisList.size());
+		assertThat(redisList.size()).isEqualTo(1);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testListWithProvidedKey() {
 		RedisList<String> redisList = new DefaultRedisList<String>("pepboys", this.redisTemplate);
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		List<String> pepboys = new ArrayList<String>();
 		pepboys.add("Manny");
@@ -182,14 +182,14 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<List<String>> message = MessageBuilder.withPayload(pepboys).build();
 		this.listWithKeyProvidedChannel.send(message);
 
-		assertEquals(3, redisList.size());
+		assertThat(redisList.size()).isEqualTo(3);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadIncrement() {
 		RedisZSet<String> redisZSet = new DefaultRedisZSet<String>("foo", this.redisTemplate);
-		assertEquals(0, redisZSet.size());
+		assertThat(redisZSet.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
@@ -197,40 +197,40 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				.build();
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(1));
 
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(2));
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadOverwrite() {
 		RedisZSet<String> redisZSet = new DefaultRedisZSet<String>("foo", this.redisTemplate);
-		assertEquals(0, redisZSet.size());
+		assertThat(redisZSet.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
 				.build();
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(1));
 
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(1));
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadIncrementBy2() {
 		RedisZSet<String> redisZSet = new DefaultRedisZSet<String>("foo", this.redisTemplate);
-		assertEquals(0, redisZSet.size());
+		assertThat(redisZSet.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
@@ -239,20 +239,20 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				.build();
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(2));
 
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(4), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(4));
 	}
 
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadOverwriteWithHeaderScore() {
 		RedisZSet<String> redisZSet = new DefaultRedisZSet<String>("foo", this.redisTemplate);
-		assertEquals(0, redisZSet.size());
+		assertThat(redisZSet.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
@@ -261,20 +261,20 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				.build();
 		this.zsetChannel.send(message);
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(2));
 
 		this.zsetChannel.send(MessageBuilder.fromMessage(message).setHeader(RedisHeaders.ZSET_SCORE, 15).build());
 
-		assertEquals(1, redisZSet.size());
-		assertEquals(Double.valueOf(15), redisZSet.score("bar"));
+		assertThat(redisZSet.size()).isEqualTo(1);
+		assertThat(redisZSet.score("bar")).isEqualTo(Double.valueOf(15));
 	}
 
 	@Test
 	@RedisAvailable
 	public void testMapToZsetWithProvidedKey() {
 		RedisZSet<String> redisZset = new DefaultRedisZSet<String>("presidents", this.redisTemplate);
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		Map<String, Integer> presidents = new HashMap<String, Integer>();
 		presidents.put("John Adams", 18);
@@ -290,21 +290,21 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 
 		this.mapToZsetChannel.send(message);
 
-		assertEquals(5, redisZset.size());
-		assertEquals(1, redisZset.rangeByScore(18, 18).size());
-		assertEquals(4, redisZset.rangeByScore(18, 19).size());
-		assertEquals(1, redisZset.rangeByScore(21, 21).size());
+		assertThat(redisZset.size()).isEqualTo(5);
+		assertThat(redisZset.rangeByScore(18, 18).size()).isEqualTo(1);
+		assertThat(redisZset.rangeByScore(18, 19).size()).isEqualTo(4);
+		assertThat(redisZset.rangeByScore(21, 21).size()).isEqualTo(1);
 
 		RedisStoreWritingMessageHandler handler =
 				this.beanFactory.getBean("mapToZset.handler", RedisStoreWritingMessageHandler.class);
-		assertEquals("'presidents'", TestUtils.getPropertyValue(handler, "keyExpression.expression"));
+		assertThat(TestUtils.getPropertyValue(handler, "keyExpression.expression")).isEqualTo("'presidents'");
 
 		this.mapToZsetChannel.send(message);
 
-		assertEquals(5, redisZset.size());
-		assertEquals(1, redisZset.rangeByScore(36, 36).size());
-		assertEquals(4, redisZset.rangeByScore(36, 38).size());
-		assertEquals(1, redisZset.rangeByScore(42, 42).size());
+		assertThat(redisZset.size()).isEqualTo(5);
+		assertThat(redisZset.rangeByScore(36, 36).size()).isEqualTo(1);
+		assertThat(redisZset.rangeByScore(36, 38).size()).isEqualTo(4);
+		assertThat(redisZset.rangeByScore(42, 42).size()).isEqualTo(1);
 
 		// test overwrite score behavior
 		presidents.put("Barack Obama", 31);
@@ -313,10 +313,10 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, false)
 				.build());
 
-		assertEquals(5, redisZset.size());
-		assertEquals(1, redisZset.rangeByScore(18, 18).size());
-		assertEquals(4, redisZset.rangeByScore(18, 19).size());
-		assertEquals(1, redisZset.rangeByScore(31, 31).size());
+		assertThat(redisZset.size()).isEqualTo(5);
+		assertThat(redisZset.rangeByScore(18, 18).size()).isEqualTo(1);
+		assertThat(redisZset.rangeByScore(18, 19).size()).isEqualTo(4);
+		assertThat(redisZset.rangeByScore(31, 31).size()).isEqualTo(1);
 	}
 
 	@Test
@@ -324,7 +324,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	public void testMapToMapWithProvidedKey() {
 		RedisMap<String, String> redisMap = new DefaultRedisMap<String, String>("pepboys", this.redisTemplate);
 
-		assertEquals(0, redisMap.size());
+		assertThat(redisMap.size()).isEqualTo(0);
 
 		Map<String, String> pepboys = new HashMap<String, String>();
 		pepboys.put("1", "Manny");
@@ -333,16 +333,16 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 
 		Message<Map<String, String>> message = MessageBuilder.withPayload(pepboys).build();
 		this.mapToMapAChannel.send(message);
-		assertEquals("Manny", redisMap.get("1"));
-		assertEquals("Moe", redisMap.get("2"));
-		assertEquals("Jack", redisMap.get("3"));
+		assertThat(redisMap.get("1")).isEqualTo("Manny");
+		assertThat(redisMap.get("2")).isEqualTo("Moe");
+		assertThat(redisMap.get("3")).isEqualTo("Jack");
 
 		RedisStoreWritingMessageHandler handler = this.beanFactory.getBean("mapToMapA.handler",
 				RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys",
-				TestUtils.getPropertyValue(handler, "keyExpression", LiteralExpression.class).getExpressionString());
-		assertEquals("'foo'",
-				TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString());
+		assertThat(TestUtils.getPropertyValue(handler, "keyExpression", LiteralExpression.class).getExpressionString())
+				.isEqualTo("pepboys");
+		assertThat(TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString())
+				.isEqualTo("'foo'");
 	}
 
 	@Test(expected = MessageHandlingException.class) // map key is not provided
@@ -351,7 +351,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys", this.redisTemplate);
 
-		assertEquals(0, redisMap.size());
+		assertThat(redisMap.size()).isEqualTo(0);
 
 		Map<String, String> pepboys = new HashMap<String, String>();
 		pepboys.put("1", "Manny");
@@ -376,7 +376,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys", redisTemplate);
 
-		assertEquals(0, redisMap.size());
+		assertThat(redisMap.size()).isEqualTo(0);
 
 		Map<String, String> pepboys = new HashMap<String, String>();
 		pepboys.put("1", "Manny");
@@ -399,7 +399,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys", redisTemplate);
 
-		assertEquals(0, redisMap.size());
+		assertThat(redisMap.size()).isEqualTo(0);
 
 		Map<String, String> pepboys = new HashMap<String, String>();
 		pepboys.put("1", "Manny");
@@ -411,9 +411,9 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		this.mapToMapBChannel.send(message);
 		Map<String, String> pepboyz = redisMap.get("foo");
 
-		assertEquals("Manny", pepboyz.get("1"));
-		assertEquals("Moe", pepboyz.get("2"));
-		assertEquals("Jack", pepboyz.get("3"));
+		assertThat(pepboyz.get("1")).isEqualTo("Manny");
+		assertThat(pepboyz.get("2")).isEqualTo("Moe");
+		assertThat(pepboyz.get("3")).isEqualTo("Jack");
 	}
 
 	@Test
@@ -421,7 +421,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	public void testStoreSimpleStringInMap() {
 		RedisMap<String, String> redisMap = new DefaultRedisMap<String, String>("bar", this.redisTemplate);
 
-		assertEquals(0, redisMap.size());
+		assertThat(redisMap.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("hello, world!").
 				setHeader(RedisHeaders.KEY, "bar").setHeader(RedisHeaders.MAP_KEY, "foo").build();
@@ -429,14 +429,14 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		this.simpleMapChannel.send(message);
 		String hello = redisMap.get("foo");
 
-		assertEquals("hello, world!", hello);
+		assertThat(hello).isEqualTo("hello, world!");
 	}
 
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeader() {
 		RedisSet<String> redisSet = new DefaultRedisSet<String>("pepboys", this.redisTemplate);
-		assertEquals(0, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(0);
 
 		Set<String> pepboys = new HashSet<String>();
 		pepboys.add("Manny");
@@ -445,27 +445,27 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<Set<String>> message = MessageBuilder.withPayload(pepboys).setHeader("redis_key", "pepboys").build();
 		this.setChannel.send(message);
 
-		assertEquals(3, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(3);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderSimple() {
 		RedisSet<String> redisSet = new DefaultRedisSet<String>("foo", this.redisTemplate);
-		assertEquals(0, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader(RedisHeaders.KEY, "foo").build();
 		this.setChannel.send(message);
 
-		assertEquals(1, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(1);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderNotParsed() {
 		RedisSet<String> redisSet = new DefaultRedisSet<String>("pepboys", this.redisTemplate);
-		assertEquals(0, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(0);
 
 		Set<String> pepboys = new HashSet<String>();
 		pepboys.add("Manny");
@@ -474,20 +474,20 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<Set<String>> message = MessageBuilder.withPayload(pepboys).setHeader("redis_key", "pepboys").build();
 		this.setNotParsedChannel.send(message);
 
-		assertEquals(1, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(1);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testPojoIntoSet() {
 		RedisSet<String> redisSet = new DefaultRedisSet<String>("pepboys", this.redisTemplate);
-		assertEquals(0, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(0);
 
 		String pepboy = "Manny";
 		Message<String> message = MessageBuilder.withPayload(pepboy).setHeader("redis_key", "pepboys").build();
 		this.pojoIntoSetChannel.send(message);
 
-		assertEquals(1, redisSet.size());
+		assertThat(redisSet.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -495,7 +495,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	public void testProperties() {
 		RedisProperties redisProperties = new RedisProperties("pepboys", this.redisTemplate);
 
-		assertEquals(0, redisProperties.size());
+		assertThat(redisProperties.size()).isEqualTo(0);
 
 		Properties pepboys = new Properties();
 		pepboys.put("1", "Manny");
@@ -505,9 +505,9 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<Properties> message = MessageBuilder.withPayload(pepboys).build();
 		this.propertyChannel.send(message);
 
-		assertEquals("Manny", redisProperties.get("1"));
-		assertEquals("Moe", redisProperties.get("2"));
-		assertEquals("Jack", redisProperties.get("3"));
+		assertThat(redisProperties.get("1")).isEqualTo("Manny");
+		assertThat(redisProperties.get("2")).isEqualTo("Moe");
+		assertThat(redisProperties.get("3")).isEqualTo("Jack");
 	}
 
 	@Test
@@ -515,7 +515,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	public void testPropertiesSimple() {
 		RedisProperties redisProperties = new RedisProperties("foo", this.redisTemplate);
 
-		assertEquals(0, redisProperties.size());
+		assertThat(redisProperties.size()).isEqualTo(0);
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
@@ -523,7 +523,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				.build();
 		this.simplePropertyChannel.send(message);
 
-		assertEquals("bar", redisProperties.get("qux"));
+		assertThat(redisProperties.get("qux")).isEqualTo("bar");
 	}
 
 }

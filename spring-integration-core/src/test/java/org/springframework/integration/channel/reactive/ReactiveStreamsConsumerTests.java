@@ -16,13 +16,8 @@
 
 package org.springframework.integration.channel.reactive;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
@@ -37,7 +32,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -92,9 +86,9 @@ public class ReactiveStreamsConsumerTests {
 			testChannel.send(testMessage);
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("doesn't have subscribers to accept messages"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("doesn't have subscribers to accept messages");
 		}
 
 		reactiveConsumer.start();
@@ -102,8 +96,8 @@ public class ReactiveStreamsConsumerTests {
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 		testChannel.send(testMessage2);
 
-		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
-		assertThat(result, Matchers.<Message<?>>contains(testMessage, testMessage2));
+		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(result).containsExactly(testMessage, testMessage2);
 	}
 
 
@@ -138,7 +132,7 @@ public class ReactiveStreamsConsumerTests {
 		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
-		assertSame(testMessage, message);
+		assertThat(message).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
 
@@ -147,7 +141,7 @@ public class ReactiveStreamsConsumerTests {
 			fail("MessageDeliveryException");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
 		}
 
 		reactiveConsumer.start();
@@ -159,12 +153,12 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.send(testMessage);
 
 		message = messages.poll(10, TimeUnit.SECONDS);
-		assertSame(testMessage, message);
+		assertThat(message).isSameAs(testMessage);
 
 		verify(testSubscriber, never()).onError(any(Throwable.class));
 		verify(testSubscriber, never()).onComplete();
 
-		assertTrue(messages.isEmpty());
+		assertThat(messages.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -198,7 +192,7 @@ public class ReactiveStreamsConsumerTests {
 		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
-		assertSame(testMessage, message);
+		assertThat(message).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
 
@@ -217,15 +211,15 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.send(testMessage2);
 
 		message = messages.poll(10, TimeUnit.SECONDS);
-		assertSame(testMessage, message);
+		assertThat(message).isSameAs(testMessage);
 
 		message = messages.poll(10, TimeUnit.SECONDS);
-		assertSame(testMessage2, message);
+		assertThat(message).isSameAs(testMessage2);
 
 		verify(testSubscriber, never()).onError(any(Throwable.class));
 		verify(testSubscriber, never()).onComplete();
 
-		assertTrue(messages.isEmpty());
+		assertThat(messages.isEmpty()).isTrue();
 	}
 
 	@Test
@@ -257,9 +251,9 @@ public class ReactiveStreamsConsumerTests {
 			testChannel.send(testMessage);
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("doesn't have subscribers to accept messages"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("doesn't have subscribers to accept messages");
 		}
 
 		endpointFactoryBean.start();
@@ -269,9 +263,9 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.send(testMessage2);
 		testChannel.send(testMessage2);
 
-		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
-		assertThat(result.size(), equalTo(3));
-		assertThat(result, Matchers.<Message<?>>contains(testMessage, testMessage2, testMessage2));
+		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(result.size()).isEqualTo(3);
+		assertThat(result).containsExactly(testMessage, testMessage2, testMessage2);
 	}
 
 }

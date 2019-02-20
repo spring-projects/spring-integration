@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.StringReader;
 import java.util.List;
@@ -98,41 +94,41 @@ public class XPathTransformerParserTests {
 
 	@Test
 	public void testParse() throws Exception {
-		assertEquals(2, TestUtils.getPropertyValue(this.parseOnly, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(this.parseOnly, "phase"));
-		assertFalse(TestUtils.getPropertyValue(this.parseOnly, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(this.parseOnly, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(this.parseOnly, "autoStartup", Boolean.class)).isFalse();
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) this.parseOnly));
+		assertThat(list).containsExactly((SmartLifecycle) this.parseOnly);
 	}
 
 	@Test
 	public void stringResultByDefault() {
 		this.defaultInput.send(message);
-		assertEquals("John Doe", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("John Doe");
 	}
 
 	@Test
 	public void numberResult() {
 		this.numberInput.send(message);
-		assertEquals(new Double(42), output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo(new Double(42));
 	}
 
 	@Test
 	public void booleanResult() {
 		this.booleanInput.send(message);
-		assertEquals(Boolean.TRUE, output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void nodeResult() {
 		this.nodeInput.send(message);
 		Object payload = output.receive(0).getPayload();
-		assertTrue(payload instanceof Node);
+		assertThat(payload instanceof Node).isTrue();
 		Node node = (Node) payload;
-		assertEquals("42", node.getTextContent());
+		assertThat(node.getTextContent()).isEqualTo("42");
 	}
 
 	@Test
@@ -140,27 +136,27 @@ public class XPathTransformerParserTests {
 	public void nodeListResult() {
 		this.nodeListInput.send(message);
 		Object payload = output.receive(0).getPayload();
-		assertTrue(List.class.isAssignableFrom(payload.getClass()));
+		assertThat(List.class.isAssignableFrom(payload.getClass())).isTrue();
 		List<Node> nodeList = (List<Node>) payload;
-		assertEquals(3, nodeList.size());
+		assertThat(nodeList.size()).isEqualTo(3);
 	}
 
 	@Test
 	public void nodeMapper() {
 		this.nodeMapperInput.send(message);
-		assertEquals("42-mapped", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("42-mapped");
 	}
 
 	@Test
 	public void customConverter() {
 		this.customConverterInput.send(message);
-		assertEquals("custom", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("custom");
 	}
 
 	@Test
 	public void expressionRef() {
 		this.expressionRefInput.send(message);
-		assertEquals(new Double(84), output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo(new Double(84));
 	}
 
 

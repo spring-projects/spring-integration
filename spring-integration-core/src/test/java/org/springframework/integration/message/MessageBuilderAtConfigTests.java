@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,12 +59,12 @@ public class MessageBuilderAtConfigTests {
 
 	@Test
 	public void mutate() {
-		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFactory);
+		assertThat(messageBuilderFactory instanceof MutableMessageBuilderFactory).isTrue();
 		in.send(new GenericMessage<String>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
-		assertEquals("org.springframework.integration.support.MutableMessage", m1.getClass().getName());
-		assertTrue(m1 == m2);
+		assertThat(m1.getClass().getName()).isEqualTo("org.springframework.integration.support.MutableMessage");
+		assertThat(m1 == m2).isTrue();
 	}
 
 	@Configuration

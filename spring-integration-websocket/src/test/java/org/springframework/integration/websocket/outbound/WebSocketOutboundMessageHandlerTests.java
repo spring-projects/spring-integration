@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.websocket.outbound;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
@@ -83,16 +79,16 @@ public class WebSocketOutboundMessageHandlerTests {
 		this.messageHandler.handleMessage(message);
 
 		Message<?> received = this.clientInboundChannel.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 
 		StompHeaderAccessor receivedHeaders = StompHeaderAccessor.wrap(received);
-		assertEquals("mess0", receivedHeaders.getMessageId());
-		assertEquals("sub0", receivedHeaders.getSubscriptionId());
-		assertEquals("/foo", receivedHeaders.getDestination());
+		assertThat(receivedHeaders.getMessageId()).isEqualTo("mess0");
+		assertThat(receivedHeaders.getSubscriptionId()).isEqualTo("sub0");
+		assertThat(receivedHeaders.getDestination()).isEqualTo("/foo");
 
 		Object receivedPayload = received.getPayload();
-		assertThat(receivedPayload, instanceOf(byte[].class));
-		assertArrayEquals((byte[]) receivedPayload, payload.getBytes());
+		assertThat(receivedPayload).isInstanceOf(byte[].class);
+		assertThat(payload.getBytes()).isEqualTo((byte[]) receivedPayload);
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -75,7 +68,7 @@ public class JdbcLockRegistryTests {
 			Lock lock = this.registry.obtain("foo");
 			lock.lock();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(this.registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -84,7 +77,7 @@ public class JdbcLockRegistryTests {
 
 		Thread.sleep(10);
 		this.registry.expireUnusedOlderThan(0);
-		assertEquals(0, TestUtils.getPropertyValue(this.registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -93,7 +86,7 @@ public class JdbcLockRegistryTests {
 			Lock lock = this.registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(this.registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(this.registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
@@ -108,7 +101,7 @@ public class JdbcLockRegistryTests {
 			lock1.lock();
 			try {
 				Lock lock2 = this.registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lock();
 				lock2.unlock();
 			}
@@ -125,7 +118,7 @@ public class JdbcLockRegistryTests {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = this.registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
 			}
@@ -142,7 +135,7 @@ public class JdbcLockRegistryTests {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = this.registry.obtain("bar");
-				assertNotSame(lock1, lock2);
+				assertThat(lock2).isNotSameAs(lock1);
 				lock2.lockInterruptibly();
 				lock2.unlock();
 			}
@@ -170,12 +163,12 @@ public class JdbcLockRegistryTests {
 			}
 			return null;
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		Object ise = result.get(10, TimeUnit.SECONDS);
-		assertThat(ise, instanceOf(IllegalMonitorStateException.class));
-		assertThat(((Exception) ise).getMessage(), containsString("You do not own"));
+		assertThat(ise).isInstanceOf(IllegalMonitorStateException.class);
+		assertThat(((Exception) ise).getMessage()).contains("You do not own");
 	}
 
 	@Test
@@ -202,12 +195,12 @@ public class JdbcLockRegistryTests {
 				latch3.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(locked.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isTrue();
 	}
 
 	@Test
@@ -238,12 +231,12 @@ public class JdbcLockRegistryTests {
 					latch3.countDown();
 				}
 			});
-			assertTrue(latch1.await(10, TimeUnit.SECONDS));
-			assertFalse(locked.get());
+			assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(locked.get()).isFalse();
 			lock1.unlock();
 			latch2.countDown();
-			assertTrue(latch3.await(10, TimeUnit.SECONDS));
-			assertTrue(locked.get());
+			assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(locked.get()).isTrue();
 
 		}
 	}
@@ -265,12 +258,12 @@ public class JdbcLockRegistryTests {
 					}
 					return null;
 				});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock.unlock();
 		Object imse = result.get(10, TimeUnit.SECONDS);
-		assertThat(imse, instanceOf(IllegalMonitorStateException.class));
-		assertThat(((Exception) imse).getMessage(), containsString("You do not own"));
+		assertThat(imse).isInstanceOf(IllegalMonitorStateException.class);
+		assertThat(((Exception) imse).getMessage()).contains("You do not own");
 	}
 
 }

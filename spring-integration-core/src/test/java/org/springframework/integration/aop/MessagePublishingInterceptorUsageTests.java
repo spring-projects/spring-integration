@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.aop;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,11 +47,11 @@ public class MessagePublishingInterceptorUsageTests {
 	@Test
 	public void demoMessagePublishingInterceptor() {
 		String name = this.testBean.setName("John", "Doe");
-		Assert.assertNotNull(name);
+		assertThat(name).isNotNull();
 		Message<?> message = this.channel.receive(1000);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("John Doe", message.getPayload());
-		Assert.assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John Doe");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 

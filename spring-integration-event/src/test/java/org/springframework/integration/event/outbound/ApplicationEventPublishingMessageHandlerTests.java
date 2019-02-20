@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.event.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -37,12 +36,12 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		TestApplicationEventPublisher publisher = new TestApplicationEventPublisher();
 		ApplicationEventPublishingMessageHandler handler = new ApplicationEventPublishingMessageHandler();
 		handler.setApplicationEventPublisher(publisher);
-		assertNull(publisher.getLastEvent());
+		assertThat(publisher.getLastEvent()).isNull();
 		Message<?> message = new GenericMessage<String>("testing");
 		handler.handleMessage(message);
 		ApplicationEvent event = publisher.getLastEvent();
-		assertEquals(MessagingEvent.class, event.getClass());
-		assertEquals(message, ((MessagingEvent) event).getMessage());
+		assertThat(event.getClass()).isEqualTo(MessagingEvent.class);
+		assertThat(((MessagingEvent) event).getMessage()).isEqualTo(message);
 	}
 
 	@Test
@@ -50,12 +49,12 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		TestApplicationEventPublisher publisher = new TestApplicationEventPublisher();
 		ApplicationEventPublishingMessageHandler handler = new ApplicationEventPublishingMessageHandler();
 		handler.setApplicationEventPublisher(publisher);
-		assertNull(publisher.getLastEvent());
+		assertThat(publisher.getLastEvent()).isNull();
 		Message<?> message = new GenericMessage<TestEvent>(new TestEvent("foo"));
 		handler.handleMessage(message);
 		ApplicationEvent event = publisher.getLastEvent();
-		assertEquals(TestEvent.class, event.getClass());
-		assertEquals("foo", ((TestEvent) event).getSource());
+		assertThat(event.getClass()).isEqualTo(TestEvent.class);
+		assertThat(((TestEvent) event).getSource()).isEqualTo("foo");
 	}
 
 

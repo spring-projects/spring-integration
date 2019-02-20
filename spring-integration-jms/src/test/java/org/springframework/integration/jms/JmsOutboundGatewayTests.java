@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -86,9 +84,9 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		gateway.setReplyContainerProperties(new ReplyContainerProperties());
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
-		assertEquals("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
-						".replyListener",
-				TestUtils.getPropertyValue(gateway, "replyContainer.beanName"));
+		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.beanName"))
+				.isEqualTo("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
+						".replyListener");
 	}
 
 	@SuppressWarnings("serial")
@@ -154,8 +152,8 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 			while (n++ < 100 && count.get() < 5) {
 				Thread.sleep(100);
 			}
-			assertTrue(count.get() > 4);
-			assertEquals(0, errors.size());
+			assertThat(count.get() > 4).isTrue();
+			assertThat(errors.size()).isEqualTo(0);
 		}
 		finally {
 			gateway.stop();
@@ -189,7 +187,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		final Message request = template.receive(requestQ);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		connectionFactory1.resetConnection();
 		MessageCreator reply = session -> {
 			TextMessage reply1 = session.createTextMessage("bar");
@@ -198,8 +196,8 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		};
 		template.send(replyQ, reply);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
-		assertNotNull(received);
-		assertEquals("bar", received.getPayload());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("bar");
 		gateway.stop();
 		connectionFactory1.destroy();
 		connectionFactory2.destroy();
@@ -233,7 +231,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		final Message request = template.receive(requestQ);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		connectionFactory1.resetConnection();
 		MessageCreator reply = session -> {
 			TextMessage reply1 = session.createTextMessage("bar");
@@ -244,8 +242,8 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		template.send(replyQ, reply);
 		logger.debug("Sent reply to: " + replyQ);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
-		assertNotNull(received);
-		assertEquals("bar", received.getPayload());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("bar");
 		gateway.stop();
 		connectionFactory1.destroy();
 		connectionFactory2.destroy();

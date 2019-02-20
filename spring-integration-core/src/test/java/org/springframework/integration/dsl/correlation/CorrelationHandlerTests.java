@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.dsl.correlation;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,11 +101,11 @@ public class CorrelationHandlerTests {
 
 		for (int i = 0; i < 12; i++) {
 			Message<?> receive = replyChannel.receive(2000);
-			assertNotNull(receive);
-			assertFalse(receive.getHeaders().containsKey("foo"));
-			assertTrue(receive.getHeaders().containsKey("FOO"));
-			assertEquals("BAR", receive.getHeaders().get("FOO"));
-			assertEquals(i + 1, receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getHeaders().containsKey("foo")).isFalse();
+			assertThat(receive.getHeaders().containsKey("FOO")).isTrue();
+			assertThat(receive.getHeaders().get("FOO")).isEqualTo("BAR");
+			assertThat(receive.getPayload()).isEqualTo(i + 1);
 		}
 	}
 
@@ -124,13 +119,13 @@ public class CorrelationHandlerTests {
 				.build());
 
 		Message<?> receive = replyChannel.receive(2000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(List.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
 		List<Object> result = (List<Object>) receive.getPayload();
 		for (int i = 0; i < payload.size(); i++) {
-			assertThat(result.get(i), instanceOf(TextNode.class));
-			assertEquals(TextNode.valueOf(payload.get(i)), result.get(i));
+			assertThat(result.get(i)).isInstanceOf(TextNode.class);
+			assertThat(result.get(i)).isEqualTo(TextNode.valueOf(payload.get(i)));
 		}
 	}
 
@@ -139,8 +134,8 @@ public class CorrelationHandlerTests {
 		this.subscriberAggregateFlowInput.send(new GenericMessage<>("test"));
 
 		Message<?> receive1 = this.subscriberAggregateResult.receive(10000);
-		assertNotNull(receive1);
-		assertEquals("Hello World!", receive1.getPayload());
+		assertThat(receive1).isNotNull();
+		assertThat(receive1.getPayload()).isEqualTo("Hello World!");
 	}
 
 
@@ -151,8 +146,8 @@ public class CorrelationHandlerTests {
 		Message<?> suspending = MessageBuilder.withPayload("foo").setHeader(BARRIER, "foo").build();
 		this.barrierFlowInput.send(suspending);
 		Message<?> out = this.barrierResults.receive(10000);
-		assertNotNull(out);
-		assertEquals("bar", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("bar");
 	}
 
 	@Configuration

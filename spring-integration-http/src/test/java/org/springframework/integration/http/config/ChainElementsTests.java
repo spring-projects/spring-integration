@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
@@ -52,8 +52,9 @@ public class ChainElementsTests {
 					"'request-channel' attribute isn't allowed for a nested " +
 					"(e.g. inside a <chain/>) endpoint element: 'int-http:outbound-gateway'.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat(actualMessage.startsWith(expectedMessage))
+					.as("Error message did not start with '" + expectedMessage +
+							"' but instead returned: '" + actualMessage + "'").isTrue();
 		}
 	}
 

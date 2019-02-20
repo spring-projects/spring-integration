@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,9 +62,9 @@ public class RecipientListRouterTests {
 		router.afterPropertiesSet();
 		ConcurrentLinkedQueue<Recipient> recipients = (ConcurrentLinkedQueue<Recipient>)
 				new DirectFieldAccessor(router).getPropertyValue("recipients");
-		assertEquals(2, recipients.size());
-		assertEquals(channel1, new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel"));
-		assertEquals(channel2, new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel"));
+		assertThat(recipients.size()).isEqualTo(2);
+		assertThat(new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel")).isEqualTo(channel1);
+		assertThat(new DirectFieldAccessor(recipients.poll()).getPropertyValue("channel")).isEqualTo(channel2);
 	}
 
 	@Test
@@ -84,11 +81,11 @@ public class RecipientListRouterTests {
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test");
 		Message<?> result2 = channel2.receive(25);
-		assertNotNull(result2);
-		assertEquals("test", result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -100,10 +97,10 @@ public class RecipientListRouterTests {
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result1 = channel.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test");
 		Message<?> result2 = channel.receive(5);
-		assertNull(result2);
+		assertThat(result2).isNull();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -128,10 +125,10 @@ public class RecipientListRouterTests {
 		}
 		catch (RuntimeException e) {
 			Message<?> result1a = channelA.receive(0);
-			assertNotNull(result1a);
-			assertEquals("blocker", result1a.getPayload());
-			assertNull(channelB.receive(0));
-			assertNull(channelC.receive(0));
+			assertThat(result1a).isNotNull();
+			assertThat(result1a.getPayload()).isEqualTo("blocker");
+			assertThat(channelB.receive(0)).isNull();
+			assertThat(channelC.receive(0)).isNull();
 			throw e;
 		}
 	}
@@ -158,12 +155,12 @@ public class RecipientListRouterTests {
 		}
 		catch (RuntimeException e) {
 			Message<?> result1a = channelA.receive(0);
-			assertNotNull(result1a);
-			assertEquals("test", result1a.getPayload());
+			assertThat(result1a).isNotNull();
+			assertThat(result1a.getPayload()).isEqualTo("test");
 			Message<?> result1b = channelB.receive(0);
-			assertNotNull(result1b);
-			assertEquals("blocker", result1b.getPayload());
-			assertNull(channelC.receive(0));
+			assertThat(result1b).isNotNull();
+			assertThat(result1b.getPayload()).isEqualTo("blocker");
+			assertThat(channelC.receive(0)).isNull();
 			throw e;
 		}
 	}
@@ -190,14 +187,14 @@ public class RecipientListRouterTests {
 		}
 		catch (RuntimeException e) {
 			Message<?> result1a = channelA.receive(0);
-			assertNotNull(result1a);
-			assertEquals("test", result1a.getPayload());
+			assertThat(result1a).isNotNull();
+			assertThat(result1a.getPayload()).isEqualTo("test");
 			Message<?> result1b = channelB.receive(0);
-			assertNotNull(result1b);
-			assertEquals("test", result1b.getPayload());
+			assertThat(result1b).isNotNull();
+			assertThat(result1b.getPayload()).isEqualTo("test");
 			Message<?> result1c = channelC.receive(0);
-			assertNotNull(result1c);
-			assertEquals("blocker", result1c.getPayload());
+			assertThat(result1c).isNotNull();
+			assertThat(result1c.getPayload()).isEqualTo("blocker");
 			throw e;
 		}
 	}
@@ -224,12 +221,12 @@ public class RecipientListRouterTests {
 		Message<?> result1a = channelA.receive(0);
 		Message<?> result1b = channelB.receive(0);
 		Message<?> result1c = channelC.receive(0);
-		assertNotNull(result1a);
-		assertNotNull(result1b);
-		assertNotNull(result1c);
-		assertEquals("blocker", result1a.getPayload());
-		assertEquals("test", result1b.getPayload());
-		assertEquals("test", result1c.getPayload());
+		assertThat(result1a).isNotNull();
+		assertThat(result1b).isNotNull();
+		assertThat(result1c).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("blocker");
+		assertThat(result1b.getPayload()).isEqualTo("test");
+		assertThat(result1c.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -254,12 +251,12 @@ public class RecipientListRouterTests {
 		Message<?> result1a = channelA.receive(0);
 		Message<?> result1b = channelB.receive(0);
 		Message<?> result1c = channelC.receive(0);
-		assertNotNull(result1a);
-		assertNotNull(result1b);
-		assertNotNull(result1c);
-		assertEquals("test", result1a.getPayload());
-		assertEquals("blocker", result1b.getPayload());
-		assertEquals("test", result1c.getPayload());
+		assertThat(result1a).isNotNull();
+		assertThat(result1b).isNotNull();
+		assertThat(result1c).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("test");
+		assertThat(result1b.getPayload()).isEqualTo("blocker");
+		assertThat(result1c.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -284,12 +281,12 @@ public class RecipientListRouterTests {
 		Message<?> result1a = channelA.receive(0);
 		Message<?> result1b = channelB.receive(0);
 		Message<?> result1c = channelC.receive(0);
-		assertNotNull(result1a);
-		assertNotNull(result1b);
-		assertNotNull(result1c);
-		assertEquals("test", result1a.getPayload());
-		assertEquals("test", result1b.getPayload());
-		assertEquals("blocker", result1c.getPayload());
+		assertThat(result1a).isNotNull();
+		assertThat(result1b).isNotNull();
+		assertThat(result1c).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("test");
+		assertThat(result1b.getPayload()).isEqualTo("test");
+		assertThat(result1c.getPayload()).isEqualTo("blocker");
 	}
 
 	@Test
@@ -307,16 +304,16 @@ public class RecipientListRouterTests {
 		router.handleMessage(message);
 		Message<?> result1a = channelA.receive(0);
 		Message<?> result1b = channelB.receive(0);
-		assertNotNull(result1a);
-		assertNotNull(result1b);
-		assertEquals("test", result1a.getPayload());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize());
-		assertNull(new IntegrationMessageHeaderAccessor(result1a).getCorrelationId());
-		assertEquals("test", result1b.getPayload());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize());
-		assertNull(new IntegrationMessageHeaderAccessor(result1b).getCorrelationId());
+		assertThat(result1a).isNotNull();
+		assertThat(result1b).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("test");
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getSequenceSize()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getCorrelationId()).isNull();
+		assertThat(result1b.getPayload()).isEqualTo("test");
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getSequenceSize()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getCorrelationId()).isNull();
 	}
 
 	@Test
@@ -335,16 +332,18 @@ public class RecipientListRouterTests {
 		router.handleMessage(message);
 		Message<?> result1a = channelA.receive(0);
 		Message<?> result1b = channelB.receive(0);
-		assertNotNull(result1a);
-		assertNotNull(result1b);
-		assertEquals("test", result1a.getPayload());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(result1a).getCorrelationId());
-		assertEquals("test", result1b.getPayload());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(result1b).getCorrelationId());
+		assertThat(result1a).isNotNull();
+		assertThat(result1b).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("test");
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(result1a).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
+		assertThat(result1b.getPayload()).isEqualTo("test");
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(result1b).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -369,7 +368,7 @@ public class RecipientListRouterTests {
 		router.afterPropertiesSet();
 		router.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> receive = defaultOutputChannel.receive(1000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 	}
 
 	@Test
@@ -390,15 +389,15 @@ public class RecipientListRouterTests {
 		Message<?> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> reply1 = channel1.receive(0);
-		assertEquals(message, reply1);
+		assertThat(reply1).isEqualTo(message);
 		Message<?> reply2 = channel2.receive(0);
-		assertNull(reply2);
+		assertThat(reply2).isNull();
 		Message<?> reply3 = channel3.receive(0);
-		assertEquals(message, reply3);
+		assertThat(reply3).isEqualTo(message);
 		Message<?> reply4 = channel4.receive(0);
-		assertEquals(message, reply4);
+		assertThat(reply4).isEqualTo(message);
 		Message<?> reply5 = channel5.receive(0);
-		assertNull(reply5);
+		assertThat(reply5).isNull();
 	}
 
 	@Test
@@ -415,10 +414,10 @@ public class RecipientListRouterTests {
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result1 = defaultChannel.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test");
 		Message<?> result2 = channel.receive(5);
-		assertNull(result2);
+		assertThat(result2).isNull();
 	}
 
 	@Test
@@ -438,7 +437,7 @@ public class RecipientListRouterTests {
 
 		router.handleMessage(new GenericMessage<String>("foo"));
 
-		assertSame(defaultChannel, TestUtils.getPropertyValue(router, "defaultOutputChannel"));
+		assertThat(TestUtils.getPropertyValue(router, "defaultOutputChannel")).isSameAs(defaultChannel);
 		Mockito.verify(beanFactory).getBean(Mockito.eq("defaultChannel"), Mockito.eq(MessageChannel.class));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executor;
 
@@ -60,11 +55,11 @@ public class PublishSubscribeChannelParserTests {
 		dispatcher.addHandler(message -> { });
 		dispatcher.dispatch(new GenericMessage<>("foo"));
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
-		assertNull(dispatcherAccessor.getPropertyValue("executor"));
-		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
-		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
+		assertThat(dispatcherAccessor.getPropertyValue("executor")).isNull();
+		assertThat((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures")).isFalse();
+		assertThat((Boolean) dispatcherAccessor.getPropertyValue("applySequence")).isTrue();
 		Object mbf = this.context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertSame(mbf, dispatcherAccessor.getPropertyValue("messageBuilderFactory"));
+		assertThat(dispatcherAccessor.getPropertyValue("messageBuilderFactory")).isSameAs(mbf);
 	}
 
 	@Test
@@ -74,7 +69,7 @@ public class PublishSubscribeChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
-		assertTrue((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("ignoreFailures"));
+		assertThat((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("ignoreFailures")).isTrue();
 	}
 
 	@Test
@@ -84,7 +79,7 @@ public class PublishSubscribeChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
-		assertTrue((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("applySequence"));
+		assertThat((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("applySequence")).isTrue();
 	}
 
 	@Test
@@ -96,11 +91,11 @@ public class PublishSubscribeChannelParserTests {
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
-		assertNotNull(executor);
-		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertThat(executor).isNotNull();
+		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
-		assertEquals(context.getBean("pool"), innerExecutor);
+		assertThat(innerExecutor).isEqualTo(context.getBean("pool"));
 	}
 
 	@Test
@@ -111,13 +106,13 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
-		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
+		assertThat((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures")).isTrue();
 		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
-		assertNotNull(executor);
-		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertThat(executor).isNotNull();
+		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
-		assertEquals(this.context.getBean("pool"), innerExecutor);
+		assertThat(innerExecutor).isEqualTo(this.context.getBean("pool"));
 	}
 
 	@Test
@@ -128,13 +123,13 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
-		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
+		assertThat((Boolean) dispatcherAccessor.getPropertyValue("applySequence")).isTrue();
 		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
-		assertNotNull(executor);
-		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertThat(executor).isNotNull();
+		assertThat(executor.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
-		assertEquals(this.context.getBean("pool"), innerExecutor);
+		assertThat(innerExecutor).isEqualTo(this.context.getBean("pool"));
 	}
 
 	@Test
@@ -143,8 +138,8 @@ public class PublishSubscribeChannelParserTests {
 				this.context.getBean("channelWithErrorHandler", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		ErrorHandler errorHandler = (ErrorHandler) accessor.getPropertyValue("errorHandler");
-		assertNotNull(errorHandler);
-		assertEquals(this.context.getBean("testErrorHandler"), errorHandler);
+		assertThat(errorHandler).isNotNull();
+		assertThat(errorHandler).isEqualTo(this.context.getBean("testErrorHandler"));
 	}
 
 }

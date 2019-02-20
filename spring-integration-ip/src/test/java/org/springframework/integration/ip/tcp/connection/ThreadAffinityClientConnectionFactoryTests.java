@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
@@ -79,7 +74,7 @@ public class ThreadAffinityClientConnectionFactoryTests {
 			Thread.sleep(100);
 			port = serverCF.getPort();
 		}
-		assertTrue(n < 200);
+		assertThat(n < 200).isTrue();
 		return port;
 	}
 
@@ -97,21 +92,21 @@ public class ThreadAffinityClientConnectionFactoryTests {
 		channel.send(message);
 		channel.send(message);
 		clientFactory.releaseConnection();
-		assertThat(replies.getQueueSize(), equalTo(4));
+		assertThat(replies.getQueueSize()).isEqualTo(4);
 		Message<?> replyA = replies.receive(0);
 		Message<?> replyB = replies.receive(0);
 		Message<?> replyC = replies.receive(0);
 		Message<?> replyD = replies.receive(0);
-		assertThat((String) replyA.getPayload(), containsString("ip_connectionId"));
-		assertThat(replyA.getPayload(), equalTo(replyB.getPayload()));
-		assertThat(replyC.getPayload(), equalTo(replyD.getPayload()));
-		assertThat(replyC.getPayload(), not(equalTo(replyA.getPayload())));
+		assertThat((String) replyA.getPayload()).contains("ip_connectionId");
+		assertThat(replyA.getPayload()).isEqualTo(replyB.getPayload());
+		assertThat(replyC.getPayload()).isEqualTo(replyD.getPayload());
+		assertThat(replyC.getPayload()).isNotEqualTo(replyA.getPayload());
 		System.getProperties().remove(PORT);
 		int n = 0;
 		while (n++ < 200 && serverCF.getOpenConnectionIds().size() > 0) {
 			Thread.sleep(100);
 		}
-		assertThat(n, lessThan(200));
+		assertThat(n).isLessThan(200);
 		client.close();
 		server.close();
 	}

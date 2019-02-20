@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,8 +58,8 @@ public class MiscellaneousTests {
 		}
 		latch.await();
 		stopWatch.stop();
-		assertTrue(stopWatch.getTotalTimeMillis() <= 18000);
-		assertEquals(1, replies.get());
+		assertThat(stopWatch.getTotalTimeMillis() <= 18000).isTrue();
+		assertThat(replies.get()).isEqualTo(1);
 		context.close();
 	}
 

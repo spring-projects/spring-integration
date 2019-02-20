@@ -16,16 +16,8 @@
 
 package org.springframework.integration.dsl.flows;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
@@ -180,20 +172,20 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
-		assertEquals("FOO", this.suppliedChannel.receive(10000).getPayload());
+		assertThat(this.suppliedChannel.receive(10000).getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
 	public void testWithSupplierMessageSourceProvidedPoller() {
-		assertEquals("FOO", this.suppliedChannel2.receive(10000).getPayload());
+		assertThat(this.suppliedChannel2.receive(10000).getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
 	public void testDirectFlow() {
-		assertTrue(this.beanFactory.containsBean("filter"));
-		assertTrue(this.beanFactory.containsBean("filter.handler"));
-		assertTrue(this.beanFactory.containsBean("expressionFilter"));
-		assertTrue(this.beanFactory.containsBean("expressionFilter.handler"));
+		assertThat(this.beanFactory.containsBean("filter")).isTrue();
+		assertThat(this.beanFactory.containsBean("filter.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("expressionFilter")).isTrue();
+		assertThat(this.beanFactory.containsBean("expressionFilter.handler")).isTrue();
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("100").setReplyChannel(replyChannel).build();
 		try {
@@ -201,9 +193,9 @@ public class IntegrationFlowTests {
 			fail("Expected MessageDispatchingException");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(MessageDispatchingException.class));
-			assertThat(e.getMessage(), containsString("Dispatcher has no subscribers"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getCause()).isInstanceOf(MessageDispatchingException.class);
+			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
 		}
 		this.controlBus.send("@payloadSerializingTransformer.start()");
 
@@ -213,19 +205,19 @@ public class IntegrationFlowTests {
 
 		this.inputChannel.send(message);
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull(reply);
-		assertEquals(200, reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(200);
 
 		Message<?> successMessage = this.successChannel.receive(10000);
-		assertNotNull(successMessage);
-		assertEquals(100, successMessage.getPayload());
+		assertThat(successMessage).isNotNull();
+		assertThat(successMessage.getPayload()).isEqualTo(100);
 
-		assertTrue(used.get());
+		assertThat(used.get()).isTrue();
 
 		this.inputChannel.send(new GenericMessage<Object>(1000));
 		Message<?> discarded = this.discardChannel.receive(10000);
-		assertNotNull(discarded);
-		assertEquals("Discarded: 1000", discarded.getPayload());
+		assertThat(discarded).isNotNull();
+		assertThat(discarded.getPayload()).isEqualTo("Discarded: 1000");
 	}
 
 	@Test
@@ -233,27 +225,27 @@ public class IntegrationFlowTests {
 		GenericMessage<String> message = new GenericMessage<>("test");
 		this.bridgeFlowInput.send(message);
 		Message<?> reply = this.bridgeFlowOutput.receive(10000);
-		assertNotNull(reply);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("test");
 
-		assertTrue(this.beanFactory.containsBean("bridgeFlow2.channel#0"));
-		assertThat(this.beanFactory.getBean("bridgeFlow2.channel#0"), instanceOf(FixedSubscriberChannel.class));
+		assertThat(this.beanFactory.containsBean("bridgeFlow2.channel#0")).isTrue();
+		assertThat(this.beanFactory.getBean("bridgeFlow2.channel#0")).isInstanceOf(FixedSubscriberChannel.class);
 
 		try {
 			this.bridgeFlow2Input.send(message);
 			fail("Expected MessageDispatchingException");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(MessageDispatchingException.class));
-			assertThat(e.getMessage(), containsString("Dispatcher has no subscribers"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getCause()).isInstanceOf(MessageDispatchingException.class);
+			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
 		}
 		this.controlBus.send("@bridge.start()");
 		this.bridgeFlow2Input.send(message);
 		reply = this.bridgeFlow2Output.receive(10000);
-		assertNotNull(reply);
-		assertEquals("test", reply.getPayload());
-		assertTrue(this.delayedAdvice.getInvoked());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("test");
+		assertThat(this.delayedAdvice.getInvoked()).isTrue();
 	}
 
 	@Test
@@ -264,9 +256,9 @@ public class IntegrationFlowTests {
 			fail("BeanCreationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanCreationException.class));
-			assertThat(e.getMessage(), containsString("'.fixedSubscriberChannel()' " +
-					"can't be the last EIP-method in the 'IntegrationFlow' definition"));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getMessage()).contains("'.fixedSubscriberChannel()' " +
+					"can't be the last EIP-method in the 'IntegrationFlow' definition");
 		}
 		finally {
 			if (context != null) {
@@ -283,14 +275,14 @@ public class IntegrationFlowTests {
 				.build();
 		this.methodInvokingInput.send(message);
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("Hello World and world", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Hello World and world");
 	}
 
 	@Test
 	public void testLambdas() {
-		assertTrue(this.beanFactory.containsBean("lambdasFlow.filter#0"));
-		assertTrue(this.beanFactory.containsBean("lambdasFlow.transformer#0"));
+		assertThat(this.beanFactory.containsBean("lambdasFlow.filter#0")).isTrue();
+		assertThat(this.beanFactory.containsBean("lambdasFlow.transformer#0")).isTrue();
 
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("World".getBytes())
@@ -298,15 +290,15 @@ public class IntegrationFlowTests {
 				.build();
 		this.lambdasInput.send(message);
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("Hello World", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Hello World");
 
 		message = MessageBuilder.withPayload("Spring")
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
 
 		this.lambdasInput.send(message);
-		assertNull(replyChannel.receive(10));
+		assertThat(replyChannel.receive(10)).isNull();
 
 	}
 
@@ -319,11 +311,11 @@ public class IntegrationFlowTests {
 		this.claimCheckInput.send(message);
 
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertSame(message, receive);
+		assertThat(receive).isNotNull();
+		assertThat(receive).isSameAs(message);
 
-		assertEquals(1, this.messageStore.getMessageCount());
-		assertSame(message, this.messageStore.getMessage(message.getHeaders().getId()));
+		assertThat(this.messageStore.getMessageCount()).isEqualTo(1);
+		assertThat(this.messageStore.getMessage(message.getHeaders().getId())).isSameAs(message);
 	}
 
 	@Autowired
@@ -356,37 +348,37 @@ public class IntegrationFlowTests {
 		this.tappedChannel1.send(new GenericMessage<>("foo"));
 		this.tappedChannel1.send(new GenericMessage<>("bar"));
 		Message<?> out = this.tapChannel.receive(10000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
-		assertNull(this.tapChannel.receive(0));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(this.tapChannel.receive(0)).isNull();
 
 		this.tappedChannel2.send(new GenericMessage<>("foo"));
 		this.tappedChannel2.send(new GenericMessage<>("bar"));
 		out = this.tapChannel.receive(10000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
-		assertNull(this.tapChannel.receive(0));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(this.tapChannel.receive(0)).isNull();
 
 		this.tappedChannel3.send(new GenericMessage<>("foo"));
 		this.tappedChannel3.send(new GenericMessage<>("bar"));
 		out = this.tapChannel.receive(10000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
-		assertNull(this.tapChannel.receive(0));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(this.tapChannel.receive(0)).isNull();
 
 		this.tappedChannel4.send(new GenericMessage<>("foo"));
 		this.tappedChannel4.send(new GenericMessage<>("bar"));
 		out = this.tapChannel.receive(10000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
 		out = this.tapChannel.receive(10000);
-		assertNotNull(out);
-		assertEquals("bar", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("bar");
 
 		this.tappedChannel5.send(new GenericMessage<>("foo"));
 		out = this.wireTapSubflowResult.receive(10000);
-		assertNotNull(out);
-		assertEquals("FOO", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("FOO");
 	}
 
 	@Autowired
@@ -410,15 +402,15 @@ public class IntegrationFlowTests {
 		this.subscribersFlowInput.send(new GenericMessage<>(2));
 
 		Message<?> receive1 = this.subscriber1Results.receive(10000);
-		assertNotNull(receive1);
-		assertEquals(1, receive1.getPayload());
+		assertThat(receive1).isNotNull();
+		assertThat(receive1.getPayload()).isEqualTo(1);
 
 		Message<?> receive2 = this.subscriber2Results.receive(10000);
-		assertNotNull(receive2);
-		assertEquals(4, receive2.getPayload());
+		assertThat(receive2).isNotNull();
+		assertThat(receive2.getPayload()).isEqualTo(4);
 		Message<?> receive3 = this.subscriber3Results.receive(10000);
-		assertNotNull(receive3);
-		assertEquals(6, receive3.getPayload());
+		assertThat(receive3).isNotNull();
+		assertThat(receive3.getPayload()).isEqualTo(6);
 	}
 
 	@Autowired
@@ -427,7 +419,7 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testReplyChannelFromReplyMessage() {
-		assertEquals("foo", this.errorRecovererFlowGateway.apply("foo"));
+		assertThat(this.errorRecovererFlowGateway.apply("foo")).isEqualTo("foo");
 	}
 
 	@Autowired
@@ -447,9 +439,9 @@ public class IntegrationFlowTests {
 
 		this.dedicatedQueueChannel.send(new GenericMessage<>("foo"));
 
-		assertTrue(resultLatch.await(10, TimeUnit.SECONDS));
+		assertThat(resultLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertEquals("dedicatedTaskScheduler-1", threadNameReference.get());
+		assertThat(threadNameReference.get()).isEqualTo("dedicatedTaskScheduler-1");
 	}
 
 	@Autowired
@@ -464,7 +456,7 @@ public class IntegrationFlowTests {
 
 		this.flowWithNullChannelInput.send(new GenericMessage<>("foo"));
 
-		assertEquals(1, this.nullChannel.getSendCount());
+		assertThat(this.nullChannel.getSendCount()).isEqualTo(1);
 
 		this.nullChannel.setCountsEnabled(false);
 	}
@@ -483,9 +475,9 @@ public class IntegrationFlowTests {
 
 		this.flowWithLocalNullChannelInput.send(new GenericMessage<>("foo"));
 
-		assertEquals(1, this.localNullChannel.getSendCount());
+		assertThat(this.localNullChannel.getSendCount()).isEqualTo(1);
 
-		assertNotSame(this.nullChannel, this.localNullChannel);
+		assertThat(this.localNullChannel).isNotSameAs(this.nullChannel);
 	}
 
 
@@ -497,8 +489,8 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testPrototypeIsNotOverridden() {
-		assertNotSame(this.flow1WithPrototypeHandlerConsumer.getHandler(),
-				this.flow2WithPrototypeHandlerConsumer.getHandler());
+		assertThat(this.flow2WithPrototypeHandlerConsumer.getHandler())
+				.isNotSameAs(this.flow1WithPrototypeHandlerConsumer.getHandler());
 	}
 
 	@MessagingGateway
@@ -718,7 +710,7 @@ public class IntegrationFlowTests {
 
 		@ServiceActivator(inputChannel = "publishSubscribeChannel")
 		public void handle(Object payload) {
-			assertEquals(100, payload);
+			assertThat(payload).isEqualTo(100);
 		}
 
 	}

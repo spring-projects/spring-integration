@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.security.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -145,7 +142,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		securedChannel.send(new GenericMessage<String>("test"));
 		securedChannel2.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 2, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(2);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -169,20 +166,20 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		unsecuredChannel.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
 		unsecuredChannel.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredWithoutAuthenticating() {
 		unsecuredChannel.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
@@ -190,17 +187,17 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		this.queueChannel.send(new GenericMessage<String>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
 		this.queueChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload, instanceOf(MessageHandlingException.class));
-		assertThat(((MessageHandlingException) payload).getCause(),
-				instanceOf(AuthenticationCredentialsNotFoundException.class));
+		assertThat(payload).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) payload).getCause())
+				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test
@@ -208,17 +205,17 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		this.executorChannel.send(new GenericMessage<String>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
 		this.executorChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload, instanceOf(MessageHandlingException.class));
-		assertThat(((MessageHandlingException) payload).getCause(),
-				instanceOf(AuthenticationCredentialsNotFoundException.class));
+		assertThat(payload).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) payload).getCause())
+				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test
@@ -228,28 +225,28 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
 
 		Message<?> receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(0, headerAccessor.getSequenceNumber());
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(0);
 
 		receive = this.securedChannelQueue2.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(0, headerAccessor.getSequenceNumber());
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(0);
 
 		this.publishSubscribeChannel.setApplySequence(true);
 
 		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
 
 		receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(1, headerAccessor.getSequenceNumber());
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(1);
 
 		receive = this.securedChannelQueue2.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(2, headerAccessor.getSequenceNumber());
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(2);
 
 		this.publishSubscribeChannel.setApplySequence(false);
 
@@ -257,11 +254,11 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload, instanceOf(MessageHandlingException.class));
-		assertThat(((MessageHandlingException) payload).getCause(),
-				instanceOf(AuthenticationCredentialsNotFoundException.class));
+		assertThat(payload).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) payload).getCause())
+				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test
@@ -269,14 +266,14 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		Future<String> future = this.testGateway.test("foo");
 		Message<?> receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		MessageChannel replyChannel = receive.getHeaders().get(MessageHeaders.REPLY_CHANNEL, MessageChannel.class);
 		replyChannel.send(new GenericMessage<>("bar"));
 
 		String result = future.get(10, TimeUnit.SECONDS);
-		assertNotNull(result);
-		assertEquals("bar", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("bar");
 	}
 
 	private void login(String username, String password, String... roles) {

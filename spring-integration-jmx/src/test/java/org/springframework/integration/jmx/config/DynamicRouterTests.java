@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,22 +73,22 @@ public class DynamicRouterTests {
 	@Test @DirtiesContext
 	public void testRouteChange() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processAChannel.receive(0).getPayload());
+		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
 		routingChannel.send(MessageBuilder.withPayload(123).build());
-		assertEquals(123, processBChannel.receive(0).getPayload());
+		assertThat(processBChannel.receive(0).getPayload()).isEqualTo(123);
 
 		controlChannel.send(MessageBuilder.withPayload(new String[]{"java.lang.String", "processCChannel"}).build());
 
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processCChannel.receive(0).getPayload());
+		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
 	@Test @DirtiesContext
 	public void testRouteChangeMap() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processAChannel.receive(0).getPayload());
+		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
 		routingChannel.send(MessageBuilder.withPayload(123).build());
-		assertEquals(123, processBChannel.receive(0).getPayload());
+		assertThat(processBChannel.receive(0).getPayload()).isEqualTo(123);
 		Map<String, Object> args = new HashMap<String, Object>();
 		args.put("p1", "java.lang.String");
 		args.put("p2", "processCChannel");
@@ -96,15 +96,15 @@ public class DynamicRouterTests {
 		controlChannel.send(MessageBuilder.withPayload(args).build());
 
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processCChannel.receive(0).getPayload());
+		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
 	@Test @DirtiesContext
 	public void testRouteChangeMapNamedArgs() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processAChannel.receive(0).getPayload());
+		assertThat(processAChannel.receive(0).getPayload()).isEqualTo("123");
 		routingChannel.send(MessageBuilder.withPayload(123).build());
-		assertEquals(123, processBChannel.receive(0).getPayload());
+		assertThat(processBChannel.receive(0).getPayload()).isEqualTo(123);
 		Map<String, Object> args = new HashMap<String, Object>();
 		args.put("key", "java.lang.String");
 		args.put("channelName", "processCChannel");
@@ -112,7 +112,7 @@ public class DynamicRouterTests {
 		controlChannel.send(MessageBuilder.withPayload(args).build());
 
 		routingChannel.send(new GenericMessage<String>("123"));
-		assertEquals("123", processCChannel.receive(0).getPayload());
+		assertThat(processCChannel.receive(0).getPayload()).isEqualTo("123");
 	}
 
 	@Test @DirtiesContext @Ignore

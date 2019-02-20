@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -91,8 +89,8 @@ public class ChannelPublishingJmsMessageListenerTests {
 		javax.jms.Message jmsMessage = session.createTextMessage("test");
 		listener.onMessage(jmsMessage, mock(Session.class));
 		ErrorMessage received = (ErrorMessage) errorChannel.receive(0);
-		assertNotNull(received);
-		assertThat(received.getPayload().getMessage(), startsWith("Inbound conversion failed"));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload().getMessage()).startsWith("Inbound conversion failed");
 		listener.stop();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -74,59 +72,60 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 
 	@Test
 	public void testNoTopics() { // INT-3467 no longer required to have topics
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(noTopicsAdapter, "url"));
-		assertFalse(TestUtils.getPropertyValue(noTopicsAdapter, "autoStartup", Boolean.class));
-		assertEquals("foo", TestUtils.getPropertyValue(noTopicsAdapter, "clientId"));
-		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapter, "topics", Collection.class).size());
-		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel"));
-		assertSame(clientFactory, TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory"));
-		assertEquals(5000, TestUtils.getPropertyValue(this.noTopicsAdapter, "recoveryInterval"));
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "topics", Collection.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.getPropertyValue(this.noTopicsAdapter, "recoveryInterval")).isEqualTo(5000);
 	}
 
 	@Test
 	public void testNoTopicsDefaultCF() { // INT-3598
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "url"));
-		assertFalse(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "autoStartup", Boolean.class));
-		assertEquals("foo", TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "clientId"));
-		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "topics", Collection.class).size());
-		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "topics", Collection.class).size())
+				.isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(noTopicsAdapterDefaultCF, "outputChannel")).isSameAs(out);
 	}
 
 	@Test
 	public void testOneTopic() {
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(oneTopicAdapter, "url"));
-		assertFalse(TestUtils.getPropertyValue(oneTopicAdapter, "autoStartup", Boolean.class));
-		assertEquals(25, TestUtils.getPropertyValue(oneTopicAdapter, "phase"));
-		assertEquals("foo", TestUtils.getPropertyValue(oneTopicAdapter, "clientId"));
-		assertEquals("Topic [topic=bar, qos=1]",
-				TestUtils.getPropertyValue(oneTopicAdapter, "topics", Collection.class).iterator().next().toString());
-		assertSame(converter, TestUtils.getPropertyValue(oneTopicAdapter, "converter"));
-		assertEquals(123L, TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout"));
-		assertSame(out, TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel"));
-		assertSame(clientFactory, TestUtils.getPropertyValue(oneTopicAdapter, "clientFactory"));
-		assertSame(errors, TestUtils.getPropertyValue(oneTopicAdapter, "errorChannel"));
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "phase")).isEqualTo(25);
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "topics", Collection.class).iterator().next().toString())
+				.isEqualTo("Topic [topic=bar, qos=1]");
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "converter")).isSameAs(converter);
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.getPropertyValue(oneTopicAdapter, "errorChannel")).isSameAs(errors);
 	}
 
 	@Test
 	public void testTwoTopics() {
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(twoTopicsAdapter, "url"));
-		assertFalse(TestUtils.getPropertyValue(twoTopicsAdapter, "autoStartup", Boolean.class));
-		assertEquals(25, TestUtils.getPropertyValue(twoTopicsAdapter, "phase"));
-		assertEquals("foo", TestUtils.getPropertyValue(twoTopicsAdapter, "clientId"));
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "phase")).isEqualTo(25);
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "clientId")).isEqualTo("foo");
 		Iterator<?> iterator = TestUtils.getPropertyValue(twoTopicsAdapter, "topics", Collection.class).iterator();
-		assertEquals("Topic [topic=bar, qos=0]", iterator.next().toString());
-		assertEquals("Topic [topic=baz, qos=2]", iterator.next().toString());
-		assertSame(converter, TestUtils.getPropertyValue(twoTopicsAdapter, "converter"));
-		assertEquals(123L, TestUtils.getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout"));
-		assertSame(out, TestUtils.getPropertyValue(twoTopicsAdapter, "outputChannel"));
-		assertSame(clientFactory, TestUtils.getPropertyValue(twoTopicsAdapter, "clientFactory"));
+		assertThat(iterator.next().toString()).isEqualTo("Topic [topic=bar, qos=0]");
+		assertThat(iterator.next().toString()).isEqualTo("Topic [topic=baz, qos=2]");
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "converter")).isSameAs(converter);
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "outputChannel")).isSameAs(out);
+		assertThat(TestUtils.getPropertyValue(twoTopicsAdapter, "clientFactory")).isSameAs(clientFactory);
 	}
 
 	@Test
 	public void testTwoTopicsSingleQos() {
 		Iterator<?> iterator = TestUtils.getPropertyValue(twoTopicsSingleQosAdapter, "topics", Collection.class).iterator();
-		assertEquals("Topic [topic=bar, qos=0]", iterator.next().toString());
-		assertEquals("Topic [topic=baz, qos=0]", iterator.next().toString());
+		assertThat(iterator.next().toString()).isEqualTo("Topic [topic=bar, qos=0]");
+		assertThat(iterator.next().toString()).isEqualTo("Topic [topic=baz, qos=0]");
 	}
 
 }

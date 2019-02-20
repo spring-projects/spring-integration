@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -49,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -113,19 +103,20 @@ public class ConnectionEventTests {
 		}
 		catch (Exception e) {
 		}
-		assertTrue(theEvent.size() > 0);
-		assertNotNull(theEvent.get(0));
-		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);
-		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
-		assertThat(theEvent.get(0).toString(),
-				containsString("RuntimeException: foo, failedMessage=GenericMessage [payload=bar"));
+		assertThat(theEvent.size() > 0).isTrue();
+		assertThat(theEvent.get(0)).isNotNull();
+		assertThat(theEvent.get(0) instanceof TcpConnectionExceptionEvent).isTrue();
+		assertThat(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"))
+				.isTrue();
+		assertThat(theEvent.get(0).toString())
+				.contains("RuntimeException: foo, failedMessage=GenericMessage [payload=bar");
 		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(0);
-		assertNotNull(event.getCause());
-		assertSame(toBeThrown, event.getCause().getCause());
-		assertTrue(theEvent.size() > 1);
-		assertNotNull(theEvent.get(1));
-		assertTrue(theEvent.get(1).toString()
-				.endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
+		assertThat(event.getCause()).isNotNull();
+		assertThat(event.getCause().getCause()).isSameAs(toBeThrown);
+		assertThat(theEvent.size() > 1).isTrue();
+		assertThat(theEvent.get(1)).isNotNull();
+		assertThat(theEvent.get(1).toString()
+				.endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**")).isTrue();
 	}
 
 	@Test
@@ -173,12 +164,12 @@ public class ConnectionEventTests {
 			fail("expected exception");
 		}
 		catch (MessageHandlingException e) {
-			assertThat(e.getMessage(), Matchers.containsString("Unable to find outbound socket"));
+			assertThat(e.getMessage()).contains("Unable to find outbound socket");
 		}
-		assertNotNull(theEvent.get());
+		assertThat(theEvent.get()).isNotNull();
 		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
-		assertEquals("bar", event.getConnectionId());
-		assertSame(message, ((MessagingException) event.getCause()).getFailedMessage());
+		assertThat(event.getConnectionId()).isEqualTo("bar");
+		assertThat(((MessagingException) event.getCause()).getFailedMessage()).isSameAs(message);
 	}
 
 	@Test
@@ -212,10 +203,10 @@ public class ConnectionEventTests {
 				.setHeader(IpHeaders.CONNECTION_ID, "bar")
 				.build();
 		gw.onMessage(message);
-		assertNotNull(theEvent.get());
+		assertThat(theEvent.get()).isNotNull();
 		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
-		assertEquals("bar", event.getConnectionId());
-		assertSame(message, ((MessagingException) event.getCause()).getFailedMessage());
+		assertThat(event.getConnectionId()).isEqualTo("bar");
+		assertThat(((MessagingException) event.getCause()).getFailedMessage()).isSameAs(message);
 		gw.stop();
 		scf.stop();
 	}
@@ -247,21 +238,21 @@ public class ConnectionEventTests {
 				.setHeader(IpHeaders.CONNECTION_ID, "bar")
 				.build();
 		gw.onMessage(message);
-		assertNotNull(theEvent.get());
+		assertThat(theEvent.get()).isNotNull();
 		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
-		assertEquals("bar", event.getConnectionId());
+		assertThat(event.getConnectionId()).isEqualTo("bar");
 		MessagingException messagingException = (MessagingException) event.getCause();
-		assertSame(message, messagingException.getFailedMessage());
-		assertEquals("Cannot correlate response - no pending reply for bar", messagingException.getMessage());
+		assertThat(messagingException.getFailedMessage()).isSameAs(message);
+		assertThat(messagingException.getMessage()).isEqualTo("Cannot correlate response - no pending reply for bar");
 
 		message = new GenericMessage<String>("foo");
 		gw.onMessage(message);
-		assertNotNull(theEvent.get());
+		assertThat(theEvent.get()).isNotNull();
 		event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
-		assertNull(event.getConnectionId());
+		assertThat(event.getConnectionId()).isNull();
 		messagingException = (MessagingException) event.getCause();
-		assertSame(message, messagingException.getFailedMessage());
-		assertEquals("Cannot correlate response - no connection id", messagingException.getMessage());
+		assertThat(messagingException.getFailedMessage()).isSameAs(message);
+		assertThat(messagingException.getMessage()).isEqualTo("Cannot correlate response - no connection id");
 		gw.stop();
 		ccf.stop();
 	}
@@ -299,18 +290,18 @@ public class ConnectionEventTests {
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);
 
 		factory.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String actual = theEvent.toString();
-		assertThat(actual, containsString("cause=java.net.BindException"));
-		assertThat(actual, containsString("source="
-				+ "sf, port=" + factory.getPort()));
+		assertThat(actual).contains("cause=java.net.BindException");
+		assertThat(actual).contains("source="
+				+ "sf, port=" + factory.getPort());
 
 		ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
 		verify(logger).error(reasonCaptor.capture(), throwableCaptor.capture());
-		assertThat(reasonCaptor.getValue(), startsWith("Error on Server"));
-		assertThat(reasonCaptor.getValue(), endsWith("; port = " + factory.getPort()));
-		assertThat(throwableCaptor.getValue(), instanceOf(BindException.class));
+		assertThat(reasonCaptor.getValue()).startsWith("Error on Server");
+		assertThat(reasonCaptor.getValue()).endsWith("; port = " + factory.getPort());
+		assertThat(throwableCaptor.getValue()).isInstanceOf(BindException.class);
 		ss.close();
 	}
 
@@ -349,9 +340,9 @@ public class ConnectionEventTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(UnknownHostException.class));
+			assertThat(e).isInstanceOf(UnknownHostException.class);
 			TcpConnectionFailedEvent event = (TcpConnectionFailedEvent) failEvent.get();
-			assertSame(e, event.getCause());
+			assertThat(event.getCause()).isSameAs(e);
 		}
 
 		ccf.stop();

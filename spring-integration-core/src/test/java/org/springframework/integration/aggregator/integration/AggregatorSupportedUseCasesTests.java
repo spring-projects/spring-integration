@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -56,19 +54,19 @@ public class AggregatorSupportedUseCasesTests {
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setSequenceSize(5).setCorrelationId("A").setSequenceNumber(i).build());
 		}
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertNull(discardChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getMessages().size());
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(discardChannel.receive(0)).isNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(0);
 
 		// send another message with the same correlation id and see it in the discard channel
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
-		assertNotNull(discardChannel.receive(0));
+		assertThat(discardChannel.receive(0)).isNotNull();
 
 		// expireMessageGroups from aggregator MessageStore and the messages should start accumulating again
 		store.expireMessageGroups(0);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
-		assertNull(discardChannel.receive(0));
-		assertEquals(1, store.getMessageGroup("A").getMessages().size());
+		assertThat(discardChannel.receive(0)).isNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(1);
 	}
 
 	@Test
@@ -82,19 +80,19 @@ public class AggregatorSupportedUseCasesTests {
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
 		}
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertNull(discardChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getMessages().size());
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(discardChannel.receive(0)).isNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(0);
 
 		// send another message with the same correlation id and see it in the discard channel
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
-		assertNotNull(discardChannel.receive(0));
+		assertThat(discardChannel.receive(0)).isNotNull();
 
 		// expireMessageGroups from aggregator MessageStore and the messages should start accumulating again
 		store.expireMessageGroups(0);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
-		assertNull(discardChannel.receive(0));
-		assertEquals(1, store.getMessageGroup("A").getMessages().size());
+		assertThat(discardChannel.receive(0)).isNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(1);
 	}
 
 	@Test
@@ -108,11 +106,11 @@ public class AggregatorSupportedUseCasesTests {
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
 		}
-		assertEquals(1, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertNotNull(discardChannel.receive(0));
-		assertNotNull(discardChannel.receive(0));
-		assertNotNull(discardChannel.receive(0));
-		assertNotNull(discardChannel.receive(0));
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(1);
+		assertThat(discardChannel.receive(0)).isNotNull();
+		assertThat(discardChannel.receive(0)).isNotNull();
+		assertThat(discardChannel.receive(0)).isNotNull();
+		assertThat(discardChannel.receive(0)).isNotNull();
 	}
 
 	@Test
@@ -127,9 +125,9 @@ public class AggregatorSupportedUseCasesTests {
 		for (int i = 0; i < 10; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
 		}
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertNull(discardChannel.receive(0));
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -144,10 +142,10 @@ public class AggregatorSupportedUseCasesTests {
 		for (int i = 0; i < 12; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
 		}
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertEquals(5, ((List<?>) outputChannel.receive(0).getPayload()).size());
-		assertNull(discardChannel.receive(0));
-		assertEquals(2, store.getMessageGroup("A").getMessages().size());
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(((List<?>) outputChannel.receive(0).getPayload()).size()).isEqualTo(5);
+		assertThat(discardChannel.receive(0)).isNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(2);
 	}
 
 	private class SampleSizeReleaseStrategy implements ReleaseStrategy {

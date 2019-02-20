@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,18 +69,18 @@ public class EnricherParserTests4 {
 		context.getBean("input", MessageChannel.class).send(request);
 		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
 		Target enriched = (Target) reply.getPayload();
-		assertEquals("Could not determine the name", enriched.getName());
-		assertEquals(11, enriched.getAge());
-		assertEquals(null, enriched.getGender());
-		assertTrue(enriched.isMarried());
-		assertNotSame(original, enriched);
-		assertEquals(1, adviceCalled);
+		assertThat(enriched.getName()).isEqualTo("Could not determine the name");
+		assertThat(enriched.getAge()).isEqualTo(11);
+		assertThat(enriched.getGender()).isEqualTo(null);
+		assertThat(enriched.isMarried()).isTrue();
+		assertThat(enriched).isNotSameAs(original);
+		assertThat(adviceCalled).isEqualTo(1);
 
 		MessageHeaders headers = reply.getHeaders();
-		assertEquals("Could not determine the foo", headers.get("foo"));
-		assertEquals("Could not determine the testBean", headers.get("testBean"));
-		assertEquals("Could not determine the sourceName", headers.get("sourceName"));
-		assertEquals("test", headers.get("notOverwrite"));
+		assertThat(headers.get("foo")).isEqualTo("Could not determine the foo");
+		assertThat(headers.get("testBean")).isEqualTo("Could not determine the testBean");
+		assertThat(headers.get("sourceName")).isEqualTo("Could not determine the sourceName");
+		assertThat(headers.get("notOverwrite")).isEqualTo("test");
 		adviceCalled--;
 		requests.unsubscribe(foo);
 	}

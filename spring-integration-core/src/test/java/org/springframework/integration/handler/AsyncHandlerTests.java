@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -134,12 +126,12 @@ public class AsyncHandlerTests {
 	public void testGoodResult() {
 		this.whichTest = 0;
 		this.handler.handleMessage(new GenericMessage<>("foo"));
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.latch.countDown();
 		Message<?> received = this.output.receive(10000);
-		assertNotNull(received);
-		assertEquals("reply", received.getPayload());
-		assertNull(this.failedCallbackException);
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("reply");
+		assertThat(this.failedCallbackException).isNull();
 	}
 
 	@Test
@@ -151,12 +143,12 @@ public class AsyncHandlerTests {
 				.setReplyChannel(replyChannel)
 				.build();
 		this.handler.handleMessage(message);
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 		this.latch.countDown();
 		Message<?> received = replyChannel.receive(10000);
-		assertNotNull(received);
-		assertEquals("reply", received.getPayload());
-		assertNull(this.failedCallbackException);
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("reply");
+		assertThat(this.failedCallbackException).isNull();
 	}
 
 	@Test
@@ -166,16 +158,16 @@ public class AsyncHandlerTests {
 		QueueChannel errorChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("foo").setErrorChannel(errorChannel).build();
 		this.handler.handleMessage(message);
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.latch.countDown();
 		Message<?> errorMessage = errorChannel.receive(10000);
-		assertNotNull(errorMessage);
-		assertThat(errorMessage.getPayload(), instanceOf(DestinationResolutionException.class));
-		assertEquals("no output-channel or replyChannel header available",
-				((Throwable) errorMessage.getPayload()).getMessage());
-		assertNull(((MessagingException) errorMessage.getPayload()).getFailedMessage());
-		assertNotNull(this.failedCallbackException);
-		assertThat(this.failedCallbackException.getMessage(), containsString("or replyChannel header"));
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getPayload()).isInstanceOf(DestinationResolutionException.class);
+		assertThat(((Throwable) errorMessage.getPayload()).getMessage())
+				.isEqualTo("no output-channel or replyChannel header available");
+		assertThat(((MessagingException) errorMessage.getPayload()).getFailedMessage()).isNull();
+		assertThat(this.failedCallbackException).isNotNull();
+		assertThat(this.failedCallbackException.getMessage()).contains("or replyChannel header");
 	}
 
 	@Test
@@ -185,15 +177,15 @@ public class AsyncHandlerTests {
 				.setErrorChannel(errorChannel)
 				.build();
 		this.handler.handleMessage(message);
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.whichTest = 1;
 		this.latch.countDown();
 		Message<?> received = errorChannel.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), instanceOf(MessageHandlingException.class));
-		assertEquals("foo", ((Throwable) received.getPayload()).getCause().getMessage());
-		assertSame(message, ((MessagingException) received.getPayload()).getFailedMessage());
-		assertNull(this.failedCallbackException);
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(MessageHandlingException.class);
+		assertThat(((Throwable) received.getPayload()).getCause().getMessage()).isEqualTo("foo");
+		assertThat(((MessagingException) received.getPayload()).getFailedMessage()).isSameAs(message);
+		assertThat(this.failedCallbackException).isNull();
 	}
 
 	@Test
@@ -203,14 +195,14 @@ public class AsyncHandlerTests {
 				.setErrorChannel(errorChannel)
 				.build();
 		this.handler.handleMessage(message);
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.whichTest = 2;
 		this.latch.countDown();
 		Message<?> received = errorChannel.receive(10000);
-		assertNotNull(received);
-		assertThat(received.getPayload(), instanceOf(MessagingException.class));
-		assertSame(message, ((MessagingException) received.getPayload()).getFailedMessage());
-		assertNull(this.failedCallbackException);
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) received.getPayload()).getFailedMessage()).isSameAs(message);
+		assertThat(this.failedCallbackException).isNull();
 	}
 
 	@Test
@@ -218,12 +210,12 @@ public class AsyncHandlerTests {
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.build();
 		this.handler.handleMessage(message);
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.whichTest = 2;
 		this.latch.countDown();
-		assertTrue(this.exceptionLatch.await(10, TimeUnit.SECONDS));
-		assertNotNull(this.failedCallbackException);
-		assertThat(this.failedCallbackMessage, containsString("no 'errorChannel' header"));
+		assertThat(this.exceptionLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.failedCallbackException).isNotNull();
+		assertThat(this.failedCallbackMessage).contains("no 'errorChannel' header");
 	}
 
 	@Test
@@ -242,7 +234,7 @@ public class AsyncHandlerTests {
 		consumer.start();
 		this.latch.countDown();
 		String result = foo.exchange("foo");
-		assertEquals("reply", result);
+		assertThat(result).isEqualTo("reply");
 	}
 
 	@Test
@@ -264,8 +256,8 @@ public class AsyncHandlerTests {
 			foo.exchange("foo");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getClass().getSimpleName(), equalTo("RuntimeException"));
-			assertThat(e.getMessage(), equalTo("foo"));
+			assertThat(e.getClass().getSimpleName()).isEqualTo("RuntimeException");
+			assertThat(e.getMessage()).isEqualTo("foo");
 		}
 	}
 

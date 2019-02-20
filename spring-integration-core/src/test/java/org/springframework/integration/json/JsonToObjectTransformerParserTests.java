@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,8 +66,8 @@ public class JsonToObjectTransformerParserTests {
 	public void defaultObjectMapper() {
 		Object jsonToObjectTransformer =
 				TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
-		assertEquals(Jackson2JsonObjectMapper.class,
-				TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass());
+		assertThat(TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass())
+				.isEqualTo(Jackson2JsonObjectMapper.class);
 
 		String jsonString =
 				"{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
@@ -78,32 +76,32 @@ public class JsonToObjectTransformerParserTests {
 		Message<String> message = MessageBuilder.withPayload(jsonString).setReplyChannel(replyChannel).build();
 		this.defaultObjectMapperInput.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertNotNull(reply.getPayload());
-		assertEquals(TestPerson.class, reply.getPayload().getClass());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isNotNull();
+		assertThat(reply.getPayload().getClass()).isEqualTo(TestPerson.class);
 		TestPerson person = (TestPerson) reply.getPayload();
-		assertEquals("John", person.getFirstName());
-		assertEquals("Doe", person.getLastName());
-		assertEquals(42, person.getAge());
-		assertEquals("123 Main Street", person.getAddress().toString());
+		assertThat(person.getFirstName()).isEqualTo("John");
+		assertThat(person.getLastName()).isEqualTo("Doe");
+		assertThat(person.getAge()).isEqualTo(42);
+		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
 	}
 
 	@Test
 	public void testInt2831CustomJsonObjectMapper() {
 		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.customJsonMapperTransformer, "transformer");
-		assertSame(this.jsonObjectMapper,
-				TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class));
+		assertThat(TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class))
+				.isSameAs(this.jsonObjectMapper);
 
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload(jsonString).setReplyChannel(replyChannel).build();
 		this.customJsonObjectMapperInput.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertNotNull(reply.getPayload());
-		assertEquals(TestJsonContainer.class, reply.getPayload().getClass());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isNotNull();
+		assertThat(reply.getPayload().getClass()).isEqualTo(TestJsonContainer.class);
 		TestJsonContainer result = (TestJsonContainer) reply.getPayload();
-		assertEquals(jsonString, result.getJson());
+		assertThat(result.getJson()).isEqualTo(jsonString);
 	}
 
 	@SuppressWarnings("rawtypes")

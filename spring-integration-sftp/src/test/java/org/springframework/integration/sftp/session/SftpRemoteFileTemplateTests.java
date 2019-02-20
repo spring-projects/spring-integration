@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.sftp.session;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -76,11 +72,11 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		});
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
-		assertTrue(template.exists("foo/foobar.txt"));
+		assertThat(template.exists("foo/foobar.txt")).isTrue();
 		template.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
 			try {
 				SftpATTRS file = client.lstat("foo/foobar.txt");
-				assertEquals(6, file.getSize());
+				assertThat(file.getSize()).isEqualTo(6);
 			}
 			catch (SftpException e) {
 				throw new RuntimeException(e);
@@ -88,17 +84,16 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		});
 		template.execute((SessionCallbackWithoutResult<LsEntry>) session -> {
 			LsEntry[] files = session.list("foo/");
-			assertEquals(4, files.length);
-			assertTrue(session.remove("foo/foobar.txt"));
-			assertTrue(session.rmdir("foo/bar/"));
+			assertThat(files.length).isEqualTo(4);
+			assertThat(session.remove("foo/foobar.txt")).isTrue();
+			assertThat(session.rmdir("foo/bar/")).isTrue();
 			files = session.list("foo/");
-			assertEquals(2, files.length);
+			assertThat(files.length).isEqualTo(2);
 			List<LsEntry> list = Arrays.asList(files);
-			assertThat(list.stream().map(l -> l.getFilename()).collect(Collectors.toList()),
-					containsInAnyOrder(".", ".."));
-			assertTrue(session.rmdir("foo/"));
+			assertThat(list.stream().map(l -> l.getFilename()).collect(Collectors.toList())).contains(".", "..");
+			assertThat(session.rmdir("foo/")).isTrue();
 		});
-		assertFalse(template.exists("foo"));
+		assertThat(template.exists("foo")).isFalse();
 	}
 
 	@Configuration

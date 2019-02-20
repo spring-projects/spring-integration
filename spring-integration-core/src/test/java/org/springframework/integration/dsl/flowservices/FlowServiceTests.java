@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.dsl.flowservices;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -90,25 +86,25 @@ public class FlowServiceTests {
 
 	@Test
 	public void testFlowServiceAndLogAsLastNoError() throws Exception {
-		assertNotNull(this.myFlow);
-		assertTrue(AopUtils.isAopProxy(this.myFlow));
-		assertThat(this.myFlow, instanceOf(Advised.class));
-		assertThat(this.myFlow, instanceOf(Ordered.class));
-		assertThat(this.myFlow, instanceOf(SmartLifecycle.class));
+		assertThat(this.myFlow).isNotNull();
+		assertThat(AopUtils.isAopProxy(this.myFlow)).isTrue();
+		assertThat(this.myFlow).isInstanceOf(Advised.class);
+		assertThat(this.myFlow).isInstanceOf(Ordered.class);
+		assertThat(this.myFlow).isInstanceOf(SmartLifecycle.class);
 
 		this.input.send(MessageBuilder.withPayload("foo").build());
 
 		MyFlow myFlow = (MyFlow) ((Advised) this.myFlow).getTargetSource().getTarget();
 		Object result = myFlow.resultOverLoggingHandler.get();
-		assertNotNull(result);
-		assertEquals("FOO", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("FOO");
 	}
 
 	@Test
 	public void testFlowAdapterService() {
 		Message<?> receive = this.myFlowAdapterOutput.receive(10000);
-		assertNotNull(receive);
-		assertEquals("bar:FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("bar:FOO");
 	}
 
 
@@ -121,8 +117,8 @@ public class FlowServiceTests {
 		QueueChannel replyChannel = new QueueChannel();
 		this.testGatewayInput.send(MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build());
 		Message<?> message = replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("FOO", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("FOO");
 	}
 
 	@Configuration

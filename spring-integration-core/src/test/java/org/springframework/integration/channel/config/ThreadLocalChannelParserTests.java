@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,10 +65,10 @@ public class ThreadLocalChannelParserTests {
 			simpleChannel.send(new GenericMessage<String>("crap"));
 			latch.countDown();
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("test", simpleChannel.receive(10).getPayload());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(simpleChannel.receive(10).getPayload()).isEqualTo("test");
 		// Message sent on another thread is not collected here
-		assertEquals(null, simpleChannel.receive(10));
+		assertThat(simpleChannel.receive(10)).isEqualTo(null);
 	}
 
 	@Test
@@ -91,24 +89,24 @@ public class ThreadLocalChannelParserTests {
 			otherThreadResults.add(channelWithInterceptor.receive(0));
 			latch.countDown();
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals(2, otherThreadResults.size());
-		assertNull(otherThreadResults.get(0));
-		assertNull(otherThreadResults.get(1));
-		assertEquals("test-1.1", simpleChannel.receive(0).getPayload());
-		assertEquals("test-1.2", simpleChannel.receive(0).getPayload());
-		assertEquals("test-1.3", simpleChannel.receive(0).getPayload());
-		assertNull(simpleChannel.receive(0));
-		assertEquals("test-2.1", channelWithInterceptor.receive(0).getPayload());
-		assertEquals("test-2.2", channelWithInterceptor.receive(0).getPayload());
-		assertNull(channelWithInterceptor.receive(0));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(otherThreadResults.size()).isEqualTo(2);
+		assertThat(otherThreadResults.get(0)).isNull();
+		assertThat(otherThreadResults.get(1)).isNull();
+		assertThat(simpleChannel.receive(0).getPayload()).isEqualTo("test-1.1");
+		assertThat(simpleChannel.receive(0).getPayload()).isEqualTo("test-1.2");
+		assertThat(simpleChannel.receive(0).getPayload()).isEqualTo("test-1.3");
+		assertThat(simpleChannel.receive(0)).isNull();
+		assertThat(channelWithInterceptor.receive(0).getPayload()).isEqualTo("test-2.1");
+		assertThat(channelWithInterceptor.receive(0).getPayload()).isEqualTo("test-2.2");
+		assertThat(channelWithInterceptor.receive(0)).isNull();
 	}
 
 	@Test
 	public void testInterceptor() {
 		int before = interceptor.getSendCount();
 		channelWithInterceptor.send(new GenericMessage<String>("test"));
-		assertEquals(before + 1, interceptor.getSendCount());
+		assertThat(interceptor.getSendCount()).isEqualTo(before + 1);
 	}
 
 }

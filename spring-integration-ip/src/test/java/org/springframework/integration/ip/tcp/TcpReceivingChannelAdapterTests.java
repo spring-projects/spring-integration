@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -88,11 +86,11 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test1", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test1");
 		message = channel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test2", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test2");
 		scf.stop();
 	}
 
@@ -119,7 +117,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 				}
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		noopPublisher(ccf);
@@ -141,11 +139,11 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test1", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test1");
 		message = channel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test2", new String((byte[]) message.getPayload()));
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test2");
 		adapter.stop();
 		adapter.start();
 		adapter.stop();
@@ -176,11 +174,11 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Set<String> results = new HashSet<String>();
 		for (int i = 0; i < 1000; i++) {
 			Message<?> message = channel.receive(10000);
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			results.add(new String((byte[]) message.getPayload()));
 		}
 		for (int i = 0; i < 1000; i++) {
-			assertTrue(results.remove("Test" + i));
+			assertThat(results.remove("Test" + i)).isTrue();
 		}
 		scf.stop();
 	}
@@ -206,16 +204,16 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket.getOutputStream().write("Test\r\n".getBytes());
 		socket.getOutputStream().write("Test\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		byte[] b = new byte[6];
 		readFully(socket.getInputStream(), b);
-		assertEquals("Test\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test\r\n");
 		readFully(socket.getInputStream(), b);
-		assertEquals("Test\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test\r\n");
 		scf.stop();
 	}
 
@@ -240,16 +238,16 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket.getOutputStream().write("Test\r\n".getBytes());
 		socket.getOutputStream().write("Test\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		byte[] b = new byte[6];
 		readFully(socket.getInputStream(), b);
-		assertEquals("Test\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test\r\n");
 		readFully(socket.getInputStream(), b);
-		assertEquals("Test\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test\r\n");
 		scf.stop();
 	}
 
@@ -273,15 +271,15 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		// with single use, results may come back in a different order
 		Set<String> results = new HashSet<String>();
 		results.add(new String((byte[]) message.getPayload()));
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		results.add(new String((byte[]) message.getPayload()));
-		assertTrue(results.contains("Test1"));
-		assertTrue(results.contains("Test2"));
+		assertThat(results.contains("Test1")).isTrue();
+		assertThat(results.contains("Test2")).isTrue();
 		scf.stop();
 	}
 
@@ -305,15 +303,15 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = channel.receive(60000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		// with single use, results may come back in a different order
 		Set<String> results = new HashSet<String>();
 		results.add(new String((byte[]) message.getPayload()));
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		results.add(new String((byte[]) message.getPayload()));
-		assertTrue(results.contains("Test1"));
-		assertTrue(results.contains("Test2"));
+		assertThat(results.contains("Test1")).isTrue();
+		assertThat(results.contains("Test2")).isTrue();
 		scf.stop();
 	}
 
@@ -351,16 +349,16 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket2.setSoTimeout(2000);
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		byte[] b = new byte[7];
 		readFully(socket1.getInputStream(), b);
-		assertEquals("Test1\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test1\r\n");
 		readFully(socket2.getInputStream(), b);
-		assertEquals("Test2\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test2\r\n");
 		scf.stop();
 	}
 
@@ -388,16 +386,16 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket2.setSoTimeout(2000);
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		byte[] b = new byte[7];
 		readFully(socket1.getInputStream(), b);
-		assertEquals("Test1\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test1\r\n");
 		readFully(socket2.getInputStream(), b);
-		assertEquals("Test2\r\n", new String(b));
+		assertThat(new String(b)).isEqualTo("Test2\r\n");
 		scf.stop();
 	}
 
@@ -430,13 +428,13 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		}
 		for (int i = 100; i < 200; i++) {
 			Message<?> message = channel.receive(60000);
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			handler.handleMessage(message);
 		}
 		byte[] b = new byte[9];
 		for (int i = 100; i < 200; i++) {
 			readFully(sockets.remove(0).getInputStream(), b);
-			assertEquals("Test" + i + "\r\n", new String(b));
+			assertThat(new String(b)).isEqualTo("Test" + i + "\r\n");
 		}
 		scf.stop();
 	}
@@ -510,20 +508,20 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.setSoTimeout(10000);
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test2");
 		Set<String> results = new HashSet<String>();
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		results.add((String) message.getPayload());
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		results.add((String) message.getPayload());
-		assertTrue(results.contains("Test1"));
-		assertTrue(results.contains("Test2"));
+		assertThat(results.contains("Test1")).isTrue();
+		assertThat(results.contains("Test2")).isTrue();
 	}
 
 	private void singleNoOutboundInterceptorsGuts(AbstractServerConnectionFactory scf) throws Exception {
@@ -547,27 +545,27 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.setSoTimeout(10000);
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
 
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test2");
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		// with single use, results may come back in a different order
 		Set<Object> results = new HashSet<Object>();
 		results.add(message.getPayload());
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		results.add(message.getPayload());
-		assertTrue(results.contains("Test1"));
-		assertTrue(results.contains("Test2"));
+		assertThat(results.contains("Test1")).isTrue();
+		assertThat(results.contains("Test2")).isTrue();
 	}
 
 	private void singleSharedInterceptorsGuts(AbstractServerConnectionFactory scf) throws Exception {
@@ -593,28 +591,28 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.setSoTimeout(60000);
 		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket1.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket1.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket1.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket1.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Test1");
 
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket2.setSoTimeout(60000);
 		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket2.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket2.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Hello");
-		assertEquals("world!", new ObjectInputStream(socket2.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket2.getInputStream()).readObject()).isEqualTo("world!");
 		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Test2");
 
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 
-		assertEquals("Test1", new ObjectInputStream(socket1.getInputStream()).readObject());
-		assertEquals("Test2", new ObjectInputStream(socket2.getInputStream()).readObject());
+		assertThat(new ObjectInputStream(socket1.getInputStream()).readObject()).isEqualTo("Test1");
+		assertThat(new ObjectInputStream(socket2.getInputStream()).readObject()).isEqualTo("Test2");
 	}
 
 	@Test
@@ -641,11 +639,11 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		Message<?> message = errorChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+		assertThat(message).isNotNull();
+		assertThat(((Exception) message.getPayload()).getCause().getMessage()).isEqualTo("Failed");
 		message = errorChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+		assertThat(message).isNotNull();
+		assertThat(((Exception) message.getPayload()).getCause().getMessage()).isEqualTo("Failed");
 		scf.stop();
 	}
 

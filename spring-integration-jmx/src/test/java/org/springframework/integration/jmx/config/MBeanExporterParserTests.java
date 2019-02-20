@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
 import javax.management.MBeanServer;
 
+import org.assertj.core.data.Offset;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,68 +66,69 @@ public class MBeanExporterParserTests {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
 		Properties properties = TestUtils.getPropertyValue(exporter, "objectNameStaticProperties", Properties.class);
-		assertNotNull(properties);
-		assertEquals(2, properties.size());
-		assertTrue(properties.containsKey("foo"));
-		assertTrue(properties.containsKey("bar"));
-		assertEquals(server, exporter.getServer());
-		assertSame(context.getBean("keyNamer"), TestUtils.getPropertyValue(exporter, "namingStrategy"));
+		assertThat(properties).isNotNull();
+		assertThat(properties.size()).isEqualTo(2);
+		assertThat(properties.containsKey("foo")).isTrue();
+		assertThat(properties.containsKey("bar")).isTrue();
+		assertThat(exporter.getServer()).isEqualTo(server);
+		assertThat(TestUtils.getPropertyValue(exporter, "namingStrategy")).isSameAs(context.getBean("keyNamer"));
 		MessageChannelMetrics metrics = context.getBean("foo", MessageChannelMetrics.class);
-		assertTrue(metrics.isCountsEnabled());
-		assertFalse(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isTrue();
+		assertThat(metrics.isStatsEnabled()).isFalse();
 		checkCustomized(metrics);
 		MessageHandlerMetrics handlerMetrics = context.getBean("transformer.handler", MessageHandlerMetrics.class);
 		checkCustomized(handlerMetrics);
 		metrics = context.getBean("bar", MessageChannelMetrics.class);
-		assertTrue(metrics.isCountsEnabled());
-		assertFalse(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isTrue();
+		assertThat(metrics.isStatsEnabled()).isFalse();
 		metrics = context.getBean("baz", MessageChannelMetrics.class);
-		assertFalse(metrics.isCountsEnabled());
-		assertFalse(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isFalse();
+		assertThat(metrics.isStatsEnabled()).isFalse();
 		metrics = context.getBean("qux", MessageChannelMetrics.class);
-		assertFalse(metrics.isCountsEnabled());
-		assertFalse(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isFalse();
+		assertThat(metrics.isStatsEnabled()).isFalse();
 		metrics = context.getBean("fiz", MessageChannelMetrics.class);
-		assertTrue(metrics.isCountsEnabled());
-		assertTrue(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isTrue();
+		assertThat(metrics.isStatsEnabled()).isTrue();
 		metrics = context.getBean("buz", MessageChannelMetrics.class);
-		assertTrue(metrics.isCountsEnabled());
-		assertTrue(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isTrue();
+		assertThat(metrics.isStatsEnabled()).isTrue();
 		metrics = context.getBean("!excluded", MessageChannelMetrics.class);
-		assertFalse(metrics.isCountsEnabled());
-		assertFalse(metrics.isStatsEnabled());
+		assertThat(metrics.isCountsEnabled()).isFalse();
+		assertThat(metrics.isStatsEnabled()).isFalse();
 		checkCustomized(metrics);
 		MetricsFactory factory = context.getBean(MetricsFactory.class);
 		IntegrationManagementConfigurer configurer = context.getBean(IntegrationManagementConfigurer.class);
-		assertSame(factory, TestUtils.getPropertyValue(configurer, "metricsFactory"));
+		assertThat(TestUtils.getPropertyValue(configurer, "metricsFactory")).isSameAs(factory);
 		exporter.destroy();
 	}
 
 	private void checkCustomized(MessageChannelMetrics metrics) {
-		assertFalse(metrics.isLoggingEnabled());
-		assertEquals(20, TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.window"));
-		assertEquals(1000000., TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.factor", Double.class),
-				.01);
-		assertEquals(30, TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.window"));
-		assertEquals(2000000.,
-				TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.period", Double.class), .01);
-		assertEquals(.001 / 120000,
-				TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.lapse", Double.class), .01);
+		assertThat(metrics.isLoggingEnabled()).isFalse();
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.window")).isEqualTo(20);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.factor", Double.class))
+				.isCloseTo(1000000., Offset.offset(.01));
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.window")).isEqualTo(30);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.period", Double.class))
+				.isCloseTo(2000000., Offset.offset(.01));
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendErrorRate.lapse", Double.class))
+				.isCloseTo(.001 / 120000, Offset.offset(.01));
 
-		assertEquals(40, TestUtils.getPropertyValue(metrics, "channelMetrics.sendSuccessRatio.window"));
-		assertEquals(.001 / 130000, TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.lapse", Double.class),
-				.01);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendSuccessRatio.window")).isEqualTo(40);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.lapse", Double.class))
+				.isCloseTo(.001 / 130000, Offset.offset(.01));
 
-		assertEquals(50, TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.window"));
-		assertEquals(3000000., TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.period", Double.class), .01);
-		assertEquals(.001 / 140000, TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.lapse", Double.class),
-				.01);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.window")).isEqualTo(50);
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.period", Double.class))
+				.isCloseTo(3000000., Offset.offset(.01));
+		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendRate.lapse", Double.class))
+				.isCloseTo(.001 / 140000, Offset.offset(.01));
 	}
 
 	private void checkCustomized(MessageHandlerMetrics metrics) {
-		assertEquals(20, TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.window"));
-		assertEquals(1000000., TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.factor", Double.class),
-				.01);
+		assertThat(TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.window")).isEqualTo(20);
+		assertThat(TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.factor", Double.class))
+				.isCloseTo(1000000., Offset.offset(.01));
 	}
 
 	public static class CustomMetrics implements MetricsFactory {

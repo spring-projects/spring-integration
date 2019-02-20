@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.http.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -32,7 +29,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -71,26 +67,26 @@ public class CookieTests {
 
 	private static ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-	private static List<HttpHeaders> allHeaders = new ArrayList<HttpHeaders>();
+	private static List<HttpHeaders> allHeaders = new ArrayList<>();
 
 	@Test
 	public void testCookie() throws Exception {
 		ch1.send(new GenericMessage<>("Hello, world!"));
-		Assert.assertNotNull(ch6.receive());
+		assertThat(ch6.receive()).isNotNull();
 
 
 		bos.close();
 		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bos.toByteArray())));
 		String line = br.readLine();
-		assertEquals("Hello, world!Hello, again!Hello, once more!", line);
-		assertNull(br.readLine());
+		assertThat(line).isEqualTo("Hello, world!Hello, again!Hello, once more!");
+		assertThat(br.readLine()).isNull();
 		br.close();
-		assertEquals(3, allHeaders.size());
-		assertFalse(allHeaders.get(0).containsKey("Cookie"));
-		assertTrue(allHeaders.get(1).containsKey("Cookie"));
-		assertEquals("JSESSIONID=X123", allHeaders.get(1).get("Cookie").get(0));
-		assertTrue(allHeaders.get(2).containsKey("Cookie"));
-		assertEquals("JSESSIONID=X124", allHeaders.get(2).get("Cookie").get(0));
+		assertThat(allHeaders.size()).isEqualTo(3);
+		assertThat(allHeaders.get(0).containsKey("Cookie")).isFalse();
+		assertThat(allHeaders.get(1).containsKey("Cookie")).isTrue();
+		assertThat(allHeaders.get(1).get("Cookie").get(0)).isEqualTo("JSESSIONID=X123");
+		assertThat(allHeaders.get(2).containsKey("Cookie")).isTrue();
+		assertThat(allHeaders.get(2).get("Cookie").get(0)).isEqualTo("JSESSIONID=X124");
 	}
 
 	public static class RequestFactory implements ClientHttpRequestFactory {

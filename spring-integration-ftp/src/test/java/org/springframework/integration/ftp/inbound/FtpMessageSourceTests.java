@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,8 +46,8 @@ public class FtpMessageSourceTests extends FtpTestSupport {
 	public void testMaxFetch() throws Exception {
 		FtpInboundFileSynchronizingMessageSource messageSource = buildSource();
 		Message<?> received = messageSource.receive();
-		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.FILENAME), equalTo(" ftpSource1.txt"));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(" ftpSource1.txt");
 	}
 
 	private FtpInboundFileSynchronizingMessageSource buildSource() throws Exception {

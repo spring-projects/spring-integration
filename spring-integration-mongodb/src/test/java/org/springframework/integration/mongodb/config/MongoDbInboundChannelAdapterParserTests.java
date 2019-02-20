@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.mongodb.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,48 +90,52 @@ public class MongoDbInboundChannelAdapterParserTests {
 		MongoDbMessageSource source = TestUtils.getPropertyValue(this.minimalConfigAdapter, "source",
 				MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(this.minimalConfigAdapter, "shouldTrack"));
-		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(this.mongoDbFactory, TestUtils.getPropertyValue(source, "mongoDbFactory"));
-		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
-		assertEquals("data", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		assertThat(TestUtils.getPropertyValue(this.minimalConfigAdapter, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.getPropertyValue(source, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "mongoDbFactory")).isEqualTo(this.mongoDbFactory);
+		assertThat(TestUtils.getPropertyValue(source, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression)
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue")).isEqualTo("data");
 	}
 
 	@Test
 	public void fullConfigWithCollectionExpression() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithCollectionExpressionAdapter);
-		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof SpelExpression);
-		assertEquals("'foo'", TestUtils.getPropertyValue(source, "collectionNameExpression.expression"));
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof SpelExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression.expression")).isEqualTo("'foo'");
 	}
 
 	@Test
 	public void fullConfigWithQueryExpression() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithQueryExpressionAdapter);
-		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof SpelExpression);
-		assertEquals("new BasicQuery('{''address.state'' : ''PA''}').limit(2)",
-				TestUtils.getPropertyValue(source, "queryExpression.expression"));
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression") instanceof SpelExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression.expression"))
+				.isEqualTo("new BasicQuery('{''address.state'' : ''PA''}').limit(2)");
 	}
 
 	@Test
 	public void fullConfigWithSpelQuery() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithSpelQueryAdapter);
-		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression);
-		assertEquals("{''address.state'' : ''PA''}", TestUtils.getPropertyValue(source, "queryExpression.literalValue"));
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression.literalValue"))
+				.isEqualTo("{''address.state'' : ''PA''}");
 	}
 
 	@Test
 	public void fullConfigWithQuery() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithQueryAdapter);
-		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression);
-		assertEquals("{'address.state' : 'PA'}", TestUtils.getPropertyValue(source, "queryExpression.literalValue"));
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "queryExpression.literalValue"))
+				.isEqualTo("{'address.state' : 'PA'}");
 	}
 
 	@Test
 	public void fullConfigWithCollectionName() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithCollectionNameAdapter);
-		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
-		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression)
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue")).isEqualTo("foo");
 	}
 
 	@Test
@@ -142,12 +143,13 @@ public class MongoDbInboundChannelAdapterParserTests {
 		MongoDbMessageSource source = TestUtils.getPropertyValue(this.fullConfigWithMongoTemplateAdapter, "source",
 				MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(this.fullConfigWithMongoTemplateAdapter, "shouldTrack"));
-		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertSame(this.mongoDbTemplate, TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
-		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		assertThat(TestUtils.getPropertyValue(this.fullConfigWithMongoTemplateAdapter, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.getPropertyValue(source, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "mongoTemplate")).isSameAs(this.mongoDbTemplate);
+		assertThat(TestUtils.getPropertyValue(source, "evaluationContext")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression)
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue")).isEqualTo("foo");
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
@@ -165,11 +167,11 @@ public class MongoDbInboundChannelAdapterParserTests {
 	private MongoDbMessageSource assertMongoDbMessageSource(Object testedBean) {
 		MongoDbMessageSource source = TestUtils.getPropertyValue(testedBean, "source", MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(testedBean, "shouldTrack"));
-		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(this.mongoDbFactory, TestUtils.getPropertyValue(source, "mongoDbFactory"));
-		assertEquals(this.mongoConverter, TestUtils.getPropertyValue(source, "mongoConverter"));
-		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
+		assertThat(TestUtils.getPropertyValue(testedBean, "shouldTrack")).isEqualTo(false);
+		assertThat(TestUtils.getPropertyValue(source, "mongoTemplate")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "mongoDbFactory")).isEqualTo(this.mongoDbFactory);
+		assertThat(TestUtils.getPropertyValue(source, "mongoConverter")).isEqualTo(this.mongoConverter);
+		assertThat(TestUtils.getPropertyValue(source, "evaluationContext")).isNotNull();
 		return source;
 	}
 

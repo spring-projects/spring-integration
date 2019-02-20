@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.sftp.session;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -82,16 +76,16 @@ public class SftpSessionFactoryTests {
 						if (e.getCause() instanceof IllegalStateException) {
 							if (e.getCause().getCause() instanceof JSchException) {
 								if (e.getCause().getCause().getCause() instanceof ConnectException) {
-									assertTrue("Server failed to start in 10 seconds", n++ < 100);
+									assertThat(n++ < 100).as("Server failed to start in 10 seconds").isTrue();
 									Thread.sleep(100);
 									continue;
 								}
 							}
 						}
 					}
-					assertThat(e, instanceOf(IllegalStateException.class));
-					assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-					assertThat(e.getCause().getMessage(), equalTo("failed to connect"));
+					assertThat(e).isInstanceOf(IllegalStateException.class);
+					assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+					assertThat(e.getCause().getMessage()).isEqualTo("failed to connect");
 					break;
 				}
 			}
@@ -101,7 +95,7 @@ public class SftpSessionFactoryTests {
 				Thread.sleep(100);
 			}
 
-			assertEquals(0, server.getActiveSessions().size());
+			assertThat(server.getActiveSessions().size()).isEqualTo(0);
 		}
 		finally {
 			server.stop(true);
@@ -118,16 +112,16 @@ public class SftpSessionFactoryTests {
 		when(ui.getPassphrase()).thenReturn("pp").thenReturn(null);
 		f.setUserInfo(ui);
 		UserInfo userInfo = TestUtils.getPropertyValue(f, "userInfoWrapper", UserInfo.class);
-		assertEquals("pass", userInfo.getPassword());
+		assertThat(userInfo.getPassword()).isEqualTo("pass");
 		f.setPassword("foo");
 		try {
 			userInfo.getPassword();
 			fail("expected Exception");
 		}
 		catch (IllegalStateException e) {
-			assertThat(e.getMessage(), startsWith("When a 'UserInfo' is provided, 'password' is not allowed"));
+			assertThat(e.getMessage()).startsWith("When a 'UserInfo' is provided, 'password' is not allowed");
 		}
-		assertEquals("pp", userInfo.getPassphrase());
+		assertThat(userInfo.getPassphrase()).isEqualTo("pp");
 		f.setPrivateKeyPassphrase("bar");
 		try {
 			userInfo.getPassphrase();
@@ -135,11 +129,11 @@ public class SftpSessionFactoryTests {
 		}
 		catch (IllegalStateException e) {
 			assertThat(e
-					.getMessage(), startsWith("When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed"));
+					.getMessage()).startsWith("When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed");
 		}
 		f.setUserInfo(null);
-		assertEquals("foo", userInfo.getPassword());
-		assertEquals("bar", userInfo.getPassphrase());
+		assertThat(userInfo.getPassword()).isEqualTo("foo");
+		assertThat(userInfo.getPassphrase()).isEqualTo("bar");
 	}
 
 	@Test
@@ -188,10 +182,10 @@ public class SftpSessionFactoryTests {
 			fail("Expected Exception");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getCause().getCause(), instanceOf(JSchException.class));
-			assertThat(e.getCause().getCause().getMessage(), containsString("reject HostKey"));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(JSchException.class);
+			assertThat(e.getCause().getCause().getMessage()).contains("reject HostKey");
 		}
 	}
 

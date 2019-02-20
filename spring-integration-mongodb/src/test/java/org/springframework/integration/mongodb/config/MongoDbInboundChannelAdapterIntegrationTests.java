@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mongodb.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -111,9 +109,9 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).getName());
-		assertNotNull(this.replyChannel.receive(10000));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
+		assertThat(this.replyChannel.receive(10000)).isNotNull();
 
 		this.mongoInboundAdapter.stop();
 		this.replyChannel.purge(null);
@@ -128,8 +126,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<List<Document>> message = (Message<List<Document>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).get("name"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).get("name")).isEqualTo("Bob");
 
 		this.mongoInboundAdapterNamedFactory.stop();
 		this.replyChannel.purge(null);
@@ -144,8 +142,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<Person> message = (Message<Person>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().getName()).isEqualTo("Bob");
 
 		this.mongoInboundAdapterWithTemplate.stop();
 		this.replyChannel.purge(null);
@@ -160,8 +158,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
 
 		this.mongoInboundAdapterWithNamedCollection.stop();
 		this.replyChannel.purge(null);
@@ -175,9 +173,9 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.mongoInboundAdapterWithQueryExpression.start();
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals(1, message.getPayload().size());
-		assertEquals("Bob", message.getPayload().get(0).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().size()).isEqualTo(1);
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
 		this.mongoInboundAdapterWithQueryExpression.stop();
 	}
 
@@ -188,8 +186,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.mongoInboundAdapterWithStringQueryExpression.start();
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
 		this.mongoInboundAdapterWithStringQueryExpression.stop();
 	}
 
@@ -202,8 +200,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
 
 		this.mongoInboundAdapterWithNamedCollectionExpression.stop();
 		this.replyChannel.purge(null);
@@ -216,12 +214,13 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		this.inboundAdapterWithOnSuccessDisposition.start();
 
-		assertNotNull(replyChannel.receive(10000));
-		assertNull(replyChannel.receive(100));
+		assertThat(replyChannel.receive(10000)).isNotNull();
+		assertThat(replyChannel.receive(100)).isNull();
 
-		assertNotNull(this.afterCommitChannel.receive(10000));
+		assertThat(this.afterCommitChannel.receive(10000)).isNotNull();
 
-		assertNull(this.mongoTemplate.findOne(new Query(Criteria.where("name").is("Bob")), Person.class, "data"));
+		assertThat(this.mongoTemplate.findOne(new Query(Criteria.where("name").is("Bob")), Person.class, "data"))
+				.isNull();
 		this.inboundAdapterWithOnSuccessDisposition.stop();
 		this.replyChannel.purge(null);
 	}
@@ -235,9 +234,9 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 
 		@SuppressWarnings("unchecked")
 		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Bob", message.getPayload().get(0).getName());
-		assertNotNull(replyChannel.receive(10000));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get(0).getName()).isEqualTo("Bob");
+		assertThat(replyChannel.receive(10000)).isNotNull();
 
 		this.mongoInboundAdapterWithConverter.stop();
 		this.replyChannel.purge(null);

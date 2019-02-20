@@ -16,10 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Comparator;
@@ -72,9 +69,8 @@ public class StreamingSplitterTests {
 		receivedMessages.sort(Comparator.comparing(o ->
 				o.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)));
 		assertThat(receivedMessages.get(4)
-						.getHeaders()
-						.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
-				is(messageQuantity));
+				.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)).isEqualTo(messageQuantity);
 	}
 
 	@Test
@@ -93,16 +89,14 @@ public class StreamingSplitterTests {
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(this.message);
 		List<Message<?>> receivedMessages = replyChannel.clear();
-		assertThat(receivedMessages.size(), is(messageQuantity));
+		assertThat(receivedMessages.size()).isEqualTo(messageQuantity);
 		for (Message<?> receivedMessage : receivedMessages) {
 			MessageHeaders headers = receivedMessage.getHeaders();
-			assertTrue("Unexpected result with: " + headers, headers.containsKey(anyHeaderKey));
-			assertThat("Unexpected result with: " + headers,
-					headers.get(anyHeaderKey, String.class),
-					is(anyHeaderValue));
-			assertThat("Unexpected result with: " + headers,
-					headers.get(IntegrationMessageHeaderAccessor.CORRELATION_ID, UUID.class),
-					is(message.getHeaders().getId()));
+			assertThat(headers.containsKey(anyHeaderKey)).as("Unexpected result with: " + headers).isTrue();
+			assertThat(headers.get(anyHeaderKey, String.class)).as("Unexpected result with: " + headers)
+					.isEqualTo(anyHeaderValue);
+			assertThat(headers.get(IntegrationMessageHeaderAccessor.CORRELATION_ID, UUID.class))
+					.as("Unexpected result with: " + headers).isEqualTo(message.getHeaders().getId());
 		}
 	}
 
@@ -115,7 +109,7 @@ public class StreamingSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(this.message);
-		assertThat(replyChannel.getQueueSize(), is(messageQuantity));
+		assertThat(replyChannel.getQueueSize()).isEqualTo(messageQuantity);
 	}
 
 	@Test
@@ -127,7 +121,7 @@ public class StreamingSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
 		splitter.handleMessage(this.message);
-		assertThat(replyChannel.getQueueSize(), is(messageQuantity));
+		assertThat(replyChannel.getQueueSize()).isEqualTo(messageQuantity);
 	}
 
 	@Test
@@ -139,9 +133,9 @@ public class StreamingSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.afterPropertiesSet();
 
-		new EventDrivenConsumer(replyChannel, message -> assertThat("Failure with msg: " + message,
-				message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
-				is(Integer.valueOf((String) message.getPayload())))).start();
+		new EventDrivenConsumer(replyChannel, message -> assertThat(message.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class))
+				.as("Failure with msg: " + message).isEqualTo(Integer.valueOf((String) message.getPayload()))).start();
 		splitter.handleMessage(this.message);
 	}
 
@@ -155,13 +149,13 @@ public class StreamingSplitterTests {
 		splitter.afterPropertiesSet();
 		final AtomicInteger receivedMessageCounter = new AtomicInteger(0);
 		new EventDrivenConsumer(replyChannel, message -> {
-			assertThat("Failure with msg: " + message, message.getPayload(), is(notNullValue()));
+			assertThat(message.getPayload()).as("Failure with msg: " + message).isNotNull();
 			receivedMessageCounter.incrementAndGet();
 
 		}).start();
 
 		splitter.handleMessage(this.message);
-		assertThat(receivedMessageCounter.get(), is(messageQuantity));
+		assertThat(receivedMessageCounter.get()).isEqualTo(messageQuantity);
 	}
 
 	static class IteratorTestBean {

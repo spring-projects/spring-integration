@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -49,10 +46,10 @@ public class PollerParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"defaultPollerWithId.xml", PollerParserTests.class);
 		Object poller = context.getBean("defaultPollerWithId");
-		assertNotNull(poller);
+		assertThat(poller).isNotNull();
 		Object defaultPoller = context.getBean(PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME);
-		assertNotNull(defaultPoller);
-		assertEquals(defaultPoller, context.getBean("defaultPollerWithId"));
+		assertThat(defaultPoller).isNotNull();
+		assertThat(context.getBean("defaultPollerWithId")).isEqualTo(defaultPoller);
 		context.close();
 	}
 
@@ -61,7 +58,7 @@ public class PollerParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"defaultPollerWithoutId.xml", PollerParserTests.class);
 		Object defaultPoller = context.getBean(PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME);
-		assertNotNull(defaultPoller);
+		assertThat(defaultPoller).isNotNull();
 		context.close();
 	}
 
@@ -82,22 +79,22 @@ public class PollerParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithAdviceChain.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
-		assertNotNull(poller);
+		assertThat(poller).isNotNull();
 		PollerMetadata metadata = (PollerMetadata) poller;
-		assertNotNull(metadata.getAdviceChain());
-		assertEquals(4, metadata.getAdviceChain().size());
-		assertSame(context.getBean("adviceBean1"), metadata.getAdviceChain().get(0));
-		assertEquals(TestAdviceBean.class, metadata.getAdviceChain().get(1).getClass());
-		assertEquals(2, ((TestAdviceBean) metadata.getAdviceChain().get(1)).getId());
-		assertSame(context.getBean("adviceBean3"), metadata.getAdviceChain().get(2));
+		assertThat(metadata.getAdviceChain()).isNotNull();
+		assertThat(metadata.getAdviceChain().size()).isEqualTo(4);
+		assertThat(metadata.getAdviceChain().get(0)).isSameAs(context.getBean("adviceBean1"));
+		assertThat(metadata.getAdviceChain().get(1).getClass()).isEqualTo(TestAdviceBean.class);
+		assertThat(((TestAdviceBean) metadata.getAdviceChain().get(1)).getId()).isEqualTo(2);
+		assertThat(metadata.getAdviceChain().get(2)).isSameAs(context.getBean("adviceBean3"));
 		Advice txAdvice = metadata.getAdviceChain().get(3);
-		assertEquals(TransactionInterceptor.class, txAdvice.getClass());
+		assertThat(txAdvice.getClass()).isEqualTo(TransactionInterceptor.class);
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
-		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
+		assertThat(transactionAttributeSource.getClass()).isEqualTo(NameMatchTransactionAttributeSource.class);
 		@SuppressWarnings("rawtypes")
 		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
-		assertEquals(1, nameMap.size());
-		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
+		assertThat(nameMap.size()).isEqualTo(1);
+		assertThat(nameMap.toString()).isEqualTo("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}");
 		context.close();
 
 	}
@@ -107,11 +104,11 @@ public class PollerParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithReceiveTimeout.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
-		assertNotNull(poller);
+		assertThat(poller).isNotNull();
 		PollerMetadata metadata = (PollerMetadata) poller;
-		assertEquals(1234, metadata.getReceiveTimeout());
+		assertThat(metadata.getReceiveTimeout()).isEqualTo(1234);
 		PeriodicTrigger trigger = (PeriodicTrigger) metadata.getTrigger();
-		assertEquals(TimeUnit.SECONDS.toString(), TestUtils.getPropertyValue(trigger, "timeUnit").toString());
+		assertThat(TestUtils.getPropertyValue(trigger, "timeUnit").toString()).isEqualTo(TimeUnit.SECONDS.toString());
 		context.close();
 	}
 
@@ -120,9 +117,9 @@ public class PollerParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithTriggerReference.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
-		assertNotNull(poller);
+		assertThat(poller).isNotNull();
 		PollerMetadata metadata = (PollerMetadata) poller;
-		assertTrue(metadata.getTrigger() instanceof TestTrigger);
+		assertThat(metadata.getTrigger() instanceof TestTrigger).isTrue();
 		context.close();
 	}
 

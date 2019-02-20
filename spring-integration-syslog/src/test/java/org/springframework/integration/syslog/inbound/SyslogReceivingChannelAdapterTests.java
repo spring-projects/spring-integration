@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.syslog.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -84,8 +82,8 @@ public class SyslogReceivingChannelAdapterTests {
 		socket.send(packet);
 		socket.close();
 		Message<?> message = outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
+		assertThat(message).isNotNull();
+		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
 		adapter.stop();
 	}
 
@@ -126,12 +124,12 @@ public class SyslogReceivingChannelAdapterTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", server.getPort());
 		socket.getOutputStream().write(buf);
 		socket.close();
-		assertTrue(sawLog.await(10, TimeUnit.SECONDS));
+		assertThat(sawLog.await(10, TimeUnit.SECONDS)).isTrue();
 		Message<?> message = outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
+		assertThat(message).isNotNull();
+		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
 		adapter.stop();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -159,10 +157,10 @@ public class SyslogReceivingChannelAdapterTests {
 		socket.send(packet);
 		socket.close();
 		Message<?> message = outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
-		assertEquals("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE",
-				new String((byte[]) message.getPayload(), "UTF-8"));
+		assertThat(message).isNotNull();
+		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
+		assertThat(new String((byte[]) message.getPayload(), "UTF-8"))
+				.isEqualTo("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE");
 		adapter.stop();
 	}
 
@@ -207,13 +205,13 @@ public class SyslogReceivingChannelAdapterTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", connectionFactory.getPort());
 		socket.getOutputStream().write(buf);
 		socket.close();
-		assertTrue(sawLog.await(10, TimeUnit.SECONDS));
+		assertThat(sawLog.await(10, TimeUnit.SECONDS)).isTrue();
 		@SuppressWarnings("unchecked")
 		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("loggregator", message.getPayload().get("syslog_HOST"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get("syslog_HOST")).isEqualTo("loggregator");
 		adapter.stop();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -243,8 +241,8 @@ public class SyslogReceivingChannelAdapterTests {
 		socket.close();
 		@SuppressWarnings("unchecked")
 		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("loggregator", message.getPayload().get("syslog_HOST"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().get("syslog_HOST")).isEqualTo("loggregator");
 		adapter.stop();
 	}
 

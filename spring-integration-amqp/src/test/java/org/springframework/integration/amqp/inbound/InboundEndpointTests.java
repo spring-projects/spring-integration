@@ -17,18 +17,6 @@
 package org.springframework.integration.amqp.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -125,10 +113,10 @@ public class InboundEndpointTests {
 		listener.onMessage(amqpMessage, rabbitChannel);
 
 		Message<?> result = channel.receive(1000);
-		assertEquals(payload, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(payload);
 
-		assertSame(rabbitChannel, result.getHeaders().get(AmqpHeaders.CHANNEL));
-		assertEquals(123L, result.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
+		assertThat(result.getHeaders().get(AmqpHeaders.CHANNEL)).isSameAs(rabbitChannel);
+		assertThat(result.getHeaders().get(AmqpHeaders.DELIVERY_TAG)).isEqualTo(123L);
 	}
 
 	@Test
@@ -161,7 +149,7 @@ public class InboundEndpointTests {
 
 		Message<?> result = new JsonToObjectTransformer().transform(receive);
 
-		assertEquals(payload, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(payload);
 	}
 
 	@Test
@@ -179,8 +167,8 @@ public class InboundEndpointTests {
 		final Channel rabbitChannel = mock(Channel.class);
 
 		channel.subscribe(new MessageTransformingHandler(message -> {
-			assertSame(rabbitChannel, message.getHeaders().get(AmqpHeaders.CHANNEL));
-			assertEquals(123L, message.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
+			assertThat(message.getHeaders().get(AmqpHeaders.CHANNEL)).isSameAs(rabbitChannel);
+			assertThat(message.getHeaders().get(AmqpHeaders.DELIVERY_TAG)).isEqualTo(123L);
 			return MessageBuilder.fromMessage(message)
 					.setHeader(JsonHeaders.TYPE_ID, "foo")
 					.setHeader(JsonHeaders.CONTENT_TYPE_ID, "bar")
@@ -197,13 +185,13 @@ public class InboundEndpointTests {
 			org.springframework.amqp.core.Message message =
 					invocation.getArgument(2);
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
-			assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-			assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-			assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-			assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-			assertFalse(headers.containsKey(JsonHeaders.TYPE_ID));
-			assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID));
-			assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
+			assertThat(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isTrue();
+			assertThat(headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isNotEqualTo("foo");
+			assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
+			assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isFalse();
+			assertThat(headers.containsKey(JsonHeaders.TYPE_ID)).isFalse();
+			assertThat(headers.containsKey(JsonHeaders.KEY_TYPE_ID)).isFalse();
+			assertThat(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)).isFalse();
 			sendLatch.countDown();
 			return null;
 		}).when(rabbitTemplate)
@@ -227,7 +215,7 @@ public class InboundEndpointTests {
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, rabbitChannel);
 
-		assertTrue(sendLatch.await(10, TimeUnit.SECONDS));
+		assertThat(sendLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -349,15 +337,15 @@ public class InboundEndpointTests {
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
 				.andProperties(new MessageProperties()).build(), null);
 		Message<?> errorMessage = errors.receive(0);
-		assertNotNull(errorMessage);
-		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
 		MessagingException payload = (MessagingException) errorMessage.getPayload();
-		assertThat(payload.getMessage(), containsString("Dispatcher has no"));
-		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get(), equalTo(3));
+		assertThat(payload.getMessage()).contains("Dispatcher has no");
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
 			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
-		assertThat(amqpMessage, notNullValue());
-		assertNull(errors.receive(0));
+		assertThat(amqpMessage).isNotNull();
+		assertThat(errors.receive(0)).isNull();
 	}
 
 	@Test
@@ -376,15 +364,15 @@ public class InboundEndpointTests {
 		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
 				.andProperties(new MessageProperties()).build(), null);
 		Message<?> errorMessage = errors.receive(0);
-		assertNotNull(errorMessage);
-		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getPayload()).isInstanceOf(MessagingException.class);
 		MessagingException payload = (MessagingException) errorMessage.getPayload();
-		assertThat(payload.getMessage(), containsString("Dispatcher has no"));
-		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get(), equalTo(3));
+		assertThat(payload.getMessage()).contains("Dispatcher has no");
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
 			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
-		assertThat(amqpMessage, notNullValue());
-		assertNull(errors.receive(0));
+		assertThat(amqpMessage).isNotNull();
+		assertThat(errors.receive(0)).isNull();
 	}
 
 	public static class Foo {

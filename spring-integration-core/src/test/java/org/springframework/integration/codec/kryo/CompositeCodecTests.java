@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.codec.kryo;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ public class CompositeCodecTests {
 		SomeClassWithNoDefaultConstructors foo2 = this.codec.decode(
 				this.codec.encode(foo),
 				SomeClassWithNoDefaultConstructors.class);
-		assertEquals(foo, foo2);
+		assertThat(foo2).isEqualTo(foo);
 	}
 
 	static class SomeClassWithNoDefaultConstructors {

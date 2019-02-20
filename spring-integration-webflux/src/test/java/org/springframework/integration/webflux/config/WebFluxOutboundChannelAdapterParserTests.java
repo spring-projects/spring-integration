@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.webflux.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 
@@ -66,23 +63,25 @@ public class WebFluxOutboundChannelAdapterParserTests {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
 		WebClient webClient =
 				TestUtils.getPropertyValue(this.reactiveMinimalConfig, "handler.webClient", WebClient.class);
-		assertNotSame(this.webClient, webClient);
+		assertThat(webClient).isNotSameAs(this.webClient);
 		Object handler = endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
-		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
-		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
+		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
+		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
+				.isEqualTo(this.applicationContext.getBean("requests"));
+		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.POST.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 	}
 
 	@Test
 	public void reactiveWebClientConfig() {
-		assertSame(this.webClient, TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"));
+		assertThat(TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"))
+				.isSameAs(this.webClient);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ftp.session;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -77,17 +76,15 @@ public class SessionFactoryTests {
 	public void testWithControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setControlEncoding("UTF-8");
-		Assert.assertEquals("Expected controlEncoding value of 'UTF-8'",
-				"UTF-8",
-				TestUtils.getPropertyValue(sessionFactory, "controlEncoding"));
+		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
+				.as("Expected controlEncoding value of 'UTF-8'").isEqualTo("UTF-8");
 	}
 
 	@Test
 	public void testWithoutControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		Assert.assertEquals("Expected controlEncoding value of 'ISO-8859-1'",
-				"ISO-8859-1",
-				TestUtils.getPropertyValue(sessionFactory, "controlEncoding"));
+		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
+				.as("Expected controlEncoding value of 'ISO-8859-1'").isEqualTo("ISO-8859-1");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -114,13 +111,11 @@ public class SessionFactoryTests {
 					sessionFactory.setClientMode(clientMode);
 					if (!(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE ||
 						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)) {
-						fail();
+						fail("IllegalArgumentException expected");
 					}
 				}
 				catch (IllegalArgumentException e) {
 					// success
-				} catch (Throwable e) {
-					fail();
 				}
 			}
 		}
@@ -144,7 +139,8 @@ public class SessionFactoryTests {
 		Session secondSession = cachingFactory.getSession();
 		secondSession.close();
 		Session nonStaleSession = cachingFactory.getSession();
-		assertEquals(TestUtils.getPropertyValue(firstSession, "targetSession"), TestUtils.getPropertyValue(nonStaleSession, "targetSession"));
+		assertThat(TestUtils.getPropertyValue(nonStaleSession, "targetSession"))
+				.isEqualTo(TestUtils.getPropertyValue(firstSession, "targetSession"));
 	}
 
 	@Test
@@ -159,7 +155,8 @@ public class SessionFactoryTests {
 		s1.close();
 		Session s2 = cachingFactory.getSession();
 		s2.close();
-		assertEquals(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s2, "targetSession"));
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession"))
+				.isEqualTo(TestUtils.getPropertyValue(s1, "targetSession"));
 		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
 	}
 
@@ -206,6 +203,6 @@ public class SessionFactoryTests {
 		executor.shutdown();
 		executor.awaitTermination(10000, TimeUnit.SECONDS);
 
-		assertEquals(0, failures.get());
+		assertThat(failures.get()).isEqualTo(0);
 	}
 }

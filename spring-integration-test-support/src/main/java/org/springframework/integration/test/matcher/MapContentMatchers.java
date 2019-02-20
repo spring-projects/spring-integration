@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -92,33 +91,56 @@ public class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super T, ? s
 
 	}
 
-	@Factory
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key, V value) {
-		return new MapContentMatchers<>(key, value);
+	/**
+	 * Create {@link Matcher} for map entry.
+	 * @param key the key to check.
+	 * @param value the value to check.
+	 * @param <K> the key type.
+	 * @param <V> the value type.
+	 * @return the {@link Matcher} for map entry.
+	 * @deprecated since 5.2 in favor of {@link Matchers#hasEntry(Object, Object)}.
+	 */
+	@Deprecated
+	public static <K, V> Matcher<Map<? extends K, ? extends V>> hasEntry(K key, V value) {
+		return Matchers.hasEntry(key, value);
 	}
 
-	@Factory
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key, Matcher<V> valueMatcher) {
-		return new MapContentMatchers<>(key, valueMatcher);
+	/**
+	 * Create {@link Matcher} for map entry.
+	 * @param key the key to check.
+	 * @param valueMatcher the {@link Matcher} for value.
+	 * @param <T> the key type.
+	 * @param <V> the value type.
+	 * @return the {@link Matcher} for map entry.
+	 * @deprecated since 5.2 in favor of {@link Matchers#hasEntry(Matcher, Matcher)}.
+	 */
+	@Deprecated
+	public static <T, V> Matcher<Map<? extends T, ? extends V>> hasEntry(T key, Matcher<V> valueMatcher) {
+		return Matchers.hasEntry(Matchers.is(key), valueMatcher);
 	}
 
-	@Factory
-	@SuppressWarnings("unchecked")
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasKey(T key) {
-		return new MapContentMatchers<>(key, (Matcher<V>) Matchers.anything());
+	/**
+	 * Create {@link Matcher} for map key.
+	 * @param key the key to check.
+	 * @param <T> the key type.
+	 * @return {@link Matcher} for map key.
+	 * @deprecated since 5.2 in favor of {@link Matchers#hasKey}.
+	 */
+	@Deprecated
+	public static <T> Matcher<Map<? extends T, ?>> hasKey(T key) {
+		return Matchers.hasKey(key);
 	}
 
-	@Factory
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasAllEntries(Map<T, V> entries) {
-		List<Matcher<Map<? super T, ? super V>>> matchers = new ArrayList<>(entries.size());
+	public static <T, V> Matcher<Map<? extends T, ? extends V>> hasAllEntries(Map<T, V> entries) {
+		List<Matcher<? super Map<T, V>>> matchers = new ArrayList<>(entries.size());
 		for (Map.Entry<T, V> entry : entries.entrySet()) {
 			final V value = entry.getValue();
 			if (value instanceof Matcher<?>) {
-				matchers.add(hasEntry(entry.getKey(), (Matcher<V>) value));
+				matchers.add(Matchers.hasEntry(Matchers.is(entry.getKey()), (Matcher<V>) value));
 			}
 			else {
-				matchers.add(hasEntry(entry.getKey(), value));
+				matchers.add(Matchers.hasEntry(entry.getKey(), value));
 			}
 		}
 		//return AllOf.allOf(matchers); //Does not work with Hamcrest 1.3

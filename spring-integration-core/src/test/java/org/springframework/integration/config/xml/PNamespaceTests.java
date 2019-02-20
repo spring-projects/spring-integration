@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -65,29 +65,29 @@ public class PNamespaceTests {
 	@Test
 	public void testPNamespaceServiceActivator() {
 		TestBean bean = prepare(serviceActivator);
-		assertEquals("paris", bean.getFname());
-		assertEquals("hilton", bean.getLname());
+		assertThat(bean.getFname()).isEqualTo("paris");
+		assertThat(bean.getLname()).isEqualTo("hilton");
 	}
 
 	@Test
 	public void testPNamespaceSplitter() {
 		TestBean bean = prepare(splitter);
-		assertEquals("paris", bean.getFname());
-		assertEquals("hilton", bean.getLname());
+		assertThat(bean.getFname()).isEqualTo("paris");
+		assertThat(bean.getLname()).isEqualTo("hilton");
 	}
 
 	@Test
 	public void testPNamespaceRouter() {
 		TestBean bean = prepare(router);
-		assertEquals("paris", bean.getFname());
-		assertEquals("hilton", bean.getLname());
+		assertThat(bean.getFname()).isEqualTo("paris");
+		assertThat(bean.getLname()).isEqualTo("hilton");
 	}
 
 	@Test
 	public void testPNamespaceTransformer() {
 		TestBean bean = prepare(transformer);
-		assertEquals("paris", bean.getFname());
-		assertEquals("hilton", bean.getLname());
+		assertThat(bean.getFname()).isEqualTo("paris");
+		assertThat(bean.getLname()).isEqualTo("hilton");
 	}
 
 	@Test
@@ -97,7 +97,7 @@ public class PNamespaceTests {
 		SampleAggregator aggregator =
 				(SampleAggregator) TestUtils
 						.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
-		assertEquals("Bill", aggregator.getName());
+		assertThat(aggregator.getName()).isEqualTo("Bill");
 	}
 
 

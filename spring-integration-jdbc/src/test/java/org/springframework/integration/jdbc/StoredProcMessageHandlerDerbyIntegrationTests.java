@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.sql.SQLException;
@@ -86,9 +86,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-		assertEquals("Wrong username", "username", map.get("USERNAME"));
-		assertEquals("Wrong password", "password", map.get("PASSWORD"));
-		assertEquals("Wrong email", "email", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
 	}
 
 	@Test
@@ -113,9 +113,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-		assertEquals("Wrong username", "username", map.get("USERNAME"));
-		assertEquals("Wrong password", "password", map.get("PASSWORD"));
-		assertEquals("Wrong email", "email", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
 	}
 
 	@Test
@@ -140,9 +140,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-		assertEquals("Wrong username", "username", map.get("USERNAME"));
-		assertEquals("Wrong password", "password", map.get("PASSWORD"));
-		assertEquals("Wrong email", "email", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
 	}
 
 	@Test
@@ -169,9 +169,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "ERIC.CARTMAN");
 
-		assertEquals("Wrong username", "ERIC.CARTMAN", map.get("USERNAME"));
-		assertEquals("Wrong password", "C4RTM4N", map.get("PASSWORD"));
-		assertEquals("Wrong email", "ERIC@CARTMAN.COM", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("ERIC.CARTMAN");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("C4RTM4N");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("ERIC@CARTMAN.COM");
 	}
 
 	@Test
@@ -199,9 +199,9 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "1234_Eric.Cartman");
 
-		assertEquals("Wrong username", "1234_Eric.Cartman", map.get("USERNAME"));
-		assertEquals("Wrong password", "static_password", map.get("PASSWORD"));
-		assertEquals("Wrong email", "static_email", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("1234_Eric.Cartman");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("static_password");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("static_email");
 	}
 
 }

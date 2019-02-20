@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,9 +61,9 @@ public class DefaultMessageAggregatorIntegrationTests {
 			this.input.send(new GenericMessage<>(i, headers));
 		}
 		Object payload = this.output.receive().getPayload();
-		assertThat(payload, is(instanceOf(List.class)));
-		assertTrue(payload + " doesn't contain all of {0,1,2,3,4}",
-				((List) payload).containsAll(Arrays.asList(0, 1, 2, 3, 4)));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List) payload).containsAll(Arrays.asList(0, 1, 2, 3, 4)))
+				.as(payload + " doesn't contain all of {0,1,2,3,4}").isTrue();
 	}
 
 

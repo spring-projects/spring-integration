@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.sql.CallableStatement;
 import java.util.Collection;
@@ -30,7 +26,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -115,14 +110,14 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		Message<Collection<User>> message = (Message<Collection<User>>) this.outputChannel.receive(10000);
 
 		context.stop();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 
-		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertThat(message.getPayload()).isNotNull();
+		assertThat(message.getPayload() instanceof Collection<?>).isNotNull();
 
 		Collection<User> allUsers = message.getPayload();
 
-		assertTrue(allUsers.size() == 2);
+		assertThat(allUsers.size() == 2).isTrue();
 
 	}
 
@@ -137,15 +132,15 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		this.channel.send(user1Message);
 
 		Message<?> receive = this.startErrorsChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive, instanceOf(ErrorMessage.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive).isInstanceOf(ErrorMessage.class);
 
 		MessageHandlingException exception = (MessageHandlingException) receive.getPayload();
 
 		String expectedMessage = "Unable to resolve Stored Procedure/Function name " +
 				"for the provided Expression 'headers['my_stored_procedure']'.";
 		String actualMessage = exception.getCause().getMessage();
-		Assert.assertEquals(expectedMessage, actualMessage);
+		assertThat(actualMessage).isEqualTo(expectedMessage);
 	}
 
 	@Test
@@ -160,13 +155,13 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 		this.getMessageChannel.send(new GenericMessage<String>(messageId));
 		Message<?> resultMessage = this.output2Channel.receive(10000);
-		assertNotNull(resultMessage);
+		assertThat(resultMessage).isNotNull();
 		Object resultPayload = resultMessage.getPayload();
-		assertTrue(resultPayload instanceof String);
+		assertThat(resultPayload instanceof String).isTrue();
 		Message<?> message = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser())
 				.toMessage((String) resultPayload);
-		assertEquals(testMessage.getPayload(), message.getPayload());
-		assertEquals(testMessage.getHeaders().get("FOO"), message.getHeaders().get("FOO"));
+		assertThat(message.getPayload()).isEqualTo(testMessage.getPayload());
+		assertThat(message.getHeaders().get("FOO")).isEqualTo(testMessage.getHeaders().get("FOO"));
 		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
 				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq((String) null));
 	}
@@ -178,7 +173,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 			fail("ReplyRequiredException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(ReplyRequiredException.class));
+			assertThat(e).isInstanceOf(ReplyRequiredException.class);
 		}
 	}
 

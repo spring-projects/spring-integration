@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.UUID;
@@ -35,58 +32,58 @@ import org.junit.Test;
 public class UUIDConverterTests {
 
 	@Test
-	public void testConvertNull() throws Exception {
-		assertNull(UUIDConverter.getUUID(null));
+	public void testConvertNull() {
+		assertThat(UUIDConverter.getUUID(null)).isNull();
 	}
 
 	@Test
-	public void testConvertUUID() throws Exception {
+	public void testConvertUUID() {
 		UUID uuid = UUID.randomUUID();
-		assertEquals(uuid, UUIDConverter.getUUID(uuid));
+		assertThat(UUIDConverter.getUUID(uuid)).isEqualTo(uuid);
 	}
 
 	@Test
-	public void testConvertUUIDString() throws Exception {
+	public void testConvertUUIDString() {
 		UUID uuid = UUID.randomUUID();
-		assertEquals(uuid, UUIDConverter.getUUID(uuid.toString()));
+		assertThat(UUIDConverter.getUUID(uuid.toString())).isEqualTo(uuid);
 	}
 
 	@Test
-	public void testConvertAlmostUUIDString() throws Exception {
+	public void testConvertAlmostUUIDString() {
 		String name = "1-2-3-4";
 		try {
 			UUID.fromString(name);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException e) {
 			String message = e.getMessage();
-			assertTrue("Wrong message: " + message, message.contains("Invalid UUID string"));
+			assertThat(message.contains("Invalid UUID string")).as("Wrong message: " + message).isTrue();
 		}
-		assertNotNull(UUIDConverter.getUUID(name));
+		assertThat(UUIDConverter.getUUID(name)).isNotNull();
 	}
 
 	@Test
-	public void testConvertRandomString() throws Exception {
+	public void testConvertRandomString() {
 		UUID uuid = UUIDConverter.getUUID("foo");
-		assertNotNull(uuid);
+		assertThat(uuid).isNotNull();
 		String uuidString = uuid.toString();
-		assertEquals(uuidString, UUIDConverter.getUUID("foo").toString());
-		assertEquals(uuidString, UUIDConverter.getUUID(uuid).toString());
+		assertThat(UUIDConverter.getUUID("foo").toString()).isEqualTo(uuidString);
+		assertThat(UUIDConverter.getUUID(uuid).toString()).isEqualTo(uuidString);
 	}
 
 	@Test
-	public void testConvertPrimitive() throws Exception {
-		assertNotNull(UUIDConverter.getUUID(1L));
+	public void testConvertPrimitive() {
+		assertThat(UUIDConverter.getUUID(1L)).isNotNull();
 	}
 
 	@Test
-	public void testConvertSerializable() throws Exception {
-		assertNotNull(UUIDConverter.getUUID(new Date()));
+	public void testConvertSerializable() {
+		assertThat(UUIDConverter.getUUID(new Date())).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConvertNonSerializable() throws Exception {
-		assertNotNull(UUIDConverter.getUUID(new Object()));
+	public void testConvertNonSerializable() {
+		assertThat(UUIDConverter.getUUID(new Object())).isNotNull();
 	}
 
 }

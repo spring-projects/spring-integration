@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,9 +70,9 @@ public class SplitterAggregatorTests extends ActiveMQMultiContextTests {
 		List<Integer> payload = Arrays.asList(1, 2, 3, 4, 5, 6);
 		this.splitChannel.send(new GenericMessage<List<Integer>>(payload));
 		Message<?> message = this.resultChannel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Collections.sort(((List<Integer>) message.getPayload()));
-		assertEquals(payload, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(payload);
 	}
 
 	@Configuration

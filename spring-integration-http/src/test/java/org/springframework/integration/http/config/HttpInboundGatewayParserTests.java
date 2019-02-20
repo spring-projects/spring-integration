@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.http.config;
 
-import static org.hamcrest.CoreMatchers.any;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.util.ArrayList;
@@ -35,7 +27,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,8 +45,6 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingControlle
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -118,34 +107,37 @@ public class HttpInboundGatewayParserTests {
 
 	@Test
 	public void checkConfig() {
-		assertNotNull(this.gateway);
-		assertTrue(getPropertyValue(this.gateway, "expectReply", Boolean.class));
-		assertTrue(getPropertyValue(this.gateway, "convertExceptions", Boolean.class));
-		assertSame(this.responses, getPropertyValue(this.gateway, "replyChannel"));
-		assertNotNull(TestUtils.getPropertyValue(this.gateway, "errorChannel"));
+		assertThat(this.gateway).isNotNull();
+		assertThat(getPropertyValue(this.gateway, "expectReply", Boolean.class)).isTrue();
+		assertThat(getPropertyValue(this.gateway, "convertExceptions", Boolean.class)).isTrue();
+		assertThat(getPropertyValue(this.gateway, "replyChannel")).isSameAs(this.responses);
+		assertThat(TestUtils.getPropertyValue(this.gateway, "errorChannel")).isNotNull();
 		MessagingTemplate messagingTemplate =
 				TestUtils.getPropertyValue(this.gateway, "messagingTemplate", MessagingTemplate.class);
-		assertEquals(1234L, TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
-		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
+		assertThat(TestUtils.getPropertyValue(messagingTemplate, "sendTimeout")).isEqualTo(1234L);
+		assertThat(TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout")).isEqualTo(4567L);
 
 		boolean registerDefaultConverters =
 				TestUtils.getPropertyValue(this.gateway, "mergeWithDefaultConverters", Boolean.class);
-		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
+		assertThat(registerDefaultConverters).as("By default the register-default-converters flag should be false")
+				.isFalse();
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
 				TestUtils.getPropertyValue(this.gateway, "messageConverters", List.class);
 
-		assertTrue("The default converters should have been registered, given there are no custom converters",
-				messageConverters.size() > 0);
+		assertThat(messageConverters.size() > 0)
+				.as("The default converters should have been registered, given there are no custom converters")
+				.isTrue();
 
-		assertFalse(TestUtils.getPropertyValue(this.gateway, "autoStartup", Boolean.class));
-		assertEquals(1001, TestUtils.getPropertyValue(this.gateway, "phase"));
+		assertThat(TestUtils.getPropertyValue(this.gateway, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.gateway, "phase")).isEqualTo(1001);
 	}
 
 	@Test
 	@DirtiesContext
 	public void checkFlow() throws Exception {
-		this.requests.subscribe(handlerExpecting(any(Message.class)));
+		this.requests.subscribe(m -> {
+		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.addHeader("Accept", "application/my-serialized");
@@ -162,28 +154,28 @@ public class HttpInboundGatewayParserTests {
 		this.gateway.start();
 
 		this.gateway.handleRequest(request, response);
-		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 
-		assertEquals(response.getContentType(), "application/my-serialized");
+		assertThat("application/my-serialized").isEqualTo(response.getContentType());
 	}
 
 	@Test
 	public void testController() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
 		String errorCode = (String) accessor.getPropertyValue("errorCode");
-		assertEquals("oops", errorCode);
+		assertThat(errorCode).isEqualTo("oops");
 		LiteralExpression viewExpression = (LiteralExpression) accessor.getPropertyValue("viewExpression");
-		assertEquals("foo", viewExpression.getValue());
+		assertThat(viewExpression.getValue()).isEqualTo("foo");
 	}
 
 	@Test
 	public void testControllerViewExp() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundControllerViewExp);
 		String errorCode = (String) accessor.getPropertyValue("errorCode");
-		assertEquals("oops", errorCode);
+		assertThat(errorCode).isEqualTo("oops");
 		SpelExpression viewExpression = (SpelExpression) accessor.getPropertyValue("viewExpression");
-		assertNotNull(viewExpression);
-		assertEquals("'bar'", viewExpression.getExpressionString());
+		assertThat(viewExpression).isNotNull();
+		assertThat(viewExpression.getExpressionString()).isEqualTo("'bar'");
 	}
 
 	@Test
@@ -196,18 +188,18 @@ public class HttpInboundGatewayParserTests {
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
 		Map<String, Object> map = headerMapper.toHeaders(headers);
-		assertEquals(2, map.size());
-		assertEquals("foo", map.get("foo"));
-		assertEquals("bar", map.get("bar"));
+		assertThat(map.size()).isEqualTo(2);
+		assertThat(map.get("foo")).isEqualTo("foo");
+		assertThat(map.get("bar")).isEqualTo("bar");
 
 		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
 		mapOfHeaders.put("abc", "abc");
 		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
 		headers = new HttpHeaders();
 		headerMapper.fromHeaders(mh, headers);
-		assertEquals(1, headers.size());
+		assertThat(headers.size()).isEqualTo(1);
 		List<String> abc = headers.get("abc");
-		assertEquals("abc", abc.get(0));
+		assertThat(abc.get(0)).isEqualTo("abc");
 	}
 
 	@Test
@@ -223,9 +215,9 @@ public class HttpInboundGatewayParserTests {
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
 		Map<String, Object> map = headerMapper.toHeaders(headers);
-		assertEquals(2, map.size());
-		assertEquals("foo", map.get("foo"));
-		assertEquals("bar", map.get("bar"));
+		assertThat(map.size()).isEqualTo(2);
+		assertThat(map.get("foo")).isEqualTo("foo");
+		assertThat(map.get("bar")).isEqualTo("bar");
 
 		Map<String, Object> mapOfHeaders = new HashMap<>();
 		mapOfHeaders.put("abc", "abc");
@@ -235,11 +227,11 @@ public class HttpInboundGatewayParserTests {
 		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
 		headers = new HttpHeaders();
 		headerMapper.fromHeaders(mh, headers);
-		assertEquals(2, headers.size());
+		assertThat(headers.size()).isEqualTo(2);
 		List<String> abc = headers.get("X-abc");
-		assertEquals("abc", abc.get(0));
+		assertThat(abc.get(0)).isEqualTo("abc");
 		List<String> personHeaders = headers.get("X-person");
-		assertEquals("Oleg", personHeaders.get(0));
+		assertThat(personHeaders.get(0)).isEqualTo("Oleg");
 	}
 
 	@Test
@@ -247,11 +239,12 @@ public class HttpInboundGatewayParserTests {
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
 				TestUtils.getPropertyValue(this.gatewayWithOneCustomConverter, "messageConverters", List.class);
-		assertThat("There should be only 1 message converter, by default register-default-converters is off",
-				messageConverters.size(), is(1));
+		assertThat(messageConverters.size())
+				.as("There should be only 1 message converter, by default register-default-converters is off")
+				.isEqualTo(1);
 
 		//The converter should be the customized one
-		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 	}
 
 	@Test
@@ -260,10 +253,10 @@ public class HttpInboundGatewayParserTests {
 		List<HttpMessageConverter<?>> messageConverters =
 				TestUtils.getPropertyValue(this.gatewayNoDefaultConverters, "messageConverters", List.class);
 		//First converter should be the customized one
-		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 
-		assertThat("There should be only 1 message converter, the register-default-converters is false",
-				messageConverters.size(), is(1));
+		assertThat(messageConverters.size())
+				.as("There should be only 1 message converter, the register-default-converters is false").isEqualTo(1);
 	}
 
 	@Test
@@ -273,17 +266,10 @@ public class HttpInboundGatewayParserTests {
 				TestUtils.getPropertyValue(this.gatewayWithCustomAndDefaultConverters, "messageConverters",
 						List.class);
 		//First converter should be the customized one
-		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 
-		assertTrue("There should be more than one converter",
-				messageConverters.size() > 1);
+		assertThat(messageConverters.size() > 1).as("There should be more than one converter").isTrue();
 	}
-
-	@SuppressWarnings("rawtypes")
-	private MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
-		return message -> assertThat(message, is(messageMatcher));
-	}
-
 
 	public static class Person {
 

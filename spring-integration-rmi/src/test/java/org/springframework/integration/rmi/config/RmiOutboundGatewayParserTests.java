@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.rmi.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -108,37 +104,37 @@ public class RmiOutboundGatewayParserTests {
 
 	@Test
 	public void testProperties() {
-		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertSame(this.configurer, TestUtils.getPropertyValue(this.gateway, "configurer"));
+		assertThat(TestUtils.getPropertyValue(gateway, "order")).isEqualTo(23);
+		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.gateway, "configurer")).isSameAs(this.configurer);
 		verify(this.configurer).configure(any(RmiProxyFactoryBean.class));
 	}
 
 	@Test
 	public void directInvocation() {
-		assertFalse(TestUtils.getPropertyValue(advised, "requiresReply", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(advised, "requiresReply", Boolean.class)).isFalse();
 
 		advisedChannel.send(new GenericMessage<>("test"));
 		Message<?> result = testChannel.receive(1000);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertEquals(1, advice.adviceCalled);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(advice.adviceCalled).isEqualTo(1);
 	}
 
 	@Test //INT-1029
 	public void testRmiOutboundGatewayInsideChain() {
 		rmiOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
 		Message<?> result = testChannel.receive(1000);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test //INT-1029
 	public void testRmiRequestReplyWithinChain() {
 		requestReplyRmiWithChainChannel.send(MessageBuilder.withPayload("test").build());
 		Message<?> result = replyChannel.receive(1000);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -46,35 +46,35 @@ public class GatewayXmlAndAnnotationTests {
 
 	@Test
 	public void test() {
-		assertEquals(123L, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
-				.getValue());
+		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
+				.getValue()).isEqualTo(123L);
 		@SuppressWarnings("unchecked")
 		Map<Method, MessagingGatewaySupport> gatewayMap = TestUtils.getPropertyValue(gatewayProxyFactoryBean,
 				"gatewayMap", Map.class);
 		int assertions = 0;
 		for (Entry<Method, MessagingGatewaySupport> entry : gatewayMap.entrySet()) {
 			if (entry.getKey().getName().equals("annotationShouldntOverrideDefault")) {
-				assertEquals(123L, TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout"));
+				assertThat(TestUtils.getPropertyValue(entry.getValue(),
+						"replyTimeout")).isEqualTo(123L);
 				assertions++;
 			}
 			else if (entry.getKey().getName().equals("annotationShouldOverrideDefault")) {
-				assertEquals(234L, TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout"));
+				assertThat(TestUtils.getPropertyValue(entry.getValue(),
+						"replyTimeout")).isEqualTo(234L);
 				assertions++;
 			}
 			else if (entry.getKey().getName().equals("annotationShouldOverrideDefaultToInfinity")) {
-				assertEquals(-1L, TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout"));
+				assertThat(TestUtils.getPropertyValue(entry.getValue(),
+						"replyTimeout")).isEqualTo(-1L);
 				assertions++;
 			}
 			else if (entry.getKey().getName().equals("explicitTimeoutShouldOverrideDefault")) {
-				assertEquals(456L, TestUtils.getPropertyValue(entry.getValue(),
-						"replyTimeout"));
+				assertThat(TestUtils.getPropertyValue(entry.getValue(),
+						"replyTimeout")).isEqualTo(456L);
 				assertions++;
 			}
 		}
-		assertEquals(4, assertions);
+		assertThat(assertions).isEqualTo(4);
 	}
 
 	public interface AGateway {

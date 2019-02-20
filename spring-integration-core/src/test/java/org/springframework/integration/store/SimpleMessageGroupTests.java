@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.store;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 
@@ -66,11 +63,11 @@ public class SimpleMessageGroupTests {
 		prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").setSequenceNumber(1).build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).setSequenceNumber(1).build();
-		assertThat(this.sequenceAwareGroup.canAdd(message1), is(true));
+		assertThat(this.sequenceAwareGroup.canAdd(message1)).isTrue();
 		this.group.add(message1);
 		this.group.add(message2);
 		prepareForSequenceAwareMessageGroup();
-		assertThat(this.sequenceAwareGroup.canAdd(message1), is(false));
+		assertThat(this.sequenceAwareGroup.canAdd(message1)).isFalse();
 	}
 
 	@Test
@@ -78,11 +75,11 @@ public class SimpleMessageGroupTests {
 		prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).build();
-		assertThat(this.sequenceAwareGroup.canAdd(message1), is(true));
+		assertThat(this.sequenceAwareGroup.canAdd(message1)).isTrue();
 		this.group.add(message1);
 		this.group.add(message2);
 		prepareForSequenceAwareMessageGroup();
-		assertThat(this.sequenceAwareGroup.canAdd(message1), is(true));
+		assertThat(this.sequenceAwareGroup.canAdd(message1)).isTrue();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -97,7 +94,7 @@ public class SimpleMessageGroupTests {
 		messages.add(null);
 		messages.add(m2);
 		SimpleMessageGroup grp = new SimpleMessageGroup(messages, 1);
-		assertEquals(2, grp.getMessages().size());
+		assertThat(grp.getMessages().size()).isEqualTo(2);
 	}
 
 	@Test
@@ -114,7 +111,7 @@ public class SimpleMessageGroupTests {
 			group.getMessages().contains(message);
 		}
 		watch.stop();
-		assertTrue(watch.getTotalTimeMillis() < 5000);
+		assertThat(watch.getTotalTimeMillis() < 5000).isTrue();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,11 +79,11 @@ public class InterceptedSharedConnectionTests {
 			input.send(MessageBuilder.withPayload("Test").build());
 			QueueChannel replies = ctx.getBean("replies", QueueChannel.class);
 			Message<?> message = replies.receive(10000);
-			assertNotNull(message);
-			assertEquals("Test", message.getPayload());
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload()).isEqualTo("Test");
 		}
-		assertThat(this.listener.openEvent, notNullValue());
-		assertThat(this.listener.openEvent.getConnectionFactoryName(), equalTo("client"));
+		assertThat(this.listener.openEvent).isNotNull();
+		assertThat(this.listener.openEvent.getConnectionFactoryName()).isEqualTo("client");
 	}
 
 	public static class Listener implements ApplicationListener<TcpConnectionOpenEvent> {

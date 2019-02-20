@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,8 +59,8 @@ public class Jsr223FilterTests {
 				.build();
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
-		assertEquals("test-2", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("test-2");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -74,10 +72,10 @@ public class Jsr223FilterTests {
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		Message<?> received = replyChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("good", received.getPayload());
-		assertEquals(message2, received);
-		assertNull(replyChannel.receive(0));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("good");
+		assertThat(received).isEqualTo(message2);
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 }

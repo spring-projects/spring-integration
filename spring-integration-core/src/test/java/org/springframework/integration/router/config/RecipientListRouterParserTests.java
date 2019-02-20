@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,34 +65,34 @@ public class RecipientListRouterParserTests {
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertEquals(1, chanel1.receive(0).getPayload());
-		assertEquals(1, chanel2.receive(0).getPayload());
+		assertThat(chanel1.receive(0).getPayload()).isEqualTo(1);
+		assertThat(chanel2.receive(0).getPayload()).isEqualTo(1);
 	}
 
 	@Test
 	public void simpleRouter() {
 		Object endpoint = context.getBean("simpleRouter");
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(RecipientListRouter.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(RecipientListRouter.class);
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertEquals(-1L, new DirectFieldAccessor(
-				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("applySequence"));
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreSendFailures"));
+		assertThat(new DirectFieldAccessor(
+				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout")).isEqualTo(-1L);
+		assertThat(accessor.getPropertyValue("applySequence")).isEqualTo(Boolean.FALSE);
+		assertThat(accessor.getPropertyValue("ignoreSendFailures")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
 	public void customRouter() {
 		Object endpoint = context.getBean("customRouter");
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(RecipientListRouter.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(RecipientListRouter.class);
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertEquals(1234L, new DirectFieldAccessor(
-				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("applySequence"));
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreSendFailures"));
+		assertThat(new DirectFieldAccessor(
+				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout")).isEqualTo(1234L);
+		assertThat(accessor.getPropertyValue("applySequence")).isEqualTo(Boolean.TRUE);
+		assertThat(accessor.getPropertyValue("ignoreSendFailures")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -104,8 +102,8 @@ public class RecipientListRouterParserTests {
 		simpleDynamicInput.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertEquals(1, chanel1.receive(0).getPayload());
-		assertNull(chanel2.receive(0));
+		assertThat(chanel1.receive(0).getPayload()).isEqualTo(1);
+		assertThat(chanel2.receive(0)).isNull();
 	}
 
 	@Test
@@ -116,9 +114,9 @@ public class RecipientListRouterParserTests {
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		Message<?> output = chanel1.receive(0);
-		assertNotNull(output);
-		assertEquals(1, output.getPayload());
-		assertNull(chanel2.receive(0));
+		assertThat(output).isNotNull();
+		assertThat(output.getPayload()).isEqualTo(1);
+		assertThat(chanel2.receive(0)).isNull();
 	}
 
 	public static class TestBean {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
@@ -62,7 +62,7 @@ public class PublishingInterceptorParserTests {
 		defaultChannel.subscribe(handler);
 		doAnswer(invocation -> {
 			Message<?> message = invocation.getArgument(0);
-			assertEquals("hello", message.getPayload());
+			assertThat(message.getPayload()).isEqualTo("hello");
 			return null;
 		}).when(handler).handleMessage(any(Message.class));
 		testBean.echoDefaultChannel("hello");
@@ -75,8 +75,8 @@ public class PublishingInterceptorParserTests {
 		echoChannel.subscribe(handler);
 		doAnswer(invocation -> {
 			Message<?> message = invocation.getArgument(0);
-			assertEquals("bar", message.getHeaders().get("foo"));
-			assertEquals("Echoing: hello", message.getPayload());
+			assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
+			assertThat(message.getPayload()).isEqualTo("Echoing: hello");
 			return null;
 		}).when(handler).handleMessage(any(Message.class));
 		testBean.echo("hello");

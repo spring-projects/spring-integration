@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,45 +73,45 @@ public class ResequencerIntegrationTests {
 		Message<?> message6 = MessageBuilder.withPayload("6").setCorrelationId("A").setSequenceNumber(6).build();
 
 		inputChannel.send(message3);
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
-		assertNotNull(message1);
-		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
-		assertFalse(message1.getHeaders().containsKey("foo"));
+		assertThat(message1).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message1).getSequenceNumber()).isEqualTo(1);
+		assertThat(message1.getHeaders().containsKey("foo")).isFalse();
 
 		inputChannel.send(message2);
 		message2 = outputChannel.receive(0);
 		message3 = outputChannel.receive(0);
-		assertNotNull(message2);
-		assertNotNull(message3);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
-		assertTrue(message2.getHeaders().containsKey("foo"));
-		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
-		assertFalse(message3.getHeaders().containsKey("foo"));
+		assertThat(message2).isNotNull();
+		assertThat(message3).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message2).getSequenceNumber()).isEqualTo(2);
+		assertThat(message2.getHeaders().containsKey("foo")).isTrue();
+		assertThat(new IntegrationMessageHeaderAccessor(message3).getSequenceNumber()).isEqualTo(3);
+		assertThat(message3.getHeaders().containsKey("foo")).isFalse();
 
 		inputChannel.send(message5);
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 
 		inputChannel.send(message6);
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 
 		inputChannel.send(message4);
 		message4 = outputChannel.receive(0);
 		message5 = outputChannel.receive(0);
 		message6 = outputChannel.receive(0);
-		assertNotNull(message4);
-		assertNotNull(message5);
-		assertNotNull(message6);
-		assertEquals(4, new IntegrationMessageHeaderAccessor(message4).getSequenceNumber());
-		assertTrue(message4.getHeaders().containsKey("foo"));
-		assertEquals(5, new IntegrationMessageHeaderAccessor(message5).getSequenceNumber());
-		assertFalse(message5.getHeaders().containsKey("foo"));
-		assertEquals(6, new IntegrationMessageHeaderAccessor(message6).getSequenceNumber());
-		assertFalse(message6.getHeaders().containsKey("foo"));
+		assertThat(message4).isNotNull();
+		assertThat(message5).isNotNull();
+		assertThat(message6).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message4).getSequenceNumber()).isEqualTo(4);
+		assertThat(message4.getHeaders().containsKey("foo")).isTrue();
+		assertThat(new IntegrationMessageHeaderAccessor(message5).getSequenceNumber()).isEqualTo(5);
+		assertThat(message5.getHeaders().containsKey("foo")).isFalse();
+		assertThat(new IntegrationMessageHeaderAccessor(message6).getSequenceNumber()).isEqualTo(6);
+		assertThat(message6.getHeaders().containsKey("foo")).isFalse();
 
-		assertEquals(0, store.getMessageGroup("A").getMessages().size());
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(0);
 	}
 
 	@Test
@@ -131,13 +127,13 @@ public class ResequencerIntegrationTests {
 		Message<?> message3 = MessageBuilder.withPayload("3").setCorrelationId("A").setSequenceNumber(3).build();
 
 		inputChannel.send(message3);
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 		inputChannel.send(message1);
-		assertNotNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNotNull();
 		inputChannel.send(message2);
-		assertNotNull(outputChannel.receive(0));
-		assertNotNull(outputChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getMessages().size());
+		assertThat(outputChannel.receive(0)).isNotNull();
+		assertThat(outputChannel.receive(0)).isNotNull();
+		assertThat(store.getMessageGroup("A").getMessages().size()).isEqualTo(0);
 	}
 
 	@Test
@@ -147,8 +143,8 @@ public class ResequencerIntegrationTests {
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
-		assertNotNull(message1);
-		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertThat(message1).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message1).getSequenceNumber()).isEqualTo(1);
 	}
 
 }

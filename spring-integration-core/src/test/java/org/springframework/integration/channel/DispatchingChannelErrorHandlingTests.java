@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -76,11 +74,11 @@ public class DispatchingChannelErrorHandlingTests {
 		channel.send(message);
 		this.waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessagingException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessagingException.class);
 		MessagingException exceptionPayload = (MessagingException) errorMessage.getPayload();
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
-		assertSame(message, exceptionPayload.getFailedMessage());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(exceptionPayload.getFailedMessage()).isSameAs(message);
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -105,11 +103,11 @@ public class DispatchingChannelErrorHandlingTests {
 		channel.send(message);
 		this.waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessagingException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessagingException.class);
 		MessagingException exceptionPayload = (MessagingException) errorMessage.getPayload();
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
-		assertSame(message, exceptionPayload.getFailedMessage());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(exceptionPayload.getFailedMessage()).isSameAs(message);
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 

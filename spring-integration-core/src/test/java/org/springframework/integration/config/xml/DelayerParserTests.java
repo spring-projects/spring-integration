@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -65,42 +60,45 @@ public class DelayerParserTests {
 	@Test
 	public void defaultScheduler() {
 		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
-		assertEquals(99, delayHandler.getOrder());
-		assertEquals(context.getBean("output"), TestUtils.getPropertyValue(delayHandler, "outputChannel"));
-		assertEquals(new Long(1234), TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class));
+		assertThat(delayHandler.getOrder()).isEqualTo(99);
+		assertThat(TestUtils.getPropertyValue(delayHandler, "outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class)).isEqualTo(new Long(1234));
 		//INT-2243
-		assertNotNull(TestUtils.getPropertyValue(delayHandler, "delayExpression"));
-		assertEquals("headers.foo", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
-		assertEquals(new Long(987), TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class));
-		assertNull(TestUtils.getPropertyValue(delayHandler, "taskScheduler"));
+		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+				.isEqualTo("headers.foo");
+		assertThat(TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class))
+				.isEqualTo(new Long(987));
+		assertThat(TestUtils.getPropertyValue(delayHandler, "taskScheduler")).isNull();
 	}
 
 	@Test
 	public void customScheduler() {
 		Object endpoint = context.getBean("delayerWithCustomScheduler");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(DelayHandler.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(DelayHandler.class);
 		DelayHandler delayHandler = (DelayHandler) handler;
-		assertEquals(Ordered.LOWEST_PRECEDENCE, delayHandler.getOrder());
+		assertThat(delayHandler.getOrder()).isEqualTo(Ordered.LOWEST_PRECEDENCE);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
-		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
-		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("taskScheduler"));
-		assertNotNull(accessor.getPropertyValue("taskScheduler"));
-		assertEquals(Boolean.TRUE, new DirectFieldAccessor(
-				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"));
+		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("defaultDelay")).isEqualTo(new Long(0));
+		assertThat(accessor.getPropertyValue("taskScheduler")).isEqualTo(context.getBean("testScheduler"));
+		assertThat(accessor.getPropertyValue("taskScheduler")).isNotNull();
+		assertThat(new DirectFieldAccessor(
+				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"))
+				.isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void customMessageStore() {
 		Object endpoint = context.getBean("delayerWithCustomMessageStore");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(DelayHandler.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(DelayHandler.class);
 		DelayHandler delayHandler = (DelayHandler) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
-		assertEquals(context.getBean("testMessageStore"), accessor.getPropertyValue("messageStore"));
+		assertThat(accessor.getPropertyValue("messageStore")).isEqualTo(context.getBean("testMessageStore"));
 	}
 
 	@Test //INT-2649
@@ -108,17 +106,17 @@ public class DelayerParserTests {
 		Object endpoint = context.getBean("delayerWithTransactional");
 		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
 		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
-		assertEquals(1, adviceChain.size());
+		assertThat(adviceChain.size()).isEqualTo(1);
 		Object advice = adviceChain.get(0);
-		assertTrue(advice instanceof TransactionInterceptor);
+		assertThat(advice instanceof TransactionInterceptor).isTrue();
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) advice).getTransactionAttributeSource();
-		assertTrue(transactionAttributeSource instanceof MatchAlwaysTransactionAttributeSource);
+		assertThat(transactionAttributeSource instanceof MatchAlwaysTransactionAttributeSource).isTrue();
 		Method method = MessageHandler.class.getMethod("handleMessage", Message.class);
 		TransactionDefinition definition = transactionAttributeSource.getTransactionAttribute(method, null);
-		assertEquals(TransactionDefinition.PROPAGATION_REQUIRED, definition.getPropagationBehavior());
-		assertEquals(TransactionDefinition.ISOLATION_DEFAULT, definition.getIsolationLevel());
-		assertEquals(TransactionDefinition.TIMEOUT_DEFAULT, definition.getTimeout());
-		assertFalse(definition.isReadOnly());
+		assertThat(definition.getPropagationBehavior()).isEqualTo(TransactionDefinition.PROPAGATION_REQUIRED);
+		assertThat(definition.getIsolationLevel()).isEqualTo(TransactionDefinition.ISOLATION_DEFAULT);
+		assertThat(definition.getTimeout()).isEqualTo(TransactionDefinition.TIMEOUT_DEFAULT);
+		assertThat(definition.isReadOnly()).isFalse();
 	}
 
 	@Test //INT-2649
@@ -126,28 +124,30 @@ public class DelayerParserTests {
 		Object endpoint = context.getBean("delayerWithAdviceChain");
 		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
 		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
-		assertEquals(2, adviceChain.size());
-		assertSame(context.getBean("testAdviceBean"), adviceChain.get(0));
+		assertThat(adviceChain.size()).isEqualTo(2);
+		assertThat(adviceChain.get(0)).isSameAs(context.getBean("testAdviceBean"));
 
 		Object txAdvice = adviceChain.get(1);
-		assertEquals(TransactionInterceptor.class, txAdvice.getClass());
+		assertThat(txAdvice.getClass()).isEqualTo(TransactionInterceptor.class);
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
-		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
+		assertThat(transactionAttributeSource.getClass()).isEqualTo(NameMatchTransactionAttributeSource.class);
 		HashMap<?, ?> nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
-		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
+		assertThat(nameMap.toString()).isEqualTo("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}");
 	}
 
 	@Test
 	public void testInt2243Expression() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpression.handler", DelayHandler.class);
-		assertEquals("100", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
-		assertFalse(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+				.isEqualTo("100");
+		assertThat(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class)).isFalse();
 	}
 
 	@Test
 	public void testInt2243ExpressionSubElement() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpressionSubElement.handler", DelayHandler.class);
-		assertEquals("headers.timestamp + 1000", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
+		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString())
+				.isEqualTo("headers.timestamp + 1000");
 	}
 
 }

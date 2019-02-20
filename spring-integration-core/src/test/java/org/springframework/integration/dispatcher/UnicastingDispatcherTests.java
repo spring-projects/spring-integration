@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -45,14 +44,14 @@ public class UnicastingDispatcherTests {
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
 		MessageHandler errorHandler = message -> {
 			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			assertTrue(message.getPayload() instanceof MessageDeliveryException);
+			assertThat(message.getPayload() instanceof MessageDeliveryException).isTrue();
 			replyChannel.send(new GenericMessage<String>("reply"));
 		};
 		errorChannel.subscribe(errorHandler);
 
 		RequestReplyExchanger exchanger = context.getBean(RequestReplyExchanger.class);
 		Message<String> reply = (Message<String>) exchanger.exchange(new GenericMessage<String>("Hello"));
-		assertEquals("reply", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("reply");
 		context.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -53,11 +52,11 @@ public class SelectorChainParserTests {
 		MessageSelector selector2 = (MessageSelector) context.getBean("selector2");
 		MessageSelectorChain chain = (MessageSelectorChain) context.getBean("selectorChain");
 		List<MessageSelector> selectors = this.getSelectors(chain);
-		assertEquals(VotingStrategy.ALL, this.getStrategy(chain));
-		assertEquals(selector1, selectors.get(0));
-		assertEquals(selector2, selectors.get(1));
-		assertTrue(chain.accept(new GenericMessage<>("test")));
-		assertTrue(this.context.containsBean("pojoSelector"));
+		assertThat(this.getStrategy(chain)).isEqualTo(VotingStrategy.ALL);
+		assertThat(selectors.get(0)).isEqualTo(selector1);
+		assertThat(selectors.get(1)).isEqualTo(selector2);
+		assertThat(chain.accept(new GenericMessage<>("test"))).isTrue();
+		assertThat(this.context.containsBean("pojoSelector")).isTrue();
 	}
 
 	@Test
@@ -69,30 +68,30 @@ public class SelectorChainParserTests {
 		MessageSelector selector5 = (MessageSelector) context.getBean("selector5");
 		MessageSelector selector6 = (MessageSelector) context.getBean("selector6");
 		MessageSelectorChain chain1 = (MessageSelectorChain) context.getBean("nestedSelectorChain");
-		assertEquals(VotingStrategy.MAJORITY, this.getStrategy(chain1));
+		assertThat(this.getStrategy(chain1)).isEqualTo(VotingStrategy.MAJORITY);
 		List<MessageSelector> selectorList1 = this.getSelectors(chain1);
-		assertEquals(selector1, selectorList1.get(0));
-		assertTrue(selectorList1.get(1) instanceof MessageSelectorChain);
+		assertThat(selectorList1.get(0)).isEqualTo(selector1);
+		assertThat(selectorList1.get(1) instanceof MessageSelectorChain).isTrue();
 		MessageSelectorChain chain2 = (MessageSelectorChain) selectorList1.get(1);
-		assertEquals(VotingStrategy.ALL, this.getStrategy(chain2));
+		assertThat(this.getStrategy(chain2)).isEqualTo(VotingStrategy.ALL);
 		List<MessageSelector> selectorList2 = this.getSelectors(chain2);
-		assertEquals(selector2, selectorList2.get(0));
-		assertTrue(selectorList2.get(1) instanceof MessageSelectorChain);
+		assertThat(selectorList2.get(0)).isEqualTo(selector2);
+		assertThat(selectorList2.get(1) instanceof MessageSelectorChain).isTrue();
 		MessageSelectorChain chain3 = (MessageSelectorChain) selectorList2.get(1);
-		assertEquals(VotingStrategy.ANY, this.getStrategy(chain3));
+		assertThat(this.getStrategy(chain3)).isEqualTo(VotingStrategy.ANY);
 		List<MessageSelector> selectorList3 = this.getSelectors(chain3);
-		assertEquals(selector3, selectorList3.get(0));
-		assertEquals(selector4, selectorList3.get(1));
-		assertEquals(selector5, selectorList2.get(2));
-		assertTrue(selectorList1.get(2) instanceof MessageSelectorChain);
+		assertThat(selectorList3.get(0)).isEqualTo(selector3);
+		assertThat(selectorList3.get(1)).isEqualTo(selector4);
+		assertThat(selectorList2.get(2)).isEqualTo(selector5);
+		assertThat(selectorList1.get(2) instanceof MessageSelectorChain).isTrue();
 		MessageSelectorChain chain4 = (MessageSelectorChain) selectorList1.get(2);
-		assertEquals(VotingStrategy.MAJORITY_OR_TIE, this.getStrategy(chain4));
+		assertThat(this.getStrategy(chain4)).isEqualTo(VotingStrategy.MAJORITY_OR_TIE);
 		List<MessageSelector> selectorList4 = this.getSelectors(chain4);
-		assertEquals(selector6, selectorList4.get(0));
-		assertTrue(chain1.accept(new GenericMessage<>("test1")));
-		assertTrue(chain2.accept(new GenericMessage<>("test2")));
-		assertTrue(chain3.accept(new GenericMessage<>("test3")));
-		assertTrue(chain4.accept(new GenericMessage<>("test4")));
+		assertThat(selectorList4.get(0)).isEqualTo(selector6);
+		assertThat(chain1.accept(new GenericMessage<>("test1"))).isTrue();
+		assertThat(chain2.accept(new GenericMessage<>("test2"))).isTrue();
+		assertThat(chain3.accept(new GenericMessage<>("test3"))).isTrue();
+		assertThat(chain4.accept(new GenericMessage<>("test4"))).isTrue();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -100,34 +94,34 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 				"handler", SimpleWebServiceOutboundGateway.class);
 		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper",
 				DefaultSoapHeaderMapper.class);
-		assertNotNull(headerMapper);
+		assertThat(headerMapper).isNotNull();
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
 				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertTrue(requestHeaderMatcher.matchHeader("foo"));
-		assertTrue(requestHeaderMatcher.matchHeader("foo123"));
-		assertTrue(requestHeaderMatcher.matchHeader("baz"));
-		assertTrue(requestHeaderMatcher.matchHeader("123baz123"));
-		assertFalse(requestHeaderMatcher.matchHeader("bar"));
-		assertFalse(requestHeaderMatcher.matchHeader("bar123"));
+		assertThat(requestHeaderMatcher.matchHeader("foo")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("foo123")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("baz")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("123baz123")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("bar")).isFalse();
+		assertThat(requestHeaderMatcher.matchHeader("bar123")).isFalse();
 
 		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
 				"replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertFalse(replyHeaderMatcher.matchHeader("foo"));
-		assertFalse(replyHeaderMatcher.matchHeader("foo123"));
-		assertFalse(replyHeaderMatcher.matchHeader("baz"));
-		assertFalse(replyHeaderMatcher.matchHeader("123baz123"));
-		assertTrue(replyHeaderMatcher.matchHeader("bar"));
-		assertTrue(replyHeaderMatcher.matchHeader("bar123"));
+		assertThat(replyHeaderMatcher.matchHeader("foo")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("foo123")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("baz")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("123baz123")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("bar")).isTrue();
+		assertThat(replyHeaderMatcher.matchHeader("bar123")).isTrue();
 	}
 
 	@Test
 	public void withHeaderMapperString() throws Exception {
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertTrue(replyMessage.getPayload() instanceof String);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertNull(replyMessage.getHeaders().get("baz"));
+		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
 	@Test
@@ -138,17 +132,17 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertThat(replyMessage.getPayload(), instanceOf(WebServiceMessage.class));
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertNull(replyMessage.getHeaders().get("baz"));
+		assertThat(replyMessage.getPayload()).isInstanceOf(WebServiceMessage.class);
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
 	@Test
 	public void withHeaderMapperStringPOX() throws Exception {
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertTrue(replyMessage.getPayload() instanceof String);
-		assertTrue(((String) replyMessage.getPayload()).contains("<person><name>oleg</name></person>"));
+		assertThat(replyMessage.getPayload() instanceof String).isTrue();
+		assertThat(((String) replyMessage.getPayload()).contains("<person><name>oleg</name></person>")).isTrue();
 	}
 
 	@Test
@@ -158,9 +152,9 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		DOMSource payload = new DOMSource(document);
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertTrue(replyMessage.getPayload() instanceof DOMSource);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertNull(replyMessage.getHeaders().get("baz"));
+		assertThat(replyMessage.getPayload() instanceof DOMSource).isTrue();
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
 	@Test
@@ -170,8 +164,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		DOMSource payload = new DOMSource(document);
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertTrue(replyMessage.getPayload() instanceof DOMSource);
-		assertTrue(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>"));
+		assertThat(replyMessage.getPayload() instanceof DOMSource).isTrue();
+		assertThat(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>")).isTrue();
 	}
 
 	@Test
@@ -180,9 +174,9 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", true);
-		assertTrue(replyMessage.getPayload() instanceof Document);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertNull(replyMessage.getHeaders().get("baz"));
+		assertThat(replyMessage.getPayload() instanceof Document).isTrue();
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
 	@Test
@@ -191,8 +185,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		Message<?> replyMessage = process(payload, "withHeaderMapper", "inputChannel", false);
-		assertTrue(replyMessage.getPayload() instanceof Document);
-		assertTrue(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>"));
+		assertThat(replyMessage.getPayload() instanceof Document).isTrue();
+		assertThat(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>")).isTrue();
 	}
 
 	@Test
@@ -200,8 +194,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Person person = new Person();
 		person.setName("Bill Clinton");
 		Message<?> replyMessage = process(person, "marshallingWithHeaderMapper", "inputMarshallingChannel", true);
-		assertEquals("bar", replyMessage.getHeaders().get("bar"));
-		assertNull(replyMessage.getHeaders().get("baz"));
+		assertThat(replyMessage.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(replyMessage.getHeaders().get("baz")).isNull();
 	}
 
 	private Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
@@ -233,10 +227,10 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //				}
 			if (soap) {
 				SoapHeader soapHeader = ((SoapMessage) wsMessage).getSoapHeader();
-				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo")));
-				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar")));
-				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz")));
-				assertNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar")));
+				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo"))).isNotNull();
+				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar"))).isNotNull();
+				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz"))).isNotNull();
+				assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar"))).isNull();
 			}
 			return null;
 

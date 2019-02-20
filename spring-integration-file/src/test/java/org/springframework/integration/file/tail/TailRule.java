@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.tail;
 
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +39,10 @@ import org.junit.runners.model.Statement;
 /**
  * Ignores tests annotated with {@link TailAvailable} if 'tail' with the requested options
  * does not work on this platform.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -62,7 +65,7 @@ public class TailRule extends TestWatcher {
 				return new Statement() {
 
 					@Override
-					public void evaluate() throws Throwable {
+					public void evaluate() {
 						// skip
 					}
 				};
@@ -83,7 +86,7 @@ public class TailRule extends TestWatcher {
 			OutputStream fos = new FileOutputStream(file);
 			fos.write("foo".getBytes());
 			fos.close();
-			final AtomicReference<Integer> c = new AtomicReference<Integer>();
+			final AtomicReference<Integer> c = new AtomicReference<>();
 			final CountDownLatch latch = new CountDownLatch(1);
 			Future<Process> future = Executors.newSingleThreadExecutor().submit(() -> {
 				final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
@@ -127,7 +130,9 @@ public class TailRule extends TestWatcher {
 		@Test
 		public void test1() {
 			TailRule rule = new TailRule("-BLAH");
-			assertFalse(rule.tailWorksOnThisMachine());
+			assertThat(rule.tailWorksOnThisMachine()).isFalse();
 		}
+
 	}
+
 }

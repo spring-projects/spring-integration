@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -102,11 +97,11 @@ public class BackToBackAdapterTests {
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> out = outputChannel.receive(20000);
-		assertNotNull(out);
+		assertThat(out).isNotNull();
 		adapter.stop();
 		inbound.stop();
-		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 	}
 
 	@Test
@@ -134,12 +129,12 @@ public class BackToBackAdapterTests {
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<Foo>(new Foo("bar"), Collections.singletonMap("baz", "qux")));
 		Message<?> out = outputChannel.receive(20000);
-		assertNotNull(out);
+		assertThat(out).isNotNull();
 		adapter.stop();
 		inbound.stop();
-		assertEquals(new Foo("bar"), out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
-		assertEquals("qux", out.getHeaders().get("baz"));
+		assertThat(out.getPayload()).isEqualTo(new Foo("bar"));
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
+		assertThat(out.getHeaders().get("baz")).isEqualTo("qux");
 	}
 
 	@Test
@@ -161,28 +156,28 @@ public class BackToBackAdapterTests {
 		inbound.addTopic("mqtt-foo");
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> out = outputChannel.receive(20_000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 
 		inbound.addTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
 		out = outputChannel.receive(20_000);
-		assertNotNull(out);
-		assertEquals("bar", out.getPayload());
-		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("bar");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-bar");
 
 		inbound.removeTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
 		out = outputChannel.receive(1);
-		assertNull(out);
+		assertThat(out).isNull();
 
 		try {
 			inbound.addTopic("mqtt-foo");
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
-			assertEquals("Topic 'mqtt-foo' is already subscribed.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Topic 'mqtt-foo' is already subscribed.");
 		}
 
 		inbound.addTopic("mqqt-bar", "mqqt-baz");
@@ -215,14 +210,14 @@ public class BackToBackAdapterTests {
 		Message<?> message = MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build();
 		adapter.handleMessage(message);
 		Message<?> out = outputChannel.receive(20000);
-		assertNotNull(out);
-		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 		out = outputChannel.receive(20000);
-		assertNotNull(out);
+		assertThat(out).isNotNull();
 		inbound.stop();
-		assertEquals("bar", out.getPayload());
-		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out.getPayload()).isEqualTo("bar");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-bar");
 		adapter.stop();
 	}
 
@@ -251,11 +246,11 @@ public class BackToBackAdapterTests {
 		adapter.handleMessage(message);
 		verifyEvents(adapter, publisher, message);
 		Message<?> out = outputChannel.receive(20000);
-		assertNotNull(out);
+		assertThat(out).isNotNull();
 		adapter.stop();
 		inbound.stop();
-		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertThat(out.getPayload()).isEqualTo("foo");
+		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 	}
 
 	@Test
@@ -315,17 +310,17 @@ public class BackToBackAdapterTests {
 
 		verifyMessageIds(publisher1, publisher2);
 
-		assertNotEquals(clientInstance, publisher1.delivered.getClientInstance());
+		assertThat(publisher1.delivered.getClientInstance()).isNotEqualTo(clientInstance);
 
 		Message<?> out = null;
 		for (int i = 0; i < 4; i++) {
 			out = outputChannel.receive(20000);
-			assertNotNull(out);
+			assertThat(out).isNotNull();
 			if ("foo".equals(out.getPayload())) {
-				assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+				assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 			}
 			else if ("bar".equals(out.getPayload())) {
-				assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+				assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-bar");
 			}
 			else {
 				fail("unexpected payload " + out.getPayload());
@@ -337,29 +332,29 @@ public class BackToBackAdapterTests {
 
 	private void verifyEvents(MqttPahoMessageHandler adapter, EventPublisher publisher1, Message<String> message1)
 			throws InterruptedException {
-		assertTrue(publisher1.latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(publisher1.sent);
-		assertNotNull(publisher1.delivered);
-		assertEquals(publisher1.sent.getMessageId(), publisher1.delivered.getMessageId());
-		assertEquals(adapter.getClientId(), publisher1.sent.getClientId());
-		assertEquals(adapter.getClientId(), publisher1.delivered.getClientId());
-		assertEquals(adapter.getClientInstance(), publisher1.sent.getClientInstance());
-		assertEquals(adapter.getClientInstance(), publisher1.delivered.getClientInstance());
-		assertSame(message1, publisher1.sent.getMessage());
+		assertThat(publisher1.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(publisher1.sent).isNotNull();
+		assertThat(publisher1.delivered).isNotNull();
+		assertThat(publisher1.delivered.getMessageId()).isEqualTo(publisher1.sent.getMessageId());
+		assertThat(publisher1.sent.getClientId()).isEqualTo(adapter.getClientId());
+		assertThat(publisher1.delivered.getClientId()).isEqualTo(adapter.getClientId());
+		assertThat(publisher1.sent.getClientInstance()).isEqualTo(adapter.getClientInstance());
+		assertThat(publisher1.delivered.getClientInstance()).isEqualTo(adapter.getClientInstance());
+		assertThat(publisher1.sent.getMessage()).isSameAs(message1);
 	}
 
 	private void verifyMessageIds(EventPublisher publisher1, EventPublisher publisher2) {
-		assertNotEquals(publisher1.delivered.getMessageId(), publisher2.delivered.getMessageId());
-		assertEquals(publisher1.delivered.getClientId(), publisher2.delivered.getClientId());
-		assertEquals(publisher1.delivered.getClientInstance(), publisher2.delivered.getClientInstance());
+		assertThat(publisher2.delivered.getMessageId()).isNotEqualTo(publisher1.delivered.getMessageId());
+		assertThat(publisher2.delivered.getClientId()).isEqualTo(publisher1.delivered.getClientId());
+		assertThat(publisher2.delivered.getClientInstance()).isEqualTo(publisher1.delivered.getClientInstance());
 	}
 
 	@Test
 	public void testMultiURIs() {
 		out.send(new GenericMessage<String>("foo"));
 		Message<?> message = in.receive(20000);
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
 	}
 
 	private class EventPublisher implements ApplicationEventPublisher {

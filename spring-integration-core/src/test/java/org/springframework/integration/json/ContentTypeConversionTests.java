@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Map;
@@ -63,13 +63,13 @@ public class ContentTypeConversionTests {
 		String json = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42}";
 		TestPerson testPerson = this.serviceGateway.convertJsonToPerson(json);
 
-		assertEquals(json, this.sendData.get());
-		assertEquals("John", testPerson.getFirstName());
-		assertEquals(42, testPerson.getAge());
+		assertThat(this.sendData.get()).isEqualTo(json);
+		assertThat(testPerson.getFirstName()).isEqualTo("John");
+		assertThat(testPerson.getAge()).isEqualTo(42);
 
 		Map<String, String> map = Collections.singletonMap("foo", "bar");
 		String result = this.serviceGateway.mapToString(map);
-		assertEquals(map.toString(), result);
+		assertThat(result).isEqualTo(map.toString());
 	}
 
 	@MessagingGateway

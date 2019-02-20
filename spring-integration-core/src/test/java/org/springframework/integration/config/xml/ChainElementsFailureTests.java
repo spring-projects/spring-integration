@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
@@ -51,8 +50,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:service-activator'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:service-activator'.");
 		}
 
 	}
@@ -65,8 +65,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:aggregator'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:aggregator'.");
 		}
 
 	}
@@ -79,8 +80,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:chain'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:chain'.");
 		}
 	}
 
@@ -92,8 +94,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:delayer'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:delayer'.");
 		}
 	}
 
@@ -105,8 +108,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:filter'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:filter'.");
 		}
 	}
 
@@ -118,8 +122,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:gateway'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:gateway'.");
 		}
 	}
 
@@ -131,8 +136,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:header-enricher'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:header-enricher'.");
 		}
 	}
 
@@ -144,8 +149,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:header-filter'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:header-filter'.");
 		}
 	}
 
@@ -157,8 +162,9 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:header-value-router'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int:header-value-router'.");
 		}
 	}
 
@@ -170,8 +176,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:transformer'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:transformer'.");
 		}
 	}
 
@@ -183,8 +189,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:router'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:router'.");
 		}
 	}
 
@@ -196,8 +202,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:splitter'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:splitter'.");
 		}
 	}
 
@@ -209,8 +215,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int:resequencer'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:resequencer'.");
 		}
 	}
 
@@ -226,8 +232,9 @@ public class ChainElementsFailureTests {
 					"'int:resequencer' must not define a 'poller' sub-element " +
 					"when used within a chain.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat(actualMessage.startsWith(expectedMessage))
+					.as("Error message did not start with '" + expectedMessage +
+							"' but instead returned: '" + actualMessage + "'").isTrue();
 		}
 	}
 
@@ -239,8 +246,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().contains("A bean definition is already registered for " +
-					"beanName: 'foo$child.bar.handler' within the current <chain>."));
+			assertThat(e.getMessage().contains("A bean definition is already registered for " +
+					"beanName: 'foo$child.bar.handler' within the current <chain>.")).isTrue();
 		}
 	}
 

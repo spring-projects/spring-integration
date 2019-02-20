@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -148,14 +141,14 @@ public class CachingClientConnectionFactoryTests {
 		cachedConn1.onMessage(new ErrorMessage(new RuntimeException()));
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).debug(captor.capture());
-		assertThat(captor.getValue(), startsWith("Message discarded; no listener:"));
+		assertThat(captor.getValue()).startsWith("Message discarded; no listener:");
 		// end INT-3652
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
+		assertThat(conn2.toString()).isEqualTo("Cached:" + mockConn2.toString());
 		conn1.close();
 		conn2.close();
 	}
@@ -170,12 +163,12 @@ public class CachingClientConnectionFactoryTests {
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 0);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
+		assertThat(conn2.toString()).isEqualTo("Cached:" + mockConn2.toString());
 		conn1.close();
 		conn2.close();
 	}
@@ -200,19 +193,19 @@ public class CachingClientConnectionFactoryTests {
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
+		assertThat(conn2.toString()).isEqualTo("Cached:" + mockConn2.toString());
 		conn1.close();
 		conn2.close();
 		when(mockConn1.isOpen()).thenReturn(false);
 		TcpConnection conn2a = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2a.toString());
-		assertSame(TestUtils.getPropertyValue(conn2, "theConnection"),
-				TestUtils.getPropertyValue(conn2a, "theConnection"));
+		assertThat(conn2a.toString()).isEqualTo("Cached:" + mockConn2.toString());
+		assertThat(TestUtils.getPropertyValue(conn2a, "theConnection"))
+				.isSameAs(TestUtils.getPropertyValue(conn2, "theConnection"));
 		conn2a.close();
 	}
 
@@ -227,12 +220,12 @@ public class CachingClientConnectionFactoryTests {
 		cachingFactory.setConnectionWaitTimeout(10);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
+		assertThat(conn2.toString()).isEqualTo("Cached:" + mockConn2.toString());
 		cachingFactory.getConnection();
 	}
 
@@ -249,12 +242,12 @@ public class CachingClientConnectionFactoryTests {
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		conn1.close();
 		conn1 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
+		assertThat(conn1.toString()).isEqualTo("Cached:" + mockConn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
+		assertThat(conn2.toString()).isEqualTo("Cached:" + mockConn2.toString());
 		cachingFactory.stop();
 		Answer<Object> answer = new Answer<Object>() {
 
@@ -275,10 +268,10 @@ public class CachingClientConnectionFactoryTests {
 		when(mockConn2.isOpen()).thenReturn(false);
 		when(factory.isRunning()).thenReturn(true);
 		TcpConnection conn3 = cachingFactory.getConnection();
-		assertNotSame(TestUtils.getPropertyValue(conn1, "theConnection"),
-				TestUtils.getPropertyValue(conn3, "theConnection"));
-		assertNotSame(TestUtils.getPropertyValue(conn2, "theConnection"),
-				TestUtils.getPropertyValue(conn3, "theConnection"));
+		assertThat(TestUtils.getPropertyValue(conn3, "theConnection"))
+				.isNotSameAs(TestUtils.getPropertyValue(conn1, "theConnection"));
+		assertThat(TestUtils.getPropertyValue(conn3, "theConnection"))
+				.isNotSameAs(TestUtils.getPropertyValue(conn2, "theConnection"));
 	}
 
 	@Test
@@ -294,20 +287,20 @@ public class CachingClientConnectionFactoryTests {
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertNotSame(conn1, conn2);
+		assertThat(conn2).isNotSameAs(conn1);
 		Semaphore semaphore = TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits", Semaphore.class);
-		assertEquals(0, semaphore.availablePermits());
+		assertThat(semaphore.availablePermits()).isEqualTo(0);
 		cachingFactory.setPoolSize(4);
 		TcpConnection conn3 = cachingFactory.getConnection();
 		TcpConnection conn4 = cachingFactory.getConnection();
-		assertEquals(0, semaphore.availablePermits());
+		assertThat(semaphore.availablePermits()).isEqualTo(0);
 		conn1.close();
 		conn1.close();
 		conn2.close();
 		conn3.close();
 		conn4.close();
-		assertEquals(4, semaphore.availablePermits());
+		assertThat(semaphore.availablePermits()).isEqualTo(4);
 	}
 
 	@Test
@@ -329,22 +322,22 @@ public class CachingClientConnectionFactoryTests {
 		TcpConnection conn4 = cachingFactory.getConnection();
 		Semaphore semaphore = TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cachingFactory, "pool"), "permits", Semaphore.class);
-		assertEquals(0, semaphore.availablePermits());
+		assertThat(semaphore.availablePermits()).isEqualTo(0);
 		conn1.close();
-		assertEquals(1, semaphore.availablePermits());
+		assertThat(semaphore.availablePermits()).isEqualTo(1);
 		cachingFactory.setPoolSize(2);
-		assertEquals(0, semaphore.availablePermits());
-		assertEquals(3, cachingFactory.getActiveCount());
+		assertThat(semaphore.availablePermits()).isEqualTo(0);
+		assertThat(cachingFactory.getActiveCount()).isEqualTo(3);
 		conn2.close();
-		assertEquals(0, semaphore.availablePermits());
-		assertEquals(2, cachingFactory.getActiveCount());
+		assertThat(semaphore.availablePermits()).isEqualTo(0);
+		assertThat(cachingFactory.getActiveCount()).isEqualTo(2);
 		conn3.close();
-		assertEquals(1, cachingFactory.getActiveCount());
-		assertEquals(1, cachingFactory.getIdleCount());
+		assertThat(cachingFactory.getActiveCount()).isEqualTo(1);
+		assertThat(cachingFactory.getIdleCount()).isEqualTo(1);
 		conn4.close();
-		assertEquals(2, semaphore.availablePermits());
-		assertEquals(0, cachingFactory.getActiveCount());
-		assertEquals(2, cachingFactory.getIdleCount());
+		assertThat(semaphore.availablePermits()).isEqualTo(2);
+		assertThat(cachingFactory.getActiveCount()).isEqualTo(0);
+		assertThat(cachingFactory.getIdleCount()).isEqualTo(2);
 		verify(mockConn1).close();
 		verify(mockConn2).close();
 	}
@@ -375,12 +368,12 @@ public class CachingClientConnectionFactoryTests {
 			fail("Expected IOException");
 		}
 		catch (IOException e) {
-			assertEquals("Foo", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Foo");
 		}
 		// Before INT-3163 this failed with a timeout - connection not returned to pool after failure on send()
 		TcpConnection cached2 = cccf.getConnection();
-		assertTrue(cached1.getConnectionId().contains(conn1.getConnectionId()));
-		assertTrue(cached2.getConnectionId().contains(conn2.getConnectionId()));
+		assertThat(cached1.getConnectionId().contains(conn1.getConnectionId())).isTrue();
+		assertThat(cached2.getConnectionId().contains(conn2.getConnectionId())).isTrue();
 	}
 
 	private CachingClientConnectionFactory createCCCFWith2Connections(TcpConnectionSupport conn1, TcpConnectionSupport conn2)
@@ -461,14 +454,14 @@ public class CachingClientConnectionFactoryTests {
 
 		this.outbound.send(new GenericMessage<>("Hello, world!"));
 		Message<?> m = inbound.receive(20_000);
-		assertNotNull(m);
+		assertThat(m).isNotNull();
 		String connectionId = m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 
 		// assert we use the same connection from the pool
 		outbound.send(new GenericMessage<String>("Hello, world!"));
 		m = inbound.receive(20_000);
-		assertNotNull(m);
-		assertEquals(connectionId, m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class));
+		assertThat(m).isNotNull();
+		assertThat(m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class)).isEqualTo(connectionId);
 	}
 
 	@Test
@@ -493,8 +486,8 @@ public class CachingClientConnectionFactoryTests {
 
 		this.toGateway.send(new GenericMessage<>("Hello, world!"));
 		Message<?> m = fromGateway.receive(1000);
-		assertNotNull(m);
-		assertEquals("foo:" + "Hello, world!", new String((byte[]) m.getPayload()));
+		assertThat(m).isNotNull();
+		assertThat(new String((byte[]) m.getPayload())).isEqualTo("foo:" + "Hello, world!");
 
 		BlockingQueue<?> connections = TestUtils
 				.getPropertyValue(this.gatewayCF, "pool.available", BlockingQueue.class);
@@ -507,15 +500,15 @@ public class CachingClientConnectionFactoryTests {
 		// assert we use the same connection from the pool
 		toGateway.send(new GenericMessage<String>("Hello, world2!"));
 		m = fromGateway.receive(1000);
-		assertNotNull(m);
-		assertEquals("foo:" + "Hello, world2!", new String((byte[]) m.getPayload()));
+		assertThat(m).isNotNull();
+		assertThat(new String((byte[]) m.getPayload())).isEqualTo("foo:" + "Hello, world2!");
 
-		assertEquals(2, connectionIds.size());
-		assertEquals(connectionIds.get(0), connectionIds.get(1));
+		assertThat(connectionIds.size()).isEqualTo(2);
+		assertThat(connectionIds.get(1)).isEqualTo(connectionIds.get(0));
 
 		okToRun.set(false);
 		exec.shutdownNow();
-		assertTrue(exec.awaitTermination(20, TimeUnit.SECONDS));
+		assertThat(exec.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -539,7 +532,7 @@ public class CachingClientConnectionFactoryTests {
 		while (n++ < 100 && connection.isOpen()) {
 			Thread.sleep(100);
 		}
-		assertFalse(connection.isOpen());
+		assertThat(connection.isOpen()).isFalse();
 		cccf.stop();
 	}
 
@@ -614,16 +607,16 @@ public class CachingClientConnectionFactoryTests {
 		conn1.send(message);
 		conn1.close();
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertSame(((TcpConnectionInterceptorSupport) conn1).getTheConnection(),
-				((TcpConnectionInterceptorSupport) conn2).getTheConnection());
+		assertThat(((TcpConnectionInterceptorSupport) conn2).getTheConnection())
+				.isSameAs(((TcpConnectionInterceptorSupport) conn1).getTheConnection());
 		conn2.send(message);
 		conn1 = cachingFactory.getConnection();
-		assertNotSame(((TcpConnectionInterceptorSupport) conn1).getTheConnection(),
-				((TcpConnectionInterceptorSupport) conn2).getTheConnection());
+		assertThat(((TcpConnectionInterceptorSupport) conn2).getTheConnection())
+				.isNotSameAs(((TcpConnectionInterceptorSupport) conn1).getTheConnection());
 		conn1.send(message);
 		conn1.close();
 		conn2.close();
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		server1.stop();
 		TestingUtilities.waitStopListening(server1, 10000L);
 		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(factory1, 0);
@@ -633,9 +626,9 @@ public class CachingClientConnectionFactoryTests {
 		conn2.send(message);
 		conn1.close();
 		conn2.close();
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory, "pool", SimplePool.class);
-		assertEquals(2, pool.getIdleCount());
+		assertThat(pool.getIdleCount()).isEqualTo(2);
 		server2.stop();
 	}
 
@@ -681,17 +674,17 @@ public class CachingClientConnectionFactoryTests {
 		conn1.send(message);
 		conn1.close();
 		TcpConnection conn2 = cachingFactory.getConnection();
-		assertSame(((TcpConnectionInterceptorSupport) conn1).getTheConnection(),
-				((TcpConnectionInterceptorSupport) conn2).getTheConnection());
+		assertThat(((TcpConnectionInterceptorSupport) conn2).getTheConnection())
+				.isSameAs(((TcpConnectionInterceptorSupport) conn1).getTheConnection());
 		conn2.send(message);
 		conn1 = cachingFactory.getConnection();
-		assertNotSame(((TcpConnectionInterceptorSupport) conn1).getTheConnection(),
-				((TcpConnectionInterceptorSupport) conn2).getTheConnection());
+		assertThat(((TcpConnectionInterceptorSupport) conn2).getTheConnection())
+				.isNotSameAs(((TcpConnectionInterceptorSupport) conn1).getTheConnection());
 		conn1.send(message);
 		conn1.close();
 		conn2.close();
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertEquals(3, latch1.getCount());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch1.getCount()).isEqualTo(3);
 		server1.stop();
 		server2.stop();
 	}
@@ -722,15 +715,15 @@ public class CachingClientConnectionFactoryTests {
 		TcpConnectionSupport connection2 = cache.getConnection();
 		connection2.send(new GenericMessage<String>("foo"));
 		connection2.close();
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertSame(connectionIds.get(0), connectionIds.get(1));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(connectionIds.get(1)).isSameAs(connectionIds.get(0));
 		for (int i = 0; i < 100; i++) {
 			TcpConnectionSupport connection = cache.getConnection();
 			connection.send(new GenericMessage<String>("foo"));
 			connection.close();
 		}
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertSame(connectionIds.get(0), connectionIds.get(101));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(connectionIds.get(101)).isSameAs(connectionIds.get(0));
 		in.stop();
 		cache.stop();
 	}
@@ -797,11 +790,11 @@ public class CachingClientConnectionFactoryTests {
 		gate.start();
 		gate.handleMessage(new GenericMessage<String>("foo"));
 		Message<byte[]> result = (Message<byte[]>) outputChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("foo", new String(result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("foo");
 		result = (Message<byte[]>) outputChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("bar", new String(result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("bar");
 		handler.stop();
 		gate.stop();
 		verify(logger, never()).error(anyString());
@@ -838,9 +831,9 @@ public class CachingClientConnectionFactoryTests {
 		cachingFactory.start();
 
 		cachingFactory.getConnection();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(received.get());
-		assertNotNull(received.get().getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(received.get()).isNotNull();
+		assertThat(received.get().getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID)).isNotNull();
 		cachingFactory.stop();
 	}
 

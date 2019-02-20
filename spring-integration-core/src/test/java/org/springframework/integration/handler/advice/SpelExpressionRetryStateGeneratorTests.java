@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,17 +55,17 @@ public class SpelExpressionRetryStateGeneratorTests {
 		SpelExpressionRetryStateGenerator generator =
 				new SpelExpressionRetryStateGenerator("headers['foo']");
 		RetryState state = generator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertFalse(state.isForceRefresh());
-		assertTrue(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isFalse();
+		assertThat(state.rollbackFor(new RuntimeException())).isTrue();
 	}
 
 	@Test
 	public void testBasicConfig() {
 		RetryState state = configGenerator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertFalse(state.isForceRefresh());
-		assertTrue(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isFalse();
+		assertThat(state.rollbackFor(new RuntimeException())).isTrue();
 	}
 
 	@Test
@@ -75,9 +73,9 @@ public class SpelExpressionRetryStateGeneratorTests {
 		SpelExpressionRetryStateGenerator generator =
 				new SpelExpressionRetryStateGenerator("headers['foo']", "headers['trueHeader']");
 		RetryState state = generator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertTrue(state.isForceRefresh());
-		assertTrue(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isTrue();
+		assertThat(state.rollbackFor(new RuntimeException())).isTrue();
 	}
 
 	@Test
@@ -85,9 +83,9 @@ public class SpelExpressionRetryStateGeneratorTests {
 		SpelExpressionRetryStateGenerator generator =
 				new SpelExpressionRetryStateGenerator("headers['foo']", "headers['falseHeader']");
 		RetryState state = generator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertFalse(state.isForceRefresh());
-		assertTrue(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isFalse();
+		assertThat(state.rollbackFor(new RuntimeException())).isTrue();
 	}
 
 	@Test
@@ -95,9 +93,9 @@ public class SpelExpressionRetryStateGeneratorTests {
 		SpelExpressionRetryStateGenerator generator =
 				new SpelExpressionRetryStateGenerator("headers['foo']", "headers['noHeader']?:true");
 		RetryState state = generator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertTrue(state.isForceRefresh());
-		assertTrue(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isTrue();
+		assertThat(state.rollbackFor(new RuntimeException())).isTrue();
 	}
 
 	@Test
@@ -106,9 +104,9 @@ public class SpelExpressionRetryStateGeneratorTests {
 				new SpelExpressionRetryStateGenerator("headers['foo']");
 		generator.setClassifier(new ClassifierSupport<>(false));
 		RetryState state = generator.determineRetryState(message);
-		assertEquals("bar", state.getKey());
-		assertFalse(state.isForceRefresh());
-		assertFalse(state.rollbackFor(new RuntimeException()));
+		assertThat(state.getKey()).isEqualTo("bar");
+		assertThat(state.isForceRefresh()).isFalse();
+		assertThat(state.rollbackFor(new RuntimeException())).isFalse();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ftp.filters;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -50,16 +49,16 @@ public class FtpPersistentAcceptOnceFileListFilterTests {
 		ftpFile3.setTimestamp(Calendar.getInstance());
 		FTPFile[] files = new FTPFile[] {ftpFile1, ftpFile2, ftpFile3};
 		List<FTPFile> passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<FTPFile> now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
-		assertEquals(2, now.size());
-		assertEquals("bar", now.get(0).getName());
-		assertEquals("baz", now.get(1).getName());
+		assertThat(now.size()).isEqualTo(2);
+		assertThat(now.get(0).getName()).isEqualTo("bar");
+		assertThat(now.get(1).getName()).isEqualTo("baz");
 		now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.close();
 	}
 

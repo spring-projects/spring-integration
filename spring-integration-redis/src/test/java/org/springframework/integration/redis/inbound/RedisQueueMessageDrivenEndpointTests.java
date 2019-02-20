@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -130,12 +124,12 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.start();
 
 		Message<Object> receive = (Message<Object>) channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload);
 
 		receive = (Message<Object>) channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload2, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload2);
 
 		endpoint.stop();
 	}
@@ -175,19 +169,18 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.start();
 
 		Message<Object> receive = (Message<Object>) channel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertEquals(message, receive);
+		assertThat(receive).isEqualTo(message);
 
 		receive = (Message<Object>) errorChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive, Matchers.instanceOf(ErrorMessage.class));
-		assertThat(receive.getPayload(), Matchers.instanceOf(MessagingException.class));
-		assertThat(((Exception) receive.getPayload()).getMessage(),
-				Matchers.containsString("Deserialization of Message failed."));
-		assertThat(((Exception) receive.getPayload()).getCause(), Matchers.instanceOf(ClassCastException.class));
-		assertThat(((Exception) receive.getPayload()).getCause().getMessage(),
-				Matchers.containsString("java.lang.String cannot be cast to org.springframework.messaging.Message"));
+		assertThat(receive).isNotNull();
+		assertThat(receive).isInstanceOf(ErrorMessage.class);
+		assertThat(receive.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((Exception) receive.getPayload()).getMessage()).contains("Deserialization of Message failed.");
+		assertThat(((Exception) receive.getPayload()).getCause()).isInstanceOf(ClassCastException.class);
+		assertThat(((Exception) receive.getPayload()).getCause().getMessage())
+				.contains("java.lang.String cannot be cast to org.springframework.messaging.Message");
 
 		endpoint.stop();
 	}
@@ -206,8 +199,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				.leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
 
 		Message<?> receive = this.fromChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload);
 	}
 
 	@Test
@@ -221,8 +214,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		this.symmetricalInputChannel.send(message);
 
 		Message<?> receive = this.symmetricalOutputChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload);
 	}
 
 	@Test
@@ -269,9 +262,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.stop(() -> stopLatch.countDown());
 
 		executorService.shutdown();
-		assertTrue(executorService.awaitTermination(20, TimeUnit.SECONDS));
+		assertThat(executorService.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
 
-		assertTrue(stopLatch.await(21, TimeUnit.SECONDS));
+		assertThat(stopLatch.await(21, TimeUnit.SECONDS)).isTrue();
 
 		verify(boundListOperations, atLeastOnce()).rightPush(any(byte[].class));
 	}
@@ -288,7 +281,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		final CountDownLatch exceptionsLatch = new CountDownLatch(2);
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
+				this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setApplicationEventPublisher(event -> {
 			exceptionEvents.add((ApplicationEvent) event);
@@ -304,13 +298,13 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		((DisposableBean) this.connectionFactory).destroy();
 
-		assertTrue(exceptionsLatch.await(10, TimeUnit.SECONDS));
+		assertThat(exceptionsLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		for (ApplicationEvent exceptionEvent : exceptionEvents) {
-			assertThat(exceptionEvent, Matchers.instanceOf(RedisExceptionEvent.class));
-			assertSame(endpoint, exceptionEvent.getSource());
-			assertThat(((IntegrationEvent) exceptionEvent).getCause().getClass(),
-					Matchers.isIn(Arrays.asList(RedisSystemException.class, RedisConnectionFailureException.class)));
+			assertThat(exceptionEvent).isInstanceOf(RedisExceptionEvent.class);
+			assertThat(exceptionEvent.getSource()).isSameAs(endpoint);
+			assertThat(((IntegrationEvent) exceptionEvent).getCause().getClass())
+					.isIn(RedisSystemException.class, RedisConnectionFailureException.class);
 		}
 
 		((InitializingBean) this.connectionFactory).afterPropertiesSet();
@@ -327,8 +321,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.boundListOps(queueName).leftPush(payload);
 
 		Message<?> receive = channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload);
 
 		endpoint.stop();
 	}
@@ -367,12 +361,12 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.start();
 
 		Message<Object> receive = (Message<Object>) channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload);
 
 		receive = (Message<Object>) channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(payload2, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(payload2);
 
 		endpoint.stop();
 	}
@@ -388,7 +382,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		}
 		while (!endpoint.isListening());
 
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 	}
 
 }

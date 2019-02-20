@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -85,8 +83,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
 		Object result = gateway.doHandleRequest(request, httpEntity, response);
-		assertThat(result, instanceOf(Message.class));
-		assertEquals("hello", ((Message<?>) result).getPayload());
+		assertThat(result).isInstanceOf(Message.class);
+		assertThat(((Message<?>) result).getPayload()).isEqualTo("hello");
 
 	}
 
@@ -130,8 +128,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
 		Object result = gateway.doHandleRequest(request, httpEntity, response);
-		assertThat(result, instanceOf(Message.class));
-		assertEquals("bill", ((Message<?>) result).getPayload());
+		assertThat(result).isInstanceOf(Message.class);
+		assertThat(((Message<?>) result).getPayload()).isEqualTo("bill");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -176,8 +174,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
 		Object result = gateway.doHandleRequest(request, httpEntity, response);
-		assertThat(result, instanceOf(Message.class));
-		assertEquals("bill", ((Map<String, Object>) ((Message<?>) result).getPayload()).get("f"));
+		assertThat(result).isInstanceOf(Message.class);
+		assertThat(((Map<String, Object>) ((Message<?>) result).getPayload()).get("f")).isEqualTo("bill");
 	}
 
 	private static RequestEntity<Object> prepareRequestEntity(Object body, ServletServerHttpRequest request) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.util;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
@@ -65,9 +61,9 @@ public class CallerBlocksPolicyTests {
 			}
 		};
 		te.execute(task);
-		assertTrue(latch.await(10,  TimeUnit.SECONDS));
-		assertThat(e.get(), instanceOf(RejectedExecutionException.class));
-		assertEquals("Max wait time expired to queue task", e.get().getMessage());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(e.get()).isInstanceOf(RejectedExecutionException.class);
+		assertThat(e.get().getMessage()).isEqualTo("Max wait time expired to queue task");
 		te.destroy();
 	}
 
@@ -101,8 +97,8 @@ public class CallerBlocksPolicyTests {
 				e.set(tre.getCause());
 			}
 		});
-		assertTrue(latch.await(10,  TimeUnit.SECONDS));
-		assertNull(e.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(e.get()).isNull();
 		te.destroy();
 	}
 

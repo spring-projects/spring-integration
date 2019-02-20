@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,8 @@
 package org.springframework.integration.websocket;
 
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.net.URI;
 import java.util.Collections;
@@ -107,13 +102,13 @@ public class ClientWebSocketContainerTests {
 		container.start();
 
 		WebSocketSession session = container.getSession(null);
-		assertNotNull(session);
-		assertTrue(session.isOpen());
-		assertEquals("v10.stomp", session.getAcceptedProtocol());
+		assertThat(session).isNotNull();
+		assertThat(session.isOpen()).isTrue();
+		assertThat(session.getAcceptedProtocol()).isEqualTo("v10.stomp");
 
 		session.sendMessage(new PingMessage());
 
-		assertTrue(messageListener.messageLatch.await(10, TimeUnit.SECONDS));
+		assertThat(messageListener.messageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		container.stop();
 		try {
@@ -121,15 +116,15 @@ public class ClientWebSocketContainerTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertEquals(e.getMessage(),
-					"'clientSession' has not been established. Consider to 'start' this container.");
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat("'clientSession' has not been established. Consider to 'start' this container.")
+					.isEqualTo(e.getMessage());
 		}
 
-		assertTrue(messageListener.sessionEndedLatch.await(10, TimeUnit.SECONDS));
-		assertFalse(session.isOpen());
-		assertTrue(messageListener.started);
-		assertThat(messageListener.message, instanceOf(PongMessage.class));
+		assertThat(messageListener.sessionEndedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(session.isOpen()).isFalse();
+		assertThat(messageListener.started).isTrue();
+		assertThat(messageListener.message).isInstanceOf(PongMessage.class);
 
 		failure.set(true);
 
@@ -140,8 +135,8 @@ public class ClientWebSocketContainerTests {
 			fail("IllegalStateException is expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getCause(), instanceOf(CancellationException.class));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getCause()).isInstanceOf(CancellationException.class);
 		}
 
 		failure.set(false);
@@ -149,8 +144,8 @@ public class ClientWebSocketContainerTests {
 		container.start();
 
 		session = container.getSession(null);
-		assertNotNull(session);
-		assertTrue(session.isOpen());
+		assertThat(session).isNotNull();
+		assertThat(session.isOpen()).isTrue();
 	}
 
 	private class TestWebSocketListener implements WebSocketListener {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
@@ -79,11 +75,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("foo", modelAndView.getViewName());
-		assertEquals(0, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("foo");
+		assertThat(modelAndView.getModel().size()).isEqualTo(0);
 		Message<?> requestMessage = requestChannel.receive(0);
-		assertNotNull(requestMessage);
-		assertEquals("hello", requestMessage.getPayload());
+		assertThat(requestMessage).isNotNull();
+		assertThat(requestMessage.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -107,11 +103,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("baz", modelAndView.getViewName());
-		assertEquals(0, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("baz");
+		assertThat(modelAndView.getModel().size()).isEqualTo(0);
 		Message<?> requestMessage = requestChannel.receive(0);
-		assertNotNull(requestMessage);
-		assertEquals("hello", requestMessage.getPayload());
+		assertThat(requestMessage).isNotNull();
+		assertThat(requestMessage.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -141,11 +137,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("foo", modelAndView.getViewName());
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("foo");
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Object reply = modelAndView.getModel().get("reply");
-		assertNotNull(reply);
-		assertEquals("HELLO", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("HELLO");
 	}
 
 	@Test
@@ -173,11 +169,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		request.setContentType("text/plain");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("baz", modelAndView.getViewName());
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("baz");
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Object reply = modelAndView.getModel().get("reply");
-		assertNotNull(reply);
-		assertEquals("foo", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("foo");
 	}
 
 	@Test
@@ -206,11 +202,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		request.setContentType("text/plain");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertSame(view, modelAndView.getView());
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getView()).isSameAs(view);
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Object reply = modelAndView.getModel().get("reply");
-		assertNotNull(reply);
-		assertEquals("foo", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("foo");
 	}
 
 	@Test
@@ -241,11 +237,11 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("foo", modelAndView.getViewName());
-		assertEquals(1, modelAndView.getModel().size());
-		assertNull(modelAndView.getModel().get("reply"));
+		assertThat(modelAndView.getViewName()).isEqualTo("foo");
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
+		assertThat(modelAndView.getModel().get("reply")).isNull();
 		Object reply = modelAndView.getModel().get("myReply");
-		assertEquals("HOWDY", reply);
+		assertThat(reply).isEqualTo("HOWDY");
 	}
 
 	@Test
@@ -276,12 +272,12 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals("foo", modelAndView.getViewName());
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("foo");
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Object reply = modelAndView.getModel().get("reply");
-		assertNotNull(reply);
-		assertTrue(reply instanceof Message<?>);
-		assertEquals("ABC", ((Message<?>) reply).getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply instanceof Message<?>).isTrue();
+		assertThat(((Message<?>) reply).getPayload()).isEqualTo("ABC");
 	}
 
 	@Test
@@ -304,12 +300,13 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		request.setContentType("text/plain");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Errors errors = (Errors) modelAndView.getModel().get("errors");
-		assertEquals(1, errors.getErrorCount());
+		assertThat(errors.getErrorCount()).isEqualTo(1);
 		ObjectError error = errors.getAllErrors().get(0);
-		assertEquals(3, error.getArguments().length);
-		assertTrue("Wrong message: " + error, ((String) error.getArguments()[1]).startsWith("failed to send Message"));
+		assertThat(error.getArguments().length).isEqualTo(3);
+		assertThat(((String) error.getArguments()[1]).startsWith("failed to send Message"))
+				.as("Wrong message: " + error).isTrue();
 	}
 
 	@Test
@@ -372,14 +369,14 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		});
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		// verify we get a 503 after shutdown starts
-		assertEquals(1, active.get());
-		assertTrue(expected503.get());
+		assertThat(active.get()).isEqualTo(1);
+		assertThat(expected503.get()).isTrue();
 		// verify the active request still processed ok
-		assertEquals("foo", modelAndView.getViewName());
-		assertEquals(1, modelAndView.getModel().size());
+		assertThat(modelAndView.getViewName()).isEqualTo("foo");
+		assertThat(modelAndView.getModel().size()).isEqualTo(1);
 		Object reply = modelAndView.getModel().get("reply");
-		assertNotNull(reply);
-		assertEquals("HELLO", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("HELLO");
 	}
 
 

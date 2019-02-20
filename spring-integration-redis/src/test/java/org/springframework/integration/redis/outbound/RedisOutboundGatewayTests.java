@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -84,8 +80,8 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 	public void testPingPongCommand() {
 		this.pingChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, "PING").build());
 		Message<?> receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertTrue(Arrays.equals("PONG".getBytes(), (byte[]) receive.getPayload()));
+		assertThat(receive).isNotNull();
+		assertThat(Arrays.equals("PONG".getBytes(), (byte[]) receive.getPayload())).isTrue();
 	}
 
 	@Test
@@ -98,15 +94,15 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 				.setHeader("queue", queueName)
 				.build());
 		Message<?> receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		this.leftPushRightPopChannel.send(MessageBuilder.withPayload(payload)
 				.setHeader(RedisHeaders.COMMAND, "RPOP")
 				.setHeader("queue", queueName)
 				.build());
 		receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertTrue(Arrays.equals(payload.getBytes(), (byte[]) receive.getPayload()));
+		assertThat(receive).isNotNull();
+		assertThat(Arrays.equals(payload.getBytes(), (byte[]) receive.getPayload())).isTrue();
 	}
 
 	@Test
@@ -117,13 +113,13 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		this.beanFactory.getBean("atomicInteger");
 		this.incrementAtomicIntegerChannel.send(MessageBuilder.withPayload("INCR").build());
 		Message<?> receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals(11L, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(11L);
 
 		this.getCommandChannel.send(MessageBuilder.withPayload("si.test.RedisAtomicInteger").build());
 		receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("11", new String((byte[]) receive.getPayload()));
+		assertThat(receive).isNotNull();
+		assertThat(new String((byte[]) receive.getPayload())).isEqualTo("11");
 		this.createStringRedisTemplate(this.getConnectionFactoryForTest()).delete("si.test.RedisAtomicInteger");
 	}
 
@@ -133,25 +129,25 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		this.setDelCommandChannel.send(MessageBuilder.withPayload(new String[] { "foo", "bar" })
 				.setHeader(RedisHeaders.COMMAND, "SET").build());
 		Message<?> receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("OK", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("OK");
 
 		this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
 		receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertTrue(Arrays.equals("bar".getBytes(), (byte[]) receive.getPayload()));
+		assertThat(receive).isNotNull();
+		assertThat(Arrays.equals("bar".getBytes(), (byte[]) receive.getPayload())).isTrue();
 
 		this.setDelCommandChannel.send(MessageBuilder.withPayload("foo").setHeader(RedisHeaders.COMMAND, "DEL").build());
 		receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals(1L, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(1L);
 
 		try {
 			this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
 			fail("ReplyRequiredException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+			assertThat(e).isInstanceOf(ReplyRequiredException.class);
 		}
 	}
 
@@ -166,8 +162,8 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		connection.set("foo2".getBytes(), value2);
 		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[] { "foo1", "foo2" }).build());
 		Message<?> receive = this.replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertThat((List<byte[]>) receive.getPayload(), Matchers.contains(value1, value2));
+		assertThat(receive).isNotNull();
+		assertThat((List<byte[]>) receive.getPayload()).containsExactly(value1, value2);
 		connection.del("foo1".getBytes(), "foo2".getBytes());
 	}
 

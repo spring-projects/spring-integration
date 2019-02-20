@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -76,10 +74,10 @@ public class JpaExecutorTests {
 			jpaExecutor.poll();
 		}
 		catch (IllegalStateException e) {
-			assertEquals("Exception Message does not match.",
-					"For the polling operation, one of "
+			assertThat(e.getMessage()).as("Exception Message does not match.")
+					.isEqualTo("For the polling operation, one of "
 							+ "the following properties must be specified: "
-							+ "query, namedQuery or entityClass.", e.getMessage());
+							+ "query, namedQuery or entityClass.");
 			return;
 		}
 
@@ -94,7 +92,7 @@ public class JpaExecutorTests {
 			new JpaExecutor(jpaOperations);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("jpaOperations must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("jpaOperations must not be null.");
 		}
 	}
 
@@ -102,39 +100,39 @@ public class JpaExecutorTests {
 	public void testSetMultipleQueryTypes() {
 		JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setJpaQuery("select s from Student s");
-		assertNotNull(TestUtils.getPropertyValue(executor, "jpaQuery", String.class));
+		assertThat(TestUtils.getPropertyValue(executor, "jpaQuery", String.class)).isNotNull();
 
 		try {
 			executor.setNamedQuery("NamedQuery");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
+					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
 
-		assertNull(TestUtils.getPropertyValue(executor, "namedQuery"));
+		assertThat(TestUtils.getPropertyValue(executor, "namedQuery")).isNull();
 
 		try {
 			executor.setNativeQuery("select * from Student");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
+					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
-		assertNull(TestUtils.getPropertyValue(executor, "nativeQuery"));
+		assertThat(TestUtils.getPropertyValue(executor, "nativeQuery")).isNull();
 
 		executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setNamedQuery("NamedQuery");
-		assertNotNull(TestUtils.getPropertyValue(executor, "namedQuery", String.class));
+		assertThat(TestUtils.getPropertyValue(executor, "namedQuery", String.class)).isNotNull();
 
 		try {
 			executor.setJpaQuery("select s from Student s");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
+					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
-		assertNull(TestUtils.getPropertyValue(executor, "jpaQuery"));
+		assertThat(TestUtils.getPropertyValue(executor, "jpaQuery")).isNull();
 
 	}
 
@@ -146,7 +144,7 @@ public class JpaExecutorTests {
 				MessageBuilder.withPayload(Collections.singletonMap("firstName", "First One")).build();
 		JpaExecutor executor = getJpaExecutorForMessageAsParamSource(query);
 		StudentDomain student = (StudentDomain) executor.poll(message);
-		assertNotNull(student);
+		assertThat(student).isNotNull();
 	}
 
 	@Test
@@ -157,7 +155,7 @@ public class JpaExecutorTests {
 				MessageBuilder.withPayload("First One").build();
 		JpaExecutor executor = getJpaExecutorForPayloadAsParamSource(query);
 		StudentDomain student = (StudentDomain) executor.poll(message);
-		assertNotNull(student);
+		assertThat(student).isNotNull();
 	}
 
 	@Test
@@ -168,7 +166,7 @@ public class JpaExecutorTests {
 				MessageBuilder.withPayload(Collections.singletonMap("firstName", "First One")).build();
 		JpaExecutor executor = getJpaExecutorForMessageAsParamSource(query);
 		Integer rowsAffected = (Integer) executor.executeOutboundJpaOperation(message);
-		assertEquals(1, (int) rowsAffected);
+		assertThat((int) rowsAffected).isEqualTo(1);
 	}
 
 	@Test
@@ -179,7 +177,7 @@ public class JpaExecutorTests {
 				MessageBuilder.withPayload("First One").build();
 		JpaExecutor executor = getJpaExecutorForPayloadAsParamSource(query);
 		Integer rowsAffected = (Integer) executor.executeOutboundJpaOperation(message);
-		assertEquals(1, (int) rowsAffected);
+		assertThat((int) rowsAffected).isEqualTo(1);
 	}
 
 	private JpaExecutor getJpaExecutorForMessageAsParamSource(String query) {
@@ -221,8 +219,8 @@ public class JpaExecutorTests {
 		jpaExecutor.afterPropertiesSet();
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
-		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results).isNotNull();
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -234,8 +232,8 @@ public class JpaExecutorTests {
 		jpaExecutor.afterPropertiesSet();
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
-		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results).isNotNull();
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -247,8 +245,8 @@ public class JpaExecutorTests {
 		jpaExecutor.afterPropertiesSet();
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
-		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results).isNotNull();
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -260,8 +258,8 @@ public class JpaExecutorTests {
 		jpaExecutor.afterPropertiesSet();
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
-		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results).isNotNull();
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -271,7 +269,7 @@ public class JpaExecutorTests {
 			jpaExecutor.setMaxResultsExpression(null);
 		}
 		catch (Exception e) {
-			assertEquals("maxResultsExpression cannot be null", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("maxResultsExpression cannot be null");
 			return;
 		}
 		fail("Expected the test case to throw an exception");

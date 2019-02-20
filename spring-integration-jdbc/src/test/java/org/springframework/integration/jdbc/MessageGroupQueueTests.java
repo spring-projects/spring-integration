@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -67,7 +63,7 @@ public class MessageGroupQueueTests {
 		Thread.sleep(1000);
 		t.interrupt();
 		Thread.sleep(1000);
-		assertTrue(exceptionHolder.get() instanceof InterruptedException);
+		assertThat(exceptionHolder.get() instanceof InterruptedException).isTrue();
 	}
 
 	@Test
@@ -94,7 +90,7 @@ public class MessageGroupQueueTests {
 		t1.start();
 		t2.start();
 		Thread.sleep(1000);
-		assertTrue(messageHolder.get() instanceof Message);
+		assertThat(messageHolder.get() instanceof Message).isTrue();
 	}
 
 	@Test
@@ -126,7 +122,7 @@ public class MessageGroupQueueTests {
 		Thread.sleep(1000);
 		t2.start();
 		Thread.sleep(1000);
-		assertTrue(messageHolder.get().getPayload().equals("Hi"));
+		assertThat(messageHolder.get().getPayload().equals("Hi")).isTrue();
 	}
 
 	@Test
@@ -176,10 +172,10 @@ public class MessageGroupQueueTests {
 		Thread.sleep(1000);
 		t4.start();
 		Thread.sleep(1000);
-		assertNotNull(messageHolder1.get());
-		assertEquals("Hi", messageHolder1.get().getPayload());
+		assertThat(messageHolder1.get()).isNotNull();
+		assertThat(messageHolder1.get().getPayload()).isEqualTo("Hi");
 		Thread.sleep(4000);
-		assertTrue(messageHolder2.get() == null);
+		assertThat(messageHolder2.get() == null).isTrue();
 	}
 
 	@Test
@@ -221,9 +217,9 @@ public class MessageGroupQueueTests {
 		Thread.sleep(100);
 		t3.start();
 		Thread.sleep(4000);
-		assertTrue(booleanHolder1.get());
-		assertFalse(booleanHolder2.get());
-		assertFalse(booleanHolder3.get());
+		assertThat(booleanHolder1.get()).isTrue();
+		assertThat(booleanHolder2.get()).isFalse();
+		assertThat(booleanHolder3.get()).isFalse();
 	}
 
 	@Test
@@ -259,8 +255,8 @@ public class MessageGroupQueueTests {
 		Thread.sleep(1000);
 		t2.start();
 		Thread.sleep(1000);
-		assertTrue(messageHolder.get().getPayload().equals("Hi"));
-		assertNull(queue.poll(5, TimeUnit.SECONDS));
+		assertThat(messageHolder.get().getPayload().equals("Hi")).isTrue();
+		assertThat(queue.poll(5, TimeUnit.SECONDS)).isNull();
 	}
 
 	@Test
@@ -296,7 +292,7 @@ public class MessageGroupQueueTests {
 		Thread.sleep(1000);
 		t2.interrupt();
 		Thread.sleep(1000);
-		assertTrue(exceptionHolder.get() instanceof InterruptedException);
+		assertThat(exceptionHolder.get() instanceof InterruptedException).isTrue();
 	}
 
 }

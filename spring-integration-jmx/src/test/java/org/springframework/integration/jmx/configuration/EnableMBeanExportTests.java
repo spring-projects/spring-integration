@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.jmx.configuration;
 
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Set;
@@ -84,24 +78,24 @@ public class EnableMBeanExportTests {
 	@Test
 	public void testEnableMBeanExport() throws MalformedObjectNameException, ClassNotFoundException {
 
-		assertSame(this.mBeanServer, this.exporter.getServer());
+		assertThat(this.exporter.getServer()).isSameAs(this.mBeanServer);
 		String[] componentNamePatterns = TestUtils.getPropertyValue(this.exporter, "componentNamePatterns", String[].class);
-		assertThat(componentNamePatterns, arrayContaining("input", "inputX", "in*"));
+		assertThat(componentNamePatterns).containsExactly("input", "inputX", "in*");
 		String[] enabledCounts = TestUtils.getPropertyValue(this.configurer, "enabledCountsPatterns", String[].class);
-		assertThat(enabledCounts, arrayContaining("foo", "bar", "baz"));
+		assertThat(enabledCounts).containsExactly("foo", "bar", "baz");
 		String[] enabledStats = TestUtils.getPropertyValue(this.configurer, "enabledStatsPatterns", String[].class);
-		assertThat(enabledStats, arrayContaining("qux", "!*"));
-		assertFalse(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultCountsEnabled", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultStatsEnabled", Boolean.class));
-		assertSame(this.myMetricsFactory, TestUtils.getPropertyValue(this.configurer, "metricsFactory"));
+		assertThat(enabledStats).containsExactly("qux", "!*");
+		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultCountsEnabled", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.configurer, "defaultStatsEnabled", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.configurer, "metricsFactory")).isSameAs(this.myMetricsFactory);
 
 		Set<ObjectName> names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
-		assertEquals(1, names.size());
-		assertEquals("input", names.iterator().next().getKeyProperty("name"));
+		assertThat(names.size()).isEqualTo(1);
+		assertThat(names.iterator().next().getKeyProperty("name")).isEqualTo("input");
 		names = this.mBeanServer.queryNames(ObjectName.getInstance("FOO:type=MessageHandler,*"), null);
-		assertEquals(0, names.size());
+		assertThat(names.size()).isEqualTo(0);
 
 		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
 		List<Object> beanPostProcessors = TestUtils.getPropertyValue(beanFactory, "beanPostProcessors", List.class);
@@ -112,9 +106,11 @@ public class EnableMBeanExportTests {
 				break;
 			}
 		}
-		assertNotNull(mBeanExporterHelper);
-		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("input"));
-		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("output"));
+		assertThat(mBeanExporterHelper).isNotNull();
+		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("input"))
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("output"))
+				.isTrue();
 	}
 
 	@Configuration

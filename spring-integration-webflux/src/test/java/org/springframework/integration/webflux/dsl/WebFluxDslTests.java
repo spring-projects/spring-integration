@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.webflux.dsl;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -171,8 +168,8 @@ public class WebFluxDslTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(Flux.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(Flux.class);
 
 		@SuppressWarnings("unchecked")
 		Flux<String> response = (Flux<String>) receive.getPayload();
@@ -222,10 +219,10 @@ public class WebFluxDslTests {
 				.expectStatus().isAccepted();
 
 		Message<?> store = this.storeChannel.receive(10_000);
-		assertNotNull(store);
-		assertThat(store.getPayload(), instanceOf(Flux.class));
+		assertThat(store).isNotNull();
+		assertThat(store.getPayload()).isInstanceOf(Flux.class);
 
-		assertThat(store.getHeaders().get(HttpHeaders.USER_PRINCIPAL, Principal.class).getName(), is("guest"));
+		assertThat(store.getHeaders().get(HttpHeaders.USER_PRINCIPAL, Principal.class).getName()).isEqualTo("guest");
 
 		StepVerifier
 				.create((Publisher<String>) store.getPayload())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +47,14 @@ public class SplitterAggregatorTests {
 		PollableChannel outputChannel = (PollableChannel) context.getBean("results");
 		inputChannel.send(new GenericMessage<Numbers>(this.nextTen()));
 		Message<?> result1 = outputChannel.receive(1000);
-		assertNotNull(result1);
-		assertEquals(Integer.class, result1.getPayload().getClass());
-		assertEquals(55, result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload().getClass()).isEqualTo(Integer.class);
+		assertThat(result1.getPayload()).isEqualTo(55);
 		inputChannel.send(new GenericMessage<Numbers>(this.nextTen()));
 		Message<?> result2 = outputChannel.receive(1000);
-		assertNotNull(result2);
-		assertEquals(Integer.class, result2.getPayload().getClass());
-		assertEquals(155, result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload().getClass()).isEqualTo(Integer.class);
+		assertThat(result2.getPayload()).isEqualTo(155);
 		context.close();
 	}
 

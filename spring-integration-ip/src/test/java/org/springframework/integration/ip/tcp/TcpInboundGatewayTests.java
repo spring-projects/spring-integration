@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -87,9 +85,9 @@ public class TcpInboundGatewayTests {
 		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket1.getInputStream(), bytes);
-		assertEquals("Echo:Test1\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test1\r\n");
 		readFully(socket2.getInputStream(), bytes);
-		assertEquals("Echo:Test2\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test2\r\n");
 		gateway.stop();
 		scf.stop();
 	}
@@ -116,9 +114,9 @@ public class TcpInboundGatewayTests {
 		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test1\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test1\r\n");
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test2\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test2\r\n");
 		gateway.stop();
 		scf.stop();
 	}
@@ -142,9 +140,9 @@ public class TcpInboundGatewayTests {
 						socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
 						byte[] bytes = new byte[12];
 						readFully(socket.getInputStream(), bytes);
-						assertEquals("Echo:Test1\r\n", new String(bytes));
+						assertThat(new String(bytes)).isEqualTo("Echo:Test1\r\n");
 						readFully(socket.getInputStream(), bytes);
-						assertEquals("Echo:Test2\r\n", new String(bytes));
+						assertThat(new String(bytes)).isEqualTo("Echo:Test2\r\n");
 						latch2.await();
 						socket.close();
 						server.close();
@@ -157,7 +155,7 @@ public class TcpInboundGatewayTests {
 						}
 					}
 				});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port.get());
 		ccf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -177,14 +175,14 @@ public class TcpInboundGatewayTests {
 		gateway.setTaskScheduler(taskScheduler);
 		gateway.start();
 		Message<?> message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		message = channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		handler.handleMessage(message);
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(done.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(done.get()).isTrue();
 		gateway.stop();
 		executorService.shutdown();
 	}
@@ -213,9 +211,9 @@ public class TcpInboundGatewayTests {
 		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket1.getInputStream(), bytes);
-		assertEquals("Echo:Test1\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test1\r\n");
 		readFully(socket2.getInputStream(), bytes);
-		assertEquals("Echo:Test2\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("Echo:Test2\r\n");
 		gateway.stop();
 		scf.stop();
 	}
@@ -246,8 +244,8 @@ public class TcpInboundGatewayTests {
 		results.add(new String(bytes));
 		readFully(socket.getInputStream(), bytes);
 		results.add(new String(bytes));
-		assertTrue(results.remove("Echo:Test1\r\n"));
-		assertTrue(results.remove("Echo:Test2\r\n"));
+		assertThat(results.remove("Echo:Test1\r\n")).isTrue();
+		assertThat(results.remove("Echo:Test2\r\n")).isTrue();
 		gateway.stop();
 		scf.stop();
 	}
@@ -279,9 +277,9 @@ public class TcpInboundGatewayTests {
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		byte[] bytes = new byte[errorMessage.length() + 2];
 		readFully(socket1.getInputStream(), bytes);
-		assertEquals(errorMessage + "\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(errorMessage + "\r\n");
 		readFully(socket2.getInputStream(), bytes);
-		assertEquals(errorMessage + "\r\n", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(errorMessage + "\r\n");
 		gateway.stop();
 		scf.stop();
 	}

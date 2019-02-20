@@ -16,13 +16,8 @@
 
 package org.springframework.integration.file.tail;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -123,17 +118,17 @@ public class FileTailingMessageProducerTests {
 		adapter.afterPropertiesSet();
 
 		adapter.start();
-		assertEquals("tail " + firstOptions + " " + firstFile.getAbsolutePath(), adapter.getCommand());
+		assertThat(adapter.getCommand()).isEqualTo("tail " + firstOptions + " " + firstFile.getAbsolutePath());
 		adapter.stop();
 
 		adapter.setFile(secondFile);
 		adapter.start();
-		assertEquals("tail " + firstOptions + " " + secondFile.getAbsolutePath(), adapter.getCommand());
+		assertThat(adapter.getCommand()).isEqualTo("tail " + firstOptions + " " + secondFile.getAbsolutePath());
 		adapter.stop();
 
 		adapter.setOptions(secondOptions);
 		adapter.start();
-		assertEquals("tail " + secondOptions + " " + secondFile.getAbsolutePath(), adapter.getCommand());
+		assertThat(adapter.getCommand()).isEqualTo("tail " + secondOptions + " " + secondFile.getAbsolutePath());
 		adapter.stop();
 	}
 
@@ -170,14 +165,14 @@ public class FileTailingMessageProducerTests {
 		adapter.start();
 
 		boolean noFile = fileExistCountDownLatch.await(10, TimeUnit.SECONDS);
-		assertTrue("file does not exist event did not emit ", noFile);
+		assertThat(noFile).as("file does not exist event did not emit ").isTrue();
 		boolean noEvent = idleCountDownLatch.await(100, TimeUnit.MILLISECONDS);
-		assertFalse("event should not emit when no file exit", noEvent);
+		assertThat(noEvent).as("event should not emit when no file exit").isFalse();
 		verify(file, atLeastOnce()).exists();
 
 		file.createNewFile();
 		boolean eventRaised = idleCountDownLatch.await(10, TimeUnit.SECONDS);
-		assertTrue("idle event did not emit", eventRaised);
+		assertThat(eventRaised).as("idle event did not emit").isTrue();
 		adapter.stop();
 		file.delete();
 	}
@@ -214,8 +209,8 @@ public class FileTailingMessageProducerTests {
 		foo.close();
 		for (int i = 0; i < 50; i++) {
 			Message<?> message = outputChannel.receive(10000);
-			assertNotNull("expected a non-null message", message);
-			assertEquals("hello" + i, message.getPayload());
+			assertThat(message).as("expected a non-null message").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("hello" + i);
 		}
 		file.renameTo(renamed);
 		file = new File(testDir, "foo");
@@ -230,13 +225,13 @@ public class FileTailingMessageProducerTests {
 		foo.close();
 		for (int i = 50; i < 100; i++) {
 			Message<?> message = outputChannel.receive(10000);
-			assertNotNull("expected a non-null message", message);
-			assertEquals("hello" + i, message.getPayload());
-			assertEquals(file, message.getHeaders().get(FileHeaders.ORIGINAL_FILE));
-			assertEquals(file.getName(), message.getHeaders().get(FileHeaders.FILENAME));
+			assertThat(message).as("expected a non-null message").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("hello" + i);
+			assertThat(message.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
+			assertThat(message.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
 		}
 
-		assertThat(events.size(), greaterThanOrEqualTo(1));
+		assertThat(events.size()).isGreaterThanOrEqualTo(1);
 	}
 
 	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {

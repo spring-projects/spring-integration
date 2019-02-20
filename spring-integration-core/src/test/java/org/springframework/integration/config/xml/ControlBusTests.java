@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 import java.util.Map;
@@ -76,15 +73,15 @@ public class ControlBusTests {
 	public void testDefaultEvaluationContext() {
 		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
 		this.input.send(message);
-		assertEquals("catbar", output.receive(0).getPayload());
-		assertNull(output.receive(0));
+		assertThat(output.receive(0).getPayload()).isEqualTo("catbar");
+		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test
 	public void testvoidOperation() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("@service.voidOp('foo')").build();
 		this.input.send(message);
-		assertTrue(this.service.latch.await(10, TimeUnit.SECONDS));
+		assertThat(this.service.latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -93,10 +90,10 @@ public class ControlBusTests {
 				"ControlBusLifecycleTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
 		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);
-		assertNull(outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isNull();
 		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
 		inputChannel.send(message);
-		assertNotNull(outputChannel.receive(1000));
+		assertThat(outputChannel.receive(1000)).isNotNull();
 		context.close();
 	}
 
@@ -105,16 +102,16 @@ public class ControlBusTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		Message<?> result = this.output.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		// No channels in the registry
-		assertEquals(0, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(0);
 		this.registry.channelToChannelName(new DirectChannel());
 		// Sleep a bit to be sure that we aren't reaped by registry TTL as 60000
 		Thread.sleep(10);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
-		assertNotNull(result);
-		assertEquals(1, result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(1);
 		// Some DirectFieldAccessor magic to modify 'expireAt' to the past to avoid timing issues on high-loaded build
 		Object messageChannelWrapper =
 				TestUtils.getPropertyValue(this.registry, "channels", Map.class).values().iterator().next();
@@ -123,8 +120,8 @@ public class ControlBusTests {
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.runReaper()");
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
-		assertNotNull(result);
-		assertEquals(0, result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(0);
 	}
 
 	@Test
@@ -133,18 +130,18 @@ public class ControlBusTests {
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'router.handler'.getChannelMappings()");
 		Message<?> result = this.output.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Map<?, ?> mappings = (Map<?, ?>) result.getPayload();
-		assertEquals("bar", mappings.get("foo"));
-		assertEquals("qux", mappings.get("baz"));
+		assertThat(mappings.get("foo")).isEqualTo("bar");
+		assertThat(mappings.get("baz")).isEqualTo("qux");
 		messagingTemplate.convertAndSend(input,
 				"@'router.handler'.replaceChannelMappings('foo=qux \n baz=bar')");
 		messagingTemplate.convertAndSend(input, "@'router.handler'.getChannelMappings()");
 		result = this.output.receive(0);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		mappings = (Map<?, ?>) result.getPayload();
-		assertEquals("bar", mappings.get("baz"));
-		assertEquals("qux", mappings.get("foo"));
+		assertThat(mappings.get("baz")).isEqualTo("bar");
+		assertThat(mappings.get("foo")).isEqualTo("qux");
 	}
 
 	public static class Service {

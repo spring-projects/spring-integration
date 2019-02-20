@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,10 +45,10 @@ public class LastModifiedFileListFilterTests {
 		FileOutputStream fileOutputStream = new FileOutputStream(foo);
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
-		assertEquals(0, filter.filterFiles(new File[] { foo }).size());
+		assertThat(filter.filterFiles(new File[] { foo }).size()).isEqualTo(0);
 		// Make a file as of yesterday's
 		foo.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-		assertEquals(1, filter.filterFiles(new File[] { foo }).size());
+		assertThat(filter.filterFiles(new File[] { foo }).size()).isEqualTo(1);
 	}
 
 }

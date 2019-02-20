@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package org.springframework.integration.scripting.dsl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -117,9 +112,9 @@ public class ScriptsTests {
 	@Test
 	public void splitterTest() {
 		this.splitterInput.send(new GenericMessage<>("x,y,z"));
-		assertEquals("x", this.results.receive(10000).getPayload());
-		assertEquals("y", this.results.receive(10000).getPayload());
-		assertEquals("z", this.results.receive(10000).getPayload());
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("x");
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("y");
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("z");
 	}
 
 	@Test
@@ -127,9 +122,9 @@ public class ScriptsTests {
 		for (int i = 1; i <= 3; i++) {
 			this.transformerInput.send(new GenericMessage<>("test-" + i));
 		}
-		assertEquals("ruby-test-1-bar", this.results.receive(10000).getPayload());
-		assertEquals("ruby-test-2-bar", this.results.receive(10000).getPayload());
-		assertEquals("ruby-test-3-bar", this.results.receive(10000).getPayload());
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("ruby-test-1-bar");
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("ruby-test-2-bar");
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("ruby-test-3-bar");
 	}
 
 	@Test
@@ -138,22 +133,22 @@ public class ScriptsTests {
 		Message<?> message2 = MessageBuilder.withPayload("good").setHeader("type", "good").build();
 		this.filterInput.send(message1);
 		this.filterInput.send(message2);
-		assertEquals("good", this.results.receive(10000).getPayload());
-		assertNull(this.results.receive(0));
-		assertEquals("bad", this.discardChannel.receive(10000).getPayload());
-		assertNull(this.discardChannel.receive(0));
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("good");
+		assertThat(this.results.receive(0)).isNull();
+		assertThat(this.discardChannel.receive(10000).getPayload()).isEqualTo("bad");
+		assertThat(this.discardChannel.receive(0)).isNull();
 	}
 
 	@Test
 	public void serviceWithRefreshCheckDelayTest() throws IOException {
 		this.scriptServiceInput.send(new GenericMessage<Object>("test"));
-		assertEquals(1, this.results.receive(10000).getPayload());
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo(1);
 
 		FileCopyUtils.copy("2".getBytes(), SCRIPT_FILE);
 		SCRIPT_FILE.setLastModified(System.currentTimeMillis() + 10000); // force refresh
 
 		this.scriptServiceInput.send(new GenericMessage<Object>("test"));
-		assertEquals(2, this.results.receive(10000).getPayload());
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo(2);
 	}
 
 	@Test
@@ -163,26 +158,26 @@ public class ScriptsTests {
 		this.scriptRouterInput.send(new GenericMessage<>("cat"));
 		this.scriptRouterInput.send(new GenericMessage<>("dog"));
 		this.scriptRouterInput.send(new GenericMessage<>("elephant"));
-		assertEquals("bear", this.shortStrings.receive(10000).getPayload());
-		assertEquals("cat", this.shortStrings.receive(10000).getPayload());
-		assertEquals("dog", this.shortStrings.receive(10000).getPayload());
-		assertEquals("aardvark", this.longStrings.receive(10000).getPayload());
-		assertEquals("elephant", this.longStrings.receive(10000).getPayload());
+		assertThat(this.shortStrings.receive(10000).getPayload()).isEqualTo("bear");
+		assertThat(this.shortStrings.receive(10000).getPayload()).isEqualTo("cat");
+		assertThat(this.shortStrings.receive(10000).getPayload()).isEqualTo("dog");
+		assertThat(this.longStrings.receive(10000).getPayload()).isEqualTo("aardvark");
+		assertThat(this.longStrings.receive(10000).getPayload()).isEqualTo("elephant");
 	}
 
 	@Test
 	public void messageSourceTest() throws IOException, InterruptedException {
 		Message<?> message = this.messageSourceChannel.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertThat(payload, Matchers.instanceOf(Date.class));
+		assertThat(payload).isInstanceOf(Date.class);
 
 		// Some time window to avoid dates collision
 		Thread.sleep(2);
 
-		assertTrue(((Date) payload).before(new Date()));
+		assertThat(((Date) payload).before(new Date())).isTrue();
 
-		assertNotNull(this.messageSourceChannel.receive(20000));
+		assertThat(this.messageSourceChannel.receive(20000)).isNotNull();
 	}
 
 	@Configuration

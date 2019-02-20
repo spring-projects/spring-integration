@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,33 +60,36 @@ public class AmqpInboundChannelAdapterParserTests {
 	public void verifyIdAsChannel() {
 		Object channel = context.getBean("rabbitInbound");
 		Object adapter = context.getBean("rabbitInbound.adapter");
-		assertEquals(DirectChannel.class, channel.getClass());
-		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
-		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(adapter, "autoStartup"));
-		assertEquals(Integer.MAX_VALUE / 2, TestUtils.getPropertyValue(adapter, "phase"));
-		assertTrue(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"),
-				instanceOf(SimpleMessageListenerContainer.class));
+		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
+		assertThat(adapter.getClass()).isEqualTo(AmqpInboundChannelAdapter.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.getPropertyValue(adapter, "phase")).isEqualTo(Integer.MAX_VALUE / 2);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
+				.isInstanceOf(SimpleMessageListenerContainer.class);
 	}
 
 	@Test
 	public void verifyDMCC() {
 		Object adapter = context.getBean("dmlc.adapter");
-		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
-		assertFalse(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
-		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"),
-				instanceOf(DirectMessageListenerContainer.class));
-		assertEquals(2, TestUtils.getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue"));
+		assertThat(adapter.getClass()).isEqualTo(AmqpInboundChannelAdapter.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+				.isFalse();
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"))
+				.isInstanceOf(DirectMessageListenerContainer.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue")).isEqualTo(2);
 	}
 
 	@Test
 	public void verifyLifeCycle() {
 		Object adapter = context.getBean("autoStartFalse.adapter");
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
-		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
-		assertEquals(AcknowledgeMode.NONE,
-				TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"));
-		assertFalse(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
+		assertThat(TestUtils.getPropertyValue(adapter, "phase")).isEqualTo(123);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.acknowledgeMode"))
+				.isEqualTo(AcknowledgeMode.NONE);
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class))
+				.isFalse();
 	}
 
 	@Test
@@ -116,12 +113,12 @@ public class AmqpInboundChannelAdapterParserTests {
 		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertEquals("foo", siMessage.getHeaders().get("foo"));
-		assertNull(siMessage.getHeaders().get("bar"));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(siMessage.getHeaders().get("bar")).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNotNull();
 	}
 
 	@Test
@@ -145,12 +142,12 @@ public class AmqpInboundChannelAdapterParserTests {
 		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertEquals("foo", siMessage.getHeaders().get("foo"));
-		assertNull(siMessage.getHeaders().get("bar"));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(siMessage.getHeaders().get("bar")).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNull();
 	}
 
 	@Test
@@ -175,12 +172,12 @@ public class AmqpInboundChannelAdapterParserTests {
 
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertNull(siMessage.getHeaders().get("foo"));
-		assertNull(siMessage.getHeaders().get("bar"));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
-		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+		assertThat(siMessage.getHeaders().get("foo")).isNull();
+		assertThat(siMessage.getHeaders().get("bar")).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNull();
 	}
 
 	@Test
@@ -204,12 +201,12 @@ public class AmqpInboundChannelAdapterParserTests {
 		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertNotNull(siMessage.getHeaders().get("bar"));
-		assertNotNull(siMessage.getHeaders().get("foo"));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
-		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+		assertThat(siMessage.getHeaders().get("bar")).isNotNull();
+		assertThat(siMessage.getHeaders().get("foo")).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.APP_ID)).isNotNull();
+		assertThat(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE)).isNotNull();
 	}
 
 	@Test
@@ -219,8 +216,8 @@ public class AmqpInboundChannelAdapterParserTests {
 					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
-					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+			assertThat(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'")).isTrue();
 		}
 	}
 

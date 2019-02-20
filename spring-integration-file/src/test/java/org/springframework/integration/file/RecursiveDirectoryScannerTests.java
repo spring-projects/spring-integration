@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,17 +69,17 @@ public class RecursiveDirectoryScannerTests {
 		RecursiveDirectoryScanner scanner = new RecursiveDirectoryScanner();
 		scanner.setFilter(new AcceptOnceFileListFilter<>());
 		List<File> files = scanner.listFiles(this.recursivePath.getRoot());
-		assertEquals(5, files.size());
-		assertThat(files, hasItem(this.topLevelFile));
-		assertThat(files, hasItem(this.subLevelFile));
-		assertThat(files, hasItem(this.subSubLevelFile));
-		assertThat(files, hasItem(this.subFolder));
-		assertThat(files, hasItem(this.subSubFolder));
+		assertThat(files.size()).isEqualTo(5);
+		assertThat(files).contains(this.topLevelFile);
+		assertThat(files).contains(this.subLevelFile);
+		assertThat(files).contains(this.subSubLevelFile);
+		assertThat(files).contains(this.subFolder);
+		assertThat(files).contains(this.subSubFolder);
 		File file = new File(this.subSubFolder, "file4");
 		file.createNewFile();
 		files = scanner.listFiles(this.recursivePath.getRoot());
-		assertEquals(1, files.size());
-		assertThat(files, hasItem(file));
+		assertThat(files.size()).isEqualTo(1);
+		assertThat(files).contains(file);
 	}
 
 }

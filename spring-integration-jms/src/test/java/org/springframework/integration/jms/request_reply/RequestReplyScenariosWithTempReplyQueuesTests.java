@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -31,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.TextMessage;
@@ -50,12 +48,12 @@ import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -71,10 +69,12 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 
 	@SuppressWarnings("resource")
 	@Test
-	public void messageCorrelationBasedOnRequestMessageId() throws Exception {
+	public void messageCorrelationBasedOnRequestMessageId() {
 		ActiveMqTestUtils.prepare();
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-temp-reply-consumers" +
+				".xml", this
+				.getClass());
 		RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 		CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 		final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
@@ -87,23 +87,24 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			try {
 				replyTo = requestMessage.getJMSReplyTo();
 			}
-			catch (Exception e) {
-				fail();
+			catch (Exception ex) {
+				fail("Test failed", ex);
 			}
-			jmsTemplate.send(replyTo, (MessageCreator) session -> {
-				try {
-					TextMessage message = session.createTextMessage();
-					message.setText("bar");
-					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
-					return message;
-				}
-				catch (Exception e) {
-					// ignore
-				}
-				return null;
-			});
+			jmsTemplate.send(replyTo,
+					session -> {
+						try {
+							TextMessage message = session.createTextMessage();
+							message.setText("bar");
+							message.setJMSCorrelationID(requestMessage.getJMSMessageID());
+							return message;
+						}
+						catch (Exception e) {
+							// ignore
+						}
+						return null;
+					});
 		}).start();
-		gateway.exchange(new GenericMessage<String>("foo"));
+		gateway.exchange(new GenericMessage<>("foo"));
 		context.close();
 	}
 
@@ -126,7 +127,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				replyTo = message.getJMSReplyTo();
 			}
 			catch (Exception e1) {
-				fail();
+				fail("Test failed", e1);
 			}
 			String requestPayload = (String) extractPayload(message);
 			if (requestPayload.equals("foo")) {
@@ -150,19 +151,13 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		dmlc.start();
 
 		try {
-			gateway.exchange(new GenericMessage<String>("foo"));
+			gateway.exchange(new GenericMessage<>("foo"));
 		}
 		catch (Exception e) {
 			// ignore
 		}
 		Thread.sleep(1000);
-		try {
-			assertEquals("bar", gateway.exchange(new GenericMessage<String>("bar")).getPayload());
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			fail();
-		}
+		assertThat(gateway.exchange(new GenericMessage<>("bar")).getPayload()).isEqualTo("bar");
 		context.close();
 	}
 
@@ -176,7 +171,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		BrokerService broker = new BrokerService();
 		broker.setPersistent(false);
 		broker.setUseJmx(false);
-		broker.setTransportConnectorURIs(new String[]{"tcp://localhost:61623"});
+		broker.setTransportConnectorURIs(new String[] { "tcp://localhost:61623" });
 		broker.setDeleteAllMessagesOnStartup(true);
 		broker.start();
 
@@ -189,20 +184,22 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		int timeoutCounter = 0;
 		for (int i = 0; i < 50; i++) {
 			try {
-				assertEquals(i + "", gateway.exchange(new GenericMessage<String>(String.valueOf(i))).getPayload());
+				assertThat(gateway.exchange(new GenericMessage<>(String.valueOf(i))).getPayload())
+						.isEqualTo(i + "");
 				replyCounter++;
 			}
 			catch (Exception e) {
 				timeoutCounter++;
 			}
 			if (i == 0 || i == 20 || i == 40) {
-				Object replyDestination = TestUtils.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
+				Object replyDestination = TestUtils
+						.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
 				if (replyDestination != null) {
 					broker.removeDestination((ActiveMQDestination) replyDestination);
 				}
 			}
 		}
-		assertEquals(50, replyCounter + timeoutCounter);
+		assertThat(replyCounter + timeoutCounter).isEqualTo(50);
 		context.close();
 	}
 
@@ -223,7 +220,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			executor.execute(() -> {
 				try {
 
-					String reply = (String) gateway.exchange(new GenericMessage<String>(String.valueOf(y))).getPayload();
+					String reply = (String) gateway.exchange(new GenericMessage<>(String.valueOf(y)))
+							.getPayload();
 					if (!String.valueOf(y).equals(reply)) {
 						missmatches.incrementAndGet();
 					}
@@ -239,42 +237,39 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				latch.countDown();
 			});
 		}
-		assertTrue(latch.await(30, TimeUnit.SECONDS));
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		print(failures, timeouts, missmatches, testNumbers);
-		assertEquals(0, missmatches.get());
-		assertEquals(0, failures.get());
-		assertEquals(0, timeouts.get());
+		assertThat(missmatches.get()).isEqualTo(0);
+		assertThat(failures.get()).isEqualTo(0);
+		assertThat(timeouts.get()).isEqualTo(0);
 		context.close();
 		executor.shutdownNow();
 	}
 
-	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed) {
+	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger mismatches,
+			long echangesProcessed) {
 		logger.info("============================");
 		logger.info(echangesProcessed + " exchanges processed");
 		logger.info("Failures: " + failures.get());
 		logger.info("Timeouts: " + timeouts.get());
-		logger.info("Missmatches: " + missmatches.get());
+		logger.info("Missmatches: " + mismatches.get());
 		logger.info("============================");
 	}
 
 	public static class MyRandomlySlowService {
+
 		Random random = new Random();
-		List<Integer> list = new ArrayList<Integer>();
+
 		public String secho(String value) throws Exception {
 			int i = random.nextInt(2000);
 			Thread.sleep(i);
 			return value;
 		}
+
 	}
 
-	private Object extractPayload(Message jmsMessage) {
-		try {
-			return converter.fromMessage(jmsMessage);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			fail();
-		}
-		return null;
+	private Object extractPayload(Message jmsMessage) throws JMSException {
+		return this.converter.fromMessage(jmsMessage);
 	}
+
 }

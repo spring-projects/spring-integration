@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.ip.config;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -282,111 +274,111 @@ public class ParserUnitTests {
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
-		assertEquals(27, dfa.getPropertyValue("poolSize"));
-		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
-		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
-		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
-		assertEquals(32, dfa.getPropertyValue("soTimeout"));
-		assertEquals("testInUdp", udpIn.getComponentName());
-		assertEquals("ip:udp-inbound-channel-adapter", udpIn.getComponentType());
-		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+		assertThat(dfa.getPropertyValue("poolSize")).isEqualTo(27);
+		assertThat(dfa.getPropertyValue("receiveBufferSize")).isEqualTo(29);
+		assertThat(dfa.getPropertyValue("soReceiveBufferSize")).isEqualTo(30);
+		assertThat(dfa.getPropertyValue("soSendBufferSize")).isEqualTo(31);
+		assertThat(dfa.getPropertyValue("soTimeout")).isEqualTo(32);
+		assertThat(udpIn.getComponentName()).isEqualTo("testInUdp");
+		assertThat(udpIn.getComponentType()).isEqualTo("ip:udp-inbound-channel-adapter");
+		assertThat(dfa.getPropertyValue("localAddress")).isEqualTo("127.0.0.1");
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("errorChannel")).isEqualTo(errorChannel);
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertFalse((Boolean) mapperAccessor.getPropertyValue("lookupHost"));
-		assertFalse(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class));
-		assertEquals(1234, dfa.getPropertyValue("phase"));
+		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isFalse();
+		assertThat(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class)).isFalse();
+		assertThat(dfa.getPropertyValue("phase")).isEqualTo(1234);
 	}
 
 	@Test
 	public void testInUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpInMulticast);
-		assertEquals("225.6.7.8", dfa.getPropertyValue("group"));
-		assertEquals(27, dfa.getPropertyValue("poolSize"));
-		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
-		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
-		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
-		assertEquals(32, dfa.getPropertyValue("soTimeout"));
-		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
-		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertNull(dfa.getPropertyValue("errorChannel"));
+		assertThat(dfa.getPropertyValue("group")).isEqualTo("225.6.7.8");
+		assertThat(dfa.getPropertyValue("poolSize")).isEqualTo(27);
+		assertThat(dfa.getPropertyValue("receiveBufferSize")).isEqualTo(29);
+		assertThat(dfa.getPropertyValue("soReceiveBufferSize")).isEqualTo(30);
+		assertThat(dfa.getPropertyValue("soSendBufferSize")).isEqualTo(31);
+		assertThat(dfa.getPropertyValue("soTimeout")).isEqualTo(32);
+		assertThat(dfa.getPropertyValue("localAddress")).isEqualTo("127.0.0.1");
+		assertThat(dfa.getPropertyValue("taskExecutor")).isNotSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("errorChannel")).isNull();
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertTrue((Boolean) mapperAccessor.getPropertyValue("lookupHost"));
+		assertThat((Boolean) mapperAccessor.getPropertyValue("lookupHost")).isTrue();
 	}
 
 	@Test
 	public void testInTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpIn);
-		assertSame(cfS1, dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals("testInTcp", tcpIn.getComponentName());
-		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
-		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
-		assertFalse(cfS1.isLookupHost());
-		assertFalse(tcpIn.isAutoStartup());
-		assertEquals(124, tcpIn.getPhase());
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS1);
+		assertThat(tcpIn.getComponentName()).isEqualTo("testInTcp");
+		assertThat(tcpIn.getComponentType()).isEqualTo("ip:tcp-inbound-channel-adapter");
+		assertThat(dfa.getPropertyValue("errorChannel")).isEqualTo(errorChannel);
+		assertThat(cfS1.isLookupHost()).isFalse();
+		assertThat(tcpIn.isAutoStartup()).isFalse();
+		assertThat(tcpIn.getPhase()).isEqualTo(124);
 		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper", TcpMessageMapper.class);
-		assertSame(mapper, cfS1Mapper);
-		assertTrue(TestUtils.getPropertyValue(cfS1Mapper, "applySequence", Boolean.class));
+		assertThat(cfS1Mapper).isSameAs(mapper);
+		assertThat(TestUtils.getPropertyValue(cfS1Mapper, "applySequence", Boolean.class)).isTrue();
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
-		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
-		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));
+		assertThat(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport).isTrue();
+		assertThat(TestUtils.getPropertyValue(socketSupport, "sslContext")).isNotNull();
 
 		TcpSSLContextSupport tcpSSLContextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
-		assertTrue(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore") instanceof UrlResource);
-		assertTrue(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore") instanceof UrlResource);
+		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore") instanceof UrlResource).isTrue();
+		assertThat(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore") instanceof UrlResource).isTrue();
 	}
 
 	@Test
 	public void testInTcpNioSSLDefaultConfig() {
-		assertFalse(cfS1Nio.isLookupHost());
-		assertTrue(TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence", Boolean.class));
+		assertThat(cfS1Nio.isLookupHost()).isFalse();
+		assertThat(TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence", Boolean.class)).isTrue();
 		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
-		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
-		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
-		assertEquals(43, TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout"));
-		assertSame(this.ctx.getBean(DefaultTcpNioSSLConnectionSupport.class),
-				TestUtils.getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"));
+		assertThat(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport).isTrue();
+		assertThat(TestUtils.getPropertyValue(connectionSupport, "sslContext")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout")).isEqualTo(43);
+		assertThat(TestUtils.getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"))
+				.isSameAs(this.ctx.getBean(DefaultTcpNioSSLConnectionSupport.class));
 	}
 
 	@Test
 	public void testOutUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOut);
-		assertEquals("localhost", dfa.getPropertyValue("host"));
+		assertThat(dfa.getPropertyValue("host")).isEqualTo("localhost");
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa
 				.getPropertyValue("mapper");
 		String ackAddress = (String) new DirectFieldAccessor(mapper)
 				.getPropertyValue("ackAddress");
-		assertThat(ackAddress, startsWith("somehost:"));
-		assertEquals(51, dfa.getPropertyValue("ackTimeout"));
-		assertEquals(true, dfa.getPropertyValue("waitForAck"));
-		assertEquals(52, dfa.getPropertyValue("soReceiveBufferSize"));
-		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
-		assertEquals(54, dfa.getPropertyValue("soTimeout"));
-		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertEquals(23, dfa.getPropertyValue("order"));
-		assertEquals("testOutUdp", udpOut.getComponentName());
-		assertEquals("ip:udp-outbound-channel-adapter", udpOut.getComponentType());
+		assertThat(ackAddress).startsWith("somehost:");
+		assertThat(dfa.getPropertyValue("ackTimeout")).isEqualTo(51);
+		assertThat(dfa.getPropertyValue("waitForAck")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("soReceiveBufferSize")).isEqualTo(52);
+		assertThat(dfa.getPropertyValue("soSendBufferSize")).isEqualTo(53);
+		assertThat(dfa.getPropertyValue("soTimeout")).isEqualTo(54);
+		assertThat(dfa.getPropertyValue("localAddress")).isEqualTo("127.0.0.1");
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(23);
+		assertThat(udpOut.getComponentName()).isEqualTo("testOutUdp");
+		assertThat(udpOut.getComponentType()).isEqualTo("ip:udp-outbound-channel-adapter");
 	}
 
 	@Test
 	public void testOutUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOutMulticast);
-		assertEquals("225.6.7.8", dfa.getPropertyValue("host"));
+		assertThat(dfa.getPropertyValue("host")).isEqualTo("225.6.7.8");
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa
 				.getPropertyValue("mapper");
 		String ackAddress = (String) new DirectFieldAccessor(mapper)
 				.getPropertyValue("ackAddress");
-		assertThat(ackAddress, startsWith("somehost:"));
-		assertEquals(51, dfa.getPropertyValue("ackTimeout"));
-		assertEquals(true, dfa.getPropertyValue("waitForAck"));
-		assertEquals(52, dfa.getPropertyValue("soReceiveBufferSize"));
-		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
-		assertEquals(54, dfa.getPropertyValue("soTimeout"));
-		assertEquals(55, dfa.getPropertyValue("timeToLive"));
-		assertEquals(12, dfa.getPropertyValue("order"));
+		assertThat(ackAddress).startsWith("somehost:");
+		assertThat(dfa.getPropertyValue("ackTimeout")).isEqualTo(51);
+		assertThat(dfa.getPropertyValue("waitForAck")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("soReceiveBufferSize")).isEqualTo(52);
+		assertThat(dfa.getPropertyValue("soSendBufferSize")).isEqualTo(53);
+		assertThat(dfa.getPropertyValue("soTimeout")).isEqualTo(54);
+		assertThat(dfa.getPropertyValue("timeToLive")).isEqualTo(55);
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(12);
 	}
 
 	@Test
@@ -397,197 +389,200 @@ public class ParserUnitTests {
 						TestUtils.getPropertyValue(this.udpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(this.udpOutMulticast, iterator.next());
-		assertSame(this.udpOut, iterator.next());
+		assertThat(iterator.next()).isSameAs(this.udpOutMulticast);
+		assertThat(iterator.next()).isSameAs(this.udpOut);
 	}
 
 	@Test
 	public void udpAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
 		this.udpAdviceChannel.send(new GenericMessage<String>("foo"));
-		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
+		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void tcpAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
 		this.tcpAdviceChannel.send(new GenericMessage<String>("foo"));
-		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
+		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void tcpGatewayAdvice() throws InterruptedException {
 		adviceCalled = new CountDownLatch(1);
 		this.tcpAdviceGateChannel.send(new GenericMessage<String>("foo"));
-		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
+		assertThat(adviceCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void testOutTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOut);
-		assertSame(cfC1, dfa.getPropertyValue("clientConnectionFactory"));
-		assertEquals("testOutTcpNio", tcpOut.getComponentName());
-		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
-		assertFalse(cfC1.isLookupHost());
-		assertEquals(35, dfa.getPropertyValue("order"));
-		assertFalse(tcpOutEndpoint.isAutoStartup());
-		assertEquals(125, tcpOutEndpoint.getPhase());
-		assertFalse((Boolean) TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence"));
-		assertEquals(10000L, TestUtils.getPropertyValue(cfC1, "readDelay"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC1);
+		assertThat(tcpOut.getComponentName()).isEqualTo("testOutTcpNio");
+		assertThat(tcpOut.getComponentType()).isEqualTo("ip:tcp-outbound-channel-adapter");
+		assertThat(cfC1.isLookupHost()).isFalse();
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(35);
+		assertThat(tcpOutEndpoint.isAutoStartup()).isFalse();
+		assertThat(tcpOutEndpoint.getPhase()).isEqualTo(125);
+		assertThat((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence")).isFalse();
+		assertThat(TestUtils.getPropertyValue(cfC1, "readDelay")).isEqualTo(10000L);
 	}
 
 	@Test
 	public void testInGateway1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway1);
-		assertSame(cfS2, dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
-		assertEquals("inGateway1", tcpInboundGateway1.getComponentName());
-		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
-		assertEquals(errorChannel, tcpInboundGateway1.getErrorChannel());
-		assertTrue(cfS2.isLookupHost());
-		assertFalse(tcpInboundGateway1.isAutoStartup());
-		assertEquals(126, tcpInboundGateway1.getPhase());
-		assertFalse((Boolean) TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cfS2, "mapper"), "applySequence"));
-		assertEquals(100L, TestUtils.getPropertyValue(cfS2, "readDelay"));
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS2);
+		assertThat(dfa.getPropertyValue("replyTimeout")).isEqualTo(456L);
+		assertThat(tcpInboundGateway1.getComponentName()).isEqualTo("inGateway1");
+		assertThat(tcpInboundGateway1.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
+		assertThat(tcpInboundGateway1.getErrorChannel()).isEqualTo(errorChannel);
+		assertThat(cfS2.isLookupHost()).isTrue();
+		assertThat(tcpInboundGateway1.isAutoStartup()).isFalse();
+		assertThat(tcpInboundGateway1.getPhase()).isEqualTo(126);
+		assertThat((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfS2, "mapper"), "applySequence")).isFalse();
+		assertThat(TestUtils.getPropertyValue(cfS2, "readDelay")).isEqualTo(100L);
 	}
 
 	@Test
 	public void testInGateway2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway2);
-		assertSame(cfS3, dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
-		assertEquals("inGateway2", tcpInboundGateway2.getComponentName());
-		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway2.getComponentType());
-		assertNull(dfa.getPropertyValue("errorChannel"));
-		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
-		assertNull(dfa.getPropertyValue("taskScheduler"));
-		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(cfS3);
+		assertThat(dfa.getPropertyValue("replyTimeout")).isEqualTo(456L);
+		assertThat(tcpInboundGateway2.getComponentName()).isEqualTo("inGateway2");
+		assertThat(tcpInboundGateway2.getComponentType()).isEqualTo("ip:tcp-inbound-gateway");
+		assertThat(dfa.getPropertyValue("errorChannel")).isNull();
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.FALSE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isNull();
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(60000L);
 	}
 
 	@Test
 	public void testOutGateway() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutboundGateway);
-		assertSame(cfC2, dfa.getPropertyValue("connectionFactory"));
-		assertEquals(234L, dfa.getPropertyValue("requestTimeout"));
+		assertThat(dfa.getPropertyValue("connectionFactory")).isSameAs(cfC2);
+		assertThat(dfa.getPropertyValue("requestTimeout")).isEqualTo(234L);
 		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
 				MessagingTemplate.class);
-		assertEquals(Long.valueOf(567), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class));
-		assertEquals("789", TestUtils.getPropertyValue(tcpOutboundGateway, "remoteTimeoutExpression.literalValue"));
-		assertEquals("outGateway", tcpOutboundGateway.getComponentName());
-		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
-		assertTrue(cfC2.isLookupHost());
-		assertEquals(24, dfa.getPropertyValue("order"));
+		assertThat(TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class))
+				.isEqualTo(Long.valueOf(567));
+		assertThat(TestUtils.getPropertyValue(tcpOutboundGateway, "remoteTimeoutExpression.literalValue"))
+				.isEqualTo("789");
+		assertThat(tcpOutboundGateway.getComponentName()).isEqualTo("outGateway");
+		assertThat(tcpOutboundGateway.getComponentType()).isEqualTo("ip:tcp-outbound-gateway");
+		assertThat(cfC2.isLookupHost()).isTrue();
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(24);
 
-		assertEquals("4000", TestUtils.getPropertyValue(outAdviceGateway, "remoteTimeoutExpression.expression"));
+		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "remoteTimeoutExpression.expression"))
+				.isEqualTo("4000");
 	}
 
 	@Test
 	public void testConnClient1() {
-		assertTrue(client1 instanceof TcpNioClientConnectionFactory);
-		assertEquals("localhost", client1.getHost());
-		assertEquals(54, client1.getSoLinger());
-		assertEquals(1234, client1.getSoReceiveBufferSize());
-		assertEquals(1235, client1.getSoSendBufferSize());
-		assertEquals(1236, client1.getSoTimeout());
-		assertEquals(12, client1.getSoTrafficClass());
+		assertThat(client1 instanceof TcpNioClientConnectionFactory).isTrue();
+		assertThat(client1.getHost()).isEqualTo("localhost");
+		assertThat(client1.getSoLinger()).isEqualTo(54);
+		assertThat(client1.getSoReceiveBufferSize()).isEqualTo(1234);
+		assertThat(client1.getSoSendBufferSize()).isEqualTo(1235);
+		assertThat(client1.getSoTimeout()).isEqualTo(1236);
+		assertThat(client1.getSoTrafficClass()).isEqualTo(12);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(client1);
-		assertSame(serializer, dfa.getPropertyValue("serializer"));
-		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
-		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
-		assertEquals(true, dfa.getPropertyValue("singleUse"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
+		assertThat(dfa.getPropertyValue("serializer")).isSameAs(serializer);
+		assertThat(dfa.getPropertyValue("deserializer")).isSameAs(deserializer);
+		assertThat(dfa.getPropertyValue("soTcpNoDelay")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("singleUse")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("usingDirectBuffers")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("interceptorFactoryChain")).isNotNull();
 	}
 
 	@Test
 	public void testConnServer1() {
-		assertTrue(server1 instanceof TcpNioServerConnectionFactory);
-		assertEquals(55, server1.getSoLinger());
-		assertEquals(1234, server1.getSoReceiveBufferSize());
-		assertEquals(1235, server1.getSoSendBufferSize());
-		assertEquals(1236, server1.getSoTimeout());
-		assertEquals(12, server1.getSoTrafficClass());
+		assertThat(server1 instanceof TcpNioServerConnectionFactory).isTrue();
+		assertThat(server1.getSoLinger()).isEqualTo(55);
+		assertThat(server1.getSoReceiveBufferSize()).isEqualTo(1234);
+		assertThat(server1.getSoSendBufferSize()).isEqualTo(1235);
+		assertThat(server1.getSoTimeout()).isEqualTo(1236);
+		assertThat(server1.getSoTrafficClass()).isEqualTo(12);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(server1);
-		assertSame(serializer, dfa.getPropertyValue("serializer"));
-		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
-		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
-		assertEquals(true, dfa.getPropertyValue("singleUse"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertEquals(123, dfa.getPropertyValue("backlog"));
-		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
+		assertThat(dfa.getPropertyValue("serializer")).isSameAs(serializer);
+		assertThat(dfa.getPropertyValue("deserializer")).isSameAs(deserializer);
+		assertThat(dfa.getPropertyValue("soTcpNoDelay")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("singleUse")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("backlog")).isEqualTo(123);
+		assertThat(dfa.getPropertyValue("usingDirectBuffers")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("interceptorFactoryChain")).isNotNull();
 	}
 
 	@Test
 	public void testConnClient2() {
-		assertTrue(client2 instanceof TcpNetClientConnectionFactory);
-		assertEquals("localhost", client1.getHost());
-		assertEquals(54, client1.getSoLinger());
-		assertEquals(1234, client1.getSoReceiveBufferSize());
-		assertEquals(1235, client1.getSoSendBufferSize());
-		assertEquals(1236, client1.getSoTimeout());
-		assertEquals(12, client1.getSoTrafficClass());
+		assertThat(client2 instanceof TcpNetClientConnectionFactory).isTrue();
+		assertThat(client1.getHost()).isEqualTo("localhost");
+		assertThat(client1.getSoLinger()).isEqualTo(54);
+		assertThat(client1.getSoReceiveBufferSize()).isEqualTo(1234);
+		assertThat(client1.getSoSendBufferSize()).isEqualTo(1235);
+		assertThat(client1.getSoTimeout()).isEqualTo(1236);
+		assertThat(client1.getSoTrafficClass()).isEqualTo(12);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(client1);
-		assertSame(serializer, dfa.getPropertyValue("serializer"));
-		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
-		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
-		assertEquals(true, dfa.getPropertyValue("singleUse"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
+		assertThat(dfa.getPropertyValue("serializer")).isSameAs(serializer);
+		assertThat(dfa.getPropertyValue("deserializer")).isSameAs(deserializer);
+		assertThat(dfa.getPropertyValue("soTcpNoDelay")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("singleUse")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("interceptorFactoryChain")).isNotNull();
 	}
 
 	@Test
 	public void testConnServer2() {
-		assertTrue(server2 instanceof TcpNetServerConnectionFactory);
-		assertEquals(55, server1.getSoLinger());
-		assertEquals(1234, server1.getSoReceiveBufferSize());
-		assertEquals(1235, server1.getSoSendBufferSize());
-		assertEquals(1236, server1.getSoTimeout());
-		assertEquals(12, server1.getSoTrafficClass());
+		assertThat(server2 instanceof TcpNetServerConnectionFactory).isTrue();
+		assertThat(server1.getSoLinger()).isEqualTo(55);
+		assertThat(server1.getSoReceiveBufferSize()).isEqualTo(1234);
+		assertThat(server1.getSoSendBufferSize()).isEqualTo(1235);
+		assertThat(server1.getSoTimeout()).isEqualTo(1236);
+		assertThat(server1.getSoTrafficClass()).isEqualTo(12);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(server1);
-		assertSame(serializer, dfa.getPropertyValue("serializer"));
-		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
-		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
-		assertEquals(true, dfa.getPropertyValue("singleUse"));
-		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
-		assertEquals(123, dfa.getPropertyValue("backlog"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
+		assertThat(dfa.getPropertyValue("serializer")).isSameAs(serializer);
+		assertThat(dfa.getPropertyValue("deserializer")).isSameAs(deserializer);
+		assertThat(dfa.getPropertyValue("soTcpNoDelay")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("singleUse")).isEqualTo(true);
+		assertThat(dfa.getPropertyValue("taskExecutor")).isSameAs(taskExecutor);
+		assertThat(dfa.getPropertyValue("backlog")).isEqualTo(123);
+		assertThat(dfa.getPropertyValue("interceptorFactoryChain")).isNotNull();
 	}
 
 	@Test
 	public void testNewOut1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut1);
-		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
-		assertEquals(25, dfa.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
-		assertNull(dfa.getPropertyValue("taskScheduler"));
-		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(client1);
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(25);
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.FALSE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isNull();
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(60000L);
 	}
 
 	@Test
 	public void testNewOut2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut2);
-		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(15, dfa.getPropertyValue("order"));
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(server1);
+		assertThat(dfa.getPropertyValue("order")).isEqualTo(15);
 	}
 
 	@Test
 	public void testNewIn1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn1);
-		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
-		assertNull(dfa.getPropertyValue("errorChannel"));
-		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
-		assertNull(dfa.getPropertyValue("taskScheduler"));
-		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(client1);
+		assertThat(dfa.getPropertyValue("errorChannel")).isNull();
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.FALSE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isNull();
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(60000L);
 	}
 
 	@Test
 	public void testNewIn2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn2);
-		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isSameAs(server1);
 	}
 
 	@Test
@@ -600,59 +595,59 @@ public class ParserUnitTests {
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(this.tcpNewOut2, iterator.next());			//15
-		assertSame(this.tcpOutboundGateway, iterator.next());	//24
-		assertSame(this.tcpNewOut1, iterator.next());			//25
-		assertSame(this.tcpOut, iterator.next());				//35
+		assertThat(iterator.next()).isSameAs(this.tcpNewOut2);			//15
+		assertThat(iterator.next()).isSameAs(this.tcpOutboundGateway);	//24
+		assertThat(iterator.next()).isSameAs(this.tcpNewOut1);			//25
+		assertThat(iterator.next()).isSameAs(this.tcpOut);				//35
 	}
 
 	@Test
 	public void testInClientMode() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInClientMode);
-		assertSame(cfC3, dfa.getPropertyValue("clientConnectionFactory"));
-		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
-		assertSame(sched, dfa.getPropertyValue("taskScheduler"));
-		assertEquals(123000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC3);
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(123000L);
 	}
 
 	@Test
 	public void testOutClientMode() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutClientMode);
-		assertSame(cfC4, dfa.getPropertyValue("clientConnectionFactory"));
-		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
-		assertSame(sched, dfa.getPropertyValue("taskScheduler"));
-		assertEquals(124000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC4);
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(124000L);
 	}
 
 	@Test
 	public void testInGatewayClientMode() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(inGatewayClientMode);
-		assertSame(cfC5, dfa.getPropertyValue("clientConnectionFactory"));
-		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
-		assertSame(sched, dfa.getPropertyValue("taskScheduler"));
-		assertEquals(125000L, dfa.getPropertyValue("retryInterval"));
+		assertThat(dfa.getPropertyValue("clientConnectionFactory")).isSameAs(cfC5);
+		assertThat(dfa.getPropertyValue("serverConnectionFactory")).isNull();
+		assertThat(dfa.getPropertyValue("isClientMode")).isEqualTo(Boolean.TRUE);
+		assertThat(dfa.getPropertyValue("taskScheduler")).isSameAs(sched);
+		assertThat(dfa.getPropertyValue("retryInterval")).isEqualTo(125000L);
 	}
 
 	@Test
 	public void testAutoTcp() {
-		assertSame(tcpAutoChannel, TestUtils.getPropertyValue(tcpAutoAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(tcpAutoAdapter, "outputChannel")).isSameAs(tcpAutoChannel);
 	}
 
 	@Test
 	public void testAutoUdp() {
-		assertSame(udpAutoChannel, TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel")).isSameAs(udpAutoChannel);
 	}
 
 	@Test
 	public void testSecureServer() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
-		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
-		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
-		assertEquals(34, TestUtils.getPropertyValue(this.secureServerNio, "sslHandshakeTimeout"));
-		assertSame(this.netConnectionSupport, dfa.getPropertyValue("tcpNetConnectionSupport"));
+		assertThat(dfa.getPropertyValue("tcpSocketFactorySupport")).isSameAs(socketFactorySupport);
+		assertThat(dfa.getPropertyValue("tcpSocketSupport")).isSameAs(socketSupport);
+		assertThat(TestUtils.getPropertyValue(this.secureServerNio, "sslHandshakeTimeout")).isEqualTo(34);
+		assertThat(dfa.getPropertyValue("tcpNetConnectionSupport")).isSameAs(this.netConnectionSupport);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

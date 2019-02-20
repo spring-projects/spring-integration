@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,16 @@
 
 package org.springframework.integration.expression;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.BeansException;
@@ -59,11 +51,12 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class ParentContextTests {
 
-	private static final List<EvaluationContext> evalContexts = new ArrayList<EvaluationContext>();
+	private static final List<EvaluationContext> evalContexts = new ArrayList<>();
 
 	/**
 	 * Verifies that beans in hierarchical contexts get an evaluation context that has the proper
@@ -80,18 +73,18 @@ public class ParentContextTests {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testSpelBeanReferencesInChildAndParent() throws Exception {
+	public void testSpelBeanReferencesInChildAndParent() {
 		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml",
 				this.getClass());
 
 		Object parentEvaluationContextFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
 		Map<?, ?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions",
 				Map.class);
-		assertEquals(4, parentFunctions.size());
+		assertThat(parentFunctions.size()).isEqualTo(4);
 		Object jsonPath = parentFunctions.get("jsonPath");
-		assertNotNull(jsonPath);
-		assertThat((Method) jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
-		assertEquals(2, evalContexts.size());
+		assertThat(jsonPath).isNotNull();
+		assertThat(jsonPath).isIn(Arrays.asList(JsonPathUtils.class.getMethods()));
+		assertThat(evalContexts.size()).isEqualTo(2);
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");
 		child.refresh();
@@ -99,95 +92,90 @@ public class ParentContextTests {
 		Object childEvaluationContextFactoryBean = child.getBean(IntegrationEvaluationContextFactoryBean.class);
 		Map<?, ?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions",
 				Map.class);
-		assertEquals(5, childFunctions.size());
-		assertTrue(childFunctions.containsKey("barParent"));
-		assertTrue(childFunctions.containsKey("fooFunc"));
+		assertThat(childFunctions.size()).isEqualTo(5);
+		assertThat(childFunctions.containsKey("barParent")).isTrue();
+		assertThat(childFunctions.containsKey("fooFunc")).isTrue();
 		jsonPath = childFunctions.get("jsonPath");
-		assertNotNull(jsonPath);
-		assertThat((Method) jsonPath, Matchers.not(Matchers.isOneOf(JsonPathUtils.class.getMethods())));
-		assertEquals(3, evalContexts.size());
-		assertSame(evalContexts.get(0).getBeanResolver(), evalContexts.get(1).getBeanResolver());
+		assertThat(jsonPath).isNotNull();
+		assertThat(jsonPath).isNotIn(Arrays.asList((JsonPathUtils.class.getMethods())));
+		assertThat(evalContexts.size()).isEqualTo(3);
+		assertThat(evalContexts.get(1).getBeanResolver()).isSameAs(evalContexts.get(0).getBeanResolver());
 
 		List<PropertyAccessor> propertyAccessors = evalContexts.get(0).getPropertyAccessors();
-		assertEquals(4, propertyAccessors.size());
-		PropertyAccessor parentPropertyAccessorOverride = parent.getBean("jsonPropertyAccessor", PropertyAccessor.class);
+		assertThat(propertyAccessors.size()).isEqualTo(4);
+		PropertyAccessor parentPropertyAccessorOverride = parent
+				.getBean("jsonPropertyAccessor", PropertyAccessor.class);
 		PropertyAccessor parentPropertyAccessor = parent.getBean("parentJsonPropertyAccessor", PropertyAccessor.class);
-		assertTrue(propertyAccessors.contains(parentPropertyAccessorOverride));
-		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
-		assertTrue(propertyAccessors.indexOf(parentPropertyAccessorOverride) > propertyAccessors.indexOf(parentPropertyAccessor));
+		assertThat(propertyAccessors.contains(parentPropertyAccessorOverride)).isTrue();
+		assertThat(propertyAccessors.contains(parentPropertyAccessor)).isTrue();
+		assertThat(propertyAccessors.indexOf(parentPropertyAccessorOverride) > propertyAccessors
+				.indexOf(parentPropertyAccessor)).isTrue();
 
 		Map<String, Object> variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(0),
 				"variables");
-		assertEquals(4, variables.size());
-		assertTrue(variables.containsKey("bar"));
-		assertTrue(variables.containsKey("barParent"));
-		assertTrue(variables.containsKey("fooFunc"));
-		assertTrue(variables.containsKey("jsonPath"));
+		assertThat(variables).hasSize(4);
+		assertThat(variables).containsKeys("bar", "barParent", "fooFunc", "jsonPath");
 
-		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
+		assertThat(evalContexts.get(2).getBeanResolver()).isNotSameAs(evalContexts.get(1).getBeanResolver());
 		propertyAccessors = evalContexts.get(1).getPropertyAccessors();
-		assertEquals(4, propertyAccessors.size());
-		assertTrue(propertyAccessors.contains(parentPropertyAccessorOverride));
+		assertThat(propertyAccessors.size()).isEqualTo(4);
+		assertThat(propertyAccessors.contains(parentPropertyAccessorOverride)).isTrue();
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(1), "variables");
-		assertEquals(4, variables.size());
-		assertTrue(variables.containsKey("bar"));
-		assertTrue(variables.containsKey("barParent"));
-		assertTrue(variables.containsKey("fooFunc"));
-		assertTrue(variables.containsKey("jsonPath"));
+		assertThat(variables).hasSize(4);
+		assertThat(variables).containsKeys("bar", "barParent", "fooFunc", "jsonPath");
 
 		propertyAccessors = evalContexts.get(2).getPropertyAccessors();
-		assertEquals(4, propertyAccessors.size());
+		assertThat(propertyAccessors.size()).isEqualTo(4);
 		PropertyAccessor childPropertyAccessor = child.getBean("jsonPropertyAccessor", PropertyAccessor.class);
-		assertTrue(propertyAccessors.contains(childPropertyAccessor));
-		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
-		assertFalse(propertyAccessors.contains(parentPropertyAccessorOverride));
-		assertTrue(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor));
+		assertThat(propertyAccessors.contains(childPropertyAccessor)).isTrue();
+		assertThat(propertyAccessors.contains(parentPropertyAccessor)).isTrue();
+		assertThat(propertyAccessors.contains(parentPropertyAccessorOverride)).isFalse();
+		assertThat(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor))
+				.isTrue();
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(2), "variables");
-		assertEquals(5, variables.size());
-		assertTrue(variables.containsKey("bar"));
-		assertTrue(variables.containsKey("barParent"));
-		assertTrue(variables.containsKey("fooFunc"));
-		assertTrue(variables.containsKey("barChild"));
-		assertTrue(variables.containsKey("jsonPath"));
+		assertThat(variables).hasSize(5);
+		assertThat(variables).containsKeys("bar", "barParent", "fooFunc", "barChild", "jsonPath");
 
 		// Test transformer expressions
-		child.getBean("input", MessageChannel.class).send(new GenericMessage<String>("baz"));
+		child.getBean("input", MessageChannel.class).send(new GenericMessage<>("baz"));
 		Message<?> out = child.getBean("output", QueueChannel.class).receive(0);
-		assertNotNull(out);
-		assertEquals("foobar", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).isEqualTo("foobar");
 		child.getBean("parentIn", MessageChannel.class).send(MutableMessageBuilder.withPayload("bar").build());
 		out = child.getBean("parentOut", QueueChannel.class).receive(0);
-		assertNotNull(out);
-		assertThat(out, instanceOf(GenericMessage.class));
-		assertEquals("foo", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out).isInstanceOf(GenericMessage.class);
+		assertThat(out.getPayload()).isEqualTo("foo");
 
 		IntegrationEvaluationContextFactoryBean evaluationContextFactoryBean =
 				child.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 						IntegrationEvaluationContextFactoryBean.class);
 		try {
-			evaluationContextFactoryBean.setPropertyAccessors(Collections.<String, PropertyAccessor>emptyMap());
+			evaluationContextFactoryBean.setPropertyAccessors(Collections.emptyMap());
 			fail("IllegalArgumentException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
 		}
 
-		parent.getBean("fromParentToChild", MessageChannel.class).send(new GenericMessage<String>("foo"));
+		parent.getBean("fromParentToChild", MessageChannel.class).send(new GenericMessage<>("foo"));
 		out = child.getBean("output", QueueChannel.class).receive(0);
-		assertNotNull(out);
-		assertEquals("org.springframework.integration.support.MutableMessage", out.getClass().getName());
-		assertEquals("FOO", out.getPayload());
+		assertThat(out).isNotNull();
+		assertThat(out.getClass().getName()).isEqualTo("org.springframework.integration.support.MutableMessage");
+		assertThat(out.getPayload()).isEqualTo("FOO");
 
-		assertTrue(parent
-				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+		assertThat(parent
+				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME))
+				.isTrue();
 
-		assertTrue(child
-				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
+		assertThat(child
+				.containsBean(IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME))
+				.isTrue();
 
 		Object converterRegistrar = parent.getBean(IntegrationContextUtils.CONVERTER_REGISTRAR_BEAN_NAME);
-		assertNotNull(converterRegistrar);
+		assertThat(converterRegistrar).isNotNull();
 		Set<?> converters = TestUtils.getPropertyValue(converterRegistrar, "converters", Set.class);
 		boolean toStringFriendlyJsonNodeToStringConverterPresent = false;
 		for (Object converter : converters) {
@@ -197,7 +185,7 @@ public class ParentContextTests {
 			}
 		}
 
-		assertTrue(toStringFriendlyJsonNodeToStringConverterPresent);
+		assertThat(toStringFriendlyJsonNodeToStringConverterPresent).isTrue();
 
 		MessageChannel input = parent.getBean("testJsonNodeToStringConverterInputChannel", MessageChannel.class);
 		PollableChannel output = parent.getBean("testJsonNodeToStringConverterOutputChannel", PollableChannel.class);
@@ -208,8 +196,8 @@ public class ParentContextTests {
 		input.send(new GenericMessage<Object>(person));
 
 		Message<?> result = output.receive(1000);
-		assertNotNull(result);
-		assertEquals("JOHN", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("JOHN");
 
 		child.close();
 		parent.close();
@@ -225,7 +213,7 @@ public class ParentContextTests {
 		}
 
 		@Override
-		public void afterPropertiesSet() throws Exception {
+		public void afterPropertiesSet() {
 			evalContexts.add(ExpressionUtils.createStandardEvaluationContext(this.beanFactory));
 		}
 

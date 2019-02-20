@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -35,14 +33,14 @@ public class RefreshableResourceScriptSourceTests {
 	public void testGetScriptAsString() throws Exception {
 		RefreshableResourceScriptSource source =
 				new RefreshableResourceScriptSource(new ByteArrayResource("foo".getBytes()), 1000);
-		assertEquals("foo", source.getScriptAsString());
+		assertThat(source.getScriptAsString()).isEqualTo("foo");
 	}
 
 	@Test
 	public void testIsModified() {
 		RefreshableResourceScriptSource source =
 				new RefreshableResourceScriptSource(new ByteArrayResource("foo".getBytes()), 1000);
-		assertFalse(source.isModified());
+		assertThat(source.isModified()).isFalse();
 	}
 
 	@Test
@@ -58,8 +56,8 @@ public class RefreshableResourceScriptSourceTests {
 
 						}, 0);
 		Thread.sleep(100L);
-		assertTrue(source.isModified());
-		assertEquals("foo", source.getScriptAsString());
+		assertThat(source.isModified()).isTrue();
+		assertThat(source.getScriptAsString()).isEqualTo("foo");
 	}
 
 	@Test
@@ -74,8 +72,8 @@ public class RefreshableResourceScriptSourceTests {
 							}
 
 						}, -1);
-		assertFalse(source.isModified());
-		assertEquals("foo", source.getScriptAsString());
+		assertThat(source.isModified()).isFalse();
+		assertThat(source.getScriptAsString()).isEqualTo("foo");
 	}
 
 	@Test
@@ -90,7 +88,7 @@ public class RefreshableResourceScriptSourceTests {
 							}
 
 						}, 1000);
-		assertEquals("Foo", source.suggestedClassName());
+		assertThat(source.suggestedClassName()).isEqualTo("Foo");
 	}
 
 }

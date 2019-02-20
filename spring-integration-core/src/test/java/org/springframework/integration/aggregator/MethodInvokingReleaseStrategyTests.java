@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class MethodInvokingReleaseStrategyTests {
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysTrueReleaseStrategy(),
 				"checkCompleteness");
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(adapter.canRelease(createListOfMessages(0)));
+		assertThat(adapter.canRelease(createListOfMessages(0))).isTrue();
 	}
 
 	@Test
@@ -55,7 +54,7 @@ public class MethodInvokingReleaseStrategyTests {
 		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysFalseReleaseStrategy(),
 				"checkCompleteness");
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertFalse(adapter.canRelease(createListOfMessages(0)));
+		assertThat(adapter.canRelease(createListOfMessages(0))).isFalse();
 	}
 
 	@Test
@@ -64,7 +63,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message<?>> messages) {
-				assertTrue(messages.size() > 0);
+				assertThat(messages.size() > 0).isTrue();
 				return messages.size() >
 						new IntegrationMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
@@ -74,7 +73,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"checkCompletenessOnNonParameterizedListOfMessages");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -83,7 +82,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
-				assertTrue(messages.size() > 0);
+				assertThat(messages.size() > 0).isTrue();
 				return messages.size() >
 						new IntegrationMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
@@ -93,7 +92,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"checkCompletenessOnListOfMessagesParametrizedWithWildcard");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class MethodInvokingReleaseStrategyTests {
 
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
-				assertTrue(messages.size() > 0);
+				assertThat(messages.size() > 0).isTrue();
 				return messages.size() > new IntegrationMessageHeaderAccessor(messages.iterator().next())
 						.getSequenceSize();
 			}
@@ -112,7 +111,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"checkCompletenessOnListOfMessagesParametrizedWithString");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -135,7 +134,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"checkCompletenessOnListOfStrings");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -158,7 +157,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"checkCompletenessOnListOfStrings");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -183,7 +182,7 @@ public class MethodInvokingReleaseStrategyTests {
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "invalidParameterType");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -240,7 +239,7 @@ public class MethodInvokingReleaseStrategyTests {
 				"listSubclassParameter");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test(expected = ConversionFailedException.class)
@@ -257,7 +256,7 @@ public class MethodInvokingReleaseStrategyTests {
 				new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "wrongReturnType");
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -288,7 +287,7 @@ public class MethodInvokingReleaseStrategyTests {
 				TestReleaseStrategy.class.getMethod("listSubclassParameter", LinkedList.class));
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		MessageGroup messages = createListOfMessages(3);
-		assertTrue(adapter.canRelease(messages));
+		assertThat(adapter.canRelease(messages)).isTrue();
 	}
 
 	@Test(expected = IllegalStateException.class)

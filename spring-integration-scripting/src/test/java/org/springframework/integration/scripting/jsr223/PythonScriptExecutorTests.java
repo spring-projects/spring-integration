@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +34,7 @@ import org.springframework.scripting.support.StaticScriptSource;
 /**
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class PythonScriptExecutorTests {
@@ -49,23 +49,23 @@ public class PythonScriptExecutorTests {
 	@Test
 	public void testLiteral() {
 		Object obj = executor.executeScript(new StaticScriptSource("3+4"));
-		assertEquals(7, obj);
+		assertThat(obj).isEqualTo(7);
 
 		obj = executor.executeScript(new StaticScriptSource("'hello,world'"));
-		assertEquals("hello,world", obj);
+		assertThat(obj).isEqualTo("hello,world");
 	}
 
 	@Test
 
 	public void test1() {
 		Object obj = executor.executeScript(new StaticScriptSource("x=2"));
-		assertEquals(2, obj);
+		assertThat(obj).isEqualTo(2);
 	}
 
 	@Test
 	public void test2() {
 		Object obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
-		assertEquals(2, obj);
+		assertThat(obj).isEqualTo(2);
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class PythonScriptExecutorTests {
 						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
 		Object obj = executor.executeScript(source);
 		PyTuple tuple = (PyTuple) obj;
-		assertEquals(1, tuple.get(0));
+		assertThat(tuple.get(0)).isEqualTo(1);
 	}
 
 	@Test
@@ -83,19 +83,20 @@ public class PythonScriptExecutorTests {
 		ScriptSource source =
 				new ResourceScriptSource(
 						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
-		HashMap<String, Object> variables = new HashMap<String, Object>();
+		HashMap<String, Object> variables = new HashMap<>();
 		variables.put("foo", "bar");
 		Object obj = executor.executeScript(source, variables);
+		assertThat(obj).isNotNull();
 		PyTuple tuple = (PyTuple) obj;
-		assertNotNull(tuple);
-		assertEquals(1, tuple.get(0));
+		assertThat(tuple.get(0)).isEqualTo(1);
 	}
 
 	@Test
 	public void testEmbeddedVariable() {
-		Map<String, Object> variables = new HashMap<String, Object>();
+		Map<String, Object> variables = new HashMap<>();
 		variables.put("scope", "world");
 		Object obj = executor.executeScript(new StaticScriptSource("\"hello, %s\"% scope"), variables);
-		assertEquals("hello, world", obj);
+		assertThat(obj).isEqualTo("hello, world");
 	}
+
 }

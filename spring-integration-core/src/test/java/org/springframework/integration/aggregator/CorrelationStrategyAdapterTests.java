@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class CorrelationStrategyAdapterTests {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(), "getKey");
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertEquals("b", adapter.getCorrelationKey(message));
+		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class CorrelationStrategyAdapterTests {
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(),
 				ReflectionUtils.findMethod(SimpleMessageCorrelator.class, "getKey", Message.class));
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertEquals("b", adapter.getCorrelationKey(message));
+		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class CorrelationStrategyAdapterTests {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimplePojoCorrelator(), "getKey");
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertEquals("foo", adapter.getCorrelationKey(message));
+		assertThat(adapter.getCorrelationKey(message)).isEqualTo("foo");
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class CorrelationStrategyAdapterTests {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleHeaderCorrelator(), "getKey");
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertEquals("b", adapter.getCorrelationKey(message));
+		assertThat(adapter.getCorrelationKey(message)).isEqualTo("b");
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class CorrelationStrategyAdapterTests {
 		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new MultiHeaderCorrelator(),
 				ReflectionUtils.findMethod(MultiHeaderCorrelator.class, "getKey", String.class, String.class));
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		assertEquals("bd", adapter.getCorrelationKey(message));
+		assertThat(adapter.getCorrelationKey(message)).isEqualTo("bd");
 	}
 
 	private static class MultiHeaderCorrelator {

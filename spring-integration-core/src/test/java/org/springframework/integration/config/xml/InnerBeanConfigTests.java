@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +47,7 @@ public class InnerBeanConfigTests {
 	@Test(expected = NoSuchBeanDefinitionException.class)
 	public void checkInnerBean() {
 		Object innerBean = TestUtils.getPropertyValue(testEndpoint, "handler.processor.delegate.targetObject");
-		assertNotNull(innerBean);
+		assertThat(innerBean).isNotNull();
 		context.getBean(TestBean.class);
 	}
 

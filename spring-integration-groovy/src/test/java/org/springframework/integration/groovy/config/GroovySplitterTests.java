@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,10 +60,10 @@ public class GroovySplitterTests {
 		replyChannel.setBeanName("returnAddress");
 		Message<?> message = MessageBuilder.withPayload("x,y,z").setReplyChannel(replyChannel).build();
 		this.referencedScriptInput.send(message);
-		assertEquals("x", replyChannel.receive(0).getPayload());
-		assertEquals("y", replyChannel.receive(0).getPayload());
-		assertEquals("z", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("x");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("y");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("z");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -74,20 +72,20 @@ public class GroovySplitterTests {
 		replyChannel.setBeanName("returnAddress");
 		Message<?> message = MessageBuilder.withPayload("a   b c").setReplyChannel(replyChannel).build();
 		this.inlineScriptInput.send(message);
-		assertEquals("a", replyChannel.receive(0).getPayload());
-		assertEquals("b", replyChannel.receive(0).getPayload());
-		assertEquals("c", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("a");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("b");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("c");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
-		assertTrue(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter);
+		assertThat(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter).isTrue();
 		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovySplitterMessageHandler,
 				"messageProcessor", MessageProcessor.class);
 		//before it was MethodInvokingMessageProcessor
-		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
+		assertThat(messageProcessor instanceof GroovyScriptExecutingMessageProcessor).isTrue();
 	}
 
 }

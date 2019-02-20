@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,11 @@
 
 package org.springframework.integration.stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,13 +29,13 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ByteStreamWritingMessageHandlerTests {
 
@@ -51,7 +47,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	private PollingConsumer endpoint;
 
-	private final TestTrigger trigger = new TestTrigger();
+	private final OnlyOnceTrigger trigger = new OnlyOnceTrigger();
 
 	private ThreadPoolTaskScheduler scheduler;
 
@@ -78,51 +74,51 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleByteArray() {
-		handler.handleMessage(new GenericMessage<byte[]>(new byte[] {1, 2, 3}));
+		handler.handleMessage(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }));
 		byte[] result = stream.toByteArray();
-		assertEquals(3, result.length);
-		assertEquals(1, result[0]);
-		assertEquals(2, result[1]);
-		assertEquals(3, result[2]);
+		assertThat(result.length).isEqualTo(3);
+		assertThat(result[0]).isEqualTo((byte) 1);
+		assertThat(result[1]).isEqualTo((byte) 2);
+		assertThat(result[2]).isEqualTo((byte) 3);
 	}
 
 	@Test
 	public void singleString() {
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		byte[] result = stream.toByteArray();
-		assertEquals(3, result.length);
-		assertEquals("foo", new String(result));
+		assertThat(result.length).isEqualTo(3);
+		assertThat(new String(result)).isEqualTo("foo");
 	}
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(3);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertEquals(9, result.length);
-		assertEquals(1, result[0]);
-		assertEquals(9, result[8]);
+		assertThat(result.length).isEqualTo(9);
+		assertThat(result[0]).isEqualTo((byte) 1);
+		assertThat(result[8]).isEqualTo((byte) 9);
 	}
 
 	@Test
 	public void maxMessagesPerTaskLessThanMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertEquals(6, result.length);
-		assertEquals(1, result[0]);
+		assertThat(result.length).isEqualTo(6);
+		assertThat(result[0]).isEqualTo((byte) 1);
 	}
 
 	@Test
@@ -130,15 +126,15 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result = stream.toByteArray();
-		assertEquals(9, result.length);
-		assertEquals(1, result[0]);
+		assertThat(result.length).isEqualTo(9);
+		assertThat(result[0]).isEqualTo((byte) 1);
 	}
 
 	@Test
@@ -146,23 +142,23 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertEquals(6, result1.length);
-		assertEquals(1, result1[0]);
+		assertThat(result1.length).isEqualTo(6);
+		assertThat(result1[0]).isEqualTo((byte) 1);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertEquals(9, result2.length);
-		assertEquals(1, result2[0]);
-		assertEquals(7, result2[6]);
+		assertThat(result2.length).isEqualTo(9);
+		assertThat(result2[0]).isEqualTo((byte) 1);
+		assertThat(result2[6]).isEqualTo((byte) 7);
 	}
 
 	@Test
@@ -170,22 +166,22 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertEquals(9, result1.length);
-		assertEquals(1, result1[0]);
+		assertThat(result1.length).isEqualTo(9);
+		assertThat(result1[0]).isEqualTo((byte) 1);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertEquals(9, result2.length);
-		assertEquals(1, result2[0]);
+		assertThat(result2.length).isEqualTo(9);
+		assertThat(result2[0]).isEqualTo((byte) 1);
 	}
 
 	@Test
@@ -193,22 +189,22 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setTrigger(trigger);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertEquals(6, result1.length);
+		assertThat(result1.length).isEqualTo(6);
 		stream.reset();
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertEquals(3, result2.length);
-		assertEquals(7, result2[0]);
+		assertThat(result2.length).isEqualTo(3);
+		assertThat(result2[0]).isEqualTo((byte) 7);
 	}
 
 	@Test
@@ -216,63 +212,25 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 1, 2, 3 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 4, 5, 6 }), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] { 7, 8, 9 }), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result1 = stream.toByteArray();
-		assertEquals(6, result1.length);
-		stream.write(new byte[] {123});
+		assertThat(result1.length).isEqualTo(6);
+		stream.write(new byte[] { 123 });
 		stream.flush();
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertEquals(10, result2.length);
-		assertEquals(1, result2[0]);
-		assertEquals(123, result2[6]);
-		assertEquals(7, result2[7]);
-	}
-
-
-	private static class TestTrigger implements Trigger {
-
-		private final AtomicBoolean hasRun = new AtomicBoolean();
-
-		private volatile CountDownLatch latch = new CountDownLatch(1);
-
-		TestTrigger() {
-			super();
-		}
-
-		@Override
-		public Date nextExecutionTime(TriggerContext triggerContext) {
-			if (!hasRun.getAndSet(true)) {
-				return new Date();
-			}
-			this.latch.countDown();
-			return null;
-		}
-
-		public void reset() {
-			this.latch = new CountDownLatch(1);
-			this.hasRun.set(false);
-		}
-
-		public void await() {
-			try {
-				this.latch.await(3000, TimeUnit.MILLISECONDS);
-				if (latch.getCount() != 0) {
-					throw new RuntimeException("test timeout");
-				}
-			}
-			catch (InterruptedException e) {
-				throw new RuntimeException("test latch.await() interrupted");
-			}
-		}
+		assertThat(result2.length).isEqualTo(10);
+		assertThat(result2[0]).isEqualTo((byte) 1);
+		assertThat(result2[6]).isEqualTo((byte) 123);
+		assertThat(result2[7]).isEqualTo((byte) 7);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,8 +84,8 @@ public class JdbcMessageStoreRegionTests {
 		messageStore2.addMessage(MessageBuilder.withPayload("payload1").build());
 		messageStore2.addMessage(MessageBuilder.withPayload("payload2").build());
 
-		assertEquals(2, messageStore1.getMessageCount());
-		assertEquals(2, messageStore2.getMessageCount());
+		assertThat(messageStore1.getMessageCount()).isEqualTo(2);
+		assertThat(messageStore2.getMessageCount()).isEqualTo(2);
 
 	}
 
@@ -96,11 +96,11 @@ public class JdbcMessageStoreRegionTests {
 			messageStore1.setRegion(null);
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("Region must not be null or empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Region must not be null or empty.");
 			return;
 		}
 
-		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+		fail("Expected an IllegalArgumentException to be thrown.");
 	}
 
 	@Test
@@ -112,13 +112,13 @@ public class JdbcMessageStoreRegionTests {
 		messageStore2.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 		messageStore2.addMessageToGroup("group2", MessageBuilder.withPayload("payload2").build());
 
-		assertEquals(1, messageStore1.getMessageGroup("group1").getMessages().size());
-		assertEquals(1, messageStore2.getMessageGroup("group1").getMessages().size());
-		assertEquals(1, messageStore1.getMessageGroup("group2").getMessages().size());
-		assertEquals(1, messageStore2.getMessageGroup("group2").getMessages().size());
+		assertThat(messageStore1.getMessageGroup("group1").getMessages().size()).isEqualTo(1);
+		assertThat(messageStore2.getMessageGroup("group1").getMessages().size()).isEqualTo(1);
+		assertThat(messageStore1.getMessageGroup("group2").getMessages().size()).isEqualTo(1);
+		assertThat(messageStore2.getMessageGroup("group2").getMessages().size()).isEqualTo(1);
 
-		assertEquals(2, messageStore1.getMessageCount());
-		assertEquals(2, messageStore2.getMessageCount());
+		assertThat(messageStore1.getMessageCount()).isEqualTo(2);
+		assertThat(messageStore2.getMessageCount()).isEqualTo(2);
 
 	}
 
@@ -130,16 +130,16 @@ public class JdbcMessageStoreRegionTests {
 		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'",
 				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
 
-		assertEquals(1, regions.size());
-		assertEquals("region1", regions.get(0));
+		assertThat(regions.size()).isEqualTo(1);
+		assertThat(regions.get(0)).isEqualTo("region1");
 
 		messageStore2.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
 		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'",
 				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
 
-		assertEquals(1, regions2.size());
-		assertEquals("region2", regions2.get(0));
+		assertThat(regions2.size()).isEqualTo(1);
+		assertThat(regions2.get(0)).isEqualTo("region2");
 
 	}
 
@@ -154,8 +154,8 @@ public class JdbcMessageStoreRegionTests {
 
 		messageStore1.removeMessageGroup("group1");
 
-		assertEquals(1, messageStore1.getMessageGroupCount());
-		assertEquals(2, messageStore2.getMessageGroupCount());
+		assertThat(messageStore1.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageStore2.getMessageGroupCount()).isEqualTo(2);
 
 	}
 }

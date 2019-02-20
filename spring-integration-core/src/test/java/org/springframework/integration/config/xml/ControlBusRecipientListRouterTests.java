@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -77,7 +75,7 @@ public class ControlBusRecipientListRouterTests {
 		Message<?>  message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertTrue(chanel2.receive(0).getPayload().equals(1));
+		assertThat(chanel2.receive(0).getPayload().equals(1)).isTrue();
 	}
 
 	@Test
@@ -89,7 +87,7 @@ public class ControlBusRecipientListRouterTests {
 		Message<?>  message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
-		assertTrue(chanel3.receive(0).getPayload().equals(1));
+		assertThat(chanel3.receive(0).getPayload().equals(1)).isTrue();
 	}
 
 	@Test
@@ -104,8 +102,8 @@ public class ControlBusRecipientListRouterTests {
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
-		assertTrue(chanel1.receive(0).getPayload().equals(1));
-		assertNull(chanel4.receive(0));
+		assertThat(chanel1.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel4.receive(0)).isNull();
 	}
 
 	@Test
@@ -120,8 +118,8 @@ public class ControlBusRecipientListRouterTests {
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel5 = (PollableChannel) context.getBean("channel5");
-		assertTrue(chanel1.receive(0).getPayload().equals(1));
-		assertNull(chanel5.receive(0));
+		assertThat(chanel1.receive(0).getPayload().equals(1)).isTrue();
+		assertThat(chanel5.receive(0)).isNull();
 	}
 
 	@Test
@@ -134,7 +132,7 @@ public class ControlBusRecipientListRouterTests {
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		Message<?> result = this.output.receive(0);
 		Collection<Recipient> mappings = (Collection<Recipient>) result.getPayload();
-		assertEquals(channel1, mappings.iterator().next().getChannel());
+		assertThat(mappings.iterator().next().getChannel()).isEqualTo(channel1);
 	}
 
 	@Test
@@ -149,7 +147,7 @@ public class ControlBusRecipientListRouterTests {
 		message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel6 = (PollableChannel) context.getBean("channel6");
-		assertTrue(chanel6.receive(0).getPayload().equals(1));
+		assertThat(chanel6.receive(0).getPayload().equals(1)).isTrue();
 	}
 
 	@Test
@@ -161,6 +159,6 @@ public class ControlBusRecipientListRouterTests {
 		Message<?>  message = new GenericMessage<Integer>(1);
 		channel.send(message);
 		PollableChannel chanel7 = (PollableChannel) context.getBean("channel7");
-		assertTrue(chanel7.receive(0).getPayload().equals(1));
+		assertThat(chanel7.receive(0).getPayload().equals(1)).isTrue();
 	}
 }

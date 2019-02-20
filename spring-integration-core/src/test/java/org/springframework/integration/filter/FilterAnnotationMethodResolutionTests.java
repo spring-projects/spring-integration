@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -50,9 +48,9 @@ public class FilterAnnotationMethodResolutionTests {
 		QueueChannel replyChannel = new QueueChannel();
 		handler.handleMessage(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertTrue(filter.invokedCorrectMethod);
-		assertFalse(filter.invokedIncorrectMethod);
+		assertThat(result).isNotNull();
+		assertThat(filter.invokedCorrectMethod).isTrue();
+		assertThat(filter.invokedIncorrectMethod).isFalse();
 		testApplicationContext.close();
 	}
 

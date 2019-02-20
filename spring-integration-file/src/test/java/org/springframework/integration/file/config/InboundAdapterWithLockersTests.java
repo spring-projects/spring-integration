@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,13 +41,13 @@ public class InboundAdapterWithLockersTests {
 
 	@Test
 	public void testAdaptersWithLockers() {
-		assertEquals(context.getBean("locker"),
-				TestUtils.getPropertyValue(context.getBean("inputWithLockerA"), "source.scanner.locker"));
-		assertEquals(context.getBean("locker"),
-				TestUtils.getPropertyValue(context.getBean("inputWithLockerB"), "source.scanner.locker"));
-		assertTrue(TestUtils.getPropertyValue(context.getBean("inputWithLockerC"), "source.scanner.locker")
-					instanceof NioFileLocker);
-		assertTrue(TestUtils.getPropertyValue(context.getBean("inputWithLockerD"), "source.scanner.locker")
-					instanceof NioFileLocker);
+		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerA"), "source.scanner.locker"))
+				.isEqualTo(context.getBean("locker"));
+		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerB"), "source.scanner.locker"))
+				.isEqualTo(context.getBean("locker"));
+		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerC"), "source.scanner.locker")
+				instanceof NioFileLocker).isTrue();
+		assertThat(TestUtils.getPropertyValue(context.getBean("inputWithLockerD"), "source.scanner.locker")
+				instanceof NioFileLocker).isTrue();
 	}
 }

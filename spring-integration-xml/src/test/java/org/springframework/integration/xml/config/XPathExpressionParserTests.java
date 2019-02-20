@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 import org.xml.sax.SAXParseException;
@@ -33,15 +32,19 @@ public class XPathExpressionParserTests {
 	public void testSimpleStringExpression() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/name' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
+				.isEqualTo("outputOne");
 	}
 
 	@Test
 	public void testNamespacedStringExpression() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
+				.isEqualTo("outputOne");
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
+				.isEqualTo("");
 	}
 
 	@Test
@@ -49,8 +52,11 @@ public class XPathExpressionParserTests {
 		StringBuffer xmlDoc = new StringBuffer("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces' />");
 		xmlDoc.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
-		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
+				.isEqualTo("outputOne");
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
+				.isEqualTo("");
 	}
 
 	@Test
@@ -61,8 +67,11 @@ public class XPathExpressionParserTests {
 				.append("</si-xml:xpath-expression>");
 
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
-		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
+				.isEqualTo("outputOne");
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
+				.isEqualTo("");
 	}
 
 	@Test
@@ -78,7 +87,7 @@ public class XPathExpressionParserTests {
 			getXPathExpression(xmlDoc.toString());
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertTrue(e.getCause() instanceof SAXParseException);
+			assertThat(e.getCause() instanceof SAXParseException).isTrue();
 			return;
 		}
 
@@ -90,8 +99,11 @@ public class XPathExpressionParserTests {
 	public void testNamespacePrefixButNoUri() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")))
+				.isEqualTo("outputOne");
+		assertThat(xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")))
+				.isEqualTo("");
 
 	}
 
@@ -104,7 +116,9 @@ public class XPathExpressionParserTests {
 			getXPathExpression(xmlDoc.toString());
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertEquals("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'namespace-map' attribute.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') " +
+							"and the 'namespace-map' attribute.");
 			return;
 		}
 
@@ -122,7 +136,8 @@ public class XPathExpressionParserTests {
 			getXPathExpression(xmlDoc.toString());
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertEquals("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.");
 			return;
 		}
 
@@ -141,7 +156,8 @@ public class XPathExpressionParserTests {
 			getXPathExpression(xmlDoc.toString());
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertEquals("It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.");
 			return;
 		}
 

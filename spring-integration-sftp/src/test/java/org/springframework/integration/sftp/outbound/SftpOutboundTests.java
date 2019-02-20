@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.doAnswer;
@@ -83,7 +80,7 @@ public class SftpOutboundTests {
 	@Test
 	public void testHandleFileMessage() throws Exception {
 		File targetDir = new File("remote-target-dir");
-		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
@@ -102,7 +99,7 @@ public class SftpOutboundTests {
 		destFile.deleteOnExit();
 
 		handler.handleMessage(new GenericMessage<>(srcFile));
-		assertTrue("destination file was not created", destFile.exists());
+		assertThat(destFile.exists()).as("destination file was not created").isTrue();
 	}
 
 	@Test
@@ -122,9 +119,9 @@ public class SftpOutboundTests {
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<String>("String data"));
-		assertTrue(new File("remote-target-dir", "foo.txt").exists());
+		assertThat(new File("remote-target-dir", "foo.txt").exists()).isTrue();
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
-		assertEquals("String data", new String(inFile));
+		assertThat(new String(inFile)).isEqualTo("String data");
 		file.delete();
 	}
 
@@ -145,16 +142,16 @@ public class SftpOutboundTests {
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<byte[]>("byte[] data".getBytes()));
-		assertTrue(new File("remote-target-dir", "foo.txt").exists());
+		assertThat(new File("remote-target-dir", "foo.txt").exists()).isTrue();
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
-		assertEquals("byte[] data", new String(inFile));
+		assertThat(new String(inFile)).isEqualTo("byte[] data");
 		file.delete();
 	}
 
 	@Test //INT-2275
 	public void testSftpOutboundChannelAdapterInsideChain() throws Exception {
 		File targetDir = new File("remote-target-dir");
-		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
 		srcFile.deleteOnExit();
@@ -168,7 +165,7 @@ public class SftpOutboundTests {
 		MessageChannel channel = context.getBean("outboundChannelAdapterInsideChain", MessageChannel.class);
 
 		channel.send(new GenericMessage<File>(srcFile));
-		assertTrue("destination file was not created", destFile.exists());
+		assertThat(destFile.exists()).as("destination file was not created").isTrue();
 		context.close();
 	}
 
@@ -185,13 +182,13 @@ public class SftpOutboundTests {
 
 		Message<?> result = output.receive();
 		Object payload = result.getPayload();
-		assertTrue(payload instanceof List<?>);
+		assertThat(payload instanceof List<?>).isTrue();
 		@SuppressWarnings("unchecked")
 		List<? extends FileInfo<?>> remoteFiles = (List<? extends FileInfo<?>>) payload;
-		assertEquals(3, remoteFiles.size());
+		assertThat(remoteFiles.size()).isEqualTo(3);
 		List<String> files = Arrays.asList(new File("remote-test-dir").list());
 		for (FileInfo<?> remoteFile : remoteFiles) {
-			assertTrue(files.contains(remoteFile.getFilename()));
+			assertThat(files.contains(remoteFile.getFilename())).isTrue();
 		}
 		context.close();
 	}
@@ -215,10 +212,10 @@ public class SftpOutboundTests {
 			return null;
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<String>("qux"));
-		assertEquals(3, madeDirs.size());
-		assertEquals("/foo", madeDirs.get(0));
-		assertEquals("/foo/bar", madeDirs.get(1));
-		assertEquals("/foo/bar/baz", madeDirs.get(2));
+		assertThat(madeDirs.size()).isEqualTo(3);
+		assertThat(madeDirs.get(0)).isEqualTo("/foo");
+		assertThat(madeDirs.get(1)).isEqualTo("/foo/bar");
+		assertThat(madeDirs.get(2)).isEqualTo("/foo/bar/baz");
 	}
 
 	@Test
@@ -262,16 +259,18 @@ public class SftpOutboundTests {
 		noopConnect(channel2);
 		Session<LsEntry> s1 = factory.getSession();
 		Session<LsEntry> s2 = factory.getSession();
-		assertSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
-		assertSame(channel1, TestUtils.getPropertyValue(s1, "channel"));
-		assertSame(channel2, TestUtils.getPropertyValue(s2, "channel"));
+		assertThat(TestUtils.getPropertyValue(s2, "jschSession"))
+				.isSameAs(TestUtils.getPropertyValue(s1, "jschSession"));
+		assertThat(TestUtils.getPropertyValue(s1, "channel")).isSameAs(channel1);
+		assertThat(TestUtils.getPropertyValue(s2, "channel")).isSameAs(channel2);
 	}
 
 	@Test
 	public void testNotSharedSession() throws Exception {
 		JSch jsch = spy(new JSch());
 		Constructor<com.jcraft.jsch.Session> ctor =
-				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
+				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class,
+						int.class);
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
@@ -292,16 +291,18 @@ public class SftpOutboundTests {
 		noopConnect(channel2);
 		Session<LsEntry> s1 = factory.getSession();
 		Session<LsEntry> s2 = factory.getSession();
-		assertNotSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
-		assertSame(channel1, TestUtils.getPropertyValue(s1, "channel"));
-		assertSame(channel2, TestUtils.getPropertyValue(s2, "channel"));
+		assertThat(TestUtils.getPropertyValue(s2, "jschSession"))
+				.isNotSameAs(TestUtils.getPropertyValue(s1, "jschSession"));
+		assertThat(TestUtils.getPropertyValue(s1, "channel")).isSameAs(channel1);
+		assertThat(TestUtils.getPropertyValue(s2, "channel")).isSameAs(channel2);
 	}
 
 	@Test
 	public void testSharedSessionCachedReset() throws Exception {
 		JSch jsch = spy(new JSch());
 		Constructor<com.jcraft.jsch.Session> ctor =
-				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
+				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class,
+						int.class);
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
@@ -346,27 +347,31 @@ public class SftpOutboundTests {
 		noopConnect(channel4);
 		Session<LsEntry> s1 = cachedFactory.getSession();
 		Session<LsEntry> s2 = cachedFactory.getSession();
-		assertSame(jschSession1, TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
-		assertSame(channel1, TestUtils.getPropertyValue(s1, "targetSession.channel"));
-		assertSame(channel2, TestUtils.getPropertyValue(s2, "targetSession.channel"));
-		assertSame(TestUtils.getPropertyValue(s1, "targetSession.jschSession"), TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession.jschSession")).isSameAs(jschSession1);
+		assertThat(TestUtils.getPropertyValue(s1, "targetSession.channel")).isSameAs(channel1);
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession.channel")).isSameAs(channel2);
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession.jschSession"))
+				.isSameAs(TestUtils.getPropertyValue(s1, "targetSession.jschSession"));
 		s1.close();
 		Session<LsEntry> s3 = cachedFactory.getSession();
-		assertSame(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s3, "targetSession"));
-		assertSame(channel1, TestUtils.getPropertyValue(s3, "targetSession.channel"));
+		assertThat(TestUtils.getPropertyValue(s3, "targetSession"))
+				.isSameAs(TestUtils.getPropertyValue(s1, "targetSession"));
+		assertThat(TestUtils.getPropertyValue(s3, "targetSession.channel")).isSameAs(channel1);
 		s3.close();
 		cachedFactory.resetCache();
 		verify(jschSession1, never()).disconnect();
 		s3 = cachedFactory.getSession();
-		assertSame(jschSession2, TestUtils.getPropertyValue(s3, "targetSession.jschSession"));
-		assertNotSame(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s3, "targetSession"));
-		assertSame(channel3, TestUtils.getPropertyValue(s3, "targetSession.channel"));
+		assertThat(TestUtils.getPropertyValue(s3, "targetSession.jschSession")).isSameAs(jschSession2);
+		assertThat(TestUtils.getPropertyValue(s3, "targetSession"))
+				.isNotSameAs(TestUtils.getPropertyValue(s1, "targetSession"));
+		assertThat(TestUtils.getPropertyValue(s3, "targetSession.channel")).isSameAs(channel3);
 		s2.close();
 		verify(jschSession1).disconnect();
 		s2 = cachedFactory.getSession();
-		assertSame(jschSession2, TestUtils.getPropertyValue(s2, "targetSession.jschSession"));
-		assertNotSame(TestUtils.getPropertyValue(s3, "targetSession"), TestUtils.getPropertyValue(s2, "targetSession"));
-		assertSame(channel4, TestUtils.getPropertyValue(s2, "targetSession.channel"));
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession.jschSession")).isSameAs(jschSession2);
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession"))
+				.isNotSameAs(TestUtils.getPropertyValue(s3, "targetSession"));
+		assertThat(TestUtils.getPropertyValue(s2, "targetSession.channel")).isSameAs(channel4);
 		s2.close();
 		s3.close();
 		verify(jschSession2, never()).disconnect();
@@ -387,21 +392,21 @@ public class SftpOutboundTests {
 
 				doAnswer(invocation -> {
 					File file = new File((String) invocation.getArgument(1));
-					assertTrue(file.getName().endsWith(".writing"));
+					assertThat(file.getName()).endsWith(".writing");
 					FileCopyUtils.copy((InputStream) invocation.getArgument(0), new FileOutputStream(file));
 					return null;
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 
 				doAnswer(invocation -> {
 					File file = new File((String) invocation.getArgument(0));
-					assertTrue(file.getName().endsWith(".writing"));
+					assertThat(file.getName()).endsWith(".writing");
 					File renameToFile = new File((String) invocation.getArgument(1));
 					file.renameTo(renameToFile);
 					return null;
 				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());
 
 				String[] files = new File("remote-test-dir").list();
-				Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
+				Vector<LsEntry> sftpEntries = new Vector<>();
 				for (String fileName : files) {
 					LsEntry lsEntry = mock(LsEntry.class);
 					SftpATTRS attributes = mock(SftpATTRS.class);
@@ -418,6 +423,7 @@ public class SftpOutboundTests {
 				throw new RuntimeException("Failed to create mock sftp session", e);
 			}
 		}
+
 	}
 
 }

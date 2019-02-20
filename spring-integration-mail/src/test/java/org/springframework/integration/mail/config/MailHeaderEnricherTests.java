@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -57,14 +57,14 @@ public class MailHeaderEnricherTests {
 		template.setDefaultDestination(this.literalValuesInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		Map<String, Object> headers = result.getHeaders();
-		assertEquals("test.to", headers.get(MailHeaders.TO));
-		assertEquals("test.cc", headers.get(MailHeaders.CC));
-		assertEquals("test.bcc", headers.get(MailHeaders.BCC));
-		assertEquals("test.from", headers.get(MailHeaders.FROM));
-		assertEquals("test.reply-to", headers.get(MailHeaders.REPLY_TO));
-		assertEquals("test.subject", headers.get(MailHeaders.SUBJECT));
-		assertEquals("foo.txt", headers.get(MailHeaders.ATTACHMENT_FILENAME));
-		assertEquals("1", headers.get(MailHeaders.MULTIPART_MODE));
+		assertThat(headers.get(MailHeaders.TO)).isEqualTo("test.to");
+		assertThat(headers.get(MailHeaders.CC)).isEqualTo("test.cc");
+		assertThat(headers.get(MailHeaders.BCC)).isEqualTo("test.bcc");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("test.from");
+		assertThat(headers.get(MailHeaders.REPLY_TO)).isEqualTo("test.reply-to");
+		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("test.subject");
+		assertThat(headers.get(MailHeaders.ATTACHMENT_FILENAME)).isEqualTo("foo.txt");
+		assertThat(headers.get(MailHeaders.MULTIPART_MODE)).isEqualTo("1");
 	}
 
 	@Test
@@ -73,12 +73,12 @@ public class MailHeaderEnricherTests {
 		template.setDefaultDestination(this.expressionsInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
-		assertEquals("foo.to", headers.get(MailHeaders.TO));
-		assertEquals("foo.cc", headers.get(MailHeaders.CC));
-		assertEquals("foo.bcc", headers.get(MailHeaders.BCC));
-		assertEquals("foo.from", headers.get(MailHeaders.FROM));
-		assertEquals("foo.reply-to", headers.get(MailHeaders.REPLY_TO));
-		assertEquals("foo.subject", headers.get(MailHeaders.SUBJECT));
+		assertThat(headers.get(MailHeaders.TO)).isEqualTo("foo.to");
+		assertThat(headers.get(MailHeaders.CC)).isEqualTo("foo.cc");
+		assertThat(headers.get(MailHeaders.BCC)).isEqualTo("foo.bcc");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("foo.from");
+		assertThat(headers.get(MailHeaders.REPLY_TO)).isEqualTo("foo.reply-to");
+		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("foo.subject");
 	}
 
 }

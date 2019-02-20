@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,13 +68,13 @@ public class HeaderFilterParserTests {
 				.build();
 		inputA.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertNull(result.getHeaders().get("a"));
-		assertNull(result.getHeaders().get("c"));
-		assertNull(result.getHeaders().get("d"));
-		assertNotNull(result.getHeaders().get("b"));
-		assertNotNull(result.getHeaders().get("e"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("a")).isNull();
+		assertThat(result.getHeaders().get("c")).isNull();
+		assertThat(result.getHeaders().get("d")).isNull();
+		assertThat(result.getHeaders().get("b")).isNotNull();
+		assertThat(result.getHeaders().get("e")).isNotNull();
 	}
 
 	@Test
@@ -92,13 +90,13 @@ public class HeaderFilterParserTests {
 				.build();
 		inputB.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertNull(result.getHeaders().get("a"));
-		assertNull(result.getHeaders().get("c"));
-		assertNull(result.getHeaders().get("d"));
-		assertNull(result.getHeaders().get("b"));
-		assertNull(result.getHeaders().get("e"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("a")).isNull();
+		assertThat(result.getHeaders().get("c")).isNull();
+		assertThat(result.getHeaders().get("d")).isNull();
+		assertThat(result.getHeaders().get("b")).isNull();
+		assertThat(result.getHeaders().get("e")).isNull();
 	}
 
 	@Test
@@ -114,13 +112,13 @@ public class HeaderFilterParserTests {
 				.build();
 		inputC.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertNull(result.getHeaders().get("bar"));
-		assertNull(result.getHeaders().get("baz"));
-		assertNull(result.getHeaders().get("foo"));
-		assertNull(result.getHeaders().get("goo"));
-		assertNotNull(result.getHeaders().get("e"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("bar")).isNull();
+		assertThat(result.getHeaders().get("baz")).isNull();
+		assertThat(result.getHeaders().get("foo")).isNull();
+		assertThat(result.getHeaders().get("goo")).isNull();
+		assertThat(result.getHeaders().get("e")).isNotNull();
 	}
 
 	@Test
@@ -136,13 +134,13 @@ public class HeaderFilterParserTests {
 				.build();
 		inputD.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertNull(result.getHeaders().get("bar*"));
-		assertNull(result.getHeaders().get("bart"));
-		assertNull(result.getHeaders().get("foo"));
-		assertNull(result.getHeaders().get("goo"));
-		assertNotNull(result.getHeaders().get("e"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("bar*")).isNull();
+		assertThat(result.getHeaders().get("bart")).isNull();
+		assertThat(result.getHeaders().get("foo")).isNull();
+		assertThat(result.getHeaders().get("goo")).isNull();
+		assertThat(result.getHeaders().get("e")).isNotNull();
 	}
 
 	@Test
@@ -158,13 +156,13 @@ public class HeaderFilterParserTests {
 				.build();
 		inputE.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertNull(result.getHeaders().get("bar*"));
-		assertNotNull(result.getHeaders().get("bart"));
-		assertNull(result.getHeaders().get("foo"));
-		assertNotNull(result.getHeaders().get("goo"));
-		assertNotNull(result.getHeaders().get("e"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().get("bar*")).isNull();
+		assertThat(result.getHeaders().get("bart")).isNotNull();
+		assertThat(result.getHeaders().get("foo")).isNull();
+		assertThat(result.getHeaders().get("goo")).isNotNull();
+		assertThat(result.getHeaders().get("e")).isNotNull();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,37 +61,37 @@ public class ObjectToStringTransformerParserTests {
 	public void directChannelWithStringMessage() {
 		directInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void queueChannelWithStringMessage() {
 		queueInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(3000);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void directChannelWithObjectMessage() {
 		directInput.send(new GenericMessage<TestBean>(new TestBean()));
 		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test
 	public void queueChannelWithObjectMessage() {
 		queueInput.send(new GenericMessage<TestBean>(new TestBean()));
 		Message<?> result = output.receive(3000);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test
 	public void charset() {
-		assertEquals("FOO", TestUtils.getPropertyValue(this.withCharset, "handler.transformer.charset"));
+		assertThat(TestUtils.getPropertyValue(this.withCharset, "handler.transformer.charset")).isEqualTo("FOO");
 	}
 
 	private static class TestBean {

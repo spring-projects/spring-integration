@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.stomp.inbound;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Map;
@@ -126,15 +120,15 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 	@Test
 	public void testWebSocketStompClient() throws Exception {
 		Message<?> eventMessage = this.stompEvents.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompSessionConnectedEvent.class);
 
 		Message<?> receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) receive.getPayload();
-		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
-		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SUBSCRIBE);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/topic/myTopic");
 
 		waitForSubscribe("/topic/myTopic");
 
@@ -150,13 +144,13 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 				MessageBuilder.createMessage("{\"foo\": \"bar\"}".getBytes(), stompHeaderAccessor.getMessageHeaders()));
 
 		receive = this.stompInputChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(Map.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(Map.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> payload = (Map<String, String>) receive.getPayload();
 		String foo = payload.get("foo");
-		assertNotNull(foo);
-		assertEquals("bar", foo);
+		assertThat(foo).isNotNull();
+		assertThat(foo).isEqualTo("bar");
 
 		this.stompInboundChannelAdapter.removeDestination("/topic/myTopic");
 
@@ -164,36 +158,35 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(100);
-		assertNull(receive);
+		assertThat(receive).isNull();
 
 		this.stompInboundChannelAdapter.addDestination("/topic/myTopic");
 		receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		waitForSubscribe("/topic/myTopic");
 
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive, instanceOf(ErrorMessage.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive).isInstanceOf(ErrorMessage.class);
 		ErrorMessage errorMessage = (ErrorMessage) receive;
 		Throwable throwable = errorMessage.getPayload();
-		assertThat(throwable, instanceOf(MessageHandlingException.class));
-		assertThat(throwable.getCause(), instanceOf(MessageConversionException.class));
-		assertThat(throwable.getMessage(),
-				containsString("No suitable converter for payload type [interface java.util.Map]"));
+		assertThat(throwable).isInstanceOf(MessageHandlingException.class);
+		assertThat(throwable.getCause()).isInstanceOf(MessageConversionException.class);
+		assertThat(throwable.getMessage()).contains("No suitable converter for payload type [interface java.util.Map]");
 
 		this.serverContext.close();
 
 		eventMessage = this.stompEvents.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompConnectionFailedEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompConnectionFailedEvent.class);
 
 		this.serverContext.refresh();
 
 		do {
 			eventMessage = this.stompEvents.receive(10000);
-			assertNotNull(eventMessage);
+			assertThat(eventMessage).isNotNull();
 		}
 		while (!(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
 
@@ -202,8 +195,8 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		messagingTemplate = this.serverContext.getBean("brokerMessagingTemplate", SimpMessagingTemplate.class);
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(0, ((QueueChannel) this.errorChannel).getQueueSize());
+		assertThat(receive).isNotNull();
+		assertThat(((QueueChannel) this.errorChannel).getQueueSize()).isEqualTo(0);
 	}
 
 	private void waitForSubscribe(String destination) throws InterruptedException {
@@ -217,7 +210,8 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			Thread.sleep(100);
 		}
 
-		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
+		assertThat(n < 100).as("The subscription for the '" + destination + "' destination hasn't been registered")
+				.isTrue();
 	}
 
 	private void waitForUnsubscribe(String destination) throws InterruptedException {
@@ -231,7 +225,8 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			Thread.sleep(100);
 		}
 
-		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
+		assertThat(n < 100).as("The subscription for the '" + destination + "' destination hasn't been registered")
+				.isTrue();
 	}
 
 

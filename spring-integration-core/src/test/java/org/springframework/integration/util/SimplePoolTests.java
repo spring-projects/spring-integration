@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,16 +42,16 @@ public class SimplePoolTests {
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		String s1 = pool.getItem();
 		String s2 = pool.getItem();
-		assertNotSame(s1, s2);
+		assertThat(s2).isNotSameAs(s1);
 		pool.releaseItem(s1);
 		String s3 = pool.getItem();
-		assertSame(s1, s3);
+		assertThat(s3).isSameAs(s1);
 		stale.set(true);
 		pool.releaseItem(s3);
 		s3 = pool.getItem();
-		assertNotSame(s1, s3);
-		assertFalse(strings.remove(s1));
-		assertEquals(2, pool.getAllocatedCount());
+		assertThat(s3).isNotSameAs(s1);
+		assertThat(strings.remove(s1)).isFalse();
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 	}
 
 	@Test
@@ -63,23 +60,23 @@ public class SimplePoolTests {
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		String s1 = pool.getItem();
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(1, pool.getActiveCount());
-		assertEquals(1, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(1);
+		assertThat(pool.getAllocatedCount()).isEqualTo(1);
 		pool.releaseItem(s1);
-		assertEquals(1, pool.getIdleCount());
-		assertEquals(0, pool.getActiveCount());
-		assertEquals(1, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(1);
+		assertThat(pool.getActiveCount()).isEqualTo(0);
+		assertThat(pool.getAllocatedCount()).isEqualTo(1);
 		s1 = pool.getItem();
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(1, pool.getActiveCount());
-		assertEquals(1, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(1);
+		assertThat(pool.getAllocatedCount()).isEqualTo(1);
 		String s2 = pool.getItem();
-		assertNotSame(s1, s2);
+		assertThat(s2).isNotSameAs(s1);
 		pool.setWaitTimeout(1);
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(2, pool.getActiveCount());
-		assertEquals(2, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 		try {
 			pool.getItem();
 			fail("Expected exception");
@@ -89,39 +86,39 @@ public class SimplePoolTests {
 		// resize up
 		pool.setPoolSize(4);
 
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(2, pool.getActiveCount());
-		assertEquals(2, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 		String s3 = pool.getItem();
 		String s4 = pool.getItem();
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(4, pool.getActiveCount());
-		assertEquals(4, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(4);
+		assertThat(pool.getAllocatedCount()).isEqualTo(4);
 		pool.releaseItem(s4);
-		assertEquals(1, pool.getIdleCount());
-		assertEquals(3, pool.getActiveCount());
-		assertEquals(4, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(1);
+		assertThat(pool.getActiveCount()).isEqualTo(3);
+		assertThat(pool.getAllocatedCount()).isEqualTo(4);
 
 		// resize down
 		pool.setPoolSize(2);
 
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(3, pool.getActiveCount());
-		assertEquals(3, pool.getPoolSize());
-		assertEquals(3, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(3);
+		assertThat(pool.getPoolSize()).isEqualTo(3);
+		assertThat(pool.getAllocatedCount()).isEqualTo(3);
 		pool.releaseItem(s3);
-		assertEquals(0, pool.getIdleCount());
-		assertEquals(2, pool.getActiveCount());
-		assertEquals(2, pool.getPoolSize());
-		assertEquals(2, pool.getAllocatedCount());
-		assertEquals(2, strings.size());
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		assertThat(pool.getActiveCount()).isEqualTo(2);
+		assertThat(pool.getPoolSize()).isEqualTo(2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
+		assertThat(strings.size()).isEqualTo(2);
 		pool.releaseItem(s2);
 		pool.releaseItem(s1);
-		assertEquals(2, pool.getIdleCount());
-		assertEquals(0, pool.getActiveCount());
-		assertEquals(2, pool.getPoolSize());
-		assertEquals(2, strings.size());
-		assertEquals(2, pool.getAllocatedCount());
+		assertThat(pool.getIdleCount()).isEqualTo(2);
+		assertThat(pool.getActiveCount()).isEqualTo(0);
+		assertThat(pool.getPoolSize()).isEqualTo(2);
+		assertThat(strings.size()).isEqualTo(2);
+		assertThat(pool.getAllocatedCount()).isEqualTo(2);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -139,13 +136,13 @@ public class SimplePoolTests {
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		Semaphore permits = TestUtils.getPropertyValue(pool, "permits", Semaphore.class);
-		assertEquals(2, permits.availablePermits());
+		assertThat(permits.availablePermits()).isEqualTo(2);
 		String s1 = pool.getItem();
-		assertEquals(1, permits.availablePermits());
+		assertThat(permits.availablePermits()).isEqualTo(1);
 		pool.releaseItem(s1);
-		assertEquals(2, permits.availablePermits());
+		assertThat(permits.availablePermits()).isEqualTo(2);
 		pool.releaseItem(s1);
-		assertEquals(2, permits.availablePermits());
+		assertThat(permits.availablePermits()).isEqualTo(2);
 	}
 
 

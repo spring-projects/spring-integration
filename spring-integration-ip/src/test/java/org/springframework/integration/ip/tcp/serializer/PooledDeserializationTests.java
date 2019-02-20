@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class PooledDeserializationTests {
 		for (int i = 0; i < 5; i++) {
 			bais.reset();
 			byte[] bytes = deser.deserialize(bais);
-			assertEquals("foo", new String(bytes));
+			assertThat(new String(bytes)).isEqualTo("foo");
 		}
 		try {
 			deser.deserialize(bais);
@@ -52,8 +51,8 @@ public class PooledDeserializationTests {
 		catch (SoftEndOfStreamException e) {
 			// expected
 		}
-		assertEquals(1, TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size());
-		assertEquals(0, TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size());
+		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -63,10 +62,10 @@ public class PooledDeserializationTests {
 		deser.setMaxMessageSize(3);
 		ByteArrayInputStream bais = new ByteArrayInputStream("foo".getBytes());
 		byte[] bytes = deser.deserialize(bais);
-		assertEquals("foo", new String(bytes));
-		assertEquals(1, TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size());
-		assertEquals(0, TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size());
-		assertNotSame(bytes, TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).iterator().next());
+		assertThat(new String(bytes)).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).size()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(deser, "pool.inUse", Set.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(deser, "pool.allocated", Set.class).iterator().next()).isNotSameAs(bytes);
 	}
 
 }

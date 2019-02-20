@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -55,7 +54,7 @@ public class ImapIdleIntegrationTests {
 				new ClassPathXmlApplicationContext("imap-idle-mock-integration-config.xml", this.getClass());
 		PostTransactionProcessor processor = context.getBean("syncProcessor", PostTransactionProcessor.class);
 		ImapIdleChannelAdapter adapter = context.getBean("customAdapter", ImapIdleChannelAdapter.class);
-		assertNotNull(TestUtils.getPropertyValue(adapter, "applicationEventPublisher"));
+		assertThat(TestUtils.getPropertyValue(adapter, "applicationEventPublisher")).isNotNull();
 		ImapMailReceiver receiver = TestUtils.getPropertyValue(adapter, "mailReceiver", ImapMailReceiver.class);
 
 		// setup mock scenario
@@ -93,7 +92,7 @@ public class ImapIdleIntegrationTests {
 
 		adapter.start();
 
-		assertTrue(txProcessorLatch.await(10, TimeUnit.SECONDS));
+		assertThat(txProcessorLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		adapter.stop();
 		context.close();

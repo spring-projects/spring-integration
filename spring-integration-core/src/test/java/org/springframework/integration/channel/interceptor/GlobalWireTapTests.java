@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +71,7 @@ public class GlobalWireTapTests {
 		Message<?> message = new GenericMessage<String>("hello");
 		this.channel.send(message);
 		Message<?> wireTapMessage = this.wiretapSingle.receive(100);
-		assertNotNull(wireTapMessage);
+		assertThat(wireTapMessage).isNotNull();
 
 		// There should be 5 messages on this channel:
 		// 'channel', 'output', 'wiretapSingle', and too for 'unnamedGlobalWireTaps'.
@@ -81,15 +79,15 @@ public class GlobalWireTapTests {
 		int msgCount = 0;
 		while (wireTapMessage != null) {
 			msgCount++;
-			assertEquals(wireTapMessage.getPayload(), message.getPayload());
+			assertThat(message.getPayload()).isEqualTo(wireTapMessage.getPayload());
 			wireTapMessage = this.wiretapAll.receive(100);
 		}
 
-		assertEquals(5, msgCount);
+		assertThat(msgCount).isEqualTo(5);
 
-		assertNull(this.wiretapAll2.receive(1));
+		assertThat(this.wiretapAll2.receive(1)).isNull();
 
-		assertEquals(4, this.channel.getChannelInterceptors().size());
+		assertThat(this.channel.getChannelInterceptors().size()).isEqualTo(4);
 	}
 
 	@Test
@@ -99,18 +97,18 @@ public class GlobalWireTapTests {
 
 		//This time no message on wiretapSingle
 		Message<?> wireTapMessage = wiretapSingle.receive(100);
-		assertNull(wireTapMessage);
+		assertThat(wireTapMessage).isNull();
 
 		//There should be two messages on this channel. One for 'channel' and one for 'output'
 		wireTapMessage = wiretapAll.receive(100);
 		int msgCount = 0;
 		while (wireTapMessage != null) {
 			msgCount++;
-			assertEquals(wireTapMessage.getPayload(), message.getPayload());
+			assertThat(message.getPayload()).isEqualTo(wireTapMessage.getPayload());
 			wireTapMessage = wiretapAll.receive(100);
 		}
 
-		assertEquals(2, msgCount);
+		assertThat(msgCount).isEqualTo(2);
 	}
 
 }

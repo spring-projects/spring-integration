@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator.scenarios;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -92,7 +91,8 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			});
 		}
 
-		assertTrue("Sends failed to complete: " + latch.getCount() + " remain", latch.await(120, TimeUnit.SECONDS));
+		assertThat(latch.await(120, TimeUnit.SECONDS)).as("Sends failed to complete: " + latch.getCount() + " remain")
+				.isTrue();
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
@@ -100,7 +100,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			counter++;
 			message = resultChannel.receive(1000);
 		}
-		assertEquals(600, counter);
+		assertThat(counter).isEqualTo(600);
 		context.close();
 	}
 
@@ -127,14 +127,15 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			});
 		}
 
-		assertTrue("Sends failed to complete: " + latch.getCount() + " remain", latch.await(60, TimeUnit.SECONDS));
+		assertThat(latch.await(60, TimeUnit.SECONDS)).as("Sends failed to complete: " + latch.getCount() + " remain")
+				.isTrue();
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
 		while (message != null && ++counter < 7200) {
 			message = resultChannel.receive(1000);
 		}
-		assertEquals(7200, counter);
+		assertThat(counter).isEqualTo(7200);
 		context.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -93,7 +91,7 @@ public class DownstreamExceptionTests {
 		service.barrier.reset();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		verify(logger).error(contains("Unhandled exception for"), any(Throwable.class));
 		service.barrier.reset();
 		adapter.stop();
@@ -101,7 +99,7 @@ public class DownstreamExceptionTests {
 
 	@Test
 	public void testWithErrorChannel() throws Exception {
-		assertSame(this.errors, TestUtils.getPropertyValue(this.withErrorChannel, "errorChannel"));
+		assertThat(TestUtils.getPropertyValue(this.withErrorChannel, "errorChannel")).isSameAs(this.errors);
 		service.n = 0;
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-fooEx2");
@@ -113,7 +111,7 @@ public class DownstreamExceptionTests {
 		service.barrier.reset();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		service.barrier.await(10, TimeUnit.SECONDS);
-		assertNotNull(errors.receive(10000));
+		assertThat(errors.receive(10000)).isNotNull();
 		service.barrier.reset();
 		adapter.stop();
 	}

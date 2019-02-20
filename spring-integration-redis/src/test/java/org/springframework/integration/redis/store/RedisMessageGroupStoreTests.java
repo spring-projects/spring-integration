@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2018 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,9 +81,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
-		assertNotNull(messageGroup);
-		assertTrue(messageGroup instanceof SimpleMessageGroup);
-		assertEquals(0, messageGroup.size());
+		assertThat(messageGroup).isNotNull();
+		assertThat(messageGroup instanceof SimpleMessageGroup).isTrue();
+		assertThat(messageGroup.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -101,22 +94,22 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 		long createdTimestamp = messageGroup.getTimestamp();
 		long updatedTimestamp = messageGroup.getLastModified();
-		assertEquals(createdTimestamp, updatedTimestamp);
+		assertThat(updatedTimestamp).isEqualTo(createdTimestamp);
 		Thread.sleep(10);
 		message = new GenericMessage<>("Hello");
 		messageGroup = store.addMessageToGroup(this.groupId, message);
 		createdTimestamp = messageGroup.getTimestamp();
 		updatedTimestamp = messageGroup.getLastModified();
-		assertTrue(updatedTimestamp > createdTimestamp);
+		assertThat(updatedTimestamp > createdTimestamp).isTrue();
 
 		// make sure the store is properly rebuild from Redis
 		store = new RedisMessageStore(jcf);
 
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -127,13 +120,13 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		Message<?> message = new GenericMessage<>("Hello");
 		MessageGroup messageGroup = store.addMessageToGroup(this.groupId, message);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 
 		// make sure the store is properly rebuild from Redis
 		store = new RedisMessageStore(jcf);
 
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -145,22 +138,22 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
 		Message<?> message = new GenericMessage<>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 
 		store.removeMessageGroup(this.groupId);
 		MessageGroup messageGroupA = store.getMessageGroup(this.groupId);
-		assertNotSame(messageGroup, messageGroupA);
+		assertThat(messageGroupA).isNotSameAs(messageGroup);
 //		assertEquals(0, messageGroupA.getMarked().size());
-		assertEquals(0, messageGroupA.getMessages().size());
-		assertEquals(0, messageGroupA.size());
+		assertThat(messageGroupA.getMessages().size()).isEqualTo(0);
+		assertThat(messageGroupA.size()).isEqualTo(0);
 
 		// make sure the store is properly rebuild from Redis
 		store = new RedisMessageStore(jcf);
 
 		messageGroup = store.getMessageGroup(this.groupId);
 
-		assertEquals(0, messageGroup.getMessages().size());
-		assertEquals(0, messageGroup.size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(0);
+		assertThat(messageGroup.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -174,7 +167,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		store.completeGroup(messageGroup.getGroupId());
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertTrue(messageGroup.isComplete());
+		assertThat(messageGroup.isComplete()).isTrue();
 	}
 
 	@Test
@@ -188,7 +181,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+		assertThat(messageGroup.getLastReleasedMessageSequenceNumber()).isEqualTo(5);
 	}
 
 	@Test
@@ -201,17 +194,17 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		Message<?> message = new GenericMessage<>("2");
 		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<>("1"), message);
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<>("3"));
-		assertEquals(3, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(3);
 
 		store.removeMessagesFromGroup(this.groupId, message);
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 
 		// make sure the store is properly rebuild from Redis
 		store = new RedisMessageStore(jcf);
 
 		messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -233,11 +226,11 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		message = store.getMessageGroup(this.groupId).getMessages().iterator().next();
 
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
@@ -274,14 +267,14 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store1.addMessagesToGroup(this.groupId, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(this.groupId, new GenericMessage<>("2"));
 
-		assertEquals(2, messageGroup.getMessages().size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(2);
 
 		RedisMessageStore store3 = new RedisMessageStore(jcf);
 
 		store3.removeMessagesFromGroup(this.groupId, message);
 		messageGroup = store3.getMessageGroup(this.groupId);
 
-		assertEquals(1, messageGroup.getMessages().size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(1);
 	}
 
 	@Test
@@ -307,17 +300,17 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			MessageGroup group = messageGroups.next();
 			String groupId = (String) group.getGroupId();
 			if (groupId.equals("1")) {
-				assertEquals(1, group.getMessages().size());
+				assertThat(group.getMessages().size()).isEqualTo(1);
 			}
 			else if (groupId.equals("2")) {
-				assertEquals(1, group.getMessages().size());
+				assertThat(group.getMessages().size()).isEqualTo(1);
 			}
 			else if (groupId.equals("3")) {
-				assertEquals(2, group.getMessages().size());
+				assertThat(group.getMessages().size()).isEqualTo(2);
 			}
 			counter++;
 		}
-		assertEquals(3, counter);
+		assertThat(counter).isEqualTo(3);
 
 		store2.removeMessageGroup(group3);
 
@@ -327,7 +320,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			messageGroups.next();
 			counter++;
 		}
-		assertEquals(2, counter);
+		assertThat(counter).isEqualTo(2);
 	}
 
 	@Test
@@ -369,7 +362,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.awaitTermination(10, TimeUnit.SECONDS);
 			store2.removeMessagesFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
-		assertTrue(failures.size() == 0);
+		assertThat(failures.size() == 0).isTrue();
 	}
 
 	@Test
@@ -393,9 +386,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				.build();
 
 		input.send(m1);
-		assertNull(output.receive(10));
+		assertThat(output.receive(10)).isNull();
 		input.send(m2);
-		assertNull(output.receive(10));
+		assertThat(output.receive(10)).isNull();
 
 		context.close();
 
@@ -410,7 +403,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				.build();
 
 		input.send(m3);
-		assertNotNull(output.receive(10000));
+		assertThat(output.receive(10000)).isNotNull();
 		context.close();
 	}
 
@@ -426,10 +419,10 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(this.groupId);
-		assertEquals(25, group.size());
+		assertThat(group.size()).isEqualTo(25);
 		messageStore.removeMessagesFromGroup(this.groupId, messages);
 		group = messageStore.getMessageGroup(this.groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 		messageStore.removeMessageGroup(this.groupId);
 	}
 
@@ -452,17 +445,18 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.addMessagesToGroup(this.groupId, genericMessage, mutableMessage, adviceMessage, errorMessage);
 
 		MessageGroup messageGroup = store.getMessageGroup(this.groupId);
-		assertEquals(4, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(4);
 		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
-		assertEquals(genericMessage, messages.get(0));
-		assertEquals(mutableMessage, messages.get(1));
-		assertEquals(adviceMessage, messages.get(2));
+		assertThat(messages.get(0)).isEqualTo(genericMessage);
+		assertThat(messages.get(1)).isEqualTo(mutableMessage);
+		assertThat(messages.get(2)).isEqualTo(adviceMessage);
 		Message<?> errorMessageResult = messages.get(3);
-		assertEquals(errorMessage.getHeaders(), errorMessageResult.getHeaders());
-		assertThat(errorMessageResult, instanceOf(ErrorMessage.class));
-		assertEquals(errorMessage.getOriginalMessage(), ((ErrorMessage) errorMessageResult).getOriginalMessage());
-		assertEquals(errorMessage.getPayload().getMessage(),
-				((ErrorMessage) errorMessageResult).getPayload().getMessage());
+		assertThat(errorMessageResult.getHeaders()).isEqualTo(errorMessage.getHeaders());
+		assertThat(errorMessageResult).isInstanceOf(ErrorMessage.class);
+		assertThat(((ErrorMessage) errorMessageResult).getOriginalMessage())
+				.isEqualTo(errorMessage.getOriginalMessage());
+		assertThat(((ErrorMessage) errorMessageResult).getPayload().getMessage())
+				.isEqualTo(errorMessage.getPayload().getMessage());
 
 		Message<Foo> fooMessage = new GenericMessage<>(new Foo("foo"));
 		try {
@@ -473,12 +467,11 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			fail("SerializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause().getCause(), instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(),
-					containsString("The class with " +
-							"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
-							"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
-							"is not in the trusted packages:"));
+			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("The class with " +
+					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
+					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
+					"is not in the trusted packages:");
 		}
 
 		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());
@@ -488,8 +481,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		store.removeMessageGroup(this.groupId);
 		messageGroup = store.addMessageToGroup(this.groupId, fooMessage);
-		assertEquals(1, messageGroup.size());
-		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+		assertThat(messageGroup.size()).isEqualTo(1);
+		assertThat(messageGroup.getMessages().iterator().next()).isEqualTo(fooMessage);
 
 		mapper = JacksonJsonUtils.messagingAwareMapper("*");
 
@@ -498,8 +491,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		store.removeMessageGroup(this.groupId);
 		messageGroup = store.addMessageToGroup(this.groupId, fooMessage);
-		assertEquals(1, messageGroup.size());
-		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+		assertThat(messageGroup.size()).isEqualTo(1);
+		assertThat(messageGroup.getMessages().iterator().next()).isEqualTo(fooMessage);
 	}
 
 	private static class Foo {

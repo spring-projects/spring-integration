@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.router;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -54,8 +50,8 @@ public class HeaderValueRouterTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", testChannel).build();
 		handler.handleMessage(message);
 		Message<?> result = testChannel.receive(1000);
-		assertNotNull(result);
-		assertSame(message, result);
+		assertThat(result).isNotNull();
+		assertThat(result).isSameAs(message);
 		context.close();
 	}
 
@@ -74,8 +70,8 @@ public class HeaderValueRouterTests {
 		handler.handleMessage(message);
 		QueueChannel channel = (QueueChannel) context.getBean("testChannel");
 		Message<?> result = channel.receive(1000);
-		assertNotNull(result);
-		assertSame(message, result);
+		assertThat(result).isNotNull();
+		assertThat(result).isSameAs(message);
 
 		// validate dynamics
 		HeaderValueRouter router = (HeaderValueRouter) context.getBean("router");
@@ -83,13 +79,13 @@ public class HeaderValueRouterTests {
 		router.handleMessage(message);
 		QueueChannel newChannel = (QueueChannel) context.getBean("newChannel");
 		result = newChannel.receive(10);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
 		router.removeChannelMapping("testChannel");
 		router.handleMessage(message);
 		result = channel.receive(1000);
-		assertNotNull(result);
-		assertSame(message, result);
+		assertThat(result).isNotNull();
+		assertThat(result).isSameAs(message);
 		context.close();
 	}
 
@@ -112,8 +108,8 @@ public class HeaderValueRouterTests {
 		handler.handleMessage(message);
 		QueueChannel channel = (QueueChannel) context.getBean("testChannel");
 		Message<?> result = channel.receive(1000);
-		assertNotNull(result);
-		assertSame(message, result);
+		assertThat(result).isNotNull();
+		assertThat(result).isSameAs(message);
 		context.close();
 	}
 
@@ -140,8 +136,8 @@ public class HeaderValueRouterTests {
 		handler.handleMessage(message);
 		QueueChannel channel = (QueueChannel) context.getBean("anotherChannel");
 		Message<?> result = channel.receive(1000);
-		assertNotNull(result);
-		assertSame(message, result);
+		assertThat(result).isNotNull();
+		assertThat(result).isSameAs(message);
 		context.close();
 	}
 
@@ -163,10 +159,10 @@ public class HeaderValueRouterTests {
 		QueueChannel channel2 = (QueueChannel) context.getBean("channel2");
 		Message<?> result1 = channel1.receive(1000);
 		Message<?> result2 = channel2.receive(1000);
-		assertNotNull(result1);
-		assertNotNull(result2);
-		assertSame(message, result1);
-		assertSame(message, result2);
+		assertThat(result1).isNotNull();
+		assertThat(result2).isNotNull();
+		assertThat(result1).isSameAs(message);
+		assertThat(result2).isSameAs(message);
 		context.close();
 	}
 
@@ -188,10 +184,10 @@ public class HeaderValueRouterTests {
 		QueueChannel channel2 = (QueueChannel) context.getBean("channel2");
 		Message<?> result1 = channel1.receive(1000);
 		Message<?> result2 = channel2.receive(1000);
-		assertNotNull(result1);
-		assertNotNull(result2);
-		assertSame(message, result1);
-		assertSame(message, result2);
+		assertThat(result1).isNotNull();
+		assertThat(result2).isNotNull();
+		assertThat(result1).isSameAs(message);
+		assertThat(result2).isSameAs(message);
 		context.close();
 	}
 
@@ -214,10 +210,11 @@ public class HeaderValueRouterTests {
 		QueueChannel channel1 = (QueueChannel) context.getBean("channel1");
 		QueueChannel channel2 = (QueueChannel) context.getBean("channel2");
 		QueueChannel channel3 = (QueueChannel) context.getBean("channel3");
-		assertThat(channel1.getQueueSize(), equalTo(2));
-		assertThat(channel2.getQueueSize(), equalTo(1));
-		assertThat(channel3.getQueueSize(), equalTo(1));
-		assertThat(context.getBean(HeaderValueRouter.class).getDynamicChannelNames(), contains("channel1", "channel3"));
+		assertThat(channel1.getQueueSize()).isEqualTo(2);
+		assertThat(channel2.getQueueSize()).isEqualTo(1);
+		assertThat(channel3.getQueueSize()).isEqualTo(1);
+		assertThat(context.getBean(HeaderValueRouter.class).getDynamicChannelNames())
+				.containsExactly("channel1", "channel3");
 		context.close();
 	}
 

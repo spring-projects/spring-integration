@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.sftp.filters;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.List;
@@ -54,16 +52,16 @@ public class SftpFileListFilterTests extends SftpTestSupport {
 		SftpSystemMarkerFilePresentFileListFilter filter = new SftpSystemMarkerFilePresentFileListFilter(
 				new SftpSimplePatternFileListFilter("*.txt"));
 		LsEntry[] files = template.list("sftpSource");
-		assertThat(files.length, greaterThan(0));
+		assertThat(files.length).isGreaterThan(0);
 		List<LsEntry> filtered = filter.filterFiles(files);
-		assertThat(filtered.size(), equalTo(0));
+		assertThat(filtered.size()).isEqualTo(0);
 		File remoteDir = getSourceRemoteDirectory();
 		File marker = new File(remoteDir, "sftpSource2.txt.complete");
 		marker.createNewFile();
 		files = template.list("sftpSource");
 		filtered = filter.filterFiles(files);
-		assertThat(filtered.size(), equalTo(1));
-		assertThat(filtered.get(0).getFilename(), equalTo("sftpSource2.txt"));
+		assertThat(filtered.size()).isEqualTo(1);
+		assertThat(filtered.get(0).getFilename()).isEqualTo("sftpSource2.txt");
 		marker.delete();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -343,22 +339,20 @@ public class FailoverClientConnectionFactoryTests {
 		conn1.send(new GenericMessage<String>("foo1"));
 		conn1.close();
 		TcpConnection conn2 = failoverFactory.getConnection();
-		assertSame(
-				(TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
-						.getTheConnection(),
-				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+				.getTheConnection())
+				.isSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
 		conn2.send(new GenericMessage<String>("foo2"));
 		conn1 = failoverFactory.getConnection();
-		assertNotSame(
-				(TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
-						.getTheConnection(),
-				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+				.getTheConnection())
+				.isNotSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
 		conn1.send(new GenericMessage<String>("foo3"));
 		conn1.close();
 		conn2.close();
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		server1.stop();
 		TestingUtilities.waitStopListening(server1, 10000L);
 		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(factory1, 0);
@@ -368,9 +362,9 @@ public class FailoverClientConnectionFactoryTests {
 		conn2.send(new GenericMessage<String>("foo5"));
 		conn1.close();
 		conn2.close();
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory2, "pool", SimplePool.class);
-		assertEquals(2, pool.getIdleCount());
+		assertThat(pool.getIdleCount()).isEqualTo(2);
 		server2.stop();
 	}
 
@@ -416,14 +410,14 @@ public class FailoverClientConnectionFactoryTests {
 
 		outbound.handleMessage(new GenericMessage<String>("foo"));
 		Message<byte[]> result = (Message<byte[]>) replyChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("foo", new String(result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("foo");
 
 		// INT-4024 - second reply had bad connection id
 		outbound.handleMessage(new GenericMessage<String>("foo"));
 		result = (Message<byte[]>) replyChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("foo", new String(result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(new String(result.getPayload())).isEqualTo("foo");
 
 		inbound.stop();
 		outbound.stop();
@@ -476,23 +470,21 @@ public class FailoverClientConnectionFactoryTests {
 		conn1.send(message);
 		conn1.close();
 		TcpConnection conn2 = failoverFactory.getConnection();
-		assertSame(
-				(TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
-						.getTheConnection(),
-				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+				.getTheConnection())
+				.isSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
 		conn2.send(message);
 		conn1 = failoverFactory.getConnection();
-		assertNotSame(
-				(TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
-						.getTheConnection(),
-				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+		assertThat((TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
+				.getTheConnection())
+				.isNotSameAs((TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
 		conn1.send(message);
 		conn1.close();
 		conn2.close();
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertEquals(3, latch1.getCount());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch1.getCount()).isEqualTo(3);
 		server1.stop();
 		server2.stop();
 	}
@@ -529,9 +521,9 @@ public class FailoverClientConnectionFactoryTests {
 			socket = getSocket(client1);
 			port1 = socket.getLocalPort();
 		}
-		assertTrue(singleUse | holder.connectionId.get().contains(Integer.toString(port1)));
+		assertThat(singleUse | holder.connectionId.get().contains(Integer.toString(port1))).isTrue();
 		Message<?> replyMessage = replyChannel.receive(10000);
-		assertNotNull(replyMessage);
+		assertThat(replyMessage).isNotNull();
 		holder.server1.stop();
 		TestingUtilities.waitStopListening(holder.server1, 10000L);
 		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
@@ -540,9 +532,9 @@ public class FailoverClientConnectionFactoryTests {
 			socket = getSocket(client2);
 			port2 = socket.getLocalPort();
 		}
-		assertTrue(singleUse | holder.connectionId.get().contains(Integer.toString(port2)));
+		assertThat(singleUse | holder.connectionId.get().contains(Integer.toString(port2))).isTrue();
 		replyMessage = replyChannel.receive(10000);
-		assertNotNull(replyMessage);
+		assertThat(replyMessage).isNotNull();
 		holder.gateway2.stop();
 		outGateway.stop();
 	}

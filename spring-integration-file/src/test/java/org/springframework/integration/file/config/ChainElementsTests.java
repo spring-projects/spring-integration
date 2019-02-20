@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
@@ -55,8 +54,9 @@ public class ChainElementsTests {
 					"inside a <chain/>) endpoint element: 'int-file:outbound-gateway' " +
 					"with id='myFileOutboundGateway'.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat(actualMessage.startsWith(expectedMessage))
+					.as("Error message did not start with '" + expectedMessage +
+							"' but instead returned: '" + actualMessage + "'").isTrue();
 		}
 	}
 
@@ -67,8 +67,9 @@ public class ChainElementsTests {
 			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
 		}
 		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int-file:outbound-gateway'.", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("cvc-complex-type.3.2.2: Attribute 'input-channel' is " +
+					"not" +
+					" allowed to appear in element 'int-file:outbound-gateway'.");
 		}
 	}
 

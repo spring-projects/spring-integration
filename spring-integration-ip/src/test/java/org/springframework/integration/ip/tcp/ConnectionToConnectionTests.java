@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -118,14 +115,14 @@ public class ConnectionToConnectionTests {
 			TcpConnection connection = client.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
 			Message<?> message = serverSideChannel.receive(10000);
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			MessageHistory history = MessageHistory.read(message);
 			//org.springframework.integration.test.util.TestUtils
 			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, gatewayName, 0);
-			assertNotNull(componentHistoryRecord);
-			assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
-			assertNotNull(message);
-			assertEquals("Test", new String((byte[]) message.getPayload()));
+			assertThat(componentHistoryRecord).isNotNull();
+			assertThat(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway")).isTrue();
+			assertThat(message).isNotNull();
+			assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 		}
 		int clientOpens = 0;
 		int clientCloses = 0;
@@ -157,13 +154,13 @@ public class ConnectionToConnectionTests {
 				}
 			}
 		}
-		assertEquals(100, clientOpens);
-		assertEquals(100, clientCloses);
+		assertThat(clientOpens).isEqualTo(100);
+		assertThat(clientCloses).isEqualTo(100);
 		if (expectExceptionOnClose) {
-			assertEquals(100, clientExceptions);
+			assertThat(clientExceptions).isEqualTo(100);
 		}
-		assertEquals(100, serverOpens);
-		assertEquals(100, serverCloses);
+		assertThat(serverOpens).isEqualTo(100);
+		assertThat(serverCloses).isEqualTo(100);
 	}
 
 	@Test
@@ -176,29 +173,29 @@ public class ConnectionToConnectionTests {
 		connection.send(MessageBuilder.withPayload("Test").build());
 		connection.close();
 		Message<?> message = serverSideChannel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		MessageHistory history = MessageHistory.read(message);
 		//org.springframework.integration.test.util.TestUtils
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "gwNet", 0);
-		assertNotNull(componentHistoryRecord);
-		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
-		assertNotNull(message);
-		assertEquals("Test", new String((byte[]) message.getPayload()));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway")).isTrue();
+		assertThat(message).isNotNull();
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 	}
 
 	@Test
 	public void testLookup() throws Exception {
 		clientNet.start();
 		TcpConnection connection = clientNet.getConnection();
-		assertFalse(connection.getConnectionId().contains("localhost"));
+		assertThat(connection.getConnectionId().contains("localhost")).isFalse();
 		connection.close();
 		clientNet.setLookupHost(true);
 		connection = clientNet.getConnection();
-		assertTrue(connection.getConnectionId().contains("localhost"));
+		assertThat(connection.getConnectionId().contains("localhost")).isTrue();
 		connection.close();
 		clientNet.setLookupHost(false);
 		connection = clientNet.getConnection();
-		assertFalse(connection.getConnectionId().contains("localhost"));
+		assertThat(connection.getConnectionId().contains("localhost")).isFalse();
 		connection.close();
 	}
 

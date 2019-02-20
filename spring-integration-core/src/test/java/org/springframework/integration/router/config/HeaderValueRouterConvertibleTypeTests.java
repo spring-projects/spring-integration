@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,11 +56,11 @@ public class HeaderValueRouterConvertibleTypeTests {
 		inputChannel.send(trueMessage);
 		inputChannel.send(falseMessage);
 		Message<?> trueResult = trueChannel.receive();
-		assertNotNull(trueResult);
-		assertEquals(1, trueResult.getPayload());
+		assertThat(trueResult).isNotNull();
+		assertThat(trueResult.getPayload()).isEqualTo(1);
 		Message<?> falseResult = falseChannel.receive();
-		assertNotNull(falseResult);
-		assertEquals(0, falseResult.getPayload());
+		assertThat(falseResult).isNotNull();
+		assertThat(falseResult.getPayload()).isEqualTo(0);
 	}
 
 }

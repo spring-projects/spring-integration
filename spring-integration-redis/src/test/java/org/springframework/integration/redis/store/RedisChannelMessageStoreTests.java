@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,38 +81,38 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		for (int i = 0; i < 10; i++) {
 			this.testChannel1.send(new GenericMessage<Integer>(i));
 		}
-		assertEquals(1, this.cms.getMessageGroupCount());
-		assertEquals(10, this.cms.messageGroupSize("cms:testChannel1"));
-		assertEquals(10, this.cms.getMessageGroup("cms:testChannel1").size());
+		assertThat(this.cms.getMessageGroupCount()).isEqualTo(1);
+		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(10);
+		assertThat(this.cms.getMessageGroup("cms:testChannel1").size()).isEqualTo(10);
 		for (int i = 0; i < 10; i++) {
 			this.testChannel2.send(MutableMessageBuilder.withPayload(i).build());
 		}
-		assertEquals(2, this.cms.getMessageGroupCount());
-		assertEquals(10, this.cms.messageGroupSize("cms:testChannel2"));
-		assertEquals(10, this.cms.getMessageGroup("cms:testChannel2").size());
-		assertEquals(20, this.cms.getMessageCountForAllMessageGroups());
+		assertThat(this.cms.getMessageGroupCount()).isEqualTo(2);
+		assertThat(this.cms.messageGroupSize("cms:testChannel2")).isEqualTo(10);
+		assertThat(this.cms.getMessageGroup("cms:testChannel2").size()).isEqualTo(10);
+		assertThat(this.cms.getMessageCountForAllMessageGroups()).isEqualTo(20);
 		for (int i = 0; i < 10; i++) {
 			Message<?> out = this.testChannel1.receive(0);
-			assertThat(out, Matchers.instanceOf(GenericMessage.class));
-			assertEquals(i, out.getPayload());
+			assertThat(out).isInstanceOf(GenericMessage.class);
+			assertThat(out.getPayload()).isEqualTo(i);
 		}
-		assertNull(this.testChannel1.receive(0));
+		assertThat(this.testChannel1.receive(0)).isNull();
 		for (int i = 0; i < 10; i++) {
 			Message<?> out = this.testChannel2.receive(0);
-			assertEquals("org.springframework.integration.support.MutableMessage", out.getClass().getName());
-			assertEquals(i, out.getPayload());
+			assertThat(out.getClass().getName()).isEqualTo("org.springframework.integration.support.MutableMessage");
+			assertThat(out.getPayload()).isEqualTo(i);
 		}
-		assertNull(this.testChannel2.receive(0));
-		assertEquals(0, this.cms.getMessageGroupCount());
+		assertThat(this.testChannel2.receive(0)).isNull();
+		assertThat(this.cms.getMessageGroupCount()).isEqualTo(0);
 
 		for (int i = 0; i < 10; i++) {
 			this.testChannel1.send(new GenericMessage<Integer>(i));
 		}
-		assertEquals(1, this.cms.getMessageGroupCount());
-		assertEquals(10, this.cms.messageGroupSize("cms:testChannel1"));
+		assertThat(this.cms.getMessageGroupCount()).isEqualTo(1);
+		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(10);
 		this.cms.removeMessageGroup("cms:testChannel1");
-		assertEquals(0, this.cms.getMessageGroupCount());
-		assertEquals(0, this.cms.messageGroupSize("cms:testChannel1"));
+		assertThat(this.cms.getMessageGroupCount()).isEqualTo(0);
+		assertThat(this.cms.messageGroupSize("cms:testChannel1")).isEqualTo(0);
 	}
 
 	@Test
@@ -129,53 +125,53 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		}
 		this.testChannel3.send(MessageBuilder.withPayload(99).setPriority(199).build());
 		this.testChannel3.send(MessageBuilder.withPayload(98).build());
-		assertEquals(1, this.priorityCms.getMessageGroupCount());
-		assertEquals(22, this.priorityCms.messageGroupSize("priorityCms:testChannel3"));
-		assertEquals(22, this.priorityCms.getMessageCountForAllMessageGroups());
-		assertEquals(22, this.priorityCms.getMessageGroup("priorityCms:testChannel3").size());
+		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(1);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(22);
+		assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isEqualTo(22);
+		assertThat(this.priorityCms.getMessageGroup("priorityCms:testChannel3").size()).isEqualTo(22);
 		this.testChannel4.send(MessageBuilder.withPayload(98).build());
 		this.testChannel4.send(MessageBuilder.withPayload(99).setPriority(5).build());
-		assertEquals(2, this.priorityCms.getMessageGroupCount());
-		assertEquals(2, this.priorityCms.getMessageGroup("priorityCms:testChannel4").size());
-		assertEquals(2, this.priorityCms.messageGroupSize("priorityCms:testChannel4"));
-		assertEquals(24, this.priorityCms.getMessageCountForAllMessageGroups());
+		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(2);
+		assertThat(this.priorityCms.getMessageGroup("priorityCms:testChannel4").size()).isEqualTo(2);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel4")).isEqualTo(2);
+		assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isEqualTo(24);
 		for (int i = 0; i < 10; i++) {
 			Message<?> m = this.testChannel3.receive(0);
-			assertNotNull(m);
-			assertEquals(Integer.valueOf(9 - i), new IntegrationMessageHeaderAccessor(m).getPriority());
+			assertThat(m).isNotNull();
+			assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isEqualTo(Integer.valueOf(9 - i));
 			m = this.testChannel3.receive(0);
-			assertNotNull(m);
-			assertEquals(Integer.valueOf(9 - i), new IntegrationMessageHeaderAccessor(m).getPriority());
+			assertThat(m).isNotNull();
+			assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isEqualTo(Integer.valueOf(9 - i));
 		}
 		Message<?> m = this.testChannel3.receive(0);
-		assertNotNull(m);
-		assertEquals(Integer.valueOf(199), new IntegrationMessageHeaderAccessor(m).getPriority());
-		assertEquals(99, m.getPayload());
+		assertThat(m).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isEqualTo(Integer.valueOf(199));
+		assertThat(m.getPayload()).isEqualTo(99);
 		m = this.testChannel3.receive(0);
-		assertNotNull(m);
-		assertNull(new IntegrationMessageHeaderAccessor(m).getPriority());
-		assertEquals(98, m.getPayload());
-		assertEquals(0, this.priorityCms.messageGroupSize("priorityCms:testChannel3"));
+		assertThat(m).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isNull();
+		assertThat(m.getPayload()).isEqualTo(98);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(0);
 
 		m = this.testChannel4.receive(0);
-		assertNotNull(m);
-		assertEquals(Integer.valueOf(5), new IntegrationMessageHeaderAccessor(m).getPriority());
+		assertThat(m).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isEqualTo(Integer.valueOf(5));
 		m = this.testChannel4.receive(0);
-		assertNotNull(m);
-		assertNull(new IntegrationMessageHeaderAccessor(m).getPriority());
-		assertEquals(0, this.priorityCms.getMessageGroupCount());
-		assertEquals(0, this.priorityCms.getMessageCountForAllMessageGroups());
-		assertNull(this.testChannel3.receive(0));
-		assertNull(this.testChannel4.receive(0));
+		assertThat(m).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(m).getPriority()).isNull();
+		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(0);
+		assertThat(this.priorityCms.getMessageCountForAllMessageGroups()).isEqualTo(0);
+		assertThat(this.testChannel3.receive(0)).isNull();
+		assertThat(this.testChannel4.receive(0)).isNull();
 
 		for (int i = 0; i < 10; i++) {
 			this.testChannel3.send(new GenericMessage<Integer>(i));
 		}
-		assertEquals(1, this.priorityCms.getMessageGroupCount());
-		assertEquals(10, this.priorityCms.messageGroupSize("priorityCms:testChannel3"));
+		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(1);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(10);
 		this.priorityCms.removeMessageGroup("priorityCms:testChannel3");
-		assertEquals(0, this.priorityCms.getMessageGroupCount());
-		assertEquals(0, this.priorityCms.messageGroupSize("priorityCms:testChannel3"));
+		assertThat(this.priorityCms.getMessageGroupCount()).isEqualTo(0);
+		assertThat(this.priorityCms.messageGroupSize("priorityCms:testChannel3")).isEqualTo(0);
 	}
 
 }

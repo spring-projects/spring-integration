@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertEquals("hello modified", obj.toString().substring(0, "hello modified".length()));
+		assertThat(obj.toString().substring(0, "hello modified".length())).isEqualTo("hello modified");
 	}
 
 	@Test
@@ -76,7 +76,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertEquals("hello modified", obj.toString().substring(0, "hello modified".length()));
+		assertThat(obj.toString().substring(0, "hello modified".length())).isEqualTo("hello modified");
 	}
 
 }

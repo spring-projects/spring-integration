@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.gemfire.metadata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
@@ -31,7 +30,6 @@ import org.junit.Test;
 
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
@@ -60,7 +58,7 @@ public class GemfireMetadataStoreTests {
 		}
 		if (cache != null) {
 			cache.close();
-			Assert.isTrue(cache.isClosed(), "Cache did not close after close() call");
+			assertThat(cache.isClosed()).as("Cache did not close after close() call").isTrue();
 		}
 	}
 
@@ -75,7 +73,7 @@ public class GemfireMetadataStoreTests {
 	@Test
 	public void testGetNonExistingKeyValue() {
 		String retrievedValue = metadataStore.get("does-not-exist");
-		assertNull(retrievedValue);
+		assertThat(retrievedValue).isNull();
 	}
 
 	@Test
@@ -84,7 +82,8 @@ public class GemfireMetadataStoreTests {
 
 		GemfireTemplate gemfireTemplate = new GemfireTemplate(region);
 
-		assertEquals("Integration", gemfireTemplate.get("GemfireMetadataStoreTests-Spring"));
+		Object v = gemfireTemplate.get("GemfireMetadataStoreTests-Spring");
+		assertThat(v).isEqualTo("Integration");
 	}
 
 	@Test
@@ -92,7 +91,7 @@ public class GemfireMetadataStoreTests {
 		metadataStore.put("GemfireMetadataStoreTests-GetValue", "Hello Gemfire");
 
 		String retrievedValue = metadataStore.get("GemfireMetadataStoreTests-GetValue");
-		assertEquals("Hello Gemfire", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("Hello Gemfire");
 	}
 
 	@Test
@@ -100,7 +99,7 @@ public class GemfireMetadataStoreTests {
 		metadataStore.put("GemfireMetadataStoreTests-PersistEmpty", "");
 
 		String retrievedValue = metadataStore.get("GemfireMetadataStoreTests-PersistEmpty");
-		assertEquals("", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("");
 	}
 
 	@Test
@@ -110,7 +109,7 @@ public class GemfireMetadataStoreTests {
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'value' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'value' must not be null.");
 		}
 	}
 
@@ -119,7 +118,7 @@ public class GemfireMetadataStoreTests {
 		metadataStore.put("", "PersistWithEmptyKey");
 
 		String retrievedValue = metadataStore.get("");
-		assertEquals("PersistWithEmptyKey", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("PersistWithEmptyKey");
 	}
 
 	@Test
@@ -130,7 +129,7 @@ public class GemfireMetadataStoreTests {
 
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 		}
 	}
 
@@ -140,7 +139,7 @@ public class GemfireMetadataStoreTests {
 			metadataStore.get(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 			return;
 		}
 
@@ -154,8 +153,8 @@ public class GemfireMetadataStoreTests {
 
 		metadataStore.put(testKey, testValue);
 
-		assertEquals(testValue, metadataStore.remove(testKey));
-		assertNull(metadataStore.remove(testKey));
+		assertThat(metadataStore.remove(testKey)).isEqualTo(testValue);
+		assertThat(metadataStore.remove(testKey)).isNull();
 	}
 
 	@Test
@@ -164,7 +163,8 @@ public class GemfireMetadataStoreTests {
 
 		GemfireTemplate gemfireTemplate = new GemfireTemplate(region);
 
-		assertEquals("Integration", gemfireTemplate.get("GemfireMetadataStoreTests-Spring"));
+		Object v = gemfireTemplate.get("GemfireMetadataStoreTests-Spring");
+		assertThat(v).isEqualTo("Integration");
 	}
 
 }

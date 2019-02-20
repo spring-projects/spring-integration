@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.json;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -38,11 +36,11 @@ public class SimpleJsonSerializerTests {
 		Foo foo = new Foo("foo");
 		String json = SimpleJsonSerializer.toJson(foo, "fileInfo");
 		Foo fooOut = JsonObjectMapperProvider.newInstance().fromJson(json, Foo.class);
-		assertThat(fooOut.bool, equalTo(Boolean.TRUE));
-		assertThat(fooOut.bar, equalTo(42L));
-		assertThat(fooOut.foo, equalTo("bar"));
-		assertThat(fooOut.dub, equalTo(1.6));
-		assertNull(fooOut.fileInfo);
+		assertThat(fooOut.bool).isEqualTo(Boolean.TRUE);
+		assertThat(fooOut.bar).isEqualTo(42L);
+		assertThat(fooOut.foo).isEqualTo("bar");
+		assertThat(fooOut.dub).isEqualTo(1.6);
+		assertThat(fooOut.fileInfo).isNull();
 	}
 
 	public static class Foo {

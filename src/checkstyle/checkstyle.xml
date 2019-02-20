@@ -77,26 +77,14 @@
 		<module name="AvoidStarImport" />
 		<module name="AvoidStaticImport">
 			<property name="excludes"
-				value="org.custommonkey.xmlunit.XMLAssert.*,
-				org.assertj.core.api.Assertions.*,
-				org.hamcrest.CoreMatchers.*,
-				org.hamcrest.Matchers.*,
-				org.hamcrest.collection.IsCollectionWithSize.*,
-				org.junit.Assert.*,
-				org.junit.Assume.*,
+				value="org.assertj.core.api.Assertions.*,
+				org.assertj.core.api.Assumptions.*,
+				org.awaitility.Awaitility.*,
 				org.mockito.Mockito.*,
 				org.mockito.BDDMockito.*,
 				org.mockito.AdditionalAnswers.*,
 				org.mockito.ArgumentMatchers.*,
-				org.mockito.hamcrest.MockitoHamcrest.*,
 				org.springframework.integration.gemfire.config.xml.ParserTestUtil.*,
-				org.springframework.integration.test.matcher.EqualsResultMatcher.*,
-				org.springframework.integration.test.matcher.EventuallyMatcher.*,
-				org.springframework.integration.test.matcher.HeaderMatcher.*,
-				org.springframework.integration.test.matcher.MapContentMatchers.*,
-				org.springframework.integration.test.matcher.MockitoMessageMatchers.*,
-				org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.*,
-				org.springframework.integration.test.matcher.PayloadMatcher.*,
 				org.springframework.integration.test.mock.MockIntegration.*,
 				org.springframework.integration.test.util.TestUtils.*,
 				org.springframework.test.web.client.match.MockRestRequestMatchers.*,
@@ -104,9 +92,7 @@
 				org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*,
 				org.springframework.test.web.servlet.result.MockMvcResultMatchers.*,
 				org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*,
-				org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*,
-				org.springframework.web.reactive.function.client.ExchangeFilterFunctions.*,
-				org.springframework.web.reactive.function.client.ExchangeFilterFunctions.Credentials.*"	/>
+				org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*"	/>
 		</module>
 		<module name="IllegalImport" />
 		<module name="RedundantImport" />

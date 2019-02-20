@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package org.springframework.integration.config;
 
-import org.hamcrest.Matchers;
-import org.junit.Rule;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -31,31 +30,32 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class InvalidQueueChannelParserTests {
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
 	@Test
-	public void testMessageStoreAndCapacityIllegal() throws Exception {
-		this.exception.expect(BeanDefinitionParsingException.class);
-		this.exception.expectMessage(Matchers.containsString("'capacity' attribute is not allowed"));
-		new ClassPathXmlApplicationContext("InvalidQueueChannelWithMessageStoreAndCapacityParserTests.xml",
-				getClass()).close();
+	public void testMessageStoreAndCapacityIllegal() {
+		assertThatThrownBy(() ->
+				new ClassPathXmlApplicationContext("InvalidQueueChannelWithMessageStoreAndCapacityParserTests.xml",
+						getClass()))
+				.isInstanceOf(BeanDefinitionParsingException.class)
+				.hasMessageContaining("'capacity' attribute is not allowed");
 	}
 
 	@Test
-	public void testRefAndCapacityIllegal() throws Exception {
-		this.exception.expect(BeanDefinitionParsingException.class);
-		this.exception.expectMessage(Matchers.containsString("'capacity' attribute is not allowed"));
-		new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndCapacityParserTests.xml", getClass())
-				.close();
+	public void testRefAndCapacityIllegal() {
+		assertThatThrownBy(() ->
+				new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndCapacityParserTests.xml",
+						getClass()))
+				.isInstanceOf(BeanDefinitionParsingException.class)
+				.hasMessageContaining("'capacity' attribute is not allowed");
 	}
 
 	@Test
-	public void testRefAndMessageStoreIllegal() throws Exception {
-		this.exception.expect(BeanDefinitionParsingException.class);
-		this.exception.expectMessage(Matchers.containsString("'message-store' attribute is not allowed"));
-		new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndMessageStoreParserTests.xml", getClass())
-				.close();
+	public void testRefAndMessageStoreIllegal() {
+		assertThatThrownBy(() ->
+				new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndMessageStoreParserTests.xml",
+						getClass()))
+				.isInstanceOf(BeanDefinitionParsingException.class)
+				.hasMessageContaining("The 'message-store' attribute is not allowed " +
+						"when providing a 'ref' to a custom queue.");
 	}
 
 }

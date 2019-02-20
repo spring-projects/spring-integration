@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mongodb.dsl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +56,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.mongodb.MongoClient;
 
 /**
- * @author Xavier Padró
+ * @author Xavier Padr?
  * @author Gary Russell
  * @author Artem Bilan
  *
@@ -127,9 +126,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Person retrievedPerson = (Person) result.getPayload();
-		assertEquals("Xavi", retrievedPerson.getName());
+		assertThat(retrievedPerson.getName()).isEqualTo("Xavi");
 	}
 
 	@Test
@@ -139,9 +138,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Person retrievedPerson = (Person) result.getPayload();
-		assertEquals("Xavi", retrievedPerson.getName());
+		assertThat(retrievedPerson.getName()).isEqualTo("Xavi");
 	}
 
 	@Test
@@ -154,9 +153,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Person retrievedPerson = (Person) result.getPayload();
-		assertEquals("Artem", retrievedPerson.getName());
+		assertThat(retrievedPerson.getName()).isEqualTo("Artem");
 	}
 
 	@Test(expected = ReplyRequiredException.class)
@@ -180,9 +179,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<Person> retrievedPersons = getPersons(result);
-		assertEquals(4, retrievedPersons.size());
+		assertThat(retrievedPersons.size()).isEqualTo(4);
 	}
 
 	@Test
@@ -195,9 +194,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<Person> retrievedPersons = getPersons(result);
-		assertEquals(2, retrievedPersons.size());
+		assertThat(retrievedPersons.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -210,9 +209,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Person person = (Person) result.getPayload();
-		assertEquals("Gary", person.getName());
+		assertThat(person.getName()).isEqualTo("Gary");
 	}
 
 	@Test
@@ -225,9 +224,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Person person = (Person) result.getPayload();
-		assertEquals("Gary", person.getName());
+		assertThat(person.getName()).isEqualTo("Gary");
 	}
 
 	@Test
@@ -239,9 +238,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		long count = (Long) result.getPayload();
-		assertEquals(4, count);
+		assertThat(count).isEqualTo(4);
 	}
 
 	@SuppressWarnings("unchecked")

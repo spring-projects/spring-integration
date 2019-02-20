@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.zookeeper.event;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -68,7 +64,7 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testLeader() throws Exception {
-		assertFalse(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isFalse();
 		LeaderEventPublisher publisher = publisher();
 		DefaultCandidate candidate1 = new DefaultCandidate("foo", "sitest");
 		LeaderInitiator initiator1 = new LeaderInitiator(this.client, candidate1, "/sitest");
@@ -79,33 +75,33 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 		initiator2.setLeaderEventPublisher(publisher);
 		initiator2.start();
 		AbstractLeaderEvent event = this.events.poll(30, TimeUnit.SECONDS);
-		assertNotNull(event);
-		assertThat(event, instanceOf(OnGrantedEvent.class));
+		assertThat(event).isNotNull();
+		assertThat(event).isInstanceOf(OnGrantedEvent.class);
 
-		assertTrue(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isTrue();
 
 		event.getContext().yield();
 		event = this.events.poll(30, TimeUnit.SECONDS);
-		assertNotNull(event);
-		assertThat(event, instanceOf(OnRevokedEvent.class));
+		assertThat(event).isNotNull();
+		assertThat(event).isInstanceOf(OnRevokedEvent.class);
 
-		assertFalse(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isFalse();
 
 		this.yieldBarrier.countDown();
 
 		event = this.events.poll(30, TimeUnit.SECONDS);
-		assertNotNull(event);
-		assertThat(event, instanceOf(OnGrantedEvent.class));
+		assertThat(event).isNotNull();
+		assertThat(event).isInstanceOf(OnGrantedEvent.class);
 
-		assertTrue(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isTrue();
 
 		initiator1.stop();
 		initiator2.stop();
 		event = this.events.poll(30, TimeUnit.SECONDS);
-		assertNotNull(event);
-		assertThat(event, instanceOf(OnRevokedEvent.class));
+		assertThat(event).isNotNull();
+		assertThat(event).isInstanceOf(OnRevokedEvent.class);
 
-		assertFalse(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isFalse();
 	}
 
 	private LeaderEventPublisher publisher() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -71,10 +70,9 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileReadingMessageSource source = (FileReadingMessageSource)
 				adapterAccessor.getPropertyValue("source");
-		assertEquals(Boolean.TRUE,
-				new DirectFieldAccessor(source).getPropertyValue("autoCreateDirectory"));
+		assertThat(new DirectFieldAccessor(source).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.TRUE);
 		source.start();
-		assertTrue(new File(BASE_PATH + File.separator + "defaultInbound").exists());
+		assertThat(new File(BASE_PATH + File.separator + "defaultInbound").exists()).isTrue();
 	}
 
 	@Test
@@ -83,9 +81,8 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileReadingMessageSource source = (FileReadingMessageSource)
 				adapterAccessor.getPropertyValue("source");
-		assertTrue(new File(BASE_PATH + File.separator + "customInbound").exists());
-		assertEquals(Boolean.FALSE,
-				new DirectFieldAccessor(source).getPropertyValue("autoCreateDirectory"));
+		assertThat(new File(BASE_PATH + File.separator + "customInbound").exists()).isTrue();
+		assertThat(new DirectFieldAccessor(source).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -94,9 +91,8 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
-		assertEquals(Boolean.TRUE,
-				new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory"));
-		assertTrue(new File(BASE_PATH + File.separator + "defaultOutbound").exists());
+		assertThat(new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.TRUE);
+		assertThat(new File(BASE_PATH + File.separator + "defaultOutbound").exists()).isTrue();
 	}
 
 	@Test
@@ -105,9 +101,8 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
-		assertTrue(new File(BASE_PATH + File.separator + "customOutbound").exists());
-		assertEquals(Boolean.FALSE,
-				new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory"));
+		assertThat(new File(BASE_PATH + File.separator + "customOutbound").exists()).isTrue();
+		assertThat(new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -116,9 +111,8 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				gatewayAccessor.getPropertyValue("handler");
-		assertEquals(Boolean.TRUE,
-				new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory"));
-		assertTrue(new File(BASE_PATH + File.separator + "defaultOutboundGateway").exists());
+		assertThat(new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.TRUE);
+		assertThat(new File(BASE_PATH + File.separator + "defaultOutboundGateway").exists()).isTrue();
 	}
 
 	@Test
@@ -127,9 +121,8 @@ public class AutoCreateDirectoryIntegrationTests {
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				gatewayAccessor.getPropertyValue("handler");
-		assertTrue(new File(BASE_PATH + File.separator + "customOutboundGateway").exists());
-		assertEquals(Boolean.FALSE,
-				new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory"));
+		assertThat(new File(BASE_PATH + File.separator + "customOutboundGateway").exists()).isTrue();
+		assertThat(new DirectFieldAccessor(handler).getPropertyValue("autoCreateDirectory")).isEqualTo(Boolean.FALSE);
 	}
 
 }

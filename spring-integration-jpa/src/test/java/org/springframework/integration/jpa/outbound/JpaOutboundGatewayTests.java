@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
@@ -67,21 +63,21 @@ public class JpaOutboundGatewayTests {
 	@Test
 	public void getStudent() {
 		final StudentDomain student = studentService.getStudent(1001L);
-		assertNotNull(student);
+		assertThat(student).isNotNull();
 	}
 
 	@Test
 	public void getAllStudentsStartingFromGivenRecord() {
 		List<?> students = studentService.getAllStudentsFromGivenRecord(1);
-		assertNotNull(students);
-		assertEquals(2, students.size());
+		assertThat(students).isNotNull();
+		assertThat(students.size()).isEqualTo(2);
 	}
 
 	@Test
 	public void getAllStudentsWithMaxNumberOfRecords() {
 		List<?> students = studentService.getStudents(1);
-		assertNotNull(students);
-		assertEquals(1, students.size());
+		assertThat(students).isNotNull();
+		assertThat(students.size()).isEqualTo(1);
 	}
 
 
@@ -96,7 +92,7 @@ public class JpaOutboundGatewayTests {
 			fail("IllegalArgumentException is expected");
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), startsWith("Removing a detached instance"));
+			assertThat(e.getMessage()).startsWith("Removing a detached instance");
 		}
 
 	}
@@ -108,8 +104,8 @@ public class JpaOutboundGatewayTests {
 			fail("MessageHandlingException is expected");
 		}
 		catch (MessagingException e) {
-			assertEquals("The Jpa operation returned more than 1 result for expectSingleResult mode.",
-					e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("The Jpa operation returned more than 1 result for expectSingleResult mode.");
 		}
 	}
 
@@ -118,15 +114,15 @@ public class JpaOutboundGatewayTests {
 
 		StudentDomain student = studentService.getStudentWithParameters("First Two");
 
-		assertEquals("First Two", student.getFirstName());
-		assertEquals("Last Two", student.getLastName());
+		assertThat(student.getFirstName()).isEqualTo("First Two");
+		assertThat(student.getLastName()).isEqualTo("Last Two");
 	}
 
 	@Test
 	public void getAllStudents() {
 		List<StudentDomain> students = studentService.getAllStudents();
-		assertNotNull(students);
-		assertEquals(3, students.size());
+		assertThat(students).isNotNull();
+		assertThat(students.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -134,11 +130,11 @@ public class JpaOutboundGatewayTests {
 	public void persistStudent() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		assertNull(studentToPersist.getRollNumber());
+		assertThat(studentToPersist.getRollNumber()).isNull();
 
 		final StudentDomain persistedStudent = studentService.persistStudent(studentToPersist);
-		assertNotNull(persistedStudent);
-		assertNotNull(persistedStudent.getRollNumber());
+		assertThat(persistedStudent).isNotNull();
+		assertThat(persistedStudent.getRollNumber()).isNotNull();
 
 	}
 
@@ -147,18 +143,18 @@ public class JpaOutboundGatewayTests {
 	public void persistStudentUsingMerge() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		assertNull(studentToPersist.getRollNumber());
+		assertThat(studentToPersist.getRollNumber()).isNull();
 
 		final StudentDomain persistedStudent = studentService.persistStudentUsingMerge(studentToPersist);
-		assertNotNull(persistedStudent);
-		assertNotNull(persistedStudent.getRollNumber());
+		assertThat(persistedStudent).isNotNull();
+		assertThat(persistedStudent.getRollNumber()).isNotNull();
 
 	}
 
 	@Test
 	public void testRetrievingGatewayInsideChain() {
 		final StudentDomain student = studentService.getStudent2(1001L);
-		assertNotNull(student);
+		assertThat(student).isNotNull();
 	}
 
 	@Test
@@ -166,18 +162,18 @@ public class JpaOutboundGatewayTests {
 	public void testUpdatingGatewayInsideChain() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		assertNull(studentToPersist.getRollNumber());
+		assertThat(studentToPersist.getRollNumber()).isNull();
 
 		final StudentDomain persistedStudent = studentService.persistStudent2(studentToPersist);
-		assertNotNull(persistedStudent);
-		assertNotNull(persistedStudent.getRollNumber());
+		assertThat(persistedStudent).isNotNull();
+		assertThat(persistedStudent.getRollNumber()).isNotNull();
 
 	}
 
 	@Test
 	public void testJpaRepositoryAsService() {
 		List<StudentDomain> students = this.studentService.getStudentsUsingJpaRepository("F");
-		assertEquals(2, students.size());
+		assertThat(students.size()).isEqualTo(2);
 	}
 
 }

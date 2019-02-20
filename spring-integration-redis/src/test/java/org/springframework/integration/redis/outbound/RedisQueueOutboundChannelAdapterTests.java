@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -84,9 +83,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
-		assertEquals(payload, result);
+		assertThat(result).isEqualTo(payload);
 
 		Date payload2 = new Date();
 		handler.handleMessage(MessageBuilder.withPayload(payload2).build());
@@ -99,9 +98,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate2.afterPropertiesSet();
 
 		Object result2 = redisTemplate2.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result2);
+		assertThat(result2).isNotNull();
 
-		assertEquals(payload2, result2);
+		assertThat(result2).isEqualTo(payload2);
 	}
 
 	@Test
@@ -125,9 +124,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
-		assertEquals(message, result);
+		assertThat(result).isEqualTo(message);
 
 	}
 
@@ -148,16 +147,16 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		handler.handleMessage(new GenericMessage<Object>(Arrays.asList("foo", "bar", "baz")));
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
-		assertEquals("[\"foo\",\"bar\",\"baz\"]", result);
+		assertThat(result).isEqualTo("[\"foo\",\"bar\",\"baz\"]");
 
 		handler.handleMessage(new GenericMessage<Object>("test"));
 
 		result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
-		assertEquals("\"test\"", result);
+		assertThat(result).isEqualTo("\"test\"");
 	}
 
 	@Test
@@ -174,11 +173,11 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		String result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class,
 				new Jackson2JsonMessageParser());
 		Message<?> resultMessage = mapper.toMessage(result);
-		assertEquals(message.getPayload(), resultMessage.getPayload());
+		assertThat(resultMessage.getPayload()).isEqualTo(message.getPayload());
 	}
 
 	@Test
@@ -202,9 +201,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 
-		assertEquals(payload, result);
+		assertThat(result).isEqualTo(payload);
 
 		RedisTemplate<String, ?> redisTemplate2 = new RedisTemplate<String, Object>();
 		redisTemplate2.setConnectionFactory(this.connectionFactory);
@@ -214,9 +213,9 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		redisTemplate2.afterPropertiesSet();
 
 		Object result2 = redisTemplate2.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
-		assertNotNull(result2);
+		assertThat(result2).isNotNull();
 
-		assertEquals(payload2, result2);
+		assertThat(result2).isEqualTo(payload2);
 	}
 
 }

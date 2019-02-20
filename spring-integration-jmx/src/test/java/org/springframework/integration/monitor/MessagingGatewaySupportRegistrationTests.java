@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -56,12 +56,12 @@ public class MessagingGatewaySupportRegistrationTests {
 	public void testHandlerMBeanRegistration() throws Exception {
 		Set<ObjectName> names = this.server
 				.queryNames(new ObjectName("org.springframework.integration:*,name=testGateway"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,type=MessageSource,name=foo"),
 				null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=\"foo#2\""), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Configuration

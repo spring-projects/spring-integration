@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -57,40 +56,40 @@ public class PresenceOutboundChannelAdapterParserTests {
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer() {
 		Object pollingConsumer = context.getBean("pollingOutboundRosterAdapter");
-		assertTrue(pollingConsumer instanceof PollingConsumer);
+		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
 		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
 				.getPropertyValue(pollingConsumer, "handler");
-		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
 	}
 
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer() {
 		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
-		assertTrue(eventConsumer instanceof EventDrivenConsumer);
+		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
 		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
 				.getPropertyValue(eventConsumer, "handler");
-		assertEquals(34, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(34);
 	}
 
 	@Test
 	public void advised() {
 		Object eventConsumer = context.getBean("advised");
-		assertTrue(eventConsumer instanceof EventDrivenConsumer);
+		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
 		MessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
 	public void testRosterEventOutboundChannel() {
 		Object channel = context.getBean("eventOutboundRosterChannel");
-		assertTrue(channel instanceof SubscribableChannel);
+		assertThat(channel instanceof SubscribableChannel).isTrue();
 		UnicastingDispatcher dispatcher = (UnicastingDispatcher) TestUtils
 				.getPropertyValue(channel, "dispatcher");
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(dispatcher, "handlers");
-		assertEquals(45, TestUtils.getPropertyValue(handlers.toArray()[0], "order"));
+		assertThat(TestUtils.getPropertyValue(handlers.toArray()[0], "order")).isEqualTo(45);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

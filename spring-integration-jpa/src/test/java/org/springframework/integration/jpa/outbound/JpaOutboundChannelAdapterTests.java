@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,8 +79,8 @@ public class JpaOutboundChannelAdapterTests {
 	public void saveEntityWithMerge() throws InterruptedException {
 
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+		assertThat(results1).isNotNull();
+		assertThat(results1.size() == 3).isTrue();
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
@@ -104,10 +104,10 @@ public class JpaOutboundChannelAdapterTests {
 		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		assertThat(results2).isNotNull();
+		assertThat(results2.size() == 4).isTrue();
 
-		Assert.assertNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNull();
 
 	}
 
@@ -115,8 +115,8 @@ public class JpaOutboundChannelAdapterTests {
 	public void saveEntityWithMergeWithoutSpecifyingEntityClass() throws InterruptedException {
 
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+		assertThat(results1).isNotNull();
+		assertThat(results1.size() == 3).isTrue();
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
@@ -139,10 +139,10 @@ public class JpaOutboundChannelAdapterTests {
 		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		assertThat(results2).isNotNull();
+		assertThat(results2.size() == 4).isTrue();
 
-		Assert.assertNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNull();
 
 	}
 
@@ -150,8 +150,8 @@ public class JpaOutboundChannelAdapterTests {
 	public void saveEntityWithPersist() throws InterruptedException {
 
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+		assertThat(results1).isNotNull();
+		assertThat(results1.size() == 3).isTrue();
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
@@ -164,7 +164,7 @@ public class JpaOutboundChannelAdapterTests {
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 
-		Assert.assertNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNull();
 
 		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
@@ -182,30 +182,30 @@ public class JpaOutboundChannelAdapterTests {
 		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		assertThat(results2).isNotNull();
+		assertThat(results2.size() == 4).isTrue();
 
-		Assert.assertNotNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
 	@Test //INT-2557
 	public void saveEntityWithPersistWithinChain() throws InterruptedException {
 
 		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+		assertThat(results1).isNotNull();
+		assertThat(results1.size() == 3).isTrue();
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 
-		Assert.assertNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNull();
 
 		this.jpaOutboundChannelAdapterWithinChain.send(MessageBuilder.withPayload(testStudent).build());
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		assertThat(results2).isNotNull();
+		assertThat(results2.size() == 4).isTrue();
 
-		Assert.assertNotNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNotNull();
 	}
 
 }

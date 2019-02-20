@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,10 +44,10 @@ public class InboundChannelAdapterWithDefaultPollerTests {
 	@Test
 	public void verifyDefaultPollerInUse() {
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
-		assertEquals(PeriodicTrigger.class, trigger.getClass());
+		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
-		assertEquals(12345L, triggerAccessor.getPropertyValue("period"));
-		assertEquals(Boolean.TRUE, triggerAccessor.getPropertyValue("fixedRate"));
+		assertThat(triggerAccessor.getPropertyValue("period")).isEqualTo(12345L);
+		assertThat(triggerAccessor.getPropertyValue("fixedRate")).isEqualTo(Boolean.TRUE);
 	}
 
 }

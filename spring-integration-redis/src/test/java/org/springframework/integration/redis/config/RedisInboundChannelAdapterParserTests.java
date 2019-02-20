@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,10 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executor;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -74,22 +69,22 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	@Test
 	public void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
-		assertEquals("adapter", adapter.getComponentName());
-		assertEquals("redis:inbound-channel-adapter", adapter.getComponentType());
+		assertThat(adapter.getComponentName()).isEqualTo("adapter");
+		assertThat(adapter.getComponentType()).isEqualTo("redis:inbound-channel-adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
 		Object errorChannelBean = context.getBean("testErrorChannel");
-		assertEquals(errorChannelBean, accessor.getPropertyValue("errorChannel"));
+		assertThat(accessor.getPropertyValue("errorChannel")).isEqualTo(errorChannelBean);
 		Object converterBean = context.getBean("testConverter");
-		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
-		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+		assertThat(accessor.getPropertyValue("messageConverter")).isEqualTo(converterBean);
+		assertThat(accessor.getPropertyValue("serializer")).isEqualTo(context.getBean("serializer"));
 
 		Object container = accessor.getPropertyValue("container");
 		DirectFieldAccessor containerAccessor = new DirectFieldAccessor(container);
-		assertSame(this.executor, containerAccessor.getPropertyValue("taskExecutor"));
+		assertThat(containerAccessor.getPropertyValue("taskExecutor")).isSameAs(this.executor);
 
 		Object bean = context.getBean("withoutSerializer.adapter");
-		assertNotNull(bean);
-		assertNull(TestUtils.getPropertyValue(bean, "serializer"));
+		assertThat(bean).isNotNull();
+		assertThat(TestUtils.getPropertyValue(bean, "serializer")).isNull();
 	}
 
 	@Test
@@ -107,8 +102,8 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		for (int i = 0; i < 3; i++) {
 			Message<?> receive = receiveChannel.receive(10000);
-			assertNotNull(receive);
-			assertThat(receive.getPayload(), Matchers.<Object>isOneOf("Hello Redis from foo", "Hello Redis from bar"));
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isIn("Hello Redis from foo", "Hello Redis from bar");
 		}
 
 		adapter.stop();
@@ -116,7 +111,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 	@SuppressWarnings("unused")

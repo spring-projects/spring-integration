@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,14 +56,14 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 
 	@Test
 	public void parseConfig() {
-		assertThat(this.input, notNullValue());
+		assertThat(this.input).isNotNull();
 	}
 
 	@Test
 	public void sendMessage() {
 		input.send(MessageBuilder.withPayload(new AtomicInteger(0)).build());
 		Message<?> reply = output.receive(1000);
-		assertEquals(111, ((Integer) reply.getPayload()).intValue());
+		assertThat(((Integer) reply.getPayload()).intValue()).isEqualTo(111);
 	}
 
 

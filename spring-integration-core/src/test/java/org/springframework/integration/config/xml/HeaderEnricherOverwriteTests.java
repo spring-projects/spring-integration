@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,10 +58,10 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannelToOverwrite).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-		assertNull(replyChannelToOverwrite.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
+		assertThat(replyChannelToOverwrite.receive(0)).isNull();
 	}
 
 	@Test
@@ -74,9 +72,9 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -90,9 +88,9 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -105,10 +103,10 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannelToOverwrite).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-		assertNull(replyChannelToOverwrite.receive(0));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
+		assertThat(replyChannelToOverwrite.receive(0)).isNull();
 	}
 
 	@Test
@@ -119,9 +117,9 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -133,9 +131,9 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -149,9 +147,9 @@ public class HeaderEnricherOverwriteTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -160,8 +158,8 @@ public class HeaderEnricherOverwriteTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(42));
 	}
 
 	@Test
@@ -174,8 +172,8 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals(new Integer(77), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(77));
 	}
 
 	@Test
@@ -188,9 +186,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("zzz", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("zzz");
 	}
 
 	@Test
@@ -203,9 +201,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("bar", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -218,9 +216,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("zzz", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("zzz");
 	}
 
 	@Test
@@ -234,9 +232,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("123", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("123");
 	}
 
 	@Test
@@ -250,9 +248,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("bar", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -265,9 +263,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("123", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("123");
 	}
 
 	@Test
@@ -280,9 +278,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("ABC", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("ABC");
 	}
 
 	@Test
@@ -295,9 +293,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("bar", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -310,9 +308,9 @@ public class HeaderEnricherOverwriteTests {
 				.build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("ABC", result.getHeaders().get("foo"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("foo")).isEqualTo("ABC");
 	}
 
 

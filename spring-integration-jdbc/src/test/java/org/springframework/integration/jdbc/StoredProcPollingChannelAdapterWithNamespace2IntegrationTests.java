@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,13 +59,13 @@ public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
 		Message<List<Integer>> message = received.get(0);
 		context.stop();
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof List<?>);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
+		assertThat(message.getPayload() instanceof List<?>).isTrue();
 
 		List<Integer> resultList = message.getPayload();
 
-		assertTrue(resultList.size() == 1);
+		assertThat(resultList.size() == 1).isTrue();
 
 	}
 

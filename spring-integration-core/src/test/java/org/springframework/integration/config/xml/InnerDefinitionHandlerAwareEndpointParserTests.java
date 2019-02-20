@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.util.Collection;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -196,57 +194,57 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	private void testSplitterDefinitionSuccess(String configProperty) {
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testSplitter");
-		Assert.assertNotNull(splitter);
+		assertThat(splitter).isNotNull();
 		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One", "Two"});
 		Message<String[]> inMessage = inChannelMessageBuilder.build();
 		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
 		inChannel.send(inMessage);
 		PollableChannel outChannel = (PollableChannel) ac.getBean("outChannel");
-		Assert.assertTrue(outChannel.receive().getPayload() instanceof String);
+		assertThat(outChannel.receive().getPayload() instanceof String).isTrue();
 		outChannel = (PollableChannel) ac.getBean("outChannel");
-		Assert.assertTrue(outChannel.receive().getPayload() instanceof String);
+		assertThat(outChannel.receive().getPayload() instanceof String).isTrue();
 	}
 
 	private void testTransformerDefinitionSuccess(String configProperty) {
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer transformer = (EventDrivenConsumer) ac.getBean("testTransformer");
-		Assert.assertNotNull(transformer);
+		assertThat(transformer).isNotNull();
 		MessageBuilder<String[]> inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One", "Two"});
 		Message<String[]> inMessage = inChannelMessageBuilder.build();
 		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
 		inChannel.send(inMessage);
 		PollableChannel outChannel = (PollableChannel) ac.getBean("outChannel");
 		String payload = (String) outChannel.receive().getPayload();
-		Assert.assertTrue(payload.equals("One,Two"));
+		assertThat(payload.equals("One,Two")).isTrue();
 	}
 
 	private void testRouterDefinitionSuccess(String configProperty) {
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testRouter");
-		Assert.assertNotNull(splitter);
+		assertThat(splitter).isNotNull();
 		MessageBuilder<String> inChannelMessageBuilder = MessageBuilder.withPayload("1");
 		Message<String> inMessage = inChannelMessageBuilder.build();
 		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
 		inChannel.send(inMessage);
 		PollableChannel channel1 = (PollableChannel) ac.getBean("channel1");
-		Assert.assertTrue(channel1.receive().getPayload().equals("1"));
+		assertThat(channel1.receive().getPayload().equals("1")).isTrue();
 		inChannelMessageBuilder = MessageBuilder.withPayload("2");
 		inMessage = inChannelMessageBuilder.build();
 		inChannel.send(inMessage);
 		PollableChannel channel2 = (PollableChannel) ac.getBean("channel2");
-		Assert.assertTrue(channel2.receive().getPayload().equals("2"));
+		assertThat(channel2.receive().getPayload().equals("2")).isTrue();
 	}
 
 	private void testSADefinitionSuccess(String configProperty) {
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testServiceActivator");
-		Assert.assertNotNull(splitter);
+		assertThat(splitter).isNotNull();
 		MessageBuilder<String> inChannelMessageBuilder = MessageBuilder.withPayload("1");
 		Message<String> inMessage = inChannelMessageBuilder.build();
 		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
 		inChannel.send(inMessage);
 		PollableChannel channel1 = (PollableChannel) ac.getBean("outChannel");
-		Assert.assertTrue(channel1.receive().getPayload().equals("1"));
+		assertThat(channel1.receive().getPayload().equals("1")).isTrue();
 	}
 
 	private void testAggregatorDefinitionSuccess(String configProperty) {
@@ -259,8 +257,8 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		}
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
 		Message<?> receivedMessage = output.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals(0 + 1 + 2 + 3 + 4, receivedMessage.getPayload());
+		assertThat(receivedMessage).isNotNull();
+		assertThat(receivedMessage.getPayload()).isEqualTo(0 + 1 + 2 + 3 + 4);
 	}
 
 	private void testFilterDefinitionSuccess(String configProperty) {
@@ -269,7 +267,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
 		input.send(new GenericMessage<String>("foo"));
 		Message<?> reply = output.receive(0);
-		assertEquals("foo", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
 	private ApplicationContext bootStrap(String configProperty) {

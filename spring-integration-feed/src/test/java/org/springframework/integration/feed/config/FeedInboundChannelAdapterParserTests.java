@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.feed.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -74,10 +70,10 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		assertSame(context.getBean(MetadataStore.class), TestUtils.getPropertyValue(source, "metadataStore"));
+		assertThat(TestUtils.getPropertyValue(source, "metadataStore")).isSameAs(context.getBean(MetadataStore.class));
 		SyndFeedInput syndFeedInput = TestUtils.getPropertyValue(source, "syndFeedInput", SyndFeedInput.class);
-		assertSame(context.getBean(SyndFeedInput.class), syndFeedInput);
-		assertFalse(syndFeedInput.isPreserveWireFeed());
+		assertThat(syndFeedInput).isSameAs(context.getBean(SyndFeedInput.class));
+		assertThat(syndFeedInput.isPreserveWireFeed()).isFalse();
 		context.close();
 	}
 
@@ -88,7 +84,7 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		assertNotNull(TestUtils.getPropertyValue(source, "metadataStore"));
+		assertThat(TestUtils.getPropertyValue(source, "metadataStore")).isNotNull();
 		context.close();
 	}
 
@@ -111,7 +107,8 @@ public class FeedInboundChannelAdapterParserTests {
 		verify(latch, times(0)).countDown();
 
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapterUsage", SourcePollingChannelAdapter.class);
-		assertTrue(TestUtils.getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed", Boolean.class))
+				.isTrue();
 
 		context.close();
 	}
@@ -135,8 +132,9 @@ public class FeedInboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-autoChannel-context.xml", this.getClass());
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
-		SourcePollingChannelAdapter adapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
-		assertSame(autoChannel, TestUtils.getPropertyValue(adapter, "outputChannel"));
+		SourcePollingChannelAdapter adapter = context.getBean("autoChannel.adapter",
+				SourcePollingChannelAdapter.class);
+		assertThat(TestUtils.getPropertyValue(adapter, "outputChannel")).isSameAs(autoChannel);
 		context.close();
 	}
 
@@ -144,20 +142,24 @@ public class FeedInboundChannelAdapterParserTests {
 
 		public void receiveFeedEntry(Message<?> message) {
 			MessageHistory history = MessageHistory.read(message);
-			assertEquals(3, history.size());
+			assertThat(history).hasSize(3);
 			Properties historyItem = history.get(0);
-			assertEquals("feedAdapterUsage", historyItem.get("name"));
-			assertEquals("feed:inbound-channel-adapter", historyItem.get("type"));
+			assertThat(historyItem)
+					.containsEntry("name", "feedAdapterUsage")
+					.containsEntry("type", "feed:inbound-channel-adapter");
 
 			historyItem = history.get(1);
-			assertEquals("feedChannelUsage", historyItem.get("name"));
-			assertEquals("channel", historyItem.get("type"));
+			assertThat(historyItem)
+					.containsEntry("name", "feedChannelUsage")
+					.containsEntry("type", "channel");
 
 			historyItem = history.get(2);
-			assertEquals("sampleActivator", historyItem.get("name"));
-			assertEquals("service-activator", historyItem.get("type"));
+			assertThat(historyItem)
+					.containsEntry("name", "sampleActivator")
+					.containsEntry("type", "service-activator");
 			latch.countDown();
 		}
+
 	}
 
 

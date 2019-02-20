@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -34,8 +27,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,9 +49,9 @@ import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.ObjectToMapTransformer;
@@ -174,18 +165,13 @@ public class ChainParserTests {
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
-	@Factory
-	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-		return new MessageMatcher(expected);
-	}
-
 	@Test
 	public void chainWithAcceptingFilter() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.filterInput.send(message);
 		Message<?> reply = this.output.receive(1000);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -193,7 +179,7 @@ public class ChainParserTests {
 		Message<?> message = MessageBuilder.withPayload(123).build();
 		this.filterInput.send(message);
 		Message<?> reply = this.output.receive(0);
-		assertNull(reply);
+		assertThat(reply).isNull();
 	}
 
 	@Test
@@ -201,11 +187,11 @@ public class ChainParserTests {
 		Message<?> message = MessageBuilder.withPayload(123).build();
 		this.headerEnricherInput.send(message);
 		Message<?> reply = this.replyOutput.receive(1000);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
-		assertEquals("ABC", new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
-		assertEquals("XYZ", reply.getHeaders().get("testValue"));
-		assertEquals(123, reply.getHeaders().get("testRef"));
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo");
+		assertThat(new IntegrationMessageHeaderAccessor(reply).getCorrelationId()).isEqualTo("ABC");
+		assertThat(reply.getHeaders().get("testValue")).isEqualTo("XYZ");
+		assertThat(reply.getHeaders().get("testRef")).isEqualTo(123);
 	}
 
 	@Test
@@ -213,8 +199,8 @@ public class ChainParserTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.pollableInput1.send(message);
 		Message<?> reply = this.output.receive(3000);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -222,76 +208,76 @@ public class ChainParserTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.pollableInput2.send(message);
 		Message<?> reply = this.output.receive(3000);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
-	public void chainHandlerBean() throws Exception {
+	public void chainHandlerBean() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.beanInput.send(message);
 		Message<?> reply = this.output.receive(3000);
-		assertNotNull(reply);
-		assertThat(reply, sameExceptImmutableHeaders(successMessage));
+		assertThat(reply).isNotNull();
+		assertThat(reply).matches(new MessagePredicate(successMessage));
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void chainNestingAndAggregation() throws Exception {
+	public void chainNestingAndAggregation() {
 		Message<?> message = MessageBuilder.withPayload("test").setCorrelationId(1).setSequenceSize(1).build();
 		this.aggregatorInput.send(message);
 		Message reply = this.output.receive(3000);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
-	public void chainWithPayloadTypeRouter() throws Exception {
+	public void chainWithPayloadTypeRouter() {
 		Message<?> message1 = MessageBuilder.withPayload("test").build();
 		Message<?> message2 = MessageBuilder.withPayload(123).build();
 		this.payloadTypeRouterInput.send(message1);
 		this.payloadTypeRouterInput.send(message2);
 		Message<?> reply1 = this.strings.receive(1000);
 		Message<?> reply2 = this.numbers.receive(1000);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals("test", reply1.getPayload());
-		assertEquals(123, reply2.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("test");
+		assertThat(reply2.getPayload()).isEqualTo(123);
 	}
 
 	@Test // INT-2315
-	public void chainWithHeaderValueRouter() throws Exception {
+	public void chainWithHeaderValueRouter() {
 		Message<?> message1 = MessageBuilder.withPayload("test").setHeader("routingHeader", "strings").build();
 		Message<?> message2 = MessageBuilder.withPayload(123).setHeader("routingHeader", "numbers").build();
 		this.headerValueRouterInput.send(message1);
 		this.headerValueRouterInput.send(message2);
 		Message<?> reply1 = this.strings.receive(1000);
 		Message<?> reply2 = this.numbers.receive(1000);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals("test", reply1.getPayload());
-		assertEquals(123, reply2.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("test");
+		assertThat(reply2.getPayload()).isEqualTo(123);
 	}
 
 	@Test // INT-2315
-	public void chainWithHeaderValueRouterWithMapping() throws Exception {
+	public void chainWithHeaderValueRouterWithMapping() {
 		Message<?> message1 = MessageBuilder.withPayload("test").setHeader("routingHeader", "isString").build();
 		Message<?> message2 = MessageBuilder.withPayload(123).setHeader("routingHeader", "isNumber").build();
 		this.headerValueRouterWithMappingInput.send(message1);
 		this.headerValueRouterWithMappingInput.send(message2);
 		Message<?> reply1 = this.strings.receive(0);
 		Message<?> reply2 = this.numbers.receive(0);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals("test", reply1.getPayload());
-		assertEquals(123, reply2.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("test");
+		assertThat(reply2.getPayload()).isEqualTo(123);
 	}
 
 	@Test // INT-1165
 	public void chainWithSendTimeout() {
 		long sendTimeout = TestUtils.getPropertyValue(this.chainWithSendTimeout, "messagingTemplate.sendTimeout",
 				Long.class);
-		assertEquals(9876, sendTimeout);
+		assertThat(sendTimeout).isEqualTo(9876);
 	}
 
 	@Test //INT-1622
@@ -299,19 +285,19 @@ public class ChainParserTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.claimCheckInput.send(message);
 		Message<?> reply = this.claimCheckOutput.receive(0);
-		assertEquals(message.getPayload(), reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo(message.getPayload());
 	}
 
 	@Test //INT-2275
 	public void chainWithOutboundChannelAdapter() {
 		this.outboundChannelAdapterChannel.send(successMessage);
-		assertSame(successMessage, testConsumer.getLastMessage());
+		assertThat(testConsumer.getLastMessage()).isSameAs(successMessage);
 	}
 
 	@Test //INT-2275, INT-2958
 	public void chainWithLoggingChannelAdapter() {
 		Log logger = mock(Log.class);
-		final AtomicReference<String> log = new AtomicReference<String>();
+		final AtomicReference<String> log = new AtomicReference<>();
 		when(logger.isWarnEnabled()).thenReturn(true);
 		doAnswer(invocation -> {
 			log.set(invocation.getArgument(0));
@@ -321,13 +307,13 @@ public class ChainParserTests {
 		@SuppressWarnings("unchecked")
 		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers", List.class);
 		MessageHandler handler = handlers.get(2);
-		assertTrue(handler instanceof LoggingHandler);
+		assertThat(handler instanceof LoggingHandler).isTrue();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
 		dfa.setPropertyValue("messageLogger", logger);
 
 		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[] { 116, 101, 115, 116 }).build());
-		assertNotNull(log.get());
-		assertEquals("TEST", log.get());
+		assertThat(log.get()).isNotNull();
+		assertThat(log.get()).isEqualTo("TEST");
 	}
 
 	@Test(expected = BeanCreationException.class) //INT-2275
@@ -338,9 +324,9 @@ public class ChainParserTests {
 			fail("BeanCreationException is expected!");
 		}
 		catch (BeansException e) {
-			assertEquals(IllegalArgumentException.class, e.getCause().getClass());
-			assertTrue(e.getMessage().contains("output channel was provided"));
-			assertTrue(e.getMessage().contains("does not implement the MessageProducer"));
+			assertThat(e.getCause().getClass()).isEqualTo(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("output channel was provided");
+			assertThat(e.getMessage()).contains("does not implement the MessageProducer");
 			throw e;
 		}
 	}
@@ -350,100 +336,134 @@ public class ChainParserTests {
 		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"ChainParserSmartLifecycleAttributesTest.xml", this.getClass());
 		AbstractEndpoint chainEndpoint = ctx.getBean("chain", AbstractEndpoint.class);
-		assertEquals(false, chainEndpoint.isAutoStartup());
-		assertEquals(256, chainEndpoint.getPhase());
+		assertThat(chainEndpoint.isAutoStartup()).isEqualTo(false);
+		assertThat(chainEndpoint.getPhase()).isEqualTo(256);
 
 		MessageHandlerChain handlerChain = ctx.getBean("chain.handler", MessageHandlerChain.class);
-		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "messagingTemplate.sendTimeout"));
-		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
+		assertThat(TestUtils.getPropertyValue(handlerChain, "messagingTemplate.sendTimeout")).isEqualTo(3000L);
+		assertThat(TestUtils.getPropertyValue(handlerChain, "running")).isEqualTo(false);
 		//INT-3108
 		MessageHandler serviceActivator = ctx.getBean("chain$child.sa-within-chain.handler", MessageHandler.class);
-		assertTrue(TestUtils.getPropertyValue(serviceActivator, "requiresReply", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(serviceActivator, "requiresReply", Boolean.class)).isTrue();
 		ctx.close();
 	}
 
 	@Test
 	public void testInt2755SubComponentsIdSupport() {
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1.handler"));
-		assertTrue(this.beanFactory.containsBean("filterChain$child.filterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("filterChain$child.serviceActivatorWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.aggregatorWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.nestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.nestedChain$child.filterWithinNestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.nestedChain$child.doubleNestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.nestedChain$child.doubleNestedChain$child.filterWithinDoubleNestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain2.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain2$child.aggregatorWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain2$child.nestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("aggregatorChain2$child.nestedChain$child.filterWithinNestedChain.handler"));
-		assertTrue(this.beanFactory.containsBean("payloadTypeRouterChain$child.payloadTypeRouterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("headerValueRouterChain$child.headerValueRouterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckInWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckOutWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("outboundChain$child.outboundChannelAdapterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("logChain$child.transformerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("logChain$child.loggingChannelAdapterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.splitterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.resequencerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.enricherWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.headerFilterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadSerializingTransformerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadDeserializingTransformerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.gatewayWithinChain.handler"));
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("filterChain$child.filterWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("filterChain$child.serviceActivatorWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain$child.aggregatorWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain$child.nestedChain.handler")).isTrue();
+		assertThat(this.beanFactory
+				.containsBean("aggregatorChain$child.nestedChain$child.filterWithinNestedChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain$child.nestedChain$child.doubleNestedChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory
+				.containsBean("aggregatorChain$child.nestedChain$child.doubleNestedChain$child" +
+						".filterWithinDoubleNestedChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain2.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain2$child.aggregatorWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("aggregatorChain2$child.nestedChain.handler")).isTrue();
+		assertThat(this.beanFactory
+				.containsBean("aggregatorChain2$child.nestedChain$child.filterWithinNestedChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("payloadTypeRouterChain$child.payloadTypeRouterWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("headerValueRouterChain$child.headerValueRouterWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckInWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckOutWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("outboundChain$child.outboundChannelAdapterWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("logChain$child.transformerWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("logChain$child.loggingChannelAdapterWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.splitterWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.resequencerWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.enricherWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.headerFilterWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory
+				.containsBean("subComponentsIdSupport1$child.payloadSerializingTransformerWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory
+				.containsBean("subComponentsIdSupport1$child.payloadDeserializingTransformerWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.gatewayWithinChain.handler")).isTrue();
 		//INT-3117
-		GatewayProxyFactoryBean gatewayProxyFactoryBean = this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
+		GatewayProxyFactoryBean gatewayProxyFactoryBean = this.beanFactory.getBean("&subComponentsIdSupport1$child" +
+						".gatewayWithinChain.handler",
 				GatewayProxyFactoryBean.class);
-		assertEquals("strings", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"));
-		assertEquals("numbers", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName"));
-		assertEquals(1000L, TestUtils
-				.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class).getValue());
-		assertEquals(100L, TestUtils
-				.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class).getValue());
+		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"))
+				.isEqualTo("strings");
+		assertThat(TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName")).isEqualTo(
+				"numbers");
+		assertThat(TestUtils
+				.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class).getValue())
+				.isEqualTo(1000L);
+		assertThat(TestUtils
+				.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class).getValue())
+				.isEqualTo(100L);
 
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToStringTransformerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler"));
+		assertThat(this.beanFactory
+				.containsBean("subComponentsIdSupport1$child.objectToStringTransformerWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory
+				.containsBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler")).isTrue();
 
-		Object transformerHandler = this.beanFactory.getBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler");
+		Object transformerHandler = this.beanFactory.getBean(
+				"subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler");
 
 		Object transformer = TestUtils.getPropertyValue(transformerHandler, "transformer");
 
-		assertThat(transformer, instanceOf(ObjectToMapTransformer.class));
-		assertFalse(TestUtils.getPropertyValue(transformer, "shouldFlattenKeys", Boolean.class));
-		assertSame(this.beanFactory.getBean(JsonObjectMapper.class),
-				TestUtils.getPropertyValue(transformer, "jsonObjectMapper"));
+		assertThat(transformer).isInstanceOf(ObjectToMapTransformer.class);
+		assertThat(TestUtils.getPropertyValue(transformer, "shouldFlattenKeys", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(transformer, "jsonObjectMapper"))
+				.isSameAs(this.beanFactory.getBean(JsonObjectMapper.class));
 
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.mapToObjectTransformerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.controlBusWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.routerWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("exceptionTypeRouterChain$child.exceptionTypeRouterWithinChain.handler"));
-		assertTrue(this.beanFactory.containsBean("recipientListRouterChain$child.recipientListRouterWithinChain.handler"));
+		assertThat(this.beanFactory
+				.containsBean("subComponentsIdSupport1$child.mapToObjectTransformerWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.controlBusWithinChain.handler"))
+				.isTrue();
+		assertThat(this.beanFactory.containsBean("subComponentsIdSupport1$child.routerWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory
+				.containsBean("exceptionTypeRouterChain$child.exceptionTypeRouterWithinChain.handler")).isTrue();
+		assertThat(this.beanFactory
+				.containsBean("recipientListRouterChain$child.recipientListRouterWithinChain.handler")).isTrue();
 
 		MessageHandlerChain chain = this.beanFactory.getBean("headerEnricherChain.handler", MessageHandlerChain.class);
 		List<?> handlers = TestUtils.getPropertyValue(chain, "handlers", List.class);
 
-		assertTrue(handlers.get(0) instanceof MessageTransformingHandler);
-		assertEquals("headerEnricherChain$child.headerEnricherWithinChain", TestUtils.getPropertyValue(handlers.get(0), "componentName"));
-		assertEquals("headerEnricherChain$child.headerEnricherWithinChain.handler", TestUtils.getPropertyValue(handlers.get(0), "beanName"));
-		assertTrue(this.beanFactory.containsBean("headerEnricherChain$child.headerEnricherWithinChain.handler"));
+		assertThat(handlers.get(0) instanceof MessageTransformingHandler).isTrue();
+		assertThat(TestUtils.getPropertyValue(handlers.get(0), "componentName"))
+				.isEqualTo("headerEnricherChain$child.headerEnricherWithinChain");
+		assertThat(TestUtils.getPropertyValue(handlers.get(0), "beanName"))
+				.isEqualTo("headerEnricherChain$child.headerEnricherWithinChain.handler");
+		assertThat(this.beanFactory.containsBean("headerEnricherChain$child.headerEnricherWithinChain.handler"))
+				.isTrue();
 
-		assertTrue(handlers.get(1) instanceof ServiceActivatingHandler);
-		assertEquals("headerEnricherChain$child#1", TestUtils.getPropertyValue(handlers.get(1), "componentName"));
-		assertEquals("headerEnricherChain$child#1.handler", TestUtils.getPropertyValue(handlers.get(1), "beanName"));
-		assertFalse(this.beanFactory.containsBean("headerEnricherChain$child#1.handler"));
+		assertThat(handlers.get(1) instanceof ServiceActivatingHandler).isTrue();
+		assertThat(TestUtils.getPropertyValue(handlers.get(1), "componentName"))
+				.isEqualTo("headerEnricherChain$child#1");
+		assertThat(TestUtils.getPropertyValue(handlers.get(1), "beanName"))
+				.isEqualTo("headerEnricherChain$child#1.handler");
+		assertThat(this.beanFactory.containsBean("headerEnricherChain$child#1.handler")).isFalse();
 
 	}
 
 	@Test
 	public void testInt2755SubComponentException() {
-		GenericMessage<String> testMessage = new GenericMessage<String>("test");
+		GenericMessage<String> testMessage = new GenericMessage<>("test");
 		try {
 			this.chainReplyRequiredChannel.send(testMessage);
 			fail("Expected ReplyRequiredException");
 		}
 		catch (Exception e) {
-			assertTrue(e instanceof ReplyRequiredException);
-			assertTrue(e.getMessage().contains("'chainReplyRequired$child.transformerReplyRequired'"));
+			assertThat(e instanceof ReplyRequiredException).isTrue();
+			assertThat(e.getMessage().contains("'chainReplyRequired$child.transformerReplyRequired'")).isTrue();
 		}
 
 		try {
@@ -451,8 +471,9 @@ public class ChainParserTests {
 			fail("Expected MessageRejectedException");
 		}
 		catch (Exception e) {
-			assertTrue(e instanceof MessageRejectedException);
-			assertTrue(e.getMessage().contains("chainMessageRejectedException$child.filterMessageRejectedException"));
+			assertThat(e instanceof MessageRejectedException).isTrue();
+			assertThat(e.getMessage().contains("chainMessageRejectedException$child.filterMessageRejectedException"))
+					.isTrue();
 		}
 
 	}
@@ -463,13 +484,13 @@ public class ChainParserTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("myReplyChannel", replyChannel).build();
 		this.chainWithNoOutputChannel.send(message);
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 		Message<String> message2 = MessageBuilder.withPayload("bar").setHeader("myMessage", message).build();
 		this.chainWithTransformNoOutputChannel.send(message2);
 		receive = replyChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
@@ -486,6 +507,7 @@ public class ChainParserTests {
 		public String aggregate(List<String> strings) {
 			return StringUtils.collectionToCommaDelimitedString(strings);
 		}
+
 	}
 
 	public static class FooPojo {

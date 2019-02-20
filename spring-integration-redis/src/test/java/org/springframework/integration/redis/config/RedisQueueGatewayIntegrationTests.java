@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -87,8 +85,8 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	public void testRequestWithReply() {
 		this.sendChannel.send(new GenericMessage<>(1));
 		Message<?> receive = this.outputChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(2, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(2);
 	}
 
 	@Test
@@ -101,7 +99,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
-			assertTrue(e.getMessage().contains("No reply produced"));
+			assertThat(e.getMessage().contains("No reply produced")).isTrue();
 		}
 		finally {
 			this.outboundGateway.setReceiveTimeout(receiveTimeout);
@@ -118,7 +116,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
-			assertTrue(e.getMessage().contains("No reply produced"));
+			assertThat(e.getMessage().contains("No reply produced")).isTrue();
 		}
 		finally {
 			this.inboundGateway.setSerializer(new StringRedisSerializer());
@@ -135,8 +133,8 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 		this.outboundGateway.setExtractPayload(false);
 		this.sendChannel.send(new GenericMessage<>(2));
 		Message<?> receive = this.outputChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(3, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(3);
 		this.inboundGateway.setSerializer(new StringRedisSerializer());
 		this.inboundGateway.setExtractPayload(true);
 		this.outboundGateway.setSerializer(new StringRedisSerializer());

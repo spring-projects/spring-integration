@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.TimeUnit;
 
@@ -79,21 +76,22 @@ public class ChannelWithMessageStoreParserTests {
 
 		input.send(createMessage("123", "id1", 3, 1, null));
 		handler.getLatch().await(100, TimeUnit.MILLISECONDS);
-		assertEquals("The message payload is not correct", "123", handler.getMessageString());
+		assertThat(handler.getMessageString()).as("The message payload is not correct").isEqualTo("123");
 		// The group id for buffered messages is the channel name
-		assertEquals(1, messageGroupStore.getMessageGroup("messageStore:output").size());
+		assertThat(messageGroupStore.getMessageGroup("messageStore:output").size()).isEqualTo(1);
 
 		Message<?> result = output.receive(100);
-		assertEquals("hello", result.getPayload());
-		assertEquals(0, messageGroupStore.getMessageGroup(BASE_PACKAGE + ".store:output").size());
+		assertThat(result.getPayload()).isEqualTo("hello");
+		assertThat(messageGroupStore.getMessageGroup(BASE_PACKAGE + ".store:output").size()).isEqualTo(0);
 
 	}
 
 	@Test
 	@DirtiesContext
 	public void testPriorityMessageStore() {
-		assertSame(this.priorityMessageStore, TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"));
-		assertThat(this.priorityChannel, instanceOf(PriorityChannel.class));
+		assertThat(TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"))
+				.isSameAs(this.priorityMessageStore);
+		assertThat(this.priorityChannel).isInstanceOf(PriorityChannel.class);
 	}
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,

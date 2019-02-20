@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,20 +52,29 @@ public class MBeanRegistrationTests {
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=MessageHandler,*"), null);
-		assertEquals(6, names.size());
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=MessageHandler,name=chain,bean=endpoint")));
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=MessageHandler,name=chain$child.t1,bean=handler")));
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=MessageHandler,name=chain$child.f1,bean=handler")));
+		assertThat(names.size()).isEqualTo(6);
+		assertThat(names
+				.contains(new ObjectName("test.MBeanRegistration:type=MessageHandler,name=chain,bean=endpoint")))
+				.isTrue();
+		assertThat(names
+				.contains(new ObjectName(
+						"test.MBeanRegistration:type=MessageHandler,name=chain$child.t1,bean=handler")))
+				.isTrue();
+		assertThat(names
+				.contains(new ObjectName("test.MBeanRegistration:type=MessageHandler,name=chain$child.f1,bean=handler")))
+				.isTrue();
 	}
 
 	@Test
 	public void testExporterMBeanRegistration() throws Exception {
 		// System . err.println(server.queryNames(new ObjectName("*:type=*MBeanExporter,*"), null));
 		// System . err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
-		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
-		assertEquals(1, names.size());
-		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=org.springframework.integration.MyGateway"), null);
-		assertEquals(server.toString(), 1, names.size());
+		Set<ObjectName> names = server.queryNames(new ObjectName(
+				"test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
+		assertThat(names.size()).isEqualTo(1);
+		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=org.springframework.integration" +
+				".MyGateway"), null);
+		assertThat(names.size()).as(server.toString()).isEqualTo(1);
 	}
 
 	@Test
@@ -78,7 +85,7 @@ public class MBeanRegistrationTests {
 		for (MBeanOperationInfo info : server.getMBeanInfo(names.iterator().next()).getOperations()) {
 			infos.put(info.getName(), info);
 		}
-		assertNotNull(infos.get("setShouldTrack"));
+		assertThat(infos.get("setShouldTrack")).isNotNull();
 	}
 
 	public static class Source {

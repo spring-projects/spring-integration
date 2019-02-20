@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -60,8 +60,8 @@ public class FtpInboundOutboundSanitySample {
 		Thread.sleep(3000);
 		fileA = new File("local-test-dir/b.test");
 		fileB = new File("local-test-dir/b.test");
-		assertTrue(fileA.exists());
-		assertTrue(fileB.exists());
+		assertThat(fileA.exists()).isTrue();
+		assertThat(fileB.exists()).isTrue();
 		context.close();
 	}
 
@@ -78,8 +78,8 @@ public class FtpInboundOutboundSanitySample {
 		Thread.sleep(3000);
 		fileA = new File("remote-target-dir/a.test");
 		fileB = new File("remote-target-dir/b.test");
-		assertTrue(fileA.exists());
-		assertTrue(fileB.exists());
+		assertThat(fileA.exists()).isTrue();
+		assertThat(fileB.exists()).isTrue();
 		ac.close();
 	}
 

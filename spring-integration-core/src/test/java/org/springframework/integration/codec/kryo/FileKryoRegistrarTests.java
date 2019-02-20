@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.codec.kryo;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class FileKryoRegistrarTests {
 		PojoCodec pc = new PojoCodec(new FileKryoRegistrar());
 		File file = new File("/foo/bar");
 		File file2 = pc.decode(pc.encode(file), File.class);
-		assertEquals(file, file2);
+		assertThat(file2).isEqualTo(file);
 	}
 
 }

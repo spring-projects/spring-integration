@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xml.transformer.jaxbmarshaling;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -62,10 +60,10 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 		person.setFirstName("john");
 		marshallIn.send(new GenericMessage<Object>(person));
 		GenericMessage<Result> res = (GenericMessage<Result>) marshalledOut.receive(2000);
-		assertNotNull("No response recevied", res);
-		assertTrue("payload was not a DOMResult", res.getPayload() instanceof DOMResult);
+		assertThat(res).as("No response recevied").isNotNull();
+		assertThat(res.getPayload() instanceof DOMResult).as("payload was not a DOMResult").isTrue();
 		Document doc = (Document) ((DOMResult) res.getPayload()).getNode();
-		assertEquals("Wrong name for root element ", "person", doc.getDocumentElement().getLocalName());
+		assertThat(doc.getDocumentElement().getLocalName()).as("Wrong name for root element ").isEqualTo("person");
 	}
 
 
@@ -75,10 +73,10 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 		StringSource source = new StringSource("<person><firstname>bob</firstname></person>");
 		unmarshallIn.send(new GenericMessage<Source>(source));
 		GenericMessage<Object> res = (GenericMessage<Object>) unmarshallOut.receive(2000);
-		assertNotNull("No response", res);
-		assertTrue("Not a Person ", res.getPayload() instanceof JaxbAnnotatedPerson);
+		assertThat(res).as("No response").isNotNull();
+		assertThat(res.getPayload() instanceof JaxbAnnotatedPerson).as("Not a Person ").isTrue();
 		JaxbAnnotatedPerson person = (JaxbAnnotatedPerson) res.getPayload();
-		assertEquals("Worng firstname", "bob", person.getFirstName());
+		assertThat(person.getFirstName()).as("Worng firstname").isEqualTo("bob");
 
 	}
 

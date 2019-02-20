@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -36,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,7 +80,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@Test
 	public void testCopyFileToLocalDir() throws Exception {
 		File localDirectory = new File("test");
-		assertFalse(localDirectory.exists());
+		assertThat(localDirectory.exists()).isFalse();
 
 		TestSftpSessionFactory ftpSessionFactory = new TestSftpSessionFactory();
 		ftpSessionFactory.setUser("kermit");
@@ -124,25 +118,25 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ms.start();
 
 		Message<File> atestFile =  ms.receive();
-		assertNotNull(atestFile);
-		assertEquals("a.test", atestFile.getPayload().getName());
+		assertThat(atestFile).isNotNull();
+		assertThat(atestFile.getPayload().getName()).isEqualTo("a.test");
 		// The test remote files are created with the current timestamp + 1 day.
-		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+		assertThat(atestFile.getPayload().lastModified()).isGreaterThan(System.currentTimeMillis());
 
 		Message<File> btestFile =  ms.receive();
-		assertNotNull(btestFile);
-		assertEquals("b.test", btestFile.getPayload().getName());
+		assertThat(btestFile).isNotNull();
+		assertThat(btestFile.getPayload().getName()).isEqualTo("b.test");
 		// The test remote files are created with the current timestamp + 1 day.
-		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+		assertThat(atestFile.getPayload().lastModified()).isGreaterThan(System.currentTimeMillis());
 
 		Message<File> nothing =  ms.receive();
-		assertNull(nothing);
+		assertThat(nothing).isNull();
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory, Integer.MIN_VALUE);
 
-		assertTrue(new File("test/a.test").exists());
-		assertTrue(new File("test/b.test").exists());
+		assertThat(new File("test/a.test").exists()).isTrue();
+		assertThat(new File("test/b.test").exists()).isTrue();
 
 		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
 
@@ -150,7 +144,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		new File("test/b.test").delete();
 		// the remote filter should prevent a re-fetch
 		nothing =  ms.receive();
-		assertNull(nothing);
+		assertThat(nothing).isNull();
 
 		ms.stop();
 		verify(synchronizer).close();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -61,9 +61,9 @@ public class StoredProcOutboundChannelAdapterWithinChainTests {
 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-		assertEquals("Wrong username", "username", map.get("USERNAME"));
-		assertEquals("Wrong password", "password", map.get("PASSWORD"));
-		assertEquals("Wrong email", "email", map.get("EMAIL"));
+		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
+		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
+		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
 //		embeddedDatabase can be in working state. So other tests with the same embeddedDatabase beanId, type and init scripts
 //		may be failed with Exception like: object in the DB already exists
 		this.context.close();

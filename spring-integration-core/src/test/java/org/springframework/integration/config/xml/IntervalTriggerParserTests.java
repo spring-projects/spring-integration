@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,28 +43,28 @@ public class IntervalTriggerParserTests {
 	@Test
 	public void testFixedRateTrigger() {
 		Object poller = context.getBean("pollerWithFixedRateAttribute");
-		assertEquals(PollerMetadata.class, poller.getClass());
+		assertThat(poller.getClass()).isEqualTo(PollerMetadata.class);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
-		assertEquals(PeriodicTrigger.class, trigger.getClass());
+		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
 		Long period = (Long) accessor.getPropertyValue("period");
-		assertEquals(fixedRate, true);
-		assertEquals(36L, period.longValue());
+		assertThat(true).isEqualTo(fixedRate);
+		assertThat(period.longValue()).isEqualTo(36L);
 	}
 
 	@Test
 	public void testFixedDelayTrigger() {
 		Object poller = context.getBean("pollerWithFixedDelayAttribute");
-		assertEquals(PollerMetadata.class, poller.getClass());
+		assertThat(poller.getClass()).isEqualTo(PollerMetadata.class);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
-		assertEquals(PeriodicTrigger.class, trigger.getClass());
+		assertThat(trigger.getClass()).isEqualTo(PeriodicTrigger.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
 		Long period = (Long) accessor.getPropertyValue("period");
-		assertEquals(fixedRate, false);
-		assertEquals(37L, period.longValue());
+		assertThat(false).isEqualTo(fixedRate);
+		assertThat(period.longValue()).isEqualTo(37L);
 	}
 }

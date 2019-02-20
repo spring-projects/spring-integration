@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -70,9 +66,9 @@ public class GemfireGroupStoreTests {
 	public void testNonExistingEmptyMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
 		MessageGroup messageGroup = store.getMessageGroup(1);
-		assertNotNull(messageGroup);
-		assertTrue(messageGroup instanceof SimpleMessageGroup);
-		assertEquals(0, messageGroup.size());
+		assertThat(messageGroup).isNotNull();
+		assertThat(messageGroup instanceof SimpleMessageGroup).isTrue();
+		assertThat(messageGroup.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -81,13 +77,13 @@ public class GemfireGroupStoreTests {
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
 
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -98,28 +94,28 @@ public class GemfireGroupStoreTests {
 
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 		Thread.sleep(1); //since it adds to a local region some times CREATED_DATE ends up to be the same
 		// Unrealistic in a real scenario
 
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 		Thread.sleep(1);
 
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(3, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(3);
 
 		store.removeMessagesFromGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
 
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(2, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(2);
 
 	}
 
@@ -129,21 +125,21 @@ public class GemfireGroupStoreTests {
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
-		assertEquals(1, messageGroup.size());
+		assertThat(messageGroup.size()).isEqualTo(1);
 
 		store.removeMessageGroup(1);
 		MessageGroup messageGroupA = store.getMessageGroup(1);
-		assertNotSame(messageGroup, messageGroupA);
-		assertEquals(0, messageGroupA.getMessages().size());
-		assertEquals(0, messageGroupA.size());
+		assertThat(messageGroupA).isNotSameAs(messageGroup);
+		assertThat(messageGroupA.getMessages().size()).isEqualTo(0);
+		assertThat(messageGroupA.size()).isEqualTo(0);
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
 
 		messageGroup = store.getMessageGroup(1);
 
-		assertEquals(0, messageGroup.getMessages().size());
-		assertEquals(0, messageGroup.size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(0);
+		assertThat(messageGroup.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -168,7 +164,7 @@ public class GemfireGroupStoreTests {
 		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
 		store.completeGroup(messageGroup.getGroupId());
 		messageGroup = store.getMessageGroup(1);
-		assertTrue(messageGroup.isComplete());
+		assertThat(messageGroup.isComplete()).isTrue();
 	}
 
 	@Test
@@ -179,7 +175,7 @@ public class GemfireGroupStoreTests {
 		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
 		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+		assertThat(messageGroup.getLastReleasedMessageSequenceNumber()).isEqualTo(5);
 	}
 
 	@Test
@@ -192,14 +188,14 @@ public class GemfireGroupStoreTests {
 		store1.addMessagesToGroup(1, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 
-		assertEquals(2, messageGroup.getMessages().size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(2);
 
 		GemfireMessageStore store3 = new GemfireMessageStore(region);
 
 		store3.removeMessagesFromGroup(1, message);
 		messageGroup = store3.getMessageGroup(1);
 
-		assertEquals(1, messageGroup.getMessages().size());
+		assertThat(messageGroup.getMessages().size()).isEqualTo(1);
 	}
 
 	@Test
@@ -221,11 +217,11 @@ public class GemfireGroupStoreTests {
 		message = store.getMessageGroup(1).getMessages().iterator().next();
 
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
@@ -243,7 +239,7 @@ public class GemfireGroupStoreTests {
 			messageGroups.next();
 			counter++;
 		}
-		assertEquals(3, counter);
+		assertThat(counter).isEqualTo(3);
 
 		store2.removeMessageGroup(3);
 
@@ -253,7 +249,7 @@ public class GemfireGroupStoreTests {
 			messageGroups.next();
 			counter++;
 		}
-		assertEquals(2, counter);
+		assertThat(counter).isEqualTo(2);
 	}
 
 	@Test
@@ -292,7 +288,7 @@ public class GemfireGroupStoreTests {
 			executor.awaitTermination(10, TimeUnit.SECONDS);
 			store2.removeMessagesFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
-		assertTrue(failures.size() == 0);
+		assertThat(failures.size() == 0).isTrue();
 	}
 
 	@Test
@@ -308,9 +304,9 @@ public class GemfireGroupStoreTests {
 		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1)
 				.build();
 		input.send(m1);
-		assertNull(output.receive(1000));
+		assertThat(output.receive(1000)).isNull();
 		input.send(m2);
-		assertNull(output.receive(1000));
+		assertThat(output.receive(1000)).isNull();
 
 		ClassPathXmlApplicationContext context2 = new ClassPathXmlApplicationContext("gemfire-aggregator-config-a.xml",
 				this.getClass());
@@ -320,7 +316,7 @@ public class GemfireGroupStoreTests {
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1)
 				.build();
 		inputA.send(m3);
-		assertNotNull(outputA.receive(1000));
+		assertThat(outputA.receive(1000)).isNotNull();
 		context1.close();
 		context2.close();
 	}
@@ -338,9 +334,9 @@ public class GemfireGroupStoreTests {
 			Thread.sleep(1);
 		}
 		for (int i = 0; i < 20; i++) {
-			assertNotNull(outputQueue.receive(5000));
+			assertThat(outputQueue.receive(5000)).isNotNull();
 		}
-		assertNull(outputQueue.receive(1));
+		assertThat(outputQueue.receive(1)).isNull();
 		context.close();
 	}
 

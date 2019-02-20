@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -39,8 +39,8 @@ public class TransactionalPollerWithMixedAopConfigTests {
 		ClassPathXmlApplicationContext context =
 			new ClassPathXmlApplicationContext("TransactionalPollerWithMixedAopConfig-context.xml", this.getClass());
 
-		assertTrue(!(context.getBean("foo") instanceof Advised));
-		assertTrue(!(context.getBean("inputChannel") instanceof Advised));
+		assertThat(!(context.getBean("foo") instanceof Advised)).isTrue();
+		assertThat(!(context.getBean("inputChannel") instanceof Advised)).isTrue();
 		context.close();
 	}
 

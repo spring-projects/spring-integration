@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -41,12 +41,12 @@ public class DefaultConfiguringBeanFactoryPostProcessorHierarchyTests {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(child);
 		reader.loadBeanDefinitions(new ClassPathResource("hierarchyTests-child.xml", this.getClass()));
 		child.refresh();
-		assertSame(parent.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME),
-				child.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
-		assertSame(parent.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME),
-				child.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
-		assertSame(parent.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME),
-				child.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME));
+		assertThat(child.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME))
+				.isSameAs(parent.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
+		assertThat(child.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME))
+				.isSameAs(parent.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
+		assertThat(child.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME))
+				.isSameAs(parent.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME));
 	}
 
 }

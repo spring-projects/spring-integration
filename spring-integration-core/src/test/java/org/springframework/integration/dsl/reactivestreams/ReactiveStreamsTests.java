@@ -16,10 +16,7 @@
 
 package org.springframework.integration.dsl.reactivestreams;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -111,9 +108,9 @@ public class ReactiveStreamsTests {
 					latch.countDown();
 				});
 		this.messageSource.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		String[] strings = results.toArray(new String[0]);
-		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
+		assertThat(strings).isEqualTo(new String[] { "A", "B", "C", "D", "E", "F" });
 		this.messageSource.stop();
 	}
 
@@ -146,11 +143,11 @@ public class ReactiveStreamsTests {
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
-		assertTrue(latch.await(20, TimeUnit.SECONDS));
+		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
 		List<Integer> integers = future.get(20, TimeUnit.SECONDS);
 
-		assertNotNull(integers);
-		assertEquals(7, integers.size());
+		assertThat(integers).isNotNull();
+		assertThat(integers.size()).isEqualTo(7);
 		exec.shutdownNow();
 	}
 
@@ -175,8 +172,8 @@ public class ReactiveStreamsTests {
 
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = resultChannel.receive(10000);
-			assertNotNull(receive);
-			assertEquals((i + 1) * 2, receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo((i + 1) * 2);
 		}
 	}
 
@@ -208,8 +205,8 @@ public class ReactiveStreamsTests {
 
 		Message<?> receive = resultChannel.receive(10_000);
 
-		assertNotNull(receive);
-		assertEquals("A,B,C,D,E", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("A,B,C,D,E");
 
 		integrationFlowRegistration.destroy();
 	}
@@ -223,7 +220,7 @@ public class ReactiveStreamsTests {
 					latch.countDown();
 				});
 		this.singleChannel.send(new GenericMessage<>("foo"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -235,7 +232,7 @@ public class ReactiveStreamsTests {
 					latch.countDown();
 				});
 		this.fixedSubscriberChannel.send(new GenericMessage<>("bar"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Configuration

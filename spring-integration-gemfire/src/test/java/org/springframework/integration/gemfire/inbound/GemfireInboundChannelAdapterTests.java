@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gemfire.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.internal.cache.LocalRegion;
@@ -72,7 +71,7 @@ public class GemfireInboundChannelAdapterTests {
 
 		region1.put("payload", "payload");
 
-		assertEquals("payload", eventHandler1.event);
+		assertThat(eventHandler1.event).isEqualTo("payload");
 	}
 
 	@Test
@@ -82,9 +81,9 @@ public class GemfireInboundChannelAdapterTests {
 
 		region2.put("payload", "payload");
 
-		assertTrue(eventHandler2.event instanceof EntryEvent);
+		assertThat(eventHandler2.event instanceof EntryEvent).isTrue();
 		EntryEvent<?, ?> event = (EntryEvent<?, ?>) eventHandler2.event;
-		assertEquals("payload", event.getNewValue());
+		assertThat(event.getNewValue()).isEqualTo("payload");
 	}
 
 	@Test
@@ -97,7 +96,7 @@ public class GemfireInboundChannelAdapterTests {
 
 		region3.put("payload", "payload");
 
-		assertEquals(1, errorHandler.count);
+		assertThat(errorHandler.count).isEqualTo(1);
 	}
 
 	static class ErrorHandler implements MessageHandler {
@@ -106,7 +105,7 @@ public class GemfireInboundChannelAdapterTests {
 
 		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
-			assertTrue(message instanceof ErrorMessage);
+			assertThat(message).isInstanceOf(ErrorMessage.class);
 			count++;
 		}
 

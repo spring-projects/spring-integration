@@ -16,10 +16,8 @@
 
 package org.springframework.integration.ftp.session;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,24 +77,24 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		});
 		template.append(new GenericMessage<>("foo"));
 		template.append(new GenericMessage<>("bar"));
-		assertTrue(template.exists("foo/foobar.txt"));
+		assertThat(template.exists("foo/foobar.txt")).isTrue();
 		template.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
 			try {
 				FTPFile[] files = client.listFiles("foo/foobar.txt");
-				assertEquals(6, files[0].getSize());
+				assertThat(files[0].getSize()).isEqualTo(6);
 			}
 			catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		});
 		template.execute((SessionCallbackWithoutResult<FTPFile>) session -> {
-			assertTrue(session.remove("foo/foobar.txt"));
-			assertTrue(session.rmdir("foo/bar/"));
+			assertThat(session.remove("foo/foobar.txt")).isTrue();
+			assertThat(session.rmdir("foo/bar/")).isTrue();
 			FTPFile[] files = session.list("foo/");
-			assertEquals(0, files.length);
-			assertTrue(session.rmdir("foo/"));
+			assertThat(files.length).isEqualTo(0);
+			assertThat(session.rmdir("foo/")).isTrue();
 		});
-		assertFalse(template.getSession().exists("foo"));
+		assertThat(template.getSession().exists("foo")).isFalse();
 	}
 
 	@Test
@@ -116,10 +114,10 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 			fail("exception expected");
 		}
 		catch (MessagingException e) {
-			assertEquals("bar", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("bar");
 		}
 		File newFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
-		assertTrue(file.renameTo(newFile));
+		assertThat(file.renameTo(newFile)).isTrue();
 		file.delete();
 		newFile.delete();
 	}

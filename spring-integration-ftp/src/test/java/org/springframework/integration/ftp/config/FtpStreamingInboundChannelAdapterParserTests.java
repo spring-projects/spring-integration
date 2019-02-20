@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,27 +63,27 @@ public class FtpStreamingInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception {
-		assertFalse(TestUtils.getPropertyValue(this.ftpInbound, "autoStartup", Boolean.class));
-		assertEquals("ftpInbound", this.ftpInbound.getComponentName());
-		assertEquals("ftp:inbound-streaming-channel-adapter", this.ftpInbound.getComponentType());
-		assertSame(this.ftpChannel, TestUtils.getPropertyValue(this.ftpInbound, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(this.ftpInbound, "autoStartup", Boolean.class)).isFalse();
+		assertThat(this.ftpInbound.getComponentName()).isEqualTo("ftpInbound");
+		assertThat(this.ftpInbound.getComponentType()).isEqualTo("ftp:inbound-streaming-channel-adapter");
+		assertThat(TestUtils.getPropertyValue(this.ftpInbound, "outputChannel")).isSameAs(this.ftpChannel);
 		FtpStreamingMessageSource source = TestUtils.getPropertyValue(ftpInbound, "source",
 				FtpStreamingMessageSource.class);
 
-		assertNotNull(TestUtils.getPropertyValue(source, "comparator"));
-		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class), equalTo("X"));
+		assertThat(TestUtils.getPropertyValue(source, "comparator")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class)).isEqualTo("X");
 
 		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter", FileListFilter.class);
-		assertNotNull(filter);
-		assertThat(filter, instanceOf(CompositeFileListFilter.class));
+		assertThat(filter).isNotNull();
+		assertThat(filter).isInstanceOf(CompositeFileListFilter.class);
 		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
 
 		Iterator<?> filtersIterator = fileFilters.iterator();
-		assertThat(filtersIterator.next(), instanceOf(FtpSimplePatternFileListFilter.class));
-		assertThat(filtersIterator.next(), instanceOf(FtpPersistentAcceptOnceFileListFilter.class));
+		assertThat(filtersIterator.next()).isInstanceOf(FtpSimplePatternFileListFilter.class);
+		assertThat(filtersIterator.next()).isInstanceOf(FtpPersistentAcceptOnceFileListFilter.class);
 
-		assertSame(this.csf, TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory"));
-		assertEquals(31, TestUtils.getPropertyValue(source, "maxFetchSize"));
+		assertThat(TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory")).isSameAs(this.csf);
+		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(31);
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {

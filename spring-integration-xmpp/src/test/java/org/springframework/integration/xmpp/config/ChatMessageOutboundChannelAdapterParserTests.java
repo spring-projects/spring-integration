@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,14 +74,14 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 	public void testPollingConsumer() {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
-		assertEquals("outboundPollingChannel", channel.getComponentName());
-		assertTrue(pollingConsumer instanceof PollingConsumer);
+		assertThat(channel.getComponentName()).isEqualTo("outboundPollingChannel");
+		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
 	}
 
 	@Test
 	public void testEventConsumerWithNoChannel() {
 		Object eventConsumer = context.getBean("outboundNoChannelAdapter");
-		assertTrue(eventConsumer instanceof SubscribableChannel);
+		assertThat(eventConsumer instanceof SubscribableChannel).isTrue();
 	}
 
 	@Test
@@ -92,7 +89,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		MessageHandler handler = TestUtils.getPropertyValue(context.getBean("advised"),
 				"handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
@@ -103,26 +100,26 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
 				"requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertTrue(requestHeaderMatcher.matchHeader("foo"));
-		assertTrue(requestHeaderMatcher.matchHeader("foo123"));
-		assertTrue(requestHeaderMatcher.matchHeader("bar"));
-		assertTrue(requestHeaderMatcher.matchHeader("bar123"));
-		assertFalse(requestHeaderMatcher.matchHeader("biz"));
-		assertFalse(requestHeaderMatcher.matchHeader("else"));
-		assertTrue(eventConsumer instanceof EventDrivenConsumer);
+		assertThat(requestHeaderMatcher.matchHeader("foo")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("foo123")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("bar")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("bar123")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("biz")).isFalse();
+		assertThat(requestHeaderMatcher.matchHeader("else")).isFalse();
+		assertThat(eventConsumer instanceof EventDrivenConsumer).isTrue();
 
 		MessageHandler outboundEventAdapterHandle =
 				context.getBean("outboundEventAdapter.handler", MessageHandler.class);
-		assertSame(this.extensionElementProvider,
-				TestUtils.getPropertyValue(outboundEventAdapterHandle, "extensionProvider"));
+		assertThat(TestUtils.getPropertyValue(outboundEventAdapterHandle, "extensionProvider"))
+				.isSameAs(this.extensionElementProvider);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void withHeaderMapper() throws Exception {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
-		assertTrue(pollingConsumer instanceof PollingConsumer);
-		assertEquals(headerMapper, TestUtils.getPropertyValue(pollingConsumer, "handler.headerMapper"));
+		assertThat(pollingConsumer instanceof PollingConsumer).isTrue();
+		assertThat(TestUtils.getPropertyValue(pollingConsumer, "handler.headerMapper")).isEqualTo(headerMapper);
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "oleg").
 				setHeader("foobar", "foobar").build();
@@ -131,8 +128,8 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		doAnswer(invocation -> {
 			Object[] args = invocation.getArguments();
 			org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
-			assertEquals("oleg", xmppMessage.getTo().toString());
-			assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
+			assertThat(xmppMessage.getTo().toString()).isEqualTo("oleg");
+			assertThat(JivePropertiesManager.getProperty(xmppMessage, "foobar")).isEqualTo("foobar");
 			return null;
 		}).when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 
@@ -150,8 +147,8 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		doAnswer(invocation -> {
 			Object[] args = invocation.getArguments();
 			org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
-			assertEquals("artem", xmppMessage.getTo().toString());
-			assertEquals("hello", xmppMessage.getBody());
+			assertThat(xmppMessage.getTo().toString()).isEqualTo("artem");
+			assertThat(xmppMessage.getBody()).isEqualTo("hello");
 			return null;
 		}).when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 

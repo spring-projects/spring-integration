@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -49,7 +48,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
-		assertEquals("test", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -75,8 +74,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
-		assertEquals("test", message.getPayload());
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test(expected = MessageMappingException.class)
@@ -95,8 +94,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
-		assertEquals("test", message.getPayload());
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -106,8 +105,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
-		assertEquals("test", message.getPayload());
-		assertNull(message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(message.getHeaders().get("foo")).isNull();
 	}
 
 	@Test
@@ -120,9 +119,9 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		headers.put("abc", 123);
 		headers.put("def", 456);
 		Message<?> message = mapper.toMessage(new Object[] { "test", headers });
-		assertEquals("test", message.getPayload());
-		assertEquals(123, message.getHeaders().get("abc"));
-		assertEquals(456, message.getHeaders().get("def"));
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(message.getHeaders().get("abc")).isEqualTo(123);
+		assertThat(message.getHeaders().get("def")).isEqualTo(456);
 	}
 
 	@Test
@@ -132,7 +131,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
-		assertEquals("test", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
 	@Test(expected = MessageMappingException.class)
@@ -153,7 +152,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage });
-		assertEquals("test message", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("test message");
 	}
 
 	@Test
@@ -163,8 +162,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
-		assertEquals("test message", message.getPayload());
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test message");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test(expected = MessageMappingException.class)
@@ -183,8 +182,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
-		assertEquals("test message", message.getPayload());
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test message");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -194,8 +193,8 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, null });
-		assertEquals("test message", message.getPayload());
-		assertNull(message.getHeaders().get("foo"));
+		assertThat(message.getPayload()).isEqualTo("test message");
+		assertThat(message.getHeaders().get("foo")).isNull();
 	}
 
 	@Test(expected = MessageMappingException.class)
@@ -224,9 +223,9 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method, headers);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
-		assertEquals("test", message.getPayload());
-		assertEquals("foo", message.getHeaders().get("foo"));
-		assertEquals(42, message.getHeaders().get("bar"));
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(message.getHeaders().get("bar")).isEqualTo(42);
 	}
 
 	@Test
@@ -239,7 +238,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("'hello'");
 		Message<?> message = mapper.toMessage(new Object[] { map });
-		assertEquals("hello", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -252,7 +251,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("#args[0]");
 		Message<?> message = mapper.toMessage(new Object[] { map });
-		assertEquals(map, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(map);
 	}
 
 	@Test
@@ -264,7 +263,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { map });
-		assertEquals(map, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(map);
 	}
 
 	@Test
@@ -280,9 +279,9 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("#args[0]");
 		Message<?> message = mapper.toMessage(new Object[] { mapA, mapB });
-		assertEquals(mapA, message.getPayload());
-		assertEquals(mapB.get("1"), message.getHeaders().get("1"));
-		assertEquals(mapB.get("2"), message.getHeaders().get("2"));
+		assertThat(message.getPayload()).isEqualTo(mapA);
+		assertThat(message.getHeaders().get("1")).isEqualTo(mapB.get("1"));
+		assertThat(message.getHeaders().get("2")).isEqualTo(mapB.get("2"));
 	}
 
 

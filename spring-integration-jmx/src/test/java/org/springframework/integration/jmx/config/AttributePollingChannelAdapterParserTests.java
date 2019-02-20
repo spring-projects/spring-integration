@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,13 +64,13 @@ public class AttributePollingChannelAdapterParserTests {
 		this.testBean.test("foo");
 		this.adapter.start();
 		Message<?> result = this.channel.receive(10000);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(this.autoChannel, TestUtils.getPropertyValue(this.autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(this.autoChannelAdapter, "outputChannel")).isSameAs(this.autoChannel);
 	}
 
 }

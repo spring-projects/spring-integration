@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.redis.metadata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,7 +50,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		String retrievedValue = metadataStore.get("does-not-exist");
-		assertNull(retrievedValue);
+		assertThat(retrievedValue).isNull();
 	}
 
 	@Test
@@ -64,7 +63,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(jcf);
 		BoundHashOperations<String, Object, Object> ops = redisTemplate.boundHashOps("testMetadata");
 
-		assertEquals("Integration", ops.get("RedisMetadataStoreTests-Spring"));
+		assertThat(ops.get("RedisMetadataStoreTests-Spring")).isEqualTo("Integration");
 	}
 
 	@Test
@@ -76,7 +75,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		metadataStore.put("RedisMetadataStoreTests-GetValue", "Hello Redis");
 
 		String retrievedValue = metadataStore.get("RedisMetadataStoreTests-GetValue");
-		assertEquals("Hello Redis", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("Hello Redis");
 	}
 
 	@Test
@@ -88,7 +87,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		metadataStore.put("RedisMetadataStoreTests-PersistEmpty", "");
 
 		String retrievedValue = metadataStore.get("RedisMetadataStoreTests-PersistEmpty");
-		assertEquals("", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("");
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 			metadataStore.put("RedisMetadataStoreTests-PersistEmpty", null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'value' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'value' must not be null.");
 			return;
 		}
 
@@ -118,7 +117,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		metadataStore.put("", "PersistWithEmptyKey");
 
 		String retrievedValue = metadataStore.get("");
-		assertEquals("PersistWithEmptyKey", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("PersistWithEmptyKey");
 	}
 
 	@Test
@@ -131,7 +130,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 			metadataStore.put(null, "something");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 			return;
 		}
 
@@ -148,7 +147,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 			metadataStore.get(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 			return;
 		}
 
@@ -166,8 +165,8 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 		metadataStore.put(testKey, testValue);
 
-		assertEquals(testValue, metadataStore.remove(testKey));
-		assertNull(metadataStore.remove(testKey));
+		assertThat(metadataStore.remove(testKey)).isEqualTo(testValue);
+		assertThat(metadataStore.remove(testKey)).isNull();
 	}
 
 }

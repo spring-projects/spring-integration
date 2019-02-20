@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -89,8 +87,8 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 	@Test
 	public void testSameTransactionDifferentChannelSendAndReceive() throws Exception {
 		Service.reset(1);
-		assertNull(this.durable.receive(100L));
-		assertNull(this.relay.receive(100L));
+		assertThat(this.durable.receive(100L)).isNull();
+		assertThat(this.relay.receive(100L)).isNull();
 		final StopWatch stopWatch = new StopWatch();
 
 		boolean result =
@@ -112,7 +110,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 								try {
 									stopWatch.start();
 									// It hasn't arrive yet because we are still in the sending transaction
-									assertNull(this.durable.receive(100L));
+									assertThat(this.durable.receive(100L)).isNull();
 								}
 								finally {
 									stopWatch.stop();
@@ -124,13 +122,13 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 
 						});
 
-		assertTrue("Could not send message", result);
+		assertThat(result).as("Could not send message").isTrue();
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
-		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
+		assertThat(stopWatch.getTotalTimeMillis() < 10000).as("Timed out waiting for receive").isTrue();
 
 		Service.await(10000);
 		// Eventual activation
-		assertEquals(1, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(1);
 
 		/*
 		 * Without the storeLock:
@@ -157,7 +155,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 				});
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
-		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
+		assertThat(stopWatch.getTotalTimeMillis() < 10000).as("Timed out waiting for receive").isTrue();
 
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.BDDMockito.willAnswer;
@@ -92,8 +90,8 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
 		context.refresh();
 		Message<?> message = outputChannel.receive(5000);
-		assertEquals("test", message.getPayload());
-		assertTrue("adviceChain was not applied", adviceApplied.get());
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(adviceApplied.get()).as("adviceChain was not applied").isTrue();
 		context.close();
 	}
 
@@ -133,9 +131,9 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
 		context.refresh();
 		Message<?> message = outputChannel.receive(5000);
-		assertEquals("test", message.getPayload());
-		assertEquals(1, count.get());
-		assertTrue("adviceChain was not applied", adviceApplied.get());
+		assertThat(message.getPayload()).isEqualTo("test");
+		assertThat(count.get()).isEqualTo(1);
+		assertThat(adviceApplied.get()).as("adviceChain was not applied").isTrue();
 		context.close();
 	}
 
@@ -183,7 +181,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 
 		pollingChannelAdapter.start();
 
-		assertTrue(startLatch.await(10, TimeUnit.SECONDS));
+		assertThat(startLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		pollingChannelAdapter.stop();
 
 		taskScheduler.shutdown();
@@ -215,8 +213,8 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollingChannelAdapter.start();
 
 		Message<?> receive = outputChannel.receive(10_000);
-		assertNotNull(receive);
-		assertEquals(true, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(true);
 		pollingChannelAdapter.stop();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,27 +40,27 @@ public class SendTimeoutConfigurationTests {
 
 	@Test
 	public void serviceActivator() {
-		assertEquals(123, this.getTimeout("serviceActivator"));
+		assertThat(this.getTimeout("serviceActivator")).isEqualTo(123);
 	}
 
 	@Test
 	public void filter() {
-		assertEquals(123, this.getTimeout("filter"));
+		assertThat(this.getTimeout("filter")).isEqualTo(123);
 	}
 
 	@Test
 	public void transformer() {
-		assertEquals(123, this.getTimeout("transformer"));
+		assertThat(this.getTimeout("transformer")).isEqualTo(123);
 	}
 
 	@Test
 	public void splitter() {
-		assertEquals(123, this.getTimeout("splitter"));
+		assertThat(this.getTimeout("splitter")).isEqualTo(123);
 	}
 
 	@Test
 	public void router() {
-		assertEquals(123, this.getTimeout("router"));
+		assertThat(this.getTimeout("router")).isEqualTo(123);
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -60,10 +54,10 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNull(reply2);
-		assertTrue(List.class.isAssignableFrom(reply1.getPayload().getClass()));
-		assertEquals(2, ((List<?>) reply1.getPayload()).size());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNull();
+		assertThat(List.class.isAssignableFrom(reply1.getPayload().getClass())).isTrue();
+		assertThat(((List<?>) reply1.getPayload()).size()).isEqualTo(2);
 	}
 
 	@Test
@@ -80,10 +74,10 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNull(reply2);
-		assertThat(reply1.getPayload(), is(instanceOf(Set.class)));
-		assertEquals(2, ((Set<?>) reply1.getPayload()).size());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNull();
+		assertThat(reply1.getPayload()).isInstanceOf(Set.class);
+		assertThat(((Set<?>) reply1.getPayload()).size()).isEqualTo(2);
 	}
 
 	@Test
@@ -100,10 +94,10 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNull(reply2);
-		assertTrue(reply1.getPayload().getClass().isArray());
-		assertEquals(2, ((String[]) reply1.getPayload()).length);
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNull();
+		assertThat(reply1.getPayload().getClass().isArray()).isTrue();
+		assertThat(((String[]) reply1.getPayload()).length).isEqualTo(2);
 	}
 
 	@Test
@@ -120,12 +114,12 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals(String.class, reply1.getPayload().getClass());
-		assertEquals(String.class, reply2.getPayload().getClass());
-		assertEquals("foo", reply1.getPayload());
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(reply2.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(reply1.getPayload()).isEqualTo("foo");
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -142,10 +136,10 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals(String.class, reply1.getPayload().getClass());
-		assertEquals(String.class, reply2.getPayload().getClass());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(reply2.getPayload().getClass()).isEqualTo(String.class);
 	}
 
 	@Test
@@ -162,12 +156,12 @@ public class CollectionAndArrayTests {
 		handler.handleMessage(message);
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
-		assertNotNull(reply1);
-		assertNotNull(reply2);
-		assertEquals(String.class, reply1.getPayload().getClass());
-		assertEquals(String.class, reply2.getPayload().getClass());
-		assertEquals("foo", reply1.getPayload());
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply2).isNotNull();
+		assertThat(reply1.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(reply2.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(reply1.getPayload()).isEqualTo("foo");
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 }

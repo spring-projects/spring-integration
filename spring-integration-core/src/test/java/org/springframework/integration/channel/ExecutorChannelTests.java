@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -65,12 +58,12 @@ public class ExecutorChannelTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		TestHandler handler = new TestHandler(latch);
 		channel.subscribe(handler);
-		channel.send(new GenericMessage<String>("test"));
+		channel.send(new GenericMessage<>("test"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertNotNull(handler.thread);
-		assertFalse(Thread.currentThread().equals(handler.thread));
-		assertEquals("test-1", handler.thread.getName());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(handler.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler.thread)).isFalse();
+		assertThat(handler.thread.getName()).isEqualTo("test-1");
 	}
 
 	@Test
@@ -89,22 +82,22 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler2);
 		channel.subscribe(handler3);
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new GenericMessage<String>("test-" + i));
+			channel.send(new GenericMessage<>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertNotNull(handler1.thread);
-		assertFalse(Thread.currentThread().equals(handler1.thread));
-		assertTrue(handler1.thread.getName().startsWith("test-"));
-		assertNotNull(handler2.thread);
-		assertFalse(Thread.currentThread().equals(handler2.thread));
-		assertTrue(handler2.thread.getName().startsWith("test-"));
-		assertNotNull(handler3.thread);
-		assertFalse(Thread.currentThread().equals(handler3.thread));
-		assertTrue(handler3.thread.getName().startsWith("test-"));
-		assertEquals(4, handler1.count.get());
-		assertEquals(4, handler2.count.get());
-		assertEquals(3, handler3.count.get());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(handler1.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler1.thread)).isFalse();
+		assertThat(handler1.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler2.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler2.thread)).isFalse();
+		assertThat(handler2.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler3.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler3.thread)).isFalse();
+		assertThat(handler3.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler1.count.get()).isEqualTo(4);
+		assertThat(handler2.count.get()).isEqualTo(4);
+		assertThat(handler3.count.get()).isEqualTo(3);
 		exec.shutdownNow();
 	}
 
@@ -125,22 +118,22 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler3);
 		handler2.shouldFail = true;
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new GenericMessage<String>("test-" + i));
+			channel.send(new GenericMessage<>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertNotNull(handler1.thread);
-		assertFalse(Thread.currentThread().equals(handler1.thread));
-		assertTrue(handler1.thread.getName().startsWith("test-"));
-		assertNotNull(handler2.thread);
-		assertFalse(Thread.currentThread().equals(handler2.thread));
-		assertTrue(handler2.thread.getName().startsWith("test-"));
-		assertNotNull(handler3.thread);
-		assertFalse(Thread.currentThread().equals(handler3.thread));
-		assertTrue(handler3.thread.getName().startsWith("test-"));
-		assertEquals(0, handler2.count.get());
-		assertEquals(4, handler1.count.get());
-		assertEquals(7, handler3.count.get());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(handler1.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler1.thread)).isFalse();
+		assertThat(handler1.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler2.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler2.thread)).isFalse();
+		assertThat(handler2.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler3.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler3.thread)).isFalse();
+		assertThat(handler3.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler2.count.get()).isEqualTo(0);
+		assertThat(handler1.count.get()).isEqualTo(4);
+		assertThat(handler3.count.get()).isEqualTo(7);
 		exec.shutdownNow();
 	}
 
@@ -160,20 +153,20 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler3);
 		handler1.shouldFail = true;
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new GenericMessage<String>("test-" + i));
+			channel.send(new GenericMessage<>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertNotNull(handler1.thread);
-		assertFalse(Thread.currentThread().equals(handler1.thread));
-		assertTrue(handler1.thread.getName().startsWith("test-"));
-		assertNotNull(handler2.thread);
-		assertFalse(Thread.currentThread().equals(handler2.thread));
-		assertTrue(handler2.thread.getName().startsWith("test-"));
-		assertNull(handler3.thread);
-		assertEquals(0, handler1.count.get());
-		assertEquals(0, handler3.count.get());
-		assertEquals(numberOfMessages, handler2.count.get());
+		assertThat(latch.getCount()).isEqualTo(0);
+		assertThat(handler1.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler1.thread)).isFalse();
+		assertThat(handler1.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler2.thread).isNotNull();
+		assertThat(Thread.currentThread().equals(handler2.thread)).isFalse();
+		assertThat(handler2.thread.getName().startsWith("test-")).isTrue();
+		assertThat(handler3.thread).isNull();
+		assertThat(handler1.count.get()).isEqualTo(0);
+		assertThat(handler3.count.get()).isEqualTo(0);
+		assertThat(handler2.count.get()).isEqualTo(numberOfMessages);
 		exec.shutdownNow();
 	}
 
@@ -191,8 +184,8 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler);
 		channel.send(new GenericMessage<Object>("foo"));
 		verify(handler).handleMessage(expected);
-		assertEquals(1, interceptor.getCounter().get());
-		assertTrue(interceptor.wasAfterHandledInvoked());
+		assertThat(interceptor.getCounter().get()).isEqualTo(1);
+		assertThat(interceptor.wasAfterHandledInvoked()).isTrue();
 	}
 
 	@Test
@@ -201,7 +194,7 @@ public class ExecutorChannelTests {
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
 
-		Message<Object> message = new GenericMessage<Object>("foo");
+		Message<Object> message = new GenericMessage<>("foo");
 
 		MessageHandler handler = mock(MessageHandler.class);
 		IllegalStateException expected = new IllegalStateException("Fake exception");
@@ -213,25 +206,26 @@ public class ExecutorChannelTests {
 			channel.send(message);
 		}
 		catch (MessageDeliveryException actual) {
-			assertSame(expected, actual.getCause());
+			assertThat(actual.getCause()).isSameAs(expected);
 		}
 		verify(handler).handleMessage(message);
-		assertEquals(1, interceptor.getCounter().get());
-		assertTrue(interceptor.wasAfterHandledInvoked());
+		assertThat(interceptor.getCounter().get()).isEqualTo(1);
+		assertThat(interceptor.wasAfterHandledInvoked()).isTrue();
 	}
 
 	@Test
 	public void testEarlySubscribe() {
 		ExecutorChannel channel = new ExecutorChannel(mock(Executor.class));
 		try {
-			channel.subscribe(m -> { });
+			channel.subscribe(m -> {
+			});
 			channel.setBeanFactory(mock(BeanFactory.class));
 			channel.afterPropertiesSet();
 			fail("expected Exception");
 		}
 		catch (IllegalStateException e) {
-			assertThat(e.getMessage(), equalTo("You cannot subscribe() until the channel "
-					+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition"));
+			assertThat(e.getMessage()).isEqualTo("You cannot subscribe() until the channel "
+					+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 		}
 	}
 
@@ -259,6 +253,7 @@ public class ExecutorChannelTests {
 			this.count.incrementAndGet();
 			this.latch.countDown();
 		}
+
 	}
 
 	private static class BeforeHandleInterceptor implements ExecutorChannelInterceptor {
@@ -287,14 +282,15 @@ public class ExecutorChannelTests {
 
 		@Override
 		public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {
-			assertNotNull(message);
+			assertThat(message).isNotNull();
 			this.counter.incrementAndGet();
 			return (this.messageToReturn != null ? this.messageToReturn : message);
 		}
 
 		@Override
 		public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
-										Exception ex) {
+				Exception ex) {
+
 			this.afterHandledInvoked = true;
 		}
 

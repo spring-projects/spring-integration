@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.websocket.client;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -136,12 +132,12 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build());
 
 		Message<?> receive = this.webSocketEvents.receive(20000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		Object event = receive.getPayload();
-		assertThat(event, instanceOf(SessionConnectedEvent.class));
+		assertThat(event).isInstanceOf(SessionConnectedEvent.class);
 		Message<?> connectedMessage = ((SessionConnectedEvent) event).getMessage();
 		headers = StompHeaderAccessor.wrap(connectedMessage);
-		assertEquals(StompCommand.CONNECTED, headers.getCommand());
+		assertThat(headers.getCommand()).isEqualTo(StompCommand.CONNECTED);
 
 		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setSubscriptionId("sub1");
@@ -151,16 +147,16 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
-		assertTrue(controller.latch.await(20, TimeUnit.SECONDS));
-		assertEquals(StompCommand.SEND.name(), controller.stompCommand);
+		assertThat(controller.latch.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(controller.stompCommand).isEqualTo(StompCommand.SEND.name());
 	}
 
 	@Test
 	public void sendMessageToControllerAndReceiveReplyViaTopic() throws Exception {
 		Message<?> receive = this.webSocketEvents.receive(20000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		Object event = receive.getPayload();
-		assertThat(event, instanceOf(SessionConnectedEvent.class));
+		assertThat(event).isInstanceOf(SessionConnectedEvent.class);
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
@@ -173,13 +169,13 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		receive = this.webSocketEvents.receive(20000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		event = receive.getPayload();
-		assertThat(event, instanceOf(ReceiptEvent.class));
+		assertThat(event).isInstanceOf(ReceiptEvent.class);
 		Message<?> receiptMessage = ((ReceiptEvent) event).getMessage();
 		headers = StompHeaderAccessor.wrap(receiptMessage);
-		assertEquals(StompCommand.RECEIPT, headers.getCommand());
-		assertEquals("myReceipt", headers.getReceiptId());
+		assertThat(headers.getCommand()).isEqualTo(StompCommand.RECEIPT);
+		assertThat(headers.getReceiptId()).isEqualTo("myReceipt");
 
 		waitForSubscribe("/topic/increment");
 
@@ -191,8 +187,8 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message2);
 
 		receive = webSocketInputChannel.receive(20000);
-		assertNotNull(receive);
-		assertEquals("6", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("6");
 	}
 
 	@Test
@@ -216,8 +212,8 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message2);
 
 		Message<?> receive = webSocketInputChannel.receive(20000);
-		assertNotNull(receive);
-		assertEquals("10", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("10");
 	}
 
 	@Test
@@ -234,16 +230,16 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		Message<?> receive = webSocketInputChannel.receive(20000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(receive);
 
-		assertEquals("Expected STOMP destination=/app/number, got " + stompHeaderAccessor,
-				destHeader, stompHeaderAccessor.getDestination());
+		assertThat(stompHeaderAccessor.getDestination())
+				.as("Expected STOMP destination=/app/number, got " + stompHeaderAccessor).isEqualTo(destHeader);
 
 		Object payload = receive.getPayload();
 
-		assertEquals("Expected STOMP Payload=42, got " + payload, "42", payload);
+		assertThat(payload).as("Expected STOMP Payload=42, got " + payload).isEqualTo("42");
 	}
 
 	@Test
@@ -270,14 +266,14 @@ public class StompIntegrationTests {
 
 
 		Message<?> receive = webSocketInputChannel.receive(20000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(receive);
 
-		assertEquals("Expected STOMP destination=/user/queue/error, got " + stompHeaderAccessor,
-				destHeader, stompHeaderAccessor.getDestination());
+		assertThat(stompHeaderAccessor.getDestination())
+				.as("Expected STOMP destination=/user/queue/error, got " + stompHeaderAccessor).isEqualTo(destHeader);
 
-		assertEquals("Got error: Bad input", receive.getPayload());
+		assertThat(receive.getPayload()).isEqualTo("Got error: Bad input");
 	}
 
 	@Test
@@ -301,8 +297,8 @@ public class StompIntegrationTests {
 		this.webSocketOutputChannel.send(message2);
 
 		Message<?> receive = webSocketInputChannel.receive(20000);
-		assertNotNull(receive);
-		assertEquals("Hello Bob", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Hello Bob");
 	}
 
 	private void waitForSubscribe(String destination) throws InterruptedException {
@@ -316,7 +312,8 @@ public class StompIntegrationTests {
 			Thread.sleep(100);
 		}
 
-		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
+		assertThat(n < 100).as("The subscription for the '" + destination + "' destination hasn't been registered")
+				.isTrue();
 	}
 
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {

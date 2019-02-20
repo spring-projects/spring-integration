@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Collection;
 
@@ -52,10 +48,10 @@ public class ReleaseStrategyFactoryBeanTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("Target object of type " +
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("Target object of type " +
 					"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
-					"has no eligible methods for handling Messages."));
+					"has no eligible methods for handling Messages.");
 		}
 	}
 
@@ -67,10 +63,10 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setMethodName("doRelease2");
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class), is(bar));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"),
-				equalTo("#target.doRelease2(messages)"));
+		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class)).isEqualTo(bar);
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
+				.isEqualTo("#target.doRelease2(messages)");
 	}
 
 	@Test
@@ -80,8 +76,8 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setTarget(bar);
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class), is(bar));
+		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class)).isEqualTo(bar);
 	}
 
 	@Test
@@ -89,7 +85,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(SimpleSequenceSizeReleaseStrategy.class));
+		assertThat(delegate).isInstanceOf(SimpleSequenceSizeReleaseStrategy.class);
 	}
 
 	@Test
@@ -99,7 +95,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setTarget(foo);
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(SimpleSequenceSizeReleaseStrategy.class));
+		assertThat(delegate).isInstanceOf(SimpleSequenceSizeReleaseStrategy.class);
 	}
 
 	@Test
@@ -109,7 +105,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setTarget(baz);
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, is(baz));
+		assertThat(delegate).isEqualTo(baz);
 	}
 
 	@Test
@@ -120,10 +116,10 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setMethodName("doRelease2");
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Baz.class), is(baz));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"),
-				equalTo("#target.doRelease2(messages)"));
+		assertThat(delegate).isInstanceOf(MethodInvokingReleaseStrategy.class);
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Baz.class)).isEqualTo(baz);
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"))
+				.isEqualTo("#target.doRelease2(messages)");
 	}
 
 	public class Foo {

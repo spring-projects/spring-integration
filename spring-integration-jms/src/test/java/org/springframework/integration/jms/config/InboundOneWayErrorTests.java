@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -50,11 +48,11 @@ public class InboundOneWayErrorTests {
 		jmsTemplate.send(queue, (MessageCreator) session -> session.createTextMessage("test-A"));
 		TestErrorHandler errorHandler = context.getBean("testErrorHandler", TestErrorHandler.class);
 		errorHandler.latch.await(3000, TimeUnit.MILLISECONDS);
-		assertNotNull(errorHandler.lastError);
-		assertNotNull(errorHandler.lastError.getCause());
-		assertEquals("failed to process: test-A", errorHandler.lastError.getCause().getMessage());
+		assertThat(errorHandler.lastError).isNotNull();
+		assertThat(errorHandler.lastError.getCause()).isNotNull();
+		assertThat(errorHandler.lastError.getCause().getMessage()).isEqualTo("failed to process: test-A");
 		PollableChannel testErrorChannel = context.getBean("testErrorChannel", PollableChannel.class);
-		assertNull(testErrorChannel.receive(0));
+		assertThat(testErrorChannel.receive(0)).isNull();
 		context.close();
 	}
 
@@ -66,14 +64,14 @@ public class InboundOneWayErrorTests {
 		jmsTemplate.send(queue, (MessageCreator) session -> session.createTextMessage("test-B"));
 		PollableChannel errorChannel = context.getBean("testErrorChannel", PollableChannel.class);
 		Message<?> errorMessage = errorChannel.receive(3000);
-		assertNotNull(errorMessage);
-		assertEquals(MessageHandlingException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageHandlingException.class);
 		MessageHandlingException exception = (MessageHandlingException) errorMessage.getPayload();
-		assertNotNull(exception.getCause());
-		assertEquals(TestException.class, exception.getCause().getClass());
-		assertEquals("failed to process: test-B", exception.getCause().getMessage());
+		assertThat(exception.getCause()).isNotNull();
+		assertThat(exception.getCause().getClass()).isEqualTo(TestException.class);
+		assertThat(exception.getCause().getMessage()).isEqualTo("failed to process: test-B");
 		TestErrorHandler errorHandler = context.getBean("testErrorHandler", TestErrorHandler.class);
-		assertNull(errorHandler.lastError);
+		assertThat(errorHandler.lastError).isNull();
 		context.close();
 	}
 

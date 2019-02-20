@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.gemfire.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.apache.geode.cache.Region;
@@ -80,11 +78,11 @@ public class CacheListeningMessageProducerTests {
 		producer.afterPropertiesSet();
 		producer.start();
 
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.put("x", "abc");
 		Message<?> message = channel.receive(0);
-		assertNotNull(message);
-		assertEquals("x=abc", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("x=abc");
 
 		producer.stop();
 	}
@@ -99,15 +97,15 @@ public class CacheListeningMessageProducerTests {
 		producer.afterPropertiesSet();
 		producer.start();
 
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.put("x", "abc");
 		Message<?> message1 = channel.receive(0);
-		assertNotNull(message1);
-		assertEquals("abc", message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("abc");
 		region.put("x", "xyz");
 		Message<?> message2 = channel.receive(0);
-		assertNotNull(message2);
-		assertEquals("xyz", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("xyz");
 
 		producer.stop();
 	}
@@ -123,13 +121,13 @@ public class CacheListeningMessageProducerTests {
 		producer.afterPropertiesSet();
 		producer.start();
 
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.put("foo", "abc");
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.destroy("foo");
 		Message<?> message2 = channel.receive(0);
-		assertNotNull(message2);
-		assertEquals("abc", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("abc");
 
 		producer.stop();
 	}
@@ -145,13 +143,13 @@ public class CacheListeningMessageProducerTests {
 		producer.afterPropertiesSet();
 		producer.start();
 
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.put("foo", "abc");
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		region.invalidate("foo");
 		Message<?> message2 = channel.receive(0);
-		assertNotNull(message2);
-		assertEquals("foo was abc", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("foo was abc");
 
 		producer.stop();
 	}

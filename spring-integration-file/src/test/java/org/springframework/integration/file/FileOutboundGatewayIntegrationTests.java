@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -74,7 +70,7 @@ public class FileOutboundGatewayIntegrationTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n��������";
+	static final String SAMPLE_CONTENT = "HelloWorld\n????????";
 
 	Message<File> message;
 
@@ -115,55 +111,54 @@ public class FileOutboundGatewayIntegrationTests {
 
 
 	@Test
-	public void instancesCreated() throws Exception {
-		assertThat(beanFactory.getBean("copier"), is(notNullValue()));
-		assertThat(beanFactory.getBean("mover"), is(notNullValue()));
+	public void instancesCreated() {
+		assertThat(beanFactory.getBean("copier")).isNotNull();
+		assertThat(beanFactory.getBean("mover")).isNotNull();
 	}
 
 	@Test
-	public void copy() throws Exception {
+	public void copy() {
 		copyInputChannel.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size(), is(1));
+		assertThat(result.size()).isEqualTo(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
-		assertThat(payloadFile, is(not(sourceFile)));
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class),
-				is(sourceFile));
-		assertThat(sourceFile.exists(), is(true));
-		assertThat(payloadFile.exists(), is(true));
+		assertThat(payloadFile).isNotEqualTo(sourceFile);
+		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
+		assertThat(sourceFile.exists()).isTrue();
+		assertThat(payloadFile.exists()).isTrue();
 	}
 
 	@Test
-	public void move() throws Exception {
+	public void move() {
 		moveInputChannel.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size(), is(1));
+		assertThat(result.size()).isEqualTo(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
-		assertThat(payloadFile, is(not(sourceFile)));
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class),
-				is(sourceFile));
-		assertThat(sourceFile.exists(), is(false));
-		assertThat(payloadFile.exists(), is(true));
+		assertThat(payloadFile).isNotEqualTo(sourceFile);
+		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
+		assertThat(sourceFile.exists()).isFalse();
+		assertThat(payloadFile.exists()).isTrue();
 	}
 
 	@Test //INT-1029
-	public void moveInsideTheChain() throws Exception {
+	public void moveInsideTheChain() {
 		// INT-2755
-		Object bean = this.beanFactory.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.file-outbound-gateway-within-chain.handler");
-		assertTrue(bean instanceof FileWritingMessageHandler);
+		Object bean = this.beanFactory
+				.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child" +
+						".file-outbound-gateway-within-chain.handler");
+		assertThat(bean instanceof FileWritingMessageHandler).isTrue();
 
 		fileOutboundGatewayInsideChain.send(message);
 		List<Message<?>> result = outputChannel.clear();
-		assertThat(result.size(), is(1));
+		assertThat(result.size()).isEqualTo(1);
 		Message<?> resultMessage = result.get(0);
 		File payloadFile = (File) resultMessage.getPayload();
-		assertThat(payloadFile, is(not(sourceFile)));
-		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class),
-				is(sourceFile));
-		assertThat(sourceFile.exists(), is(false));
-		assertThat(payloadFile.exists(), is(true));
+		assertThat(payloadFile).isNotEqualTo(sourceFile);
+		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class)).isEqualTo(sourceFile);
+		assertThat(sourceFile.exists()).isFalse();
+		assertThat(payloadFile.exists()).isTrue();
 	}
 
 }

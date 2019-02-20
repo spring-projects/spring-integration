@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package org.springframework.integration.file.transformer;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +27,6 @@ import org.junit.Test;
 
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.matcher.HeaderMatcher;
 import org.springframework.messaging.Message;
 import org.springframework.util.FileCopyUtils;
 
@@ -42,7 +38,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
+	static final String SAMPLE_CONTENT = "HelloWorld\n????";
 
 	T transformer;
 
@@ -61,40 +57,40 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 	}
 
 	@After
-	public void tearDownCommonTestdata() throws IOException {
+	public void tearDownCommonTestdata() {
 		if (sourceFile.exists()) {
 			sourceFile.delete();
 		}
 	}
 
 	@Test
-	public void transform_withSourceHeaderValues_copiedToResult() throws Exception {
+	public void transform_withSourceHeaderValues_copiedToResult() {
 		String anyKey = "foo1";
 		String anyValue = "bar1";
 		message = MessageBuilder.fromMessage(message).setHeader(anyKey, anyValue).build();
 		Message<?> result = transformer.transform(message);
-		assertThat(result, is(notNullValue()));
-		assertThat(result, HeaderMatcher.hasHeader(anyKey, anyValue));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders()).containsEntry(anyKey, anyValue);
 	}
 
 	@Test
-	public void transform_withFilePayload_filenameInHeaders() throws Exception {
+	public void transform_withFilePayload_filenameInHeaders() {
 		Message<?> result = transformer.transform(message);
-		assertThat(result, is(notNullValue()));
-		assertThat(result, HeaderMatcher.hasHeader(FileHeaders.FILENAME, sourceFile.getName()));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders()).containsEntry(FileHeaders.FILENAME, sourceFile.getName());
 	}
 
 	@Test
-	public void transform_withDefaultSettings_fileNotDeleted() throws Exception {
+	public void transform_withDefaultSettings_fileNotDeleted() {
 		transformer.transform(message);
-		assertThat(sourceFile.exists(), is(true));
+		assertThat(sourceFile.exists()).isTrue();
 	}
 
 	@Test
-	public void transform_withDeleteSetting_doesNotExistAtOldLocation() throws Exception {
+	public void transform_withDeleteSetting_doesNotExistAtOldLocation() {
 		transformer.setDeleteFiles(true);
 		transformer.transform(message);
-		assertThat("exists at: " + sourceFile.getAbsolutePath(), sourceFile.exists(), is(false));
+		assertThat(sourceFile.exists()).as("exists at: " + sourceFile.getAbsolutePath()).isFalse();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.anyOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -119,7 +114,7 @@ public class SocketSupportTests {
 		connectionFactory.registerListener(mock(TcpListener.class));
 		connectionFactory.start();
 
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		verify(socketSupport).postProcessServerSocket(serverSocket);
 		verify(socketSupport).postProcessSocket(socket);
 		latch2.countDown();
@@ -171,19 +166,20 @@ public class SocketSupportTests {
 		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
 		clientConnectionFactory.start();
 		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals(0, ppServerSocketCountClient.get());
-		assertEquals(1, ppSocketCountClient.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ppServerSocketCountClient.get()).isEqualTo(0);
+		assertThat(ppSocketCountClient.get()).isEqualTo(1);
 
-		assertEquals(1, ppServerSocketCountServer.get());
-		assertEquals(1, ppSocketCountServer.get());
+		assertThat(ppServerSocketCountServer.get()).isEqualTo(1);
+		assertThat(ppSocketCountServer.get()).isEqualTo(1);
 
 		clientConnectionFactory.stop();
 		serverConnectionFactory.stop();
 	}
 
 	/*
-	$ keytool -genkeypair -alias sitestcertkey -keyalg RSA -validity 36500 -keystore src/test/resources/test.ks -ext san=dns:localhost
+	$ keytool -genkeypair -alias sitestcertkey -keyalg RSA -validity 36500 -keystore src/test/resources/test.ks -ext
+	san=dns:localhost
 	Enter keystore password: secret
 	Re-enter new password: secret
 	What is your first and last name?
@@ -254,7 +250,8 @@ public class SocketSupportTests {
 	Enter keystore password:
 	Certificate stored in file <src/test/resources/test.cer>
 
-	$ keytool -import -alias sitestcertkey -file src/test/resources/test.cer -keystore src/test/resources/test.truststore.ks
+	$ keytool -import -alias sitestcertkey -file src/test/resources/test.cer -keystore src/test/resources/test
+	.truststore.ks
 	Enter keystore password: secret
 	Re-enter new password: secret
 	Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
@@ -358,9 +355,9 @@ public class SocketSupportTests {
 
 		TcpConnection connection = client.getConnection();
 		connection.send(new GenericMessage<String>("Hello, world!"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
-		assertNotNull(messages.get(0).getHeaders().get("cipher"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
+		assertThat(messages.get(0).getHeaders().get("cipher")).isNotNull();
 
 		client.stop();
 		server.stop();
@@ -417,8 +414,8 @@ public class SocketSupportTests {
 			client.start();
 			TcpConnection connection = client.getConnection();
 			connection.send(new GenericMessage<String>("Hello, world!"));
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		}
 		finally {
 			client.stop();
@@ -463,16 +460,16 @@ public class SocketSupportTests {
 		client.start();
 
 		TcpConnection connection = client.getConnection();
-		assertEquals(34, TestUtils.getPropertyValue(connection, "handshakeTimeout"));
+		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(34);
 		connection.send(new GenericMessage<String>("Hello, world!"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
-		assertNotNull(messages.get(0).getHeaders().get("cipher"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
+		assertThat(messages.get(0).getHeaders().get("cipher")).isNotNull();
 
 		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
 		Object serverConnection = connections.get(serverConnectionId.get());
-		assertNotNull(serverConnection);
-		assertEquals(43, TestUtils.getPropertyValue(serverConnection, "handshakeTimeout"));
+		assertThat(serverConnection).isNotNull();
+		assertThat(TestUtils.getPropertyValue(serverConnection, "handshakeTimeout")).isEqualTo(43);
 
 		client.stop();
 		server.stop();
@@ -487,11 +484,11 @@ public class SocketSupportTests {
 		}
 		catch (IOException e) {
 			if (!(e instanceof ClosedChannelException)) {
-				assertThat(e.getMessage(),
-						anyOf(
-								containsString("Socket closed during SSL Handshake"),
-								containsString("Broken pipe"),
-								containsString("Connection reset by peer")));
+				assertThat(e.getMessage())
+						.satisfiesAnyOf(
+								s -> assertThat(s).contains("Socket closed during SSL Handshake"),
+								s -> assertThat(s).contains("Broken pipe"),
+								s -> assertThat(s).contains("Connection reset by peer"));
 			}
 		}
 	}
@@ -533,8 +530,8 @@ public class SocketSupportTests {
 			client.start();
 			TcpConnection connection = client.getConnection();
 			connection.send(new GenericMessage<String>("Hello, world!"));
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(new String((byte[]) messages.get(0).getPayload())).isEqualTo("Hello, world!");
 		}
 		finally {
 			client.stop();
@@ -595,21 +592,21 @@ public class SocketSupportTests {
 		client.start();
 
 		TcpConnection connection = client.getConnection();
-		assertEquals(30, TestUtils.getPropertyValue(connection, "handshakeTimeout"));
+		assertThat(TestUtils.getPropertyValue(connection, "handshakeTimeout")).isEqualTo(30);
 		byte[] bytes = new byte[100000];
 		connection.send(new GenericMessage<String>("Hello, world!" + new String(bytes)));
-		assertTrue(latch.await(60, TimeUnit.SECONDS));
+		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
 		byte[] payload = (byte[]) messages.get(0).getPayload();
-		assertEquals(13 + bytes.length, payload.length);
-		assertEquals("Hello, world!", new String(payload).substring(0, 13));
+		assertThat(payload.length).isEqualTo(13 + bytes.length);
+		assertThat(new String(payload).substring(0, 13)).isEqualTo("Hello, world!");
 		payload = (byte[]) messages.get(1).getPayload();
-		assertEquals(13 + bytes.length, payload.length);
-		assertEquals("Hello, world!", new String(payload).substring(0, 13));
+		assertThat(payload.length).isEqualTo(13 + bytes.length);
+		assertThat(new String(payload).substring(0, 13)).isEqualTo("Hello, world!");
 
 		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
 		Object serverConnection = connections.get(serverConnectionId.get());
-		assertNotNull(serverConnection);
-		assertEquals(30, TestUtils.getPropertyValue(serverConnection, "handshakeTimeout"));
+		assertThat(serverConnection).isNotNull();
+		assertThat(TestUtils.getPropertyValue(serverConnection, "handshakeTimeout")).isEqualTo(30);
 
 		client.stop();
 		server.stop();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.security.channel;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Test;
@@ -98,7 +95,7 @@ public class ChannelAdapterSecurityIntegrationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 		securedChannelAdapter2.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 2, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(2);
 	}
 
 	@Test
@@ -106,17 +103,17 @@ public class ChannelAdapterSecurityIntegrationTests {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		this.queueChannel.send(new GenericMessage<String>("test"));
 		Message<?> receive = this.securedChannelQueue.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		SecurityContextHolder.clearContext();
 
 		this.queueChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertThat(payload, instanceOf(MessageHandlingException.class));
-		assertThat(((MessageHandlingException) payload).getCause(),
-				instanceOf(AuthenticationCredentialsNotFoundException.class));
+		assertThat(payload).isInstanceOf(MessageHandlingException.class);
+		assertThat(((MessageHandlingException) payload).getCause())
+				.isInstanceOf(AuthenticationCredentialsNotFoundException.class);
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -140,20 +137,20 @@ public class ChannelAdapterSecurityIntegrationTests {
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 	@Test
 	public void testUnsecuredWithoutAuthenticating() {
 		unsecuredChannelAdapter.send(new GenericMessage<String>("test"));
-		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
+		assertThat(testConsumer.sentMessages.size()).as("Wrong size of message list in target").isEqualTo(1);
 	}
 
 

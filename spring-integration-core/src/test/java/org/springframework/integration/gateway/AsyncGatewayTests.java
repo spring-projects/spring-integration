@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
@@ -70,8 +67,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
-		assertEquals("foobar", ((Message<?>) result).getPayload());
+		assertThat(result).isNotNull();
+		assertThat(((Message<?>) result).getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -98,7 +95,7 @@ public class AsyncGatewayTests {
 			fail("Expected Exception");
 		}
 		catch (ExecutionException e) {
-			assertEquals(error, e.getCause());
+			assertThat(e.getCause()).isEqualTo(error);
 		}
 	}
 
@@ -131,12 +128,12 @@ public class AsyncGatewayTests {
 			}
 
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 200);
-		assertEquals("foobar", result.get().getPayload());
+		assertThat(elapsed >= 200).isTrue();
+		assertThat(result.get().getPayload()).isEqualTo("foobar");
 		Object thread = result.get().getHeaders().get("thread");
-		assertNotEquals(Thread.currentThread(), thread);
+		assertThat(thread).isNotEqualTo(Thread.currentThread());
 	}
 
 	@Test
@@ -153,8 +150,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		CustomFuture f = service.returnCustomFuture("foo");
 		String result = f.get(10000, TimeUnit.MILLISECONDS);
-		assertEquals("foobar", result);
-		assertEquals(Thread.currentThread(), f.thread);
+		assertThat(result).isEqualTo("foobar");
+		assertThat(f.thread).isEqualTo(Thread.currentThread());
 	}
 
 	@Test
@@ -174,8 +171,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		CustomFuture f = (CustomFuture) service.returnCustomFutureWithTypeFuture("foo");
 		String result = f.get(10000, TimeUnit.MILLISECONDS);
-		assertEquals("foobar", result);
-		assertEquals(Thread.currentThread(), f.thread);
+		assertThat(result).isEqualTo("foobar");
+		assertThat(f.thread).isEqualTo(Thread.currentThread());
 	}
 
 	protected void addThreadEnricher(QueueChannel requestChannel) {
@@ -204,8 +201,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<String> f = service.returnString("foo");
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
-		assertEquals("foobar", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
@@ -221,8 +218,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<?> f = service.returnSomething("foo");
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		assertTrue(result instanceof String);
-		assertEquals("foobar", result);
+		assertThat(result instanceof String).isTrue();
+		assertThat(result).isEqualTo("foobar");
 	}
 
 
@@ -239,7 +236,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<Message<?>> mono = service.returnMessagePromise("foo");
 		Object result = mono.block(Duration.ofSeconds(10));
-		assertEquals("foobar", ((Message<?>) result).getPayload());
+		assertThat(((Message<?>) result).getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -255,7 +252,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<String> mono = service.returnStringPromise("foo");
 		Object result = mono.block(Duration.ofSeconds(10));
-		assertEquals("foobar", result);
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
@@ -271,8 +268,8 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<?> mono = service.returnSomethingPromise("foo");
 		Object result = mono.block(Duration.ofSeconds(10));
-		assertNotNull(result);
-		assertEquals("foobar", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
@@ -297,7 +294,7 @@ public class AsyncGatewayTests {
 		});
 
 		latch.await(10, TimeUnit.SECONDS);
-		assertEquals("foobar", result.get());
+		assertThat(result.get()).isEqualTo("foobar");
 	}
 
 	private static void startResponder(final PollableChannel requestChannel) {

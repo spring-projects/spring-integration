@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.rmi.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,43 +50,43 @@ public class RmiInboundGatewayParserTests {
 	public void gatewayWithDefaultsAndHistory() {
 		RmiInboundGateway gateway = (RmiInboundGateway) this.context.getBean("gatewayWithDefaults");
 
-		assertEquals("gatewayWithDefaults", gateway.getComponentName());
-		assertEquals("rmi:inbound-gateway", gateway.getComponentType());
-		assertTrue(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class));
-		assertSame(this.channel, gateway.getRequestChannel());
-		assertEquals(1000L, TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout"));
-		assertEquals(1000L, TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout"));
+		assertThat(gateway.getComponentName()).isEqualTo("gatewayWithDefaults");
+		assertThat(gateway.getComponentType()).isEqualTo("rmi:inbound-gateway");
+		assertThat(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class)).isTrue();
+		assertThat(gateway.getRequestChannel()).isSameAs(this.channel);
+		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout")).isEqualTo(1000L);
+		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout")).isEqualTo(1000L);
 	}
 
 	@Test
 	public void gatewayWithCustomProperties() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithCustomProperties");
 
-		assertFalse(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class));
-		assertSame(this.channel, gateway.getRequestChannel());
-		assertEquals(123L, TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout"));
-		assertEquals(456L, TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout"));
+		assertThat(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class)).isFalse();
+		assertThat(gateway.getRequestChannel()).isSameAs(this.channel);
+		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout")).isEqualTo(456L);
 	}
 
 	@Test
 	public void gatewayWithHost() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHostAndErrorChannel");
-		assertEquals("localhost", TestUtils.getPropertyValue(gateway, "registryHost"));
-		assertSame(context.getBean("testErrorChannel"), gateway.getErrorChannel());
+		assertThat(TestUtils.getPropertyValue(gateway, "registryHost")).isEqualTo("localhost");
+		assertThat(gateway.getErrorChannel()).isSameAs(context.getBean("testErrorChannel"));
 	}
 
 	@Test
 	public void gatewayWithPort() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithPort");
-		assertEquals(1234, TestUtils.getPropertyValue(gateway, "registryPort"));
+		assertThat(TestUtils.getPropertyValue(gateway, "registryPort")).isEqualTo(1234);
 	}
 
 	@Test
 	public void gatewayWithRemoteInvocationExecutorReference() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithExecutorRef");
 		Object remoteInvocationExecutor = TestUtils.getPropertyValue(gateway, "remoteInvocationExecutor");
-		assertNotNull(remoteInvocationExecutor);
-		assertThat(remoteInvocationExecutor, instanceOf(StubRemoteInvocationExecutor.class));
+		assertThat(remoteInvocationExecutor).isNotNull();
+		assertThat(remoteInvocationExecutor).isInstanceOf(StubRemoteInvocationExecutor.class);
 	}
 
 }

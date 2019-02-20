@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,9 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -90,7 +85,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.gatewayTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,bridge,replyChannel", reply.getHeaders().get("history").toString());
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,bridge,replyChannel");
 	}
 
 	@Test
@@ -99,10 +95,13 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("replyingHandlerTestInputChannel,replyingHandlerTestService", reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerTestInputChannel,replyingHandlerTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st));
+		assertThat(StackTraceUtils
+				.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st))
+				.isTrue();
 	}
 
 	@Test
@@ -111,11 +110,13 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.optimizedRefReplyingHandlerTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st));
+		assertThat(StackTraceUtils
+				.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st))
+				.isTrue();
 	}
 
 	@Test
@@ -124,10 +125,14 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerWithStandardMethodTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("replyingHandlerWithStandardMethodTestInputChannel,replyingHandlerWithStandardMethodTestService", reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerWithStandardMethodTestInputChannel," +
+						"replyingHandlerWithStandardMethodTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st));
+		assertThat(StackTraceUtils
+				.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st))
+				.isTrue();
 	}
 
 	@Test
@@ -136,8 +141,9 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerWithOtherMethodTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("bar", reply.getPayload());
-		assertEquals("replyingHandlerWithOtherMethodTestInputChannel,replyingHandlerWithOtherMethodTestService", reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("bar");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerWithOtherMethodTestInputChannel,replyingHandlerWithOtherMethodTestService");
 	}
 
 	@Test
@@ -151,14 +157,15 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	@Test
 	public void testMessageProcessor() {
 		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
-		assertSame(testMessageProcessor, processor);
+		assertThat(processor).isSameAs(testMessageProcessor);
 
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
 		this.processorTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("foo:bar", reply.getPayload());
-		assertEquals("processorTestInputChannel,processorTestService", reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("foo:bar");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("processorTestInputChannel,processorTestService");
 	}
 
 	@Test
@@ -169,11 +176,11 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			fail("Expected exception due to 2 endpoints referencing the same bean");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(BeanCreationException.class));
-			assertThat(e.getCause().getCause(), Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(e.getCause().getCause().getMessage(),
-					Matchers.containsString("An AbstractMessageProducingMessageHandler may only be referenced once"));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause()).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause().getCause().getMessage())
+					.contains("An AbstractMessageProducingMessageHandler may only be referenced once");
 		}
 
 	}
@@ -200,7 +207,9 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
 			// use this to test that StackTraceUtils works as expected and returns false
-			assertFalse(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st));
+			assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+					"MethodInvokerHelper", st))
+					.isFalse();
 			return "bar";
 		}
 
@@ -213,8 +222,11 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public void handleMessage(Message<?> requestMessage) {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
-			assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel", "MethodInvokerHelper", st));
+			assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+					"MethodInvokerHelper", st))
+					.isTrue();
 		}
+
 	}
 
 	@SuppressWarnings("unused")

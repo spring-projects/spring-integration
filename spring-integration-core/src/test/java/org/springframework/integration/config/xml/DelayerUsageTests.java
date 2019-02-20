@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -73,8 +71,8 @@ public class DelayerUsageTests {
 	public void testDelayWithDefaultScheduler() {
 		long start = System.currentTimeMillis();
 		inputA.send(new GenericMessage<String>("Hello"));
-		assertNotNull(outputA.receive(10000));
-		assertTrue((System.currentTimeMillis() - start) >= 1000);
+		assertThat(outputA.receive(10000)).isNotNull();
+		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
 	}
 
 	@Test
@@ -84,8 +82,8 @@ public class DelayerUsageTests {
 		builder.setHeader("foo", 2000);
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());
-		assertNotNull(outputA.receive(10000));
-		assertTrue((System.currentTimeMillis() - start) >= 2000);
+		assertThat(outputA.receive(10000)).isNotNull();
+		assertThat((System.currentTimeMillis() - start) >= 2000).isTrue();
 	}
 
 	@Test
@@ -99,18 +97,19 @@ public class DelayerUsageTests {
 		inputB.send(new GenericMessage<String>("5"));
 		inputB.send(new GenericMessage<String>("6"));
 		inputB.send(new GenericMessage<String>("7"));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
-		assertNotNull(outputB1.receive(10000));
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
+		assertThat(outputB1.receive(10000)).isNotNull();
 
 		// must execute under 3 seconds, since threadPool is set too 5.
 		// first batch is 5 concurrent invocations on SA, then 2 more
 		// elapsed time for the whole execution should be a bit over 2 seconds depending on the hardware
-		assertTrue(((System.currentTimeMillis() - start) >= 1000) && ((System.currentTimeMillis() - start) < 3000));
+		assertThat(((System.currentTimeMillis() - start) >= 1000) && ((System.currentTimeMillis() - start) < 3000))
+				.isTrue();
 	}
 
 	@Test //INT-1132
@@ -118,9 +117,9 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		delayerInsideChain.send(new GenericMessage<String>("Hello"));
 		Message<?> message = outputA.receive(10000);
-		assertNotNull(message);
-		assertTrue((System.currentTimeMillis() - start) >= 1000);
-		assertEquals("hello", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
+		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -128,9 +127,9 @@ public class DelayerUsageTests {
 		long start = System.currentTimeMillis();
 		this.inputC.send(new GenericMessage<String>("test"));
 		Message<?> message = this.outputC.receive(10000);
-		assertNotNull(message);
-		assertTrue((System.currentTimeMillis() - start) >= 1000);
-		assertEquals("test", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat((System.currentTimeMillis() - start) >= 1000).isTrue();
+		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
 	public static class SampleService {

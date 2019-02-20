@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.expression;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,7 +69,7 @@ public class ForeignClassloaderTests {
 		});
 		t.start();
 		Message<?> reply = bar.receive(10000);
-		assertThat(reply.getPayload(), instanceOf(Foo.class));
+		assertThat(reply.getPayload()).isInstanceOf(Foo.class);
 	}
 
 	public static class Foo {

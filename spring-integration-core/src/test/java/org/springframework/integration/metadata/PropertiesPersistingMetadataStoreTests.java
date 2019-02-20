@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.metadata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.Properties;
@@ -50,16 +46,16 @@ public class PropertiesPersistingMetadataStoreTests {
 		file.delete();
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
-		assertTrue(file.exists());
-		assertNull(metadataStore.putIfAbsent("foo", "baz"));
-		assertNotNull(metadataStore.putIfAbsent("foo", "baz"));
-		assertFalse(metadataStore.replace("foo", "xxx", "bar"));
-		assertTrue(metadataStore.replace("foo", "baz", "bar"));
+		assertThat(file.exists()).isTrue();
+		assertThat(metadataStore.putIfAbsent("foo", "baz")).isNull();
+		assertThat(metadataStore.putIfAbsent("foo", "baz")).isNotNull();
+		assertThat(metadataStore.replace("foo", "xxx", "bar")).isFalse();
+		assertThat(metadataStore.replace("foo", "baz", "bar")).isTrue();
 		metadataStore.close();
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
-		assertNotNull(persistentProperties);
-		assertEquals(1, persistentProperties.size());
-		assertEquals("bar", persistentProperties.get("foo"));
+		assertThat(persistentProperties).isNotNull();
+		assertThat(persistentProperties.size()).isEqualTo(1);
+		assertThat(persistentProperties.get("foo")).isEqualTo("bar");
 		file.delete();
 	}
 
@@ -71,11 +67,11 @@ public class PropertiesPersistingMetadataStoreTests {
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
 		metadataStore.close();
-		assertTrue(file.exists());
+		assertThat(file.exists()).isTrue();
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
-		assertNotNull(persistentProperties);
-		assertEquals(1, persistentProperties.size());
-		assertEquals("bar", persistentProperties.get("foo"));
+		assertThat(persistentProperties).isNotNull();
+		assertThat(persistentProperties.size()).isEqualTo(1);
+		assertThat(persistentProperties.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -87,11 +83,11 @@ public class PropertiesPersistingMetadataStoreTests {
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
 		metadataStore.close();
-		assertTrue(file.exists());
+		assertThat(file.exists()).isTrue();
 		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
-		assertNotNull(persistentProperties);
-		assertEquals(1, persistentProperties.size());
-		assertEquals("bar", persistentProperties.get("foo"));
+		assertThat(persistentProperties).isNotNull();
+		assertThat(persistentProperties.size()).isEqualTo(1);
+		assertThat(persistentProperties.get("foo")).isEqualTo("bar");
 	}
 
 }

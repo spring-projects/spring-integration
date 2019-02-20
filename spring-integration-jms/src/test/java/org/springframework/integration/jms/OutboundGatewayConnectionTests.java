@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -91,16 +90,16 @@ public class OutboundGatewayConnectionTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(amqConnectionFactory);
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue1);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		broker.stop();
 		broker = new BrokerService();
@@ -118,16 +117,16 @@ public class OutboundGatewayConnectionTests {
 				latch4.countDown();
 			}
 		});
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
 		template = new JmsTemplate();
 		template.setConnectionFactory(amqConnectionFactory);
 		template.setReceiveTimeout(5000);
 		request = template.receive(requestQueue1);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply2 = request;
 		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply2);
-		assertTrue(latch4.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch4.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		broker.stop();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mqtt;
 
-import static org.junit.Assume.assumeNoException;
-import static org.junit.Assume.assumeTrue;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +33,8 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -42,7 +43,7 @@ public class BrokerRunning extends TestWatcher {
 	private static Log logger = LogFactory.getLog(BrokerRunning.class);
 
 	// Static so that we only test once on failure: speeds up test suite
-	private static Map<Integer, Boolean> brokerOnline = new HashMap<Integer, Boolean>();
+	private static Map<Integer, Boolean> brokerOnline = new HashMap<>();
 
 	private final int port;
 
@@ -53,7 +54,7 @@ public class BrokerRunning extends TestWatcher {
 
 	@Override
 	public Statement apply(Statement base, Description description) {
-		assumeTrue(brokerOnline.get(port));
+		assumeThat(brokerOnline.get(port)).isTrue();
 		String url = "tcp://localhost:" + port;
 		IMqttClient client = null;
 		try {
@@ -62,7 +63,7 @@ public class BrokerRunning extends TestWatcher {
 		}
 		catch (MqttException e) {
 			logger.warn("Tests not running because no broker on " + url + ":", e);
-			assumeNoException(e);
+			assumeThat(e).isNull();
 		}
 		finally {
 			if (client != null) {
@@ -78,8 +79,8 @@ public class BrokerRunning extends TestWatcher {
 	}
 
 
-
 	public static BrokerRunning isRunning(int port) {
 		return new BrokerRunning(port);
 	}
+
 }

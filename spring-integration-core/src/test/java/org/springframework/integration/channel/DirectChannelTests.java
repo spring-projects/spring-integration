@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,19 +60,19 @@ public class DirectChannelTests {
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();
 		channel.subscribe(target);
 		GenericMessage<String> message = new GenericMessage<String>("test");
-		assertTrue(channel.send(message));
-		assertEquals(Thread.currentThread().getName(), target.threadName);
+		assertThat(channel.send(message)).isTrue();
+		assertThat(target.threadName).isEqualTo(Thread.currentThread().getName());
 		DirectFieldAccessor channelAccessor = new DirectFieldAccessor(channel);
 		UnicastingDispatcher dispatcher = (UnicastingDispatcher) channelAccessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		Object loadBalancingStrategy = dispatcherAccessor.getPropertyValue("loadBalancingStrategy");
-		assertTrue(loadBalancingStrategy instanceof RoundRobinLoadBalancingStrategy);
+		assertThat(loadBalancingStrategy instanceof RoundRobinLoadBalancingStrategy).isTrue();
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger, times(2)).debug(captor.capture());
 		List<String> logs = captor.getAllValues();
-		assertEquals(2, logs.size());
-		assertThat(logs.get(0), startsWith("preSend"));
-		assertThat(logs.get(1), startsWith("postSend"));
+		assertThat(logs.size()).isEqualTo(2);
+		assertThat(logs.get(0)).startsWith("preSend");
+		assertThat(logs.get(1)).startsWith("postSend");
 	}
 
 	@Test
@@ -94,7 +90,7 @@ public class DirectChannelTests {
 		final AtomicInteger count = new AtomicInteger();
 		channel.subscribe(message -> count.incrementAndGet());
 		GenericMessage<String> message = new GenericMessage<String>("test");
-		assertTrue(channel.send(message));
+		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
 		}
@@ -115,12 +111,12 @@ public class DirectChannelTests {
 		channel.subscribe(message -> count1.incrementAndGet());
 		channel.subscribe(message -> count2.getAndIncrement());
 		GenericMessage<String> message = new GenericMessage<String>("test");
-		assertTrue(channel.send(message));
+		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
 		}
-		assertEquals(5000001, count1.get());
-		assertEquals(5000000, count2.get());
+		assertThat(count1.get()).isEqualTo(5000001);
+		assertThat(count2.get()).isEqualTo(5000000);
 	}
 
 	@Test
@@ -135,7 +131,7 @@ public class DirectChannelTests {
 		final AtomicInteger count = new AtomicInteger();
 		FixedSubscriberChannel channel = new FixedSubscriberChannel(message -> count.incrementAndGet());
 		GenericMessage<String> message = new GenericMessage<String>("test");
-		assertTrue(channel.send(message));
+		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 100000000; i++) {
 			channel.send(message, 0);
 		}
@@ -150,7 +146,7 @@ public class DirectChannelTests {
 		final GenericMessage<String> message = new GenericMessage<String>("test");
 		new Thread((Runnable) () -> channel.send(message), "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals("test-thread", target.threadName);
+		assertThat(target.threadName).isEqualTo("test-thread");
 	}
 
 	@Test //  See INT-2434
@@ -166,40 +162,43 @@ public class DirectChannelTests {
 		Method method = ReflectionUtils.findMethod(ClassPathXmlApplicationContext.class, "obtainFreshBeanFactory");
 		method.setAccessible(true);
 		method.invoke(context);
-		assertFalse(context.containsBean("channelA"));
-		assertFalse(context.containsBean("channelB"));
-		assertTrue(context.containsBean("channelC"));
-		assertTrue(context.containsBean("channelD"));
+		assertThat(context.containsBean("channelA")).isFalse();
+		assertThat(context.containsBean("channelB")).isFalse();
+		assertThat(context.containsBean("channelC")).isTrue();
+		assertThat(context.containsBean("channelD")).isTrue();
 
 		context.refresh();
 
 		PublishSubscribeChannel channelEarly = context.getBean("channelEarly", PublishSubscribeChannel.class);
 
-		assertTrue(context.containsBean("channelA"));
-		assertTrue(context.containsBean("channelB"));
-		assertTrue(context.containsBean("channelC"));
-		assertTrue(context.containsBean("channelD"));
+		assertThat(context.containsBean("channelA")).isTrue();
+		assertThat(context.containsBean("channelB")).isTrue();
+		assertThat(context.containsBean("channelC")).isTrue();
+		assertThat(context.containsBean("channelD")).isTrue();
 		EventDrivenConsumer consumerA = context.getBean("serviceA", EventDrivenConsumer.class);
-		assertEquals(context.getBean("channelA"), TestUtils.getPropertyValue(consumerA, "inputChannel"));
-		assertEquals(context.getBean("channelB"), TestUtils.getPropertyValue(consumerA, "handler.outputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerA, "inputChannel")).isEqualTo(context.getBean("channelA"));
+		assertThat(TestUtils.getPropertyValue(consumerA, "handler.outputChannel"))
+				.isEqualTo(context.getBean("channelB"));
 
 		EventDrivenConsumer consumerB = context.getBean("serviceB", EventDrivenConsumer.class);
-		assertEquals(context.getBean("channelB"), TestUtils.getPropertyValue(consumerB, "inputChannel"));
-		assertEquals(context.getBean("channelC"), TestUtils.getPropertyValue(consumerB, "handler.outputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerB, "inputChannel")).isEqualTo(context.getBean("channelB"));
+		assertThat(TestUtils.getPropertyValue(consumerB, "handler.outputChannel"))
+				.isEqualTo(context.getBean("channelC"));
 
 		EventDrivenConsumer consumerC = context.getBean("serviceC", EventDrivenConsumer.class);
-		assertEquals(context.getBean("channelC"), TestUtils.getPropertyValue(consumerC, "inputChannel"));
-		assertEquals(context.getBean("channelD"), TestUtils.getPropertyValue(consumerC, "handler.outputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerC, "inputChannel")).isEqualTo(context.getBean("channelC"));
+		assertThat(TestUtils.getPropertyValue(consumerC, "handler.outputChannel"))
+				.isEqualTo(context.getBean("channelD"));
 
 		EventDrivenConsumer consumerD = context.getBean("serviceD", EventDrivenConsumer.class);
-		assertEquals(parentChannelA, TestUtils.getPropertyValue(consumerD, "inputChannel"));
-		assertEquals(parentChannelB, TestUtils.getPropertyValue(consumerD, "handler.outputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerD, "inputChannel")).isEqualTo(parentChannelA);
+		assertThat(TestUtils.getPropertyValue(consumerD, "handler.outputChannel")).isEqualTo(parentChannelB);
 
 		EventDrivenConsumer consumerE = context.getBean("serviceE", EventDrivenConsumer.class);
-		assertEquals(parentChannelB, TestUtils.getPropertyValue(consumerE, "inputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerE, "inputChannel")).isEqualTo(parentChannelB);
 
 		EventDrivenConsumer consumerF = context.getBean("serviceF", EventDrivenConsumer.class);
-		assertEquals(channelEarly, TestUtils.getPropertyValue(consumerF, "inputChannel"));
+		assertThat(TestUtils.getPropertyValue(consumerF, "inputChannel")).isEqualTo(channelEarly);
 	}
 
 

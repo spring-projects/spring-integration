@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.gemfire.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,19 +73,19 @@ public class CqInboundChannelAdapterTests {
 
 	@Test
 	public void testCqEvent() throws InterruptedException {
-		assertTrue(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class)).isTrue();
 		region.put("one", 1);
 		Message<?> msg = outputChannel1.receive(10000);
-		assertNotNull(msg);
-		assertTrue(msg.getPayload() instanceof CqEvent);
+		assertThat(msg).isNotNull();
+		assertThat(msg.getPayload() instanceof CqEvent).isTrue();
 	}
 
 	@Test
 	public void testPayloadExpression() throws InterruptedException {
 		region.put("one", 1);
 		Message<?> msg = outputChannel2.receive(10000);
-		assertNotNull(msg);
-		assertEquals(1, msg.getPayload());
+		assertThat(msg).isNotNull();
+		assertThat(msg.getPayload()).isEqualTo(1);
 	}
 
 	@AfterClass

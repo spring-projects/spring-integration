@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.springframework.integration.groovy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -59,7 +58,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();
 		processor = new GroovyCommandMessageProcessor();
 		Object result = processor.processMessage(message);
-		assertEquals("bar", result.toString());
+		assertThat(result.toString()).isEqualTo("bar");
 	}
 
 	@Test
@@ -67,10 +66,10 @@ public class GroovyScriptPayloadMessageProcessorTests {
 		processor = new GroovyCommandMessageProcessor();
 		Message<?> message = MessageBuilder.withPayload("headers.foo").setHeader("foo", "bar").build();
 		Object result = processor.processMessage(message);
-		assertEquals("bar", result.toString());
+		assertThat(result.toString()).isEqualTo("bar");
 		message = MessageBuilder.withPayload("headers.bar").setHeader("bar", "spam").build();
 		result = processor.processMessage(message);
-		assertEquals("spam", result.toString());
+		assertThat(result.toString()).isEqualTo("spam");
 	}
 
 	@Test
@@ -81,7 +80,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 				new DefaultScriptVariableGenerator(Collections.singletonMap("spam", "bucket"));
 		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
 		Object result = processor.processMessage(message);
-		assertEquals("spam is bucket foo is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("spam is bucket foo is bar");
 	}
 
 	@Test //INT-2567
@@ -100,7 +99,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 			fail("Expected RuntimeException");
 		}
 		catch (Exception e) {
-			Assert.assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
 	}
 
@@ -125,7 +124,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam, foo is $foo\"").build();
 		processor = new GroovyCommandMessageProcessor(binding, scriptVariableGenerator);
 		Object result = processor.processMessage(message);
-		assertEquals("spam is bucket, foo is default", result.toString());
+		assertThat(result.toString()).isEqualTo("spam is bucket, foo is default");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +60,7 @@ public class DefaultSoapHeaderMapperTests {
 		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
 		SoapMessage soapMessage = mock(SoapMessage.class);
 		Map<String, Object> headers = mapper.toHeadersFromReply(soapMessage);
-		assertEquals(0, headers.size());
+		assertThat(headers.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -94,9 +88,9 @@ public class DefaultSoapHeaderMapperTests {
 		when(soapHeaderElement.getName()).thenReturn(element);
 
 		Map<String, Object> headers = mapper.toHeadersFromReply(soapMessage);
-		assertEquals(2, headers.size());
-		assertEquals("attrValue", headers.get("x:attr"));
-		assertSame(soapHeaderElement, headers.get("x:elem"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.get("x:attr")).isEqualTo("attrValue");
+		assertThat(headers.get("x:elem")).isSameAs(soapHeaderElement);
 	}
 
 	@Test
@@ -123,26 +117,26 @@ public class DefaultSoapHeaderMapperTests {
 		String authHeader = "auth";
 		mapper.setRequestHeaderNames(authHeader, "ba*");
 		Map<String, Object> headers = mapper.toHeadersFromRequest(soapMessage);
-		assertNotNull(headers.get(authHeader));
-		assertThat(headers.get(authHeader), instanceOf(SoapHeaderElement.class));
+		assertThat(headers.get(authHeader)).isNotNull();
+		assertThat(headers.get(authHeader)).isInstanceOf(SoapHeaderElement.class);
 		SoapHeaderElement header = (SoapHeaderElement) headers.get(authHeader);
 		DOMSource source = (DOMSource) header.getSource();
 		NodeList nodeList = source.getNode().getChildNodes();
-		assertEquals("username", nodeList.item(0).getNodeName());
-		assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
-		assertEquals("password", nodeList.item(1).getNodeName());
-		assertEquals("pass", nodeList.item(1).getFirstChild().getNodeValue());
+		assertThat(nodeList.item(0).getNodeName()).isEqualTo("username");
+		assertThat(nodeList.item(0).getFirstChild().getNodeValue()).isEqualTo("user");
+		assertThat(nodeList.item(1).getNodeName()).isEqualTo("password");
+		assertThat(nodeList.item(1).getFirstChild().getNodeValue()).isEqualTo("pass");
 		header = (SoapHeaderElement) headers.get("bar");
-		assertNotNull(header);
+		assertThat(header).isNotNull();
 		source = (DOMSource) header.getSource();
 		nodeList = source.getNode().getChildNodes();
-		assertEquals("BAR", nodeList.item(0).getNodeValue());
+		assertThat(nodeList.item(0).getNodeValue()).isEqualTo("BAR");
 		header = (SoapHeaderElement) headers.get("baz");
-		assertNotNull(header);
+		assertThat(header).isNotNull();
 		source = (DOMSource) header.getSource();
 		nodeList = source.getNode().getChildNodes();
-		assertEquals("BAZ", nodeList.item(0).getNodeValue());
-		assertNull(headers.get("qux"));
+		assertThat(nodeList.item(0).getNodeValue()).isEqualTo("BAZ");
+		assertThat(headers.get("qux")).isNull();
 	}
 
 	@Test
@@ -151,7 +145,7 @@ public class DefaultSoapHeaderMapperTests {
 		SoapMessage soapMessage = mock(SoapMessage.class);
 		when(soapMessage.getSoapAction()).thenReturn(null);
 
-		assertTrue(mapper.extractStandardHeaders(soapMessage).isEmpty());
+		assertThat(mapper.extractStandardHeaders(soapMessage).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -160,7 +154,7 @@ public class DefaultSoapHeaderMapperTests {
 		SoapMessage soapMessage = mock(SoapMessage.class);
 		when(soapMessage.getSoapAction()).thenReturn("");
 
-		assertTrue(mapper.extractStandardHeaders(soapMessage).isEmpty());
+		assertThat(mapper.extractStandardHeaders(soapMessage).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -171,9 +165,9 @@ public class DefaultSoapHeaderMapperTests {
 
 		Map<String, Object> standardHeaders = mapper.toHeadersFromRequest(soapMessage);
 
-		assertEquals(1, standardHeaders.size());
-		assertTrue(standardHeaders.containsKey(WebServiceHeaders.SOAP_ACTION));
-		assertEquals("foo", standardHeaders.get(WebServiceHeaders.SOAP_ACTION));
+		assertThat(standardHeaders.size()).isEqualTo(1);
+		assertThat(standardHeaders.containsKey(WebServiceHeaders.SOAP_ACTION)).isTrue();
+		assertThat(standardHeaders.get(WebServiceHeaders.SOAP_ACTION)).isEqualTo("foo");
 	}
 
 	@Test
@@ -199,27 +193,27 @@ public class DefaultSoapHeaderMapperTests {
 		mapper.fromHeadersToReply(new MessageHeaders(headers), message);
 
 		SoapHeader soapHeader = message.getSoapHeader();
-		assertEquals("bar", soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo")));
+		assertThat(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo"))).isEqualTo("bar");
 
 		Iterator<SoapHeaderElement> authIterator =
 				soapHeader.examineHeaderElements(QNameUtils.parseQNameString("{http://test.auth.org}auth"));
 
-		assertTrue(authIterator.hasNext());
+		assertThat(authIterator.hasNext()).isTrue();
 
 		SoapHeaderElement auth = authIterator.next();
 		DOMSource authSource = (DOMSource) auth.getSource();
 
 		NodeList nodeList = authSource.getNode().getChildNodes();
-		assertEquals("username", nodeList.item(0).getNodeName());
-		assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
+		assertThat(nodeList.item(0).getNodeName()).isEqualTo("username");
+		assertThat(nodeList.item(0).getFirstChild().getNodeValue()).isEqualTo("user");
 
-		assertEquals("password", nodeList.item(1).getNodeName());
-		assertEquals("pass", nodeList.item(1).getFirstChild().getNodeValue());
+		assertThat(nodeList.item(1).getNodeName()).isEqualTo("password");
+		assertThat(nodeList.item(1).getFirstChild().getNodeValue()).isEqualTo("pass");
 
 		Iterator<SoapHeaderElement> testIterator =
 				soapHeader.examineHeaderElements(QNameUtils.parseQNameString("{http://test.org}test"));
 
-		assertTrue(testIterator.hasNext());
+		assertThat(testIterator.hasNext()).isTrue();
 
 		/*StringResult stringResult = new StringResult();
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -249,7 +243,7 @@ public class DefaultSoapHeaderMapperTests {
 
 		headerMapper.fromHeadersToRequest(new MessageHeaders(null), soapMessage);
 
-		assertEquals(testSoapAction, soapMessage.getSoapAction());
+		assertThat(soapMessage.getSoapAction()).isEqualTo(testSoapAction);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -67,16 +65,16 @@ public class OutboundGatewayTests {
 
 	@Test
 	public void testVanillaConfiguration() throws Exception {
-		assertTrue(context.getBeanFactory().containsBeanDefinition("vanilla"));
+		assertThat(context.getBeanFactory().containsBeanDefinition("vanilla")).isTrue();
 		context.getBean("vanilla");
 	}
 
 	@Test
 	public void testExpressionBasedConfiguration() throws Exception {
-		assertTrue(context.getBeanFactory().containsBeanDefinition("expression"));
+		assertThat(context.getBeanFactory().containsBeanDefinition("expression")).isTrue();
 		Object target = context.getBean("expression");
-		assertNotNull(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"),
-				"routingKeyGenerator"));
+		assertThat(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"),
+				"routingKeyGenerator")).isNotNull();
 	}
 
 	@Test
@@ -103,12 +101,12 @@ public class OutboundGatewayTests {
 		endpoint.setBeanFactory(context);
 		endpoint.afterPropertiesSet();
 		Message<?> message = new GenericMessage<String>("Hello, world!");
-		assertEquals("foobar", TestUtils.getPropertyValue(endpoint, "routingKeyGenerator", MessageProcessor.class)
-				.processMessage(message));
-		assertEquals("barbar", TestUtils.getPropertyValue(endpoint, "exchangeNameGenerator", MessageProcessor.class)
-				.processMessage(message));
-		assertEquals("bazbar", TestUtils.getPropertyValue(endpoint, "correlationDataGenerator", MessageProcessor.class)
-				.processMessage(message));
+		assertThat(TestUtils.getPropertyValue(endpoint, "routingKeyGenerator", MessageProcessor.class)
+				.processMessage(message)).isEqualTo("foobar");
+		assertThat(TestUtils.getPropertyValue(endpoint, "exchangeNameGenerator", MessageProcessor.class)
+				.processMessage(message)).isEqualTo("barbar");
+		assertThat(TestUtils.getPropertyValue(endpoint, "correlationDataGenerator", MessageProcessor.class)
+				.processMessage(message)).isEqualTo("bazbar");
 	}
 
 }

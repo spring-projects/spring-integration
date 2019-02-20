@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -58,26 +56,26 @@ public class EnricherParserWithRequestPayloadExpressionTests {
 	@SuppressWarnings("unchecked")
 	public void configurationCheck() {
 		Object endpoint = context.getBean("enricher");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(ContentEnricher.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(ContentEnricher.class);
 		ContentEnricher enricher = (ContentEnricher) handler;
-		assertEquals(99, enricher.getOrder());
+		assertThat(enricher.getOrder()).isEqualTo(99);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
-		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(false, accessor.getPropertyValue("shouldClonePayload"));
+		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(false);
 
 		Expression requestPayloadExpression = (Expression) accessor.getPropertyValue("requestPayloadExpression");
-		assertEquals("payload.age", requestPayloadExpression.getExpressionString());
+		assertThat(requestPayloadExpression.getExpressionString()).isEqualTo("payload.age");
 
 		Map<Expression, Expression> propertyExpressions =
 				(Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
 		for (Map.Entry<Expression, Expression> e : propertyExpressions.entrySet()) {
 			if ("name".equals(e.getKey().getExpressionString())) {
-				assertEquals("'Name as SpEL'", e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo("'Name as SpEL'");
 			}
 			else if ("age".equals(e.getKey().getExpressionString())) {
-				assertEquals("payload.sourceName", e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo("payload.sourceName");
 			}
 			else {
 				throw new IllegalStateException(
@@ -94,11 +92,11 @@ public class EnricherParserWithRequestPayloadExpressionTests {
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 
-				assertTrue("Expected the payload of the requestMessage to be a String",
-						requestMessage.getPayload() instanceof Integer);
+				assertThat(requestMessage.getPayload() instanceof Integer)
+						.as("Expected the payload of the requestMessage to be a String").isTrue();
 
 				Integer payload = (Integer) requestMessage.getPayload();
-				assertEquals("Expected value: 99", Integer.valueOf(99), payload);
+				assertThat(payload).as("Expected value: 99").isEqualTo(Integer.valueOf(99));
 
 				return new Source(String.valueOf(payload));
 			}
@@ -111,9 +109,9 @@ public class EnricherParserWithRequestPayloadExpressionTests {
 		context.getBean("input", MessageChannel.class).send(request);
 		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
 		Target enriched = (Target) reply.getPayload();
-		assertEquals("Name as SpEL", enriched.getName());
-		assertEquals(99, enriched.getAge());
-		assertSame(original, enriched);
+		assertThat(enriched.getName()).isEqualTo("Name as SpEL");
+		assertThat(enriched.getAge()).isEqualTo(99);
+		assertThat(enriched).isSameAs(original);
 	}
 
 

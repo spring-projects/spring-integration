@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -63,8 +62,8 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(),
-					containsString("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'."));
+			assertThat(e.getMessage())
+					.contains("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'.");
 		}
 	}
 
@@ -75,8 +74,8 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(),
-					containsString("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'."));
+			assertThat(e.getMessage())
+					.contains("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'.");
 		}
 	}
 
@@ -89,8 +88,7 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(),
-					containsString("Dispatcher has no subscribers for channel 'bar'."));
+			assertThat(e.getMessage()).contains("Dispatcher has no subscribers for channel 'bar'.");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.zookeeper.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Test;
@@ -56,24 +53,24 @@ public class ZookeeperParserTests extends ZookeeperTestSupport {
 
 	@Test
 	public void test() throws Exception {
-		assertFalse(this.initiator.isAutoStartup());
-		assertEquals(1234, this.initiator.getPhase());
-		assertEquals("/siNamespaceTest", TestUtils.getPropertyValue(this.initiator, "namespace"));
-		assertEquals("cluster", TestUtils.getPropertyValue(this.initiator, "candidate.role"));
-		assertSame(this.client, TestUtils.getPropertyValue(this.initiator, "client"));
+		assertThat(this.initiator.isAutoStartup()).isFalse();
+		assertThat(this.initiator.getPhase()).isEqualTo(1234);
+		assertThat(TestUtils.getPropertyValue(this.initiator, "namespace")).isEqualTo("/siNamespaceTest");
+		assertThat(TestUtils.getPropertyValue(this.initiator, "candidate.role")).isEqualTo("cluster");
+		assertThat(TestUtils.getPropertyValue(this.initiator, "client")).isSameAs(this.client);
 
 		this.initiator.start();
 		int n = 0;
 		while (n++ < 100 && !this.adapter.isRunning()) {
 			Thread.sleep(100);
 		}
-		assertTrue(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isTrue();
 		this.initiator.stop();
 		n = 0;
 		while (n++ < 100 && this.adapter.isRunning()) {
 			Thread.sleep(100);
 		}
-		assertFalse(this.adapter.isRunning());
+		assertThat(this.adapter.isRunning()).isFalse();
 	}
 
 	public static class Config {

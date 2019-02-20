@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -68,20 +66,20 @@ public class DatagramPacketMessageMapperTests {
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
 		Message<byte[]> messageOut = mapper.toMessage(packet);
-		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
+		assertThat(new String(messageOut.getPayload())).isEqualTo(new String(message.getPayload()));
 		if (ack) {
-			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
-					message.getHeaders().getId().toString());
+			assertThat(message.getHeaders().getId().toString())
+					.isEqualTo(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString());
 		}
-		assertTrue(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
+		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost")).isTrue();
 		mapper.setLookupHost(false);
 		messageOut = mapper.toMessage(packet);
-		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
+		assertThat(new String(messageOut.getPayload())).isEqualTo(new String(message.getPayload()));
 		if (ack) {
-			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
-					message.getHeaders().getId().toString());
+			assertThat(message.getHeaders().getId().toString())
+					.isEqualTo(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString());
 		}
-		assertFalse(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
+		assertThat(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost")).isFalse();
 	}
 
 	@Test
@@ -103,7 +101,8 @@ public class DatagramPacketMessageMapperTests {
 			fail("Truncated message exception expected");
 		}
 		catch (MessageMappingException e) {
-			assertTrue(e.getMessage().contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4)));
+			assertThat(e.getMessage().contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4)))
+					.isTrue();
 		}
 	}
 

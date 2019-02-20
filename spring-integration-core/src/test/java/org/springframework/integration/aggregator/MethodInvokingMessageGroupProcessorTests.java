@@ -16,12 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -108,7 +104,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -132,7 +128,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -156,7 +152,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -184,7 +180,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload())
+				.isEqualTo("[1, 2, 4, 3, 101, 102]");
 	}
 
 	@Test
@@ -217,7 +214,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 						.build());
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload())
+				.isEqualTo("[1, 2, 4, 3, 101, 102]");
 	}
 
 	@Test
@@ -242,7 +240,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo("[1, 2, 4]");
 	}
 
 	@Test
@@ -266,7 +264,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -290,7 +288,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 
@@ -325,7 +323,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setConversionService(conversionService);
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -358,7 +356,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isEqualTo(7);
 	}
 
 	@Test
@@ -388,7 +386,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
-		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), instanceOf(Iterator.class));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload()).isInstanceOf(Iterator.class);
 	}
 
 	@Test
@@ -419,8 +417,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(this.messageGroupMock.getMessages()).thenReturn(this.messagesUpForProcessing);
 		Object result = processor.processMessageGroup(this.messageGroupMock);
 		Object payload = ((AbstractIntegrationMessageBuilder<?>) result).build().getPayload();
-		assertTrue(payload instanceof Integer);
-		assertEquals(7, payload);
+		assertThat(payload instanceof Integer).isTrue();
+		assertThat(payload).isEqualTo(7);
 
 	}
 
@@ -447,7 +445,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(new GenericMessage<>("foo"));
 		group.add(new GenericMessage<>("bar"));
-		assertEquals("foo", aggregator.aggregatePayloads(group, null));
+		assertThat(aggregator.aggregatePayloads(group, null)).isEqualTo("foo");
 	}
 
 	@Test
@@ -468,7 +466,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
-		assertEquals("foobar", processor.aggregatePayloads(group, processor.aggregateHeaders(group)));
+		assertThat(processor.aggregatePayloads(group, processor.aggregateHeaders(group))).isEqualTo("foobar");
 	}
 
 	@Test
@@ -489,7 +487,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
-		assertEquals("foobar", aggregator.aggregatePayloads(group, aggregator.aggregateHeaders(group)));
+		assertThat(aggregator.aggregatePayloads(group, aggregator.aggregateHeaders(group))).isEqualTo("foobar");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -535,7 +533,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(new GenericMessage<>("foo"));
 		group.add(new GenericMessage<>("bar"));
-		assertEquals("foo", aggregator.aggregatePayloads(group, null));
+		assertThat(aggregator.aggregatePayloads(group, null)).isEqualTo("foo");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -593,7 +591,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		Message<?> message = MessageBuilder.withPayload("proxy").setCorrelationId("abc").build();
 		input.send(message);
-		assertEquals("hello proxy", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("hello proxy");
 	}
 
 	@Test
@@ -615,7 +613,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		Message<?> message = MessageBuilder.withPayload("proxy").setCorrelationId("abc").build();
 		input.send(message);
-		assertEquals("hello proxy", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("hello proxy");
 	}
 
 

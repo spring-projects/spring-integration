@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,28 +53,28 @@ public class GatewayWithPayloadExpressionTests {
 	public void simpleExpression() {
 		gateway.send1("foo");
 		Message<?> result = input.receive(0);
-		assertEquals("foobar", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
 	public void beanResolvingExpression() {
 		gateway.send2("foo");
 		Message<?> result = input.receive(0);
-		assertEquals(324, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(324);
 	}
 
 	@Test
 	public void payloadAnnotationExpression() {
 		annotatedGateway.send("foo", "bar");
 		Message<?> result = input.receive(0);
-		assertEquals("foobar", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
 	public void noArgMethodWithPayloadExpression() {
 		gateway.send3();
 		Message<?> result = input.receive(0);
-		assertEquals("send3", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("send3");
 	}
 
 

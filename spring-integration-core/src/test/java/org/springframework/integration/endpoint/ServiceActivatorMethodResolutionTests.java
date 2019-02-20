@@ -16,9 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Date;
@@ -53,7 +51,7 @@ public class ServiceActivatorMethodResolutionTests {
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
 		Message<?> result = outputChannel.receive(0);
-		assertEquals("FOO", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -73,7 +71,7 @@ public class ServiceActivatorMethodResolutionTests {
 
 		serviceActivator.handleMessage(new GenericMessage<>("foo"));
 		Message<?> result = outputChannel.receive(0);
-		assertEquals("FOO", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -94,7 +92,7 @@ public class ServiceActivatorMethodResolutionTests {
 			@Override
 			protected Object handleRequestMessage(Message<?> message) {
 				Object o = super.handleRequestMessage(message);
-				assertSame(test, o);
+				assertThat(o).isSameAs(test);
 				return null;
 			}
 		};
@@ -130,11 +128,11 @@ public class ServiceActivatorMethodResolutionTests {
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
-		assertEquals(test, outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isEqualTo(test);
 
 		test = new GenericMessage<Object>("foo");
 		serviceActivator.handleMessage(test);
-		assertEquals("FOO", outputChannel.receive(10).getPayload());
+		assertThat(outputChannel.receive(10).getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -163,11 +161,11 @@ public class ServiceActivatorMethodResolutionTests {
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
-		assertEquals(test, outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isEqualTo(test);
 
 		test = new GenericMessage<Object>("foo");
 		serviceActivator.handleMessage(test);
-		assertEquals("FOO", outputChannel.receive(10).getPayload());
+		assertThat(outputChannel.receive(10).getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -201,11 +199,11 @@ public class ServiceActivatorMethodResolutionTests {
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
-		assertEquals(test, outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isEqualTo(test);
 
 		test = new GenericMessage<Object>("foo");
 		serviceActivator.handleMessage(test);
-		assertNotEquals("FOO", outputChannel.receive(10).getPayload());
+		assertThat(outputChannel.receive(10).getPayload()).isNotEqualTo("FOO");
 	}
 
 	@Test
@@ -239,11 +237,11 @@ public class ServiceActivatorMethodResolutionTests {
 
 		Message<?> test = new GenericMessage<Object>(new Date());
 		serviceActivator.handleMessage(test);
-		assertEquals(test, outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isEqualTo(test);
 
 		test = new GenericMessage<Object>("foo");
 		serviceActivator.handleMessage(test);
-		assertNotEquals("FOO", outputChannel.receive(10).getPayload());
+		assertThat(outputChannel.receive(10).getPayload()).isNotEqualTo("FOO");
 	}
 
 	@Test
@@ -257,7 +255,7 @@ public class ServiceActivatorMethodResolutionTests {
 
 		serviceActivator.handleMessage(new GenericMessage<>(new KafkaNull()));
 		Message<?> result = outputChannel.receive(0);
-		assertEquals("gotNull", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("gotNull");
 	}
 
 

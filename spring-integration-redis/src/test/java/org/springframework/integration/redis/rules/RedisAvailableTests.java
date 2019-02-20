@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.redis.rules;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -69,16 +68,18 @@ public abstract class RedisAvailableTests {
 		int n = 0;
 		while (n++ < 300 &&
 				(connection =
-						TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection.class)) == null) {
+						TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection.class))
+						== null) {
+
 			Thread.sleep(100);
 		}
-		assertNotNull("RedisMessageListenerContainer Failed to Connect", connection);
+		assertThat(connection).as("RedisMessageListenerContainer Failed to Connect").isNotNull();
 
 		n = 0;
 		while (n++ < 300 && !connection.isSubscribed()) {
 			Thread.sleep(100);
 		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 300);
+		assertThat(n < 300).as("RedisMessageListenerContainer Failed to Subscribe").isTrue();
 	}
 
 	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
@@ -90,7 +91,7 @@ public abstract class RedisAvailableTests {
 		while (n++ < 300 && connection.getSubscription().getPatterns().size() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 300);
+		assertThat(n < 300).as("RedisMessageListenerContainer Failed to Subscribe with patterns").isTrue();
 		// wait another second because of race condition
 		Thread.sleep(1000);
 	}
@@ -106,7 +107,7 @@ public abstract class RedisAvailableTests {
 			received = channel.receive(1000);
 		}
 		drain(channel);
-		assertNotNull("Container failed to fully start", received);
+		assertThat(received).as("Container failed to fully start").isNotNull();
 	}
 
 	private void drain(QueueChannel channel) {

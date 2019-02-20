@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -61,8 +60,8 @@ public class RollbackLocalFilterTests extends SftpTestSupport {
 
 	@Test
 	public void testRollback() throws Exception {
-		assertTrue(this.crash.getLatch().await(10, TimeUnit.SECONDS));
-		assertEquals("sftpSource2.txt", this.crash.getFile().getName());
+		assertThat(this.crash.getLatch().await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.crash.getFile().getName()).isEqualTo("sftpSource2.txt");
 	}
 
 	public static class Crash {

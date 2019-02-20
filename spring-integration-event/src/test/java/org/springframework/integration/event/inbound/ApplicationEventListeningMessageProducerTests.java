@@ -16,21 +16,12 @@
 
 package org.springframework.integration.event.inbound;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -73,17 +64,17 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
-		assertNull(message1);
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
+		assertThat(message1).isNull();
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isTrue();
 		adapter.onApplicationEvent(new TestApplicationEvent1());
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isTrue();
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
-		assertNotNull(message2);
-		assertEquals("event1", ((ApplicationEvent) message2.getPayload()).getSource());
+		assertThat(message2).isNotNull();
+		assertThat(((ApplicationEvent) message2.getPayload()).getSource()).isEqualTo("event1");
 		Message<?> message3 = channel.receive(20);
-		assertNotNull(message3);
-		assertEquals("event2", ((ApplicationEvent) message3.getPayload()).getSource());
+		assertThat(message3).isNotNull();
+		assertThat(((ApplicationEvent) message3.getPayload()).getSource()).isEqualTo("event2");
 	}
 
 	@Test
@@ -94,26 +85,26 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setEventTypes(TestApplicationEvent1.class);
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
-		assertNull(message1);
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
+		assertThat(message1).isNull();
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isTrue();
 		adapter.onApplicationEvent(new TestApplicationEvent1());
-		assertFalse(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isFalse();
 		Message<?> message2 = channel.receive(20);
-		assertNotNull(message2);
-		assertEquals("event1", ((ApplicationEvent) message2.getPayload()).getSource());
-		assertNull(channel.receive(0));
+		assertThat(message2).isNotNull();
+		assertThat(((ApplicationEvent) message2.getPayload()).getSource()).isEqualTo("event1");
+		assertThat(channel.receive(0)).isNull();
 
 		adapter.setEventTypes((Class<? extends ApplicationEvent>) null);
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isTrue();
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isTrue();
 
 		adapter.setEventTypes(null, TestApplicationEvent2.class, null);
-		assertFalse(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isFalse();
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isTrue();
 
 		adapter.setEventTypes(null, null);
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
-		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class))).isTrue();
+		assertThat(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class))).isTrue();
 	}
 
 	@Test
@@ -122,20 +113,20 @@ public class ApplicationEventListeningMessageProducerTests {
 				"applicationEventInboundChannelAdapterTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channel");
 		Message<?> contextRefreshedEventMessage = channel.receive(0);
-		assertNotNull(contextRefreshedEventMessage);
-		assertEquals(ContextRefreshedEvent.class, contextRefreshedEventMessage.getPayload().getClass());
+		assertThat(contextRefreshedEventMessage).isNotNull();
+		assertThat(contextRefreshedEventMessage.getPayload().getClass()).isEqualTo(ContextRefreshedEvent.class);
 		context.start();
 		Message<?> startedEventMessage = channel.receive(0);
-		assertNotNull(startedEventMessage);
-		assertEquals(ContextStartedEvent.class, startedEventMessage.getPayload().getClass());
+		assertThat(startedEventMessage).isNotNull();
+		assertThat(startedEventMessage.getPayload().getClass()).isEqualTo(ContextStartedEvent.class);
 		context.stop();
 		Message<?> contextStoppedEventMessage = channel.receive(0);
-		assertNotNull(contextStoppedEventMessage);
-		assertEquals(ContextStoppedEvent.class, contextStoppedEventMessage.getPayload().getClass());
+		assertThat(contextStoppedEventMessage).isNotNull();
+		assertThat(contextStoppedEventMessage.getPayload().getClass()).isEqualTo(ContextStoppedEvent.class);
 		context.close();
 		Message<?> closedEventMessage = channel.receive(0);
-		assertNotNull(closedEventMessage);
-		assertEquals(ContextClosedEvent.class, closedEventMessage.getPayload().getClass());
+		assertThat(closedEventMessage).isNotNull();
+		assertThat(closedEventMessage.getPayload().getClass()).isEqualTo(ContextClosedEvent.class);
 	}
 
 	@Test
@@ -158,18 +149,18 @@ public class ApplicationEventListeningMessageProducerTests {
 
 		Message<?> message1 = channel.receive(0);
 		// ContextRefreshedEvent
-		assertNotNull(message1);
-		assertTrue(message1.getPayload().toString()
-				.contains("org.springframework.integration.test.util.TestUtils$TestApplicationContext"));
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload().toString()
+				.contains("org.springframework.integration.test.util.TestUtils$TestApplicationContext")).isTrue();
 
 		adapter.onApplicationEvent(new TestApplicationEvent1());
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
-		assertNotNull(message2);
-		assertEquals("received: event1", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("received: event1");
 		Message<?> message3 = channel.receive(20);
-		assertNotNull(message3);
-		assertEquals("received: event2", message3.getPayload());
+		assertThat(message3).isNotNull();
+		assertThat(message3.getPayload()).isEqualTo("received: event2");
 
 		ctx.close();
 	}
@@ -181,11 +172,11 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
-		assertNull(message1);
+		assertThat(message1).isNull();
 		adapter.onApplicationEvent(new MessagingEvent(new GenericMessage<>("test")));
 		Message<?> message2 = channel.receive(20);
-		assertNotNull(message2);
-		assertEquals("test", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -195,11 +186,11 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
-		assertNull(message1);
+		assertThat(message1).isNull();
 		adapter.onApplicationEvent(new TestMessagingEvent(new GenericMessage<>("test")));
 		Message<?> message2 = channel.receive(20);
-		assertNotNull(message2);
-		assertEquals("test", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("test");
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -219,8 +210,8 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		adapter.onApplicationEvent(new TestApplicationEvent1());
 		Message<?> message = errorChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+		assertThat(message).isNotNull();
+		assertThat(((Exception) message.getPayload()).getCause().getMessage()).isEqualTo("Failed");
 		adapter.setErrorChannel(null);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
 	}
@@ -254,27 +245,27 @@ public class ApplicationEventListeningMessageProducerTests {
 		 *  Previously, the retrieverCache grew unnecessarily; the adapter was added to the cache for each event type,
 		 *  event if not supported.
 		 */
-		assertEquals(2, retrieverCache.size());
+		assertThat(retrieverCache.size()).isEqualTo(2);
 		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
 			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved",
 					Class.class);
-			assertThat(event, Matchers.is(Matchers.isOneOf(ContextRefreshedEvent.class, TestApplicationEvent1.class)));
+			assertThat(event).isIn(ContextRefreshedEvent.class, TestApplicationEvent1.class);
 			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
-			assertEquals(1, listeners.size());
-			assertSame(ctx.getBean("testListener"), listeners.iterator().next());
+			assertThat(listeners.size()).isEqualTo(1);
+			assertThat(listeners.iterator().next()).isSameAs(ctx.getBean("testListener"));
 		}
 
 		TestApplicationEvent2 event2 = new TestApplicationEvent2();
 		ctx.publishEvent(event2);
-		assertEquals(3, retrieverCache.size());
+		assertThat(retrieverCache.size()).isEqualTo(3);
 		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
 			Class<?> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved", Class.class);
 			if (TestApplicationEvent2.class.isAssignableFrom(event)) {
 				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
-				assertEquals(2, listeners.size());
+				assertThat(listeners.size()).isEqualTo(2);
 				for (Object listener : listeners) {
-					assertThat(listener,
-							is(isOneOf(ctx.getBean("testListenerMessageProducer"), ctx.getBean("testListener"))));
+					assertThat(listener)
+							.isIn(ctx.getBean("testListenerMessageProducer"), ctx.getBean("testListener"));
 				}
 				break;
 			}
@@ -284,12 +275,12 @@ public class ApplicationEventListeningMessageProducerTests {
 
 		});
 
-		assertEquals(4, listenerCounter.get());
+		assertThat(listenerCounter.get()).isEqualTo(4);
 
 		final Message<?> receive = channel.receive(10);
-		assertNotNull(receive);
-		assertSame(event2, receive.getPayload());
-		assertNull(channel.receive(1));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isSameAs(event2);
+		assertThat(channel.receive(1)).isNull();
 		ctx.close();
 	}
 
@@ -310,8 +301,8 @@ public class ApplicationEventListeningMessageProducerTests {
 		ctx.publishEvent("foo");
 
 		Message<?> receive = channel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("foo", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("foo");
 
 		ctx.close();
 	}

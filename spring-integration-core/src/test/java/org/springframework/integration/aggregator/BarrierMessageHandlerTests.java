@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -39,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -121,19 +113,19 @@ public class BarrierMessageHandlerTests {
 			Thread.sleep(100);
 		}
 		Map<?, ?> inProcess = TestUtils.getPropertyValue(handler, "inProcess", Map.class);
-		assertEquals(1, inProcess.size());
-		assertTrue("suspension did not appear in time", n < 100);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(dupCorrelation.get());
-		assertThat(dupCorrelation.get().getMessage(), startsWith("Correlation key (foo) is already in use by"));
+		assertThat(inProcess.size()).isEqualTo(1);
+		assertThat(n < 100).as("suspension did not appear in time").isTrue();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(dupCorrelation.get()).isNotNull();
+		assertThat(dupCorrelation.get().getMessage()).startsWith("Correlation key (foo) is already in use by");
 		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		List<?> result = (List<?>) received.getPayload();
-		assertEquals("foo", result.get(0));
-		assertEquals("bar", result.get(1));
-		assertEquals(0, suspensions.size());
-		assertEquals(0, inProcess.size());
+		assertThat(result.get(0)).isEqualTo("foo");
+		assertThat(result.get(1)).isEqualTo("bar");
+		assertThat(suspensions.size()).isEqualTo(0);
+		assertThat(inProcess.size()).isEqualTo(0);
 		exec.shutdownNow();
 	}
 
@@ -151,14 +143,14 @@ public class BarrierMessageHandlerTests {
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("suspension did not appear in time", n < 100);
+		assertThat(n < 100).as("suspension did not appear in time").isTrue();
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		List<?> result = (ArrayList<?>) received.getPayload();
-		assertEquals("foo", result.get(0));
-		assertEquals("bar", result.get(1));
-		assertEquals(0, suspensions.size());
+		assertThat(result.get(0)).isEqualTo("foo");
+		assertThat(result.get(1)).isEqualTo("bar");
+		assertThat(suspensions.size()).isEqualTo(0);
 		exec.shutdownNow();
 	}
 
@@ -179,22 +171,21 @@ public class BarrierMessageHandlerTests {
 			latch.countDown();
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("suspension not removed", 0, suspensions.size());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(suspensions.size()).as("suspension not removed").isEqualTo(0);
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		final Message<String> triggerMessage = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
 		handler.trigger(triggerMessage);
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captor.capture());
-		assertThat(captor.getValue(),
-				allOf(containsString("Suspending thread timed out or did not arrive within timeout for:"),
-						containsString("payload=bar")));
-		assertEquals(0, suspensions.size());
+		assertThat(captor.getValue()).contains("Suspending thread timed out or did not arrive within timeout for:")
+				.contains("payload=bar");
+		assertThat(suspensions.size()).isEqualTo(0);
 		Message<?> discard = discardChannel.receive(0);
-		assertSame(discard, triggerMessage);
+		assertThat(triggerMessage).isSameAs(discard);
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
-		assertEquals(0, suspensions.size());
+		assertThat(suspensions.size()).isEqualTo(0);
 		exec.shutdownNow();
 	}
 
@@ -211,7 +202,7 @@ public class BarrierMessageHandlerTests {
 			fail("exception expected");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+			assertThat(e).isInstanceOf(ReplyRequiredException.class);
 		}
 	}
 
@@ -239,12 +230,12 @@ public class BarrierMessageHandlerTests {
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("suspension did not appear in time", n < 100);
+		assertThat(n < 100).as("suspension did not appear in time").isTrue();
 		Exception exc = new RuntimeException();
 		handler.trigger(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertSame(exc, exception.get().getCause());
-		assertEquals(0, suspensions.size());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(exception.get().getCause()).isSameAs(exc);
+		assertThat(suspensions.size()).isEqualTo(0);
 		exec.shutdownNow();
 	}
 
@@ -255,12 +246,12 @@ public class BarrierMessageHandlerTests {
 		Message<?> suspending = MessageBuilder.withPayload("foo").setCorrelationId("foo").build();
 		this.in.send(suspending);
 		Message<?> out = this.out.receive(10000);
-		assertNotNull(out);
-		assertEquals("[foo, bar]", out.getPayload().toString());
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload().toString()).isEqualTo("[foo, bar]");
 
 		Message<?> publisherMessage = this.publisherChannel.receive(10000);
-		assertNotNull(publisherMessage);
-		assertEquals("BAR", publisherMessage.getPayload());
+		assertThat(publisherMessage).isNotNull();
+		assertThat(publisherMessage.getPayload()).isEqualTo("BAR");
 	}
 
 	@Configuration

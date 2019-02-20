@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -100,8 +99,8 @@ public class OperationInvokingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("foobar", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -131,8 +130,8 @@ public class OperationInvokingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("foobar", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -148,8 +147,8 @@ public class OperationInvokingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("foo123", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("foo123");
 	}
 
 	public interface TestOpsMBean {

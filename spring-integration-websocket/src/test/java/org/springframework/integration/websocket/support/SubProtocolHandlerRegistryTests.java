@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.websocket.support;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -55,13 +49,14 @@ public class SubProtocolHandlerRegistryTests {
 		WebSocketSession session = mock(WebSocketSession.class);
 		when(session.getAcceptedProtocol()).thenReturn("v10.stomp", (String) null);
 		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertThat(protocolHandler, instanceOf(StompSubProtocolHandler.class));
+		assertThat(protocolHandler).isNotNull();
+		assertThat(protocolHandler).isInstanceOf(StompSubProtocolHandler.class);
 		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertSame(protocolHandler, defaultProtocolHandler);
+		assertThat(protocolHandler).isNotNull();
+		assertThat(defaultProtocolHandler).isSameAs(protocolHandler);
 
-		assertEquals(subProtocolHandlerRegistry.getSubProtocols(), new StompSubProtocolHandler().getSupportedProtocols());
+		assertThat(new StompSubProtocolHandler().getSupportedProtocols())
+				.isEqualTo(subProtocolHandlerRegistry.getSubProtocols());
 	}
 
 	@Test
@@ -73,12 +68,12 @@ public class SubProtocolHandlerRegistryTests {
 		WebSocketSession session = mock(WebSocketSession.class);
 		when(session.getAcceptedProtocol()).thenReturn("foo", (String) null);
 		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertSame(protocolHandler, testProtocolHandler);
+		assertThat(protocolHandler).isNotNull();
+		assertThat(testProtocolHandler).isSameAs(protocolHandler);
 
 		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertSame(protocolHandler, testProtocolHandler);
+		assertThat(protocolHandler).isNotNull();
+		assertThat(testProtocolHandler).isSameAs(protocolHandler);
 	}
 
 	@Test
@@ -94,17 +89,17 @@ public class SubProtocolHandlerRegistryTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("No handler for sub-protocol 'foo'"));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("No handler for sub-protocol 'foo'");
 		}
 
 		SubProtocolHandler protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertSame(protocolHandler, testProtocolHandler);
+		assertThat(protocolHandler).isNotNull();
+		assertThat(testProtocolHandler).isSameAs(protocolHandler);
 
 		protocolHandler = subProtocolHandlerRegistry.findProtocolHandler(session);
-		assertNotNull(protocolHandler);
-		assertSame(protocolHandler, testProtocolHandler);
+		assertThat(protocolHandler).isNotNull();
+		assertThat(testProtocolHandler).isSameAs(protocolHandler);
 	}
 
 	@Test
@@ -117,14 +112,14 @@ public class SubProtocolHandlerRegistryTests {
 				.build();
 
 		String sessionId = subProtocolHandlerRegistry.resolveSessionId(message);
-		assertEquals(sessionId, "TEST_SESSION");
+		assertThat("TEST_SESSION").isEqualTo(sessionId);
 
 		message = MessageBuilder.withPayload("foo")
 				.setHeader("MY_SESSION_ID", "TEST_SESSION")
 				.build();
 
 		sessionId = subProtocolHandlerRegistry.resolveSessionId(message);
-		assertNull(sessionId);
+		assertThat(sessionId).isNull();
 	}
 
 }

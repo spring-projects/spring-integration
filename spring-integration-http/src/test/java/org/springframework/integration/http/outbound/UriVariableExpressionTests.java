@@ -16,10 +16,8 @@
 
 package org.springframework.integration.http.outbound;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.net.URI;
@@ -72,9 +70,9 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
-		assertEquals("http://test/bar", uriHolder.get().toString());
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 	}
 
 	/**
@@ -101,9 +99,9 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
-		assertEquals("http://test/bar", uriHolder.get().toString());
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 	}
 
 	@Test
@@ -137,10 +135,10 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
 
-		assertEquals("http://test/bar", uriHolder.get().toString());
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/bar");
 
 		expressions.put("foo", new SpelExpressionParser().parseExpression("'bar'.toUpperCase()"));
 		try {
@@ -150,10 +148,10 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
 
-		assertEquals("http://test/BAR", uriHolder.get().toString());
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/BAR");
 
 		expressions.put("foo", new SpelExpressionParser().parseExpression("T(Integer).valueOf('42')"));
 		try {
@@ -163,7 +161,7 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause().getMessage(), containsString("Type cannot be found"));
+			assertThat(e.getCause().getMessage()).contains("Type cannot be found");
 		}
 
 		handler.setTrustedSpel(true);
@@ -174,9 +172,9 @@ public class UriVariableExpressionTests {
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
 		}
-		assertEquals("http://test/42", uriHolder.get().toString());
+		assertThat(uriHolder.get().toString()).isEqualTo("http://test/42");
 
 		context.close();
 	}

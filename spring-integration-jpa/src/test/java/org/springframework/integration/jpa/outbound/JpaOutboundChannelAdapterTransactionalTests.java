@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -62,8 +60,8 @@ public class JpaOutboundChannelAdapterTransactionalTests {
 		List<?> results1 =
 				new JdbcTemplate(this.dataSource)
 						.queryForList("Select * from Student");
-		assertNotNull(results1);
-		assertEquals(3, results1.size());
+		assertThat(results1).isNotNull();
+		assertThat(results1.size()).isEqualTo(3);
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
@@ -73,10 +71,10 @@ public class JpaOutboundChannelAdapterTransactionalTests {
 		List<?> results2 =
 				new JdbcTemplate(this.dataSource)
 						.queryForList("Select * from Student");
-		assertNotNull(results2);
-		assertEquals(4, results2.size());
+		assertThat(results2).isNotNull();
+		assertThat(results2.size()).isEqualTo(4);
 
-		assertNull(testStudent.getRollNumber());
+		assertThat(testStudent.getRollNumber()).isNull();
 	}
 
 }

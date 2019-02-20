@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.After;
 import org.junit.Test;
@@ -89,17 +85,17 @@ public class MockMessageSourceTests {
 				MockIntegration.mockMessageSource("foo", "bar", "baz"));
 
 		Message<?> receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 
 		receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("BAR", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("BAR");
 
 		for (int i = 0; i < 10; i++) {
 			receive = this.results.receive(10_000);
-			assertNotNull(receive);
-			assertEquals("BAZ", receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo("BAZ");
 		}
 
 		this.applicationContext.getBean("mySourceEndpoint", Lifecycle.class).stop();
@@ -111,17 +107,17 @@ public class MockMessageSourceTests {
 				Lifecycle.class).start();
 
 		Message<?> receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals(1, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(1);
 
 		receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals(2, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(2);
 
 		for (int i = 0; i < 10; i++) {
 			receive = this.results.receive(10_000);
-			assertNotNull(receive);
-			assertEquals(3, receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo(3);
 		}
 
 		this.applicationContext.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
@@ -133,17 +129,17 @@ public class MockMessageSourceTests {
 		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).start();
 
 		Message<?> receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("a", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("a");
 
 		receive = this.results.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("b", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("b");
 
 		for (int i = 0; i < 10; i++) {
 			receive = this.results.receive(10_000);
-			assertNotNull(receive);
-			assertEquals("c", receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo("c");
 		}
 
 		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).stop();
@@ -160,17 +156,17 @@ public class MockMessageSourceTests {
 		IntegrationFlowRegistration registration = this.integrationFlowContext.registration(flow).register();
 
 		Message<?> receive = out.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 
 		receive = out.receive(10_000);
-		assertNotNull(receive);
-		assertEquals("BAR", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("BAR");
 
 		for (int i = 0; i < 10; i++) {
 			receive = out.receive(10_000);
-			assertNotNull(receive);
-			assertEquals("BAZ", receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo("BAZ");
 		}
 
 		registration.destroy();
@@ -183,12 +179,11 @@ public class MockMessageSourceTests {
 			fail("BeanNotOfRequiredTypeException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanNotOfRequiredTypeException.class));
-			assertThat(e.getMessage(),
-					containsString("Bean named 'errorChannel' is expected to be of type " +
-							"'org.springframework.integration.endpoint.SourcePollingChannelAdapter' " +
-							"but was actually of type " +
-							"'org.springframework.integration.channel.PublishSubscribeChannel"));
+			assertThat(e).isInstanceOf(BeanNotOfRequiredTypeException.class);
+			assertThat(e.getMessage()).contains("Bean named 'errorChannel' is expected to be of type " +
+					"'org.springframework.integration.endpoint.SourcePollingChannelAdapter' " +
+					"but was actually of type " +
+					"'org.springframework.integration.channel.PublishSubscribeChannel");
 
 		}
 	}

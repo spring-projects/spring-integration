@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 
@@ -45,8 +44,8 @@ public class UnmarshallingTransformerTests {
 		Unmarshaller unmarshaller = new TestUnmarshaller(false);
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload("world".getBytes());
-		assertEquals(String.class, transformed.getClass());
-		assertEquals("hello world", transformed.toString());
+		assertThat(transformed.getClass()).isEqualTo(String.class);
+		assertThat(transformed.toString()).isEqualTo("hello world");
 	}
 
 	@Test
@@ -54,8 +53,8 @@ public class UnmarshallingTransformerTests {
 		Unmarshaller unmarshaller = new TestUnmarshaller(false);
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("world"));
-		assertEquals(String.class, transformed.getClass());
-		assertEquals("hello world", transformed.toString());
+		assertThat(transformed.getClass()).isEqualTo(String.class);
+		assertThat(transformed.toString()).isEqualTo("hello world");
 	}
 
 	@Test
@@ -63,8 +62,8 @@ public class UnmarshallingTransformerTests {
 		Unmarshaller unmarshaller = new TestUnmarshaller(true);
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("foo"));
-		assertEquals(GenericMessage.class, transformed.getClass());
-		assertEquals("message: foo", ((Message<?>) transformed).getPayload());
+		assertThat(transformed.getClass()).isEqualTo(GenericMessage.class);
+		assertThat(((Message<?>) transformed).getPayload()).isEqualTo("message: foo");
 	}
 
 	@Test
@@ -72,8 +71,8 @@ public class UnmarshallingTransformerTests {
 		Unmarshaller unmarshaller = new TestUnmarshaller(true);
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Message<?> result = transformer.transform(MessageBuilder.withPayload(new StringSource("bar")).build());
-		assertNotNull(result);
-		assertEquals("message: bar", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("message: bar");
 	}
 
 

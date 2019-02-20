@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -103,15 +98,15 @@ public class GroovyServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
-		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
-		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
+		assertThat(value1.startsWith("groovy-test-1-foo - bar")).isTrue();
+		assertThat(value2.startsWith("groovy-test-2-foo - bar")).isTrue();
+		assertThat(value3.startsWith("groovy-test-3-foo - bar")).isTrue();
 		// because we are using 'prototype bean the suffix date will be different
 
-		assertFalse(value1.substring(26).equals(value2.substring(26)));
-		assertFalse(value2.substring(26).equals(value3.substring(26)));
-		assertTrue(groovyCustomizer.executed);
-		assertNull(replyChannel.receive(0));
+		assertThat(value1.substring(26).equals(value2.substring(26))).isFalse();
+		assertThat(value2.substring(26).equals(value3.substring(26))).isFalse();
+		assertThat(groovyCustomizer.executed).isTrue();
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -127,15 +122,15 @@ public class GroovyServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
-		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
-		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
+		assertThat(value1.startsWith("groovy-test-1-foo - bar")).isTrue();
+		assertThat(value2.startsWith("groovy-test-2-foo - bar")).isTrue();
+		assertThat(value3.startsWith("groovy-test-3-foo - bar")).isTrue();
 		// because we are using 'prototype bean the suffix date will be different
 
-		assertFalse(value1.substring(26).equals(value2.substring(26)));
-		assertFalse(value2.substring(26).equals(value3.substring(26)));
-		assertTrue(groovyCustomizer.executed);
-		assertNull(replyChannel.receive(0));
+		assertThat(value1.substring(26).equals(value2.substring(26))).isFalse();
+		assertThat(value2.substring(26).equals(value3.substring(26))).isFalse();
+		assertThat(groovyCustomizer.executed).isTrue();
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -152,12 +147,12 @@ public class GroovyServiceActivatorTests {
 
 		String now = format.format(new Date());
 
-		assertEquals("inline-test-1 : " + now, replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-2 : " + now, replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-3 : " + now, replyChannel.receive(0).getPayload());
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-1 : " + now);
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-2 : " + now);
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-3 : " + now);
 
-		assertNull(replyChannel.receive(0));
-		assertTrue(groovyCustomizer.executed);
+		assertThat(replyChannel.receive(0)).isNull();
+		assertThat(groovyCustomizer.executed).isTrue();
 	}
 
 	@Test
@@ -172,11 +167,11 @@ public class GroovyServiceActivatorTests {
 
 		String now = format.format(new Date());
 
-		assertEquals("withoutVariables-test-1 : " + now, replyChannel.receive(0).getPayload());
-		assertEquals("withoutVariables-test-2 : " + now, replyChannel.receive(0).getPayload());
-		assertEquals("withoutVariables-test-3 : " + now, replyChannel.receive(0).getPayload());
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("withoutVariables-test-1 : " + now);
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("withoutVariables-test-2 : " + now);
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("withoutVariables-test-3 : " + now);
 
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	//INT-2399
@@ -190,9 +185,8 @@ public class GroovyServiceActivatorTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertEquals(MissingPropertyException.class, cause.getClass());
-			assertThat(cause.getMessage(),
-					Matchers.containsString("No such property: ReplyRequiredException for class: script"));
+			assertThat(cause.getClass()).isEqualTo(MissingPropertyException.class);
+			assertThat(cause.getMessage()).contains("No such property: ReplyRequiredException for class: script");
 			throw e;
 		}
 
@@ -207,7 +201,7 @@ public class GroovyServiceActivatorTests {
 	@Test
 	public void testGroovyScriptForOutboundChannelAdapter() {
 		this.outboundChannelAdapterWithGroovy.send(new GenericMessage<String>("foo"));
-		assertTrue(this.invoked.get());
+		assertThat(this.invoked.get()).isTrue();
 	}
 
 

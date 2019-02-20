@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.websocket.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -150,172 +142,181 @@ public class WebSocketParserTests {
 	@SuppressWarnings("unckecked")
 	public void testDefaultInboundChannelAdapterAndServerContainer() {
 		Map<?, ?> urlMap = TestUtils.getPropertyValue(this.handlerMapping, "urlMap", Map.class);
-		assertEquals(1, urlMap.size());
-		assertTrue(urlMap.containsKey("/ws/**"));
+		assertThat(urlMap.size()).isEqualTo(1);
+		assertThat(urlMap.containsKey("/ws/**")).isTrue();
 		Object mappedHandler = urlMap.get("/ws/**");
 		//WebSocketHttpRequestHandler -> ExceptionWebSocketHandlerDecorator - > LoggingWebSocketHandlerDecorator
 		// -> IntegrationWebSocketContainer$IntegrationWebSocketHandler
-		assertSame(TestUtils.getPropertyValue(this.serverWebSocketContainer, "webSocketHandler"),
-				TestUtils.getPropertyValue(mappedHandler, "webSocketHandler.delegate.delegate"));
-		assertSame(this.handshakeHandler,
-				TestUtils.getPropertyValue(this.serverWebSocketContainer, "handshakeHandler"));
+		assertThat(TestUtils.getPropertyValue(mappedHandler, "webSocketHandler.delegate.delegate"))
+				.isSameAs(TestUtils.getPropertyValue(this.serverWebSocketContainer, "webSocketHandler"));
+		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "handshakeHandler"))
+				.isSameAs(this.handshakeHandler);
 		HandshakeInterceptor[] interceptors =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "interceptors", HandshakeInterceptor[].class);
-		assertNotNull(interceptors);
-		assertEquals(1, interceptors.length);
-		assertSame(this.handshakeInterceptor, interceptors[0]);
-		assertEquals(100, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit"));
-		assertEquals(100000, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit"));
-		assertArrayEquals(new String[] {"http://foo.com"},
-				TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class));
+		assertThat(interceptors).isNotNull();
+		assertThat(interceptors.length).isEqualTo(1);
+		assertThat(interceptors[0]).isSameAs(this.handshakeInterceptor);
+		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
+		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(100000);
+		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class))
+				.isEqualTo(new String[] { "http://foo.com" });
 
 		WebSocketHandlerDecoratorFactory[] decoratorFactories =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "decoratorFactories",
 						WebSocketHandlerDecoratorFactory[].class);
-		assertNotNull(decoratorFactories);
-		assertEquals(1, decoratorFactories.length);
-		assertSame(this.decoratorFactory, decoratorFactories[0]);
+		assertThat(decoratorFactories).isNotNull();
+		assertThat(decoratorFactories.length).isEqualTo(1);
+		assertThat(decoratorFactories[0]).isSameAs(this.decoratorFactory);
 
 		TransportHandlingSockJsService sockJsService =
 				TestUtils.getPropertyValue(mappedHandler, "sockJsService", TransportHandlingSockJsService.class);
-		assertSame(this.taskScheduler, sockJsService.getTaskScheduler());
-		assertSame(this.sockJsMessageCodec, sockJsService.getMessageCodec());
+		assertThat(sockJsService.getTaskScheduler()).isSameAs(this.taskScheduler);
+		assertThat(sockJsService.getMessageCodec()).isSameAs(this.sockJsMessageCodec);
 		Map<TransportType, TransportHandler> transportHandlers = sockJsService.getTransportHandlers();
 
 		//If "handshake-handler" is provided, "transport-handlers" isn't allowed
-		assertEquals(6, transportHandlers.size());
-		assertSame(this.handshakeHandler,
-				TestUtils.getPropertyValue(transportHandlers.get(TransportType.WEBSOCKET), "handshakeHandler"));
-		assertEquals(4000L, sockJsService.getDisconnectDelay());
-		assertEquals(30000L, sockJsService.getHeartbeatTime());
-		assertEquals(10000, sockJsService.getHttpMessageCacheSize());
-		assertEquals(2000, sockJsService.getStreamBytesLimit());
-		assertEquals("https://foo.sock.js", sockJsService.getSockJsClientLibraryUrl());
-		assertFalse(sockJsService.isSessionCookieNeeded());
-		assertFalse(sockJsService.isWebSocketEnabled());
-		assertTrue(sockJsService.shouldSuppressCors());
+		assertThat(transportHandlers.size()).isEqualTo(6);
+		assertThat(TestUtils.getPropertyValue(transportHandlers.get(TransportType.WEBSOCKET), "handshakeHandler"))
+				.isSameAs(this.handshakeHandler);
+		assertThat(sockJsService.getDisconnectDelay()).isEqualTo(4000L);
+		assertThat(sockJsService.getHeartbeatTime()).isEqualTo(30000L);
+		assertThat(sockJsService.getHttpMessageCacheSize()).isEqualTo(10000);
+		assertThat(sockJsService.getStreamBytesLimit()).isEqualTo(2000);
+		assertThat(sockJsService.getSockJsClientLibraryUrl()).isEqualTo("https://foo.sock.js");
+		assertThat(sockJsService.isSessionCookieNeeded()).isFalse();
+		assertThat(sockJsService.isWebSocketEnabled()).isFalse();
+		assertThat(sockJsService.shouldSuppressCors()).isTrue();
 
-		assertSame(this.serverWebSocketContainer,
-				TestUtils.getPropertyValue(this.defaultInboundAdapter, "webSocketContainer"));
-		assertNull(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverters"));
-		assertEquals(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverter.converters"),
-				TestUtils.getPropertyValue(this.defaultInboundAdapter, "defaultConverters"));
-		assertEquals(String.class,
-				TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", AtomicReference.class).get());
-		assertTrue(TestUtils.getPropertyValue(this.defaultInboundAdapter, "useBroker", Boolean.class));
-		assertSame(this.brokerHandler, TestUtils.getPropertyValue(this.defaultInboundAdapter, "brokerHandler"));
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "webSocketContainer"))
+				.isSameAs(this.serverWebSocketContainer);
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverters")).isNull();
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "defaultConverters"))
+				.isEqualTo(TestUtils.getPropertyValue(this.defaultInboundAdapter, "messageConverter.converters"));
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "payloadType", AtomicReference.class).get())
+				.isEqualTo(String.class);
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "useBroker", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.defaultInboundAdapter, "brokerHandler"))
+				.isSameAs(this.brokerHandler);
 
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.defaultInboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
-		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "defaultProtocolHandler"),
-				instanceOf(PassThruSubProtocolHandler.class));
-		assertTrue(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class).isEmpty());
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "defaultProtocolHandler"))
+				.isInstanceOf(PassThruSubProtocolHandler.class);
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class).isEmpty())
+				.isTrue();
 	}
 
 	@Test
 	public void testCustomInboundChannelAdapterAndClientContainer() throws URISyntaxException {
-		assertSame(this.clientInboundChannel, TestUtils.getPropertyValue(this.customInboundAdapter, "outputChannel"));
-		assertSame(this.errorChannel, TestUtils.getPropertyValue(this.customInboundAdapter, "errorChannel"));
-		assertSame(this.clientWebSocketContainer,
-				TestUtils.getPropertyValue(this.customInboundAdapter, "webSocketContainer"));
-		assertEquals(2000L, TestUtils.getPropertyValue(this.customInboundAdapter, "messagingTemplate.sendTimeout"));
-		assertEquals(200, TestUtils.getPropertyValue(this.customInboundAdapter, "phase"));
-		assertFalse(TestUtils.getPropertyValue(this.customInboundAdapter, "autoStartup", Boolean.class));
-		assertEquals(Integer.class,
-				TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", AtomicReference.class).get());
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "outputChannel"))
+				.isSameAs(this.clientInboundChannel);
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "errorChannel")).isSameAs(this.errorChannel);
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "webSocketContainer"))
+				.isSameAs(this.clientWebSocketContainer);
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "messagingTemplate.sendTimeout"))
+				.isEqualTo(2000L);
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "phase")).isEqualTo(200);
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "payloadType", AtomicReference.class).get())
+				.isEqualTo(Integer.class);
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.customInboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
-		assertSame(this.stompSubProtocolHandler, TestUtils.getPropertyValue(subProtocolHandlerRegistry,
-				"defaultProtocolHandler"));
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry,
+				"defaultProtocolHandler")).isSameAs(this.stompSubProtocolHandler);
 		Map<?, ?> protocolHandlers =
 				TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class);
-		assertEquals(3, protocolHandlers.size());
+		assertThat(protocolHandlers.size()).isEqualTo(3);
 		//PassThruSubProtocolHandler is ignored because it doesn't provide any 'protocol' by default.
 		//See warn log message.
 		for (Object handler : protocolHandlers.values()) {
-			assertSame(this.stompSubProtocolHandler, handler);
+			assertThat(handler).isSameAs(this.stompSubProtocolHandler);
 		}
 
-		assertTrue(TestUtils.getPropertyValue(this.customInboundAdapter, "mergeWithDefaultConverters", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.customInboundAdapter, "mergeWithDefaultConverters", Boolean.class))
+				.isTrue();
 		CompositeMessageConverter compositeMessageConverter = TestUtils.getPropertyValue(this.customInboundAdapter,
 				"messageConverter", CompositeMessageConverter.class);
 		List<MessageConverter> converters = compositeMessageConverter.getConverters();
-		assertEquals(5, converters.size());
-		assertSame(this.simpleMessageConverter, converters.get(0));
-		assertSame(this.mapMessageConverter, converters.get(1));
-		assertThat(converters.get(2), instanceOf(StringMessageConverter.class));
+		assertThat(converters.size()).isEqualTo(5);
+		assertThat(converters.get(0)).isSameAs(this.simpleMessageConverter);
+		assertThat(converters.get(1)).isSameAs(this.mapMessageConverter);
+		assertThat(converters.get(2)).isInstanceOf(StringMessageConverter.class);
 
 		//Test ClientWebSocketContainer parser
-		assertSame(this.customInboundAdapter,
-				TestUtils.getPropertyValue(this.clientWebSocketContainer, "messageListener"));
-		assertEquals(100, TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendTimeLimit"));
-		assertEquals(1000, TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendBufferSizeLimit"));
-		assertEquals(new URI("ws://foo.bar/ws?service=user"),
-				TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.uri", URI.class));
-		assertSame(this.webSocketClient,
-				TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.client"));
-		assertEquals(100, TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.phase"));
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "messageListener"))
+				.isSameAs(this.customInboundAdapter);
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(1000);
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.uri", URI.class))
+				.isEqualTo(new URI("ws://foo.bar/ws?service=user"));
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.client"))
+				.isSameAs(this.webSocketClient);
+		assertThat(TestUtils.getPropertyValue(this.clientWebSocketContainer, "connectionManager.phase")).isEqualTo(100);
 		WebSocketHttpHeaders headers = TestUtils.getPropertyValue(this.clientWebSocketContainer, "headers",
 				WebSocketHttpHeaders.class);
-		assertEquals("FOO", headers.getOrigin());
-		assertEquals(Arrays.asList("BAR", "baz"), headers.get("FOO"));
+		assertThat(headers.getOrigin()).isEqualTo("FOO");
+		assertThat(headers.get("FOO")).isEqualTo(Arrays.asList("BAR", "baz"));
 
-		assertEquals(10 * 1000, TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendTimeLimit"));
-		assertEquals(512 * 1024, TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendBufferSizeLimit"));
-		assertEquals(new URI("ws://foo.bar"),
-				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.uri", URI.class));
-		assertSame(this.webSocketClient,
-				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.client"));
-		assertEquals(Integer.MAX_VALUE,
-				TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.phase"));
-		assertFalse(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer,
-				"connectionManager.autoStartup", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "headers",
-				WebSocketHttpHeaders.class).isEmpty());
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendTimeLimit"))
+				.isEqualTo(10 * 1000);
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "sendBufferSizeLimit"))
+				.isEqualTo(512 * 1024);
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.uri", URI.class))
+				.isEqualTo(new URI("ws://foo.bar"));
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.client"))
+				.isSameAs(this.webSocketClient);
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "connectionManager.phase"))
+				.isEqualTo(Integer.MAX_VALUE);
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer,
+				"connectionManager.autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.simpleClientWebSocketContainer, "headers",
+				WebSocketHttpHeaders.class).isEmpty()).isTrue();
 	}
 
 	@Test
 	public void testDefaultOutboundChannelAdapter() {
-		assertSame(this.serverWebSocketContainer,
-				TestUtils.getPropertyValue(this.defaultOutboundAdapter, "webSocketContainer"));
-		assertNull(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "messageConverters"));
-		assertEquals(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "messageConverter.converters"),
-				TestUtils.getPropertyValue(this.defaultOutboundAdapter, "defaultConverters"));
+		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "webSocketContainer"))
+				.isSameAs(this.serverWebSocketContainer);
+		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "messageConverters")).isNull();
+		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "defaultConverters"))
+				.isEqualTo(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "messageConverter.converters"));
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.defaultOutboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
-		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "defaultProtocolHandler"),
-				instanceOf(PassThruSubProtocolHandler.class));
-		assertTrue(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class).isEmpty());
-		assertFalse(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "client", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "defaultProtocolHandler"))
+				.isInstanceOf(PassThruSubProtocolHandler.class);
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class).isEmpty())
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(this.defaultOutboundAdapter, "client", Boolean.class)).isFalse();
 	}
 
 	@Test
 	public void testCustomOutboundChannelAdapter() throws URISyntaxException {
-		assertSame(this.clientWebSocketContainer,
-				TestUtils.getPropertyValue(this.customOutboundAdapter, "webSocketContainer"));
+		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "webSocketContainer"))
+				.isSameAs(this.clientWebSocketContainer);
 
 		SubProtocolHandlerRegistry subProtocolHandlerRegistry = TestUtils.getPropertyValue(this.customOutboundAdapter,
 				"subProtocolHandlerRegistry", SubProtocolHandlerRegistry.class);
-		assertSame(this.stompSubProtocolHandler, TestUtils.getPropertyValue(subProtocolHandlerRegistry,
-				"defaultProtocolHandler"));
+		assertThat(TestUtils.getPropertyValue(subProtocolHandlerRegistry,
+				"defaultProtocolHandler")).isSameAs(this.stompSubProtocolHandler);
 		Map<?, ?> protocolHandlers =
 				TestUtils.getPropertyValue(subProtocolHandlerRegistry, "protocolHandlers", Map.class);
-		assertEquals(3, protocolHandlers.size());
+		assertThat(protocolHandlers.size()).isEqualTo(3);
 		//PassThruSubProtocolHandler is ignored because it doesn't provide any 'protocol' by default.
 		//See warn log message.
 		for (Object handler : protocolHandlers.values()) {
-			assertSame(this.stompSubProtocolHandler, handler);
+			assertThat(handler).isSameAs(this.stompSubProtocolHandler);
 		}
 
-		assertTrue(TestUtils.getPropertyValue(this.customOutboundAdapter, "mergeWithDefaultConverters", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "mergeWithDefaultConverters", Boolean.class))
+				.isTrue();
 		CompositeMessageConverter compositeMessageConverter = TestUtils.getPropertyValue(this.customOutboundAdapter,
 				"messageConverter", CompositeMessageConverter.class);
 		List<MessageConverter> converters = compositeMessageConverter.getConverters();
-		assertEquals(5, converters.size());
-		assertSame(this.simpleMessageConverter, converters.get(0));
-		assertSame(this.mapMessageConverter, converters.get(1));
-		assertThat(converters.get(2), instanceOf(StringMessageConverter.class));
-		assertTrue(TestUtils.getPropertyValue(this.customOutboundAdapter, "client", Boolean.class));
+		assertThat(converters.size()).isEqualTo(5);
+		assertThat(converters.get(0)).isSameAs(this.simpleMessageConverter);
+		assertThat(converters.get(1)).isSameAs(this.mapMessageConverter);
+		assertThat(converters.get(2)).isInstanceOf(StringMessageConverter.class);
+		assertThat(TestUtils.getPropertyValue(this.customOutboundAdapter, "client", Boolean.class)).isTrue();
 	}
 
 	private static class TestWebSocketHandlerDecoratorFactory implements WebSocketHandlerDecoratorFactory {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.jdbc.mysql;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -48,6 +41,7 @@ import org.springframework.integration.jdbc.store.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.JdbcMessageStoreTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
@@ -118,26 +112,25 @@ public class MySqlJdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testGetNonExistent() throws Exception {
+	public void testGetNonExistent() {
 		Message<?> result = messageStore.getMessage(UUID.randomUUID());
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndGet() throws Exception {
+	public void testAddAndGet() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNotNull(result);
-		assertThat(saved, sameExceptIgnorableHeaders(result));
+		assertThat(result).isNotNull();
+		assertThat(saved).matches(new MessagePredicate(result));
 	}
 
 	@Test
 	@Transactional
-	public void testWithMessageHistory() throws Exception {
-
-		Message<?> message = new GenericMessage<String>("Hello");
+	public void testWithMessageHistory() {
+		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
@@ -148,128 +141,129 @@ public class MySqlJdbcMessageStoreTests {
 		messageStore.addMessage(message);
 		message = messageStore.getMessage(message.getHeaders().getId());
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
 	@Transactional
-	public void testSize() throws Exception {
+	public void testSize() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessage(message);
-		assertEquals(1, messageStore.getMessageCount());
+		assertThat(messageStore.getMessageCount()).isEqualTo(1);
 	}
 
 	@Test
 	@Transactional
-	public void testSerializer() throws Exception {
+	public void testSerializer() {
 		// N.B. these serializers are not realistic (just for test purposes)
 		messageStore.setSerializer((object, outputStream) -> {
-			outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
+			outputStream.write(object.getPayload().toString().getBytes());
 			outputStream.flush();
 		});
 		messageStore.setDeserializer(inputStream -> {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-			return new GenericMessage<String>(reader.readLine());
+			return new GenericMessage<>(reader.readLine());
 		});
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
+		assertThat(messageStore.getMessage(message.getHeaders().getId())).isNotNull();
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndGetWithDifferentRegion() throws Exception {
+	public void testAddAndGetWithDifferentRegion() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		messageStore.setRegion("FOO");
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndUpdate() throws Exception {
+	public void testAddAndUpdate() {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
 		message = messageStore.addMessage(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.addMessage(message);
-		assertEquals("Y", new IntegrationMessageHeaderAccessor(messageStore.getMessage(message.getHeaders().getId())).getCorrelationId());
+		assertThat(new IntegrationMessageHeaderAccessor(messageStore.getMessage(message.getHeaders().getId()))
+				.getCorrelationId()).isEqualTo("Y");
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndUpdateAlreadySaved() throws Exception {
+	public void testAddAndUpdateAlreadySaved() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		Message<String> result = messageStore.addMessage(message);
-		assertSame(message, result);
+		assertThat(result).isSameAs(message);
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndUpdateAlreadySavedAndCopied() throws Exception {
+	public void testAddAndUpdateAlreadySavedAndCopied() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).build();
 		Message<String> result = messageStore.addMessage(copy);
-		assertEquals(copy, result);
-		assertEquals(saved, result);
-		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
+		assertThat(result).isEqualTo(copy);
+		assertThat(result).isEqualTo(saved);
+		assertThat(messageStore.getMessage(saved.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndUpdateWithChange() throws Exception {
+	public void testAddAndUpdateWithChange() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
-		assertNotSame(saved, result);
-		assertThat(saved, sameExceptIgnorableHeaders(result, "newHeader"));
-		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
+		assertThat(result).isNotSameAs(saved);
+		assertThat(saved).matches(new MessagePredicate(result, "newHeader"));
+		assertThat(messageStore.getMessage(saved.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndRemoveMessageGroup() throws Exception {
+	public void testAddAndRemoveMessageGroup() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
-		assertNotNull(messageStore.removeMessage(message.getHeaders().getId()));
+		assertThat(messageStore.removeMessage(message.getHeaders().getId())).isNotNull();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndGetMessageGroup() throws Exception {
+	public void testAddAndGetMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		long now = System.currentTimeMillis();
 		messageStore.addMessageToGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
-		assertTrue("Timestamp too early: " + group.getTimestamp() + "<" + now, group.getTimestamp() >= now);
+		assertThat(group.size()).isEqualTo(1);
+		assertThat(group.getTimestamp() >= now).as("Timestamp too early: " + group.getTimestamp() + "<" + now).isTrue();
 	}
 
 	@Test
 	@Transactional
-	public void testAddAndRemoveMessageFromMessageGroup() throws Exception {
+	public void testAddAndRemoveMessageFromMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
 	@Transactional
-	public void testRemoveMessageGroup() throws Exception {
+	public void testRemoveMessageGroup() {
 		JdbcTemplate template = new JdbcTemplate(dataSource);
 		template.afterPropertiesSet();
 		String groupId = "X";
@@ -278,52 +272,52 @@ public class MySqlJdbcMessageStoreTests {
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.removeMessageGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 
 		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
-		assertTrue(template.queryForList(
-				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '" + uuidGroupId + "'").size() == 0);
+		assertThat(template.queryForList(
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '" + uuidGroupId + "'").size() == 0).isTrue();
 	}
 
 	@Test
 	@Transactional
-	public void testCompleteMessageGroup() throws Exception {
+	public void testCompleteMessageGroup() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.completeGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertTrue(group.isComplete());
-		assertEquals(1, group.size());
+		assertThat(group.isComplete()).isTrue();
+		assertThat(group.size()).isEqualTo(1);
 	}
 
 	@Test
 	@Transactional
-	public void testUpdateLastReleasedSequence() throws Exception {
+	public void testUpdateLastReleasedSequence() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.setLastReleasedSequenceNumberForGroup(groupId, 5);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(5, group.getLastReleasedMessageSequenceNumber());
+		assertThat(group.getLastReleasedMessageSequenceNumber()).isEqualTo(5);
 	}
 
 	@Test
 	@Transactional
-	public void testMessageGroupCount() throws Exception {
+	public void testMessageGroupCount() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessageToGroup(groupId, message);
-		assertEquals(1, messageStore.getMessageGroupCount());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
 	}
 
 	@Test
 	@Transactional
-	public void testMessageGroupSizes() throws Exception {
+	public void testMessageGroupSizes() {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessageToGroup(groupId, message);
-		assertEquals(1, messageStore.getMessageCountForAllMessageGroups());
+		assertThat(messageStore.getMessageCountForAllMessageGroups()).isEqualTo(1);
 	}
 
 	@Test
@@ -335,9 +329,9 @@ public class MySqlJdbcMessageStoreTests {
 		Thread.sleep(1);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(2, group.size());
-		assertEquals("foo", messageStore.pollMessageFromGroup(groupId).getPayload());
-		assertEquals("bar", messageStore.pollMessageFromGroup(groupId).getPayload());
+		assertThat(group.size()).isEqualTo(2);
+		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("foo");
+		assertThat(messageStore.pollMessageFromGroup(groupId).getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -351,12 +345,12 @@ public class MySqlJdbcMessageStoreTests {
 		Thread.sleep(1000);
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		Thread.sleep(2001);
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -371,15 +365,15 @@ public class MySqlJdbcMessageStoreTests {
 		Thread.sleep(1000);
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 		Thread.sleep(2000);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(2, group.size());
+		assertThat(group.size()).isEqualTo(2);
 		Thread.sleep(2000);
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -399,29 +393,28 @@ public class MySqlJdbcMessageStoreTests {
 		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupX).build());
 		Thread.sleep(100);
 		MessageGroup group = messageStore.getMessageGroup(groupX);
-		assertEquals(3, group.size());
+		assertThat(group.size()).isEqualTo(3);
 
 		Message<?> message1 = messageStore.pollMessageFromGroup(groupX);
-		assertNotNull(message1);
-		assertEquals("foo", message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("foo");
 
 		group = messageStore.getMessageGroup(groupX);
-		assertEquals(2, group.size());
+		assertThat(group.size()).isEqualTo(2);
 
 		Message<?> message2 = messageStore.pollMessageFromGroup(groupX);
-		assertNotNull(message2);
-		assertEquals("bar", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("bar");
 
 		group = messageStore.getMessageGroup(groupX);
-		assertEquals(1, group.size());
+		assertThat(group.size()).isEqualTo(1);
 	}
 
 	@Test
 	@Transactional
 	@Rollback(false)
 	@Repeat(20)
-	public void testSameMessageToMultipleGroups() throws Exception {
-
+	public void testSameMessageToMultipleGroups() {
 		final String group1Id = "group1";
 		final String group2Id = "group2";
 
@@ -442,14 +435,18 @@ public class MySqlJdbcMessageStoreTests {
 		final Message<?> messageFromGroup1 = messageStore.pollMessageFromGroup(group1Id);
 		final Message<?> messageFromGroup2 = messageStore.pollMessageFromGroup(group2Id);
 
-		assertNotNull(messageFromGroup1);
-		assertNotNull(messageFromGroup2);
+		assertThat(messageFromGroup1).isNotNull();
+		assertThat(messageFromGroup2).isNotNull();
 
-		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
-		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup2).getSequenceNumber());
+		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId()
+				+ "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
+		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId()
+				+ "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertThat(messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+				.isEqualTo(1);
+		assertThat(messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+				.isEqualTo(2);
 
 	}
 
@@ -457,8 +454,7 @@ public class MySqlJdbcMessageStoreTests {
 	@Transactional
 	@Rollback(false)
 	@Repeat(20)
-	public void testSameMessageAndGroupToMultipleRegions() throws Exception {
-
+	public void testSameMessageAndGroupToMultipleRegions() {
 		final String groupId = "myGroup";
 		final String region1 = "region1";
 		final String region2 = "region2";
@@ -486,15 +482,18 @@ public class MySqlJdbcMessageStoreTests {
 		final Message<?> messageFromRegion1 = messageStore1.pollMessageFromGroup(groupId);
 		final Message<?> messageFromRegion2 = messageStore2.pollMessageFromGroup(groupId);
 
-		assertNotNull(messageFromRegion1);
-		assertNotNull(messageFromRegion2);
+		assertThat(messageFromRegion1).isNotNull();
+		assertThat(messageFromRegion2).isNotNull();
 
-		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
-		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
+		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId()
+				+ "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
+		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId()
+				+ "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-
+		assertThat(messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+				.isEqualTo(1);
+		assertThat(messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+				.isEqualTo(2);
 	}
 
 }

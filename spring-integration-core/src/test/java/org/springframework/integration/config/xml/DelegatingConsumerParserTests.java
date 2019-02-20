@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -143,52 +140,52 @@ public class DelegatingConsumerParserTests {
 
 	@Test
 	public void testDelegates() {
-		assertTrue(directFilter instanceof MyFilter);
+		assertThat(directFilter instanceof MyFilter).isTrue();
 		testHandler(directFilter);
-		assertTrue(refFilter instanceof MyFilter);
+		assertThat(refFilter instanceof MyFilter).isTrue();
 		testHandler(refFilter);
 		// MessageSelector (wrapped in MessageFilter) wins here
-		assertTrue(filterWithMessageSelectorThatsAlsoAnARPMH instanceof MessageFilter);
+		assertThat(filterWithMessageSelectorThatsAlsoAnARPMH instanceof MessageFilter).isTrue();
 		testHandler(filterWithMessageSelectorThatsAlsoAnARPMH);
 
-		assertTrue(directRouter instanceof MyRouter);
+		assertThat(directRouter instanceof MyRouter).isTrue();
 		testHandler(directRouter);
-		assertTrue(refRouter instanceof MyRouter);
+		assertThat(refRouter instanceof MyRouter).isTrue();
 		testHandler(refRouter);
-		assertTrue(directRouterMH instanceof MyRouterMH);
+		assertThat(directRouterMH instanceof MyRouterMH).isTrue();
 		testHandler(directRouterMH);
-		assertTrue(refRouterMH instanceof MyRouterMH);
+		assertThat(refRouterMH instanceof MyRouterMH).isTrue();
 		testHandler(refRouterMH);
-		assertTrue(directRouterARPMH instanceof MyRouterARPMH);
+		assertThat(directRouterARPMH instanceof MyRouterARPMH).isTrue();
 		testHandler(directRouterARPMH);
-		assertTrue(refRouterARPMH instanceof MyRouterARPMH);
+		assertThat(refRouterARPMH instanceof MyRouterARPMH).isTrue();
 		testHandler(refRouterARPMH);
 
-		assertTrue(directServiceARPMH instanceof MyServiceARPMH);
+		assertThat(directServiceARPMH instanceof MyServiceARPMH).isTrue();
 		testHandler(directServiceARPMH);
-		assertTrue(refServiceARPMH instanceof MyServiceARPMH);
+		assertThat(refServiceARPMH instanceof MyServiceARPMH).isTrue();
 		testHandler(refServiceARPMH);
 
-		assertTrue(directSplitter instanceof MySplitter);
+		assertThat(directSplitter instanceof MySplitter).isTrue();
 		testHandler(directSplitter);
-		assertTrue(refSplitter instanceof MySplitter);
+		assertThat(refSplitter instanceof MySplitter).isTrue();
 		testHandler(refSplitter);
-		assertTrue(splitterWithARPMH instanceof MySplitterThatsAnARPMH);
+		assertThat(splitterWithARPMH instanceof MySplitterThatsAnARPMH).isTrue();
 		testHandler(splitterWithARPMH);
-		assertTrue(splitterWithARPMHWithAtts instanceof MySplitterThatsAnARPMH);
-		assertEquals(Long.valueOf(123),
-				TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class));
+		assertThat(splitterWithARPMHWithAtts instanceof MySplitterThatsAnARPMH).isTrue();
+		assertThat(TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class))
+				.isEqualTo(Long.valueOf(123));
 		testHandler(splitterWithARPMHWithAtts);
 
-		assertTrue(directTransformer instanceof MessageTransformingHandler);
-		assertTrue(TestUtils.getPropertyValue(directTransformer, "transformer") instanceof MyTransformer);
+		assertThat(directTransformer instanceof MessageTransformingHandler).isTrue();
+		assertThat(TestUtils.getPropertyValue(directTransformer, "transformer") instanceof MyTransformer).isTrue();
 		testHandler(directTransformer);
-		assertTrue(refTransformer instanceof MessageTransformingHandler);
-		assertTrue(TestUtils.getPropertyValue(refTransformer, "transformer") instanceof MyTransformer);
+		assertThat(refTransformer instanceof MessageTransformingHandler).isTrue();
+		assertThat(TestUtils.getPropertyValue(refTransformer, "transformer") instanceof MyTransformer).isTrue();
 		testHandler(refTransformer);
-		assertTrue(directTransformerARPMH instanceof MyTransformerARPMH);
+		assertThat(directTransformerARPMH instanceof MyTransformerARPMH).isTrue();
 		testHandler(directTransformerARPMH);
-		assertTrue(refTransformerARPMH instanceof MyTransformerARPMH);
+		assertThat(refTransformerARPMH instanceof MyTransformerARPMH).isTrue();
 		testHandler(refTransformerARPMH);
 
 	}
@@ -203,7 +200,7 @@ public class DelegatingConsumerParserTests {
 		fb.setTargetObject(service);
 		fb.getObject();
 
-		assertTrue(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service));
+		assertThat(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service)).isTrue();
 
 		ServiceActivatorFactoryBean fb2 = new ServiceActivatorFactoryBean();
 		fb2.setBeanFactory(mock(BeanFactory.class));
@@ -213,13 +210,14 @@ public class DelegatingConsumerParserTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertEquals("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
-					+ "use scope=\"prototype\"", e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
+							+ "use scope=\"prototype\"");
 		}
 
 		fb.destroy();
 
-		assertFalse(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service));
+		assertThat(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service)).isFalse();
 	}
 
 	private void testHandler(MessageHandler handler) {
@@ -227,7 +225,7 @@ public class DelegatingConsumerParserTests {
 				.setReplyChannel(replyChannel)
 				.build();
 		handler.handleMessage(message);
-		assertNotNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0)).isNotNull();
 
 	}
 

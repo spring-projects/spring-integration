@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.atLeast;
@@ -77,11 +71,11 @@ public class ConnectionFactoryTests {
 	@Test
 	public void factoryBeanTests() {
 		TcpConnectionFactoryFactoryBean fb = new TcpConnectionFactoryFactoryBean("client");
-		assertEquals(AbstractClientConnectionFactory.class, fb.getObjectType());
+		assertThat(fb.getObjectType()).isEqualTo(AbstractClientConnectionFactory.class);
 		fb = new TcpConnectionFactoryFactoryBean("server");
-		assertEquals(AbstractServerConnectionFactory.class, fb.getObjectType());
+		assertThat(fb.getObjectType()).isEqualTo(AbstractServerConnectionFactory.class);
 		fb = new TcpConnectionFactoryFactoryBean();
-		assertEquals(AbstractConnectionFactory.class, fb.getObjectType());
+		assertThat(fb.getObjectType()).isEqualTo(AbstractConnectionFactory.class);
 	}
 
 	@Test
@@ -142,9 +136,9 @@ public class ConnectionFactoryTests {
 		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
 		adapter.start();
-		assertTrue("Listening event not received", serverListeningLatch.await(10, TimeUnit.SECONDS));
-		assertThat(events.get(0), instanceOf(TcpConnectionServerListeningEvent.class));
-		assertThat(((TcpConnectionServerListeningEvent) events.get(0)).getPort(), equalTo(serverFactory.getPort()));
+		assertThat(serverListeningLatch.await(10, TimeUnit.SECONDS)).as("Listening event not received").isTrue();
+		assertThat(events.get(0)).isInstanceOf(TcpConnectionServerListeningEvent.class);
+		assertThat(((TcpConnectionServerListeningEvent) events.get(0)).getPort()).isEqualTo(serverFactory.getPort());
 		int port = serverFactory.getPort();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", port);
 		clientFactory.registerListener(message -> false);
@@ -153,29 +147,32 @@ public class ConnectionFactoryTests {
 		clientFactory.start();
 		TcpConnectionSupport client = clientFactory.getConnection();
 		List<String> clients = clientFactory.getOpenConnectionIds();
-		assertEquals(1, clients.size());
-		assertTrue(clients.contains(client.getConnectionId()));
-		assertTrue("Server connection failed to register", serverConnectionInitLatch.await(10, TimeUnit.SECONDS));
+		assertThat(clients.size()).isEqualTo(1);
+		assertThat(clients.contains(client.getConnectionId())).isTrue();
+		assertThat(serverConnectionInitLatch.await(10, TimeUnit.SECONDS)).as("Server connection failed to register")
+				.isTrue();
 		List<String> servers = serverFactory.getOpenConnectionIds();
-		assertEquals(1, servers.size());
-		assertTrue(serverFactory.closeConnection(servers.get(0)));
+		assertThat(servers.size()).isEqualTo(1);
+		assertThat(serverFactory.closeConnection(servers.get(0))).isTrue();
 		servers = serverFactory.getOpenConnectionIds();
-		assertEquals(0, servers.size());
+		assertThat(servers.size()).isEqualTo(0);
 		int n = 0;
 		clients = clientFactory.getOpenConnectionIds();
 		while (n++ < 100 && clients.size() > 0) {
 			Thread.sleep(100);
 			clients = clientFactory.getOpenConnectionIds();
 		}
-		assertEquals(0, clients.size());
-		assertTrue(eventLatch.await(10, TimeUnit.SECONDS));
-		assertThat("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events,
-				events.size(), greaterThanOrEqualTo(expectedEvents));
+		assertThat(clients.size()).isEqualTo(0);
+		assertThat(eventLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(events.size())
+				.as("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events)
+				.isGreaterThanOrEqualTo(expectedEvents);
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
-		assertThat("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events,
-				events.size(), greaterThanOrEqualTo(expectedEvents + 1));
+		assertThat(events.size())
+				.as("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events)
+				.isGreaterThanOrEqualTo(expectedEvents + 1);
 
 		try {
 			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
@@ -183,13 +180,13 @@ public class ConnectionFactoryTests {
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
-			assertTrue("Can only publish events with this as the source".equals(e.getMessage()));
+			assertThat("Can only publish events with this as the source".equals(e.getMessage())).isTrue();
 		}
 
 		SocketAddress address = serverFactory.getServerSocketAddress();
 		if (address instanceof InetSocketAddress) {
 			InetSocketAddress inetAddress = (InetSocketAddress) address;
-			assertEquals(port, inetAddress.getPort());
+			assertThat(inetAddress.getPort()).isEqualTo(port);
 		}
 		serverFactory.stop();
 		scheduler.shutdown();
@@ -231,7 +228,7 @@ public class ConnectionFactoryTests {
 			return null;
 		}).when(logger).debug(contains(message));
 		factory.start();
-		assertTrue("missing info log", latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).as("missing info log").isTrue();
 		// stop on a different thread because it waits for the executor
 		new SimpleAsyncTaskExecutor()
 				.execute(factory::stop);
@@ -240,13 +237,13 @@ public class ConnectionFactoryTests {
 		while (n++ < 200 && accessor.getPropertyValue(property) != null) {
 			Thread.sleep(100);
 		}
-		assertTrue("Stop was not invoked in time", n < 200);
+		assertThat(n < 200).as("Stop was not invoked in time").isTrue();
 		latch2.countDown();
-		assertTrue("missing debug log", latch3.await(10, TimeUnit.SECONDS));
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).as("missing debug log").isTrue();
 		String expected = "foo, port=" + factory.getPort() + message;
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger, atLeast(1)).debug(captor.capture());
-		assertThat(captor.getAllValues(), hasItem(expected));
+		assertThat(captor.getAllValues()).contains(expected);
 		factory.stop();
 	}
 

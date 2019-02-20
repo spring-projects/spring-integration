@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,15 +54,16 @@ public class FtpsOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpsOutboundChannelAdapterComplete() throws Exception {
-		assertTrue(ftpOutbound instanceof EventDrivenConsumer);
-		assertEquals(this.ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
-		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
+		assertThat(ftpOutbound instanceof EventDrivenConsumer).isTrue();
+		assertThat(TestUtils.getPropertyValue(ftpOutbound, "inputChannel")).isEqualTo(this.ftpChannel);
+		assertThat(ftpOutbound.getComponentName()).isEqualTo("ftpOutbound");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
-		assertEquals(this.fileNameGenerator, TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
+				.isEqualTo(this.fileNameGenerator);
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
 		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory", DefaultFtpsSessionFactory.class);
-		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
-		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
+		assertThat(TestUtils.getPropertyValue(sf, "host")).isEqualTo("localhost");
+		assertThat(TestUtils.getPropertyValue(sf, "port")).isEqualTo(22);
 	}
 
 }

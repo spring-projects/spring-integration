@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -67,15 +62,15 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInput");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
-		assertEquals(0, txManager.getRollbackCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getRollbackCount()).isEqualTo(0);
 		context.getBean("goodService", Lifecycle.class).start();
 		input.send(new GenericMessage<>("test"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
-		assertNotNull(message);
-		assertEquals(1, txManager.getCommitCount());
-		assertEquals(0, txManager.getRollbackCount());
+		assertThat(message).isNotNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(1);
+		assertThat(txManager.getRollbackCount()).isEqualTo(0);
 		context.close();
 	}
 
@@ -87,28 +82,28 @@ public class PollingTransactionTests {
 		PollingConsumer advisedPoller = context.getBean("advisedSa", PollingConsumer.class);
 
 		List<Advice> adviceChain = TestUtils.getPropertyValue(advisedPoller, "adviceChain", List.class);
-		assertEquals(4, adviceChain.size());
+		assertThat(adviceChain.size()).isEqualTo(4);
 		advisedPoller.start();
 		Callable<?> pollingTask = TestUtils.getPropertyValue(advisedPoller, "pollingTask", Callable.class);
-		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
+		assertThat(pollingTask instanceof Advised).as("Poller is not Advised").isTrue();
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
-		assertEquals(4, advisors.length);
+		assertThat(advisors.length).isEqualTo(4);
 
-		assertThat("First advisor is not TX", advisors[0].getAdvice(), instanceOf(TransactionInterceptor.class));
+		assertThat(advisors[0].getAdvice()).as("First advisor is not TX").isInstanceOf(TransactionInterceptor.class);
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
-		assertEquals(0, txManager.getRollbackCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getRollbackCount()).isEqualTo(0);
 
 		input.send(new GenericMessage<>("test"));
 		input.send(new GenericMessage<>("test2"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		message = output.receive(0);
-		assertNotNull(message);
-		assertEquals(0, txManager.getRollbackCount());
+		assertThat(message).isNotNull();
+		assertThat(txManager.getRollbackCount()).isEqualTo(0);
 		context.close();
 	}
 
@@ -119,17 +114,17 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("badInput");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
-		assertEquals(0, txManager.getRollbackCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getRollbackCount()).isEqualTo(0);
 
 		context.getBean("badService", Lifecycle.class).start();
 
 		input.send(new GenericMessage<>("test"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
-		assertNull(message);
-		assertEquals(0, txManager.getCommitCount());
-		assertEquals(1, txManager.getRollbackCount());
+		assertThat(message).isNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getRollbackCount()).isEqualTo(1);
 		context.close();
 	}
 
@@ -140,13 +135,13 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		input.send(new GenericMessage<>("test"));
 		Message<?> reply = output.receive(10000);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		txManager.waitForCompletion(10000);
-		assertEquals(1, txManager.getCommitCount());
-		assertEquals(Propagation.REQUIRED.value(), txManager.getLastDefinition().getPropagationBehavior());
+		assertThat(txManager.getCommitCount()).isEqualTo(1);
+		assertThat(txManager.getLastDefinition().getPropagationBehavior()).isEqualTo(Propagation.REQUIRED.value());
 		context.close();
 	}
 
@@ -157,13 +152,13 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		input.send(new GenericMessage<>("test"));
 		Message<?> reply = output.receive(10000);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		txManager.waitForCompletion(10000);
-		assertEquals(1, txManager.getCommitCount());
-		assertEquals(Propagation.REQUIRES_NEW.value(), txManager.getLastDefinition().getPropagationBehavior());
+		assertThat(txManager.getCommitCount()).isEqualTo(1);
+		assertThat(txManager.getLastDefinition().getPropagationBehavior()).isEqualTo(Propagation.REQUIRES_NEW.value());
 		context.close();
 	}
 
@@ -174,12 +169,12 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		input.send(new GenericMessage<>("test"));
 		Message<?> reply = output.receive(10000);
-		assertNotNull(reply);
-		assertEquals(0, txManager.getCommitCount());
-		assertNull(txManager.getLastDefinition());
+		assertThat(reply).isNotNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getLastDefinition()).isNull();
 		context.close();
 	}
 
@@ -190,12 +185,12 @@ public class PollingTransactionTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		input.send(new GenericMessage<>("test"));
 		Message<?> reply = output.receive(10000);
-		assertNotNull(reply);
-		assertEquals(0, txManager.getCommitCount());
-		assertNull(txManager.getLastDefinition());
+		assertThat(reply).isNotNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
+		assertThat(txManager.getLastDefinition()).isNull();
 		context.close();
 	}
 
@@ -207,16 +202,16 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		input.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertEquals(MessagingException.class, payload.getClass());
+		assertThat(payload.getClass()).isEqualTo(MessagingException.class);
 		MessagingException messagingException = (MessagingException) payload;
-		assertEquals(IllegalTransactionStateException.class, messagingException.getCause().getClass());
-		assertNull(output.receive(0));
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(messagingException.getCause().getClass()).isEqualTo(IllegalTransactionStateException.class);
+		assertThat(output.receive(0)).isNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		context.close();
 	}
 
@@ -229,28 +224,28 @@ public class PollingTransactionTests {
 		PollableChannel inputHandlerFail = (PollableChannel) context.getBean("inputHandlerFailure");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 		inputTxFail.send(new GenericMessage<>("commitFailureTest"));
 		Message<?> errorMessage = errorChannel.receive(20000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object payload = errorMessage.getPayload();
-		assertEquals(MessagingException.class, payload.getClass());
+		assertThat(payload.getClass()).isEqualTo(MessagingException.class);
 		MessagingException messagingException = (MessagingException) payload;
-		assertEquals(IllegalTransactionStateException.class, messagingException.getCause().getClass());
-		assertNotNull(messagingException.getFailedMessage());
-		assertNotNull(output.receive(0));
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(messagingException.getCause().getClass()).isEqualTo(IllegalTransactionStateException.class);
+		assertThat(messagingException.getFailedMessage()).isNotNull();
+		assertThat(output.receive(0)).isNotNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 
 		inputHandlerFail.send(new GenericMessage<>("handlerFailureTest"));
 		errorMessage = errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		payload = errorMessage.getPayload();
-		assertEquals(MessageHandlingException.class, payload.getClass());
+		assertThat(payload.getClass()).isEqualTo(MessageHandlingException.class);
 		messagingException = (MessageHandlingException) payload;
-		assertEquals(RuntimeException.class, messagingException.getCause().getClass());
-		assertNotNull(messagingException.getFailedMessage());
-		assertNull(output.receive(0));
-		assertEquals(0, txManager.getCommitCount());
+		assertThat(messagingException.getCause().getClass()).isEqualTo(RuntimeException.class);
+		assertThat(messagingException.getFailedMessage()).isNotNull();
+		assertThat(output.receive(0)).isNull();
+		assertThat(txManager.getCommitCount()).isEqualTo(0);
 
 		context.close();
 	}

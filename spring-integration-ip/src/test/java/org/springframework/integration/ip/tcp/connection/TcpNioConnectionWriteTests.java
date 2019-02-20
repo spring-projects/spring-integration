@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +46,7 @@ public class TcpNioConnectionWriteTests {
 
 	private AbstractConnectionFactory getClientConnectionFactory(boolean direct,
 			final int port, AbstractByteArraySerializer serializer) {
+
 		TcpNioClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -88,8 +89,8 @@ public class TcpNioConnectionWriteTests {
 		byte[] buff = new byte[testString.length() + 4];
 		readFully(is, buff);
 		ByteBuffer buffer = ByteBuffer.wrap(buff);
-		assertEquals(testString.length(), buffer.getInt());
-		assertEquals(testString, new String(buff, 4, testString.length()));
+		assertThat(buffer.getInt()).isEqualTo(testString.length());
+		assertThat(new String(buff, 4, testString.length())).isEqualTo(testString);
 		server.close();
 		latch.countDown();
 	}
@@ -126,9 +127,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(ByteArrayStxEtxSerializer.STX, buff[0]);
-		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
+		assertThat(buff[0]).isEqualTo((byte) ByteArrayStxEtxSerializer.STX);
+		assertThat(new String(buff, 1, testString.length())).isEqualTo(testString);
+		assertThat(buff[testString.length() + 1]).isEqualTo((byte) ByteArrayStxEtxSerializer.ETX);
 		server.close();
 		latch.countDown();
 	}
@@ -165,9 +166,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(testString, new String(buff, 0, testString.length()));
-		assertEquals('\r', buff[testString.length()]);
-		assertEquals('\n', buff[testString.length() + 1]);
+		assertThat(new String(buff, 0, testString.length())).isEqualTo(testString);
+		assertThat(buff[testString.length()]).isEqualTo((byte) '\r');
+		assertThat(buff[testString.length() + 1]).isEqualTo((byte) '\n');
 		server.close();
 		latch.countDown();
 	}
@@ -205,8 +206,8 @@ public class TcpNioConnectionWriteTests {
 		byte[] buff = new byte[testString.length() + 4];
 		readFully(is, buff);
 		ByteBuffer buffer = ByteBuffer.wrap(buff);
-		assertEquals(testString.length(), buffer.getInt());
-		assertEquals(testString, new String(buff, 4, testString.length()));
+		assertThat(buffer.getInt()).isEqualTo(testString.length());
+		assertThat(new String(buff, 4, testString.length())).isEqualTo(testString);
 		server.close();
 		latch.countDown();
 	}
@@ -243,9 +244,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(ByteArrayStxEtxSerializer.STX, buff[0]);
-		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
+		assertThat(buff[0]).isEqualTo((byte) ByteArrayStxEtxSerializer.STX);
+		assertThat(new String(buff, 1, testString.length())).isEqualTo(testString);
+		assertThat(buff[testString.length() + 1]).isEqualTo((byte) ByteArrayStxEtxSerializer.ETX);
 		server.close();
 		latch.countDown();
 	}
@@ -282,9 +283,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(testString, new String(buff, 0, testString.length()));
-		assertEquals('\r', buff[testString.length()]);
-		assertEquals('\n', buff[testString.length() + 1]);
+		assertThat(new String(buff, 0, testString.length())).isEqualTo(testString);
+		assertThat(buff[testString.length()]).isEqualTo((byte) '\r');
+		assertThat(buff[testString.length() + 1]).isEqualTo((byte) '\n');
 		server.close();
 		latch.countDown();
 	}

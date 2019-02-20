@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -158,12 +157,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		assertTrue("not all messages were accepted", failed.get());
+		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
 		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add(any(Exception.class));
@@ -199,12 +198,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		assertTrue("not all messages were accepted", failed.get());
+		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
 		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add(any(Exception.class));
@@ -280,12 +279,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		assertTrue("not all messages were accepted", failed.get());
+		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
 		verify(handlerC, times(13)).handleMessage(message);
@@ -333,12 +332,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		assertTrue("not all messages were accepted", failed.get());
+		assertThat(failed.get()).as("not all messages were accepted").isTrue();
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
 		verify(handlerC, times(13)).handleMessage(message);
@@ -414,12 +413,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		assertFalse("not all messages were accepted", failed.get());
+		assertThat(failed.get()).as("not all messages were accepted").isFalse();
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerC, never()).handleMessage(message);
@@ -458,7 +457,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -67,15 +62,15 @@ public class MarshallingTransformerParserTests  {
 	@Test
 	public void testParse() throws Exception {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = appContext.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
@@ -84,9 +79,9 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
+		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type").isTrue();
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
+		assertThat(doc.getDocumentElement().getTextContent()).as("Wrong payload").isEqualTo("hello");
 	}
 
 	@Test
@@ -95,9 +90,9 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type", result.getPayload() instanceof String);
+		assertThat(result.getPayload() instanceof String).as("Wrong payload type").isTrue();
 		String resultPayload = (String) result.getPayload();
-		assertEquals("Wrong payload", "testReturn", resultPayload);
+		assertThat(resultPayload).as("Wrong payload").isEqualTo("testReturn");
 	}
 
 	@Test
@@ -106,9 +101,9 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type ", result.getPayload() instanceof DOMResult);
+		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type ").isTrue();
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
+		assertThat(doc.getDocumentElement().getTextContent()).as("Wrong payload").isEqualTo("hello");
 	}
 
 	@Test
@@ -117,7 +112,7 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type", result.getPayload() instanceof StringResult);
+		assertThat(result.getPayload() instanceof StringResult).as("Wrong payload type").isTrue();
 	}
 
 	@Test
@@ -126,7 +121,7 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type", result.getPayload() instanceof StubStringResult);
+		assertThat(result.getPayload() instanceof StubStringResult).as("Wrong payload type").isTrue();
 	}
 
 	@Test
@@ -135,12 +130,12 @@ public class MarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
+		assertThat(result.getPayload() instanceof DOMResult).as("Wrong payload type").isTrue();
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		String actual = doc.getDocumentElement().getTextContent();
-		assertThat(actual, Matchers.containsString("[payload"));
-		assertThat(actual, Matchers.containsString("=hello,"));
-		assertThat(actual, Matchers.containsString(", headers="));
+		assertThat(actual).contains("[payload");
+		assertThat(actual).contains("=hello,");
+		assertThat(actual).contains(", headers=");
 	}
 
 }

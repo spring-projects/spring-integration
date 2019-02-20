@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -74,9 +73,9 @@ public class JdbcMessageHandlerIntegrationTests {
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertEquals("Wrong id", "1", map.get("ID"));
-		assertEquals("Wrong status", 0, map.get("STATUS"));
-		assertEquals("Wrong name", "foo", map.get("NAME"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo("1");
+		assertThat(map.get("STATUS")).as("Wrong status").isEqualTo(0);
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
 	}
 
 	@Test
@@ -87,7 +86,7 @@ public class JdbcMessageHandlerIntegrationTests {
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertEquals("Wrong name", "foo", map.get("NAME"));
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
 	}
 
 	@Test
@@ -101,11 +100,11 @@ public class JdbcMessageHandlerIntegrationTests {
 
 		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
 
-		assertEquals(3, foos.size());
+		assertThat(foos.size()).isEqualTo(3);
 
-		assertEquals("foo1", foos.get(0).get("NAME"));
-		assertEquals("foo2", foos.get(1).get("NAME"));
-		assertEquals("foo3", foos.get(2).get("NAME"));
+		assertThat(foos.get(0).get("NAME")).isEqualTo("foo1");
+		assertThat(foos.get(1).get("NAME")).isEqualTo("foo2");
+		assertThat(foos.get(2).get("NAME")).isEqualTo("foo3");
 	}
 
 	@Test
@@ -121,8 +120,8 @@ public class JdbcMessageHandlerIntegrationTests {
 		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
-		assertEquals("Wrong name", "foo", map.get("NAME"));
-		assertTrue(setterInvoked.get());
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
+		assertThat(setterInvoked.get()).isTrue();
 	}
 
 	@Test
@@ -140,11 +139,11 @@ public class JdbcMessageHandlerIntegrationTests {
 
 		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
 
-		assertEquals(3, foos.size());
+		assertThat(foos.size()).isEqualTo(3);
 
-		assertEquals("foo1", foos.get(0).get("NAME"));
-		assertEquals("foo2", foos.get(1).get("NAME"));
-		assertEquals("foo3", foos.get(2).get("NAME"));
+		assertThat(foos.get(0).get("NAME")).isEqualTo("foo1");
+		assertThat(foos.get(1).get("NAME")).isEqualTo("foo2");
+		assertThat(foos.get(2).get("NAME")).isEqualTo("foo3");
 	}
 
 	@Test
@@ -159,8 +158,8 @@ public class JdbcMessageHandlerIntegrationTests {
 				.build();
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", id);
-		assertEquals("Wrong id", id, map.get("ID"));
-		assertEquals("Wrong name", "foo", map.get("NAME"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
 	}
 
 	@Test
@@ -172,8 +171,8 @@ public class JdbcMessageHandlerIntegrationTests {
 		handler.handleMessage(message);
 		String id = message.getHeaders().get("business.id").toString();
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", id);
-		assertEquals("Wrong id", id, map.get("ID"));
-		assertEquals("Wrong name", "foo", map.get("NAME"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
+		assertThat(map.get("NAME")).as("Wrong name").isEqualTo("foo");
 	}
 
 }

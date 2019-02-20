@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class NestedGatewayTests {
 		outerGateway.setBeanFactory(mock(BeanFactory.class));
 		outerGateway.afterPropertiesSet();
 		Message<?> reply = outerGateway.sendAndReceiveMessage("test");
-		assertEquals("pre-test-reply-post", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("pre-test-reply-post");
 	}
 
 	@Test
@@ -79,8 +79,8 @@ public class NestedGatewayTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel).build();
 		Message<?> reply = gateway.sendAndReceiveMessage(message);
-		assertEquals("test-reply", reply.getPayload());
-		assertEquals(replyChannel, reply.getHeaders().getReplyChannel());
+		assertThat(reply.getPayload()).isEqualTo("test-reply");
+		assertThat(reply.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -100,8 +100,8 @@ public class NestedGatewayTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setErrorChannel(errorChannel).build();
 		Message<?> reply = gateway.sendAndReceiveMessage(message);
-		assertEquals("test-reply", reply.getPayload());
-		assertEquals(errorChannel, reply.getHeaders().getErrorChannel());
+		assertThat(reply.getPayload()).isEqualTo("test-reply");
+		assertThat(reply.getHeaders().getErrorChannel()).isEqualTo(errorChannel);
 	}
 
 }

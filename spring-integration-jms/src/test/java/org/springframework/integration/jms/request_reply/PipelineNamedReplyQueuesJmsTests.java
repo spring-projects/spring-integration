@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -92,7 +91,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	@Test
 	public void testPipeline2a() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-02a.xml");
-		assertEquals(0, timeouts);
+		assertThat(timeouts).isEqualTo(0);
 	}
 
 	/**
@@ -116,7 +115,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	@Test
 	public void testPipeline3a() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-03a.xml", 50000);
-		assertEquals(0, timeouts);
+		assertThat(timeouts).isEqualTo(0);
 	}
 
 	/**
@@ -126,7 +125,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	@Test
 	public void testPipeline4() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-04.xml", 30000);
-		assertEquals(0, timeouts);
+		assertThat(timeouts).isEqualTo(0);
 	}
 
 	/**
@@ -174,7 +173,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 				final int y = i;
 				executor.execute(() -> {
 					try {
-						assertEquals(y + offset, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
+						assertThat(gateway.exchange(new GenericMessage<Integer>(y)).getPayload()).isEqualTo(y + offset);
 						successCounter.incrementAndGet();
 					}
 					catch (MessageTimeoutException e) {
@@ -189,12 +188,12 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 					}
 				});
 			}
-			assertTrue(latch.await(120, TimeUnit.SECONDS));
+			assertThat(latch.await(120, TimeUnit.SECONDS)).isTrue();
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
-			assertTrue(successCounter.get() > 1);
-			assertEquals(0, failureCounter.get());
-			assertEquals(requests, successCounter.get() + timeoutCounter.get());
+			assertThat(successCounter.get() > 1).isTrue();
+			assertThat(failureCounter.get()).isEqualTo(0);
+			assertThat(successCounter.get() + timeoutCounter.get()).isEqualTo(requests);
 			return timeoutCounter.get();
 		}
 		finally {

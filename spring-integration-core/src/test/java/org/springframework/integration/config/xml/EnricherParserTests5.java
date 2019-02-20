@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,7 +76,7 @@ public class EnricherParserTests5 {
 
 		Message<?> reply = context.getBean("outputChannel", PollableChannel.class).receive(10000);
 		Target enriched = (Target) reply.getPayload();
-		assertEquals("Mr. Default", enriched.getName());
+		assertThat(enriched.getName()).isEqualTo("Mr. Default");
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,12 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
 import javax.xml.transform.dom.DOMResult;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -72,15 +66,15 @@ public class XsltPayloadTransformerParserTests {
 	@Test
 	public void testParse() throws Exception {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) applicationContext.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = applicationContext.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
@@ -89,11 +83,11 @@ public class XsltPayloadTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		assertThat(result.getPayload() instanceof DOMResult).as("Payload was not a DOMResult").isTrue();
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
-		assertNotNull(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
-				"transformer.evaluationContext.beanResolver"));
+		assertThat(doc.getDocumentElement().getTextContent()).as("Wrong payload").isEqualTo("test");
+		assertThat(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
+				"transformer.evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test
@@ -102,9 +96,9 @@ public class XsltPayloadTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		assertThat(result.getPayload() instanceof DOMResult).as("Payload was not a DOMResult").isTrue();
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
+		assertThat(doc.getDocumentElement().getTextContent()).as("Wrong payload").isEqualTo("test");
 	}
 
 	@Test
@@ -113,9 +107,9 @@ public class XsltPayloadTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
+		assertThat(result.getPayload().getClass()).as("Wrong payload type").isEqualTo(String.class);
 		String strResult = (String) result.getPayload();
-		assertEquals("Wrong payload", "testReturn", strResult);
+		assertThat(strResult).as("Wrong payload").isEqualTo("testReturn");
 	}
 
 	@Test
@@ -124,7 +118,7 @@ public class XsltPayloadTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
+		assertThat(result.getPayload() instanceof StubStringResult).as("Payload was not a StubStringResult").isTrue();
 	}
 
 	@Test
@@ -133,7 +127,7 @@ public class XsltPayloadTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertTrue("Payload was not a StringResult", result.getPayload() instanceof StringResult);
+		assertThat(result.getPayload() instanceof StringResult).as("Payload was not a StringResult").isTrue();
 	}
 
 	@Test
@@ -143,9 +137,9 @@ public class XsltPayloadTransformerParserTests {
 		Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		Assert.assertEquals("Wrong payload type", StringResult.class, resultMessage.getPayload().getClass());
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(StringResult.class);
 		String payload = resultMessage.getPayload().toString();
-		Assert.assertTrue(payload.contains("<bob>test</bob>"));
+		assertThat(payload.contains("<bob>test</bob>")).isTrue();
 	}
 
 	@Test
@@ -154,9 +148,9 @@ public class XsltPayloadTransformerParserTests {
 		Message<?> message = MessageBuilder.withPayload(this.doc).build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		Assert.assertEquals("Wrong payload type", DOMResult.class, resultMessage.getPayload().getClass());
+		assertThat(resultMessage.getPayload().getClass()).as("Wrong payload type").isEqualTo(DOMResult.class);
 		Document payload = (Document) ((DOMResult) resultMessage.getPayload()).getNode();
-		Assert.assertTrue(XmlTestUtil.docToString(payload).contains("<bob>test</bob>"));
+		assertThat(XmlTestUtil.docToString(payload).contains("<bob>test</bob>")).isTrue();
 	}
 
 	@Test
@@ -165,10 +159,11 @@ public class XsltPayloadTransformerParserTests {
 		Message<?> message = MessageBuilder.withPayload(XmlTestUtil.getDocumentForString(this.doc)).build();
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		Assert.assertEquals("Wrong payload type", CustomTestResultFactory.FixedStringResult.class, resultMessage
-				.getPayload().getClass());
+		assertThat(resultMessage
+				.getPayload().getClass()).as("Wrong payload type")
+				.isEqualTo(CustomTestResultFactory.FixedStringResult.class);
 		String payload = resultMessage.getPayload().toString();
-		Assert.assertTrue(payload.contains("fixedStringForTesting"));
+		assertThat(payload.contains("fixedStringForTesting")).isTrue();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,10 +87,10 @@ public class GroovyControlBusTests {
 						.setHeader("foo", "bar")
 						.build();
 		this.input.send(message);
-		assertEquals("catbar", output.receive(0).getPayload());
-		assertNull(output.receive(0));
-		assertTrue(this.groovyCustomizer.executed);
-		assertEquals(1, adviceCalled);
+		assertThat(output.receive(0).getPayload()).isEqualTo("catbar");
+		assertThat(output.receive(0)).isNull();
+		assertThat(this.groovyCustomizer.executed).isTrue();
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test //INT-2567
@@ -101,7 +99,7 @@ public class GroovyControlBusTests {
 				MessageBuilder.withPayload("def result = threadScopedService.convert('testString')")
 						.build();
 		this.input.send(message);
-		assertEquals("cat", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("cat");
 	}
 
 	@Test //INT-2567
@@ -115,9 +113,10 @@ public class GroovyControlBusTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanCreationException, got " + cause.getClass() + ":" + cause
-					.getMessage(), cause instanceof BeanCreationException);
-			assertTrue(cause.getMessage().contains("requestScopedService"));
+			assertThat(cause instanceof BeanCreationException)
+					.as("Expected BeanCreationException, got " + cause.getClass() + ":" + cause
+							.getMessage()).isTrue();
+			assertThat(cause.getMessage().contains("requestScopedService")).isTrue();
 		}
 	}
 
@@ -128,7 +127,7 @@ public class GroovyControlBusTests {
 				MessageBuilder.withPayload("def result = requestScopedService.convert('testString')")
 						.build();
 		this.input.send(message);
-		assertEquals("cat", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("cat");
 
 		RequestContextHolder.resetRequestAttributes();
 	}
@@ -144,9 +143,10 @@ public class GroovyControlBusTests {
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage(),
-					cause instanceof BeanCreationNotAllowedException);
-			assertTrue(cause.getMessage().contains("nonManagedService"));
+			assertThat(cause instanceof BeanCreationNotAllowedException)
+					.as("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage())
+					.isTrue();
+			assertThat(cause.getMessage().contains("nonManagedService")).isTrue();
 		}
 	}
 
@@ -159,9 +159,10 @@ public class GroovyControlBusTests {
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanIsAbstractException, got " + cause.getClass() + ":" + cause.getMessage(),
-					cause instanceof BeanIsAbstractException);
-			assertTrue(cause.getMessage().contains("abstractService"));
+			assertThat(cause instanceof BeanIsAbstractException)
+					.as("Expected BeanIsAbstractException, got " + cause.getClass() + ":" + cause.getMessage())
+					.isTrue();
+			assertThat(cause.getMessage().contains("abstractService")).isTrue();
 		}
 	}
 
@@ -169,7 +170,7 @@ public class GroovyControlBusTests {
 	public void testOperationOnPrototypeBean() {
 		Message<?> message = MessageBuilder.withPayload("def result = prototypeService.convert('testString')").build();
 		this.input.send(message);
-		assertEquals("cat", output.receive(0).getPayload());
+		assertThat(output.receive(0).getPayload()).isEqualTo("cat");
 	}
 
 	@ManagedResource

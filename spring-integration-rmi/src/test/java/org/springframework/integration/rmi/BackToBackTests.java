@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.rmi;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -70,8 +67,8 @@ public class BackToBackTests {
 	public void testGood() {
 		good.send(new GenericMessage<>("foo"));
 		Message<?> reply = this.reply.receive(0);
-		assertNotNull(reply);
-		assertEquals("reply:foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("reply:foo");
 
 		verify(this.transactionManager).getTransaction(any(TransactionDefinition.class));
 	}
@@ -80,8 +77,8 @@ public class BackToBackTests {
 	public void testBad() {
 		bad.send(new GenericMessage<String>("foo"));
 		Message<?> reply = this.reply.receive(0);
-		assertNotNull(reply);
-		assertEquals("error:foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("error:foo");
 	}
 
 	@Test
@@ -92,8 +89,7 @@ public class BackToBackTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause().getMessage(),
-					containsString("Dispatcher has no subscribers for channel 'context.baz'."));
+			assertThat(e.getCause().getMessage()).contains("Dispatcher has no subscribers for channel 'context.baz'.");
 		}
 	}
 

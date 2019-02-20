@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,28 +110,28 @@ public class SplitterIntegrationTests {
 	@Test
 	public void annotated() throws Exception {
 		inAnnotated.send(new GenericMessage<String>(sentence));
-		assertTrue(this.receiver.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(this.receiver.receivedWords));
+		assertThat(this.receiver.receivedWords.containsAll(words)).isTrue();
+		assertThat(words.containsAll(this.receiver.receivedWords)).isTrue();
 	}
 
 	@Test
 	public void methodInvoking() throws Exception {
 		inMethodInvoking.send(new GenericMessage<String>(sentence));
-		assertTrue(receiver.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(this.receiver.receivedWords));
+		assertThat(receiver.receivedWords.containsAll(words)).isTrue();
+		assertThat(words.containsAll(this.receiver.receivedWords)).isTrue();
 	}
 
 	@Test
 	public void defaultSplitter() throws Exception {
 		inDefault.send(new GenericMessage<List<String>>(words));
-		assertTrue(receiver.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(receiver.receivedWords));
+		assertThat(receiver.receivedWords.containsAll(words)).isTrue();
+		assertThat(words.containsAll(receiver.receivedWords)).isTrue();
 	}
 
 	@Test
 	public void delimiterSplitter() throws Exception {
 		inDelimiters.send(new GenericMessage<String>("one,two, three; four/five"));
-		assertTrue(receiver.receivedWords.containsAll(Arrays.asList("one", "two", "three", "four", "five")));
+		assertThat(receiver.receivedWords.containsAll(Arrays.asList("one", "two", "three", "four", "five"))).isTrue();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -143,9 +142,9 @@ public class SplitterIntegrationTests {
 		}
 		catch (BeanCreationException e) {
 			Throwable cause = e.getMostSpecificCause();
-			assertNotNull(cause);
-			assertTrue(cause instanceof IllegalArgumentException);
-			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			assertThat(cause).isNotNull();
+			assertThat(cause instanceof IllegalArgumentException).isTrue();
+			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
 			throw cause;
 		}
 	}
@@ -158,9 +157,9 @@ public class SplitterIntegrationTests {
 		}
 		catch (BeanCreationException e) {
 			Throwable cause = e.getMostSpecificCause();
-			assertNotNull(cause);
-			assertTrue(cause instanceof IllegalArgumentException);
-			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			assertThat(cause).isNotNull();
+			assertThat(cause instanceof IllegalArgumentException).isTrue();
+			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
 			throw cause;
 		}
 	}
@@ -173,9 +172,9 @@ public class SplitterIntegrationTests {
 		}
 		catch (BeanCreationException e) {
 			Throwable cause = e.getMostSpecificCause();
-			assertNotNull(cause);
-			assertTrue(cause instanceof IllegalArgumentException);
-			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			assertThat(cause).isNotNull();
+			assertThat(cause instanceof IllegalArgumentException).isTrue();
+			assertThat(cause.getMessage().contains("'delimiters' property is only available")).isTrue();
 			throw cause;
 		}
 	}

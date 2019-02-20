@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.context;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -59,14 +57,15 @@ public class IntegrationContextTests {
 
 	@Test
 	public void testIntegrationContextComponents() {
-		assertEquals("true", this.integrationProperties.get(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
-		assertEquals("20", this.integrationProperties.get(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE));
-		assertEquals(this.integrationProperties, this.serviceActivator.getIntegrationProperties());
-		assertEquals(20, TestUtils.getPropertyValue(this.taskScheduler, "poolSize"));
-		assertFalse(this.serviceActivator.isAutoStartup());
-		assertFalse(this.serviceActivator.isRunning());
-		assertTrue(this.serviceActivatorExplicit.isAutoStartup());
-		assertTrue(this.serviceActivatorExplicit.isRunning());
+		assertThat(this.integrationProperties.get(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY))
+				.isEqualTo("true");
+		assertThat(this.integrationProperties.get(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE)).isEqualTo("20");
+		assertThat(this.serviceActivator.getIntegrationProperties()).isEqualTo(this.integrationProperties);
+		assertThat(TestUtils.getPropertyValue(this.taskScheduler, "poolSize")).isEqualTo(20);
+		assertThat(this.serviceActivator.isAutoStartup()).isFalse();
+		assertThat(this.serviceActivator.isRunning()).isFalse();
+		assertThat(this.serviceActivatorExplicit.isAutoStartup()).isTrue();
+		assertThat(this.serviceActivatorExplicit.isRunning()).isTrue();
 	}
 
 }

@@ -16,13 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
@@ -119,7 +113,7 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
 	}
 
@@ -157,24 +151,24 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertFalse(latch.await(10, TimeUnit.MILLISECONDS));
-		assertFalse(ehCalled.get());
+		assertThat(latch.await(10, TimeUnit.MILLISECONDS)).isFalse();
+		assertThat(ehCalled.get()).isFalse();
 		adapter.stop();
 		skipper.reset();
 		latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
 		adapter.setTrigger(new OnlyOnceTrigger());
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
 	}
 
 	@Test
 	public void testSkipSimpleControlBus() {
 		this.control.send(new GenericMessage<>("@skipper.skipPolls()"));
-		assertTrue(this.skipper.skipPoll());
+		assertThat(this.skipper.skipPoll()).isTrue();
 		this.control.send(new GenericMessage<>("@skipper.reset()"));
-		assertFalse(this.skipper.skipPoll());
+		assertThat(this.skipper.skipPoll()).isFalse();
 	}
 
 	@Test
@@ -223,15 +217,15 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
-		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
+		assertThat(latch.get().await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(callOrder).containsExactly("a", "b", "c", "d"); // advice + advice + source + advice
 		adapter.stop();
 		trigger.reset();
 		latch.set(new CountDownLatch(4));
 		adapter.start();
-		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		assertThat(latch.get().await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
-		assertEquals(2, count.get());
+		assertThat(count.get()).isEqualTo(2);
 
 		// Now test when the source is already a proxy.
 
@@ -243,17 +237,17 @@ public class PollerAdviceTests {
 		count.set(0);
 		callOrder.clear();
 		adapter.start();
-		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
-		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
+		assertThat(latch.get().await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(callOrder).containsExactly("a", "b", "c", "d"); // advice + advice + source + advice
 		adapter.stop();
 		trigger.reset();
 		latch.set(new CountDownLatch(4));
 		adapter.start();
-		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		assertThat(latch.get().await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
-		assertEquals(2, count.get());
+		assertThat(count.get()).isEqualTo(2);
 		Advisor[] advisors = ((Advised) adapter.getMessageSource()).getAdvisors();
-		assertEquals(2, advisors.length); // make sure we didn't remove the original one
+		assertThat(advisors.length).isEqualTo(2); // make sure we didn't remove the original one
 	}
 
 	@Test
@@ -281,10 +275,10 @@ public class PollerAdviceTests {
 		configure(adapter);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
 		synchronized (triggerPeriods) {
-			assertThat(triggerPeriods.subList(0, 5), contains(10L, 12L, 11L, 12L, 11L));
+			assertThat(triggerPeriods.subList(0, 5)).containsExactly(10L, 12L, 11L, 12L, 11L);
 		}
 	}
 
@@ -312,10 +306,10 @@ public class PollerAdviceTests {
 		configure(adapter);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		adapter.stop();
 		synchronized (overridePresent) {
-			assertThat(overridePresent.subList(0, 5), contains(null, override, null, override, null));
+			assertThat(overridePresent.subList(0, 5)).containsExactly(null, override, null, override, null);
 		}
 		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
 	}
@@ -333,14 +327,14 @@ public class PollerAdviceTests {
 		SourcePollingChannelAdapter adapter = ctx.getBean(SourcePollingChannelAdapter.class);
 		Source source = ctx.getBean(Source.class);
 		adapter.start();
-		assertTrue(source.latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(TestUtils.getPropertyValue(adapter, "trigger.override"));
+		assertThat(source.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(TestUtils.getPropertyValue(adapter, "trigger.override")).isNotNull();
 		adapter.stop();
 		OtherAdvice sourceAdvice = ctx.getBean(OtherAdvice.class);
 		int count = sourceAdvice.calls;
-		assertThat(count, greaterThan(0));
+		assertThat(count).isGreaterThan(0);
 		((Foo) adapter.getMessageSource()).otherMethod();
-		assertEquals(count, sourceAdvice.calls);
+		assertThat(sourceAdvice.calls).isEqualTo(count);
 		ctx.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Date;
@@ -66,9 +61,9 @@ public class HeaderEnricherTests {
 		MessageChannel inputChannel = context.getBean("replyChannelInput", MessageChannel.class);
 		inputChannel.send(new GenericMessage<>("test"));
 		Message<?> result = replyChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test //INT-2316
@@ -77,9 +72,9 @@ public class HeaderEnricherTests {
 		MessageChannel inputChannel = context.getBean("replyChannelNameInput", MessageChannel.class);
 		inputChannel.send(new GenericMessage<>("test"));
 		Message<?> result = replyChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals("testReplyChannel", result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo("testReplyChannel");
 	}
 
 	@Test //INT-2316
@@ -88,9 +83,9 @@ public class HeaderEnricherTests {
 		MessageChannel inputChannel = context.getBean("replyChannelExpressionInput", MessageChannel.class);
 		inputChannel.send(new GenericMessage<>("test"));
 		Message<?> result = replyChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("TEST");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
 	}
 
 	@Test
@@ -99,12 +94,12 @@ public class HeaderEnricherTests {
 		MessageChannel inputChannel = context.getBean("errorChannelInput", MessageChannel.class);
 		inputChannel.send(new GenericMessage<>("test"));
 		Message<?> errorMessage = errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 		Object errorPayload = errorMessage.getPayload();
-		assertEquals(MessageTransformationException.class, errorPayload.getClass());
+		assertThat(errorPayload.getClass()).isEqualTo(MessageTransformationException.class);
 		Message<?> failedMessage = ((MessageTransformationException) errorPayload).getFailedMessage();
-		assertEquals("test", failedMessage.getPayload());
-		assertEquals(errorChannel, failedMessage.getHeaders().getErrorChannel());
+		assertThat(failedMessage.getPayload()).isEqualTo("test");
+		assertThat(failedMessage.getHeaders().getErrorChannel()).isEqualTo(errorChannel);
 	}
 
 	@Test
@@ -112,8 +107,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals("ABC", new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getCorrelationId()).isEqualTo("ABC");
 	}
 
 	@Test
@@ -121,10 +116,10 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Object correlationId = new IntegrationMessageHeaderAccessor(result).getCorrelationId();
-		assertEquals(Long.class, correlationId.getClass());
-		assertEquals(123L, correlationId);
+		assertThat(correlationId.getClass()).isEqualTo(Long.class);
+		assertThat(correlationId).isEqualTo(123L);
 	}
 
 	@Test
@@ -132,8 +127,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(123, new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getCorrelationId()).isEqualTo(123);
 	}
 
 	@Test
@@ -141,8 +136,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(new Long(1111), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(new Long(1111));
 	}
 
 	@Test
@@ -150,8 +145,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(new Long(9999), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getExpirationDate()).isEqualTo(new Long(9999));
 	}
 
 	@Test
@@ -159,8 +154,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(42));
 	}
 
 	@Test
@@ -169,8 +164,8 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("priorityExpressionInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel,
 				new GenericMessage<>(Collections.singletonMap("priority", "-10")));
-		assertNotNull(result);
-		assertEquals(new Integer(-10), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertThat(result).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(result).getPriority()).isEqualTo(new Integer(-10));
 	}
 
 	@Test
@@ -178,8 +173,8 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>(new TestBean("foo")));
-		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get("testHeader"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo("foobar");
 	}
 
 	@Test
@@ -188,8 +183,8 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
 		Message<?> result = template.sendAndReceive(channel, message);
-		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get("testHeader2"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader2")).isEqualTo("foobar");
 	}
 
 	@Test
@@ -197,11 +192,11 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Object headerValue = result.getHeaders().get("currentDate");
-		assertEquals(Date.class, headerValue.getClass());
+		assertThat(headerValue.getClass()).isEqualTo(Date.class);
 		Date date = (Date) headerValue;
-		assertTrue(new Date().getTime() - date.getTime() < 1000);
+		assertThat(new Date().getTime() - date.getTime() < 1000).isTrue();
 	}
 
 	@Test
@@ -209,9 +204,9 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(Long.class, result.getHeaders().get("number").getClass());
-		assertEquals(12345L, result.getHeaders().get("number"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("number").getClass()).isEqualTo(Long.class);
+		assertThat(result.getHeaders().get("number")).isEqualTo(12345L);
 	}
 
 	@Test
@@ -219,9 +214,9 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
-		assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader").getClass()).isEqualTo(String.class);
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo("testBeanForMethodInvoker");
 	}
 
 	@Test
@@ -229,10 +224,10 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("ref", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(TestBean.class, result.getHeaders().get("testHeader").getClass());
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader").getClass()).isEqualTo(TestBean.class);
 		TestBean testBeanForRef = context.getBean("testBean1", TestBean.class);
-		assertSame(testBeanForRef, result.getHeaders().get("testHeader"));
+		assertThat(result.getHeaders().get("testHeader")).isSameAs(testBeanForRef);
 	}
 
 	@Test
@@ -240,10 +235,10 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("innerBean", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(TestBean.class, result.getHeaders().get("testHeader").getClass());
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader").getClass()).isEqualTo(TestBean.class);
 		TestBean testBeanForInnerBean = new TestBean("testBeanForInnerBean");
-		assertEquals(testBeanForInnerBean, result.getHeaders().get("testHeader"));
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo(testBeanForInnerBean);
 	}
 
 	@Test
@@ -251,9 +246,9 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("innerBeanWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
-		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
-		assertEquals("testBeanForInnerBeanWithMethod", result.getHeaders().get("testHeader"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("testHeader").getClass()).isEqualTo(String.class);
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo("testBeanForInnerBeanWithMethod");
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
@@ -267,17 +262,17 @@ public class HeaderEnricherTests {
 		MessagingTemplate template = new MessagingTemplate();
 		MessageChannel channel = context.getBean("routingSlipInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<>("test"));
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		Object routingSlip = new IntegrationMessageHeaderAccessor(result)
 				.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP);
-		assertNotNull(routingSlip);
-		assertThat(routingSlip, instanceOf(Map.class));
+		assertThat(routingSlip).isNotNull();
+		assertThat(routingSlip).isInstanceOf(Map.class);
 		@SuppressWarnings("unchecked")
 		List<Object> routingSlipPath = (List<Object>) ((Map<?, ?>) routingSlip).keySet().iterator().next();
 
-		assertEquals("fooChannel", routingSlipPath.get(0));
-		assertThat(routingSlipPath.get(1), instanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class));
-		assertEquals("bazRoutingSlip", routingSlipPath.get(2));
+		assertThat(routingSlipPath.get(0)).isEqualTo("fooChannel");
+		assertThat(routingSlipPath.get(1)).isInstanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class);
+		assertThat(routingSlipPath.get(2)).isEqualTo("bazRoutingSlip");
 	}
 
 

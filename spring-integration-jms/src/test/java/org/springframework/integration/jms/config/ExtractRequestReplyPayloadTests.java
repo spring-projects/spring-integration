@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -89,7 +87,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertTrue(replyMessage.getPayload() instanceof String);
+		assertThat(replyMessage.getPayload() instanceof String).isTrue();
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -103,7 +101,7 @@ public class ExtractRequestReplyPayloadTests {
 
 		final AtomicBoolean failOnce = new AtomicBoolean();
 		MessageHandler handler = message -> {
-			assertTrue(message.getPayload() instanceof String);
+			assertThat(message.getPayload() instanceof String).isTrue();
 			if (failOnce.compareAndSet(false, true)) {
 				throw new RuntimeException("test tx");
 			}
@@ -115,7 +113,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertTrue(replyMessage.getPayload() instanceof String);
+		assertThat(replyMessage.getPayload() instanceof String).isTrue();
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -132,7 +130,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload(), instanceOf(javax.jms.TextMessage.class));
+		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.TextMessage.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -148,7 +146,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload(), instanceOf(String.class));
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -164,7 +162,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload(), instanceOf(String.class));
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -180,7 +178,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertTrue(replyMessage.getPayload() instanceof String);
+		assertThat(replyMessage.getPayload() instanceof String).isTrue();
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -196,7 +194,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertTrue(replyMessage.getPayload() instanceof javax.jms.Message);
+		assertThat(replyMessage.getPayload() instanceof javax.jms.Message).isTrue();
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -212,7 +210,7 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload(), instanceOf(String.class));
+		assertThat(replyMessage.getPayload()).isInstanceOf(String.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
@@ -228,13 +226,13 @@ public class ExtractRequestReplyPayloadTests {
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
 		Message<?> replyMessage = this.replyChannel.receive(10000);
-		assertThat(replyMessage.getPayload(), instanceOf(javax.jms.Message.class));
+		assertThat(replyMessage.getPayload()).isInstanceOf(javax.jms.Message.class);
 		this.jmsInputChannel.unsubscribe(handler);
 	}
 
 	private MessageHandler echoInboundStringHandler() {
 		return message -> {
-			assertTrue(message.getPayload() instanceof String);
+			assertThat(message.getPayload() instanceof String).isTrue();
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			template.send(message);
@@ -243,7 +241,7 @@ public class ExtractRequestReplyPayloadTests {
 
 	private MessageHandler unwrapObjectMessageAndEchoHandler() {
 		return message -> {
-			assertThat(message.getPayload(), instanceOf(javax.jms.ObjectMessage.class));
+			assertThat(message.getPayload()).isInstanceOf(javax.jms.ObjectMessage.class);
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			Message<?> origMessage = null;
@@ -259,7 +257,7 @@ public class ExtractRequestReplyPayloadTests {
 
 	private MessageHandler unwrapTextMessageAndEchoHandler() {
 		return message -> {
-			assertThat(message.getPayload(), instanceOf(javax.jms.TextMessage.class));
+			assertThat(message.getPayload()).isInstanceOf(javax.jms.TextMessage.class);
 			MessagingTemplate template = new MessagingTemplate();
 			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			String payload = null;

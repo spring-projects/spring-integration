@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,14 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
@@ -83,15 +77,15 @@ public class XmlPayloadValidatingFilterParserTests {
 	@Test
 	public void testParse() throws Exception {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ac.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = ac.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
@@ -101,7 +95,7 @@ public class XmlPayloadValidatingFilterParserTests {
 		PollableChannel validChannel = this.ac.getBean("validOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = this.ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
-		assertNotNull(validChannel.receive(100));
+		assertThat(validChannel.receive(100)).isNotNull();
 	}
 
 	@Test
@@ -112,8 +106,8 @@ public class XmlPayloadValidatingFilterParserTests {
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
-		assertNotNull(invalidChannel.receive(100));
-		assertNull(validChannel.receive(100));
+		assertThat(invalidChannel.receive(100)).isNotNull();
+		assertThat(validChannel.receive(100)).isNull();
 	}
 
 	@Test
@@ -126,13 +120,14 @@ public class XmlPayloadValidatingFilterParserTests {
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageRejectedException.class));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
 			Throwable cause = e.getCause();
-			assertThat(cause, Matchers.instanceOf(AggregatedXmlMessageValidationException.class));
-			assertThat(cause.getMessage(),
-					Matchers.containsString("Element 'greeting' is a simple type, so it must have no element information item [children]."));
-			assertThat(cause.getMessage(),
-					Matchers.containsString("Element 'greeting' is a simple type, so it cannot have attributes,"));
+			assertThat(cause).isInstanceOf(AggregatedXmlMessageValidationException.class);
+			assertThat(cause.getMessage())
+					.contains(
+							"Element 'greeting' is a simple type, so it must have no element information item [children].");
+			assertThat(cause.getMessage())
+					.contains("Element 'greeting' is a simple type, so it cannot have attributes,");
 		}
 	}
 
@@ -143,7 +138,7 @@ public class XmlPayloadValidatingFilterParserTests {
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
 		inputChannel.send(docMessage);
-		assertNotNull(validChannel.receive(100));
+		assertThat(validChannel.receive(100)).isNotNull();
 	}
 
 	@Test
@@ -153,7 +148,7 @@ public class XmlPayloadValidatingFilterParserTests {
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
 		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
 		inputChannel.send(docMessage);
-		assertNotNull(invalidChannel.receive(100));
+		assertThat(invalidChannel.receive(100)).isNotNull();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2018 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -64,22 +59,24 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	public void validateWithStringTemplate() throws Exception {
 		RedisStoreWritingMessageHandler withStringTemplate = context.getBean("withStringTemplate.handler",
 				RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withStringTemplate,
-				"keyExpression")).getExpressionString());
-		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString());
-		assertTrue(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate);
+		assertThat(((LiteralExpression) TestUtils.getPropertyValue(withStringTemplate,
+				"keyExpression")).getExpressionString()).isEqualTo("pepboys");
+		assertThat((TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString())
+				.isEqualTo("PROPERTIES");
+		assertThat(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate)
+				.isTrue();
 
 		Object handler = TestUtils.getPropertyValue(context.getBean("withStringTemplate.adapter"), "handler");
 
-		assertTrue(AopUtils.isAopProxy(handler));
+		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 
-		assertSame(((Advised) handler).getTargetSource().getTarget(), withStringTemplate);
+		assertThat(withStringTemplate).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
-				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
+				.isInstanceOf(RequestHandlerRetryAdvice.class);
 
-		assertEquals("true", TestUtils.getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression",
-				Expression.class).getExpressionString());
+		assertThat(TestUtils.getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression",
+				Expression.class).getExpressionString()).isEqualTo("true");
 	}
 
 	@Test
@@ -87,18 +84,20 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 		RedisStoreWritingMessageHandler withStringObjectTemplate =
 				TestUtils.getPropertyValue(context.getBean("withStringObjectTemplate.adapter"), "handler",
 						RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withStringObjectTemplate,
-				"keyExpression")).getExpressionString());
-		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withStringObjectTemplate, "collectionType")).toString());
-		assertFalse(TestUtils.getPropertyValue(withStringObjectTemplate, "redisTemplate") instanceof StringRedisTemplate);
-		assertTrue(TestUtils.getPropertyValue(withStringObjectTemplate,
-				"redisTemplate.keySerializer") instanceof StringRedisSerializer);
-		assertTrue(TestUtils.getPropertyValue(withStringObjectTemplate,
-				"redisTemplate.hashKeySerializer") instanceof StringRedisSerializer);
-		assertTrue(TestUtils.getPropertyValue(withStringObjectTemplate,
-				"redisTemplate.valueSerializer") instanceof JdkSerializationRedisSerializer);
-		assertTrue(TestUtils.getPropertyValue(withStringObjectTemplate,
-				"redisTemplate.hashValueSerializer") instanceof JdkSerializationRedisSerializer);
+		assertThat(((LiteralExpression) TestUtils.getPropertyValue(withStringObjectTemplate,
+				"keyExpression")).getExpressionString()).isEqualTo("pepboys");
+		assertThat((TestUtils.getPropertyValue(withStringObjectTemplate, "collectionType")).toString())
+				.isEqualTo("PROPERTIES");
+		assertThat(TestUtils.getPropertyValue(withStringObjectTemplate, "redisTemplate") instanceof StringRedisTemplate)
+				.isFalse();
+		assertThat(TestUtils.getPropertyValue(withStringObjectTemplate,
+				"redisTemplate.keySerializer") instanceof StringRedisSerializer).isTrue();
+		assertThat(TestUtils.getPropertyValue(withStringObjectTemplate,
+				"redisTemplate.hashKeySerializer") instanceof StringRedisSerializer).isTrue();
+		assertThat(TestUtils.getPropertyValue(withStringObjectTemplate,
+				"redisTemplate.valueSerializer") instanceof JdkSerializationRedisSerializer).isTrue();
+		assertThat(TestUtils.getPropertyValue(withStringObjectTemplate,
+				"redisTemplate.hashValueSerializer") instanceof JdkSerializationRedisSerializer).isTrue();
 	}
 
 	@Test
@@ -106,10 +105,11 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 		RedisStoreWritingMessageHandler withExternalTemplate =
 				TestUtils.getPropertyValue(context.getBean("withExternalTemplate.adapter"), "handler",
 						RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withExternalTemplate,
-				"keyExpression")).getExpressionString());
-		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString());
-		assertSame(redisTemplate, TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate"));
+		assertThat(((LiteralExpression) TestUtils.getPropertyValue(withExternalTemplate,
+				"keyExpression")).getExpressionString()).isEqualTo("pepboys");
+		assertThat((TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString())
+				.isEqualTo("PROPERTIES");
+		assertThat(TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate")).isSameAs(redisTemplate);
 	}
 
 }

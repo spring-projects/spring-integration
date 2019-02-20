@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 
@@ -36,21 +36,21 @@ public class ObjectToStringTransformerTests {
 	public void stringPayload() {
 		Transformer transformer = new ObjectToStringTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
-		assertEquals("foo", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void objectPayload() {
 		Transformer transformer = new ObjectToStringTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<TestBean>(new TestBean()));
-		assertEquals("test", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("test");
 	}
 
 	@Test
 	public void byteArrayPayload() throws Exception {
 		Transformer transformer = new ObjectToStringTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>(("foo" + '\u0fff').getBytes("UTF-8")));
-		assertEquals("foo" + '\u0fff', result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo" + '\u0fff');
 	}
 
 	@Test
@@ -58,14 +58,14 @@ public class ObjectToStringTransformerTests {
 		String defaultCharsetName = Charset.defaultCharset().toString();
 		Transformer transformer = new ObjectToStringTransformer(defaultCharsetName);
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>("foo".getBytes(defaultCharsetName)));
-		assertEquals("foo", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void charArrayPayload() {
 		Transformer transformer = new ObjectToStringTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<char[]>("foo".toCharArray()));
-		assertEquals("foo", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	private static class TestBean {

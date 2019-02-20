@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -109,19 +104,18 @@ public class WatchServiceDirectoryScannerTests {
 		fileReadingMessageSource.afterPropertiesSet();
 		fileReadingMessageSource.start();
 		DirectoryScanner scanner = fileReadingMessageSource.getScanner();
-		assertThat(scanner.getClass().getName(),
-				containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+		assertThat(scanner.getClass().getName()).contains("FileReadingMessageSource$WatchServiceDirectoryScanner");
 
 		// Files are skipped by the LastModifiedFileListFilter
 		List<File> files = scanner.listFiles(folder.getRoot());
-		assertEquals(0, files.size());
+		assertThat(files.size()).isEqualTo(0);
 		// Consider all the files as one day old
 		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
 		files = scanner.listFiles(folder.getRoot());
-		assertEquals(3, files.size());
-		assertTrue(files.contains(top1));
-		assertTrue(files.contains(foo1));
-		assertTrue(files.contains(bar1));
+		assertThat(files.size()).isEqualTo(3);
+		assertThat(files.contains(top1)).isTrue();
+		assertThat(files.contains(foo1)).isTrue();
+		assertThat(files.contains(bar1)).isTrue();
 		fileReadingMessageSource.start();
 		File top2 = this.folder.newFile();
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);
@@ -137,11 +131,11 @@ public class WatchServiceDirectoryScannerTests {
 			files = scanner.listFiles(folder.getRoot());
 			accum.addAll(files);
 		}
-		assertEquals(4, accum.size());
-		assertTrue(accum.contains(top2));
-		assertTrue(accum.contains(foo2));
-		assertTrue(accum.contains(bar2));
-		assertTrue(accum.contains(baz1));
+		assertThat(accum.size()).isEqualTo(4);
+		assertThat(accum.contains(top2)).isTrue();
+		assertThat(accum.contains(foo2)).isTrue();
+		assertThat(accum.contains(bar2)).isTrue();
+		assertThat(accum.contains(baz1)).isTrue();
 
 		/*See AbstractWatchKey#signalEvent source code:
 			if(var5 >= 512) {
@@ -162,7 +156,7 @@ public class WatchServiceDirectoryScannerTests {
 			accum.addAll(files);
 		}
 
-		assertEquals(604, accum.size());
+		assertThat(accum.size()).isEqualTo(604);
 
 		for (File fileForOverFlow : filesForOverflow) {
 			accum.contains(fileForOverFlow);
@@ -177,7 +171,7 @@ public class WatchServiceDirectoryScannerTests {
 			accum.addAll(files);
 		}
 
-		assertTrue(accum.contains(baz2));
+		assertThat(accum.contains(baz2)).isTrue();
 
 		File baz2Copy = new File(baz2.getAbsolutePath());
 
@@ -191,8 +185,8 @@ public class WatchServiceDirectoryScannerTests {
 			accum.addAll(files);
 		}
 
-		assertEquals(1, files.size());
-		assertTrue(files.contains(baz2));
+		assertThat(files.size()).isEqualTo(1);
+		assertThat(files.contains(baz2)).isTrue();
 
 		baz2.delete();
 
@@ -203,7 +197,7 @@ public class WatchServiceDirectoryScannerTests {
 			scanner.listFiles(folder.getRoot());
 		}
 
-		assertTrue(removeFileLatch.await(10, TimeUnit.SECONDS));
+		assertThat(removeFileLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		File baz3 = File.createTempFile("baz3", ".txt", baz);
 
@@ -213,10 +207,10 @@ public class WatchServiceDirectoryScannerTests {
 			Thread.sleep(100);
 		}
 
-		assertNotNull(fileMessage);
-		assertEquals(baz3, fileMessage.getPayload());
-		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class),
-				startsWith(TestUtils.applySystemFileSeparator("foo/baz/")));
+		assertThat(fileMessage).isNotNull();
+		assertThat(fileMessage.getPayload()).isEqualTo(baz3);
+		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class))
+				.startsWith(TestUtils.applySystemFileSeparator("foo/baz/"));
 
 		fileReadingMessageSource.stop();
 	}

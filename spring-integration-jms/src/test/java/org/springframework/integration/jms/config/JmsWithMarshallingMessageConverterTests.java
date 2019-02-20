@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,8 +57,8 @@ public class JmsWithMarshallingMessageConverterTests {
 		Message<String> replyMessage = (Message<String>) output.receive();
 		MessageHeaders headers = replyMessage.getHeaders();
 		// check for couple of JMS headers, make sure they are present
-		assertNotNull(headers.get("jms_redelivered"));
-		assertEquals("HELLO", replyMessage.getPayload());
+		assertThat(headers.get("jms_redelivered")).isNotNull();
+		assertThat(replyMessage.getPayload()).isEqualTo("HELLO");
 		ac.close();
 	}
 

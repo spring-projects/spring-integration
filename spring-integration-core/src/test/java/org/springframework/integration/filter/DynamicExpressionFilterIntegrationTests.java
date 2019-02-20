@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,12 +51,12 @@ public class DynamicExpressionFilterIntegrationTests {
 		this.input.send(new GenericMessage<Integer>(0));
 		this.input.send(new GenericMessage<Integer>(99));
 		this.input.send(new GenericMessage<Integer>(-99));
-		assertEquals(new Integer(1), positives.receive(0).getPayload());
-		assertEquals(new Integer(99), positives.receive(0).getPayload());
-		assertEquals(new Integer(0), negatives.receive(0).getPayload());
-		assertEquals(new Integer(-99), negatives.receive(0).getPayload());
-		assertNull(positives.receive(0));
-		assertNull(negatives.receive(0));
+		assertThat(positives.receive(0).getPayload()).isEqualTo(new Integer(1));
+		assertThat(positives.receive(0).getPayload()).isEqualTo(new Integer(99));
+		assertThat(negatives.receive(0).getPayload()).isEqualTo(new Integer(0));
+		assertThat(negatives.receive(0).getPayload()).isEqualTo(new Integer(-99));
+		assertThat(positives.receive(0)).isNull();
+		assertThat(negatives.receive(0)).isNull();
 	}
 
 }

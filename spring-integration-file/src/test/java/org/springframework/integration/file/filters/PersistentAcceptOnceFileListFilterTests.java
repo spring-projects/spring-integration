@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Closeable;
 import java.io.File;
@@ -71,15 +69,15 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertEquals(1, filter.filterFiles(new File[] {file}).size());
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
 		String ts = store.get("foo:" + file.getAbsolutePath());
-		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] {file}).size());
+		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
 		file.setLastModified(file.lastModified() + 5000L);
-		assertEquals(1, filter.filterFiles(new File[] {file}).size());
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
 		ts = store.get("foo:" + file.getAbsolutePath());
-		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] {file}).size());
+		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
 
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);
@@ -91,11 +89,11 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 				return filter.filterFiles(new File[] {file}).size();
 			}
 		});
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();
 		Integer theResult = result.get(10, TimeUnit.SECONDS);
-		assertEquals(Integer.valueOf(0), theResult); // lost the race, key changed
+		assertThat(theResult).isEqualTo(Integer.valueOf(0)); // lost the race, key changed
 
 		file.delete();
 		filter.close();
@@ -126,21 +124,21 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 				new SimpleMetadataStore(), "rollback:");
 		File[] files = new File[] {new File("foo"), new File("bar"), new File("baz")};
 		List<File> passed = filter.filterFiles(files);
-		assertEquals(0, passed.size());
+		assertThat(passed.size()).isEqualTo(0);
 		for (File file : files) {
 			file.createNewFile();
 		}
 		passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<File> now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
-		assertEquals(2, now.size());
-		assertEquals("bar", now.get(0).getName());
-		assertEquals("baz", now.get(1).getName());
+		assertThat(now.size()).isEqualTo(2);
+		assertThat(now.get(0).getName()).isEqualTo("bar");
+		assertThat(now.get(1).getName()).isEqualTo("baz");
 		now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.close();
 		for (File file : files) {
 			file.delete();
@@ -180,30 +178,30 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		final File file = File.createTempFile("foo", ".txt");
 		File[] files = new File[] { file };
 		List<File> passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		filter.rollback(passed.get(0), passed);
-		assertEquals(0, flushes.get());
+		assertThat(flushes.get()).isEqualTo(0);
 		filter.setFlushOnUpdate(true);
 		passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
-		assertEquals(1, flushes.get());
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
+		assertThat(flushes.get()).isEqualTo(1);
 		filter.rollback(passed.get(0), passed);
-		assertEquals(2, flushes.get());
+		assertThat(flushes.get()).isEqualTo(2);
 		passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
-		assertEquals(3, flushes.get());
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
+		assertThat(flushes.get()).isEqualTo(3);
 		passed = filter.filterFiles(files);
-		assertEquals(0, passed.size());
-		assertEquals(3, flushes.get());
-		assertFalse(replaced.get());
+		assertThat(passed.size()).isEqualTo(0);
+		assertThat(flushes.get()).isEqualTo(3);
+		assertThat(replaced.get()).isFalse();
 		store.put(prefix + file.getAbsolutePath(), "1");
 		passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
-		assertEquals(4, flushes.get());
-		assertTrue(replaced.get());
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
+		assertThat(flushes.get()).isEqualTo(4);
+		assertThat(replaced.get()).isTrue();
 		file.delete();
 		filter.close();
-		assertEquals(5, flushes.get());
+		assertThat(flushes.get()).isEqualTo(5);
 	}
 
 }

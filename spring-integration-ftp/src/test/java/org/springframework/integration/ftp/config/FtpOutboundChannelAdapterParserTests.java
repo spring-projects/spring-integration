@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -91,35 +88,38 @@ public class FtpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpOutboundChannelAdapterComplete() throws Exception {
-		assertEquals(ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
-		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
+		assertThat(TestUtils.getPropertyValue(ftpOutbound, "inputChannel")).isEqualTo(ftpChannel);
+		assertThat(ftpOutbound.getComponentName()).isEqualTo("ftpOutbound");
 		FileTransferringMessageHandler<?> handler =
 				TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.remoteFileSeparator");
-		assertNotNull(remoteFileSeparator);
-		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
-		assertEquals("", remoteFileSeparator);
-		assertEquals(this.fileNameGenerator, TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
-		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLST,
-				TestUtils.getPropertyValue(handler, "remoteFileTemplate.existsMode"));
+		assertThat(remoteFileSeparator).isNotNull();
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class))
+				.isEqualTo(".foo");
+		assertThat(remoteFileSeparator).isEqualTo("");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
+				.isEqualTo(this.fileNameGenerator);
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"))
+				.isNotNull();
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.existsMode"))
+				.isEqualTo(FtpRemoteFileTemplate.ExistsMode.NLST);
 		Object sfProperty = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
-		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
+		assertThat(sfProperty.getClass()).isEqualTo(DefaultFtpSessionFactory.class);
 		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;
-		assertEquals("localhost", TestUtils.getPropertyValue(sessionFactory, "host"));
-		assertEquals(22, TestUtils.getPropertyValue(sessionFactory, "port"));
-		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(TestUtils.getPropertyValue(sessionFactory, "host")).isEqualTo("localhost");
+		assertThat(TestUtils.getPropertyValue(sessionFactory, "port")).isEqualTo(22);
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
 		//verify subscription order
 		Object dispatcher = TestUtils.getPropertyValue(ftpChannel, "dispatcher");
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils.getPropertyValue(dispatcher, "handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(TestUtils.getPropertyValue(this.ftpOutbound2, "handler"), iterator.next());
-		assertSame(handler, iterator.next());
-		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(ftpOutbound, "handler.mode"));
+		assertThat(iterator.next()).isSameAs(TestUtils.getPropertyValue(this.ftpOutbound2, "handler"));
+		assertThat(iterator.next()).isSameAs(handler);
+		assertThat(TestUtils.getPropertyValue(ftpOutbound, "handler.mode")).isEqualTo(FileExistsMode.APPEND);
 	}
 
 	@Test(expected = BeanCreationException.class)
@@ -130,24 +130,25 @@ public class FtpOutboundChannelAdapterParserTests {
 	@Test
 	public void cachingByDefault() {
 		Object sfProperty = TestUtils.getPropertyValue(simpleAdapter, "handler.remoteFileTemplate.sessionFactory");
-		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
+		assertThat(sfProperty.getClass()).isEqualTo(CachingSessionFactory.class);
 		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
-		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
-		assertEquals(FileExistsMode.REPLACE, TestUtils.getPropertyValue(simpleAdapter, "handler.mode"));
+		assertThat(innerSfProperty.getClass()).isEqualTo(DefaultFtpSessionFactory.class);
+		assertThat(TestUtils.getPropertyValue(simpleAdapter, "handler.mode")).isEqualTo(FileExistsMode.REPLACE);
 	}
 
 	@Test
 	public void adviceChain() {
 		MessageHandler handler = TestUtils.getPropertyValue(advisedAdapter, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
 	public void testTemporaryFileSuffix() {
 		FileTransferringMessageHandler<?> handler =
 				(FileTransferringMessageHandler<?>) TestUtils.getPropertyValue(ftpOutbound3, "handler");
-		assertFalse(TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName", Boolean.class))
+				.isFalse();
 	}
 
 	@Test
@@ -156,17 +157,17 @@ public class FtpOutboundChannelAdapterParserTests {
 				TestUtils.getPropertyValue(withBeanExpressions, "handler", FileTransferringMessageHandler.class);
 		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
-		assertNotNull(dirExpProc);
+		assertThat(dirExpProc).isNotNull();
 		Message<String> message = MessageBuilder.withPayload("qux").build();
-		assertEquals("foo", dirExpProc.processMessage(message));
+		assertThat(dirExpProc.processMessage(message)).isEqualTo("foo");
 		ExpressionEvaluatingMessageProcessor<?> tempDirExpProc = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.temporaryDirectoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
-		assertNotNull(tempDirExpProc);
-		assertEquals("bar", tempDirExpProc.processMessage(message));
+		assertThat(tempDirExpProc).isNotNull();
+		assertThat(tempDirExpProc.processMessage(message)).isEqualTo("bar");
 		DefaultFileNameGenerator generator = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.fileNameGenerator", DefaultFileNameGenerator.class);
-		assertNotNull(generator);
-		assertEquals("baz", generator.generateFileName(message));
+		assertThat(generator).isNotNull();
+		assertThat(generator.generateFileName(message)).isEqualTo("baz");
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

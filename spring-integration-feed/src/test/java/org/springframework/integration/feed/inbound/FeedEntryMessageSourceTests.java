@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.feed.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -68,7 +66,7 @@ public class FeedEntryMessageSourceTests {
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
 		feedEntrySource.afterPropertiesSet();
-		assertNull(feedEntrySource.receive());
+		assertThat(feedEntrySource.receive()).isNull();
 	}
 
 	@Test
@@ -84,9 +82,9 @@ public class FeedEntryMessageSourceTests {
 		long time1 = message1.getPayload().getPublishedDate().getTime();
 		long time2 = message2.getPayload().getPublishedDate().getTime();
 		long time3 = message3.getPayload().getPublishedDate().getTime();
-		assertTrue(time1 < time2);
-		assertTrue(time2 < time3);
-		assertNull(source.receive());
+		assertThat(time1 < time2).isTrue();
+		assertThat(time2 < time3).isTrue();
+		assertThat(source.receive()).isNull();
 	}
 
 	// verifies that when entry has been updated since publish, that is taken into
@@ -103,11 +101,11 @@ public class FeedEntryMessageSourceTests {
 		feedEntrySource.afterPropertiesSet();
 
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
-		assertNull(feedEntrySource.receive()); // only 1 entries in the test feed
+		assertThat(feedEntrySource.receive()).isNull(); // only 1 entries in the test feed
 
-		assertEquals("Atom draft-07 snapshot", entry1.getTitle().trim());
-		assertEquals(1071318569000L, entry1.getPublishedDate().getTime());
-		assertEquals(1122812969000L, entry1.getUpdatedDate().getTime());
+		assertThat(entry1.getTitle().trim()).isEqualTo("Atom draft-07 snapshot");
+		assertThat(entry1.getPublishedDate().getTime()).isEqualTo(1071318569000L);
+		assertThat(entry1.getUpdatedDate().getTime()).isEqualTo(1122812969000L);
 
 		metadataStore.destroy();
 		metadataStore.afterPropertiesSet();
@@ -120,7 +118,7 @@ public class FeedEntryMessageSourceTests {
 		feedEntrySource.setMetadataStore(metadataStore);
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
 		feedEntrySource.afterPropertiesSet();
-		assertNull(feedEntrySource.receive());
+		assertThat(feedEntrySource.receive()).isNull();
 	}
 
 	// will test that last feed entry is remembered between the sessions
@@ -138,16 +136,16 @@ public class FeedEntryMessageSourceTests {
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
 		SyndEntry entry3 = feedEntrySource.receive().getPayload();
-		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
+		assertThat(feedEntrySource.receive()).isNull(); // only 3 entries in the test feed
 
-		assertEquals("Spring Integration download", entry1.getTitle().trim());
-		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
+		assertThat(entry1.getTitle().trim()).isEqualTo("Spring Integration download");
+		assertThat(entry1.getPublishedDate().getTime()).isEqualTo(1266088337000L);
 
-		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
-		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
+		assertThat(entry2.getTitle().trim()).isEqualTo("Check out Spring Integration forums");
+		assertThat(entry2.getPublishedDate().getTime()).isEqualTo(1268469501000L);
 
-		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
-		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
+		assertThat(entry3.getTitle().trim()).isEqualTo("Spring Integration adapters");
+		assertThat(entry3.getPublishedDate().getTime()).isEqualTo(1272044098000L);
 
 		metadataStore.destroy();
 		metadataStore.afterPropertiesSet();
@@ -160,9 +158,9 @@ public class FeedEntryMessageSourceTests {
 		feedEntrySource.setMetadataStore(metadataStore);
 		feedEntrySource.setBeanFactory(mock(BeanFactory.class));
 		feedEntrySource.afterPropertiesSet();
-		assertNull(feedEntrySource.receive());
-		assertNull(feedEntrySource.receive());
-		assertNull(feedEntrySource.receive());
+		assertThat(feedEntrySource.receive()).isNull();
+		assertThat(feedEntrySource.receive()).isNull();
+		assertThat(feedEntrySource.receive()).isNull();
 	}
 
 	// will test that last feed entry is NOT remembered between the sessions, since
@@ -177,16 +175,16 @@ public class FeedEntryMessageSourceTests {
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
 		SyndEntry entry3 = feedEntrySource.receive().getPayload();
-		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
+		assertThat(feedEntrySource.receive()).isNull(); // only 3 entries in the test feed
 
-		assertEquals("Spring Integration download", entry1.getTitle().trim());
-		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
+		assertThat(entry1.getTitle().trim()).isEqualTo("Spring Integration download");
+		assertThat(entry1.getPublishedDate().getTime()).isEqualTo(1266088337000L);
 
-		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
-		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
+		assertThat(entry2.getTitle().trim()).isEqualTo("Check out Spring Integration forums");
+		assertThat(entry2.getPublishedDate().getTime()).isEqualTo(1268469501000L);
 
-		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
-		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
+		assertThat(entry3.getTitle().trim()).isEqualTo("Spring Integration adapters");
+		assertThat(entry3.getPublishedDate().getTime()).isEqualTo(1272044098000L);
 
 		// UNLIKE the previous test
 		// now test that what's been read is read AGAIN
@@ -197,16 +195,16 @@ public class FeedEntryMessageSourceTests {
 		entry1 = feedEntrySource.receive().getPayload();
 		entry2 = feedEntrySource.receive().getPayload();
 		entry3 = feedEntrySource.receive().getPayload();
-		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
+		assertThat(feedEntrySource.receive()).isNull(); // only 3 entries in the test feed
 
-		assertEquals("Spring Integration download", entry1.getTitle().trim());
-		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
+		assertThat(entry1.getTitle().trim()).isEqualTo("Spring Integration download");
+		assertThat(entry1.getPublishedDate().getTime()).isEqualTo(1266088337000L);
 
-		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
-		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
+		assertThat(entry2.getTitle().trim()).isEqualTo("Check out Spring Integration forums");
+		assertThat(entry2.getPublishedDate().getTime()).isEqualTo(1268469501000L);
 
-		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
-		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
+		assertThat(entry3.getTitle().trim()).isEqualTo("Spring Integration adapters");
+		assertThat(entry3.getPublishedDate().getTime()).isEqualTo(1272044098000L);
 	}
 
 }

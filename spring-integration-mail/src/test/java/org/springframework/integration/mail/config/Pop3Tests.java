@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 
@@ -50,7 +48,7 @@ public class Pop3Tests {
 		while (n++ < 100 && (!pop3Server.isListening())) {
 			Thread.sleep(100);
 		}
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 	}
 
 	@AfterClass
@@ -64,14 +62,14 @@ public class Pop3Tests {
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		MailReceivingMessageSource source = new MailReceivingMessageSource(receiver);
 		Message<?> message = source.receive();
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
-		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
-		assertEquals("[a@b, c@d]", Arrays.toString(headers.get(MailHeaders.CC, String[].class)));
-		assertEquals("[e@f, g@h]", Arrays.toString(headers.get(MailHeaders.BCC, String[].class)));
-		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
-		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n\r\n", message.getPayload());
+		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
+		assertThat(Arrays.toString(headers.get(MailHeaders.CC, String[].class))).isEqualTo("[a@b, c@d]");
+		assertThat(Arrays.toString(headers.get(MailHeaders.BCC, String[].class))).isEqualTo("[e@f, g@h]");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
+		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
+		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
 	}
 
 }

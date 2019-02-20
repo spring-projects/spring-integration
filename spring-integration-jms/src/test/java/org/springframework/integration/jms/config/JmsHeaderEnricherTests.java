@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.Destination;
 
@@ -62,33 +62,33 @@ public class JmsHeaderEnricherTests {
 	public void verifyReplyToValue() throws Exception {
 		this.valueTestInput.send(new GenericMessage<>("test"));
 		Message<?> result = output.receive(10_000);
-		assertEquals(this.testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
+		assertThat(result.getHeaders().get(JmsHeaders.REPLY_TO)).isEqualTo(this.testDestination);
 		StubTextMessage jmsMessage = new StubTextMessage();
 		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
-		assertEquals(this.testDestination, jmsMessage.getJMSReplyTo());
+		assertThat(jmsMessage.getJMSReplyTo()).isEqualTo(this.testDestination);
 	}
 
 	@Test
 	public void verifyCorrelationIdValue() throws Exception {
 		this.valueTestInput.send(new GenericMessage<>("test"));
 		Message<?> result = output.receive(10_000);
-		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
+		assertThat(result.getHeaders().get(JmsHeaders.CORRELATION_ID)).isEqualTo("ABC");
 		StubTextMessage jmsMessage = new StubTextMessage();
 		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
-		assertEquals("ABC", jmsMessage.getJMSCorrelationID());
+		assertThat(jmsMessage.getJMSCorrelationID()).isEqualTo("ABC");
 	}
 
 	@Test // see INT-1122 and INT-1123
 	public void verifyCorrelationIdExpression() throws Exception {
 		this.expressionTestInput.send(new GenericMessage<>("test"));
 		Message<?> result = output.receive(0);
-		assertEquals(123, result.getHeaders().get(JmsHeaders.CORRELATION_ID));
+		assertThat(result.getHeaders().get(JmsHeaders.CORRELATION_ID)).isEqualTo(123);
 		StubTextMessage jmsMessage = new StubTextMessage();
 		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
-		assertEquals("123", jmsMessage.getJMSCorrelationID());
+		assertThat(jmsMessage.getJMSCorrelationID()).isEqualTo("123");
 	}
 
 }

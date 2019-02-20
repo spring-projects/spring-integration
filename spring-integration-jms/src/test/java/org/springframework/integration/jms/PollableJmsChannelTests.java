@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -86,15 +83,15 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		boolean sent2 = channel.send(new GenericMessage<String>("bar"));
-		assertTrue(sent2);
+		assertThat(sent2).isTrue();
 		Message<?> result1 = channel.receive(10000);
-		assertNotNull(result1);
-		assertEquals("foo", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("foo");
 		Message<?> result2 = channel.receive(10000);
-		assertNotNull(result2);
-		assertEquals("bar", result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -109,15 +106,15 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		boolean sent2 = channel.send(new GenericMessage<String>("bar"));
-		assertTrue(sent2);
+		assertThat(sent2).isTrue();
 		Message<?> result1 = channel.receive(10000);
-		assertNotNull(result1);
-		assertEquals("foo", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("foo");
 		Message<?> result2 = channel.receive(10000);
-		assertNotNull(result2);
-		assertEquals("bar", result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -136,9 +133,9 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		Message<?> result1 = channel.receive(10000);
-		assertNull(result1);
+		assertThat(result1).isNull();
 		verify(interceptor, times(1)).preReceive(Mockito.any(MessageChannel.class));
 		verify(interceptor, times(0)).postReceive(Mockito.any(Message.class), Mockito.any(MessageChannel.class));
 	}
@@ -159,9 +156,9 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		Message<?> result1 = channel.receive(10000);
-		assertNotNull(result1);
+		assertThat(result1).isNotNull();
 		verify(interceptor, times(1)).preReceive(Mockito.any(MessageChannel.class));
 		verify(interceptor, times(1)).postReceive(Mockito.any(Message.class), Mockito.any(MessageChannel.class));
 	}
@@ -185,7 +182,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		final JmsTemplate receiver = new JmsTemplate(this.connectionFactory);
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		final AtomicReference<javax.jms.Message> message = new AtomicReference<javax.jms.Message>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -193,24 +190,24 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 			message.set(receiver.receive(queue));
 			latch1.countDown();
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertNotNull(message.get());
-		assertEquals(5, message.get().getJMSPriority());
-		assertTrue(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl);
-		assertTrue(message.get().toString().contains("persistent = false"));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(message.get()).isNotNull();
+		assertThat(message.get().getJMSPriority()).isEqualTo(5);
+		assertThat(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl).isTrue();
+		assertThat(message.get().toString().contains("persistent = false")).isTrue();
 		message.set(null);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
-		assertTrue(sent2);
+		assertThat(sent2).isTrue();
 		exec.execute(() -> {
 			message.set(receiver.receive(queue));
 			latch2.countDown();
 		});
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(message.get());
-		assertEquals(6, message.get().getJMSPriority());
-		assertTrue(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl);
-		assertTrue(message.get().toString().contains("persistent = false"));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(message.get()).isNotNull();
+		assertThat(message.get().getJMSPriority()).isEqualTo(6);
+		assertThat(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl).isTrue();
+		assertThat(message.get().toString().contains("persistent = false")).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -230,9 +227,9 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
 		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
-		assertTrue(sent1);
+		assertThat(sent1).isTrue();
 		Message<?> result1 = channel.receive(100);
-		assertNull(result1);
+		assertThat(result1).isNull();
 
 		JmsTemplate jmsTemplate = new JmsTemplate(this.connectionFactory);
 		jmsTemplate.setDefaultDestinationName("pollableJmsChannelSelectorTestQueue");
@@ -243,8 +240,8 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		});
 
 		Message<?> result2 = channel.receive(10000);
-		assertNotNull(result2);
-		assertEquals("bar", result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo("bar");
 	}
 
 	public static class SampleInterceptor implements ChannelInterceptor {

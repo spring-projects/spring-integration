@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,14 @@
 
 package org.springframework.integration.channel.registry;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -65,6 +54,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -105,13 +96,13 @@ public class HeaderChannelRegistryTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.input);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
-		assertNotNull(reply);
-		assertEquals("echo:foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("echo:foo");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(registry, "channels", Map.class)
-					.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis(),
-						lessThan(61000L));
+						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+				.isLessThan(61000L);
 	}
 
 	@Test
@@ -119,13 +110,13 @@ public class HeaderChannelRegistryTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputTtl);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("ttl"));
-		assertNotNull(reply);
-		assertEquals("echo:ttl", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(registry, "channels", Map.class)
-					.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis(),
-						greaterThan(100000L));
+						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+				.isGreaterThan(100000L);
 	}
 
 	@Test
@@ -136,36 +127,36 @@ public class HeaderChannelRegistryTests {
 				.setHeader("channelTTL", 180000)
 				.build();
 		Message<?> reply = template.sendAndReceive(requestMessage);
-		assertNotNull(reply);
-		assertEquals("echo:ttl", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		String stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(registry, "channels", Map.class)
-					.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis(),
-						allOf(greaterThan(160000L), lessThan(181000L)));
+						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+				.isGreaterThan(160000L).isLessThan(181000L);
 		// Now for Elvis...
 		reply = template.sendAndReceive(new GenericMessage<String>("ttl"));
-		assertNotNull(reply);
-		assertEquals("echo:ttl", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("echo:ttl");
 		stringReplyChannel = reply.getHeaders().get("stringReplyChannel", String.class);
 		assertThat(TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(registry, "channels", Map.class)
-					.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis(),
-						greaterThan(220000L));
+						.get(stringReplyChannel), "expireAt", Long.class) - System.currentTimeMillis())
+				.isGreaterThan(220000L);
 	}
 
 	@Test
 	public void testReplaceGatewayWithNoReplyChannel() {
 		String reply = this.gatewayNoReplyChannel.exchange("foo");
-		assertNotNull(reply);
-		assertEquals("echo:foo", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("echo:foo");
 	}
 
 	@Test
 	public void testReplaceGatewayWithExplicitReplyChannel() {
 		String reply = this.gatewayExplicitReplyChannel.exchange("foo");
-		assertNotNull(reply);
-		assertEquals("echo:foo", reply);
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo("echo:foo");
 	}
 
 	/**
@@ -177,10 +168,10 @@ public class HeaderChannelRegistryTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(this.inputPolled);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("bar"));
-		assertNotNull(reply);
-		assertTrue(reply instanceof ErrorMessage);
-		assertNotNull(((ErrorMessage) reply).getOriginalMessage());
-		assertThat(reply.getPayload(), not(instanceOf(MessagingExceptionWrapper.class)));
+		assertThat(reply).isNotNull();
+		assertThat(reply instanceof ErrorMessage).isTrue();
+		assertThat(((ErrorMessage) reply).getOriginalMessage()).isNotNull();
+		assertThat(reply.getPayload()).isNotInstanceOf(MessagingExceptionWrapper.class);
 	}
 
 	@Test
@@ -191,8 +182,8 @@ public class HeaderChannelRegistryTests {
 				.build();
 		this.input.send(requestMessage);
 		Message<?> reply = alreadyAString.receive(0);
-		assertNotNull(reply);
-		assertEquals("echo:foo", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("echo:foo");
 	}
 
 	@Test
@@ -204,7 +195,7 @@ public class HeaderChannelRegistryTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage(), Matchers.containsString("no output-channel or replyChannel"));
+			assertThat(e.getMessage()).contains("no output-channel or replyChannel");
 		}
 	}
 
@@ -217,7 +208,7 @@ public class HeaderChannelRegistryTests {
 		while (n++ < 100 && registry.channelNameToChannel(id) != null) {
 			Thread.sleep(100);
 		}
-		assertNull(registry.channelNameToChannel(id));
+		assertThat(registry.channelNameToChannel(id)).isNull();
 		registry.stop();
 	}
 
@@ -226,8 +217,8 @@ public class HeaderChannelRegistryTests {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
-						HeaderChannelRegistry.class))
-			.thenReturn(mock(HeaderChannelRegistry.class));
+				HeaderChannelRegistry.class))
+				.thenReturn(mock(HeaderChannelRegistry.class));
 		doAnswer(invocation -> {
 			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
@@ -237,8 +228,8 @@ public class HeaderChannelRegistryTests {
 			fail("Expected exception");
 		}
 		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage(),
-				Matchers.containsString("failed to look up MessageChannel with name 'foo' in the BeanFactory."));
+			assertThat(e.getMessage()).contains("failed to look up MessageChannel with name 'foo' in the BeanFactory" +
+					".");
 		}
 	}
 
@@ -255,9 +246,9 @@ public class HeaderChannelRegistryTests {
 			fail("Expected exception");
 		}
 		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage(),
-				Matchers.containsString("failed to look up MessageChannel with name 'foo' in the BeanFactory " +
-						"(and there is no HeaderChannelRegistry present)."));
+			assertThat(e.getMessage()).contains("failed to look up MessageChannel with name 'foo' in the BeanFactory" +
+					" " +
+					"(and there is no HeaderChannelRegistry present).");
 		}
 	}
 
@@ -267,12 +258,12 @@ public class HeaderChannelRegistryTests {
 		MessageChannel channel = new DirectChannel();
 		String foo = (String) registry.channelToChannelName(channel);
 		Map<?, ?> map = TestUtils.getPropertyValue(registry, "channels", Map.class);
-		assertEquals(1, map.size());
-		assertSame(channel, registry.channelNameToChannel(foo));
-		assertEquals(1, map.size());
+		assertThat(map.size()).isEqualTo(1);
+		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
+		assertThat(map.size()).isEqualTo(1);
 		registry.setRemoveOnGet(true);
-		assertSame(channel, registry.channelNameToChannel(foo));
-		assertEquals(0, map.size());
+		assertThat(registry.channelNameToChannel(foo)).isSameAs(channel);
+		assertThat(map.size()).isEqualTo(0);
 	}
 
 
@@ -280,10 +271,14 @@ public class HeaderChannelRegistryTests {
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			assertThat(requestMessage.getHeaders().getReplyChannel(),
-					Matchers.anyOf(instanceOf(String.class), Matchers.nullValue()));
-			assertThat(requestMessage.getHeaders().getErrorChannel(),
-					Matchers.anyOf(instanceOf(String.class), Matchers.nullValue()));
+			assertThat(requestMessage.getHeaders().getReplyChannel())
+					.satisfiesAnyOf(
+							replyChannel -> assertThat(replyChannel).isInstanceOf(String.class),
+							replyChannel -> assertThat(replyChannel).isNull());
+			assertThat(requestMessage.getHeaders().getErrorChannel())
+					.satisfiesAnyOf(
+							errorChannel -> assertThat(errorChannel).isInstanceOf(String.class),
+							errorChannel -> assertThat(errorChannel).isNull());
 			if (requestMessage.getPayload().equals("bar")) {
 				throw new RuntimeException("intentional");
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -35,8 +35,8 @@ public class SftpMessageHistoryTests {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("MessageHistory-context.xml",
 				SftpMessageHistoryTests.class);
 		SourcePollingChannelAdapter spca = ac.getBean("sftpAdapter", SourcePollingChannelAdapter.class);
-		assertEquals("sftpAdapter", spca.getComponentName());
-		assertEquals("sftp:inbound-channel-adapter", spca.getComponentType());
+		assertThat(spca.getComponentName()).isEqualTo("sftpAdapter");
+		assertThat(spca.getComponentType()).isEqualTo("sftp:inbound-channel-adapter");
 		ac.close();
 	}
 

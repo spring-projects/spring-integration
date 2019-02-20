@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.syslog.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -107,30 +103,30 @@ public class SyslogReceivingChannelAdapterParserTests {
 		socket.send(packet);
 		socket.close();
 		Message<?> message = foo.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		adapter1.stop();
 	}
 
 	@Test
 	public void testExplicitChannelUdp() throws Exception {
-		assertEquals(1514, TestUtils.getPropertyValue(foobar, "udpAdapter.port"));
-		assertSame(foo, TestUtils.getPropertyValue(foobar, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(foobar, "udpAdapter.port")).isEqualTo(1514);
+		assertThat(TestUtils.getPropertyValue(foobar, "outputChannel")).isSameAs(foo);
 	}
 
 	@Test
 	public void testExplicitUdp() throws Exception {
-		assertSame(explicitUdp, TestUtils.getPropertyValue(explicitUdpAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(explicitUdpAdapter, "outputChannel")).isSameAs(explicitUdp);
 	}
 
 	@Test
 	public void testFullBoatUdp() {
-		assertSame(foo, TestUtils.getPropertyValue(fullBoatUdp, "outputChannel"));
-		assertFalse(fullBoatUdp.isAutoStartup());
-		assertEquals(123, fullBoatUdp.getPhase());
-		assertEquals(456L, TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout"));
-		assertSame(converter, TestUtils.getPropertyValue(fullBoatUdp, "converter"));
-		assertSame(errors, TestUtils.getPropertyValue(fullBoatUdp, "errorChannel"));
-		assertFalse(TestUtils.getPropertyValue(fullBoatUdp, "udpAdapter.mapper.lookupHost", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "outputChannel")).isSameAs(foo);
+		assertThat(fullBoatUdp.isAutoStartup()).isFalse();
+		assertThat(fullBoatUdp.getPhase()).isEqualTo(123);
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "converter")).isSameAs(converter);
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "errorChannel")).isSameAs(errors);
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "udpAdapter.mapper.lookupHost", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -145,20 +141,20 @@ public class SyslogReceivingChannelAdapterParserTests {
 		socket.getOutputStream().write(buf);
 		socket.close();
 		Message<?> message = bar.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		adapter2.stop();
-		assertNotNull(TestUtils.getPropertyValue(adapter2, "connectionFactory.applicationEventPublisher"));
+		assertThat(TestUtils.getPropertyValue(adapter2, "connectionFactory.applicationEventPublisher")).isNotNull();
 	}
 
 	@Test
 	public void testFullBoatTcp() {
-		assertSame(bar, TestUtils.getPropertyValue(fullBoatTcp, "outputChannel"));
-		assertFalse(fullBoatTcp.isAutoStartup());
-		assertEquals(123, fullBoatTcp.getPhase());
-		assertEquals(456L, TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout"));
-		assertSame(rfc5424, TestUtils.getPropertyValue(fullBoatTcp, "converter"));
-		assertSame(errors, TestUtils.getPropertyValue(fullBoatTcp, "errorChannel"));
-		assertSame(cf, TestUtils.getPropertyValue(fullBoatTcp, "connectionFactory"));
+		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "outputChannel")).isSameAs(bar);
+		assertThat(fullBoatTcp.isAutoStartup()).isFalse();
+		assertThat(fullBoatTcp.getPhase()).isEqualTo(123);
+		assertThat(TestUtils.getPropertyValue(fullBoatUdp, "messagingTemplate.sendTimeout")).isEqualTo(456L);
+		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "converter")).isSameAs(rfc5424);
+		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "errorChannel")).isSameAs(errors);
+		assertThat(TestUtils.getPropertyValue(fullBoatTcp, "connectionFactory")).isSameAs(cf);
 	}
 
 	@Test
@@ -169,8 +165,10 @@ public class SyslogReceivingChannelAdapterParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith(
-				"Configuration problem: When child element 'udp-attributes' is present, 'port' must be defined there"));
+			assertThat(e.getMessage().startsWith(
+					"Configuration problem: When child element 'udp-attributes' is present, 'port' must be defined " +
+							"there"))
+					.isTrue();
 		}
 	}
 
@@ -182,7 +180,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertEquals("Cannot specify both 'port' and 'connectionFactory'", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("Cannot specify both 'port' and 'connectionFactory'");
 		}
 	}
 
@@ -196,7 +194,8 @@ public class SyslogReceivingChannelAdapterParserTests {
 		catch (BeanCreationException e) {
 			e.printStackTrace();
 
-			assertEquals("Cannot specify 'udp-attributes' when the protocol is 'tcp'", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("Cannot specify 'udp-attributes' when the protocol is 'tcp'");
 		}
 	}
 
@@ -208,8 +207,8 @@ public class SyslogReceivingChannelAdapterParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertEquals("Cannot specify 'connection-factory' unless the protocol is 'tcp'",
-					e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("Cannot specify 'connection-factory' unless the protocol is 'tcp'");
 		}
 	}
 

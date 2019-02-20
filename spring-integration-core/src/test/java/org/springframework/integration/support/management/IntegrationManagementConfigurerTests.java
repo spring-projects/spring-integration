@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.support.management;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,9 +64,9 @@ public class IntegrationManagementConfigurerTests {
 				return null;
 			}
 		};
-		assertTrue(channel.isLoggingEnabled());
-		assertTrue(handler.isLoggingEnabled());
-		assertTrue(source.isLoggingEnabled());
+		assertThat(channel.isLoggingEnabled()).isTrue();
+		assertThat(handler.isLoggingEnabled()).isTrue();
+		assertThat(source.isLoggingEnabled()).isTrue();
 		channel.setCountsEnabled(true);
 		channel.setStatsEnabled(true);
 		ApplicationContext ctx = mock(ApplicationContext.class);
@@ -83,11 +80,11 @@ public class IntegrationManagementConfigurerTests {
 		configurer.setApplicationContext(ctx);
 		configurer.setDefaultLoggingEnabled(false);
 		configurer.afterSingletonsInstantiated();
-		assertFalse(channel.isLoggingEnabled());
-		assertFalse(handler.isLoggingEnabled());
-		assertFalse(source.isLoggingEnabled());
-		assertTrue(channel.isCountsEnabled());
-		assertTrue(channel.isStatsEnabled());
+		assertThat(channel.isLoggingEnabled()).isFalse();
+		assertThat(handler.isLoggingEnabled()).isFalse();
+		assertThat(source.isLoggingEnabled()).isFalse();
+		assertThat(channel.isCountsEnabled()).isTrue();
+		assertThat(channel.isStatsEnabled()).isTrue();
 	}
 
 	@Test
@@ -95,12 +92,12 @@ public class IntegrationManagementConfigurerTests {
 		AnnotationConfigApplicationContext ctx =
 				new AnnotationConfigApplicationContext(ConfigEmptyAnnotation.class);
 		AbstractMessageChannel channel = ctx.getBean("channel", AbstractMessageChannel.class);
-		assertTrue(channel.isCountsEnabled());
-		assertTrue(channel.isStatsEnabled());
-		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"),
-				instanceOf(DefaultMessageChannelMetrics.class));
+		assertThat(channel.isCountsEnabled()).isTrue();
+		assertThat(channel.isStatsEnabled()).isTrue();
+		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"))
+				.isInstanceOf(DefaultMessageChannelMetrics.class);
 		channel = ctx.getBean("loggingOffChannel", AbstractMessageChannel.class);
-		assertFalse(channel.isLoggingEnabled());
+		assertThat(channel.isLoggingEnabled()).isFalse();
 		ctx.close();
 	}
 

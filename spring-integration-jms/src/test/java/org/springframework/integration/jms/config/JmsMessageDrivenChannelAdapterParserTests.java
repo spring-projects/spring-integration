@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -55,13 +50,13 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output2");
 		Message<?> message = output.receive(timeoutOnReceive);
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
-		assertNotNull(componentHistoryRecord);
+		assertThat(componentHistoryRecord).isNotNull();
 		JmsMessageDrivenEndpoint endpoint =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
-		assertEquals("jms:message-driven-channel-adapter", componentHistoryRecord.get("type"));
-		assertNotNull("message should not be null", message);
-		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("jms:message-driven-channel-adapter");
+		assertThat(message).as("message should not be null").isNotNull();
+		assertThat(message.getPayload()).isEqualTo("test [with selector: TestProperty = 'foo']");
 		endpoint.stop();
 		context.close();
 	}
@@ -72,9 +67,9 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 				"jmsInboundWithPubSubDomain.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
-		assertEquals(Boolean.TRUE, container.isPubSubDomain());
-		assertFalse(container.isSubscriptionDurable()); // INT-3680
-		assertNull(container.getDurableSubscriptionName());
+		assertThat(container.isPubSubDomain()).isEqualTo(Boolean.TRUE);
+		assertThat(container.isSubscriptionDurable()).isFalse(); // INT-3680
+		assertThat(container.getDurableSubscriptionName()).isNull();
 		endpoint.stop();
 		context.close();
 	}
@@ -85,11 +80,11 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 				"jmsInboundWithDurableSubscription.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
 		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
-		assertEquals(Boolean.TRUE, container.isPubSubDomain());
-		assertEquals(Boolean.TRUE, container.isSubscriptionDurable());
-		assertEquals("testDurableSubscriptionName", container.getDurableSubscriptionName());
-		assertEquals("testClientId", container.getClientId());
-		assertTrue(container.isSubscriptionShared());
+		assertThat(container.isPubSubDomain()).isEqualTo(Boolean.TRUE);
+		assertThat(container.isSubscriptionDurable()).isEqualTo(Boolean.TRUE);
+		assertThat(container.getDurableSubscriptionName()).isEqualTo("testDurableSubscriptionName");
+		assertThat(container.getClientId()).isEqualTo("testClientId");
+		assertThat(container.isSubscriptionShared()).isTrue();
 		endpoint.stop();
 		context.close();
 	}
@@ -101,7 +96,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter.adapter", JmsMessageDrivenEndpoint.class);
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(endpoint, "listenerContainer",
 				DefaultMessageListenerContainer.class);
-		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
+		assertThat(TestUtils.getPropertyValue(container, "taskExecutor")).isSameAs(context.getBean("exec"));
 		endpoint.stop();
 		context.close();
 	}
@@ -114,7 +109,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertEquals(1111L, new DirectFieldAccessor(container).getPropertyValue("receiveTimeout"));
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("receiveTimeout")).isEqualTo(1111L);
 		adapter.stop();
 		context.close();
 	}
@@ -134,7 +129,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		catch (NotReadablePropertyException e) {
 			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
 		}
-		assertEquals(2222L, recoveryInterval);
+		assertThat(recoveryInterval).isEqualTo(2222L);
 		adapter.stop();
 		context.close();
 	}
@@ -147,7 +142,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit")).isEqualTo(7);
 		adapter.stop();
 		context.close();
 	}
@@ -160,8 +155,8 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
-		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
-		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit")).isEqualTo(33);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);
 		adapter.stop();
 		context.close();
 	}
@@ -172,34 +167,35 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 				"jmsInboundWithContainerClass.xml", this.getClass());
 		JmsMessageDrivenEndpoint adapter = context.getBean("adapterWithIdleConsumerLimit.adapter", JmsMessageDrivenEndpoint.class);
 		MessageChannel channel = context.getBean("adapterWithIdleConsumerLimit", MessageChannel.class);
-		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		assertThat(TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel")).isSameAs(channel);
 		adapter.start();
 		FooContainer container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
-		assertSame(container, context.getBean("adapterWithIdleConsumerLimit.container"));
-		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
-		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
-		assertSame(context.getBean("adapterWithIdleConsumerLimit.listener"),
-				TestUtils.getPropertyValue(container, "messageListener"));
+		assertThat(context.getBean("adapterWithIdleConsumerLimit.container")).isSameAs(container);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit")).isEqualTo(33);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);
+		assertThat(TestUtils.getPropertyValue(container, "messageListener"))
+				.isSameAs(context.getBean("adapterWithIdleConsumerLimit.listener"));
 		adapter.stop();
 
 		adapter = context.getBean("adapterWithIdleConsumerLimit2.adapter", JmsMessageDrivenEndpoint.class);
 		channel = context.getBean("adapterWithIdleConsumerLimit2", MessageChannel.class);
-		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		assertThat(TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel")).isSameAs(channel);
 		adapter.start();
 		container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
-		assertSame(container, context.getBean("adapterWithIdleConsumerLimit2.container"));
-		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
-		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		assertThat(context.getBean("adapterWithIdleConsumerLimit2.container")).isSameAs(container);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit")).isEqualTo(33);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);
 		adapter.stop();
 
 		adapter = context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0", JmsMessageDrivenEndpoint.class);
 		channel = context.getBean("in", MessageChannel.class);
-		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		assertThat(TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel")).isSameAs(channel);
 		adapter.start();
 		container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
-		assertSame(container, context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0.container"));
-		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
-		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		assertThat(context.getBean("org.springframework.integration.jms.JmsMessageDrivenEndpoint#0.container"))
+				.isSameAs(container);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit")).isEqualTo(33);
+		assertThat(new DirectFieldAccessor(container).getPropertyValue("cacheLevel")).isEqualTo(3);
 		adapter.stop();
 		context.close();
 	}

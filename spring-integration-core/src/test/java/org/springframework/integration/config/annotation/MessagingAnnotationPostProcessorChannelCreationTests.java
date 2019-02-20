@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -79,8 +78,8 @@ public class MessagingAnnotationPostProcessorChannelCreationTests {
 			fail("Expected a DestinationResolutionException");
 		}
 		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage(),
-					containsString("A bean definition with name 'channel' exists, but failed to be created"));
+			assertThat(e.getMessage())
+					.contains("A bean definition with name 'channel' exists, but failed to be created");
 		}
 	}
 

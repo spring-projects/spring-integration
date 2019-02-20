@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -70,11 +68,11 @@ public class AggregatingMetricsTests {
 		for (int i = 0; i < count; i++) {
 			input.send(message);
 		}
-		assertEquals(count, this.output.getQueueSize());
-		assertEquals(count, this.output.getSendCount());
-		assertEquals(Long.valueOf(count / 1000).longValue(), this.output.getSendDuration().getCountLong());
-		assertEquals(count, this.handler.getHandleCount());
-		assertEquals(Long.valueOf(count / 1000).longValue(), this.handler.getDuration().getCountLong());
+		assertThat(this.output.getQueueSize()).isEqualTo(count);
+		assertThat(this.output.getSendCount()).isEqualTo(count);
+		assertThat(this.output.getSendDuration().getCountLong()).isEqualTo(Long.valueOf(count / 1000).longValue());
+		assertThat(this.handler.getHandleCount()).isEqualTo(count);
+		assertThat(this.handler.getDuration().getCountLong()).isEqualTo(Long.valueOf(count / 1000).longValue());
 	}
 
 	@Test
@@ -89,12 +87,12 @@ public class AggregatingMetricsTests {
 		for (int i = 0; i < count; i++) {
 			this.delay.send(message);
 		}
-		assertEquals(count, this.delay.getSendCount());
-		assertEquals(count / sampleSize, this.delay.getSendDuration().getCount());
-		assertThat((int) this.delay.getMeanSendDuration() / sampleSize, greaterThanOrEqualTo(50));
-		assertEquals(count, this.delayer.getHandleCount());
-		assertEquals(count / sampleSize, this.delayer.getDuration().getCount());
-		assertThat((int) this.delayer.getMeanDuration() / sampleSize, greaterThanOrEqualTo(50));
+		assertThat(this.delay.getSendCount()).isEqualTo(count);
+		assertThat(this.delay.getSendDuration().getCount()).isEqualTo(count / sampleSize);
+		assertThat((int) this.delay.getMeanSendDuration() / sampleSize).isGreaterThanOrEqualTo(50);
+		assertThat(this.delayer.getHandleCount()).isEqualTo(count);
+		assertThat(this.delayer.getDuration().getCount()).isEqualTo(count / sampleSize);
+		assertThat((int) this.delayer.getMeanDuration() / sampleSize).isGreaterThanOrEqualTo(50);
 	}
 
 	@Test @Ignore

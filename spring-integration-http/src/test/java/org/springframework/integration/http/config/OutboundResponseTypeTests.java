@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -28,7 +26,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import java.util.Collections;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,8 +108,8 @@ public class OutboundResponseTypeTests {
 
 		this.requestChannel.send(new GenericMessage<String>("Hello"));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof ResponseEntity);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof ResponseEntity).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -125,8 +122,8 @@ public class OutboundResponseTypeTests {
 
 		this.resTypeSetChannel.send(new GenericMessage<String>("Hello"));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof String);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof String).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -139,8 +136,8 @@ public class OutboundResponseTypeTests {
 
 		this.resTypeExpressionSetChannel.send(new GenericMessage<String>("java.lang.String"));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof String);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof String).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -154,8 +151,8 @@ public class OutboundResponseTypeTests {
 
 		this.resTypeExpressionSetSerializationChannel.send(new GenericMessage<Class<?>>(String.class));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof String);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof String).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -168,8 +165,8 @@ public class OutboundResponseTypeTests {
 
 		this.resTypeExpressionSetChannel.send(new GenericMessage<String>("byte[]"));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof byte[]);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof byte[]).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -182,8 +179,8 @@ public class OutboundResponseTypeTests {
 
 		this.resPrimitiveStringPresentationChannel.send(new GenericMessage<byte[]>("hello".getBytes()));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof byte[]);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof byte[]).isTrue();
 
 		this.mockServer.verify();
 	}
@@ -195,11 +192,11 @@ public class OutboundResponseTypeTests {
 			fail("IllegalStateException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
 			Throwable t = e.getCause();
-			assertThat(t, Matchers.instanceOf(IllegalStateException.class));
-			assertThat(t.getMessage(), Matchers.containsString("'expectedResponseType' can be an instance of " +
-					"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'"));
+			assertThat(t).isInstanceOf(IllegalStateException.class);
+			assertThat(t.getMessage()).contains("'expectedResponseType' can be an instance of " +
+					"'Class<?>', 'String' or 'ParameterizedTypeReference<?>'");
 		}
 	}
 
@@ -210,9 +207,9 @@ public class OutboundResponseTypeTests {
 			fail("Expected BeansException");
 		}
 		catch (BeansException e) {
-			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("The 'expected-response-type' " +
-					"and 'expected-response-type-expression' are mutually exclusive"));
+			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
+			assertThat(e.getMessage().contains("The 'expected-response-type' " +
+					"and 'expected-response-type-expression' are mutually exclusive")).isTrue();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -58,11 +58,11 @@ public class JmsMessageHistoryTests {
 				.get(MessageHistory.HEADER_NAME, MessageHistory.class)
 				.iterator();
 		Properties event1 = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event1.getProperty(MessageHistory.TYPE_PROPERTY));
-		assertEquals("sampleJmsInboundAdapter", event1.getProperty(MessageHistory.NAME_PROPERTY));
+		assertThat(event1.getProperty(MessageHistory.TYPE_PROPERTY)).isEqualTo("jms:inbound-channel-adapter");
+		assertThat(event1.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("sampleJmsInboundAdapter");
 		Properties event2 = historyIterator.next();
-		assertEquals("channel", event2.getProperty(MessageHistory.TYPE_PROPERTY));
-		assertEquals("jmsInputChannel", event2.getProperty(MessageHistory.NAME_PROPERTY));
+		assertThat(event2.getProperty(MessageHistory.TYPE_PROPERTY)).isEqualTo("channel");
+		assertThat(event2.getProperty(MessageHistory.NAME_PROPERTY)).isEqualTo("jmsInputChannel");
 		applicationContext.close();
 	}
 

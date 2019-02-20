@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.mail.internet.MimeMessage;
 
@@ -52,8 +50,8 @@ class MailToStringTransformerParserTests {
 			Mockito.when(mimeMessage.getContent()).thenReturn("hello");
 			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
 			Message<?> result = output.receive(10_000);
-			assertNotNull(result);
-			assertEquals("hello", result.getPayload());
+			assertThat(result).isNotNull();
+			assertThat(result.getPayload()).isEqualTo("hello");
 			Mockito.verify(mimeMessage).getContent();
 		}
 	}
@@ -70,8 +68,8 @@ class MailToStringTransformerParserTests {
 			Mockito.when(mimeMessage.getContent()).thenReturn("foo");
 			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
 			Message<?> result = output.receive(0);
-			assertNotNull(result);
-			assertEquals("FOO!!!", result.getPayload());
+			assertThat(result).isNotNull();
+			assertThat(result.getPayload()).isEqualTo("FOO!!!");
 			Mockito.verify(mimeMessage).getContent();
 		}
 	}
@@ -83,7 +81,7 @@ class MailToStringTransformerParserTests {
 					.close();
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertTrue(e.getMessage().contains("input-channel"));
+			assertThat(e.getMessage().contains("input-channel")).isTrue();
 		}
 	}
 

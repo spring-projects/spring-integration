@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -32,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -134,20 +127,20 @@ public class FileOutboundChannelAdapterParserTests {
 		Expression destinationDirectoryExpression =
 				(Expression) handlerAccessor.getPropertyValue("destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
-		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
-		assertThat(actual, is(expected));
+		assertThat(TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class)).isEqualTo(".foo");
+		assertThat(actual).isEqualTo(expected);
 		DefaultFileNameGenerator fileNameGenerator =
 				(DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
-		assertNotNull(fileNameGenerator);
+		assertThat(fileNameGenerator).isNotNull();
 		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
-		assertNotNull(expression);
-		assertEquals("'foo.txt'", expression.getExpressionString());
-		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
-		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("flushWhenIdle"));
+		assertThat(expression).isNotNull();
+		assertThat(expression.getExpressionString()).isEqualTo("'foo.txt'");
+		assertThat(handlerAccessor.getPropertyValue("deleteSourceFiles")).isEqualTo(Boolean.FALSE);
+		assertThat(handlerAccessor.getPropertyValue("flushWhenIdle")).isEqualTo(Boolean.TRUE);
 		if (FileUtils.IS_POSIX) {
-			assertThat(TestUtils.getPropertyValue(handler, "permissions", Set.class).size(), equalTo(9));
+			assertThat(TestUtils.getPropertyValue(handler, "permissions", Set.class).size()).isEqualTo(9);
 		}
-		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("preserveTimestamp"));
+		assertThat(handlerAccessor.getPropertyValue("preserveTimestamp")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -162,10 +155,10 @@ public class FileOutboundChannelAdapterParserTests {
 				(Expression) handlerAccessor.getPropertyValue("destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
 
-		assertEquals(expected, actual);
-		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
-		assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
-		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("flushWhenIdle"));
+		assertThat(actual).isEqualTo(expected);
+		assertThat(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator).isTrue();
+		assertThat(handlerAccessor.getPropertyValue("temporaryFileSuffix")).isEqualTo(".writing");
+		assertThat(handlerAccessor.getPropertyValue("flushWhenIdle")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -174,7 +167,7 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
+		assertThat(handlerAccessor.getPropertyValue("deleteSourceFiles")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -183,7 +176,7 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(555, handlerAccessor.getPropertyValue("order"));
+		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(555);
 	}
 
 	@Test
@@ -192,16 +185,16 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(4096, handlerAccessor.getPropertyValue("bufferSize"));
-		assertEquals(12345L, handlerAccessor.getPropertyValue("flushInterval"));
-		assertEquals(FileExistsMode.APPEND_NO_FLUSH, handlerAccessor.getPropertyValue("fileExistsMode"));
-		assertSame(this.predicate, handlerAccessor.getPropertyValue("flushPredicate"));
+		assertThat(handlerAccessor.getPropertyValue("bufferSize")).isEqualTo(4096);
+		assertThat(handlerAccessor.getPropertyValue("flushInterval")).isEqualTo(12345L);
+		assertThat(handlerAccessor.getPropertyValue("fileExistsMode")).isEqualTo(FileExistsMode.APPEND_NO_FLUSH);
+		assertThat(handlerAccessor.getPropertyValue("flushPredicate")).isSameAs(this.predicate);
 	}
 
 	@Test
 	public void adapterWithAutoStartupFalse() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertThat(adapterAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test
@@ -210,7 +203,7 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
 	}
 
 	@Test
@@ -220,12 +213,12 @@ public class FileOutboundChannelAdapterParserTests {
 				TestUtils.getPropertyValue(adapterWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		Method m = ReflectionUtils.findMethod(FileWritingMessageHandler.class, "getTemporaryFileSuffix");
 		ReflectionUtils.makeAccessible(m);
-		assertEquals(".writing", ReflectionUtils.invokeMethod(m, handler));
+		assertThat(ReflectionUtils.invokeMethod(m, handler)).isEqualTo(".writing");
 		String expectedExpressionString = "'foo/bar'";
 		String actualExpressionString =
 				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
 						.getExpressionString();
-		assertEquals(expectedExpressionString, actualExpressionString);
+		assertThat(actualExpressionString).isEqualTo(expectedExpressionString);
 
 	}
 
@@ -244,14 +237,15 @@ public class FileOutboundChannelAdapterParserTests {
 		usageChannel.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-		assertEquals(expectedFileContent, actualFileContent);
-		assertEquals(4, adviceCalled);
+		assertThat(actualFileContent).isEqualTo(expectedFileContent);
+		assertThat(adviceCalled).isEqualTo(4);
 		testFile.delete();
 	}
 
 	@Test
 	public void adapterUsageWithAppendAndAppendNewLineTrue() throws Exception {
-		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(this.adapterWithAppendNewLine, "handler.appendNewLine"));
+		assertThat(TestUtils.getPropertyValue(this.adapterWithAppendNewLine, "handler.appendNewLine"))
+				.isEqualTo(Boolean.TRUE);
 		String newLine = System.getProperty("line.separator");
 		String expectedFileContent = "Initial File Content:" + newLine + "String content:" + newLine +
 				"byte[] content:" + newLine + "File content" + newLine;
@@ -266,7 +260,7 @@ public class FileOutboundChannelAdapterParserTests {
 		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-		assertEquals(expectedFileContent, actualFileContent);
+		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 		testFile.delete();
 	}
 
@@ -284,7 +278,7 @@ public class FileOutboundChannelAdapterParserTests {
 		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-		assertEquals(expectedFileContent, actualFileContent);
+		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 		testFile.delete();
 	}
 
@@ -302,12 +296,12 @@ public class FileOutboundChannelAdapterParserTests {
 			usageChannelWithFailMode.send(new GenericMessage<>("String content:"));
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(), containsString("The destination file already exists at"));
+			assertThat(e.getMessage()).contains("The destination file already exists at");
 			testFile.delete();
 			return;
 		}
 
-		Assert.fail("Was expecting an Exception to be thrown.");
+		fail("Was expecting an Exception to be thrown.");
 	}
 
 	@Test
@@ -325,7 +319,7 @@ public class FileOutboundChannelAdapterParserTests {
 		usageChannelWithIgnoreMode.send(new GenericMessage<>("String content:"));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-		assertEquals(expectedFileContent, actualFileContent);
+		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 		testFile.delete();
 
 	}
@@ -352,7 +346,7 @@ public class FileOutboundChannelAdapterParserTests {
 			usageChannelConcurrent.send(new GenericMessage<>(bString));
 		}
 
-		assertTrue(this.fileWriteLatch.await(10, TimeUnit.SECONDS));
+		assertThat(this.fileWriteLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		int beginningIndex = 0;
@@ -367,7 +361,7 @@ public class FileOutboundChannelAdapterParserTests {
 		char[] characters = substring.toCharArray();
 		char c = characters[0];
 		for (char character : characters) {
-			assertEquals(c, character);
+			assertThat(character).isEqualTo(c);
 		}
 	}
 

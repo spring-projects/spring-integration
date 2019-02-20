@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.management.Notification;
 
@@ -75,7 +71,7 @@ public class NotificationListeningChannelAdapterParserTests {
 	@Test
 	public void receiveNotification() throws Exception {
 		this.multiAdapter.start();
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 		testPublisher.send("ABC");
 		verifyReceipt(channel, "testPublisher");
 		verifyReceipt(patternChannel, "testPublisher");
@@ -84,24 +80,24 @@ public class NotificationListeningChannelAdapterParserTests {
 		verifyReceipt(multiChannel, "testPublisher");
 
 		testPublisher2.send("ABC");
-		assertNull(channel.receive(0));
-		assertNull(patternChannel.receive(0));
+		assertThat(channel.receive(0)).isNull();
+		assertThat(patternChannel.receive(0)).isNull();
 		// multiChannel should see only 1 copy
 		verifyReceipt(multiChannel, "testPublisher2");
-		assertNull(multiChannel.receive(0));
+		assertThat(multiChannel.receive(0)).isNull();
 	}
 
 	private void verifyReceipt(PollableChannel channel, String beanName) {
 		Message<?> message = channel.receive(1000);
-		assertNotNull(message);
-		assertEquals(Notification.class, message.getPayload().getClass());
-		assertEquals("ABC", ((Notification) message.getPayload()).getMessage());
-		assertTrue(((String) ((Notification) message.getPayload()).getSource()).endsWith(beanName));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(Notification.class);
+		assertThat(((Notification) message.getPayload()).getMessage()).isEqualTo("ABC");
+		assertThat(((String) ((Notification) message.getPayload()).getSource()).endsWith(beanName)).isTrue();
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 }

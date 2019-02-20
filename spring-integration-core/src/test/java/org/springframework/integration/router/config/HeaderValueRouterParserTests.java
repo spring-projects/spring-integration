@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,9 +61,9 @@ public class HeaderValueRouterParserTests {
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		message1 = channel1.receive();
-		assertEquals("channel1", message1.getHeaders().get("testHeader"));
+		assertThat(message1.getHeaders().get("testHeader")).isEqualTo("channel1");
 		message2 = channel2.receive();
-		assertEquals("channel2", message2.getHeaders().get("testHeader"));
+		assertThat(message2.getHeaders().get("testHeader")).isEqualTo("channel2");
 	}
 
 	@Test
@@ -80,9 +80,9 @@ public class HeaderValueRouterParserTests {
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		message1 = channel1.receive();
-		assertEquals("1", message1.getHeaders().get("testHeader"));
+		assertThat(message1.getHeaders().get("testHeader")).isEqualTo("1");
 		message2 = channel2.receive();
-		assertEquals("2", message2.getHeaders().get("testHeader"));
+		assertThat(message2.getHeaders().get("testHeader")).isEqualTo("2");
 	}
 
 

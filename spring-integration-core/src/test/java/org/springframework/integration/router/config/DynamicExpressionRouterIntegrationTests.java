@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,12 +61,12 @@ public class DynamicExpressionRouterIntegrationTests {
 		this.input.send(message2);
 		this.input.send(message3);
 		this.input.send(message4);
-		assertEquals(testBean1, odd.receive(0).getPayload());
-		assertEquals(testBean2, even.receive(0).getPayload());
-		assertEquals(testBean3, odd.receive(0).getPayload());
-		assertEquals(testBean4, even.receive(0).getPayload());
-		assertNull(odd.receive(0));
-		assertNull(even.receive(0));
+		assertThat(odd.receive(0).getPayload()).isEqualTo(testBean1);
+		assertThat(even.receive(0).getPayload()).isEqualTo(testBean2);
+		assertThat(odd.receive(0).getPayload()).isEqualTo(testBean3);
+		assertThat(even.receive(0).getPayload()).isEqualTo(testBean4);
+		assertThat(odd.receive(0)).isNull();
+		assertThat(even.receive(0)).isNull();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -209,11 +208,11 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.dispatch(new GenericMessage<String>("test"));
-		assertEquals(2, messages.size());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
+		assertThat(messages.size()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize()).isEqualTo(0);
 	}
 
 	@Test
@@ -230,16 +229,16 @@ public class BroadcastingDispatcherTests {
 		Message<?> inputMessage = new GenericMessage<String>("test");
 		Object originalId = inputMessage.getHeaders().getId();
 		dispatcher.dispatch(inputMessage);
-		assertEquals(3, messages.size());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
-		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(0)).getCorrelationId());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
-		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(1)).getCorrelationId());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceNumber());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceSize());
-		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(2)).getCorrelationId());
+		assertThat(messages.size()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(0)).getCorrelationId()).isEqualTo(originalId);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(1)).getCorrelationId()).isEqualTo(originalId);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceNumber()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceSize()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(messages.get(2)).getCorrelationId()).isEqualTo(originalId);
 	}
 
 	/**
@@ -257,7 +256,7 @@ public class BroadcastingDispatcherTests {
 			fail("Expected Exception");
 		}
 		catch (MessagingException e) {
-			assertEquals(messageMock, e.getFailedMessage());
+			assertThat(e.getFailedMessage()).isEqualTo(messageMock);
 		}
 	}
 
@@ -278,7 +277,7 @@ public class BroadcastingDispatcherTests {
 			fail("Expected Exception");
 		}
 		catch (MessagingException e) {
-			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
+			assertThat(e.getFailedMessage()).isEqualTo(dontReplaceThisMessage);
 		}
 	}
 
@@ -288,7 +287,7 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void testNoHandler() {
 		dispatcher = new BroadcastingDispatcher();
-		assertTrue(dispatcher.dispatch(messageMock));
+		assertThat(dispatcher.dispatch(messageMock)).isTrue();
 	}
 
 	/**
@@ -297,7 +296,7 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void testNoHandlerWithExecutor() {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
-		assertTrue(dispatcher.dispatch(messageMock));
+		assertThat(dispatcher.dispatch(messageMock)).isTrue();
 	}
 
 	/**
@@ -312,7 +311,7 @@ public class BroadcastingDispatcherTests {
 			fail("Expected Exception");
 		}
 		catch (MessageDispatchingException exception) {
-			assertEquals(messageMock, exception.getFailedMessage());
+			assertThat(exception.getFailedMessage()).isEqualTo(messageMock);
 		}
 	}
 
@@ -328,7 +327,7 @@ public class BroadcastingDispatcherTests {
 			fail("Expected Exception");
 		}
 		catch (MessageDispatchingException exception) {
-			assertEquals(messageMock, exception.getFailedMessage());
+			assertThat(exception.getFailedMessage()).isEqualTo(messageMock);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jdbc.leader;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +80,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			initiator.start();
 		}
 
-		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted.await(10, TimeUnit.SECONDS)).isTrue();
 
 		LockRegistryLeaderInitiator initiator1 = countingPublisher.initiator;
 
@@ -96,12 +93,12 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			}
 		}
 
-		assertNotNull(initiator2);
+		assertThat(initiator2).isNotNull();
 
-		assertThat(initiator1.getContext().isLeader(), is(true));
-		assertThat(initiator1.getContext().getRole(), equalTo("bar"));
-		assertThat(initiator2.getContext().isLeader(), is(false));
-		assertThat(initiator2.getContext().getRole(), equalTo("bar"));
+		assertThat(initiator1.getContext().isLeader()).isTrue();
+		assertThat(initiator1.getContext().getRole()).isEqualTo("bar");
+		assertThat(initiator2.getContext().isLeader()).isFalse();
+		assertThat(initiator2.getContext().getRole()).isEqualTo("bar");
 
 		final CountDownLatch granted1 = new CountDownLatch(1);
 		final CountDownLatch granted2 = new CountDownLatch(1);
@@ -116,7 +113,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			public void publishOnRevoked(Object source, Context context, String role) {
 				try {
 					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted2.await(20, TimeUnit.SECONDS), is(true));
+					assertThat(granted2.await(20, TimeUnit.SECONDS)).isTrue();
 				}
 				catch (InterruptedException e) {
 					// No op
@@ -132,7 +129,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			public void publishOnRevoked(Object source, Context context, String role) {
 				try {
 					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted1.await(20, TimeUnit.SECONDS), is(true));
+					assertThat(granted1.await(20, TimeUnit.SECONDS)).isTrue();
 				}
 				catch (InterruptedException e) {
 					// No op
@@ -144,17 +141,17 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked1.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(revoked1.await(20, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(initiator2.getContext().isLeader(), is(true));
-		assertThat(initiator1.getContext().isLeader(), is(false));
+		assertThat(initiator2.getContext().isLeader()).isTrue();
+		assertThat(initiator1.getContext().isLeader()).isFalse();
 
 		initiator2.getContext().yield();
 
-		assertThat(revoked2.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(revoked2.await(20, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(initiator1.getContext().isLeader(), is(true));
-		assertThat(initiator2.getContext().isLeader(), is(false));
+		assertThat(initiator1.getContext().isLeader()).isTrue();
+		assertThat(initiator2.getContext().isLeader()).isFalse();
 
 		// Stop second initiator, so the first one will be leader even after yield
 		initiator2.stop();
@@ -164,8 +161,8 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(granted11.await(20, TimeUnit.SECONDS), is(true));
-		assertThat(initiator1.getContext().isLeader(), is(true));
+		assertThat(granted11.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(initiator1.getContext().isLeader()).isTrue();
 
 		initiator1.stop();
 	}
@@ -182,11 +179,11 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		initiator.start();
 
-		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted.await(10, TimeUnit.SECONDS)).isTrue();
 
 		destroy();
 
-		assertThat(countingPublisher.revoked.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(countingPublisher.revoked.await(10, TimeUnit.SECONDS)).isTrue();
 
 		granted = new CountDownLatch(1);
 		countingPublisher = new CountingPublisher(granted);
@@ -194,7 +191,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		init();
 
-		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted.await(10, TimeUnit.SECONDS)).isTrue();
 
 		initiator.stop();
 	}

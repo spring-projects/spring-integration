@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,8 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -90,7 +79,7 @@ public class FileWritingMessageHandlerTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
+	static final String SAMPLE_CONTENT = "HelloWorld\n????";
 
 
 	private File sourceFile;
@@ -119,7 +108,7 @@ public class FileWritingMessageHandlerTests {
 	@Test(expected = MessageHandlingException.class)
 	public void unsupportedType() {
 		this.handler.handleMessage(new GenericMessage<>(99));
-		assertThat(this.outputDirectory.listFiles()[0], nullValue());
+		assertThat(this.outputDirectory.listFiles()[0]).isNull();
 	}
 
 	@Test
@@ -128,18 +117,18 @@ public class FileWritingMessageHandlerTests {
 			FileWritingMessageHandler handler = new FileWritingMessageHandler(mock(Expression.class));
 			handler.setChmod(0421);
 			Set<?> permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size(), equalTo(3));
-			assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-			assertTrue(permissions.contains(PosixFilePermission.GROUP_WRITE));
-			assertTrue(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+			assertThat(permissions.size()).isEqualTo(3);
+			assertThat(permissions.contains(PosixFilePermission.OWNER_READ)).isTrue();
+			assertThat(permissions.contains(PosixFilePermission.GROUP_WRITE)).isTrue();
+			assertThat(permissions.contains(PosixFilePermission.OTHERS_EXECUTE)).isTrue();
 			handler.setChmod(0600);
 			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size(), equalTo(2));
-			assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-			assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+			assertThat(permissions.size()).isEqualTo(2);
+			assertThat(permissions.contains(PosixFilePermission.OWNER_READ)).isTrue();
+			assertThat(permissions.contains(PosixFilePermission.OWNER_WRITE)).isTrue();
 			handler.setChmod(0777);
 			permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
-			assertThat(permissions.size(), equalTo(9));
+			assertThat(permissions.size()).isEqualTo(9);
 		}
 	}
 
@@ -151,11 +140,11 @@ public class FileWritingMessageHandlerTests {
 		handler.setOutputChannel(new NullChannel());
 		handler.handleMessage(new GenericMessage<String>("test"));
 		File[] output = outputDirectory.listFiles();
-		assertThat(output.length, equalTo(1));
-		assertThat(output[0], notNullValue());
+		assertThat(output.length).isEqualTo(1);
+		assertThat(output[0]).isNotNull();
 		if (FileUtils.IS_POSIX) {
 			Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(output[0].toPath());
-			assertThat(permissions.size(), equalTo(9));
+			assertThat(permissions.size()).isEqualTo(9);
 		}
 	}
 
@@ -187,7 +176,7 @@ public class FileWritingMessageHandlerTests {
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
 		File destFile = (File) result.getPayload();
-		assertThat(destFile.getAbsolutePath(), containsString(TestUtils.applySystemFileSeparator("/dir1/dir2/test")));
+		assertThat(destFile.getAbsolutePath()).contains(TestUtils.applySystemFileSeparator("/dir1/dir2/test"));
 	}
 
 	@Test
@@ -286,7 +275,7 @@ public class FileWritingMessageHandlerTests {
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), containsString("[/foo] could not be created"));
+			assertThat(e.getMessage()).contains("[/foo] could not be created");
 		}
 	}
 
@@ -298,7 +287,7 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 	}
 
 	@Test
@@ -310,7 +299,7 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -322,11 +311,11 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -338,11 +327,11 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -355,11 +344,11 @@ public class FileWritingMessageHandlerTests {
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING))
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -372,11 +361,11 @@ public class FileWritingMessageHandlerTests {
 				SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING))
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -391,11 +380,11 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(is)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile)
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -410,11 +399,11 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(is)
 				.setHeader(FileHeaders.ORIGINAL_FILE, sourceFile.getAbsolutePath())
 				.build();
-		assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
-		assertFalse(sourceFile.exists());
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
@@ -426,7 +415,7 @@ public class FileWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		handler.handleMessage(message);
 		File result = (File) output.receive(0).getPayload();
-		assertThat(result.getName(), is(anyFilename));
+		assertThat(result.getName()).isEqualTo(anyFilename);
 	}
 
 	@Test
@@ -455,9 +444,9 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		File destFile = (File) result.getPayload();
-		assertNotSame(destFile, sourceFile);
-		assertThat(destFile.exists(), is(false));
-		assertThat(outFile.exists(), is(true));
+		assertThat(sourceFile).isNotSameAs(destFile);
+		assertThat(destFile.exists()).isFalse();
+		assertThat(outFile.exists()).isTrue();
 	}
 
 	@Test
@@ -473,9 +462,9 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		File destFile = (File) result.getPayload();
-		assertNotSame(destFile, sourceFile);
+		assertThat(sourceFile).isNotSameAs(destFile);
 		assertFileContentIsMatching(result);
-		assertThat(outFile.exists(), is(true));
+		assertThat(outFile.exists()).isTrue();
 		assertFileContentIs(outFile, "foo");
 	}
 
@@ -498,9 +487,9 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("bar"));
 		handler.handleMessage(new GenericMessage<String>("baz"));
 		handler.handleMessage(new GenericMessage<byte[]>("qux".getBytes())); // change of payload type forces flush
-		assertThat(file.length(), greaterThanOrEqualTo(9L));
+		assertThat(file.length()).isGreaterThanOrEqualTo(9L);
 		handler.stop(); // forces flush
-		assertThat(file.length(), equalTo(12L));
+		assertThat(file.length()).isEqualTo(12L);
 		handler.setFlushInterval(100);
 		handler.start();
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("fiz".getBytes())));
@@ -508,11 +497,11 @@ public class FileWritingMessageHandlerTests {
 		while (n++ < 100 && file.length() < 15) {
 			Thread.sleep(100);
 		}
-		assertThat(file.length(), equalTo(15L));
+		assertThat(file.length()).isEqualTo(15L);
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
 		handler.trigger(new GenericMessage<String>(Matcher.quoteReplacement(file.getAbsolutePath())));
-		assertThat(file.length(), equalTo(18L));
-		assertEquals(0, TestUtils.getPropertyValue(handler, "fileStates", Map.class).size());
+		assertThat(file.length()).isEqualTo(18L);
+		assertThat(TestUtils.getPropertyValue(handler, "fileStates", Map.class).size()).isEqualTo(0);
 
 		handler.setFlushInterval(30000);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -522,8 +511,8 @@ public class FileWritingMessageHandlerTests {
 		});
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
 		handler.trigger(new GenericMessage<String>("foo"));
-		assertThat(file.length(), equalTo(21L));
-		assertTrue(called.get());
+		assertThat(file.length()).isEqualTo(21L);
+		assertThat(called.get()).isTrue();
 
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
 		called.set(false);
@@ -531,8 +520,8 @@ public class FileWritingMessageHandlerTests {
 			called.set(true);
 			return true;
 		});
-		assertThat(file.length(), equalTo(24L));
-		assertTrue(called.get());
+		assertThat(file.length()).isEqualTo(24L);
+		assertThat(called.get()).isTrue();
 
 		handler.stop();
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
@@ -550,7 +539,7 @@ public class FileWritingMessageHandlerTests {
 			handler.handleMessage(new GenericMessage<String>("foo"));
 			Thread.sleep(5);
 		}
-		assertThat(flushes.get(), greaterThanOrEqualTo(2));
+		assertThat(flushes.get()).isGreaterThanOrEqualTo(2);
 		handler.stop();
 	}
 
@@ -593,7 +582,7 @@ public class FileWritingMessageHandlerTests {
 		}).given(out).close();
 		handler.handleMessage(new GenericMessage<>("foo".getBytes()));
 		verify(out).write(any(byte[].class), anyInt(), anyInt());
-		assertFalse(closeWhileWriting.get());
+		assertThat(closeWhileWriting.get()).isFalse();
 		handler.stop();
 	}
 
@@ -689,19 +678,19 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	void assertLastModifiedIs(Message<?> result, long expected) {
-		assertThat(messageToFile(result).lastModified(), is(expected));
+		assertThat(messageToFile(result).lastModified()).isEqualTo(expected);
 	}
 
 	void assertFileContentIs(File destFile, String expected) throws IOException {
-		assertNotSame(destFile, sourceFile);
-		assertThat(destFile.exists(), is(true));
+		assertThat(sourceFile).isNotSameAs(destFile);
+		assertThat(destFile.exists()).isTrue();
 		byte[] destFileContent = FileCopyUtils.copyToByteArray(destFile);
-		assertThat(new String(destFileContent, DEFAULT_ENCODING), is(expected));
+		assertThat(new String(destFileContent, DEFAULT_ENCODING)).isEqualTo(expected);
 	}
 
 	protected File messageToFile(Message<?> result) {
-		assertThat(result, is(notNullValue()));
-		assertThat(result.getPayload(), is(instanceOf(File.class)));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isInstanceOf(File.class);
 		File destFile = (File) result.getPayload();
 		return destFile;
 	}

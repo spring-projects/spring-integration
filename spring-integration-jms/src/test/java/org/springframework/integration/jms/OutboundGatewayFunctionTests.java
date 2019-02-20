@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,16 +111,16 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue1);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -158,19 +156,19 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue2);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
-		assertTrue(latch2.await(20, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -207,16 +205,16 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue3);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -252,19 +250,19 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue4);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -301,16 +299,16 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue5);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> jmsReply);
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -345,19 +343,19 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 				latch2.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue6);
-		assertNotNull(request);
+		assertThat(request).isNotNull();
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
-		assertNotNull(reply.get());
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(reply.get()).isNotNull();
 
 		gateway.stop();
 		scheduler.destroy();
@@ -393,19 +391,19 @@ public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 			receiveAndSend(template);
 		});
 
-		assertNotNull(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+		assertThat(gateway.handleRequestMessage(new GenericMessage<>("foo"))).isNotNull();
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
 		int n = 0;
 		while (n++ < 100 && container.isRunning()) {
 			Thread.sleep(100);
 		}
-		assertFalse(container.isRunning());
-		assertNotNull(gateway.handleRequestMessage(new GenericMessage<>("foo")));
-		assertTrue(container.isRunning());
+		assertThat(container.isRunning()).isFalse();
+		assertThat(gateway.handleRequestMessage(new GenericMessage<>("foo"))).isNotNull();
+		assertThat(container.isRunning()).isTrue();
 
 		gateway.stop();
-		assertFalse(container.isRunning());
+		assertThat(container.isRunning()).isFalse();
 		scheduler.destroy();
 		exec.shutdownNow();
 	}

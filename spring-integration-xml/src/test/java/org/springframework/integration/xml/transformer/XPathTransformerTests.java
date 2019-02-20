@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.StringReader;
 import java.util.List;
@@ -61,7 +60,7 @@ public class XPathTransformerTests {
 	public void stringResultTypeByDefault() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
 		Object result = transformer.doTransform(message);
-		assertEquals("test", result);
+		assertThat(result).isEqualTo("test");
 	}
 
 	@Test
@@ -69,7 +68,7 @@ public class XPathTransformerTests {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/parent/child/@name");
 		XPathTransformer transformer = new XPathTransformer(expression);
 		Object result = transformer.doTransform(message);
-		assertEquals("test", result);
+		assertThat(result).isEqualTo("test");
 	}
 
 	@Test
@@ -77,7 +76,7 @@ public class XPathTransformerTests {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@age");
 		transformer.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
 		Object result = transformer.doTransform(message);
-		assertEquals(new Double(42), result);
+		assertThat(result).isEqualTo(new Double(42));
 	}
 
 	@Test
@@ -85,7 +84,7 @@ public class XPathTransformerTests {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@married = 'true'");
 		transformer.setEvaluationType(XPathEvaluationType.BOOLEAN_RESULT);
 		Object result = transformer.doTransform(message);
-		assertEquals(Boolean.TRUE, result);
+		assertThat(result).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -93,12 +92,12 @@ public class XPathTransformerTests {
 		XPathTransformer transformer = new XPathTransformer("/parent/child");
 		transformer.setEvaluationType(XPathEvaluationType.NODE_RESULT);
 		Object result = transformer.doTransform(message);
-		assertTrue(result instanceof Node);
+		assertThat(result instanceof Node).isTrue();
 		Node node = (Node) result;
-		assertEquals("child", node.getLocalName());
-		assertEquals("test", node.getAttributes().getNamedItem("name").getTextContent());
-		assertEquals("42", node.getAttributes().getNamedItem("age").getTextContent());
-		assertEquals("true", node.getAttributes().getNamedItem("married").getTextContent());
+		assertThat(node.getLocalName()).isEqualTo("child");
+		assertThat(node.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("test");
+		assertThat(node.getAttributes().getNamedItem("age").getTextContent()).isEqualTo("42");
+		assertThat(node.getAttributes().getNamedItem("married").getTextContent()).isEqualTo("true");
 	}
 
 	@Test
@@ -109,15 +108,15 @@ public class XPathTransformerTests {
 		Message<?> message = MessageBuilder.withPayload(
 				"<parent><child name='foo'/><child name='bar'/></parent>").build();
 		Object result = transformer.doTransform(message);
-		assertTrue(List.class.isAssignableFrom(result.getClass()));
+		assertThat(List.class.isAssignableFrom(result.getClass())).isTrue();
 		List<Node> nodeList = (List<Node>) result;
-		assertEquals(2, nodeList.size());
+		assertThat(nodeList.size()).isEqualTo(2);
 		Node node1 = nodeList.get(0);
 		Node node2 = nodeList.get(1);
-		assertEquals("child", node1.getLocalName());
-		assertEquals("foo", node1.getAttributes().getNamedItem("name").getTextContent());
-		assertEquals("child", node2.getLocalName());
-		assertEquals("bar", node2.getAttributes().getNamedItem("name").getTextContent());
+		assertThat(node1.getLocalName()).isEqualTo("child");
+		assertThat(node1.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("foo");
+		assertThat(node2.getLocalName()).isEqualTo("child");
+		assertThat(node2.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("bar");
 	}
 
 	@Test
@@ -125,7 +124,7 @@ public class XPathTransformerTests {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
 		transformer.setNodeMapper(new TestNodeMapper());
 		Object result = transformer.doTransform(message);
-		assertEquals("test-mapped", result);
+		assertThat(result).isEqualTo("test-mapped");
 	}
 
 	@Test
@@ -133,7 +132,7 @@ public class XPathTransformerTests {
 		XPathTransformer transformer = new XPathTransformer("/test/@type");
 		transformer.setConverter(new TestXmlPayloadConverter());
 		Object result = transformer.doTransform(message);
-		assertEquals("custom", result);
+		assertThat(result).isEqualTo("custom");
 	}
 
 

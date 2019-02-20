@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.stomp.client;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
@@ -128,55 +122,55 @@ public class StompServerIntegrationTests {
 		}
 		while (eventMessage != null && !(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
 
-		assertNotNull(eventMessage);
+		assertThat(eventMessage).isNotNull();
 
 		eventMessage = stompEvents1.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
-		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
-		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SUBSCRIBE);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/topic/myTopic");
 
 		eventMessage = stompEvents2.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompSessionConnectedEvent.class);
 
 		eventMessage = stompEvents2.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
-		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
-		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SUBSCRIBE);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/topic/myTopic");
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("Hello, Client#2!".getBytes()));
 
 		Message<?> receive11 = stompInputChannel1.receive(10000);
 		Message<?> receive21 = stompInputChannel2.receive(10000);
 
-		assertNotNull(receive11);
-		assertNotNull(receive21);
+		assertThat(receive11).isNotNull();
+		assertThat(receive21).isNotNull();
 
-		assertArrayEquals("Hello, Client#2!".getBytes(), (byte[]) receive11.getPayload());
-		assertArrayEquals("Hello, Client#2!".getBytes(), (byte[]) receive21.getPayload());
+		assertThat((byte[]) receive11.getPayload()).isEqualTo("Hello, Client#2!".getBytes());
+		assertThat((byte[]) receive21.getPayload()).isEqualTo("Hello, Client#2!".getBytes());
 
 		stompOutputChannel2.send(new GenericMessage<byte[]>("Hello, Client#1!".getBytes()));
 
 		Message<?> receive12 = stompInputChannel1.receive(10000);
 		Message<?> receive22 = stompInputChannel2.receive(10000);
 
-		assertNotNull(receive12);
-		assertNotNull(receive22);
+		assertThat(receive12).isNotNull();
+		assertThat(receive22).isNotNull();
 
-		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive12.getPayload());
-		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive22.getPayload());
+		assertThat((byte[]) receive12.getPayload()).isEqualTo("Hello, Client#1!".getBytes());
+		assertThat((byte[]) receive22.getPayload()).isEqualTo("Hello, Client#1!".getBytes());
 
 		eventMessage = stompEvents2.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
-		assertEquals(StompCommand.SEND, stompReceiptEvent.getStompCommand());
-		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
-		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) stompReceiptEvent.getMessage().getPayload());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SEND);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/topic/myTopic");
+		assertThat((byte[]) stompReceiptEvent.getMessage().getPayload()).isEqualTo("Hello, Client#1!".getBytes());
 
 		Lifecycle stompInboundChannelAdapter2 = context2.getBean("stompInboundChannelAdapter", Lifecycle.class);
 		stompInboundChannelAdapter2.stop();
@@ -184,31 +178,31 @@ public class StompServerIntegrationTests {
 		stompOutputChannel1.send(new GenericMessage<byte[]>("How do you do?".getBytes()));
 
 		Message<?> receive13 = stompInputChannel1.receive(10000);
-		assertNotNull(receive13);
+		assertThat(receive13).isNotNull();
 
 		Message<?> receive23 = stompInputChannel2.receive(100);
-		assertNull(receive23);
+		assertThat(receive23).isNull();
 
 		stompInboundChannelAdapter2.start();
 
 		eventMessage = stompEvents2.receive(10000);
-		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(eventMessage).isNotNull();
+		assertThat(eventMessage.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
-		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
-		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SUBSCRIBE);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/topic/myTopic");
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("???".getBytes()));
 
 		Message<?> receive24 = stompInputChannel2.receive(10000);
-		assertNotNull(receive24);
-		assertArrayEquals("???".getBytes(), (byte[]) receive24.getPayload());
+		assertThat(receive24).isNotNull();
+		assertThat((byte[]) receive24.getPayload()).isEqualTo("???".getBytes());
 
 		activeMQBroker.stop();
 
 		do {
 			eventMessage = stompEvents1.receive(10000);
-			assertNotNull(eventMessage);
+			assertThat(eventMessage).isNotNull();
 		}
 		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent));
 
@@ -217,28 +211,28 @@ public class StompServerIntegrationTests {
 			fail("MessageDeliveryException is expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getMessage(), containsString("could not deliver message"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getMessage()).contains("could not deliver message");
 		}
 
 		activeMQBroker.start(false);
 
 		do {
 			eventMessage = stompEvents1.receive(20000);
-			assertNotNull(eventMessage);
+			assertThat(eventMessage).isNotNull();
 		}
 		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
 
 		do {
 			eventMessage = stompEvents2.receive(10000);
-			assertNotNull(eventMessage);
+			assertThat(eventMessage).isNotNull();
 		}
 		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
 		Message<?> receive25 = stompInputChannel2.receive(10000);
-		assertNotNull(receive25);
-		assertArrayEquals("foo".getBytes(), (byte[]) receive25.getPayload());
+		assertThat(receive25).isNotNull();
+		assertThat((byte[]) receive25.getPayload()).isEqualTo("foo".getBytes());
 
 		context1.close();
 		context2.close();

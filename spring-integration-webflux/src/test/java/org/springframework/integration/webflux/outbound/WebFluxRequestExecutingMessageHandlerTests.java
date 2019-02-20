@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.webflux.outbound;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -82,8 +76,8 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
 
 		StepVerifier.create(ackChannel, 2)
-				.assertNext(m -> assertThat(m, hasHeader(HttpHeaders.STATUS_CODE, HttpStatus.OK)))
-				.assertNext(m -> assertThat(m, hasHeader(HttpHeaders.STATUS_CODE, HttpStatus.OK)))
+				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
+				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
 				.then(() ->
 						((Subscriber<?>) TestUtils.getPropertyValue(ackChannel, "subscribers", List.class).get(0))
 								.onComplete())
@@ -114,10 +108,10 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 		Message<?> errorMessage = errorChannel.receive(10000);
 
-		assertNotNull(errorMessage);
-		assertThat(errorMessage, instanceOf(ErrorMessage.class));
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
 		Throwable throwable = (Throwable) errorMessage.getPayload();
-		assertThat(throwable.getMessage(), containsString("401 Unauthorized"));
+		assertThat(throwable.getMessage()).contains("401 Unauthorized");
 	}
 
 	@Test
@@ -143,10 +137,10 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 		Message<?> errorMessage = errorChannel.receive(10000);
 
-		assertNotNull(errorMessage);
-		assertThat(errorMessage, instanceOf(ErrorMessage.class));
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage).isInstanceOf(ErrorMessage.class);
 		Throwable throwable = (Throwable) errorMessage.getPayload();
-		assertThat(throwable.getMessage(), containsString("Intentional connection error"));
+		assertThat(throwable.getMessage()).contains("Intentional connection error");
 	}
 
 	@Test
@@ -176,17 +170,17 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		messageHandler.handleMessage(requestMessage);
 
 		Message<?> errorMessage = errorChannel.receive(10000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 
 		Object payload = errorMessage.getPayload();
-		assertThat(payload, instanceOf(MessageHandlingException.class));
+		assertThat(payload).isInstanceOf(MessageHandlingException.class);
 
 		Exception exception = (Exception) payload;
-		assertThat(exception.getCause(), instanceOf(WebClientResponseException.class));
-		assertThat(exception.getMessage(), containsString("503 Service Unavailable"));
+		assertThat(exception.getCause()).isInstanceOf(WebClientResponseException.class);
+		assertThat(exception.getMessage()).contains("503 Service Unavailable");
 
 		Message<?> replyMessage = errorChannel.receive(10);
-		assertNull(replyMessage);
+		assertThat(replyMessage).isNull();
 	}
 
 	@Test
@@ -221,9 +215,9 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertThat(receive.getPayload(), instanceOf(Flux.class));
+		assertThat(receive.getPayload()).isInstanceOf(Flux.class);
 
 		Flux<String> flux = (Flux<String>) receive.getPayload();
 
@@ -265,15 +259,15 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertThat(receive.getPayload(), instanceOf(ClientHttpResponse.class));
+		assertThat(receive.getPayload()).isInstanceOf(ClientHttpResponse.class);
 
 		ClientHttpResponse response = (ClientHttpResponse) receive.getPayload();
 
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(MediaType.TEXT_PLAIN, response.getHeaders().getContentType());
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
 		StepVerifier.create(
 				response.getBody()

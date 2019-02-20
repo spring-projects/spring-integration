@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.springframework.integration.file;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import java.io.File;
 import java.io.FileOutputStream;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,22 +96,22 @@ public class FileOutboundChannelAdapterIntegrationTests {
 	public void saveToBaseDir() throws Exception {
 		this.inputChannelSaveToBaseDir.send(message);
 
-		Assert.assertTrue(new File("target/base-directory/foo.txt").exists());
+		assertThat(new File("target/base-directory/foo.txt").exists()).isTrue();
 
 	}
 
 	@Test
 	public void saveToBaseDirDeleteSourceFile() throws Exception {
-		Assert.assertTrue(sourceFile.exists());
+		assertThat(sourceFile.exists()).isTrue();
 		this.inputChannelSaveToBaseDirDeleteSource.send(message);
-		Assert.assertTrue(new File("target/base-directory/foo.txt").exists());
-		Assert.assertFalse(sourceFile.exists());
+		assertThat(new File("target/base-directory/foo.txt").exists()).isTrue();
+		assertThat(sourceFile.exists()).isFalse();
 	}
 
 	@Test
 	public void saveToSubDir() throws Exception {
 		this.inputChannelSaveToSubDir.send(message);
-		Assert.assertTrue(new File("target/base-directory/sub-directory/foo.txt").exists());
+		assertThat(new File("target/base-directory/sub-directory/foo.txt").exists()).isTrue();
 	}
 
 	@Test
@@ -119,13 +121,13 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirWrongExpression.send(message);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals(
-					TestUtils.applySystemFileSeparator("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory."),
-					e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo(TestUtils
+					.applySystemFileSeparator("Destination path [target/base-directory/sub-directory/foo.txt] does not" +
+							" point to a directory."));
 			return;
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+		fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
 	@Test
@@ -135,12 +137,12 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirEmptyStringExpression.send(message);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("Unable to resolve Destination Directory for the provided Expression ''   ''.",
-					e.getCause().getMessage());
+			assertThat(e.getCause().getMessage())
+					.isEqualTo("Unable to resolve Destination Directory for the provided Expression ''   ''.");
 			return;
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+		fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
 	@Test
@@ -151,7 +153,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 													.build();
 
 		this.inputChannelSaveToSubDirWithHeader.send(message2);
-		Assert.assertTrue(new File("target/base-directory/headerdir/foo.txt").exists());
+		assertThat(new File("target/base-directory/headerdir/foo.txt").exists()).isTrue();
 	}
 
 	@Test
@@ -161,13 +163,13 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirAutoCreateOff.send(message);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals(
-					TestUtils.applySystemFileSeparator("Destination directory [target/base-directory2/sub-directory2] does not exist."),
-					e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo(TestUtils
+					.applySystemFileSeparator("Destination directory [target/base-directory2/sub-directory2] does not " +
+							"exist."));
 			return;
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+		fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
 	@Test
@@ -178,7 +180,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 				.setHeader("subDirectory", directory)
 				.build();
 		this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
-		Assert.assertTrue(new File("target/base-directory/sub-directory/foo.txt").exists());
+		assertThat(new File("target/base-directory/sub-directory/foo.txt").exists()).isTrue();
 	}
 
 	@Test
@@ -193,14 +195,13 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("The provided Destination Directory expression " +
-					"(headers['subDirectory']) must not evaluate to null.",
-					e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("The provided Destination Directory expression " +
+					"(headers['subDirectory']) must not evaluate to null.");
 
 			return;
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+		fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
 	@Test
@@ -215,15 +216,14 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("The provided Destination Directory expression" +
+			assertThat(e.getCause().getMessage()).isEqualTo("The provided Destination Directory expression" +
 					" (headers['subDirectory']) must evaluate to type " +
-					"java.io.File or String, not java.lang.Integer.",
-					e.getCause().getMessage());
+					"java.io.File or String, not java.lang.Integer.");
 
 			return;
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+		fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
 }

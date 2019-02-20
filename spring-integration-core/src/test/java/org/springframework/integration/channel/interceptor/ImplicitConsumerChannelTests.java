@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -57,17 +54,17 @@ public class ImplicitConsumerChannelTests {
 	public void testImplicit() {
 		// used to fail to load AC (no channel 'bar')
 		List<ChannelInterceptor> barInterceptors = bar.getChannelInterceptors();
-		assertEquals(2, barInterceptors.size());
-		assertThat(barInterceptors.get(0), anyOf(instanceOf(Interceptor1.class), instanceOf(Interceptor2.class)));
-		assertThat(barInterceptors.get(1), anyOf(instanceOf(Interceptor1.class), instanceOf(Interceptor2.class)));
+		assertThat(barInterceptors.size()).isEqualTo(2);
+		assertThat(barInterceptors.get(0)).isInstanceOfAny(Interceptor1.class, Interceptor2.class);
+		assertThat(barInterceptors.get(1)).isInstanceOfAny(Interceptor1.class, Interceptor2.class);
 		List<ChannelInterceptor> fooInterceptors = foo.getChannelInterceptors();
-		assertEquals(2, fooInterceptors.size());
-		assertThat(fooInterceptors.get(0), anyOf(instanceOf(WireTap.class), instanceOf(Interceptor2.class)));
-		assertThat(fooInterceptors.get(1), anyOf(instanceOf(WireTap.class), instanceOf(Interceptor2.class)));
+		assertThat(fooInterceptors.size()).isEqualTo(2);
+		assertThat(fooInterceptors.get(0)).isInstanceOfAny(WireTap.class, Interceptor2.class);
+		assertThat(fooInterceptors.get(1)).isInstanceOfAny(WireTap.class, Interceptor2.class);
 		List<ChannelInterceptor> bazInterceptors = baz.getChannelInterceptors();
-		assertEquals(2, bazInterceptors.size());
-		assertThat(bazInterceptors.get(0), anyOf(instanceOf(WireTap.class), instanceOf(Interceptor1.class)));
-		assertThat(bazInterceptors.get(1), anyOf(instanceOf(WireTap.class), instanceOf(Interceptor1.class)));
+		assertThat(bazInterceptors.size()).isEqualTo(2);
+		assertThat(bazInterceptors.get(0)).isInstanceOfAny(WireTap.class, Interceptor1.class);
+		assertThat(bazInterceptors.get(1)).isInstanceOfAny(WireTap.class, Interceptor1.class);
 	}
 
 	public static class Interceptor1 implements ChannelInterceptor, VetoCapableInterceptor {

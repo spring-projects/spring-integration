@@ -16,14 +16,11 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
 import org.bson.Document;
-import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -107,7 +104,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 					.build());
 		}
 
-		assertNotNull(output.receive(20000));
+		assertThat(output.receive(20000)).isNotNull();
 
 		watch.stop();
 
@@ -124,7 +121,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 		TestGateway gateway = context.getBean(TestGateway.class);
 		String result = gateway.service("foo");
-		assertEquals("FOO", result);
+		assertThat(result).isEqualTo("FOO");
 		context.close();
 	}
 
@@ -137,7 +134,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		context.refresh();
 
 		Object priorityChannel = context.getBean("priorityChannel");
-		assertThat(priorityChannel, Matchers.instanceOf(PriorityChannel.class));
+		assertThat(priorityChannel).isInstanceOf(PriorityChannel.class);
 
 		QueueChannel channel = (QueueChannel) priorityChannel;
 
@@ -157,32 +154,32 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		channel.send(message);
 
 		Message<?> receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("3", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("3");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("31", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("31");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("2", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("2");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("1", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("1");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("0", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("0");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("-1", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("-1");
 
 		receive = channel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("none", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("none");
 
 		context.close();
 	}

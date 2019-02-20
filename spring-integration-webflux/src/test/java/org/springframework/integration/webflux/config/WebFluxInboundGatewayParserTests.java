@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.webflux.config;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -81,54 +74,57 @@ public class WebFluxInboundGatewayParserTests {
 	@Test
 	public void reactiveMinimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
-		assertSame(this.requests, endpointAccessor.getPropertyValue("requestChannel"));
-		assertTrue((boolean) endpointAccessor.getPropertyValue("autoStartup"));
-		assertTrue((boolean) endpointAccessor.getPropertyValue("expectReply"));
-		assertNull(endpointAccessor.getPropertyValue("statusCodeExpression"));
-		assertNull(endpointAccessor.getPropertyValue("payloadExpression"));
-		assertNull(endpointAccessor.getPropertyValue("headerExpressions"));
-		assertNull(endpointAccessor.getPropertyValue("crossOrigin"));
-		assertNull(endpointAccessor.getPropertyValue("requestPayloadType"));
+		assertThat(endpointAccessor.getPropertyValue("requestChannel")).isSameAs(this.requests);
+		assertThat((boolean) endpointAccessor.getPropertyValue("autoStartup")).isTrue();
+		assertThat((boolean) endpointAccessor.getPropertyValue("expectReply")).isTrue();
+		assertThat(endpointAccessor.getPropertyValue("statusCodeExpression")).isNull();
+		assertThat(endpointAccessor.getPropertyValue("payloadExpression")).isNull();
+		assertThat(endpointAccessor.getPropertyValue("headerExpressions")).isNull();
+		assertThat(endpointAccessor.getPropertyValue("crossOrigin")).isNull();
+		assertThat(endpointAccessor.getPropertyValue("requestPayloadType")).isNull();
 
-		assertNotSame(this.headerMapper, endpointAccessor.getPropertyValue("headerMapper"));
-		assertNotSame(this.serverCodecConfigurer, endpointAccessor.getPropertyValue("codecConfigurer"));
-		assertNotSame(this.requestedContentTypeResolver, endpointAccessor.getPropertyValue("requestedContentTypeResolver"));
-		assertNotSame(this.reactiveAdapterRegistry, endpointAccessor.getPropertyValue("adapterRegistry"));
+		assertThat(endpointAccessor.getPropertyValue("headerMapper")).isNotSameAs(this.headerMapper);
+		assertThat(endpointAccessor.getPropertyValue("codecConfigurer")).isNotSameAs(this.serverCodecConfigurer);
+		assertThat(endpointAccessor.getPropertyValue("requestedContentTypeResolver"))
+				.isNotSameAs(this.requestedContentTypeResolver);
+		assertThat(endpointAccessor.getPropertyValue("adapterRegistry")).isNotSameAs(this.reactiveAdapterRegistry);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void reactiveFullConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveFullConfig);
-		assertSame(this.requests, endpointAccessor.getPropertyValue("requestChannel"));
-		assertNotNull(endpointAccessor.getPropertyValue("errorChannel"));
-		assertFalse((boolean) endpointAccessor.getPropertyValue("autoStartup"));
-		assertEquals(101, endpointAccessor.getPropertyValue("phase"));
-		assertTrue((boolean) endpointAccessor.getPropertyValue("expectReply"));
+		assertThat(endpointAccessor.getPropertyValue("requestChannel")).isSameAs(this.requests);
+		assertThat(endpointAccessor.getPropertyValue("errorChannel")).isNotNull();
+		assertThat((boolean) endpointAccessor.getPropertyValue("autoStartup")).isFalse();
+		assertThat(endpointAccessor.getPropertyValue("phase")).isEqualTo(101);
+		assertThat((boolean) endpointAccessor.getPropertyValue("expectReply")).isTrue();
 
-		assertEquals("'504'",
-				((SpelExpression) endpointAccessor.getPropertyValue("statusCodeExpression")).getExpressionString());
+		assertThat(((SpelExpression) endpointAccessor.getPropertyValue("statusCodeExpression")).getExpressionString())
+				.isEqualTo("'504'");
 
-		assertEquals("payload",
-				((SpelExpression) endpointAccessor.getPropertyValue("payloadExpression")).getExpressionString());
+		assertThat(((SpelExpression) endpointAccessor.getPropertyValue("payloadExpression")).getExpressionString())
+				.isEqualTo("payload");
 
 		Map<String, Expression> headerExpressions =
 				(Map<String, Expression>) endpointAccessor.getPropertyValue("headerExpressions");
 
-		assertTrue(headerExpressions.containsKey("foo"));
+		assertThat(headerExpressions.containsKey("foo")).isTrue();
 
-		assertEquals("foo", headerExpressions.get("foo").getValue());
+		assertThat(headerExpressions.get("foo").getValue()).isEqualTo("foo");
 
 		CrossOrigin crossOrigin = (CrossOrigin) endpointAccessor.getPropertyValue("crossOrigin");
-		assertNotNull(crossOrigin);
-		assertArrayEquals(new String[] { "foo" }, crossOrigin.getOrigin());
+		assertThat(crossOrigin).isNotNull();
+		assertThat(crossOrigin.getOrigin()).isEqualTo(new String[] { "foo" });
 
-		assertEquals(ResolvableType.forClass(byte[].class), endpointAccessor.getPropertyValue("requestPayloadType"));
+		assertThat(endpointAccessor.getPropertyValue("requestPayloadType"))
+				.isEqualTo(ResolvableType.forClass(byte[].class));
 
-		assertSame(this.headerMapper, endpointAccessor.getPropertyValue("headerMapper"));
-		assertSame(this.serverCodecConfigurer, endpointAccessor.getPropertyValue("codecConfigurer"));
-		assertSame(this.requestedContentTypeResolver, endpointAccessor.getPropertyValue("requestedContentTypeResolver"));
-		assertSame(this.reactiveAdapterRegistry, endpointAccessor.getPropertyValue("adapterRegistry"));
+		assertThat(endpointAccessor.getPropertyValue("headerMapper")).isSameAs(this.headerMapper);
+		assertThat(endpointAccessor.getPropertyValue("codecConfigurer")).isSameAs(this.serverCodecConfigurer);
+		assertThat(endpointAccessor.getPropertyValue("requestedContentTypeResolver"))
+				.isSameAs(this.requestedContentTypeResolver);
+		assertThat(endpointAccessor.getPropertyValue("adapterRegistry")).isSameAs(this.reactiveAdapterRegistry);
 	}
 
 }

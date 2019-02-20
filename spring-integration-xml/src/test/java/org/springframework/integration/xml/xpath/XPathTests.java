@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package org.springframework.integration.xml.xpath;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.List;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.DOMException;
@@ -79,58 +76,58 @@ public class XPathTests {
 	@SuppressWarnings("unchecked")
 	public void testXPathUtils() {
 		Object result = XPathUtils.evaluate(XML, "/parent/child/@name");
-		assertEquals("test", result);
+		assertThat(result).isEqualTo("test");
 
 		result = XPathUtils.evaluate(XML, "/parent/child/@name", "string");
-		assertEquals("test", result);
+		assertThat(result).isEqualTo("test");
 
 		result = XPathUtils.evaluate(XML, "/parent/child/@age", "number");
-		assertEquals((double) 42, result);
+		assertThat(result).isEqualTo((double) 42);
 
 		result = XPathUtils.evaluate(XML, "/parent/child/@married = 'true'", "boolean");
-		assertEquals(Boolean.TRUE, result);
+		assertThat(result).isEqualTo(Boolean.TRUE);
 
 		result = XPathUtils.evaluate(XML, "/parent/child", "node");
-		assertThat(result, Matchers.instanceOf(Node.class));
+		assertThat(result).isInstanceOf(Node.class);
 		Node node = (Node) result;
-		assertEquals("child", node.getLocalName());
-		assertEquals("test", node.getAttributes().getNamedItem("name").getTextContent());
-		assertEquals("42", node.getAttributes().getNamedItem("age").getTextContent());
-		assertEquals("true", node.getAttributes().getNamedItem("married").getTextContent());
+		assertThat(node.getLocalName()).isEqualTo("child");
+		assertThat(node.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("test");
+		assertThat(node.getAttributes().getNamedItem("age").getTextContent()).isEqualTo("42");
+		assertThat(node.getAttributes().getNamedItem("married").getTextContent()).isEqualTo("true");
 
 		result = XPathUtils.evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child",
 				"node_list");
-		assertThat(result, Matchers.instanceOf(List.class));
+		assertThat(result).isInstanceOf(List.class);
 		List<Node> nodeList = (List<Node>) result;
-		assertEquals(2, nodeList.size());
+		assertThat(nodeList.size()).isEqualTo(2);
 		Node node1 = nodeList.get(0);
 		Node node2 = nodeList.get(1);
-		assertEquals("child", node1.getLocalName());
-		assertEquals("foo", node1.getAttributes().getNamedItem("name").getTextContent());
-		assertEquals("child", node2.getLocalName());
-		assertEquals("bar", node2.getAttributes().getNamedItem("name").getTextContent());
+		assertThat(node1.getLocalName()).isEqualTo("child");
+		assertThat(node1.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("foo");
+		assertThat(node2.getLocalName()).isEqualTo("child");
+		assertThat(node2.getAttributes().getNamedItem("name").getTextContent()).isEqualTo("bar");
 
 		result = XPathUtils.evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "document_list");
-		assertThat(result, Matchers.instanceOf(List.class));
+		assertThat(result).isInstanceOf(List.class);
 		List<Document> documentList = (List<Document>) result;
-		assertEquals(2, documentList.size());
+		assertThat(documentList.size()).isEqualTo(2);
 		Node document1 = documentList.get(0);
 		Node document2 = documentList.get(1);
-		assertEquals("child", document1.getFirstChild().getLocalName());
-		assertEquals("foo", document1.getFirstChild().getAttributes().getNamedItem("name").getTextContent());
-		assertEquals("child", document2.getFirstChild().getLocalName());
-		assertEquals("bar", document2.getFirstChild().getAttributes().getNamedItem("name").getTextContent());
+		assertThat(document1.getFirstChild().getLocalName()).isEqualTo("child");
+		assertThat(document1.getFirstChild().getAttributes().getNamedItem("name").getTextContent()).isEqualTo("foo");
+		assertThat(document2.getFirstChild().getLocalName()).isEqualTo("child");
+		assertThat(document2.getFirstChild().getAttributes().getNamedItem("name").getTextContent()).isEqualTo("bar");
 
 		result = XPathUtils.evaluate(XML, "/parent/child/@name", new TestNodeMapper());
-		assertEquals("test-mapped", result);
+		assertThat(result).isEqualTo("test-mapped");
 
 		try {
 			XPathUtils.evaluate(new Date(), "/parent/child");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), Matchers.containsString("unsupported payload type"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("unsupported payload type");
 		}
 
 		try {
@@ -138,8 +135,8 @@ public class XPathTests {
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
-			assertEquals("'resultArg' can contains only one element.", e.getMessage());
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).isEqualTo("'resultArg' can contains only one element.");
 		}
 
 		try {
@@ -147,9 +144,9 @@ public class XPathTests {
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
-			assertEquals("'resultArg[0]' can be an instance of 'NodeMapper<?>' or " +
-					"one of supported String constants: [string, boolean, number, node, node_list, document_list]", e.getMessage());
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).isEqualTo("'resultArg[0]' can be an instance of 'NodeMapper<?>' or " +
+					"one of supported String constants: [string, boolean, number, node, node_list, document_list]");
 		}
 
 	}
@@ -163,8 +160,8 @@ public class XPathTests {
 		this.xpathTransformerInput.send(message);
 
 		Message<?> receive = this.channelA.receive(1000);
-		assertNotNull(receive);
-		assertEquals("42-mapped", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("42-mapped");
 	}
 
 	@Test
@@ -173,12 +170,12 @@ public class XPathTests {
 		this.xpathFilterInput.send(new GenericMessage<Object>("<other>outputOne</other>"));
 
 		Message<?> receive = this.channelA.receive(1000);
-		assertNotNull(receive);
-		assertEquals("<name>outputOne</name>", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("<name>outputOne</name>");
 
 		receive = this.channelZ.receive(1000);
-		assertNotNull(receive);
-		assertEquals("<other>outputOne</other>", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("<other>outputOne</other>");
 	}
 
 	@Test
@@ -187,12 +184,12 @@ public class XPathTests {
 		this.xpathSplitterInput.send(new GenericMessage<Object>("<books><book>book1</book><book>book2</book></books>"));
 
 		Message<?> receive = this.channelA.receive(1000);
-		assertNotNull(receive);
-		assertThat(stringSourceFactory.createSource(receive.getPayload()).toString(), Matchers.containsString("<book>book1</book>"));
+		assertThat(receive).isNotNull();
+		assertThat(stringSourceFactory.createSource(receive.getPayload()).toString()).contains("<book>book1</book>");
 
 		receive = this.channelA.receive(1000);
-		assertNotNull(receive);
-		assertThat(stringSourceFactory.createSource(receive.getPayload()).toString(), Matchers.containsString("<book>book2</book>"));
+		assertThat(receive).isNotNull();
+		assertThat(stringSourceFactory.createSource(receive.getPayload()).toString()).contains("<book>book2</book>");
 	}
 
 
@@ -203,16 +200,16 @@ public class XPathTests {
 		this.xpathRouterInput.send(new GenericMessage<Object>("<name>X</name>"));
 
 		Message<?> receive = this.channelA.receive(1000);
-		assertNotNull(receive);
-		assertEquals("<name>A</name>", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("<name>A</name>");
 
 		receive = this.channelB.receive(1000);
-		assertNotNull(receive);
-		assertEquals("<name>B</name>", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("<name>B</name>");
 
 		receive = this.channelZ.receive(1000);
-		assertNotNull(receive);
-		assertEquals("<name>X</name>", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("<name>X</name>");
 	}
 
 

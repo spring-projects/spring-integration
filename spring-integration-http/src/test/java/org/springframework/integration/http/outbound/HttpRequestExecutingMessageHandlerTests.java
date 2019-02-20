@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.http.outbound;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -110,16 +105,16 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertNotNull(request.getHeaders().getContentType());
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(request.getHeaders().getContentType()).isNotNull();
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
-		assertEquals("1", map.get("a").iterator().next());
-		assertEquals("2", map.get("b").iterator().next());
-		assertEquals("3", map.get("c").iterator().next());
-		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
+		assertThat(map.get("a").iterator().next()).isEqualTo("1");
+		assertThat(map.get("b").iterator().next()).isEqualTo("2");
+		assertThat(map.get("c").iterator().next()).isEqualTo("3");
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
 	}
 
 	@Test
@@ -145,15 +140,15 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
-		assertEquals("Philadelphia", map.get("a").get(0).toString());
-		assertEquals("Ambler", map.get("b").get(0).toString());
-		assertEquals("Mohnton", map.get("c").get(0).toString());
-		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+		assertThat(map.get("a").get(0).toString()).isEqualTo("Philadelphia");
+		assertThat(map.get("b").get(0).toString()).isEqualTo("Ambler");
+		assertThat(map.get("c").get(0).toString()).isEqualTo("Mohnton");
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.MULTIPART_FORM_DATA);
 	}
 
 	@Test
@@ -179,16 +174,16 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Map<?, ?>);
+		assertThat(body instanceof Map<?, ?>).isTrue();
 		Map<?, ?> map = (Map<?, ?>) body;
-		assertEquals("Philadelphia", map.get(1).toString());
-		assertEquals("Ambler", map.get(2).toString());
-		assertEquals("Mohnton", map.get(3).toString());
-		assertEquals("application", request.getHeaders().getContentType().getType());
-		assertEquals("x-java-serialized-object", request.getHeaders().getContentType().getSubtype());
+		assertThat(map.get(1).toString()).isEqualTo("Philadelphia");
+		assertThat(map.get(2).toString()).isEqualTo("Ambler");
+		assertThat(map.get(3).toString()).isEqualTo("Mohnton");
+		assertThat(request.getHeaders().getContentType().getType()).isEqualTo("application");
+		assertThat(request.getHeaders().getContentType().getSubtype()).isEqualTo("x-java-serialized-object");
 	}
 
 	@Test
@@ -213,30 +208,30 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(3, aValue.size());
-		assertEquals("1", aValue.get(0));
-		assertEquals("2", aValue.get(1));
-		assertEquals("3", aValue.get(2));
+		assertThat(aValue.size()).isEqualTo(3);
+		assertThat(aValue.get(0)).isEqualTo("1");
+		assertThat(aValue.get(1)).isEqualTo("2");
+		assertThat(aValue.get(2)).isEqualTo("3");
 
 		List<?> bValue = map.get("b");
-		assertEquals(1, bValue.size());
-		assertEquals("4", bValue.get(0));
+		assertThat(bValue.size()).isEqualTo(1);
+		assertThat(bValue.get(0)).isEqualTo("4");
 
 		List<?> cValue = map.get("c");
-		assertEquals(1, cValue.size());
-		assertEquals("5", cValue.get(0));
+		assertThat(cValue.size()).isEqualTo(1);
+		assertThat(cValue.get(0)).isEqualTo("5");
 
 		List<?> dValue = map.get("d");
-		assertEquals(1, dValue.size());
-		assertEquals("6", dValue.get(0));
-		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
+		assertThat(dValue.size()).isEqualTo(1);
+		assertThat(dValue.get(0)).isEqualTo("6");
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
 	}
 
 	@Test
@@ -261,33 +256,33 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(1, aValue.size());
+		assertThat(aValue.size()).isEqualTo(1);
 		Object value = aValue.get(0);
-		assertTrue(value.getClass().isArray());
+		assertThat(value.getClass().isArray()).isTrue();
 		int[] y = (int[]) value;
-		assertEquals(1, y[0]);
-		assertEquals(2, y[1]);
-		assertEquals(3, y[2]);
+		assertThat(y[0]).isEqualTo(1);
+		assertThat(y[1]).isEqualTo(2);
+		assertThat(y[2]).isEqualTo(3);
 
 		List<?> bValue = map.get("b");
-		assertEquals(1, bValue.size());
-		assertEquals("4", bValue.get(0));
+		assertThat(bValue.size()).isEqualTo(1);
+		assertThat(bValue.get(0)).isEqualTo("4");
 
 		List<?> cValue = map.get("c");
-		assertEquals(1, cValue.size());
-		assertEquals("5", cValue.get(0));
+		assertThat(cValue.size()).isEqualTo(1);
+		assertThat(cValue.get(0)).isEqualTo("5");
 
 		List<?> dValue = map.get("d");
-		assertEquals(1, dValue.size());
-		assertEquals("6", dValue.get(0));
-		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+		assertThat(dValue.size()).isEqualTo(1);
+		assertThat(dValue.get(0)).isEqualTo("6");
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.MULTIPART_FORM_DATA);
 	}
 
 	@Test
@@ -310,23 +305,23 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(3, aValue.size());
-		assertNull(aValue.get(0));
-		assertEquals(4, aValue.get(1));
-		assertNull(aValue.get(2));
+		assertThat(aValue.size()).isEqualTo(3);
+		assertThat(aValue.get(0)).isNull();
+		assertThat(aValue.get(1)).isEqualTo(4);
+		assertThat(aValue.get(2)).isNull();
 
 		List<?> bValue = map.get("b");
-		assertEquals(1, bValue.size());
-		assertEquals("4", bValue.get(0));
+		assertThat(bValue.size()).isEqualTo(1);
+		assertThat(bValue.get(0)).isEqualTo("4");
 
-		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.MULTIPART_FORM_DATA);
 	}
 
 	/**
@@ -358,23 +353,23 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(3, aValue.size());
-		assertNull(aValue.get(0));
-		assertEquals("5", aValue.get(1));
-		assertNull(aValue.get(2));
+		assertThat(aValue.size()).isEqualTo(3);
+		assertThat(aValue.get(0)).isNull();
+		assertThat(aValue.get(1)).isEqualTo("5");
+		assertThat(aValue.get(2)).isNull();
 
 		List<?> bValue = map.get("b");
-		assertEquals(1, bValue.size());
-		assertEquals("4", bValue.get(0));
+		assertThat(bValue.size()).isEqualTo(1);
+		assertThat(bValue.get(0)).isEqualTo("4");
 
-		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
 	}
 
 	/**
@@ -405,23 +400,23 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(3, aValue.size());
-		assertNull(aValue.get(0));
-		assertEquals(5, aValue.get(1));
-		assertNull(aValue.get(2));
+		assertThat(aValue.size()).isEqualTo(3);
+		assertThat(aValue.get(0)).isNull();
+		assertThat(aValue.get(1)).isEqualTo(5);
+		assertThat(aValue.get(2)).isNull();
 
 		List<?> bValue = map.get("b");
-		assertEquals(1, bValue.size());
-		assertEquals("4", bValue.get(0));
+		assertThat(bValue.size()).isEqualTo(1);
+		assertThat(bValue.get(0)).isEqualTo("4");
 
-		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.MULTIPART_FORM_DATA);
 	}
 
 	@Test
@@ -448,25 +443,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(2, aValue.size());
-		assertEquals("1", aValue.get(0));
-		assertEquals("2", aValue.get(1));
+		assertThat(aValue.size()).isEqualTo(2);
+		assertThat(aValue.get(0)).isEqualTo("1");
+		assertThat(aValue.get(1)).isEqualTo("2");
 
 		List<?> bValue = map.get("b");
-		assertEquals(0, bValue.size());
+		assertThat(bValue.size()).isEqualTo(0);
 
 		List<?> cValue = map.get("c");
-		assertEquals(1, cValue.size());
-		assertEquals("3", cValue.get(0));
+		assertThat(cValue.size()).isEqualTo(1);
+		assertThat(cValue.get(0)).isEqualTo("3");
 
-		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
 	}
 
 	@Test
@@ -493,25 +488,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 
 		List<?> aValue = map.get("a");
-		assertEquals(2, aValue.size());
-		assertEquals("Philadelphia", aValue.get(0).toString());
-		assertEquals("Ambler", aValue.get(1).toString());
+		assertThat(aValue.size()).isEqualTo(2);
+		assertThat(aValue.get(0).toString()).isEqualTo("Philadelphia");
+		assertThat(aValue.get(1).toString()).isEqualTo("Ambler");
 
 		List<?> bValue = map.get("b");
-		assertEquals(0, bValue.size());
+		assertThat(bValue.size()).isEqualTo(0);
 
 		List<?> cValue = map.get("c");
-		assertEquals(1, cValue.size());
-		assertEquals("Mohnton", cValue.get(0).toString());
+		assertThat(cValue.size()).isEqualTo(1);
+		assertThat(cValue.get(0).toString()).isEqualTo("Mohnton");
 
-		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.MULTIPART_FORM_DATA);
 	}
 
 	@Test
@@ -535,20 +530,20 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof MultiValueMap<?, ?>);
+		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
 		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
-		assertTrue(map.containsKey("a"));
-		assertTrue(map.get("a").size() == 1);
-		assertNull(map.get("a").get(0));
+		assertThat(map.containsKey("a")).isTrue();
+		assertThat(map.get("a").size() == 1).isTrue();
+		assertThat(map.get("a").get(0)).isNull();
 		List<?> entryB = map.get("b");
-		assertEquals("foo", entryB.get(0));
-		assertTrue(map.containsKey("c"));
-		assertTrue(map.get("c").size() == 1);
-		assertNull(map.get("c").get(0));
-		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
+		assertThat(entryB.get(0)).isEqualTo("foo");
+		assertThat(map.containsKey("c")).isTrue();
+		assertThat(map.get("c").size() == 1).isTrue();
+		assertThat(map.get("c").get(0)).isNull();
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
 	}
 
 	@SuppressWarnings("cast")
@@ -571,12 +566,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof byte[]);
-		assertEquals("Hello World", new String(bytes));
-		assertEquals(MediaType.APPLICATION_OCTET_STREAM, request.getHeaders().getContentType());
+		assertThat(body instanceof byte[]).isTrue();
+		assertThat(new String(bytes)).isEqualTo("Hello World");
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
 	}
 
 	@Test
@@ -597,11 +592,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Source);
-		assertEquals(MediaType.TEXT_XML, request.getHeaders().getContentType());
+		assertThat(body instanceof Source).isTrue();
+		assertThat(request.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_XML);
 	}
 
 	@Test // no assertions just a warn message in a log
@@ -654,8 +649,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 			fail("An Exception expected");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
-			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
+			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 		}
 
 		//HEAD
@@ -667,8 +662,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 			fail("An Exception expected");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
-			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
+			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 		}
 
 
@@ -681,8 +676,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 			fail("An Exception expected");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
-			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
+			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isEqualTo(MediaType.TEXT_XML);
 		}
 
 		//TRACE
@@ -694,8 +689,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 			fail("An Exception expected");
 		}
 		catch (Exception e) {
-			assertEquals("intentional", e.getCause().getMessage());
-			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
+			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 		}
 	}
 
@@ -710,7 +705,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.<Class<Object>>eq(null));
 		HttpRequestExecutingMessageHandler handler = ctx.getBean("chain$child.adapter.handler",
 				HttpRequestExecutingMessageHandler.class);
-		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel"), equalTo(Boolean.TRUE));
+		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel")).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
 
@@ -724,7 +719,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
-		assertEquals(HttpStatus.OK, ((ResponseEntity<?>) receive.getPayload()).getStatusCode());
+		assertThat(((ResponseEntity<?>) receive.getPayload()).getStatusCode()).isEqualTo(HttpStatus.OK);
 		Mockito.verify(restTemplate).exchange(
 				Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain")),
 				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class),
@@ -748,7 +743,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		catch (Exception e) {
 		}
-		assertEquals(theURL, restTemplate.actualUrl.get());
+		assertThat(restTemplate.actualUrl.get()).isEqualTo(theURL);
 	}
 
 	@Test
@@ -765,7 +760,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		catch (Exception e) {
 		}
-		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar", restTemplate.actualUrl.get());
+		assertThat(restTemplate.actualUrl.get())
+				.isEqualTo("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
 	}
 
 	@Test
@@ -793,13 +789,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertTrue(requestHeaders.getAccept() != null);
-		assertTrue(requestHeaders.getAccept().size() > 0);
-		assertEquals("404 Not Found", exception.getCause().getMessage());
+		assertThat(requestHeaders.getAccept() != null).isTrue();
+		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
+		assertThat(exception.getCause().getMessage()).isEqualTo("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
-		assertTrue(accept != null && accept.size() > 0);
-		assertEquals("application", accept.get(0).getType());
-		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+		assertThat(accept != null && accept.size() > 0).isTrue();
+		assertThat(accept.get(0).getType()).isEqualTo("application");
+		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
 	}
 
 	@Test
@@ -829,13 +825,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 			exception = e;
 		}
-		assertTrue(requestHeaders.getAccept() != null);
-		assertTrue(requestHeaders.getAccept().size() > 0);
-		assertEquals("404 Not Found", exception.getCause().getMessage());
+		assertThat(requestHeaders.getAccept() != null).isTrue();
+		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
+		assertThat(exception.getCause().getMessage()).isEqualTo("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
-		assertTrue(accept != null && accept.size() > 0);
-		assertEquals("application", accept.get(0).getType());
-		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+		assertThat(accept != null && accept.size() > 0).isTrue();
+		assertThat(accept.get(0).getType()).isEqualTo("application");
+		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
 	}
 
 	private void setBeanFactory(HttpRequestExecutingMessageHandler handler) {

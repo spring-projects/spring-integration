@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,14 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -126,19 +121,19 @@ public class JsonPathTests {
 	public void testInt3139JsonPathTransformer() throws IOException {
 		this.transformerInput.send(testMessage);
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals("Nigel Rees", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
 
 		this.transformerInput.send(new GenericMessage<>(JSON.getBytes()));
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals("Nigel Rees", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
 
 		this.transformerInput.send(new GenericMessage<File>(JSON_FILE));
 		receive = this.output.receive(1000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertEquals("Nigel Rees", receive.getPayload());
+		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
 		try {
 			this.transformerInput.send(new GenericMessage<Object>(new Object()));
 			fail("IllegalArgumentException expected");
@@ -146,7 +141,7 @@ public class JsonPathTests {
 		catch (Exception e) {
 			//MessageTransformationException / MessageHandlingException / InvocationTargetException / IllegalArgumentException
 			Throwable cause = e.getCause().getCause().getCause();
-			assertTrue(cause instanceof PathNotFoundException);
+			assertThat(cause instanceof PathNotFoundException).isTrue();
 		}
 	}
 
@@ -154,36 +149,36 @@ public class JsonPathTests {
 	public void testInt3139JsonPathFilter() {
 		this.filterInput1.send(testMessage);
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(JSON, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(JSON);
 
 		this.filterInput2.send(testMessage);
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		Message<String> message = MessageBuilder.withPayload(JSON)
 				.setHeader("price", 10)
 				.build();
 		this.filterInput3.send(message);
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		this.filterInput4.send(testMessage);
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		try {
 			this.filterInput1.send(new GenericMessage<String>("{foo:{}}"));
 			fail("MessageRejectedException is expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageRejectedException.class));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
 		}
 		receive = this.output.receive(0);
-		assertNull(receive);
+		assertThat(receive).isNull();
 
 		receive = this.discardChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 	}
 
@@ -192,8 +187,8 @@ public class JsonPathTests {
 		this.splitterInput.send(testMessage);
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = this.splitterOutput.receive(10000);
-			assertNotNull(receive);
-			assertTrue(receive.getPayload() instanceof Map);
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload() instanceof Map).isTrue();
 		}
 	}
 
@@ -204,18 +199,18 @@ public class JsonPathTests {
 				.build();
 		this.routerInput.send(message);
 		Message<?> receive = this.routerOutput1.receive(10000);
-		assertNotNull(receive);
-		assertEquals(JSON, receive.getPayload());
-		assertNull(this.routerOutput2.receive(10));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(JSON);
+		assertThat(this.routerOutput2.receive(10)).isNull();
 
 		message = MessageBuilder.withPayload(JSON)
 				.setHeader("jsonPath", "$.store.book[2].category")
 				.build();
 		this.routerInput.send(message);
 		receive = this.routerOutput2.receive(10000);
-		assertNotNull(receive);
-		assertEquals(JSON, receive.getPayload());
-		assertNull(this.routerOutput1.receive(10));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(JSON);
+		assertThat(this.routerOutput1.receive(10)).isNull();
 	}
 
 	@Autowired
@@ -233,14 +228,15 @@ public class JsonPathTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
-		assertEquals("Nigel Rees", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Nigel Rees");
 	}
 
 	@Test
 	public void testJsonInByteArray() throws Exception {
 		byte[] json = "{\"foo\":\"bar\"}".getBytes();
-		assertEquals("bar", JsonPathUtils.evaluate(json, "$.foo"));
+		Object result = JsonPathUtils.evaluate(json, "$.foo");
+		assertThat(result).isEqualTo("bar");
 	}
 
 	@Configuration

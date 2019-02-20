@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,14 +61,14 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertEquals(HashMap.class, received.getClass());
+		assertThat(received.getClass()).isEqualTo(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) received;
 
 		// test for a couple of MBeans
-		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
-		assertTrue(beans.containsKey("java.lang:type=Runtime"));
+		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
+		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
 	}
 
 	@Test
@@ -82,15 +80,15 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertEquals(HashMap.class, received.getClass());
+		assertThat(received.getClass()).isEqualTo(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) received;
 
 		// test for a few MBeans
-		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
-		assertTrue(beans.containsKey("java.lang:type=Runtime"));
-		assertFalse(beans.containsKey("java.util.logging:type=Logging"));
+		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isTrue();
+		assertThat(beans.containsKey("java.lang:type=Runtime")).isTrue();
+		assertThat(beans.containsKey("java.util.logging:type=Logging")).isFalse();
 	}
 
 	@Test
@@ -102,15 +100,15 @@ public class MBeanTreePollingMessageSourceTests {
 
 		Object received = source.doReceive();
 
-		assertEquals(HashMap.class, received.getClass());
+		assertThat(received.getClass()).isEqualTo(HashMap.class);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) received;
 
 		// test for a few MBeans
-		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
-		assertFalse(beans.containsKey("java.lang:type=Runtime"));
-		assertTrue(beans.containsKey("java.util.logging:type=Logging"));
+		assertThat(beans.containsKey("java.lang:type=OperatingSystem")).isFalse();
+		assertThat(beans.containsKey("java.lang:type=Runtime")).isFalse();
+		assertThat(beans.containsKey("java.util.logging:type=Logging")).isTrue();
 	}
 
 }

@@ -16,12 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
@@ -82,8 +77,8 @@ public class FilterAnnotationPostProcessorTests {
 		context.registerBean("adviceChain", advice);
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertSame(advice, TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -95,10 +90,10 @@ public class FilterAnnotationPostProcessorTests {
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertEquals(2, adviceList.size());
-		assertSame(advice1, adviceList.get(0));
-		assertSame(advice2, adviceList.get(1));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(adviceList.size()).isEqualTo(2);
+		assertThat(adviceList.get(0)).isSameAs(advice1);
+		assertThat(adviceList.get(1)).isSameAs(advice2);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -107,8 +102,8 @@ public class FilterAnnotationPostProcessorTests {
 		context.registerBean("adviceChain", advice);
 		testValidFilter(new TestFilterWithAdviceDiscardWithout());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertSame(advice, TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0));
-		assertFalse(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -117,8 +112,8 @@ public class FilterAnnotationPostProcessorTests {
 		context.registerBean("adviceChain", new TestAdvice[] { advice });
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertSame(advice, TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -132,12 +127,12 @@ public class FilterAnnotationPostProcessorTests {
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertEquals(4, adviceList.size());
-		assertSame(advice1, adviceList.get(0));
-		assertSame(advice2, adviceList.get(1));
-		assertSame(advice3, adviceList.get(2));
-		assertSame(advice4, adviceList.get(3));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(adviceList.size()).isEqualTo(4);
+		assertThat(adviceList.get(0)).isSameAs(advice1);
+		assertThat(adviceList.get(1)).isSameAs(advice2);
+		assertThat(adviceList.get(2)).isSameAs(advice3);
+		assertThat(adviceList.get(3)).isSameAs(advice4);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -146,8 +141,8 @@ public class FilterAnnotationPostProcessorTests {
 		context.registerBean("adviceChain", Collections.singletonList(advice));
 		testValidFilter(new TestFilterWithAdviceDiscardWithin());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
-		assertSame(advice, TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class).get(0)).isSameAs(advice);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -161,12 +156,12 @@ public class FilterAnnotationPostProcessorTests {
 		testValidFilter(new TestFilterWithAdviceDiscardWithinTwice());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("testFilter.filter.filter");
 		List<?> adviceList = TestUtils.getPropertyValue(endpoint, "handler.adviceChain", List.class);
-		assertEquals(4, adviceList.size());
-		assertSame(advice1, adviceList.get(0));
-		assertSame(advice2, adviceList.get(1));
-		assertSame(advice3, adviceList.get(2));
-		assertSame(advice4, adviceList.get(3));
-		assertTrue(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class));
+		assertThat(adviceList.size()).isEqualTo(4);
+		assertThat(adviceList.get(0)).isSameAs(advice1);
+		assertThat(adviceList.get(1)).isSameAs(advice2);
+		assertThat(adviceList.get(2)).isSameAs(advice3);
+		assertThat(adviceList.get(3)).isSameAs(advice4);
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler.postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -192,9 +187,9 @@ public class FilterAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("good"));
 		Message<?> passed = outputChannel.receive(0);
-		assertNotNull(passed);
+		assertThat(passed).isNotNull();
 		inputChannel.send(new GenericMessage<>("bad"));
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 		context.stop();
 	}
 

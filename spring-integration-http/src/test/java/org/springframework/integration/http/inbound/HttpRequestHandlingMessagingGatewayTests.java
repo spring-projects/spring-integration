@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,7 +31,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -91,11 +87,11 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(LinkedMultiValueMap.class, message.getPayload().getClass());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(LinkedMultiValueMap.class);
 		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
-		assertEquals(1, map.get("foo").size());
-		assertEquals("bar", map.getFirst("foo"));
+		assertThat(map.get("foo").size()).isEqualTo(1);
+		assertThat(map.getFirst("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -115,9 +111,9 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(String.class, message.getPayload().getClass());
-		assertEquals("hello", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(message.getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -156,7 +152,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
-		assertEquals("HELLO", response.getContentAsString());
+		assertThat(response.getContentAsString()).isEqualTo("HELLO");
 	}
 
 	@Test // INT-1767
@@ -182,9 +178,9 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
-		assertEquals("HELLO", response.getContentAsString());
+		assertThat(response.getContentAsString()).isEqualTo("HELLO");
 		//INT-3120
-		assertNull(response.getHeader("Accept-Charset"));
+		assertThat(response.getHeader("Accept-Charset")).isNull();
 	}
 
 	@Test
@@ -210,7 +206,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		String content = response.getContentAsString();
-		assertEquals("Planned", content);
+		assertThat(content).isEqualTo("Planned");
 	}
 
 	@Test
@@ -229,18 +225,18 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = channel.receive(0);
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertEquals(LinkedMultiValueMap.class, message.getPayload().getClass());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(LinkedMultiValueMap.class);
 		@SuppressWarnings("unchecked")
 		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
 		List<String> fooValues = map.get("foo");
 		List<String> barValues = map.get("bar");
-		assertEquals(1, fooValues.size());
-		assertEquals("123", fooValues.get(0));
-		assertEquals(2, barValues.size());
-		assertEquals("456", barValues.get(0));
-		assertEquals("789", barValues.get(1));
+		assertThat(fooValues.size()).isEqualTo(1);
+		assertThat(fooValues.get(0)).isEqualTo("123");
+		assertThat(barValues.size()).isEqualTo(2);
+		assertThat(barValues.get(0)).isEqualTo("456");
+		assertThat(barValues.get(1)).isEqualTo("789");
 	}
 
 	@Test
@@ -267,14 +263,14 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		byte[] bytes = response.getContentAsByteArray();
-		assertNotNull(bytes);
+		assertThat(bytes).isNotNull();
 		Message<?> message = channel.receive(0);
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertEquals(TestBean.class, message.getPayload().getClass());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
+		assertThat(message.getPayload().getClass()).isEqualTo(TestBean.class);
 		TestBean result = (TestBean) message.getPayload();
-		assertEquals("T. Bean", result.name);
-		assertEquals(84, result.age);
+		assertThat(result.name).isEqualTo("T. Bean");
+		assertThat(result.age).isEqualTo(84);
 	}
 
 	@Test
@@ -314,14 +310,14 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		final ContentTypeCheckingMockHttpServletResponse response = new ContentTypeCheckingMockHttpServletResponse();
 		gateway.handleRequest(request, response);
 
-		assertEquals("Cartman", response.getContentAsString());
+		assertThat(response.getContentAsString()).isEqualTo("Cartman");
 
 		/* Before fixing INT2680, 2 content type headers were being written. */
 		final List<String> contentTypes = response.getContentTypeList();
 
-		assertEquals("Expecting only 1 content type being set.",
-				Integer.valueOf(1), Integer.valueOf(contentTypes.size()));
-		assertEquals("text/plain", contentTypes.get(0));
+		assertThat(Integer.valueOf(contentTypes.size())).as("Expecting only 1 content type being set.")
+				.isEqualTo(Integer.valueOf(1));
+		assertThat(contentTypes.get(0)).isEqualTo("text/plain");
 	}
 
 	@Test
@@ -338,8 +334,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(500, response.getStatus());
+		assertThat(message).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(500);
 	}
 
 	@Test
@@ -358,8 +354,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(501, response.getStatus());
+		assertThat(message).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(501);
 	}
 
 	@Test
@@ -388,8 +384,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(504, response.getStatus());
+		assertThat(message).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(504);
 	}
 
 	@Test
@@ -410,9 +406,9 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		Message<?> message = requestChannel.receive(0);
-		assertNotNull(message);
-		assertEquals(501, response.getStatus());
-		assertThat(response.getContentAsString(), Matchers.containsString("from error channel"));
+		assertThat(message).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(501);
+		assertThat(response.getContentAsString()).contains("from error channel");
 	}
 
 

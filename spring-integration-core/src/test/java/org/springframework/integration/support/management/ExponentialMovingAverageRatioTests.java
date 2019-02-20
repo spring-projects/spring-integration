@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
 
 package org.springframework.integration.support.management;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Deque;
 
-import org.hamcrest.Matchers;
+import org.assertj.core.data.Offset;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -40,19 +35,18 @@ import org.springframework.integration.test.util.TestUtils;
 @Ignore("Very sensitive to the time. Don't forget to test after some changes.")
 public class ExponentialMovingAverageRatioTests {
 
-	private final ExponentialMovingAverageRatio history = new ExponentialMovingAverageRatio(
-			0.5, 10, true);
+	private final ExponentialMovingAverageRatio history = new ExponentialMovingAverageRatio(0.5, 10, true);
 
 	@Test
 	public void testGetCount() {
-		assertEquals(0, history.getCount());
+		assertThat(history.getCount()).isEqualTo(0);
 		history.success();
-		assertEquals(1, history.getCount());
+		assertThat(history.getCount()).isEqualTo(1);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testGetTimeSinceLastMeasurement() throws Exception {
+	public void testGetTimeSinceLastMeasurement() {
 		long sleepTime = 20L;
 		// fill history with the same value.
 		long now = System.nanoTime() - 2 * sleepTime * 1000000;
@@ -60,12 +54,12 @@ public class ExponentialMovingAverageRatioTests {
 			history.success(now);
 		}
 		final Deque<Long> times = TestUtils.getPropertyValue(history, "times", Deque.class);
-		assertEquals(Long.valueOf(now), times.peekFirst());
-		assertEquals(Long.valueOf(now), times.peekLast());
+		assertThat(times.peekFirst()).isEqualTo(Long.valueOf(now));
+		assertThat(times.peekLast()).isEqualTo(Long.valueOf(now));
 
 		//increment just so we'll have a different value between first and last
 		history.success(System.nanoTime() - sleepTime * 1000000);
-		assertNotEquals(times.peekFirst(), times.peekLast());
+		assertThat(times.peekLast()).isNotEqualTo(times.peekFirst());
 
 		/*
 		 * We've called Thread.sleep twice with the same value in quick
@@ -75,94 +69,94 @@ public class ExponentialMovingAverageRatioTests {
 		 * time.
 		 */
 		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
-		assertThat(timeSinceLastMeasurement, Matchers.greaterThan((double) (sleepTime / 100)));
-		assertThat(timeSinceLastMeasurement, Matchers.lessThanOrEqualTo(1.5 * sleepTime / 100));
+		assertThat(timeSinceLastMeasurement).isGreaterThan((double) (sleepTime / 100));
+		assertThat(timeSinceLastMeasurement).isLessThanOrEqualTo(1.5 * sleepTime / 100);
 	}
 
 	@Test
-	public void testGetEarlyMean() throws Exception {
-		assertEquals(1, history.getMean(), 0.01);
+	public void testGetEarlyMean() {
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.success();
-		assertEquals(1, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 	}
 
 	@Test
-	public void testGetEarlyFailure() throws Exception {
-		assertEquals(1, history.getMean(), 0.01);
+	public void testGetEarlyFailure() {
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.failure();
-		assertEquals(0, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(0, Offset.offset(0.01));
 	}
 
 	@Test
 	public void testDecayedMean() throws Exception {
 		history.failure(System.nanoTime() - 200000000);
-		assertEquals(average(0, Math.exp(-0.4)), history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(average(0, Math.exp(-0.4)), Offset.offset(0.01));
 		history.success();
 		history.failure();
 		double mean = history.getMean();
 		Statistics statistics = history.getStatistics();
 		Thread.sleep(50);
-		assertThat(history.getMean(), greaterThan(mean));
-		assertThat(history.getStatistics().getMean(), greaterThan(statistics.getMean()));
+		assertThat(history.getMean()).isGreaterThan(mean);
+		assertThat(history.getStatistics().getMean()).isGreaterThan(statistics.getMean());
 	}
 
 	@Test
-	public void testGetMean() throws Exception {
-		assertEquals(1, history.getMean(), 0.01);
+	public void testGetMean() {
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.success();
-		assertEquals(1, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.success();
-		assertEquals(1, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.success();
-		assertEquals(1, history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 	}
 
 	@Test
-	public void testGetMeanFailuresHighRate() throws Exception {
-		assertEquals(1, history.getMean(), 0.01);
+	public void testGetMeanFailuresHighRate() {
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.success(); // need an extra now that we can't determine the time between the first and previous
 		history.success();
-		assertEquals(average(1), history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(average(1), Offset.offset(0.01));
 		history.failure();
-		assertEquals(average(1, 0.5), history.getMean(), 0.1);
+		assertThat(history.getMean()).isCloseTo(average(1, 0.5), Offset.offset(0.1));
 		history.success();
-		assertEquals(average(1, 0.5, 0.67), history.getMean(), 0.1);
+		assertThat(history.getMean()).isCloseTo(average(1, 0.5, 0.67), Offset.offset(0.1));
 	}
 
 	@Test
-	public void testGetMeanFailuresLowRate() throws Exception {
-		assertEquals(1, history.getMean(), 0.01);
+	public void testGetMeanFailuresLowRate() {
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
 		history.failure(); // need an extra now that we can't determine the time between the first and previous
 		history.failure();
-		assertEquals(average(0), history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(average(0), Offset.offset(0.01));
 		history.failure();
-		assertEquals(average(0, 0), history.getMean(), 0.01);
+		assertThat(history.getMean()).isCloseTo(average(0, 0), Offset.offset(0.01));
 		history.success();
-		assertEquals(average(0, 0, 0.33), history.getMean(), 0.1);
+		assertThat(history.getMean()).isCloseTo(average(0, 0, 0.33), Offset.offset(0.1));
 	}
 
 	@Test
-	public void testGetStandardDeviation() throws Exception {
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+	public void testGetStandardDeviation() {
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 		history.success();
-		assertEquals(0, history.getStandardDeviation(), 1);
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(1d));
 	}
 
 	@Test
-	public void testReset() throws Exception {
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+	public void testReset() {
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
 		history.success();
 		history.failure();
-		assertThat(history.getStandardDeviation(), not(equalTo(0)));
+		assertThat(history.getStandardDeviation()).isNotEqualTo(0);
 		history.reset();
-		assertEquals(0, history.getStandardDeviation(), 0.01);
-		assertEquals(0, history.getCount());
-		assertEquals(0, history.getTimeSinceLastMeasurement(), 0.01);
-		assertEquals(1, history.getMean(), 0.01);
-		assertEquals(0, history.getMin(), 0.01);
-		assertEquals(0, history.getMax(), 0.01);
+		assertThat(history.getStandardDeviation()).isCloseTo(0, Offset.offset(0.01));
+		assertThat(history.getCount()).isEqualTo(0);
+		assertThat(history.getTimeSinceLastMeasurement()).isCloseTo(0, Offset.offset(0.01));
+		assertThat(history.getMean()).isCloseTo(1, Offset.offset(0.01));
+		assertThat(history.getMin()).isCloseTo(0, Offset.offset(0.01));
+		assertThat(history.getMax()).isCloseTo(0, Offset.offset(0.01));
 		history.success();
-		assertEquals(1, history.getMin(), 0.01);
+		assertThat(history.getMin()).isCloseTo(1, Offset.offset(0.01));
 	}
 
 	private double average(double... values) {
@@ -186,8 +180,8 @@ public class ExponentialMovingAverageRatioTests {
 				ratio.success();
 			}
 		}
-		assertEquals(0.9, ratio.getMax(), 0.02);
-		assertEquals(0.9, ratio.getMean(), 0.03);
+		assertThat(ratio.getMax()).isCloseTo(0.9, Offset.offset(0.02));
+		assertThat(ratio.getMean()).isCloseTo(0.9, Offset.offset(0.03));
 	}
 
 	@Test

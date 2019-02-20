@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.Properties;
@@ -108,7 +106,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		while (n++ < 100 && launcher.getReceiverPort() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("Receiver failed to listen", n < 100);
+		assertThat(n < 100).as("Receiver failed to listen").isTrue();
 
 		ClassPathXmlApplicationContext applicationContext = createContext(launcher, location);
 		launcher.launchSender(applicationContext);
@@ -156,8 +154,8 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			// tell the receiver to we're done
 			doneProcessing.countDown();
 		}
-		assertTrue(firstReceived.await(5, TimeUnit.SECONDS));
-		assertEquals(testingIpText, new String(finalMessage.getPayload()));
+		assertThat(firstReceived.await(5, TimeUnit.SECONDS)).isTrue();
+		assertThat(new String(finalMessage.getPayload())).isEqualTo(testingIpText);
 	}
 
 	public int getReceiverPort() {
@@ -203,8 +201,8 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			finalMessage = (Message<byte[]>) channel.receive();
 			MessageHistory history = MessageHistory.read(finalMessage);
 			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "udpReceiver", 0);
-			assertNotNull(componentHistoryRecord);
-			assertEquals("ip:udp-inbound-channel-adapter", componentHistoryRecord.get("type"));
+			assertThat(componentHistoryRecord).isNotNull();
+			assertThat(componentHistoryRecord.get("type")).isEqualTo("ip:udp-inbound-channel-adapter");
 			firstReceived.countDown();
 			try {
 				doneProcessing.await();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +32,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem bilan
+ *
  * @since 5.0.7
  *
  */
@@ -49,9 +48,9 @@ public class SftpMessageSourceTests extends SftpTestSupport {
 	public void testMaxFetch() throws Exception {
 		SftpInboundFileSynchronizingMessageSource messageSource = buildSource();
 		Message<?> received = messageSource.receive();
-		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.FILENAME),
-				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.FILENAME))
+				.isIn(" sftpSource1.txt", "sftpSource2.txt");
 	}
 
 	private SftpInboundFileSynchronizingMessageSource buildSource() throws Exception {

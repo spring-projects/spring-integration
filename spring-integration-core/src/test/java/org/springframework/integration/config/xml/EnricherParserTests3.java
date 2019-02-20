@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 
@@ -45,12 +43,12 @@ public class EnricherParserTests3 {
 		MessageChannel beanResolveIn = context.getBean("beanResolveIn", MessageChannel.class);
 		PollableChannel beanResolveOut = context.getBean("beanResolveOut", PollableChannel.class);
 		SomeBean payload = new SomeBean("foo");
-		assertEquals("foo", payload.getNested().getValue());
+		assertThat(payload.getNested().getValue()).isEqualTo("foo");
 		beanResolveIn.send(new GenericMessage<SomeBean>(payload));
 		@SuppressWarnings("unchecked")
 		Message<SomeBean> out =  (Message<SomeBean>) beanResolveOut.receive();
-		assertSame(payload, out.getPayload());
-		assertEquals("bar", out.getPayload().getNested().getValue());
+		assertThat(out.getPayload()).isSameAs(payload);
+		assertThat(out.getPayload().getNested().getValue()).isEqualTo("bar");
 		context.close();
 	}
 
@@ -60,13 +58,13 @@ public class EnricherParserTests3 {
 				this.getClass().getSimpleName() + "-fail-context.xml", this.getClass());
 		MessageChannel beanResolveIn = context.getBean("beanResolveIn", MessageChannel.class);
 		SomeBean payload = new SomeBean("foo");
-		assertEquals("foo", payload.getNested().getValue());
+		assertThat(payload.getNested().getValue()).isEqualTo("foo");
 		try {
 			beanResolveIn.send(new GenericMessage<SomeBean>(payload));
 			fail("Expected SpEL Exception");
 		}
 		catch (MessageHandlingException e) {
-			assertTrue(e.getCause() instanceof SpelEvaluationException);
+			assertThat(e.getCause() instanceof SpelEvaluationException).isTrue();
 		}
 		context.close();
 	}

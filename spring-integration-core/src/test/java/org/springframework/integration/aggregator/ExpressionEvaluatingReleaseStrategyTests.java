@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
@@ -52,21 +51,21 @@ public class ExpressionEvaluatingReleaseStrategyTests {
 	public void testCompletedWithSizeSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("#root.size()==5");
 		strategy.setBeanFactory(mock(BeanFactory.class));
-		assertThat(strategy.canRelease(messages), is(true));
+		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelEvaluated() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==5].empty");
 		strategy.setBeanFactory(mock(BeanFactory.class));
-		assertThat(strategy.canRelease(messages), is(true));
+		assertThat(strategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelReturnsNotCompleted() {
 		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==6].empty");
 		strategy.setBeanFactory(mock(BeanFactory.class));
-		assertThat(strategy.canRelease(messages), is(false));
+		assertThat(strategy.canRelease(messages)).isFalse();
 	}
 
 }

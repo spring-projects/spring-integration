@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -92,27 +88,27 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	public void testAllContents() {
 		this.adapter.start();
 		Message<byte[]> received = (Message<byte[]>) this.data.receive(10000);
-		assertNotNull(received);
-		assertThat(new String(received.getPayload()), equalTo("source1"));
+		assertThat(received).isNotNull();
+		assertThat(new String(received.getPayload())).isEqualTo("source1");
 		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
-		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
-		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
-		assertThat(fileInfo, containsString("size\":7"));
-		assertThat(fileInfo, containsString("directory\":false"));
-		assertThat(fileInfo, containsString("filename\":\" ftpSource1.txt"));
-		assertThat(fileInfo, containsString("modified\":"));
-		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo).contains("remoteDirectory\":\"ftpSource");
+		assertThat(fileInfo).contains("permissions\":\"-rw-------");
+		assertThat(fileInfo).contains("size\":7");
+		assertThat(fileInfo).contains("directory\":false");
+		assertThat(fileInfo).contains("filename\":\" ftpSource1.txt");
+		assertThat(fileInfo).contains("modified\":");
+		assertThat(fileInfo).contains("link\":false");
 		received = (Message<byte[]>) this.data.receive(10000);
-		assertNotNull(received);
-		assertThat(new String(received.getPayload()), equalTo("source2"));
+		assertThat(received).isNotNull();
+		assertThat(new String(received.getPayload())).isEqualTo("source2");
 		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
-		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
-		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
-		assertThat(fileInfo, containsString("size\":7"));
-		assertThat(fileInfo, containsString("directory\":false"));
-		assertThat(fileInfo, containsString("filename\":\"ftpSource2.txt"));
-		assertThat(fileInfo, containsString("modified\":"));
-		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo).contains("remoteDirectory\":\"ftpSource");
+		assertThat(fileInfo).contains("permissions\":\"-rw-------");
+		assertThat(fileInfo).contains("size\":7");
+		assertThat(fileInfo).contains("directory\":false");
+		assertThat(fileInfo).contains("filename\":\"ftpSource2.txt");
+		assertThat(fileInfo).contains("modified\":");
+		assertThat(fileInfo).contains("link\":false");
 
 		this.adapter.stop();
 		this.source.setFileInfoJson(false);
@@ -120,10 +116,10 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.metadataMap.clear();
 		this.adapter.start();
 		received = (Message<byte[]>) this.data.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		this.adapter.stop();
 
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FtpFileInfo.class));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
 	}
 
 	@Test
@@ -132,8 +128,8 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
-		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo(" ftpSource1.txt");
 
 		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(received);
 		if (closeableResource != null) {
@@ -147,8 +143,8 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
-		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo(" ftpSource1.txt");
 
 		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(received);
 		if (closeableResource != null) {

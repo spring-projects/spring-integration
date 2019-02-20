@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.integration.test.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,17 +79,17 @@ public abstract class AbstractRequestResponseScenarioTests {
 				((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
 			}
 
-			Assert.assertTrue(name + ": message not sent on " + scenario.getInputChannelName(),
-					inputChannel.send(scenario.getMessage()));
+			assertThat(inputChannel.send(scenario.getMessage()))
+					.as(name + ": message not sent on " + scenario.getInputChannelName()).isTrue();
 
 			if (outputChannel instanceof PollableChannel) {
 				Message<?> response = ((PollableChannel) outputChannel).receive(10000);
-				Assert.assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
+				assertThat(response).as(name + ": receive timeout on " + scenario.getOutputChannelName()).isNotNull();
 				scenario.getResponseValidator().handleMessage(response);
 			}
 
-			Assert.assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
-					scenario.getResponseValidator().getLastMessage());
+			assertThat(scenario.getResponseValidator().getLastMessage())
+					.as("message was not handled on " + outputChannel + " for scenario '" + name + "'.").isNotNull();
 
 			if (outputChannel instanceof SubscribableChannel) {
 				((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -97,15 +92,15 @@ public class XPathRouterParserTests {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 		context.close();
 	}
 
@@ -115,7 +110,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of messages").isEqualTo(1);
 	}
 
 	@Test
@@ -124,7 +119,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of messages").isEqualTo(1);
 	}
 
 	@Test
@@ -138,7 +133,7 @@ public class XPathRouterParserTests {
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of messages").isEqualTo(1);
 	}
 
 	@Test
@@ -153,7 +148,7 @@ public class XPathRouterParserTests {
 
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
+		assertThat(outputChannel.getQueueSize()).as("Wrong number of messages").isEqualTo(1);
 	}
 
 	@Test
@@ -165,7 +160,7 @@ public class XPathRouterParserTests {
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
 		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
-		assertEquals("Resolution required not set to false ", false, resolutionRequired);
+		assertThat(resolutionRequired).as("Resolution required not set to false ").isEqualTo(false);
 	}
 
 	@Test
@@ -177,7 +172,7 @@ public class XPathRouterParserTests {
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
 		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
-		assertEquals("Resolution required not set to true ", true, resolutionRequired);
+		assertThat(resolutionRequired).as("Resolution required not set to true ").isEqualTo(true);
 	}
 
 	@Test
@@ -189,9 +184,9 @@ public class XPathRouterParserTests {
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
 		Object defaultOutputChannelValue = accessor.getPropertyValue("defaultOutputChannel");
-		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
+		assertThat(defaultOutputChannelValue).as("Default output channel not correctly set ").isEqualTo(defaultOutput);
 		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
-		assertEquals("Wrong count of messages on default output channel", 1, defaultOutput.getQueueSize());
+		assertThat(defaultOutput.getQueueSize()).as("Wrong count of messages on default output channel").isEqualTo(1);
 	}
 
 	@Test
@@ -204,15 +199,15 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<name>channelA</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputChannel.send(docMessage);
-		assertNotNull(channelA.receive(10));
-		assertNull(channelB.receive(10));
+		assertThat(channelA.receive(10)).isNotNull();
+		assertThat(channelB.receive(10)).isNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterEmpty", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.setChannelMapping("channelA", "channelB");
 		inputChannel.send(docMessage);
-		assertNotNull(channelB.receive(10));
-		assertNull(channelA.receive(10));
+		assertThat(channelB.receive(10)).isNotNull();
+		assertThat(channelA.receive(10)).isNull();
 		ac.close();
 	}
 
@@ -226,15 +221,15 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<name>channelA</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputChannel.send(docMessage);
-		assertNull(channelA.receive(10));
-		assertNotNull(channelB.receive(10));
+		assertThat(channelA.receive(10)).isNull();
+		assertThat(channelB.receive(10)).isNotNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMapping", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		inputChannel.send(docMessage);
-		assertNotNull(channelA.receive(10));
-		assertNull(channelB.receive(10));
+		assertThat(channelA.receive(10)).isNotNull();
+		assertThat(channelB.receive(10)).isNull();
 		ac.close();
 	}
 
@@ -248,17 +243,17 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<root><name>channelA</name><name>channelB</name></root>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputChannel.send(docMessage);
-		assertNotNull(channelA.receive(10));
-		assertNotNull(channelA.receive(10));
-		assertNull(channelB.receive(10));
+		assertThat(channelA.receive(10)).isNotNull();
+		assertThat(channelA.receive(10)).isNotNull();
+		assertThat(channelB.receive(10)).isNull();
 
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMappingMultiChannel", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		xpathRouter.removeChannelMapping("channelB");
 		inputChannel.send(docMessage);
-		assertNotNull(channelA.receive(10));
-		assertNotNull(channelB.receive(10));
+		assertThat(channelA.receive(10)).isNotNull();
+		assertThat(channelB.receive(10)).isNotNull();
 		ac.close();
 	}
 
@@ -270,7 +265,7 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<channelA/>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputChannel.send(docMessage);
-		assertNotNull(channelA.receive(10));
+		assertThat(channelA.receive(10)).isNotNull();
 		ac.close();
 	}
 
@@ -282,8 +277,8 @@ public class XPathRouterParserTests {
 		GenericMessage<String> message = new GenericMessage<String>("<name>channelA</name>");
 		inputChannel.send(message);
 		Message<?> result = channelZ.receive(0);
-		assertNotNull(result);
-		assertEquals("<name>channelA</name>", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("<name>channelA</name>");
 		ac.close();
 	}
 

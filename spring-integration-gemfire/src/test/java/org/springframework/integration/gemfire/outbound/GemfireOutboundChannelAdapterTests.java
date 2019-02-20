@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gemfire.outbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,17 +74,17 @@ public class GemfireOutboundChannelAdapterTests {
 
 		Message<?> message = MessageBuilder.withPayload(map).build();
 		cacheChannel1.send(message);
-		assertEquals(1, region1.size());
-		assertEquals("bar", region1.get("foo"));
+		assertThat(region1.size()).isEqualTo(1);
+		assertThat(region1.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
 	public void testWriteExpressions() {
 		Message<?> message = MessageBuilder.withPayload("Hello").build();
 		cacheChannel2.send(message);
-		assertEquals(2, region2.size());
-		assertEquals("hello", region2.get("HELLO"));
-		assertEquals("bar", region2.get("foo"));
+		assertThat(region2.size()).isEqualTo(2);
+		assertThat(region2.get("HELLO")).isEqualTo("hello");
+		assertThat(region2.get("foo")).isEqualTo("bar");
 	}
 
 	@Test //INT-2275
@@ -94,8 +94,8 @@ public class GemfireOutboundChannelAdapterTests {
 
 		Message<?> message = MessageBuilder.withPayload(map).build();
 		cacheChainChannel.send(message);
-		assertEquals(1, region1.size());
-		assertEquals("bar", region1.get("foo"));
+		assertThat(region1.size()).isEqualTo(1);
+		assertThat(region1.get("foo")).isEqualTo("bar");
 	}
 
 }

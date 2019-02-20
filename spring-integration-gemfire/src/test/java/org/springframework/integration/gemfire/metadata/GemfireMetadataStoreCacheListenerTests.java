@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gemfire.metadata;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -96,8 +96,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		metadataStore.put(testKey, testValue);
 		latch.await(10, TimeUnit.SECONDS);
 
-		assertEquals(testKey, actualKey.get());
-		assertEquals(testValue, actualValue.get());
+		assertThat(actualKey.get()).isEqualTo(testKey);
+		assertThat(actualValue.get()).isEqualTo(testValue);
 	}
 
 	@Test
@@ -123,8 +123,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		metadataStore.remove(testKey);
 		latch.await(10, TimeUnit.SECONDS);
 
-		assertEquals(testKey, actualKey.get());
-		assertEquals(testValue, actualValue.get());
+		assertThat(actualKey.get()).isEqualTo(testKey);
+		assertThat(actualValue.get()).isEqualTo(testValue);
 	}
 
 	@Test
@@ -151,8 +151,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		metadataStore.put(testKey, testNewValue);
 		latch.await(10, TimeUnit.SECONDS);
 
-		assertEquals(testKey, actualKey.get());
-		assertEquals(testNewValue, actualValue.get());
+		assertThat(actualKey.get()).isEqualTo(testKey);
+		assertThat(actualValue.get()).isEqualTo(testNewValue);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Properties;
@@ -64,22 +59,21 @@ public class XPathSplitterParserTests {
 
 	@Test
 	public void testXpathSplitterConfig() {
-		assertTrue(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class));
-		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class));
-		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "iterator", Boolean.class));
-		assertSame(this.outputProperties, TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties"));
-		assertEquals("/orders/order",
-				TestUtils.getPropertyValue(this.xpathSplitter,
-						"xpathExpression.xpathExpression.xpath.m_patternString",
-						String.class));
-		assertEquals(2, TestUtils.getPropertyValue(xpathSplitter, "order"));
-		assertEquals(123L, TestUtils.getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "iterator", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties")).isSameAs(this.outputProperties);
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter,
+				"xpathExpression.xpathExpression.xpath.m_patternString",
+				String.class)).isEqualTo("/orders/order");
+		assertThat(TestUtils.getPropertyValue(xpathSplitter, "order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 }

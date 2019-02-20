@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 
@@ -63,10 +63,10 @@ public class PayloadTypeRouterParserTests {
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
-		assertTrue(chanel1.receive(100).getPayload() instanceof String);
-		assertTrue(chanel2.receive(100).getPayload() instanceof Integer);
-		assertTrue(chanel3.receive(100).getPayload().getClass().isArray());
-		assertTrue(chanel4.receive(100).getPayload().getClass().isArray());
+		assertThat(chanel1.receive(100).getPayload() instanceof String).isTrue();
+		assertThat(chanel2.receive(100).getPayload() instanceof Integer).isTrue();
+		assertThat(chanel3.receive(100).getPayload().getClass().isArray()).isTrue();
+		assertThat(chanel4.receive(100).getPayload().getClass().isArray()).isTrue();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)

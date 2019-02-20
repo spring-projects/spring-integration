@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.scattergather.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 
@@ -58,54 +52,55 @@ public class ScatterGatherParserTests {
 	@Test
 	public void testAuction() {
 		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather1.handler", MessageHandler.class);
-		assertThat(scatterGather, instanceOf(ScatterGatherHandler.class));
-		assertSame(this.beanFactory.getBean("scatterChannel"),
-				TestUtils.getPropertyValue(scatterGather, "scatterChannel"));
-		assertTrue(this.beanFactory.containsBean("scatterGather1.gatherer"));
+		assertThat(scatterGather).isInstanceOf(ScatterGatherHandler.class);
+		assertThat(TestUtils.getPropertyValue(scatterGather, "scatterChannel"))
+				.isSameAs(this.beanFactory.getBean("scatterChannel"));
+		assertThat(this.beanFactory.containsBean("scatterGather1.gatherer")).isTrue();
 		AggregatingMessageHandler gatherer =
 				this.beanFactory.getBean("scatterGather1.gatherer", AggregatingMessageHandler.class);
-		assertSame(gatherer, TestUtils.getPropertyValue(scatterGather, "gatherer"));
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherer")).isSameAs(gatherer);
 
 		Object reaper = this.beanFactory.getBean("reaper");
-		assertSame(gatherer.getMessageStore(), TestUtils.getPropertyValue(reaper, "messageGroupStore"));
-		assertTrue(TestUtils.getPropertyValue(scatterGather, "requiresReply", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(reaper, "messageGroupStore")).isSameAs(gatherer.getMessageStore());
+		assertThat(TestUtils.getPropertyValue(scatterGather, "requiresReply", Boolean.class)).isTrue();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDistribution() {
 		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather2.handler", MessageHandler.class);
-		assertSame(this.beanFactory.getBean("gatherChannel"),
-				TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherChannel"))
+				.isSameAs(this.beanFactory.getBean("gatherChannel"));
 		Lifecycle gatherEndpoint = TestUtils.getPropertyValue(scatterGather, "gatherEndpoint", Lifecycle.class);
-		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));
-		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"), instanceOf(EventDrivenConsumer.class));
-		assertTrue(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint.running", Boolean.class));
-		assertEquals(100L, TestUtils.getPropertyValue(scatterGather, "gatherTimeout"));
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint")).isInstanceOf(EventDrivenConsumer.class);
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint.running", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherTimeout")).isEqualTo(100L);
 
-		assertTrue(this.beanFactory.containsBean("myGatherer"));
+		assertThat(this.beanFactory.containsBean("myGatherer")).isTrue();
 		Object gatherer = this.beanFactory.getBean("myGatherer");
-		assertSame(gatherer, TestUtils.getPropertyValue(scatterGather, "gatherer"));
-		assertSame(this.beanFactory.getBean("messageStore"), TestUtils.getPropertyValue(gatherer, "messageStore"));
-		assertSame(gatherer, TestUtils.getPropertyValue(scatterGather, "gatherEndpoint.handler"));
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherer")).isSameAs(gatherer);
+		assertThat(TestUtils.getPropertyValue(gatherer, "messageStore"))
+				.isSameAs(this.beanFactory.getBean("messageStore"));
+		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint.handler")).isSameAs(gatherer);
 
-		assertTrue(this.beanFactory.containsBean("myScatterer"));
+		assertThat(this.beanFactory.containsBean("myScatterer")).isTrue();
 		Object scatterer = this.beanFactory.getBean("myScatterer");
-		assertTrue(TestUtils.getPropertyValue(scatterer, "applySequence", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(scatterer, "applySequence", Boolean.class)).isTrue();
 
 		Collection<RecipientListRouter.Recipient> recipients = TestUtils.getPropertyValue(scatterer, "recipients",
 				Collection.class);
-		assertEquals(1, recipients.size());
-		assertSame(this.beanFactory.getBean("distributionChannel"), recipients.iterator().next().getChannel());
+		assertThat(recipients.size()).isEqualTo(1);
+		assertThat(recipients.iterator().next().getChannel()).isSameAs(this.beanFactory.getBean("distributionChannel"));
 
 		Object scatterChannel = TestUtils.getPropertyValue(scatterGather, "scatterChannel");
-		assertThat(scatterChannel, instanceOf(FixedSubscriberChannel.class));
-		assertSame(scatterer, TestUtils.getPropertyValue(scatterChannel, "handler"));
+		assertThat(scatterChannel).isInstanceOf(FixedSubscriberChannel.class);
+		assertThat(TestUtils.getPropertyValue(scatterChannel, "handler")).isSameAs(scatterer);
 
-		assertTrue(gatherEndpoint.isRunning());
+		assertThat(gatherEndpoint.isRunning()).isTrue();
 		((Lifecycle) scatterGather).stop();
-		assertFalse(((Lifecycle) scatterGather).isRunning());
-		assertFalse(gatherEndpoint.isRunning());
+		assertThat(((Lifecycle) scatterGather).isRunning()).isFalse();
+		assertThat(gatherEndpoint.isRunning()).isFalse();
 
 	}
 

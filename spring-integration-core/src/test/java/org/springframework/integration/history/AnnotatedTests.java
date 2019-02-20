@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.history;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -54,8 +54,8 @@ public class AnnotatedTests {
 			public void onApplicationEvent(ApplicationEvent event) {
 				MessageHistory history = MessageHistory.read((Message<?>) event.getSource());
 				Properties adapterHistory = history.get(1);
-				assertEquals("myAdapter", adapterHistory.get("name"));
-				assertEquals("outbound-channel-adapter", adapterHistory.get("type"));
+				assertThat(adapterHistory.get("name")).isEqualTo("myAdapter");
+				assertThat(adapterHistory.get("type")).isEqualTo("outbound-channel-adapter");
 			}
 		};
 		listener = spy(listener);

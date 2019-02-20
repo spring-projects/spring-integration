@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -60,7 +56,7 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
 	public void regexFilter() {
 		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
 		Object extractedFilter = scannerAccessor.getPropertyValue("filter");
-		assertThat(extractedFilter, is(instanceOf(CompositeFileListFilter.class)));
+		assertThat(extractedFilter).isInstanceOf(CompositeFileListFilter.class);
 		Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
 				extractedFilter).getPropertyValue("fileFilters");
 		Pattern pattern = null;
@@ -69,8 +65,8 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
 				pattern = (Pattern) new DirectFieldAccessor(filter).getPropertyValue("pattern");
 			}
 		}
-		assertNotNull("expected PatternMatchingFileListFilter", pattern);
-		assertEquals("^.*\\.txt$", pattern.pattern());
+		assertThat(pattern).as("expected PatternMatchingFileListFilter").isNotNull();
+		assertThat(pattern.pattern()).isEqualTo("^.*\\.txt$");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,8 @@
 
 package org.springframework.integration.ftp.outbound;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -52,7 +39,6 @@ import java.util.regex.Matcher;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -173,19 +159,19 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		long modified = setModifiedOnSource1();
 		this.inboundGet.send(new GenericMessage<Object>(dir + " ftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		File localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir.toUpperCase()));
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir.toUpperCase());
 		assertPreserved(modified, localFile);
 
 		dir = "ftpSource/subFtpSource/";
 		this.inboundGet.send(new GenericMessage<Object>(dir + "subFtpSource1.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir.toUpperCase()));
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir.toUpperCase());
 	}
 
 	@Test
@@ -194,11 +180,11 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.getGw.setOption(Option.DELETE);
 		this.inboundGet.send(new GenericMessage<Object>(dir + "ftpSource2.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		File localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir.toUpperCase()));
-		assertThat(new File(getSourceRemoteDirectory(), "ftpSource2.txt").exists(), equalTo(false));
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir.toUpperCase());
+		assertThat(new File(getSourceRemoteDirectory(), "ftpSource2.txt").exists()).isFalse();
 	}
 
 	@Test
@@ -209,10 +195,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertNotNull(cause);
+			assertThat(cause).isNotNull();
 			cause = cause.getCause();
-			assertThat(cause, Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(cause.getMessage(), Matchers.startsWith("Failed to make local directory"));
+			assertThat(cause).isInstanceOf(IllegalArgumentException.class);
+			assertThat(cause.getMessage()).startsWith("Failed to make local directory");
 		}
 	}
 
@@ -223,36 +209,36 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		long modified = setModifiedOnSource1();
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 
-		assertThat(localFiles.size(), Matchers.greaterThan(0));
+		assertThat(localFiles.size()).isGreaterThan(0);
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"), containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
-		assertTrue(assertedModified);
+		assertThat(assertedModified).isTrue();
 
 		dir = "ftpSource/subFtpSource/";
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		localFiles = (List<File>) result.getPayload();
 
-		assertThat(localFiles.size(), Matchers.greaterThan(0));
+		assertThat(localFiles.size()).isGreaterThan(0);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"), containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		localFiles = (List<File>) result.getPayload();
-		assertThat(localFiles.size(), equalTo(0));
+		assertThat(localFiles.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -264,14 +250,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 		this.inboundMGet.send(new GenericMessage<Object>(""));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 
-		assertThat(localFiles.size(), Matchers.greaterThan(0));
+		assertThat(localFiles.size()).isGreaterThan(0);
 
 		for (File file : localFiles) {
-			assertThat(file.getName(), isOneOf(" localTarget1.txt", "localTarget2.txt"));
-			assertThat(file.getName(), not(containsString("null")));
+			assertThat(file.getName()).isIn(" localTarget1.txt", "localTarget2.txt");
+			assertThat(file.getName()).doesNotContain("null");
 		}
 	}
 
@@ -284,21 +270,20 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		secondRemote.setLastModified(System.currentTimeMillis() - 1_000_000);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
-		assertEquals(3, localFiles.size());
+		assertThat(localFiles.size()).isEqualTo(3);
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
-		assertTrue(assertedModified);
-		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir + "subFtpSource"));
+		assertThat(assertedModified).isTrue();
+		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subFtpSource");
 
 		File secondTarget = new File(getTargetLocalDirectory() + File.separator + "ftpSource", "localTarget2.txt");
 		ByteArrayOutputStream remoteContents = new ByteArrayOutputStream();
@@ -306,7 +291,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		FileUtils.copyFile(secondRemote, remoteContents);
 		FileUtils.copyFile(secondTarget, localContents);
 		String localAsString = new String(localContents.toByteArray());
-		assertEquals(new String(remoteContents.toByteArray()), localAsString);
+		assertThat(localAsString).isEqualTo(new String(remoteContents.toByteArray()));
 		long oldLastModified = secondRemote.lastModified();
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream("junk".getBytes()), secondRemote);
 		long newLastModified = secondRemote.lastModified();
@@ -315,13 +300,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertEquals(localAsString, new String(localContents.toByteArray()));
+		assertThat(new String(localContents.toByteArray())).isEqualTo(localAsString);
 		secondRemote.setLastModified(newLastModified);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertEquals("junk", new String(localContents.toByteArray()));
+		assertThat(new String(localContents.toByteArray())).isEqualTo("junk");
 		// restore the remote file contents
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream(localAsString.getBytes()), secondRemote);
 	}
@@ -330,14 +315,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		File firstRemote = new File(getSourceRemoteDirectory(), " ftpSource1.txt");
 		firstRemote.setLastModified(System.currentTimeMillis() - 1_000_000);
 		long modified = firstRemote.lastModified();
-		assertTrue(modified > 0);
+		assertThat(modified > 0).isTrue();
 		return modified;
 	}
 
 	private boolean assertPreserved(long modified, File file) {
 		// ftp only has 1 minute resolution
-		assertTrue("lastModified wrong by " + (modified - file.lastModified()),
-				Math.abs(file.lastModified() - modified) < 61_000);
+		assertThat(Math.abs(file.lastModified() - modified) < 61_000)
+				.as("lastModified wrong by " + (modified - file.lastModified())).isTrue();
 		return true;
 	}
 
@@ -347,17 +332,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		String dir = "ftpSource/";
 		this.inboundMGetRecursiveFiltered.send(new GenericMessage<Object>(dir + "*"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 		// should have filtered ftpSource2.txt
-		assertEquals(2, localFiles.size());
+		assertThat(localFiles.size()).isEqualTo(2);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir + "subFtpSource"));
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subFtpSource");
 
 	}
 
@@ -366,13 +350,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		Session<?> session = this.ftpSessionFactory.getSession();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("ftpSource/ ftpSource1.txt"), baos);
-		assertTrue(session.finalizeRaw());
-		assertEquals("source1", new String(baos.toByteArray()));
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source1");
 
 		baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource2.txt"), baos);
-		assertTrue(session.finalizeRaw());
-		assertEquals("source2", new String(baos.toByteArray()));
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source2");
 
 		session.close();
 	}
@@ -384,14 +368,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-		assertTrue(template.get(new GenericMessage<String>("ftpSource/ ftpSource1.txt"),
-				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos1)));
-		assertEquals("source1", new String(baos1.toByteArray()));
+		assertThat(template.get(new GenericMessage<String>("ftpSource/ ftpSource1.txt"),
+				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos1))).isTrue();
+		assertThat(new String(baos1.toByteArray())).isEqualTo("source1");
 
 		final ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"),
-				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos2)));
-		assertEquals("source2", new String(baos2.toByteArray()));
+		assertThat(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"),
+				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos2))).isTrue();
+		assertThat(new String(baos2.toByteArray())).isEqualTo("source2");
 	}
 
 	@Test
@@ -399,16 +383,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(2, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt");
 	}
 
 	@Test
@@ -416,22 +397,18 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(3, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
-						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
-						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(2),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
-						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(3);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt",
+						"ftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt",
+						"ftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(2))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt",
+						"ftpTarget/subLocalSource/subLocalSource1.txt");
 	}
 
 	@Test
@@ -439,24 +416,21 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(2, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
-						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("ftpTarget/localSource1.txt"), equalTo("ftpTarget/localSource2.txt"),
-						equalTo("ftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt",
+						"ftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt",
+						"ftpTarget/subLocalSource/subLocalSource1.txt");
 	}
 
 	@Test
 	public void testInt3412FileMode() {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
-		assertFalse(template.exists("ftpTarget/appending.txt"));
+		assertThat(template.exists("ftpTarget/appending.txt")).isFalse();
 		Message<String> m = MessageBuilder.withPayload("foo")
 				.setHeader(FileHeaders.FILENAME, "appending.txt")
 				.build();
@@ -472,7 +446,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause().getCause().getMessage(), containsString("The destination file already exists"));
+			assertThat(e.getCause().getCause().getMessage()).contains("The destination file already exists");
 		}
 
 	}
@@ -482,27 +456,29 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		String dir = "ftpSource/";
 		this.inboundGetStream.send(new GenericMessage<Object>(dir + " ftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
-		assertEquals("source1", result.getPayload());
-		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals(" ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("source1");
+		assertThat(result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("ftpSource/");
+		assertThat(result.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo(" ftpSource1.txt");
 
 		Session<?> session = (Session<?>) result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		// Returned to cache
-		assertTrue(session.isOpen());
+		assertThat(session.isOpen()).isTrue();
 		// Raw reading is finished
-		assertFalse(TestUtils.getPropertyValue(session, "targetSession.readingRaw", AtomicBoolean.class).get());
+		assertThat(TestUtils.getPropertyValue(session, "targetSession.readingRaw", AtomicBoolean.class).get())
+				.isFalse();
 
 		// Check that we can use the same session from cache to read another remote InputStream
 		this.inboundGetStream.send(new GenericMessage<Object>(dir + "ftpSource2.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
-		assertEquals("source2", result.getPayload());
-		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals("ftpSource2.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
-		assertSame(TestUtils.getPropertyValue(session, "targetSession"),
-				TestUtils.getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
-						"targetSession"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("source2");
+		assertThat(result.getHeaders())
+				.containsEntry(FileHeaders.REMOTE_DIRECTORY, "ftpSource/")
+				.containsEntry(FileHeaders.REMOTE_FILE, "ftpSource2.txt");
+		assertThat(TestUtils
+				.getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
+						"targetSession")).isSameAs(TestUtils.getPropertyValue(session, "targetSession"));
 	}
 
 	@Test
@@ -523,10 +499,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
-			assertEquals(2, e.getDerivedInput().size());
-			assertEquals(1, e.getPartialResults().size());
-			assertThat(e.getCause().getMessage(),
-					containsString("/ftpSource/subFtpSource/bogus.txt: No such file or directory."));
+			assertThat(e.getDerivedInput()).hasSize(2);
+			assertThat(e.getPartialResults()).hasSize(1);
+			assertThat(e.getCause().getMessage())
+					.contains("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
 		}
 
 	}
@@ -550,10 +526,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
-			assertEquals(4, e.getDerivedInput().size());
-			assertEquals(2, e.getPartialResults().size());
-			assertThat(e.getCause().getMessage(),
-					containsString("/ftpSource/subFtpSource/bogus.txt: No such file or directory."));
+			assertThat(e.getDerivedInput()).hasSize(4);
+			assertThat(e.getPartialResults()).hasSize(2);
+			assertThat(e.getCause().getMessage())
+					.contains("/ftpSource/subFtpSource/bogus.txt: No such file or directory.");
 		}
 	}
 
@@ -568,19 +544,18 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
-			assertEquals(3, e.getDerivedInput().size());
-			assertEquals(1, e.getPartialResults().size());
-			assertEquals("ftpTarget/localSource1.txt", e.getPartialResults().iterator().next());
-			assertThat(e.getCause().getMessage(),
-					containsString("Failed to send localSource2"));
+			assertThat(e.getDerivedInput()).hasSize(3);
+			assertThat(e.getPartialResults()).hasSize(1);
+			assertThat(e.getPartialResults().iterator().next()).isEqualTo("ftpTarget/localSource1.txt");
+			assertThat(e.getCause().getMessage()).contains("Failed to send localSource2");
 		}
 	}
 
 	@Test
 	public void testMputRecursivePartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		File sourceLocalSubDirectory =  new File(getSourceLocalDirectory(), "subLocalSource");
-		assertTrue(sourceLocalSubDirectory.isDirectory());
+		File sourceLocalSubDirectory = new File(getSourceLocalDirectory(), "subLocalSource");
+		assertThat(sourceLocalSubDirectory.isDirectory()).isTrue();
 		File extra = new File(sourceLocalSubDirectory, "subLocalSource2.txt");
 		FileOutputStream writer = new FileOutputStream(extra);
 		writer.write("foo".getBytes());
@@ -593,13 +568,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
-			assertEquals(3, e.getDerivedInput().size());
-			assertEquals(2, e.getPartialResults().size());
-			assertThat(e.getCause(), Matchers.instanceOf(PartialSuccessException.class));
+			assertThat(e.getDerivedInput()).hasSize(3);
+			assertThat(e.getPartialResults()).hasSize(2);
+			assertThat(e.getCause()).isInstanceOf(PartialSuccessException.class);
 			PartialSuccessException cause = (PartialSuccessException) e.getCause();
-			assertEquals(2, cause.getDerivedInput().size());
-			assertEquals(1, cause.getPartialResults().size());
-			assertThat(cause.getCause().getMessage(), containsString("Failed to send subLocalSource2"));
+			assertThat(cause.getDerivedInput()).hasSize(2);
+			assertThat(cause.getPartialResults()).hasSize(1);
+			assertThat(cause.getCause().getMessage()).contains("Failed to send subLocalSource2");
 		}
 		extra.delete();
 	}
@@ -610,7 +585,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		@SuppressWarnings("unchecked")
 		BlockingQueue<Session<FTPFile>> cache = TestUtils.getPropertyValue(ftpSessionFactory, "pool.available",
 				BlockingQueue.class);
-		assertNotNull(cache.poll());
+		assertThat(cache.poll()).isNotNull();
 		cache.offer(session);
 		@SuppressWarnings("unchecked")
 		Set<Session<FTPFile>> allocated = TestUtils.getPropertyValue(ftpSessionFactory, "pool.allocated",
@@ -622,16 +597,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	private void assertLength6(FtpRemoteFileTemplate template) {
 		FTPFile[] files = template.execute(session -> session.list("ftpTarget/appending.txt"));
-		assertEquals(1, files.length);
-		assertEquals(6, files[0].getSize());
+		assertThat(files).hasSize(1);
+		assertThat(files[0].getSize()).isEqualTo(6);
 	}
 
 	@Test
 	public void testMessageSessionCallback() {
 		this.inboundCallback.send(new GenericMessage<String>("foo"));
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -643,16 +618,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 		this.inboundLs.send(new GenericMessage<String>("foo"));
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(List.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(List.class);
 		List<String> files = (List<String>) receive.getPayload();
-		assertEquals(2, files.size());
-		assertThat(files, containsInAnyOrder(" ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(files.size()).isEqualTo(2);
+		assertThat(files).contains(" ftpSource1.txt", "ftpSource2.txt");
 
 		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
 		for (FTPFile ftpFile : ftpFiles) {
 			if (!ftpFile.isDirectory()) {
-				assertTrue(files.contains(ftpFile.getName()));
+				assertThat(files.contains(ftpFile.getName())).isTrue();
 			}
 		}
 	}
@@ -662,16 +637,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	public void testNlstAndWorkingDirExpression() throws IOException {
 		this.inboundNlst.send(new GenericMessage<>("foo"));
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(List.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(List.class);
 		List<String> files = (List<String>) receive.getPayload();
-		assertEquals(3, files.size());
-		assertThat(files, containsInAnyOrder("subFtpSource", " ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(files.size()).isEqualTo(3);
+		assertThat(files).contains("subFtpSource", " ftpSource1.txt", "ftpSource2.txt");
 
 		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
 		for (FTPFile ftpFile : ftpFiles) {
 			if (!ftpFile.isDirectory()) {
-				assertTrue(files.contains(ftpFile.getName()));
+				assertThat(files.contains(ftpFile.getName())).isTrue();
 			}
 		}
 	}
@@ -684,16 +659,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.ftpInbound.start();
 
 		Message<?> message = this.output.receive(10000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(File.class));
-		assertEquals(" ftpSource1.txt", ((File) message.getPayload()).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(File.class);
+		assertThat(((File) message.getPayload()).getName()).isEqualTo(" ftpSource1.txt");
 
 		message = this.output.receive(10000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(File.class));
-		assertEquals("ftpSource2.txt", ((File) message.getPayload()).getName());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(File.class);
+		assertThat(((File) message.getPayload()).getName()).isEqualTo("ftpSource2.txt");
 
-		assertNull(this.output.receive(10));
+		assertThat(this.output.receive(10)).isNull();
 
 		this.ftpInbound.stop();
 	}

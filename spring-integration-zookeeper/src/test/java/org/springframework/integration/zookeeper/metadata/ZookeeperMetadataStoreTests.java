@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,9 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
-import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.CloseableUtils;
-import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,16 +69,16 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	@Test
 	public void testGetNonExistingKeyValue() {
 		String retrievedValue = metadataStore.get("does-not-exist");
-		assertNull(retrievedValue);
+		assertThat(retrievedValue).isNull();
 	}
 
 	@Test
 	public void testPersistKeyValue() throws Exception {
 		String testKey = "ZookeeperMetadataStoreTests-Persist";
 		metadataStore.put(testKey, "Integration");
-		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
-		assertEquals("Integration",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+		assertThat(client.checkExists().forPath(metadataStore.getPath(testKey))).isNotNull();
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration");
 	}
 
 
@@ -95,7 +87,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String testKey = "ZookeeperMetadataStoreTests-GetValue";
 		metadataStore.put(testKey, "Hello Zookeeper");
 		String retrievedValue = metadataStore.get(testKey);
-		assertEquals("Hello Zookeeper", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("Hello Zookeeper");
 	}
 
 
@@ -104,22 +96,22 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		final String testKey = "ZookeeperMetadataStoreTests-Persist";
 		final String testKey2 = "ZookeeperMetadataStoreTests-Persist-2";
 		metadataStore.put(testKey, "Integration");
-		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
-		assertEquals("Integration",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+		assertThat(client.checkExists().forPath(metadataStore.getPath(testKey))).isNotNull();
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration");
 		CuratorFramework otherClient = createNewClient();
 		final ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
 		otherMetadataStore.start();
 		otherMetadataStore.putIfAbsent(testKey, "OtherValue");
-		assertEquals("Integration",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
-		assertEquals("Integration", metadataStore.get(testKey));
-		assertThat("Integration", eventually(equalsResult(() -> otherMetadataStore.get(testKey))));
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration");
+		assertThat(metadataStore.get(testKey)).isEqualTo("Integration");
+		await().untilAsserted(() -> assertThat("Integration").isEqualTo(otherMetadataStore.get(testKey)));
 		otherMetadataStore.putIfAbsent(testKey2, "Integration-2");
-		assertEquals("Integration-2",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey2)), "UTF-8"));
-		assertEquals("Integration-2", otherMetadataStore.get(testKey2));
-		assertThat("Integration-2", eventually(equalsResult(() -> otherMetadataStore.get(testKey2))));
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey2)), "UTF-8"))
+				.isEqualTo("Integration-2");
+		assertThat(otherMetadataStore.get(testKey2)).isEqualTo("Integration-2");
+		await().untilAsserted(() -> assertThat("Integration-2").isEqualTo(otherMetadataStore.get(testKey2)));
 
 		otherMetadataStore.stop();
 		CloseableUtils.closeQuietly(otherClient);
@@ -130,22 +122,22 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	public void testReplace() throws Exception {
 		final String testKey = "ZookeeperMetadataStoreTests-Replace";
 		metadataStore.put(testKey, "Integration");
-		assertNotNull(client.checkExists().forPath(metadataStore.getPath(testKey)));
-		assertEquals("Integration",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
+		assertThat(client.checkExists().forPath(metadataStore.getPath(testKey))).isNotNull();
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration");
 		CuratorFramework otherClient = createNewClient();
 		final ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
 		otherMetadataStore.start();
 		otherMetadataStore.replace(testKey, "OtherValue", "Integration-2");
-		assertEquals("Integration",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
-		assertEquals("Integration", metadataStore.get(testKey));
-		assertThat("Integration", eventually(equalsResult(() -> otherMetadataStore.get(testKey))));
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration");
+		assertThat(metadataStore.get(testKey)).isEqualTo("Integration");
+		await().untilAsserted(() -> assertThat("Integration").isEqualTo(otherMetadataStore.get(testKey)));
 		otherMetadataStore.replace(testKey, "Integration", "Integration-2");
-		assertEquals("Integration-2",
-				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
-		assertThat("Integration-2", eventually(equalsResult(() -> metadataStore.get(testKey))));
-		assertEquals("Integration-2", otherMetadataStore.get(testKey));
+		assertThat(IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"))
+				.isEqualTo("Integration-2");
+		await().untilAsserted(() -> assertThat("Integration-2").isEqualTo(otherMetadataStore.get(testKey)));
+		assertThat(otherMetadataStore.get(testKey)).isEqualTo("Integration-2");
 
 		otherMetadataStore.stop();
 		CloseableUtils.closeQuietly(otherClient);
@@ -155,7 +147,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	public void testPersistEmptyStringToMetadataStore() {
 		String testKey = "ZookeeperMetadataStoreTests-PersistEmpty";
 		metadataStore.put(testKey, "");
-		assertEquals("", metadataStore.get(testKey));
+		assertThat(metadataStore.get(testKey)).isEqualTo("");
 	}
 
 	@Test
@@ -164,7 +156,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			metadataStore.put("ZookeeperMetadataStoreTests-PersistEmpty", null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'value' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'value' must not be null.");
 			return;
 		}
 		fail("Expected an IllegalArgumentException to be thrown.");
@@ -174,7 +166,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	public void testPersistWithEmptyKeyToMetadataStore() {
 		metadataStore.put("", "PersistWithEmptyKey");
 		String retrievedValue = metadataStore.get("");
-		assertEquals("PersistWithEmptyKey", retrievedValue);
+		assertThat(retrievedValue).isEqualTo("PersistWithEmptyKey");
 	}
 
 	@Test
@@ -183,7 +175,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			metadataStore.put(null, "something");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 			return;
 		}
 		fail("Expected an IllegalArgumentException to be thrown.");
@@ -195,7 +187,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			metadataStore.get(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'key' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'key' must not be null.");
 			return;
 		}
 		fail("Expected an IllegalArgumentException to be thrown.");
@@ -206,8 +198,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String testKey = "ZookeeperMetadataStoreTests-Remove";
 		String testValue = "Integration";
 		metadataStore.put(testKey, testValue);
-		assertEquals(testValue, metadataStore.remove(testKey));
-		assertNull(metadataStore.remove(testKey));
+		assertThat(metadataStore.remove(testKey)).isEqualTo(testValue);
+		assertThat(metadataStore.remove(testKey)).isNull();
 	}
 
 	@Test
@@ -225,8 +217,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			fail("IllegalArgumentException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(), containsString("'listener' must not be null"));
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("'listener' must not be null");
 		}
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 
@@ -253,33 +245,33 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		barriers.get("add").reset();
 		metadataStore.put(testKey, "Integration");
 		waitAtBarrier("add", barriers);
-		assertThat(notifiedChanges, hasSize(1));
-		assertThat(notifiedChanges.get(0), IsIterableContainingInOrder.contains("add", testKey, "Integration"));
+		assertThat(notifiedChanges).hasSize(1);
+		assertThat(notifiedChanges.get(0)).containsExactly("add", testKey, "Integration");
 
 		metadataStore.putIfAbsent(testKey, "Integration++");
 		// there is no update and therefore we expect no changes
-		assertThat(notifiedChanges, hasSize(1));
+		assertThat(notifiedChanges).hasSize(1);
 
 		barriers.get("update").reset();
 		metadataStore.put(testKey, "Integration-2");
 		waitAtBarrier("update", barriers);
-		assertThat(notifiedChanges, hasSize(2));
-		assertThat(notifiedChanges.get(1), IsIterableContainingInOrder.contains("update", testKey, "Integration-2"));
+		assertThat(notifiedChanges).hasSize(2);
+		assertThat(notifiedChanges.get(1)).containsExactly("update", testKey, "Integration-2");
 
 		barriers.get("update").reset();
 		metadataStore.replace(testKey, "Integration-2", "Integration-3");
 		waitAtBarrier("update", barriers);
-		assertThat(notifiedChanges, hasSize(3));
-		assertThat(notifiedChanges.get(2), IsIterableContainingInOrder.contains("update", testKey, "Integration-3"));
+		assertThat(notifiedChanges).hasSize(3);
+		assertThat(notifiedChanges.get(2)).containsExactly("update", testKey, "Integration-3");
 
 		metadataStore.replace(testKey, "Integration-2", "Integration-none");
-		assertThat(notifiedChanges, hasSize(3));
+		assertThat(notifiedChanges).hasSize(3);
 
 		barriers.get("remove").reset();
 		metadataStore.remove(testKey);
 		waitAtBarrier("remove", barriers);
-		assertThat(notifiedChanges, hasSize(4));
-		assertThat(notifiedChanges.get(3), IsIterableContainingInOrder.contains("remove", testKey, "Integration-3"));
+		assertThat(notifiedChanges).hasSize(4);
+		assertThat(notifiedChanges.get(3)).containsExactly("remove", testKey, "Integration-3");
 	}
 
 	@Test
@@ -320,33 +312,33 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		barriers.get("add").reset();
 		otherMetadataStore.put(testKey, "Integration");
 		waitAtBarrier("add", barriers);
-		assertThat(notifiedChanges, hasSize(1));
-		assertThat(notifiedChanges.get(0), IsIterableContainingInOrder.contains("add", testKey, "Integration"));
+		assertThat(notifiedChanges).hasSize(1);
+		assertThat(notifiedChanges.get(0)).containsExactly("add", testKey, "Integration");
 
 		otherMetadataStore.putIfAbsent(testKey, "Integration++");
 		// there is no update and therefore we expect no changes
-		assertThat(notifiedChanges, hasSize(1));
+		assertThat(notifiedChanges).hasSize(1);
 
 		barriers.get("update").reset();
 		otherMetadataStore.put(testKey, "Integration-2");
 		waitAtBarrier("update", barriers);
-		assertThat(notifiedChanges, hasSize(2));
-		assertThat(notifiedChanges.get(1), IsIterableContainingInOrder.contains("update", testKey, "Integration-2"));
+		assertThat(notifiedChanges).hasSize(2);
+		assertThat(notifiedChanges.get(1)).containsExactly("update", testKey, "Integration-2");
 
 		barriers.get("update").reset();
 		otherMetadataStore.replace(testKey, "Integration-2", "Integration-3");
 		waitAtBarrier("update", barriers);
-		assertThat(notifiedChanges, hasSize(3));
-		assertThat(notifiedChanges.get(2), IsIterableContainingInOrder.contains("update", testKey, "Integration-3"));
+		assertThat(notifiedChanges).hasSize(3);
+		assertThat(notifiedChanges.get(2)).containsExactly("update", testKey, "Integration-3");
 
 		otherMetadataStore.replace(testKey, "Integration-2", "Integration-none");
-		assertThat(notifiedChanges, hasSize(3));
+		assertThat(notifiedChanges).hasSize(3);
 
 		barriers.get("remove").reset();
 		otherMetadataStore.remove(testKey);
 		waitAtBarrier("remove", barriers);
-		assertThat(notifiedChanges, hasSize(4));
-		assertThat(notifiedChanges.get(3), IsIterableContainingInOrder.contains("remove", testKey, "Integration-3"));
+		assertThat(notifiedChanges).hasSize(4);
+		assertThat(notifiedChanges.get(3)).containsExactly("remove", testKey, "Integration-3");
 
 		otherMetadataStore.stop();
 		CloseableUtils.closeQuietly(otherClient);
@@ -361,12 +353,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		@SuppressWarnings("unchecked")
 		List<MetadataStoreListener> listeners = (List<MetadataStoreListener>) accessor.getPropertyValue("listeners");
 
-		assertThat(listeners, hasSize(0));
+		assertThat(listeners).hasSize(0);
 		metadataStore.addListener(mockListener);
-		assertThat(listeners, hasSize(1));
-		assertThat(listeners, IsIterableContainingInOrder.contains(mockListener));
+		assertThat(listeners).hasSize(1);
+		assertThat(listeners).containsExactly(mockListener);
 		metadataStore.removeListener(mockListener);
-		assertThat(listeners, hasSize(0));
+		assertThat(listeners).hasSize(0);
 	}
 
 	@Test
@@ -377,8 +369,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			zookeeperMetadataStore.get("foo");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("ZookeeperMetadataStore has to be started before using."));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("ZookeeperMetadataStore has to be started before using.");
 		}
 	}
 

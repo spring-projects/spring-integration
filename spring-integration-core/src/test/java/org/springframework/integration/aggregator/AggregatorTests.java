@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -132,8 +124,8 @@ public class AggregatorTests {
 				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
-		assertNotNull(result);
-		assertEquals(60000, result.size());
+		assertThat(result).isNotNull();
+		assertThat(result.size()).isEqualTo(60000);
 	}
 
 	@Test
@@ -181,9 +173,9 @@ public class AggregatorTests {
 				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
-		assertNotNull(result);
-		assertEquals(120000, result.size());
-		assertThat(stopwatch.getTotalTimeSeconds(), lessThan(60.0)); // actually < 2.0, was many minutes
+		assertThat(result).isNotNull();
+		assertThat(result.size()).isEqualTo(120000);
+		assertThat(stopwatch.getTotalTimeSeconds()).isLessThan(60.0); // actually < 2.0, was many minutes
 	}
 
 	@Test
@@ -251,8 +243,8 @@ public class AggregatorTests {
 				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
 
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
-		assertNotNull(result);
-		assertEquals(60000, result.size());
+		assertThat(result).isNotNull();
+		assertThat(result.size()).isEqualTo(60000);
 	}
 
 	@Test
@@ -272,8 +264,8 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message3);
 
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull(reply);
-		assertEquals(reply.getPayload(), 105);
+		assertThat(reply).isNotNull();
+		assertThat(105).isEqualTo(reply.getPayload());
 	}
 
 	@Test
@@ -294,8 +286,8 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message3);
 
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull(reply);
-		assertEquals(reply.getPayload(), 105);
+		assertThat(reply).isNotNull();
+		assertThat(105).isEqualTo(reply.getPayload());
 	}
 
 	@Test
@@ -311,15 +303,15 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message);
 		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(0);
-		assertNull("No message should have been sent normally", reply);
+		assertThat(reply).as("No message should have been sent normally").isNull();
 		Message<?> discardedMessage = discardChannel.receive(1000);
-		assertNotNull("A message should have been discarded", discardedMessage);
-		assertEquals(message, discardedMessage);
-		assertEquals(1, expiryEvents.size());
-		assertSame(this.aggregator, expiryEvents.get(0).getSource());
-		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
-		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
-		assertTrue(this.expiryEvents.get(0).isDiscarded());
+		assertThat(discardedMessage).as("A message should have been discarded").isNotNull();
+		assertThat(discardedMessage).isEqualTo(message);
+		assertThat(expiryEvents.size()).isEqualTo(1);
+		assertThat(expiryEvents.get(0).getSource()).isSameAs(this.aggregator);
+		assertThat(this.expiryEvents.get(0).getGroupId()).isEqualTo("ABC");
+		assertThat(this.expiryEvents.get(0).getMessageCount()).isEqualTo(1);
+		assertThat(this.expiryEvents.get(0).isDiscarded()).isTrue();
 	}
 
 	@Test
@@ -336,15 +328,15 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message);
 		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(0);
-		assertNull("No message should have been sent normally", reply);
+		assertThat(reply).as("No message should have been sent normally").isNull();
 		Message<?> discardedMessage = discardChannel.receive(1000);
-		assertNotNull("A message should have been discarded", discardedMessage);
-		assertEquals(message, discardedMessage);
-		assertEquals(1, expiryEvents.size());
-		assertSame(this.aggregator, expiryEvents.get(0).getSource());
-		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
-		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
-		assertTrue(this.expiryEvents.get(0).isDiscarded());
+		assertThat(discardedMessage).as("A message should have been discarded").isNotNull();
+		assertThat(discardedMessage).isEqualTo(message);
+		assertThat(expiryEvents.size()).isEqualTo(1);
+		assertThat(expiryEvents.get(0).getSource()).isSameAs(this.aggregator);
+		assertThat(this.expiryEvents.get(0).getGroupId()).isEqualTo("ABC");
+		assertThat(this.expiryEvents.get(0).getMessageCount()).isEqualTo(1);
+		assertThat(this.expiryEvents.get(0).isDiscarded()).isTrue();
 	}
 
 	@Test
@@ -357,16 +349,16 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message2);
 		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(1000);
-		assertNotNull("A reply message should have been received", reply);
-		assertEquals(15, reply.getPayload());
-		assertEquals(1, expiryEvents.size());
-		assertSame(this.aggregator, expiryEvents.get(0).getSource());
-		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
-		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
-		assertFalse(this.expiryEvents.get(0).isDiscarded());
+		assertThat(reply).as("A reply message should have been received").isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(15);
+		assertThat(expiryEvents.size()).isEqualTo(1);
+		assertThat(expiryEvents.get(0).getSource()).isSameAs(this.aggregator);
+		assertThat(this.expiryEvents.get(0).getGroupId()).isEqualTo("ABC");
+		assertThat(this.expiryEvents.get(0).getMessageCount()).isEqualTo(2);
+		assertThat(this.expiryEvents.get(0).isDiscarded()).isFalse();
 		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
 		this.aggregator.handleMessage(message3);
-		assertEquals(1, this.store.getMessageGroup("ABC").size());
+		assertThat(this.store.getMessageGroup("ABC").size()).isEqualTo(1);
 	}
 
 	@Test
@@ -391,20 +383,20 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message2);
 		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(1000);
-		assertNotNull("A reply message should have been received", reply);
-		assertEquals(15, reply.getPayload());
-		assertEquals(1, expiryEvents.size());
-		assertSame(this.aggregator, expiryEvents.get(0).getSource());
-		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
-		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
-		assertFalse(this.expiryEvents.get(0).isDiscarded());
-		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		assertThat(reply).as("A reply message should have been received").isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(15);
+		assertThat(expiryEvents.size()).isEqualTo(1);
+		assertThat(expiryEvents.get(0).getSource()).isSameAs(this.aggregator);
+		assertThat(this.expiryEvents.get(0).getGroupId()).isEqualTo("ABC");
+		assertThat(this.expiryEvents.get(0).getMessageCount()).isEqualTo(2);
+		assertThat(this.expiryEvents.get(0).isDiscarded()).isFalse();
+		assertThat(this.store.getMessageGroup("ABC").size()).isEqualTo(0);
 		Message<?> message3 = createMessage(5, "ABC", 3, 3, lockCheckingChannel, null);
 		this.aggregator.handleMessage(message3);
-		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		assertThat(this.store.getMessageGroup("ABC").size()).isEqualTo(0);
 		Message<?> discardedMessage = discardChannel.receive(1000);
-		assertNotNull("A message should have been discarded", discardedMessage);
-		assertSame(message3, discardedMessage);
+		assertThat(discardedMessage).as("A message should have been discarded").isNotNull();
+		assertThat(discardedMessage).isSameAs(message3);
 	}
 
 	@Test
@@ -430,20 +422,20 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message2);
 		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(1000);
-		assertNotNull("A reply message should have been received", reply);
-		assertEquals(15, reply.getPayload());
-		assertEquals(1, expiryEvents.size());
-		assertSame(this.aggregator, expiryEvents.get(0).getSource());
-		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
-		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
-		assertFalse(this.expiryEvents.get(0).isDiscarded());
-		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		assertThat(reply).as("A reply message should have been received").isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(15);
+		assertThat(expiryEvents.size()).isEqualTo(1);
+		assertThat(expiryEvents.get(0).getSource()).isSameAs(this.aggregator);
+		assertThat(this.expiryEvents.get(0).getGroupId()).isEqualTo("ABC");
+		assertThat(this.expiryEvents.get(0).getMessageCount()).isEqualTo(2);
+		assertThat(this.expiryEvents.get(0).isDiscarded()).isFalse();
+		assertThat(this.store.getMessageGroup("ABC").size()).isEqualTo(0);
 		Message<?> message3 = createMessage(5, "ABC", 3, 3, lockCheckingChannel, null);
 		this.aggregator.handleMessage(message3);
-		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		assertThat(this.store.getMessageGroup("ABC").size()).isEqualTo(0);
 		Message<?> discardedMessage = discardChannel.receive(1000);
-		assertNotNull("A message should have been discarded", discardedMessage);
-		assertSame(message3, discardedMessage);
+		assertThat(discardedMessage).as("A message should have been discarded").isNotNull();
+		assertThat(discardedMessage).isSameAs(message3);
 	}
 
 	@Test
@@ -464,12 +456,12 @@ public class AggregatorTests {
 		aggregator.handleMessage(message2);
 		@SuppressWarnings("unchecked")
 		Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(1000);
-		assertNotNull(reply1);
-		assertThat(reply1.getPayload(), is(105));
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo(105);
 		@SuppressWarnings("unchecked")
 		Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(1000);
-		assertNotNull(reply2);
-		assertThat(reply2.getPayload(), is(2431));
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo(2431);
 	}
 
 	@Test
@@ -481,14 +473,14 @@ public class AggregatorTests {
 
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
-		assertEquals(1, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(1);
 		this.aggregator.handleMessage(createMessage(3, 2, 1, 1, replyChannel, null));
-		assertEquals(3, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(3);
 		this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel, null));
-		assertEquals(4, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(4);
 		// next message with same correllation ID is discarded
 		this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel, null));
-		assertEquals(2, discardChannel.receive(1000).getPayload());
+		assertThat(discardChannel.receive(1000).getPayload()).isEqualTo(2);
 	}
 
 	@Test
@@ -500,16 +492,16 @@ public class AggregatorTests {
 
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
-		assertEquals(1, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(1);
 		this.aggregator.handleMessage(createMessage(2, 2, 1, 1, replyChannel, null));
-		assertEquals(2, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(2);
 		this.aggregator.handleMessage(createMessage(3, 3, 1, 1, replyChannel, null));
-		assertEquals(3, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(3);
 		this.aggregator.handleMessage(createMessage(4, 4, 1, 1, replyChannel, null));
-		assertEquals(4, replyChannel.receive(1000).getPayload());
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(4);
 		this.aggregator.handleMessage(createMessage(5, 1, 1, 1, replyChannel, null));
-		assertEquals(5, replyChannel.receive(1000).getPayload());
-		assertNull(discardChannel.receive(0));
+		assertThat(replyChannel.receive(1000).getPayload()).isEqualTo(5);
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -532,8 +524,8 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message4);
 
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull("A message should be aggregated", reply);
-		assertThat((reply.getPayload()), is(105));
+		assertThat(reply).as("A message should be aggregated").isNotNull();
+		assertThat((reply.getPayload())).isEqualTo(105);
 	}
 
 	@Test
@@ -552,8 +544,8 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message2);
 
 		Message<?> reply = replyChannel.receive(10000);
-		assertNotNull("A message should be aggregated", reply);
-		assertThat((reply.getPayload()), is(105));
+		assertThat(reply).as("A message should be aggregated").isNotNull();
+		assertThat((reply.getPayload())).isEqualTo(105);
 	}
 
 
@@ -570,7 +562,7 @@ public class AggregatorTests {
 	private void checkLock(AbstractCorrelatingMessageHandler handler, String group, boolean expectedHeld) {
 		ReentrantLock lock = (ReentrantLock) TestUtils.getPropertyValue(handler, "lockRegistry", LockRegistry.class)
 				.obtain(UUIDConverter.getUUID(group).toString());
-		assertEquals(expectedHeld, lock.isHeldByCurrentThread());
+		assertThat(lock.isHeldByCurrentThread()).isEqualTo(expectedHeld);
 	}
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {

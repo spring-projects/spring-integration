@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -104,20 +101,20 @@ public class FileReadingMessageSourceIntegrationTests {
 	@Test
 	public void configured() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(pollableFileSource);
-		assertEquals(inputDir, accessor.getPropertyValue("directory"));
+		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
 	}
 
 	@Test
 	public void getFiles() throws Exception {
 		Message<File> received1 = pollableFileSource.receive();
-		assertNotNull("This should return the first message", received1);
+		assertThat(received1).as("This should return the first message").isNotNull();
 		Message<File> received2 = pollableFileSource.receive();
-		assertNotNull(received2);
+		assertThat(received2).isNotNull();
 		Message<File> received3 = pollableFileSource.receive();
-		assertNotNull(received3);
-		assertNotSame(received1 + " == " + received2, received1.getPayload(), received2.getPayload());
-		assertNotSame(received1 + " == " + received3, received1.getPayload(), received3.getPayload());
-		assertNotSame(received2 + " == " + received3, received2.getPayload(), received3.getPayload());
+		assertThat(received3).isNotNull();
+		assertThat(received2.getPayload()).as(received1 + " == " + received2).isNotSameAs(received1.getPayload());
+		assertThat(received3.getPayload()).as(received1 + " == " + received3).isNotSameAs(received1.getPayload());
+		assertThat(received3.getPayload()).as(received2 + " == " + received3).isNotSameAs(received2.getPayload());
 	}
 
 	@Test
@@ -125,22 +122,22 @@ public class FileReadingMessageSourceIntegrationTests {
 		Message<File> received1 = pollableFileSource.receive();
 		Message<File> received2 = pollableFileSource.receive();
 		Message<File> received3 = pollableFileSource.receive();
-		assertNotSame(received1 + " == " + received2, received1, received2);
-		assertNotSame(received1 + " == " + received3, received1, received3);
-		assertNotSame(received2 + " == " + received3, received2, received3);
+		assertThat(received2).as(received1 + " == " + received2).isNotSameAs(received1);
+		assertThat(received3).as(received1 + " == " + received3).isNotSameAs(received1);
+		assertThat(received3).as(received2 + " == " + received3).isNotSameAs(received2);
 	}
 
 	@Test
 	public void inputDirExhausted() throws Exception {
-		assertNotNull(pollableFileSource.receive());
-		assertNotNull(pollableFileSource.receive());
+		assertThat(pollableFileSource.receive()).isNotNull();
+		assertThat(pollableFileSource.receive()).isNotNull();
 		Message<File> receive = pollableFileSource.receive();
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		File payload = receive.getPayload();
-		assertEquals(payload, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
-		assertEquals(payload.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
-		assertEquals(payload.getName(), receive.getHeaders().get(FileHeaders.RELATIVE_PATH));
-		assertNull(pollableFileSource.receive());
+		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(payload);
+		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(payload.getName());
+		assertThat(receive.getHeaders().get(FileHeaders.RELATIVE_PATH)).isEqualTo(payload.getName());
+		assertThat(pollableFileSource.receive()).isNull();
 	}
 
 	@Test
@@ -172,7 +169,7 @@ public class FileReadingMessageSourceIntegrationTests {
 		}
 		// make sure three different files were taken
 		Message<File> received = pollableFileSource.receive();
-		assertNull(received);
+		assertThat(received).isNull();
 	}
 
 	/**

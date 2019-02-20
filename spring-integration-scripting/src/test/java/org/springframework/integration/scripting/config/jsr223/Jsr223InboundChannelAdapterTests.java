@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 
@@ -52,15 +48,15 @@ public class Jsr223InboundChannelAdapterTests {
 	@Test
 	public void testInt2867InboundChannelAdapter() throws Exception {
 		Message<?> message = this.inboundChannelAdapterChannel.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
 		Thread.sleep(2);
-		assertThat(payload, instanceOf(Date.class));
-		assertTrue(((Date) payload).before(new Date()));
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(payload).isInstanceOf(Date.class);
+		assertThat(((Date) payload).before(new Date())).isTrue();
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 
 		message = this.inboundChannelAdapterChannel.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,12 +74,12 @@ public class MapToObjectTransformerParserTests {
 		Message outMessage = output.receive();
 
 		Person person = (Person) outMessage.getPayload();
-		assertNotNull(person);
-		assertEquals("Justin", person.getFname());
-		assertEquals("Case", person.getLname());
-		assertNull(person.getSsn());
-		assertNotNull(person.getAddress());
-		assertEquals("1123 Main st", person.getAddress().getStreet());
+		assertThat(person).isNotNull();
+		assertThat(person.getFname()).isEqualTo("Justin");
+		assertThat(person.getLname()).isEqualTo("Case");
+		assertThat(person.getSsn()).isNull();
+		assertThat(person.getAddress()).isNotNull();
+		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -98,12 +96,12 @@ public class MapToObjectTransformerParserTests {
 		inputA.send(message);
 		Message<?> newMessage =  outputA.receive();
 		Person person = (Person) newMessage.getPayload();
-		assertNotNull(person);
-		assertEquals("Justin", person.getFname());
-		assertEquals("Case", person.getLname());
-		assertNull(person.getSsn());
-		assertNotNull(person.getAddress());
-		assertEquals("1123 Main st", person.getAddress().getStreet());
+		assertThat(person).isNotNull();
+		assertThat(person.getFname()).isEqualTo("Justin");
+		assertThat(person.getLname()).isEqualTo("Case");
+		assertThat(person.getSsn()).isNull();
+		assertThat(person.getAddress()).isNotNull();
+		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
 
 
@@ -120,11 +118,11 @@ public class MapToObjectTransformerParserTests {
 
 		Message newMessage = outputA.receive();
 		Person person = (Person) newMessage.getPayload();
-		assertNotNull(person);
-		assertEquals("Justin", person.getFname());
-		assertEquals("Case", person.getLname());
-		assertNotNull(person.getAddress());
-		assertEquals("1123 Main st", person.getAddress().getStreet());
+		assertThat(person).isNotNull();
+		assertThat(person.getFname()).isEqualTo("Justin");
+		assertThat(person.getLname()).isEqualTo("Case");
+		assertThat(person.getAddress()).isNotNull();
+		assertThat(person.getAddress().getStreet()).isEqualTo("1123 Main st");
 	}
 	@Test(expected = BeanCreationException.class)
 	public void testNonPrototypeFailure() {

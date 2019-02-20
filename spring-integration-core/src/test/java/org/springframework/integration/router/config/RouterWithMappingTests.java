@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,23 +81,23 @@ public class RouterWithMappingTests {
 		Message<?> message2 = MessageBuilder.withPayload(new TestBean("bar")).build();
 		Message<?> message3 = MessageBuilder.withPayload(new TestBean("baz")).build();
 		expressionRouter.send(message1);
-		assertNotNull(fooChannelForExpression.receive(0));
-		assertNull(barChannelForExpression.receive(0));
-		assertNull(defaultChannelForExpression.receive(0));
+		assertThat(fooChannelForExpression.receive(0)).isNotNull();
+		assertThat(barChannelForExpression.receive(0)).isNull();
+		assertThat(defaultChannelForExpression.receive(0)).isNull();
 		expressionRouter.send(message2);
-		assertNotNull(barChannelForExpression.receive(0));
-		assertNull(fooChannelForExpression.receive(0));
-		assertNull(defaultChannelForExpression.receive(0));
+		assertThat(barChannelForExpression.receive(0)).isNotNull();
+		assertThat(fooChannelForExpression.receive(0)).isNull();
+		assertThat(defaultChannelForExpression.receive(0)).isNull();
 		expressionRouter.send(message3);
-		assertNotNull(defaultChannelForExpression.receive(0));
-		assertNull(fooChannelForExpression.receive(0));
-		assertNull(barChannelForExpression.receive(0));
+		assertThat(defaultChannelForExpression.receive(0)).isNotNull();
+		assertThat(fooChannelForExpression.receive(0)).isNull();
+		assertThat(barChannelForExpression.receive(0)).isNull();
 		// validate dynamics
 		spelRouterHandler.setChannelMapping("baz", "fooChannelForExpression");
 		expressionRouter.send(message3);
-		assertNull(defaultChannelForExpression.receive(10));
-		assertNotNull(fooChannelForExpression.receive(10));
-		assertNull(barChannelForExpression.receive(0));
+		assertThat(defaultChannelForExpression.receive(10)).isNull();
+		assertThat(fooChannelForExpression.receive(10)).isNotNull();
+		assertThat(barChannelForExpression.receive(0)).isNull();
 	}
 
 	@Test
@@ -109,23 +106,23 @@ public class RouterWithMappingTests {
 		Message<?> message2 = MessageBuilder.withPayload(new TestBean("bar")).build();
 		Message<?> message3 = MessageBuilder.withPayload(new TestBean("baz")).build();
 		pojoRouter.send(message1);
-		assertNotNull(fooChannelForPojo.receive(0));
-		assertNull(barChannelForPojo.receive(0));
-		assertNull(defaultChannelForPojo.receive(0));
+		assertThat(fooChannelForPojo.receive(0)).isNotNull();
+		assertThat(barChannelForPojo.receive(0)).isNull();
+		assertThat(defaultChannelForPojo.receive(0)).isNull();
 		pojoRouter.send(message2);
-		assertNotNull(barChannelForPojo.receive(0));
-		assertNull(fooChannelForPojo.receive(0));
-		assertNull(defaultChannelForPojo.receive(0));
+		assertThat(barChannelForPojo.receive(0)).isNotNull();
+		assertThat(fooChannelForPojo.receive(0)).isNull();
+		assertThat(defaultChannelForPojo.receive(0)).isNull();
 		pojoRouter.send(message3);
-		assertNotNull(defaultChannelForPojo.receive(0));
-		assertNull(fooChannelForPojo.receive(0));
-		assertNull(barChannelForPojo.receive(0));
+		assertThat(defaultChannelForPojo.receive(0)).isNotNull();
+		assertThat(fooChannelForPojo.receive(0)).isNull();
+		assertThat(barChannelForPojo.receive(0)).isNull();
 
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 		this.pojoRouterEndpoint.stop();
-		assertFalse(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isFalse();
 		this.pojoRouterEndpoint.start();
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 	}
 
 	private static class TestBean {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,14 +52,14 @@ public class JdbcMessageStoreParserTests {
 	public void testSimpleMessageStoreWithDataSource() {
 		setUp("defaultJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		assertTrue(store instanceof JdbcMessageStore);
+		assertThat(store instanceof JdbcMessageStore).isTrue();
 	}
 
 	@Test
 	public void testSimpleMessageStoreWithTemplate() {
 		setUp("jdbcOperationsJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		assertTrue(store instanceof JdbcMessageStore);
+		assertThat(store instanceof JdbcMessageStore).isTrue();
 	}
 
 	@Test
@@ -68,18 +67,18 @@ public class JdbcMessageStoreParserTests {
 		setUp("serializerJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
 		Object serializer = TestUtils.getPropertyValue(store, "serializer.serializer");
-		assertTrue(serializer instanceof EnhancedSerializer);
+		assertThat(serializer instanceof EnhancedSerializer).isTrue();
 		Object deserializer = TestUtils.getPropertyValue(store, "deserializer.deserializer");
-		assertTrue(deserializer instanceof EnhancedSerializer);
+		assertThat(deserializer instanceof EnhancedSerializer).isTrue();
 	}
 
 	@Test
 	public void testMessageStoreWithAttributes() {
 		setUp("soupedUpJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		assertEquals("FOO", ReflectionTestUtils.getField(store, "region"));
-		assertEquals("BAR_", ReflectionTestUtils.getField(store, "tablePrefix"));
-		assertEquals(context.getBean(LobHandler.class), ReflectionTestUtils.getField(store, "lobHandler"));
+		assertThat(ReflectionTestUtils.getField(store, "region")).isEqualTo("FOO");
+		assertThat(ReflectionTestUtils.getField(store, "tablePrefix")).isEqualTo("BAR_");
+		assertThat(ReflectionTestUtils.getField(store, "lobHandler")).isEqualTo(context.getBean(LobHandler.class));
 	}
 
 	@After

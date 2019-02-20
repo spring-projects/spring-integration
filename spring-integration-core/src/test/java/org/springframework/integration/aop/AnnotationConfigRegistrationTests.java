@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.aop;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,21 +54,21 @@ public class AnnotationConfigRegistrationTests {
 	@Test // INT-1200
 	public void verifyInterception() {
 		String name = this.testBean.setName("John", "Doe", 123);
-		Assert.assertNotNull(name);
+		assertThat(name).isNotNull();
 		Message<?> message = this.annotationConfigRegistrationTest.receive(0);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("John DoeDoe", message.getPayload());
-		Assert.assertEquals(123, message.getHeaders().get("x"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John DoeDoe");
+		assertThat(message.getHeaders().get("x")).isEqualTo(123);
 	}
 
 	@Test
 	public void defaultChannel() {
 		String result = this.testBean.exclaim("hello");
-		Assert.assertNotNull(result);
-		Assert.assertEquals("HELLO!!!", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("HELLO!!!");
 		Message<?> message = this.defaultChannel.receive(0);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("HELLO!!!", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("HELLO!!!");
 	}
 
 

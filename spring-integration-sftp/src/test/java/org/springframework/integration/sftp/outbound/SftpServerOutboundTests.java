@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -42,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -139,22 +130,22 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		long modified = setModifiedOnSource1();
 		this.inboundGet.send(new GenericMessage<Object>(dir + " sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		File localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir.toUpperCase()));
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir.toUpperCase());
 		assertPreserved(modified, localFile);
 
 		dir = "sftpSource/subSftpSource/";
 		this.inboundGet.send(new GenericMessage<Object>(dir + "subSftpSource1.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir.toUpperCase()));
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir.toUpperCase());
 		Session<?> session2 = this.sessionFactory.getSession();
-		assertSame(TestUtils.getPropertyValue(session, "targetSession.jschSession"),
-				TestUtils.getPropertyValue(session2, "targetSession.jschSession"));
+		assertThat(TestUtils.getPropertyValue(session2, "targetSession.jschSession"))
+				.isSameAs(TestUtils.getPropertyValue(session, "targetSession.jschSession"));
 	}
 
 	@Test
@@ -165,10 +156,10 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertNotNull(cause);
+			assertThat(cause).isNotNull();
 			cause = cause.getCause();
-			assertThat(cause, Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(cause.getMessage(), Matchers.startsWith("Failed to make local directory"));
+			assertThat(cause).isInstanceOf(IllegalArgumentException.class);
+			assertThat(cause.getMessage()).startsWith("Failed to make local directory");
 		}
 	}
 
@@ -179,32 +170,30 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		long modified = setModifiedOnSource1();
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 
-		assertThat(localFiles.size(), Matchers.greaterThan(0));
+		assertThat(localFiles).hasSizeGreaterThan(0);
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
-		assertTrue(assertedModified);
+		assertThat(assertedModified).isTrue();
 
 		dir = "sftpSource/subSftpSource/";
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		localFiles = (List<File>) result.getPayload();
 
-		assertThat(localFiles.size(), Matchers.greaterThan(0));
+		assertThat(localFiles).hasSizeGreaterThan(0);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
 	}
 
@@ -217,21 +206,20 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		secondRemote.setLastModified(System.currentTimeMillis() - 1_000_000);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
-		assertEquals(3, localFiles.size());
+		assertThat(localFiles).hasSize(3);
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
-		assertTrue(assertedModified);
-		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir + "subSftpSource"));
+		assertThat(assertedModified).isTrue();
+		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subSftpSource");
 
 		File secondTarget = new File(getTargetLocalDirectory() + File.separator + "sftpSource", "localTarget2.txt");
 		ByteArrayOutputStream remoteContents = new ByteArrayOutputStream();
@@ -239,7 +227,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		FileUtils.copyFile(secondRemote, remoteContents);
 		FileUtils.copyFile(secondTarget, localContents);
 		String localAsString = new String(localContents.toByteArray());
-		assertEquals(new String(remoteContents.toByteArray()), localAsString);
+		assertThat(localAsString).isEqualTo(new String(remoteContents.toByteArray()));
 		long oldLastModified = secondRemote.lastModified();
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream("junk".getBytes()), secondRemote);
 		long newLastModified = secondRemote.lastModified();
@@ -248,13 +236,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertEquals(localAsString, new String(localContents.toByteArray()));
+		assertThat(new String(localContents.toByteArray())).isEqualTo(localAsString);
 		secondRemote.setLastModified(newLastModified);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		this.output.receive(0);
 		localContents = new ByteArrayOutputStream();
 		FileUtils.copyFile(secondTarget, localContents);
-		assertEquals("junk", new String(localContents.toByteArray()));
+		assertThat(new String(localContents.toByteArray())).isEqualTo("junk");
 		// restore the remote file contents
 		FileUtils.copyInputStreamToFile(new ByteArrayInputStream(localAsString.getBytes()), secondRemote);
 	}
@@ -263,13 +251,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		File firstRemote = new File(getSourceRemoteDirectory(), " sftpSource1.txt");
 		firstRemote.setLastModified(System.currentTimeMillis() - 1_000_000);
 		long modified = firstRemote.lastModified();
-		assertTrue(modified > 0);
+		assertThat(modified).isGreaterThan(0);
 		return modified;
 	}
 
 	private boolean assertPreserved(long modified, File file) {
-		assertTrue("lastModified wrong by " + (modified - file.lastModified()),
-				Math.abs(file.lastModified() - modified) < 1_000);
+		assertThat(Math.abs(file.lastModified() - modified))
+				.as("lastModified wrong by " + (modified - file.lastModified())).isLessThan(1_000);
 		return true;
 	}
 
@@ -279,17 +267,16 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursiveFiltered.send(new GenericMessage<Object>(dir + "*"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 		// should have filtered sftpSource2.txt
-		assertEquals(2, localFiles.size());
+		assertThat(localFiles).hasSize(2);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				containsString(dir + "subSftpSource"));
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subSftpSource");
 
 	}
 
@@ -301,13 +288,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		Session<?> session = this.sessionFactory.getSession();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("sftpSource/ sftpSource1.txt"), baos);
-		assertTrue(session.finalizeRaw());
-		assertEquals("source1", new String(baos.toByteArray()));
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source1");
 
 		baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
-		assertTrue(session.finalizeRaw());
-		assertEquals("source2", new String(baos.toByteArray()));
+		assertThat(session.finalizeRaw()).isTrue();
+		assertThat(new String(baos.toByteArray())).isEqualTo("source2");
 
 		session.close();
 	}
@@ -349,14 +336,14 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		out2.write('f');
 		out1.close();
 		out2.close();
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
 		ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
 		session1.read("foo.txt", bos1);
 		session2.read("bar.txt", bos2);
-		assertEquals("ace", new String(bos1.toByteArray()));
-		assertEquals("bdf", new String(bos2.toByteArray()));
+		assertThat(new String(bos1.toByteArray())).isEqualTo("ace");
+		assertThat(new String(bos2.toByteArray())).isEqualTo("bdf");
 		session1.remove("foo.txt");
 		session2.remove("bar.txt");
 		session1.close();
@@ -379,16 +366,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(2, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
 		verify(channel).chmod(384, "sftpTarget/localSource1.txt"); // 384 = 600 octal
 		verify(channel).chmod(384, "sftpTarget/localSource2.txt");
 	}
@@ -403,22 +387,18 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(3, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt"),
-						equalTo("sftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt"),
-						equalTo("sftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(2),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt"),
-						equalTo("sftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(3);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt",
+						"sftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt",
+						"sftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(2))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt",
+						"sftpTarget/subLocalSource/subLocalSource1.txt");
 	}
 
 	@Test
@@ -431,18 +411,15 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-		assertNotNull(out);
-		assertEquals(2, out.getPayload().size());
-		assertThat(out.getPayload().get(0),
-				not(equalTo(out.getPayload().get(1))));
-		assertThat(
-				out.getPayload().get(0),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt"),
-						equalTo("sftpTarget/subLocalSource/subLocalSource1.txt")));
-		assertThat(
-				out.getPayload().get(1),
-				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt"),
-						equalTo("sftpTarget/subLocalSource/subLocalSource1.txt")));
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
+		assertThat(out.getPayload().get(0)).isNotEqualTo(out.getPayload().get(1));
+		assertThat(out.getPayload().get(0))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt",
+						"sftpTarget/subLocalSource/subLocalSource1.txt");
+		assertThat(out.getPayload().get(1))
+				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt",
+						"sftpTarget/subLocalSource/subLocalSource1.txt");
 	}
 
 	@Test
@@ -463,7 +440,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause().getCause().getMessage(), containsString("The destination file already exists"));
+			assertThat(e.getCause().getCause().getMessage()).contains("The destination file already exists");
 		}
 
 	}
@@ -474,12 +451,13 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		session.close();
 
 		String dir = "sftpSource/";
-		this.inboundGetStream.send(new GenericMessage<Object>(dir + " sftpSource1.txt"));
+		this.inboundGetStream.send(new GenericMessage<>(dir + " sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
-		assertNotNull(result);
-		assertEquals("source1", result.getPayload());
-		assertEquals("sftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals(" sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("source1");
+		assertThat(result.getHeaders())
+				.containsEntry(FileHeaders.REMOTE_DIRECTORY, "sftpSource/")
+				.containsEntry(FileHeaders.REMOTE_FILE, " sftpSource1.txt");
 		verify(session).close();
 	}
 
@@ -487,14 +465,14 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	public void testMessageSessionCallback() {
 		this.inboundCallback.send(new GenericMessage<String>("foo"));
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 	}
 
 	private void assertLength6(SftpRemoteFileTemplate template) {
 		LsEntry[] files = template.execute(session -> session.list("sftpTarget/appending.txt"));
-		assertEquals(1, files.length);
-		assertEquals(6, files[0].getAttrs().getSize());
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getAttrs().getSize()).isEqualTo(6);
 	}
 
 	@SuppressWarnings("unused")

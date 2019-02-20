@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -68,7 +64,8 @@ public class TcpNioConnectionReadTests {
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
 		scf.setUsingDirectBuffers(true);
-		scf.setApplicationEventPublisher(e -> { });
+		scf.setApplicationEventPublisher(e -> {
+		});
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.registerListener(listener);
@@ -95,13 +92,13 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendLength(scf.getPort(), latch);
 		latch.countDown();
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String((byte[]) responses.get(0).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String((byte[]) responses.get(1).getPayload()));
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(responses.size()).as("Did not receive data").isEqualTo(2);
+		assertThat(new String((byte[]) responses.get(0).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
+		assertThat(new String((byte[]) responses.get(1).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		scf.stop();
 		done.countDown();
 	}
@@ -129,11 +126,10 @@ public class TcpNioConnectionReadTests {
 		scf.setBacklog(howMany + 5);
 		// Fire up the sender.
 		CountDownLatch done = SocketTestUtils.testSendFragmented(scf.getPort(), howMany, false);
-		assertTrue(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS));
-		assertEquals("Expected", howMany, responses.size());
+		assertThat(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(responses.size()).as("Expected").isEqualTo(howMany);
 		for (int i = 0; i < howMany; i++) {
-			assertEquals("Data", "xx",
-					new String(((Message<byte[]>) responses.get(0)).getPayload()));
+			assertThat(new String(((Message<byte[]>) responses.get(0)).getPayload())).as("Data").isEqualTo("xx");
 		}
 		scf.stop();
 		done.countDown();
@@ -155,13 +151,13 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendStxEtx(scf.getPort(), latch);
 		latch.countDown();
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(((Message<byte[]>) responses.get(1)).getPayload()));
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(responses.size()).as("Did not receive data").isEqualTo(2);
+		assertThat(new String(((Message<byte[]>) responses.get(0)).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
+		assertThat(new String(((Message<byte[]>) responses.get(1)).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		scf.stop();
 		done.countDown();
 	}
@@ -182,13 +178,13 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendCrLf(scf.getPort(), latch);
 		latch.countDown();
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				new String(((Message<byte[]>) responses.get(1)).getPayload()));
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(responses.size()).as("Did not receive data").isEqualTo(2);
+		assertThat(new String(((Message<byte[]>) responses.get(0)).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
+		assertThat(new String(((Message<byte[]>) responses.get(1)).getPayload())).as("Data")
+				.isEqualTo(SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING);
 		scf.stop();
 		done.countDown();
 	}
@@ -229,16 +225,17 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendLengthOverflow(scf.getPort());
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added.size()).isEqualTo(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Message length 2147483647 exceeds max message length: 2048"),
-						containsString("Connection is closed")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("Message length 2147483647 exceeds max message length: 2048"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed.size() > 0).isTrue();
 		scf.stop();
 		done.countDown();
 	}
@@ -248,11 +245,11 @@ public class TcpNioConnectionReadTests {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);
 		final Semaphore semaphore = new Semaphore(0);
-		final List<TcpConnection> added = new ArrayList<TcpConnection>();
-		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		final List<TcpConnection> added = new ArrayList<>();
+		final List<TcpConnection> removed = new ArrayList<>();
 
 		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
-		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<>();
 
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			if (message instanceof ErrorMessage) {
@@ -280,16 +277,17 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(scf.getPort());
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added.size()).isEqualTo(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Connection is closed"),
-						containsString("ETX not found before max message length: 1024")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("ETX not found before max message length: 1024"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed.size() > 0).isTrue();
 		scf.stop();
 		done.countDown();
 	}
@@ -331,16 +329,17 @@ public class TcpNioConnectionReadTests {
 
 		CountDownLatch done = SocketTestUtils.testSendCrLfOverflow(scf.getPort());
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added.size()).isEqualTo(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Connection is closed"),
-						containsString("CRLF not found before max message length: 1024")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("CRLF not found before max message length: 1024"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed.size() > 0).isTrue();
 		scf.stop();
 		done.countDown();
 	}
@@ -384,15 +383,17 @@ public class TcpNioConnectionReadTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", scf.getPort());
 		socket.close();
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added.size()).isEqualTo(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Connection is closed"), containsString("Stream closed after 2 of 3")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("Stream closed after 2 of 3"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 	}
 
@@ -436,15 +437,17 @@ public class TcpNioConnectionReadTests {
 		socket.getOutputStream().write("partial".getBytes());
 		socket.close();
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added).hasSize(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Connection is closed"), containsString("Socket closed during message assembly")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("Socket closed during message assembly"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed.size() > 0).isTrue();
 		scf.stop();
 	}
 
@@ -512,24 +515,25 @@ public class TcpNioConnectionReadTests {
 		socket.getOutputStream().write(shortMessage.getBytes());
 		socket.close();
 		whileOpen(semaphore, added);
-		assertEquals(1, added.size());
+		assertThat(added).hasSize(1);
 
-		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+		assertThat(errorMessageLetch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(errorMessageRef.get().getMessage(),
-				anyOf(containsString("Connection is closed"),
-						containsString("Socket closed during message assembly"),
-						containsString("Stream closed after 2 of 3")));
+		assertThat(errorMessageRef.get().getMessage())
+				.satisfiesAnyOf(
+						s -> assertThat(s).contains("Socket closed during message assembly"),
+						s -> assertThat(s).contains("Stream closed after 2 of 3"),
+						s -> assertThat(s).contains("Connection is closed"));
 
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
-		assertTrue(removed.size() > 0);
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 	}
 
 	private void whileOpen(Semaphore semaphore, final List<TcpConnection> added)
 			throws InterruptedException {
 		int n = 0;
-		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
+		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
 		while (added.get(0).isOpen()) {
 			Thread.sleep(50);
 			if (n++ > 200) {

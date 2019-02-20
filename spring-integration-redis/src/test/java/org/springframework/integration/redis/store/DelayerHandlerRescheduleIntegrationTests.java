@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -86,42 +83,43 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertTrue(e instanceof IllegalStateException);
-			assertTrue(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"));
+			assertThat(e instanceof IllegalStateException).isTrue();
+			assertThat(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"))
+					.isTrue();
 		}
 
-		assertEquals(1, messageStore.getMessageGroupCount());
-		assertEquals(delayerMessageGroupId, messageStore.iterator().next().getGroupId());
-		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
-		assertEquals(2, messageStore.getMessageCountForAllMessageGroups());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageStore.iterator().next().getGroupId()).isEqualTo(delayerMessageGroupId);
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(2);
+		assertThat(messageStore.getMessageCountForAllMessageGroups()).isEqualTo(2);
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
 
 		// INT-3049
-		assertTrue(payload instanceof DelayHandler.DelayedMessageWrapper);
-		assertEquals(message1, ((DelayHandler.DelayedMessageWrapper) payload).getOriginal());
+		assertThat(payload instanceof DelayHandler.DelayedMessageWrapper).isTrue();
+		assertThat(((DelayHandler.DelayedMessageWrapper) payload).getOriginal()).isEqualTo(message1);
 
 		context.refresh();
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
 
 		Message<?> message = output.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 
 		Object payload1 = message.getPayload();
 
 		message = output.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload2 = message.getPayload();
-		assertNotSame(payload1, payload2);
+		assertThat(payload2).isNotSameAs(payload1);
 
-		assertEquals(1, messageStore.getMessageGroupCount());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
 		int n = 0;
 		while (n++ < 300 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
 			Thread.sleep(100);
 		}
-		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(0);
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
 		context.close();

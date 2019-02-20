@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -66,39 +64,39 @@ public class PayloadSerializingTransformerParserTests {
 	public void directChannelWithStringMessage() throws Exception {
 		directInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof byte[]);
-		assertEquals("foo", deserialize((byte[]) result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof byte[]).isTrue();
+		assertThat(deserialize((byte[]) result.getPayload())).isEqualTo("foo");
 	}
 
 	@Test
 	public void queueChannelWithStringMessage() throws Exception {
 		queueInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof byte[]);
-		assertEquals("foo", deserialize((byte[]) result.getPayload()));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof byte[]).isTrue();
+		assertThat(deserialize((byte[]) result.getPayload())).isEqualTo("foo");
 	}
 
 	@Test
 	public void directChannelWithObjectMessage() throws Exception {
 		directInput.send(new GenericMessage<TestBean>(new TestBean()));
 		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof byte[]);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof byte[]).isTrue();
 		Object deserialized = deserialize((byte[]) result.getPayload());
-		assertEquals(TestBean.class, deserialized.getClass());
-		assertEquals("test", ((TestBean) deserialized).name);
+		assertThat(deserialized.getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) deserialized).name).isEqualTo("test");
 	}
 
 	@Test
 	public void queueChannelWithObjectMessage() throws Exception {
 		queueInput.send(new GenericMessage<TestBean>(new TestBean()));
 		Message<?> result = output.receive(10000);
-		assertTrue(result.getPayload() instanceof byte[]);
+		assertThat(result.getPayload() instanceof byte[]).isTrue();
 		Object deserialized = deserialize((byte[]) result.getPayload());
-		assertEquals(TestBean.class, deserialized.getClass());
-		assertEquals("test", ((TestBean) deserialized).name);
+		assertThat(deserialized.getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) deserialized).name).isEqualTo("test");
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -110,9 +108,9 @@ public class PayloadSerializingTransformerParserTests {
 	public void customSerializer() throws Exception {
 		customSerializerInput.send(new GenericMessage<String>("test"));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertEquals(byte[].class, result.getPayload().getClass());
-		assertEquals("TEST", new String((byte[]) result.getPayload(), "UTF-8"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(byte[].class);
+		assertThat(new String((byte[]) result.getPayload(), "UTF-8")).isEqualTo("TEST");
 	}
 
 

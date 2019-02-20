@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -42,10 +40,10 @@ public class WireTapTests {
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		mainChannel.send(new GenericMessage<>("testing"));
 		Message<?> original = mainChannel.receive(0);
-		assertNotNull(original);
+		assertThat(original).isNotNull();
 		Message<?> intercepted = secondaryChannel.receive(0);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test
@@ -55,9 +53,9 @@ public class WireTapTests {
 		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(false)));
 		mainChannel.send(new GenericMessage<>("testing"));
 		Message<?> original = mainChannel.receive(0);
-		assertNotNull(original);
+		assertThat(original).isNotNull();
 		Message<?> intercepted = secondaryChannel.receive(0);
-		assertNull(intercepted);
+		assertThat(intercepted).isNull();
 	}
 
 	@Test
@@ -67,10 +65,10 @@ public class WireTapTests {
 		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(true)));
 		mainChannel.send(new GenericMessage<>("testing"));
 		Message<?> original = mainChannel.receive(0);
-		assertNotNull(original);
+		assertThat(original).isNotNull();
 		Message<?> intercepted = secondaryChannel.receive(0);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -83,14 +81,14 @@ public class WireTapTests {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
-		assertNull(secondaryChannel.receive(0));
+		assertThat(secondaryChannel.receive(0)).isNull();
 		Message<?> message = new GenericMessage<>("testing");
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
 		Message<?> intercepted = secondaryChannel.receive(0);
-		assertNotNull(original);
-		assertNotNull(intercepted);
-		assertEquals(original, intercepted);
+		assertThat(original).isNotNull();
+		assertThat(intercepted).isNotNull();
+		assertThat(intercepted).isEqualTo(original);
 	}
 
 	@Test
@@ -106,9 +104,9 @@ public class WireTapTests {
 		Message<?> intercepted = secondaryChannel.receive(0);
 		Object originalAttribute = original.getHeaders().get(headerName);
 		Object interceptedAttribute = intercepted.getHeaders().get(headerName);
-		assertNotNull(originalAttribute);
-		assertNotNull(interceptedAttribute);
-		assertEquals(originalAttribute, interceptedAttribute);
+		assertThat(originalAttribute).isNotNull();
+		assertThat(interceptedAttribute).isNotNull();
+		assertThat(interceptedAttribute).isEqualTo(originalAttribute);
 	}
 
 	@Test

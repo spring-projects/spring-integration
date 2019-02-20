@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
-import org.hamcrest.Factory;
 
 import org.springframework.util.ObjectUtils;
 
@@ -29,7 +28,7 @@ import org.springframework.util.ObjectUtils;
  * wrapped by the {@link java.util.function.Supplier}
  *
  * The goal is to defer the computation until the matcher needs to be actually evaluated.
- * Mainly useful in conjunction with retrying matchers such as {@link EventuallyMatcher}
+ * Mainly useful in conjunction with retrying matchers such as {@code EventuallyMatcher}
  *
  * @author Marius Bogoevici
  * @author Artem Bilan
@@ -53,7 +52,6 @@ public class EqualsResultMatcher<U> extends DiagnosingMatcher<U> {
 	public void describeTo(Description description) {
 	}
 
-	@Factory
 	public static <U> EqualsResultMatcher<U> equalsResult(Supplier<U> supplier) {
 		return new EqualsResultMatcher<>(supplier);
 	}

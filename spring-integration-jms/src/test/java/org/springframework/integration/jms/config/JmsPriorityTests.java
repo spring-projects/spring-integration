@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
@@ -69,10 +67,10 @@ public class JmsPriorityTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channelAdapterChannel.send(message);
 		Message<?> result = channelAdapterResults.receive(5000);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof javax.jms.Message);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof javax.jms.Message).isTrue();
 		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
-		assertEquals(3, jmsMessage.getJMSPriority());
+		assertThat(jmsMessage.getJMSPriority()).isEqualTo(3);
 	}
 
 	@Test
@@ -80,10 +78,10 @@ public class JmsPriorityTests {
 		Message<?> message = MessageBuilder.withPayload("test").setPriority(7).build();
 		channelAdapterChannel.send(message);
 		Message<?> result = channelAdapterResults.receive(5000);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof javax.jms.Message);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof javax.jms.Message).isTrue();
 		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
-		assertEquals(7, jmsMessage.getJMSPriority());
+		assertThat(jmsMessage.getJMSPriority()).isEqualTo(7);
 	}
 
 	@Test
@@ -92,8 +90,8 @@ public class JmsPriorityTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		gatewayChannel.send(message);
 		Message<?> result = replyChannel.receive(5000);
-		assertNotNull(result);
-		assertEquals("priority=2", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("priority=2");
 	}
 
 	@Test
@@ -102,8 +100,8 @@ public class JmsPriorityTests {
 		Message<?> message = MessageBuilder.withPayload("test").setPriority(8).setReplyChannel(replyChannel).build();
 		gatewayChannel.send(message);
 		Message<?> result = replyChannel.receive(5000);
-		assertNotNull(result);
-		assertEquals("priority=8", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("priority=8");
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ package org.springframework.integration.test.matcher;
 import java.util.Date;
 import java.util.Map;
 
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 
 import org.springframework.messaging.Message;
@@ -94,74 +93,60 @@ public class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {
 				.appendDescriptionOf(this.matcher);
 	}
 
-	@Factory
 	public static <P, V> HeaderMatcher<P> hasHeader(String key, V value) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry(key, value));
+		return new HeaderMatcher<>(Matchers.hasEntry(key, value));
 	}
 
-	@Factory
 	public static <P, V> HeaderMatcher<P> hasHeader(String key, Matcher<V> valueMatcher) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry(key, valueMatcher));
+		return new HeaderMatcher<>(Matchers.hasEntry(Matchers.is(key), valueMatcher));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasHeaderKey(String key) {
-		return new HeaderMatcher<>(MapContentMatchers.hasKey(key));
+		return new HeaderMatcher<>(Matchers.hasKey(key));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasAllHeaders(Map<String, ?> entries) {
 		return new HeaderMatcher<>(MapContentMatchers.hasAllEntries(entries));
 	}
 
-	@Factory
 	public static <P, V> HeaderMatcher<P> hasMessageId(V value) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry(MessageHeaders.ID, value));
+		return new HeaderMatcher<>(Matchers.hasEntry(MessageHeaders.ID, value));
 	}
 
-	@Factory
 	public static <P, V> HeaderMatcher<P> hasCorrelationId(V value) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry("correlationId", value));
+		return new HeaderMatcher<>(Matchers.hasEntry("correlationId", value));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasSequenceNumber(Integer value) {
-		return hasSequenceNumber(CoreMatchers.is(value));
+		return hasSequenceNumber(Matchers.is(value));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasSequenceNumber(Matcher<Integer> matcher) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry("sequenceNumber", matcher));
+		return new HeaderMatcher<>(Matchers.hasEntry(Matchers.is("sequenceNumber"), matcher));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasSequenceSize(Integer value) {
-		return hasSequenceSize(CoreMatchers.is(value));
+		return hasSequenceSize(Matchers.is(value));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasSequenceSize(Matcher<Integer> value) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry("sequenceSize", value));
+		return new HeaderMatcher<>(Matchers.hasEntry(Matchers.is("sequenceSize"), value));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasExpirationDate(Date value) {
-		return hasExpirationDate(CoreMatchers.is(value.getTime()));
+		return hasExpirationDate(Matchers.is(value.getTime()));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasExpirationDate(Matcher<Long> matcher) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry("expirationDate", matcher));
+		return new HeaderMatcher<>(Matchers.hasEntry(Matchers.is("expirationDate"), matcher));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasTimestamp(Date value) {
-		return hasTimestamp(CoreMatchers.is(value.getTime()));
+		return hasTimestamp(Matchers.is(value.getTime()));
 	}
 
-	@Factory
 	public static <P> HeaderMatcher<P> hasTimestamp(Matcher<Long> matcher) {
-		return new HeaderMatcher<>(MapContentMatchers.hasEntry(MessageHeaders.TIMESTAMP, matcher));
+		return new HeaderMatcher<>(Matchers.hasEntry(Matchers.is(MessageHeaders.TIMESTAMP), matcher));
 	}
 
 }

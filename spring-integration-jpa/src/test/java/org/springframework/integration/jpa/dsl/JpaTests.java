@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.jpa.dsl;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -115,10 +110,10 @@ public class JpaTests {
 	@Test
 	public void testInboundAdapterFlow() {
 		Message<?> message = this.pollingResults.receive(10_000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(StudentDomain.class));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(StudentDomain.class);
 		StudentDomain student = (StudentDomain) message.getPayload();
-		assertEquals("First One", student.getFirstName());
+		assertThat(student.getFirstName()).isEqualTo("First One");
 	}
 
 	@Test
@@ -126,8 +121,8 @@ public class JpaTests {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
 		List<?> results1 = jdbcTemplate.queryForList("Select * from Student");
-		assertNotNull(results1);
-		assertTrue(results1.size() == 3);
+		assertThat(results1).isNotNull();
+		assertThat(results1.size() == 3).isTrue();
 
 		Calendar dateOfBirth = Calendar.getInstance();
 		dateOfBirth.set(1981, 9, 27);
@@ -139,15 +134,15 @@ public class JpaTests {
 				.withDateOfBirth(dateOfBirth.getTime())
 				.withLastUpdated(new Date());
 
-		assertNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNull();
 
 		this.outboundAdapterFlowInput.send(MessageBuilder.withPayload(student).build());
 
 		List<?> results2 = jdbcTemplate.queryForList("Select * from Student");
-		assertNotNull(results2);
-		assertTrue(results2.size() == 4);
+		assertThat(results2).isNotNull();
+		assertThat(results2.size() == 4).isTrue();
 
-		assertNotNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNotNull();
 	}
 
 	@Test
@@ -162,28 +157,28 @@ public class JpaTests {
 				.withDateOfBirth(dateOfBirth.getTime())
 				.withLastUpdated(new Date());
 
-		assertNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNull();
 
 		this.updatingGatewayFlowInput.send(MessageBuilder.withPayload(student).build());
 
 		Message<?> receive = this.persistResults.receive(10_000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		StudentDomain mergedStudent = (StudentDomain) receive.getPayload();
-		assertEquals(student.getFirstName(), mergedStudent.getFirstName());
-		assertNotNull(mergedStudent.getRollNumber());
-		assertNull(student.getRollNumber());
+		assertThat(mergedStudent.getFirstName()).isEqualTo(student.getFirstName());
+		assertThat(mergedStudent.getRollNumber()).isNotNull();
+		assertThat(student.getRollNumber()).isNull();
 	}
 
 	@Test
 	public void testRetrievingGatewayFlow() {
 		this.retrievingGatewayFlowInput.send(MessageBuilder.withPayload("foo").setHeader("payloadId", 1002L).build());
 		Message<?> receive = this.retrieveResults.receive(10_000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StudentDomain.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StudentDomain.class);
 		StudentDomain student = (StudentDomain) receive.getPayload();
-		assertEquals("First Two", student.getFirstName());
-		assertEquals(Gender.FEMALE, student.getGender());
+		assertThat(student.getFirstName()).isEqualTo("First Two");
+		assertThat(student.getGender()).isEqualTo(Gender.FEMALE);
 	}
 
 

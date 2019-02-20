@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.support;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -35,16 +33,16 @@ public class MessageBuilderTests {
 	public void testReadOnlyHeaders() {
 		DefaultMessageBuilderFactory factory = new DefaultMessageBuilderFactory();
 		Message<?> message = factory.withPayload("bar").setHeader("foo", "baz").setHeader("qux", "fiz").build();
-		assertThat(message.getHeaders().get("foo"), equalTo("baz"));
-		assertThat(message.getHeaders().get("qux"), equalTo("fiz"));
+		assertThat(message.getHeaders().get("foo")).isEqualTo("baz");
+		assertThat(message.getHeaders().get("qux")).isEqualTo("fiz");
 		factory.setReadOnlyHeaders("foo");
 		message = factory.fromMessage(message).build();
-		assertNull(message.getHeaders().get("foo"));
-		assertThat(message.getHeaders().get("qux"), equalTo("fiz"));
+		assertThat(message.getHeaders().get("foo")).isNull();
+		assertThat(message.getHeaders().get("qux")).isEqualTo("fiz");
 		factory.addReadOnlyHeaders("qux");
 		message = factory.fromMessage(message).build();
-		assertNull(message.getHeaders().get("foo"));
-		assertNull(message.getHeaders().get("qux"));
+		assertThat(message.getHeaders().get("foo")).isNull();
+		assertThat(message.getHeaders().get("qux")).isNull();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -58,12 +54,12 @@ public class FileMessageHistoryTests {
 
 		PollableChannel outChannel = context.getBean("outChannel", PollableChannel.class);
 		Message<?> message = outChannel.receive(10000);
-		assertThat(message, is(notNullValue()));
+		assertThat(message).isNotNull();
 		MessageHistory history = MessageHistory.read(message);
-		assertThat(history, is(notNullValue()));
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "fileAdapter", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("file:inbound-channel-adapter", componentHistoryRecord.get("type"));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("file:inbound-channel-adapter");
 
 		context.close();
 	}

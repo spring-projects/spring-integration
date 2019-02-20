@@ -16,11 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -89,10 +85,10 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		this.inputAuctionWithoutGatherChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(Double.class));
-		assertThat((Double) payload, lessThan(10D));
+		assertThat(payload).isInstanceOf(Double.class);
+		assertThat((Double) payload).isLessThan(10D);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -102,10 +98,10 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		this.inputAuctionWithGatherChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertEquals(3, ((List) payload).size());
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List) payload).size()).isEqualTo(3);
 	}
 
 	@Test
@@ -114,10 +110,10 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		this.distributionChannel.send(quoteMessage);
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(Double.class));
-		assertThat((Double) payload, lessThan(10D));
+		assertThat(payload).isInstanceOf(Double.class);
+		assertThat((Double) payload).isLessThan(10D);
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,8 +48,8 @@ public class XPathHeaderEnricherTests {
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
-		assertEquals("Wrong value for element one expression", "1", headers.get("one"));
-		assertEquals("Wrong value for element two expression", "2", headers.get("two"));
+		assertThat(headers.get("one")).as("Wrong value for element one expression").isEqualTo("1");
+		assertThat(headers.get("two")).as("Wrong value for element two expression").isEqualTo("2");
 	}
 
 	@Test
@@ -66,7 +64,8 @@ public class XPathHeaderEnricherTests {
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
-		assertEquals("Wrong value for element one expression", TimeZone.getTimeZone("America/New_York"), headers.get("one"));
+		assertThat(headers.get("one")).as("Wrong value for element one expression")
+				.isEqualTo(TimeZone.getTimeZone("America/New_York"));
 	}
 
 	@Test
@@ -78,7 +77,7 @@ public class XPathHeaderEnricherTests {
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
-		assertNull("value set for two when result was null", headers.get("two"));
+		assertThat(headers.get("two")).as("value set for two when result was null").isNull();
 	}
 
 	@Test
@@ -92,8 +91,8 @@ public class XPathHeaderEnricherTests {
 		enricher.setDefaultOverwrite(true);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).setHeader("two", "x").build());
 		MessageHeaders headers = result.getHeaders();
-		assertNull(headers.get("two"));
-		assertFalse(headers.containsKey("two"));
+		assertThat(headers.get("two")).isNull();
+		assertThat(headers.containsKey("two")).isFalse();
 	}
 
 	@Test
@@ -113,8 +112,8 @@ public class XPathHeaderEnricherTests {
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
-		assertEquals("Wrong value for element one expression", "1", headers.get("one"));
-		assertEquals("Wrong value for element two expression", 2.0, headers.get("two"));
+		assertThat(headers.get("one")).as("Wrong value for element one expression").isEqualTo("1");
+		assertThat(headers.get("two")).as("Wrong value for element two expression").isEqualTo(2.0);
 	}
 
 }

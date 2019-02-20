@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.syslog.inbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -58,15 +58,15 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(VALID_FRAMED_ENTRY.getBytes()));
 
-		assertEquals(1, map.get(SyslogHeaders.FACILITY));
-		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
-		assertEquals(1, map.get(SyslogHeaders.VERSION));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
-		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
-		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
-		assertEquals("-", map.get(SyslogHeaders.MSGID));
-		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
+		assertThat(map.get(SyslogHeaders.FACILITY)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.SEVERITY)).isEqualTo(6);
+		assertThat(map.get(SyslogHeaders.VERSION)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.TIMESTAMP)).isEqualTo("2014-06-20T09:14:07+00:00");
+		assertThat(map.get(SyslogHeaders.HOST)).isEqualTo("loggregator");
+		assertThat(map.get(SyslogHeaders.APP_NAME)).isEqualTo("d0602076-b14a-4c55-852a-981e7afeed38");
+		assertThat(map.get(SyslogHeaders.PROCID)).isEqualTo("DEA");
+		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("-");
+		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
 	}
 
 	@Test
@@ -76,15 +76,15 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(VALID_UNFRAMED_ENTRY.getBytes()));
 
-		assertEquals(1, map.get(SyslogHeaders.FACILITY));
-		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
-		assertEquals(1, map.get(SyslogHeaders.VERSION));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
-		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
-		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
-		assertEquals("-", map.get(SyslogHeaders.MSGID));
-		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
+		assertThat(map.get(SyslogHeaders.FACILITY)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.SEVERITY)).isEqualTo(6);
+		assertThat(map.get(SyslogHeaders.VERSION)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.TIMESTAMP)).isEqualTo("2014-06-20T09:14:07+00:00");
+		assertThat(map.get(SyslogHeaders.HOST)).isEqualTo("loggregator");
+		assertThat(map.get(SyslogHeaders.APP_NAME)).isEqualTo("d0602076-b14a-4c55-852a-981e7afeed38");
+		assertThat(map.get(SyslogHeaders.PROCID)).isEqualTo("DEA");
+		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("-");
+		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
 	}
 
 	@Test
@@ -94,16 +94,16 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_1.getBytes()));
 
-		assertEquals(1, map.get(SyslogHeaders.FACILITY));
-		assertEquals(6, map.get(SyslogHeaders.SEVERITY));
-		assertEquals(1, map.get(SyslogHeaders.VERSION));
-		assertEquals("2014-06-20T09:14:07+00:00", map.get(SyslogHeaders.TIMESTAMP));
-		assertEquals("loggregator", map.get(SyslogHeaders.HOST));
-		assertEquals("d0602076-b14a-4c55-852a-981e7afeed38", map.get(SyslogHeaders.APP_NAME));
-		assertEquals("DEA", map.get(SyslogHeaders.PROCID));
-		assertEquals("-", map.get(SyslogHeaders.MSGID));
-		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
-		assertEquals(1, ((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size());
+		assertThat(map.get(SyslogHeaders.FACILITY)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.SEVERITY)).isEqualTo(6);
+		assertThat(map.get(SyslogHeaders.VERSION)).isEqualTo(1);
+		assertThat(map.get(SyslogHeaders.TIMESTAMP)).isEqualTo("2014-06-20T09:14:07+00:00");
+		assertThat(map.get(SyslogHeaders.HOST)).isEqualTo("loggregator");
+		assertThat(map.get(SyslogHeaders.APP_NAME)).isEqualTo("d0602076-b14a-4c55-852a-981e7afeed38");
+		assertThat(map.get(SyslogHeaders.PROCID)).isEqualTo("DEA");
+		assertThat(map.get(SyslogHeaders.MSGID)).isEqualTo("-");
+		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
+		assertThat(((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size()).isEqualTo(1);
 	}
 
 	@Test
@@ -113,9 +113,9 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_2.getBytes()));
 
-		assertEquals("false", map.get(SyslogHeaders.DECODE_ERRORS));
-		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
-		assertEquals(2, ((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size());
+		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
+		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
+		assertThat(((List<?>) map.get(SyslogHeaders.STRUCTURED_DATA)).size()).isEqualTo(2);
 	}
 
 	@Test
@@ -125,8 +125,8 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SD_ENTRY_3.getBytes()));
 
-		assertEquals("false", map.get(SyslogHeaders.DECODE_ERRORS));
-		assertEquals("Removing instance", map.get(SyslogHeaders.MESSAGE));
+		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("false");
+		assertThat(map.get(SyslogHeaders.MESSAGE)).isEqualTo("Removing instance");
 	}
 
 	@Test
@@ -136,7 +136,7 @@ public class SyslogDeserializerTests {
 
 		Map<String, ?> map = deserializer.deserialize(new ByteArrayInputStream(SHORT_FRAMED_ENTRY.getBytes()));
 
-		assertEquals("true", map.get(SyslogHeaders.DECODE_ERRORS));
+		assertThat(map.get(SyslogHeaders.DECODE_ERRORS)).isEqualTo("true");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mongodb.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -92,10 +91,10 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Document> results = ((List<Document>) messageSource.receive().getPayload());
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 		Document resultObject = results.get(0);
 
-		assertEquals("Oleg", resultObject.get("name"));
+		assertThat(resultObject.get("name")).isEqualTo("Oleg");
 	}
 
 	@Test
@@ -114,10 +113,10 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 		Person person = results.get(0);
-		assertEquals("Oleg", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Oleg");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 	@Test
@@ -137,8 +136,8 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 		Person person = (Person) messageSource.receive().getPayload();
 
-		assertEquals("Oleg", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Oleg");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 
@@ -159,15 +158,15 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		@SuppressWarnings("unchecked")
 		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
 		Person person = results.get(0);
-		assertEquals("Oleg", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Oleg");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithMultipleElements() throws Exception {
 		List<Person> persons = queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"));
-		assertEquals(3, persons.size());
+		assertThat(persons.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -175,7 +174,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	public void validateSuccessfulStringQueryExpressionWithMultipleElements() throws Exception {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("\"{'address.state' : 'PA'}\""));
-		assertEquals(3, persons.size());
+		assertThat(persons.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -183,7 +182,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	public void validateSuccessfulBasicQueryExpressionWithMultipleElements() throws Exception {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
-		assertEquals(2, persons.size());
+		assertThat(persons.size()).isEqualTo(2);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -217,7 +216,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		assertNull(messageSource.receive());
+		assertThat(messageSource.receive()).isNull();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -242,7 +241,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertEquals(3, persons.size());
+		assertThat(persons.size()).isEqualTo(3);
 		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
@@ -269,7 +268,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		writingTemplate.save(this.createPerson("Jack"), "data");
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertEquals(3, persons.size());
+		assertThat(persons.size()).isEqualTo(3);
 		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
@@ -293,7 +292,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		result.put("company", "PepBoys");
 		template.save(result, "data");
 		result = (Document) messageSource.receive().getPayload();
-		assertEquals(id, result.get("_id"));
+		assertThat(result.get("_id")).isEqualTo(id);
 	}
 
 }

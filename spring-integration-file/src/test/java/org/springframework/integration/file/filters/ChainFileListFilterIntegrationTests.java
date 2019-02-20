@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class ChainFileListFilterIntegrationTests {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new LastModifiedFileListFilter());
 			List<File> result = chain.filterFiles(noFiles);
-			assertEquals(0, result.size());
+			assertThat(result.size()).isEqualTo(0);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class ChainFileListFilterIntegrationTests {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
 			List<File> result = chain.filterFiles(oneFile);
-			assertEquals(1, result.size());
+			assertThat(result.size()).isEqualTo(1);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class ChainFileListFilterIntegrationTests {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new LastModifiedFileListFilter());
 			List<File> result = chain.filterFiles(oneFile);
-			assertEquals(1, result.size());
+			assertThat(result.size()).isEqualTo(1);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class ChainFileListFilterIntegrationTests {
 			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
 			chain.addFilter(new LastModifiedFileListFilter());
 			List<File> result = chain.filterFiles(oneFile);
-			assertEquals(1, result.size());
+			assertThat(result.size()).isEqualTo(1);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class ChainFileListFilterIntegrationTests {
 			chain.addFilter(new LastModifiedFileListFilter());
 			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
 			List<File> result = chain.filterFiles(oneFile);
-			assertEquals(1, result.size());
+			assertThat(result.size()).isEqualTo(1);
 		}
 	}
 
@@ -91,7 +91,7 @@ public class ChainFileListFilterIntegrationTests {
 	public void initializeFilterByConstructor() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>(Arrays.asList(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES)))) {
 			List<File> result = chain.filterFiles(oneFile);
-			assertEquals(1, result.size());
+			assertThat(result.size()).isEqualTo(1);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -80,16 +76,16 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate(this.ccf);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest1");
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		template.send(received.getJMSReplyTo(), (MessageCreator) session -> {
 			TextMessage textMessage = session.createTextMessage("bar");
 			textMessage.setJMSCorrelationID(received.getJMSCorrelationID());
 			return textMessage;
 		});
 		org.springframework.messaging.Message<?> reply = replies.receive(10000);
-		assertNotNull(reply);
-		assertEquals("bar", reply.getPayload());
-		assertEquals("baz", reply.getHeaders().get(JmsHeaders.CORRELATION_ID));
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("bar");
+		assertThat(reply.getHeaders().get(JmsHeaders.CORRELATION_ID)).isEqualTo("baz");
 		this.gateway1.stop();
 	}
 
@@ -102,13 +98,13 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate(this.ccf);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		org.springframework.messaging.Message<?> error = errors.receive(10000);
-		assertNotNull(error);
-		assertThat(error, instanceOf(ErrorMessage.class));
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(JmsTimeoutException.class));
-		assertEquals("foo", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertThat(error).isNotNull();
+		assertThat(error).isInstanceOf(ErrorMessage.class);
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) error.getPayload()).getCause()).isInstanceOf(JmsTimeoutException.class);
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo("foo");
 		this.gateway2.stop();
 	}
 
@@ -123,9 +119,9 @@ public class AsyncGatewayTests extends ActiveMQMultiContextTests {
 		JmsTemplate template = new JmsTemplate(this.ccf);
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		org.springframework.messaging.Message<?> error = errors.receive(1000);
-		assertNull(error);
+		assertThat(error).isNull();
 		this.gateway2.stop();
 	}
 

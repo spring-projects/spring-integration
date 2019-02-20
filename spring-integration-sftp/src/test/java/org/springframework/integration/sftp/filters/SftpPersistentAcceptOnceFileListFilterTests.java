@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.sftp.filters;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Constructor;
@@ -54,16 +53,16 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		LsEntry ftpFile3 = ctor.newInstance(channel, "baz", "baz", attrs);
 		LsEntry[] files = new LsEntry[] {sftpFile1, sftpFile2, ftpFile3};
 		List<LsEntry> passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<LsEntry> now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
-		assertEquals(2, now.size());
-		assertEquals("bar", now.get(0).getFilename());
-		assertEquals("baz", now.get(1).getFilename());
+		assertThat(now.size()).isEqualTo(2);
+		assertThat(now.get(0).getFilename()).isEqualTo("bar");
+		assertThat(now.get(1).getFilename()).isEqualTo("baz");
 		now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.close();
 	}
 
@@ -80,9 +79,9 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		LsEntry sftpFile2 = ctor.newInstance(channel, "bar", "same", attrs);
 		LsEntry[] files = new LsEntry[] {sftpFile1, sftpFile2};
 		List<LsEntry> now = filter.filterFiles(files);
-		assertEquals(2, now.size());
-		assertEquals("foo", now.get(0).getFilename());
-		assertEquals("bar", now.get(1).getFilename());
+		assertThat(now.size()).isEqualTo(2);
+		assertThat(now.get(0).getFilename()).isEqualTo("foo");
+		assertThat(now.get(1).getFilename()).isEqualTo("bar");
 		filter.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.message.selector;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -37,7 +36,7 @@ public class UnexpiredMessageSelectorTests {
 		Message<String> message = MessageBuilder.withPayload("expired")
 				.setExpirationDate(past).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
-		assertFalse(selector.accept(message));
+		assertThat(selector.accept(message)).isFalse();
 	}
 
 	@Test
@@ -46,14 +45,14 @@ public class UnexpiredMessageSelectorTests {
 		Message<String> message = MessageBuilder.withPayload("unexpired")
 				.setExpirationDate(future).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
-		assertTrue(selector.accept(message));
+		assertThat(selector.accept(message)).isTrue();
 	}
 
 	@Test
 	public void testMessageWithNullExpirationDateNeverExpires() {
 		Message<String> message = MessageBuilder.withPayload("unexpired").build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
-		assertTrue(selector.accept(message));
+		assertThat(selector.accept(message)).isTrue();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xml.selector;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -36,31 +35,37 @@ public class BooleanTestXpathMessageSelectorTests {
 	@Test
 	public void testWithSimpleString() {
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector("boolean(/one/two)");
-		assertTrue(selector.accept(new GenericMessage<String>("<one><two/></one>")));
-		assertFalse(selector.accept(new GenericMessage<String>("<one><three/></one>")));
+		assertThat(selector.accept(new GenericMessage<String>("<one><two/></one>"))).isTrue();
+		assertThat(selector.accept(new GenericMessage<String>("<one><three/></one>"))).isFalse();
 	}
 
 	@Test
 	public void testWithDocument() throws Exception {
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector("boolean(/one/two)");
-		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<one><two/></one>"))));
-		assertFalse(selector.accept(new GenericMessage<Document>(XmlTestUtil
-				.getDocumentForString("<one><three/></one>"))));
+		assertThat(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<one><two/></one>"))))
+				.isTrue();
+		assertThat(selector.accept(new GenericMessage<Document>(XmlTestUtil
+				.getDocumentForString("<one><three/></one>")))).isFalse();
 	}
 
 	@Test
 	public void testWithNamespace() {
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector("boolean(/ns1:one/ns1:two)", "ns1", "www.example.org");
-		assertTrue(selector.accept(new GenericMessage<String>("<ns1:one xmlns:ns1='www.example.org'><ns1:two/></ns1:one>")));
-		assertFalse(selector.accept(new GenericMessage<String>("<ns2:one xmlns:ns2='www.example2.org'><ns1:two xmlns:ns1='www.example.org' /></ns2:one>")));
+		assertThat(selector
+				.accept(new GenericMessage<String>("<ns1:one xmlns:ns1='www.example.org'><ns1:two/></ns1:one>")))
+				.isTrue();
+		assertThat(selector
+				.accept(new GenericMessage<String>("<ns2:one xmlns:ns2='www.example2.org'><ns1:two xmlns:ns1='www" +
+						".example.org' /></ns2:one>")))
+				.isFalse();
 	}
 
 	@Test
 	public void testStringWithXPathExpressionProvided() {
 		XPathExpression xpathExpression = XPathExpressionFactory.createXPathExpression("boolean(/one/two)");
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector(xpathExpression);
-		assertTrue(selector.accept(new GenericMessage<String>("<one><two/></one>")));
-		assertFalse(selector.accept(new GenericMessage<String>("<one><three/></one>")));
+		assertThat(selector.accept(new GenericMessage<String>("<one><two/></one>"))).isTrue();
+		assertThat(selector.accept(new GenericMessage<String>("<one><three/></one>"))).isFalse();
 	}
 
 	@Test
@@ -68,8 +73,10 @@ public class BooleanTestXpathMessageSelectorTests {
 		XPathExpression xpathExpression = XPathExpressionFactory.createXPathExpression("boolean(./three)");
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector(xpathExpression);
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three/></two></one>");
-		assertTrue(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0))));
-		assertFalse(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("three").item(0))));
+		assertThat(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0))))
+				.isTrue();
+		assertThat(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("three").item(0))))
+				.isFalse();
 	}
 
 }

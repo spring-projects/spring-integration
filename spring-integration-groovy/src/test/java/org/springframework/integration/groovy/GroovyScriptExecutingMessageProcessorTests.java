@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.groovy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,7 +71,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar" + count, result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar" + count);
 	}
 
 	@Test
@@ -99,7 +97,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			ScriptVariableGenerator scriptVariableGenerator = new CustomScriptVariableGenerator();
 			MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableGenerator);
 			Object newResult = processor.processMessage(message);
-			assertFalse(newResult.equals(result)); // make sure that we get different nanotime verifying that generateScriptVariables() is invoked
+			assertThat(newResult.equals(result)).isFalse(); // make sure that we get different nanotime verifying that generateScriptVariables() is invoked
 			result = newResult;
 		}
 	}
@@ -111,7 +109,8 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		long lastModified = resource.lastModified();
 		Thread.sleep(20L);
 		resource.setScript("foo");
-		assertFalse("Expected last modified to change: " + lastModified + "==" + resource.lastModified(), lastModified == resource.lastModified());
+		assertThat(lastModified == resource.lastModified())
+				.as("Expected last modified to change: " + lastModified + "==" + resource.lastModified()).isFalse();
 	}
 
 	@Test
@@ -124,7 +123,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Thread.sleep(20L);
 		resource.setScript("return \"payload is $payload\"");
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo");
 	}
 
 	@Test
@@ -137,19 +136,19 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		// should be the original script
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
 		//reset the script with the new string
 		resource.setScript("return \"payload is $payload\"");
 		Thread.sleep(20L);
 		// should still assert to the old script because not enough time elapsed for refresh to kick in
 		result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
 		// sleep some more, past refresh time
 		Thread.sleep(2000L);
 		// now you go the new script
 		resource.setScript("return \"payload is $payload\"");
 		result = processor.processMessage(message);
-		assertEquals("payload is foo", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo");
 	}
 
 	@Test
@@ -161,12 +160,12 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		// process with the first script
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
 		// change script, but since refresh-delay is less then 0 we should still se old script executing
 		resource.setScript("return \"payload is $payload\"");
 		// process and see assert that the old script is used
 		result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
 	}
 
 	@Test
@@ -178,16 +177,16 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		// process with the first script
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo, header is bar");
 		// change script, but since refresh-delay is less then 0 we should still se old script executing
 		resource.setScript("return \"payload is $payload\"");
 		// process and see assert that the old script is used
 		result = processor.processMessage(message);
-		assertEquals("payload is foo", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is foo");
 		resource.setScript("return \"payload is 'hello'\"");
 		// process and see assert that the old script is used
 		result = processor.processMessage(message);
-		assertEquals("payload is 'hello'", result.toString());
+		assertThat(result.toString()).isEqualTo("payload is 'hello'");
 	}
 
 	@Test
@@ -214,9 +213,9 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			executor.execute(() -> processor.processMessage(message));
 		}
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
-		assertTrue(var2.get() > 1);
+		assertThat(var2.get() > 1).isTrue();
 
 	}
 

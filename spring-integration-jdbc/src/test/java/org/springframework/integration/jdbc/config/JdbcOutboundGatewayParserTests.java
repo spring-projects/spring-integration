@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -33,7 +30,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -77,24 +73,24 @@ public class JdbcOutboundGatewayParserTests {
 	@Test
 	public void testMapPayloadMapReply() {
 		setUp("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
-		assertTrue(this.context.containsBean("jdbcGateway"));
+		assertThat(this.context.containsBean("jdbcGateway")).isTrue();
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		this.channel.send(message);
 
 		Message<?> reply = this.messagingTemplate.receive();
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		@SuppressWarnings("unchecked")
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		assertEquals("bar", payload.get("name"));
+		assertThat(payload.get("name")).isEqualTo("bar");
 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 
 		JdbcOutboundGateway gateway = context.getBean("jdbcGateway.handler", JdbcOutboundGateway.class);
-		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
-		Assert.assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertEquals(1, adviceCalled);
+		assertThat(TestUtils.getPropertyValue(gateway, "order")).isEqualTo(23);
+		assertThat(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class)).isTrue();
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
@@ -107,15 +103,15 @@ public class JdbcOutboundGatewayParserTests {
 		this.channel.send(message);
 
 		Message<?> reply = this.messagingTemplate.receive();
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
 		Object id = payload.get("ID");
-		assertNotNull(id);
+		assertThat(id).isNotNull();
 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
-		assertEquals("Wrong id", id, map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 
 		this.jdbcTemplate.execute("DELETE FROM BARS");
 
@@ -133,14 +129,14 @@ public class JdbcOutboundGatewayParserTests {
 		MessageChannel setterRequest = this.context.getBean("setterRequest", MessageChannel.class);
 		setterRequest.send(new GenericMessage<>("bar2"));
 		reply = this.messagingTemplate.receive();
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 
 		payload = (Map<String, ?>) reply.getPayload();
 		id = payload.get("ID");
-		assertNotNull(id);
+		assertThat(id).isNotNull();
 		map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
-		assertEquals("Wrong id", id, map.get("ID"));
-		assertEquals("Wrong name", "bar2", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(id);
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar2");
 
 		verify(logger).debug("Executing prepared SQL statement [insert into bars (status, name) values (0, ?)]");
 	}
@@ -153,10 +149,10 @@ public class JdbcOutboundGatewayParserTests {
 		this.channel.send(message);
 
 		Message<?> reply = this.messagingTemplate.receive();
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		@SuppressWarnings("unchecked")
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		assertEquals(1, payload.get("updated"));
+		assertThat(payload.get("updated")).isEqualTo(1);
 	}
 
 	@Test
@@ -180,14 +176,14 @@ public class JdbcOutboundGatewayParserTests {
 		this.channel.send(message);
 
 		Message<?> reply = this.messagingTemplate.receive();
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		@SuppressWarnings("unchecked")
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		assertEquals("bar", payload.get("name"));
+		assertThat(payload.get("name")).isEqualTo("bar");
 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from BAZZ");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 
 		verify(logger).debug("Executing prepared SQL statement [select * from bazz where id=?]");
 	}
@@ -206,9 +202,9 @@ public class JdbcOutboundGatewayParserTests {
 		Integer status = (Integer) reply.getPayload().get("status");
 		String name = (String) reply.getPayload().get("name");
 
-		assertEquals("100", id);
-		assertEquals(Integer.valueOf(3), status);
-		assertEquals("Cartman", name);
+		assertThat(id).isEqualTo("100");
+		assertThat(status).isEqualTo(Integer.valueOf(3));
+		assertThat(name).isEqualTo("Cartman");
 	}
 
 	@Test
@@ -227,7 +223,7 @@ public class JdbcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(messagingTemplate);
 
 		Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
-		assertEquals("Wrong sendTimeout", Long.valueOf(444L),  sendTimeout);
+		assertThat(sendTimeout).as("Wrong sendTimeout").isEqualTo(Long.valueOf(444L));
 
 	}
 
@@ -243,7 +239,7 @@ public class JdbcOutboundGatewayParserTests {
 		source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
 		accessor = new DirectFieldAccessor(source);
 		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRows");
-		assertEquals("maxRowsPerPoll should default to 1", Integer.valueOf(1),  maxRowsPerPoll);
+		assertThat(maxRowsPerPoll).as("maxRowsPerPoll should default to 1").isEqualTo(Integer.valueOf(1));
 
 	}
 
@@ -259,7 +255,7 @@ public class JdbcOutboundGatewayParserTests {
 		source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
 		accessor = new DirectFieldAccessor(source);
 		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRows");
-		assertEquals("maxRowsPerPoll should default to 10", Integer.valueOf(10),  maxRowsPerPoll);
+		assertThat(maxRowsPerPoll).as("maxRowsPerPoll should default to 10").isEqualTo(Integer.valueOf(10));
 	}
 
 	@Test //INT-1029
@@ -272,16 +268,16 @@ public class JdbcOutboundGatewayParserTests {
 
 		MessageChannel channel = this.context.getBean("jdbcOutboundGatewayInsideChain", MessageChannel.class);
 
-		assertFalse(TestUtils.getPropertyValue(jdbcMessageHandler, "requiresReply", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(jdbcMessageHandler, "requiresReply", Boolean.class)).isFalse();
 
 		channel.send(MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build());
 
 		PollableChannel outbound = this.context.getBean("replyChannel", PollableChannel.class);
 		Message<?> reply = outbound.receive(10000);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		@SuppressWarnings("unchecked")
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		assertEquals("bar", payload.get("name"));
+		assertThat(payload.get("name")).isEqualTo("bar");
 	}
 
 

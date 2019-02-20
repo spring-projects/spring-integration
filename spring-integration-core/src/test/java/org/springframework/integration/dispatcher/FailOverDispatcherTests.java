@@ -16,9 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
@@ -48,7 +46,7 @@ public class FailOverDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.addHandler(createConsumer(TestHandlers.countDownHandler(latch)));
 		dispatcher.dispatch(new GenericMessage<>("test"));
-		assertTrue(latch.await(500, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isTrue();
 	}
 
 	@Test
@@ -60,8 +58,8 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.dispatch(new GenericMessage<>("test"));
-		assertTrue(latch.await(500, TimeUnit.MILLISECONDS));
-		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
+		assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(counter1.get() + counter2.get()).as("only 1 handler should have received the message").isEqualTo(1);
 	}
 
 	@Test
@@ -77,7 +75,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals("target should not have duplicate subscriptions", 1, counter.get());
+		assertThat(counter.get()).as("target should not have duplicate subscriptions").isEqualTo(1);
 	}
 
 	@Test
@@ -97,7 +95,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals(2, counter.get());
+		assertThat(counter.get()).isEqualTo(2);
 	}
 
 	@Test
@@ -116,7 +114,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals(3, counter.get());
+		assertThat(counter.get()).isEqualTo(3);
 		dispatcher.removeHandler(target2);
 		try {
 			dispatcher.dispatch(new GenericMessage<>("test2"));
@@ -124,7 +122,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals(5, counter.get());
+		assertThat(counter.get()).isEqualTo(5);
 		dispatcher.removeHandler(target1);
 		try {
 			dispatcher.dispatch(new GenericMessage<>("test3"));
@@ -132,7 +130,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals(6, counter.get());
+		assertThat(counter.get()).isEqualTo(6);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -147,7 +145,7 @@ public class FailOverDispatcherTests {
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals(1, counter.get());
+		assertThat(counter.get()).isEqualTo(1);
 		dispatcher.removeHandler(target);
 		dispatcher.dispatch(new GenericMessage<>("test2"));
 	}
@@ -162,8 +160,8 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		assertTrue(dispatcher.dispatch(new GenericMessage<>("test")));
-		assertEquals("only the first target should have been invoked", 1, counter.get());
+		assertThat(dispatcher.dispatch(new GenericMessage<>("test"))).isTrue();
+		assertThat(counter.get()).as("only the first target should have been invoked").isEqualTo(1);
 	}
 
 	@Test
@@ -176,8 +174,8 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		assertTrue(dispatcher.dispatch(new GenericMessage<>("test")));
-		assertEquals("first two targets should have been invoked", 2, counter.get());
+		assertThat(dispatcher.dispatch(new GenericMessage<>("test"))).isTrue();
+		assertThat(counter.get()).as("first two targets should have been invoked").isEqualTo(2);
 	}
 
 	@Test
@@ -191,12 +189,12 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
 		try {
-			assertFalse(dispatcher.dispatch(new GenericMessage<>("test")));
+			assertThat(dispatcher.dispatch(new GenericMessage<>("test"))).isFalse();
 		}
 		catch (Exception e) {
 			// ignore
 		}
-		assertEquals("each target should have been invoked", 3, counter.get());
+		assertThat(counter.get()).as("each target should have been invoked").isEqualTo(3);
 	}
 
 

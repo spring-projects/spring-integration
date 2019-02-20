@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,12 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Iterator;
 import java.util.Set;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -64,33 +57,34 @@ public class OutboundChannelAdapterParserTests {
 		ConfigurableApplicationContext context =
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
-		assertTrue(consumer instanceof EventDrivenConsumer);
+		assertThat(consumer instanceof EventDrivenConsumer).isTrue();
 		PublishSubscribeChannel channel = context.getBean("inputChannel", PublishSubscribeChannel.class);
-		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer) consumer).getComponentName());
+		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isEqualTo(channel);
+		assertThat(((EventDrivenConsumer) consumer).getComponentName()).isEqualTo("sftpOutboundAdapter");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler",
 				FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.remoteFileSeparator");
-		assertNotNull(remoteFileSeparator);
-		assertEquals(".", remoteFileSeparator);
-		assertEquals(".bar",
-				TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
+		assertThat(remoteFileSeparator).isNotNull();
+		assertThat(remoteFileSeparator).isEqualTo(".");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class))
+				.isEqualTo(".bar");
 		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.directoryExpressionProcessor.expression");
-		assertNotNull(remoteDirectoryExpression);
-		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
-		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
-		assertEquals(context.getBean("fileNameGenerator"),
-				TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		assertThat(remoteDirectoryExpression).isNotNull();
+		assertThat(remoteDirectoryExpression instanceof LiteralExpression).isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"))
+				.isNotNull();
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"))
+				.isEqualTo(context.getBean("fileNameGenerator"));
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
 		CachingSessionFactory<?> sessionFactory = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.sessionFactory", CachingSessionFactory.class);
 		DefaultSftpSessionFactory clientFactory = TestUtils.getPropertyValue(sessionFactory, "sessionFactory",
 				DefaultSftpSessionFactory.class);
-		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
-		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
-		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(TestUtils.getPropertyValue(clientFactory, "host")).isEqualTo("localhost");
+		assertThat(TestUtils.getPropertyValue(clientFactory, "port")).isEqualTo(2222);
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
 		//verify subscription order
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
@@ -98,10 +92,10 @@ public class OutboundChannelAdapterParserTests {
 						TestUtils.getPropertyValue(channel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(TestUtils.getPropertyValue(context.getBean("sftpOutboundAdapterWithExpression"), "handler"),
-				iterator.next());
-		assertSame(handler, iterator.next());
-		assertEquals(384, TestUtils.getPropertyValue(handler, "chmod"));
+		assertThat(iterator.next())
+				.isSameAs(TestUtils.getPropertyValue(context.getBean("sftpOutboundAdapterWithExpression"), "handler"));
+		assertThat(iterator.next()).isSameAs(handler);
+		assertThat(TestUtils.getPropertyValue(handler, "chmod")).isEqualTo(384);
 		context.close();
 	}
 
@@ -110,19 +104,21 @@ public class OutboundChannelAdapterParserTests {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithExpression");
-		assertTrue(consumer instanceof EventDrivenConsumer);
-		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("sftpOutboundAdapterWithExpression", ((EventDrivenConsumer) consumer).getComponentName());
+		assertThat(consumer instanceof EventDrivenConsumer).isTrue();
+		assertThat(TestUtils.getPropertyValue(consumer, "inputChannel")).isEqualTo(context.getBean("inputChannel"));
+		assertThat(((EventDrivenConsumer) consumer).getComponentName()).isEqualTo("sftpOutboundAdapterWithExpression");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor.expression");
-		assertNotNull(remoteDirectoryExpression);
-		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
+		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler,
+				"remoteFileTemplate.directoryExpressionProcessor.expression");
+		assertThat(remoteDirectoryExpression).isNotNull();
+		assertThat(remoteDirectoryExpression.getExpressionString()).isEqualTo("'foo' + '/' + 'bar'");
 		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator");
 		Expression fileNameGeneratorExpression = TestUtils.getPropertyValue(generator, "expression", Expression.class);
-		assertNotNull(fileNameGeneratorExpression);
-		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression.getExpressionString());
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
-		assertNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
+		assertThat(fileNameGeneratorExpression).isNotNull();
+		assertThat(fileNameGeneratorExpression.getExpressionString()).isEqualTo("payload.getName() + '-foo'");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset")).isEqualTo("UTF-8");
+		assertThat(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"))
+				.isNull();
 		context.close();
 	}
 
@@ -132,7 +128,7 @@ public class OutboundChannelAdapterParserTests {
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithNoTemporaryFileName");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		assertFalse((Boolean) TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName"));
+		assertThat((Boolean) TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName")).isFalse();
 		context.close();
 	}
 
@@ -143,7 +139,7 @@ public class OutboundChannelAdapterParserTests {
 		Object consumer = context.getBean("advised");
 		MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 		context.close();
 	}
 
@@ -155,7 +151,7 @@ public class OutboundChannelAdapterParserTests {
 			fail("Exception expected");
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage(), Matchers.containsString("Only one of 'remote-directory'"));
+			assertThat(e.getMessage()).contains("Only one of 'remote-directory'");
 		}
 
 	}

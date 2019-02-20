@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.DataInputStream;
 
@@ -61,12 +59,11 @@ public class MailSendingMessageHandlerTests {
 	public void textMessage() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
-		assertEquals("no mime message should have been sent",
-				0, mailSender.getSentMimeMessages().size());
-		assertEquals("only one simple message must be sent",
-				1, mailSender.getSentSimpleMailMessages().size());
-		assertEquals("message content different from expected",
-				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
+		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
+		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
+		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+				.isEqualTo(mailMessage);
 	}
 
 	@Test
@@ -80,45 +77,45 @@ public class MailSendingMessageHandlerTests {
 		this.handler.handleMessage(message);
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
-		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
+		assertThat(mimeMessage.getContent() instanceof Multipart).as("message must be multipart").isTrue();
 		int size = new DataInputStream(((Multipart) mimeMessage.getContent()).getBodyPart(0).getInputStream()).read(buffer);
-		assertEquals("buffer size does not match", payload.length, size);
+		assertThat(size).as("buffer size does not match").isEqualTo(payload.length);
 		byte[] messageContent = new byte[size];
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
-		assertArrayEquals("buffer content does not match", payload, messageContent);
-		assertEquals(mimeMessage.getRecipients(Message.RecipientType.TO).length, MailTestsHelper.TO.length);
+		assertThat(messageContent).as("buffer content does not match").isEqualTo(payload);
+		assertThat(MailTestsHelper.TO.length).isEqualTo(mimeMessage.getRecipients(Message.RecipientType.TO).length);
 	}
 
 	@Test
 	public void mailHeaders() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
-		assertEquals("no mime message should have been sent",
-				0, mailSender.getSentMimeMessages().size());
-		assertEquals("only one simple message must be sent",
-				1, mailSender.getSentSimpleMailMessages().size());
-		assertEquals("message content different from expected",
-				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
+		assertThat(mailSender.getSentMimeMessages().size()).as("no mime message should have been sent").isEqualTo(0);
+		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
+		assertThat(mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+				.isEqualTo(mailMessage);
 	}
 	@Test
 	public void simpleMailMessage() {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		String[] toHeaders = mailMessage.getTo();
 		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).build());
-		assertEquals("only one simple message must be sent",
-				1, mailSender.getSentSimpleMailMessages().size());
+		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
 		SimpleMailMessage sentMessage = mailSender.getSentSimpleMailMessages().get(0);
-		assertTrue(sentMessage.getTo().equals(toHeaders));
+		assertThat(sentMessage.getTo().equals(toHeaders)).isTrue();
 	}
 	@Test
 	public void simpleMailMessageOverrideWithHeaders() {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		mailMessage.getTo();
-		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).setHeader(MailHeaders.TO, new String[]{"foo@bar.bam"}).build());
-		assertEquals("only one simple message must be sent",
-				1, mailSender.getSentSimpleMailMessages().size());
+		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).setHeader(MailHeaders.TO, new String[]{"foo" +
+				"@bar.bam"}).build());
+		assertThat(mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
 		SimpleMailMessage sentMessage = mailSender.getSentSimpleMailMessages().get(0);
-		assertTrue(sentMessage.getTo()[0].equals("foo@bar.bam"));
+		assertThat(sentMessage.getTo()[0].equals("foo@bar.bam")).isTrue();
 	}
 
 }

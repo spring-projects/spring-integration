@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -38,7 +37,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy();
-		assertFalse(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isFalse();
 	}
 
 	@Test
@@ -50,7 +49,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy =
 				new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD,
 						-100);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -62,7 +61,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy =
 				new TimeoutCountSequenceSizeReleaseStrategy(1,
 						TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_TIMEOUT);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -75,13 +74,13 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 		messages.add(message1);
 		messages.add(message2);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testEmptyList() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
-		assertTrue(releaseStrategy.canRelease(new SimpleMessageGroup("FOO")));
+		assertThat(releaseStrategy.canRelease(new SimpleMessageGroup("FOO"))).isTrue();
 	}
 
 }

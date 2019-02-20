@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -68,19 +67,19 @@ public class InnerGatewayWithChainTests {
 	@Test
 	public void testExceptionHandledByMainGateway() {
 		String reply = testGatewayWithErrorChannelA.echo(5);
-		assertEquals("ERROR from errorChannelA", reply);
+		assertThat(reply).isEqualTo("ERROR from errorChannelA");
 	}
 
 	@Test
 	public void testExceptionHandledByMainGatewayNoErrorChannelInChain() {
 		String reply = testGatewayWithErrorChannelAA.echo(0);
-		assertEquals("ERROR from errorChannelA", reply);
+		assertThat(reply).isEqualTo("ERROR from errorChannelA");
 	}
 
 	@Test
 	public void testExceptionHandledByInnerGateway() {
 		String reply = testGatewayWithErrorChannelA.echo(0);
-		assertEquals("ERROR from errorChannelB", reply);
+		assertThat(reply).isEqualTo("ERROR from errorChannelB");
 	}
 
 	// if no error channels explicitly defined exception is rethrown
@@ -94,7 +93,7 @@ public class InnerGatewayWithChainTests {
 		CountDownLatch errorLatch = new CountDownLatch(1);
 		errorChannel.subscribe(message -> errorLatch.countDown());
 		inboundAdapterDefaultErrorChannel.start();
-		assertTrue(errorLatch.await(10, TimeUnit.SECONDS));
+		assertThat(errorLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		inboundAdapterDefaultErrorChannel.stop();
 	}
 
@@ -103,7 +102,7 @@ public class InnerGatewayWithChainTests {
 		CountDownLatch errorLatch = new CountDownLatch(1);
 		assignedErrorChannel.subscribe(message -> errorLatch.countDown());
 		inboundAdapterAssignedErrorChannel.start();
-		assertTrue(errorLatch.await(10, TimeUnit.SECONDS));
+		assertThat(errorLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		inboundAdapterAssignedErrorChannel.stop();
 	}
 

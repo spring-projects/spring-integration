@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.springframework.integration.file.splitter;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -88,7 +80,7 @@ public class FileSplitterTests {
 
 	private static File file;
 
-	private static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
+	private static final String SAMPLE_CONTENT = "HelloWorld\n????";
 
 	@Autowired
 	private MessageChannel input1;
@@ -118,80 +110,80 @@ public class FileSplitterTests {
 	public void testFileSplitter() throws Exception {
 		this.input1.send(new GenericMessage<File>(file));
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals("HelloWorld", receive.getPayload());
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getPayload()).isEqualTo("HelloWorld");
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertEquals("äöüß", receive.getPayload());
-		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
-		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(receive.getPayload()).isEqualTo("????");
+		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
+		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input1.send(new GenericMessage<String>(file.getAbsolutePath()));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
-		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
+		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input1.send(new GenericMessage<Reader>(new FileReader(file)));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input2.send(new GenericMessage<File>(file));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input2.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(this.output.receive(1)).isNull();
 
 		try {
 			this.input2.send(new GenericMessage<String>("bar"));
 			fail("FileNotFoundException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause(), instanceOf(FileNotFoundException.class));
-			assertThat(e.getMessage(), containsString("failed to read file [bar]"));
+			assertThat(e.getCause()).isInstanceOf(FileNotFoundException.class);
+			assertThat(e.getMessage()).contains("failed to read file [bar]");
 		}
 		this.input2.send(new GenericMessage<Date>(new Date()));
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(1, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertThat(receive.getPayload(), instanceOf(Date.class));
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(1);
+		assertThat(receive.getPayload()).isInstanceOf(Date.class);
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input3.send(new GenericMessage<File>(file));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(this.output.receive(1)).isNull();
 
 		this.input3.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //HelloWorld
-		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull(); //HelloWorld
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //äöüß
-		assertNull(this.output.receive(1));
+		assertThat(receive).isNotNull(); //????
+		assertThat(this.output.receive(1)).isNull();
 	}
 
 	@Test
@@ -201,23 +193,23 @@ public class FileSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		splitter.handleMessage(new GenericMessage<File>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertNotNull(outputChannel.receive(0));
-		assertNotNull(outputChannel.receive(0));
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.START);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(outputChannel.receive(0)).isNotNull();
+		assertThat(outputChannel.receive(0)).isNotNull();
 		received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(2, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.END);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(2);
 	}
 
 	@Test
@@ -228,24 +220,24 @@ public class FileSplitterTests {
 		File file = File.createTempFile("empty", ".txt");
 		splitter.handleMessage(new GenericMessage<File>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileMarker.Mark.START, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(0, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.START);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(0);
 
 		received = outputChannel.receive(0);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 
-		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileMarker.Mark.END, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(0, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.END);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -256,25 +248,25 @@ public class FileSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		splitter.handleMessage(new GenericMessage<File>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(String.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
+		assertThat(received.getPayload()).isInstanceOf(String.class);
 		String payload = (String) received.getPayload();
-		assertThat(payload, containsString("\"mark\":\"START\",\"lineCount\":0"));
+		assertThat(payload).contains("\"mark\":\"START\",\"lineCount\":0");
 		FileMarker fileMarker = objectMapper.fromJson(payload, FileSplitter.FileMarker.class);
-		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertNotNull(outputChannel.receive(0));
-		assertNotNull(outputChannel.receive(0));
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.START);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(outputChannel.receive(0)).isNotNull();
+		assertThat(outputChannel.receive(0)).isNotNull();
 		received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(String.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
+		assertThat(received.getPayload()).isInstanceOf(String.class);
 		fileMarker = objectMapper.fromJson((String) received.getPayload(), FileSplitter.FileMarker.class);
-		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(2, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.END);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(2);
 	}
 
 	@Test
@@ -288,21 +280,22 @@ public class FileSplitterTests {
 
 		StepVerifier.create(outputChannel)
 				.assertNext(m -> {
-					assertThat(m, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-					assertThat(m, hasHeader(FileHeaders.MARKER, "START"));
-					assertThat(m, hasPayload(instanceOf(FileSplitter.FileMarker.class)));
+					assertThat(m.getHeaders())
+							.containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)
+							.containsEntry(FileHeaders.MARKER, "START");
+					assertThat(m.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
-					assertEquals(FileMarker.Mark.START, fileMarker.getMark());
-					assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+					assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.START);
+					assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
 				})
 				.expectNextCount(2)
 				.assertNext(m -> {
-					assertThat(m, hasHeader(FileHeaders.MARKER, "END"));
-					assertThat(m, hasPayload(instanceOf(FileSplitter.FileMarker.class)));
+					assertThat(m.getHeaders()).containsEntry(FileHeaders.MARKER, "END");
+					assertThat(m.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
-					assertEquals(FileMarker.Mark.END, fileMarker.getMark());
-					assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-					assertEquals(2, fileMarker.getLineCount());
+					assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.END);
+					assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+					assertThat(fileMarker.getLineCount()).isEqualTo(2);
 				})
 				.then(() ->
 						((Subscriber<?>) TestUtils.getPropertyValue(outputChannel, "subscribers", List.class).get(0))
@@ -318,26 +311,26 @@ public class FileSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		splitter.handleMessage(new GenericMessage<>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertNull(received.getHeaders().get("firstLine"));
-		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
+		assertThat(received.getHeaders().get("firstLine")).isNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.START);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
 		received = outputChannel.receive(0);
-		assertEquals("HelloWorld", received.getHeaders().get("firstLine"));
-		assertNotNull(received);
+		assertThat(received.getHeaders().get("firstLine")).isEqualTo("HelloWorld");
+		assertThat(received).isNotNull();
 		received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
-		assertNull(received.getHeaders().get("firstLine"));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
+		assertThat(received.getHeaders().get("firstLine")).isNull();
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(1, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.END);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(1);
 	}
 
 	@Test
@@ -349,23 +342,23 @@ public class FileSplitterTests {
 		File file = File.createTempFile("empty", ".txt");
 		splitter.handleMessage(new GenericMessage<>(file));
 		Message<?> received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertNull(received.getHeaders().get("firstLine"));
-		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
+		assertThat(received.getHeaders().get("firstLine")).isNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("START");
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.START);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
 		received = outputChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
-		assertNull(received.getHeaders().get("firstLine"));
-		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
+		assertThat(received.getHeaders().get("firstLine")).isNull();
+		assertThat(received.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
-		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
-		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
-		assertEquals(0, fileMarker.getLineCount());
+		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.END);
+		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+		assertThat(fileMarker.getLineCount()).isEqualTo(0);
 	}
 
 	@Test

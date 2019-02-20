@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -66,24 +64,24 @@ public class StreamTransformerParserTests {
 	public void directChannelWithStringMessage() {
 		this.directInput.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertArrayEquals("foo".getBytes(), (byte[]) result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat((byte[]) result.getPayload()).isEqualTo("foo".getBytes());
 	}
 
 	@Test
 	public void queueChannelWithStringMessage() {
 		this.queueInput.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertArrayEquals("foo".getBytes(), (byte[]) result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat((byte[]) result.getPayload()).isEqualTo("foo".getBytes());
 	}
 
 	@Test
 	public void charset() {
 		this.charsetChannel.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 }

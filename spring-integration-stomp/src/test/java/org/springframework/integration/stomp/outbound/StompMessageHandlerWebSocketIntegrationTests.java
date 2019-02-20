@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.stomp.outbound;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -114,21 +109,21 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
-		assertTrue(controller.latch.await(10, TimeUnit.SECONDS));
+		assertThat(controller.latch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		Message<?> receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StompSessionConnectedEvent.class);
 
 		// Simple Broker Relay doesn't support RECEIPT Frame, so we check here the 'lost' StompReceiptEvent
 		receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) receive.getPayload();
-		assertEquals(StompCommand.SEND, stompReceiptEvent.getStompCommand());
-		assertEquals("/app/simple", stompReceiptEvent.getDestination());
-		assertTrue(stompReceiptEvent.isLost());
-		assertNotNull(stompReceiptEvent.getMessage());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SEND);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/app/simple");
+		assertThat(stompReceiptEvent.isLost()).isTrue();
+		assertThat(stompReceiptEvent.getMessage()).isNotNull();
 
 		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setDestination("/foo");
@@ -136,22 +131,22 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		this.webSocketOutputChannel.send(message);
 
 		receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StompExceptionEvent.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StompExceptionEvent.class);
 		StompExceptionEvent stompExceptionEvent = (StompExceptionEvent) receive.getPayload();
 		Throwable cause = stompExceptionEvent.getCause();
-		assertThat(cause, instanceOf(MessageDeliveryException.class));
+		assertThat(cause).isInstanceOf(MessageDeliveryException.class);
 		MessageDeliveryException messageDeliveryException = (MessageDeliveryException) cause;
 		Message<?> failedMessage = messageDeliveryException.getFailedMessage();
-		assertThat((String) failedMessage.getPayload(), containsString("preSend intentional Exception"));
+		assertThat((String) failedMessage.getPayload()).contains("preSend intentional Exception");
 
 		receive = this.stompEvents.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(StompReceiptEvent.class);
 		stompReceiptEvent = (StompReceiptEvent) receive.getPayload();
-		assertEquals(StompCommand.SEND, stompReceiptEvent.getStompCommand());
-		assertEquals("/foo", stompReceiptEvent.getDestination());
-		assertTrue(stompReceiptEvent.isLost());
+		assertThat(stompReceiptEvent.getStompCommand()).isEqualTo(StompCommand.SEND);
+		assertThat(stompReceiptEvent.getDestination()).isEqualTo("/foo");
+		assertThat(stompReceiptEvent.isLost()).isTrue();
 	}
 
 	// STOMP Client

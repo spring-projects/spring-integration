@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
@@ -66,41 +65,41 @@ public class CustomObjectNameTests {
 	@Test
 	public void testCustomMBeanRegistration() throws Exception {
 		Set<ObjectName> names = server.queryNames(new ObjectName("custom:type=MessageChannel,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		ObjectName name = names.iterator().next();
-		assertEquals("custom:type=MessageChannel,name=foo", name.toString());
+		assertThat(name.toString()).isEqualTo("custom:type=MessageChannel,name=foo");
 		MBeanInfo mBeanInfo = server.getMBeanInfo(name);
-		assertEquals("custom channel", mBeanInfo.getDescription());
+		assertThat(mBeanInfo.getDescription()).isEqualTo("custom channel");
 		names = server.queryNames(new ObjectName("custom:type=MessageHandler,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		name = names.iterator().next();
-		assertEquals("custom:type=MessageHandler,name=foo", name.toString());
+		assertThat(name.toString()).isEqualTo("custom:type=MessageHandler,name=foo");
 		mBeanInfo = server.getMBeanInfo(name);
-		assertEquals("custom handler", mBeanInfo.getDescription());
+		assertThat(mBeanInfo.getDescription()).isEqualTo("custom handler");
 		Descriptor descriptor = mBeanInfo.getDescriptor();
-		assertEquals("true", descriptor.getFieldValue("log"));
-		assertEquals("foo", descriptor.getFieldValue("logFile"));
-		assertEquals("1000", descriptor.getFieldValue("currencyTimeLimit"));
-		assertEquals("bar", descriptor.getFieldValue("persistLocation"));
-		assertEquals("baz", descriptor.getFieldValue("persistName"));
-		assertEquals("10", descriptor.getFieldValue("persistPeriod"));
-		assertEquals("Never", descriptor.getFieldValue("persistPolicy"));
+		assertThat(descriptor.getFieldValue("log")).isEqualTo("true");
+		assertThat(descriptor.getFieldValue("logFile")).isEqualTo("foo");
+		assertThat(descriptor.getFieldValue("currencyTimeLimit")).isEqualTo("1000");
+		assertThat(descriptor.getFieldValue("persistLocation")).isEqualTo("bar");
+		assertThat(descriptor.getFieldValue("persistName")).isEqualTo("baz");
+		assertThat(descriptor.getFieldValue("persistPeriod")).isEqualTo("10");
+		assertThat(descriptor.getFieldValue("persistPolicy")).isEqualTo("Never");
 		names = server.queryNames(new ObjectName("custom:type=MessageSource,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		name = names.iterator().next();
-		assertEquals("custom:type=MessageSource,name=foo", name.toString());
+		assertThat(name.toString()).isEqualTo("custom:type=MessageSource,name=foo");
 		names = server.queryNames(new ObjectName("custom:type=MessageRouter,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		name = names.iterator().next();
-		assertEquals("custom:type=MessageRouter,name=foo", name.toString());
+		assertThat(name.toString()).isEqualTo("custom:type=MessageRouter,name=foo");
 		names = server.queryNames(new ObjectName("test.custom:type=MessageHandler,*"), null);
-		assertEquals(2, names.size());
+		assertThat(names.size()).isEqualTo(2);
 		Iterator<ObjectName> iterator = names.iterator();
 		name = iterator.next();
-		assertEquals("test.custom:type=MessageHandler,name=standardHandler,bean=handler", name.toString());
+		assertThat(name.toString()).isEqualTo("test.custom:type=MessageHandler,name=standardHandler,bean=handler");
 		name = iterator.next();
-		assertEquals("test.custom:type=MessageHandler,name=errorLogger,bean=internal", name.toString());
-		assertTrue(AopUtils.isJdkDynamicProxy(this.customHandler));
+		assertThat(name.toString()).isEqualTo("test.custom:type=MessageHandler,name=errorLogger,bean=internal");
+		assertThat(AopUtils.isJdkDynamicProxy(this.customHandler)).isTrue();
 	}
 
 	@IntegrationManagedResource(objectName = "${customChannelName}", description = "custom channel")

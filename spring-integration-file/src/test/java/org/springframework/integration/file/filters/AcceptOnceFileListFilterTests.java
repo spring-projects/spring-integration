@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +31,8 @@ import org.springframework.util.StopWatch;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0.4
  *
  */
@@ -46,58 +43,57 @@ public class AcceptOnceFileListFilterTests {
 	public void testPerformance_INT3572() {
 		StopWatch watch = new StopWatch();
 		watch.start();
-		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
 		for (int i = 0; i < 100000; i++) {
 			filter.accept("" + i);
 		}
 		watch.stop();
-		assertTrue(watch.getTotalTimeMillis() < 5000);
+		assertThat(watch.getTotalTimeMillis()).isLessThan(5000);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testCapacity() {
-		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>(2);
-		assertTrue(filter.accept("foo"));
-		assertTrue(filter.accept("bar"));
-		assertFalse(filter.accept("foo"));
-		assertTrue(filter.accept("baz"));
-		assertTrue(filter.accept("foo"));
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>(2);
+		assertThat(filter.accept("foo")).isTrue();
+		assertThat(filter.accept("bar")).isTrue();
+		assertThat(filter.accept("foo")).isFalse();
+		assertThat(filter.accept("baz")).isTrue();
+		assertThat(filter.accept("foo")).isTrue();
 		Queue<String> seen = TestUtils.getPropertyValue(filter, "seen", Queue.class);
-		assertEquals(2, seen.size());
+		assertThat(seen.size()).isEqualTo(2);
 		Set<String> seenSet = TestUtils.getPropertyValue(filter, "seenSet", Set.class);
-		assertEquals(2, seenSet.size());
-		assertThat(seen, contains("baz", "foo"));
-		assertThat(seenSet, containsInAnyOrder("foo", "baz"));
+		assertThat(seenSet.size()).isEqualTo(2);
+		assertThat(seen).containsExactly("baz", "foo");
+		assertThat(seenSet).contains("foo", "baz");
 	}
 
 	@Test
 	public void testRollback() {
-		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
 		doTestRollback(filter);
 	}
 
 	@Test
 	public void testRollbackComposite() {
-		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
-		CompositeFileListFilter<String> composite = new CompositeFileListFilter<String>(
-				Collections.singletonList(filter));
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<>();
+		CompositeFileListFilter<String> composite = new CompositeFileListFilter<>(Collections.singletonList(filter));
 		doTestRollback(composite);
 	}
 
 	protected void doTestRollback(ReversibleFileListFilter<String> filter) {
-		String[] files = new String[] {"foo", "bar", "baz"};
+		String[] files = new String[] { "foo", "bar", "baz" };
 		List<String> passed = filter.filterFiles(files);
-		assertTrue(Arrays.equals(files, passed.toArray()));
+		assertThat(Arrays.equals(files, passed.toArray())).isTrue();
 		List<String> now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 		filter.rollback(passed.get(1), passed);
 		now = filter.filterFiles(files);
-		assertEquals(2, now.size());
-		assertEquals("bar", now.get(0));
-		assertEquals("baz", now.get(1));
+		assertThat(now.size()).isEqualTo(2);
+		assertThat(now.get(0)).isEqualTo("bar");
+		assertThat(now.get(1)).isEqualTo("baz");
 		now = filter.filterFiles(files);
-		assertEquals(0, now.size());
+		assertThat(now.size()).isEqualTo(0);
 	}
 
 }

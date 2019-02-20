@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,12 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -118,8 +106,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.gatewayTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel");
 
 		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 		try {
@@ -127,12 +115,12 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			fail("Exception expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(MessageTransformationException.class));
-			assertThat(e.getCause().getCause(), instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause().getCause().getCause(), instanceOf(java.lang.IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("Expression evaluation failed"));
-			assertThat(e.getMessage(), containsString("Wrong payload"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(MessageTransformationException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause().getCause().getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("Expression evaluation failed");
+			assertThat(e.getMessage()).contains("Wrong payload");
 		}
 	}
 
@@ -142,12 +130,12 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("replyingHandlerTestInputChannel,replyingHandlerTestService",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerTestInputChannel,replyingHandlerTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
-				"MethodInvokerHelper", st)); // close to the metal
+		assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+				"MethodInvokerHelper", st)).isTrue(); // close to the metal
 	}
 
 	@Test
@@ -156,12 +144,12 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.optimizedRefReplyingHandlerTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
-				"MethodInvokerHelper", st)); // close to the metal
+		assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+				"MethodInvokerHelper", st)).isTrue(); // close to the metal
 	}
 
 	@Test
@@ -170,12 +158,13 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerWithStandardMethodTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("TEST", reply.getPayload());
-		assertEquals("replyingHandlerWithStandardMethodTestInputChannel,replyingHandlerWithStandardMethodTestService",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("TEST");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerWithStandardMethodTestInputChannel," +
+						"replyingHandlerWithStandardMethodTestService");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
-				"MethodInvokerHelper", st)); // close to the metal
+		assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+				"MethodInvokerHelper", st)).isTrue(); // close to the metal
 	}
 
 	@Test
@@ -184,9 +173,9 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.replyingHandlerWithOtherMethodTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("bar", reply.getPayload());
-		assertEquals("replyingHandlerWithOtherMethodTestInputChannel,replyingHandlerWithOtherMethodTestService",
-				reply.getHeaders().get("history").toString());
+		assertThat(reply.getPayload()).isEqualTo("bar");
+		assertThat(reply.getHeaders().get("history").toString())
+				.isEqualTo("replyingHandlerWithOtherMethodTestInputChannel,replyingHandlerWithOtherMethodTestService");
 	}
 
 	@Test
@@ -199,7 +188,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	@Test
 	public void testMessageProcessor() {
 		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
-		assertSame(testMessageProcessor, processor);
+		assertThat(processor).isSameAs(testMessageProcessor);
 
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("bar")
@@ -208,8 +197,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 				.build();
 		this.processorTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("foo:bar", reply.getPayload());
-		assertThat(reply, not(hasHeaderKey("foo")));
+		assertThat(reply.getPayload()).isEqualTo("foo:bar");
+		assertThat(reply.getHeaders()).doesNotContainKey("foo");
 	}
 
 	@Test
@@ -220,11 +209,11 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			fail("Expected exception due to 2 endpoints referencing the same bean");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(BeanCreationException.class));
-			assertThat(e.getCause().getCause(), Matchers.instanceOf(IllegalArgumentException.class));
-			assertThat(e.getCause().getCause().getMessage(),
-					Matchers.containsString("An AbstractMessageProducingMessageHandler may only be referenced once"));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause()).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause().getCause().getMessage())
+					.contains("An AbstractMessageProducingMessageHandler may only be referenced once");
 		}
 
 	}
@@ -235,11 +224,11 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.asyncIn.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertNull(reply);
+		assertThat(reply).isNull();
 		this.asyncService.future.set(this.asyncService.payload.toUpperCase());
 		reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("TEST", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("TEST");
 	}
 
 	@Test
@@ -250,10 +239,10 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 		Message<?> message = MessageBuilder.withPayload("testing").setReplyChannel(replyChannel).build();
 		this.asyncIn.send(message);
-		assertNull(reply.get());
+		assertThat(reply.get()).isNull();
 		this.asyncService.future.set(this.asyncService.payload.toUpperCase());
-		assertNotNull(reply.get());
-		assertEquals("TESTING", reply.get().getPayload());
+		assertThat(reply.get()).isNotNull();
+		assertThat(reply.get().getPayload()).isEqualTo("TESTING");
 	}
 
 	@Test
@@ -263,12 +252,12 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.asyncIn.send(message);
 		this.asyncService.future.setException(new RuntimeException("intended"));
 		Message<?> error = errorChannel.receive(0);
-		assertNotNull(error);
-		assertThat(error, instanceOf(ErrorMessage.class));
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(RuntimeException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause().getMessage(), equalTo("intended"));
-		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertThat(error).isNotNull();
+		assertThat(error).isInstanceOf(ErrorMessage.class);
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) error.getPayload()).getCause()).isInstanceOf(RuntimeException.class);
+		assertThat(((MessagingException) error.getPayload()).getCause().getMessage()).isEqualTo("intended");
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -277,12 +266,12 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.asyncIn.send(message);
 		this.asyncService.future.setException(new RuntimeException("intended"));
 		Message<?> error = this.errorChannel.receive(0);
-		assertNotNull(error);
-		assertThat(error, instanceOf(ErrorMessage.class));
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(RuntimeException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause().getMessage(), equalTo("intended"));
-		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertThat(error).isNotNull();
+		assertThat(error).isInstanceOf(ErrorMessage.class);
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) error.getPayload()).getCause()).isInstanceOf(RuntimeException.class);
+		assertThat(((MessagingException) error.getPayload()).getCause().getMessage()).isEqualTo("intended");
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -291,8 +280,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.processorViaFunctionChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals("TEST", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("TEST");
 	}
 
 	public static void throwIllegalStateException(String message) {
@@ -314,8 +303,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
 			// use this to test that StackTraceUtils works as expected and returns false
-			assertFalse(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
-					"MethodInvokerHelper", st));
+			assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+					"MethodInvokerHelper", st)).isFalse();
 			return "bar";
 		}
 
@@ -328,8 +317,8 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public void handleMessage(Message<?> requestMessage) {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
-			assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
-					"MethodInvokerHelper", st)); // close to the metal
+			assertThat(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
+					"MethodInvokerHelper", st)).isTrue(); // close to the metal
 		}
 
 	}

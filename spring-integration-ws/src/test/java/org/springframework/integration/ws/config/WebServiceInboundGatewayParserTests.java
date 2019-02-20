@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -99,10 +93,10 @@ public class WebServiceInboundGatewayParserTests {
 
 	@Test
 	public void simpleGatewayProperties() {
-		assertSame(this.requestsVerySimple, this.simpleGateway.getRequestChannel());
-		assertSame(this.customErrorChannel, this.simpleGateway.getErrorChannel());
-		assertFalse(this.simpleGateway.isAutoStartup());
-		assertEquals(101, this.simpleGateway.getPhase());
+		assertThat(this.simpleGateway.getRequestChannel()).isSameAs(this.requestsVerySimple);
+		assertThat(this.simpleGateway.getErrorChannel()).isSameAs(this.customErrorChannel);
+		assertThat(this.simpleGateway.isAutoStartup()).isFalse();
+		assertThat(this.simpleGateway.getPhase()).isEqualTo(101);
 	}
 
 	//extractPayload = false
@@ -114,30 +108,29 @@ public class WebServiceInboundGatewayParserTests {
 	public void extractPayloadSet() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				payloadExtractingGateway);
-		assertThat((Boolean) accessor.getPropertyValue("extractPayload"),
-				is(false));
+		assertThat((Boolean) accessor.getPropertyValue("extractPayload")).isFalse();
 	}
 
 	@Test
 	public void marshallersSet() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
 
-		assertThat(accessor.getPropertyValue("marshaller"), is(marshaller));
-		assertThat(accessor.getPropertyValue("unmarshaller"), is(marshaller));
+		assertThat(accessor.getPropertyValue("marshaller")).isEqualTo(marshaller);
+		assertThat(accessor.getPropertyValue("unmarshaller")).isEqualTo(marshaller);
 
-		assertTrue("messaging gateway is not running", this.marshallingGateway.isRunning());
+		assertThat(this.marshallingGateway.isRunning()).as("messaging gateway is not running").isTrue();
 
-		assertSame(this.customErrorChannel, this.marshallingGateway.getErrorChannel());
+		assertThat(this.marshallingGateway.getErrorChannel()).isSameAs(this.customErrorChannel);
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
 				"headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertTrue(requestHeaderMatcher.matchHeader("testRequest"));
-		assertFalse(requestHeaderMatcher.matchHeader("testReply"));
+		assertThat(requestHeaderMatcher.matchHeader("testRequest")).isTrue();
+		assertThat(requestHeaderMatcher.matchHeader("testReply")).isFalse();
 
 		AbstractHeaderMapper.HeaderMatcher replyHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
 				"headerMapper.replyHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
-		assertFalse(replyHeaderMatcher.matchHeader("testRequest"));
-		assertTrue(replyHeaderMatcher.matchHeader("testReply"));
+		assertThat(replyHeaderMatcher.matchHeader("testRequest")).isFalse();
+		assertThat(replyHeaderMatcher.matchHeader("testReply")).isTrue();
 	}
 
 	@Test
@@ -149,10 +142,10 @@ public class WebServiceInboundGatewayParserTests {
 		marshallingGateway.invoke(context);
 		Message<?> message = requestsMarshalling.receive(100);
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("ws:inbound-gateway");
 	}
 
 	@Test
@@ -161,10 +154,10 @@ public class WebServiceInboundGatewayParserTests {
 		payloadExtractingGateway.invoke(context);
 		Message<?> message = requestsSimple.receive(100);
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("ws:inbound-gateway");
 	}
 
 	@Autowired
@@ -177,7 +170,7 @@ public class WebServiceInboundGatewayParserTests {
 	public void testHeaderMapperReference() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
 		Object headerMapper = accessor.getPropertyValue("headerMapper");
-		assertEquals(testHeaderMapper, headerMapper);
+		assertThat(headerMapper).isEqualTo(testHeaderMapper);
 	}
 
 	@Autowired
@@ -188,7 +181,7 @@ public class WebServiceInboundGatewayParserTests {
 	public void testReplyTimeout() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(replyTimeoutGateway);
 		Object replyTimeout = accessor.getPropertyValue("replyTimeout");
-		assertEquals(1234L, replyTimeout);
+		assertThat(replyTimeout).isEqualTo(1234L);
 	}
 
 

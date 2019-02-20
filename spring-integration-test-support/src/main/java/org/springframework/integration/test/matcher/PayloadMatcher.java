@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.test.matcher;
 
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.IsEqual;
@@ -82,12 +81,10 @@ public class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {
 
 	}
 
-	@Factory
 	public static <P> PayloadMatcher<P> hasPayload(P payload) {
 		return new PayloadMatcher<>(IsEqual.equalTo(payload));
 	}
 
-	@Factory
 	public static <P> PayloadMatcher<P> hasPayload(Matcher<P> payloadMatcher) {
 		return new PayloadMatcher<>(payloadMatcher);
 	}

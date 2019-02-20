@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.ip.dsl;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -105,7 +100,7 @@ public class IpIntegrationTests {
 	public void testTcpAdapters() {
 		ApplicationEventPublisher publisher = e -> { };
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").get();
-		assertEquals("server", server.getComponentName());
+		assertThat(server.getComponentName()).isEqualTo("server");
 		server.setApplicationEventPublisher(publisher);
 		server.afterPropertiesSet();
 		TcpReceivingChannelAdapter inbound = Tcp.inboundAdapter(server).get();
@@ -115,15 +110,15 @@ public class IpIntegrationTests {
 		inbound.start();
 		TestingUtilities.waitListening(server, null);
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).id("client").get();
-		assertEquals("client", client.getComponentName());
+		assertThat(client.getComponentName()).isEqualTo("client");
 		client.setApplicationEventPublisher(publisher);
 		client.afterPropertiesSet();
 		TcpSendingMessageHandler handler = Tcp.outboundAdapter(client).get();
 		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
 		Message<?> receivedMessage = received.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals("foo", Transformers.objectToString().transform(receivedMessage).getPayload());
+		assertThat(receivedMessage).isNotNull();
+		assertThat(Transformers.objectToString().transform(receivedMessage).getPayload()).isEqualTo("foo");
 		client.stop();
 		server.stop();
 	}
@@ -137,22 +132,22 @@ public class IpIntegrationTests {
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.clientTcpFlowInput);
 
-		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class), equalTo("FOO"));
+		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 
-		assertTrue(this.adviceCalled.get());
+		assertThat(this.adviceCalled.get()).isTrue();
 	}
 
 	@Test
 	public void testUdp() throws Exception {
-		assertTrue(this.config.listeningLatch.await(10, TimeUnit.SECONDS));
-		assertEquals(this.udpInbound.getPort(), this.config.serverPort);
+		assertThat(this.config.listeningLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.serverPort).isEqualTo(this.udpInbound.getPort());
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("udp_dest", "udp://localhost:" + this.udpInbound.getPort())
 				.build();
 		this.udpOut.send(outMessage);
 		Message<?> received = this.udpIn.receive(10000);
-		assertNotNull(received);
-		assertEquals("foo", Transformers.objectToString().transform(received).getPayload());
+		assertThat(received).isNotNull();
+		assertThat(Transformers.objectToString().transform(received).getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -166,7 +161,7 @@ public class IpIntegrationTests {
 		UdpMulticastOutboundChannelAdapterSpec udpMulticastOutboundChannelAdapterSpec2 =
 				udpMulticastOutboundChannelAdapterSpec1.timeToLive(10);
 
-		assertThat(udpMulticastOutboundChannelAdapterSpec2.get(), instanceOf(MulticastSendingMessageHandler.class));
+		assertThat(udpMulticastOutboundChannelAdapterSpec2.get()).isInstanceOf(MulticastSendingMessageHandler.class);
 	}
 
 	@Configuration

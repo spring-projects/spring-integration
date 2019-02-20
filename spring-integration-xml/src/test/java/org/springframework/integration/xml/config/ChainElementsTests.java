@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
@@ -56,8 +53,9 @@ public class ChainElementsTests {
 					"The 'input-channel' attribute isn't allowed for a nested " +
 					"(e.g. inside a <chain/>) endpoint element: 'int-xml:xpath-transformer'.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat(actualMessage.startsWith(expectedMessage))
+					.as("Error message did not start with '" + expectedMessage +
+							"' but instead returned: '" + actualMessage + "'").isTrue();
 		}
 
 	}
@@ -65,7 +63,7 @@ public class ChainElementsTests {
 	@Test
 	public void chainXPathTransformerId() throws Exception {
 		try (ConfigurableApplicationContext ctx = bootStrap("xpath-transformer-id")) {
-			assertNotNull(ctx.getBean(XPathTransformer.class));
+			assertThat(ctx.getBean(XPathTransformer.class)).isNotNull();
 		}
 	}
 
@@ -80,8 +78,9 @@ public class ChainElementsTests {
 					"'int-xml:xpath-router' must not define an 'order' attribute " +
 					"when used within a chain.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat(actualMessage.startsWith(expectedMessage))
+					.as("Error message did not start with '" + expectedMessage +
+							"' but instead returned: '" + actualMessage + "'").isTrue();
 		}
 
 	}
@@ -97,15 +96,15 @@ public class ChainElementsTests {
 					"'int-xml:xpath-transformer' must not define a 'poller' " +
 					"sub-element when used within a chain.";
 			final String actualMessage = e.getMessage();
-			assertThat("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage, startsWith(expectedMessage));
+			assertThat(actualMessage).as("Error message did not start with '" + expectedMessage +
+					"' but instead returned: '" + actualMessage + "'").startsWith(expectedMessage);
 		}
 	}
 
 	@Test
 	public void chainXPathTransformerSuccess() throws Exception {
 		try (ConfigurableApplicationContext ctx = bootStrap("xpath-transformer-success")) {
-			assertNotNull(ctx.getBean(XPathTransformer.class));
+			assertThat(ctx.getBean(XPathTransformer.class)).isNotNull();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,13 +50,13 @@ public class CGLibProxyHandlerTests {
 
 	@Test
 	public void testProxyBridge() {
-		assertTrue(AopUtils.isCglibProxy(this.bridge));
+		assertThat(AopUtils.isCglibProxy(this.bridge)).isTrue();
 		this.bridge.handleMessage(new GenericMessage<>("foo"));
 		Message<?> received = this.out.receive(0);
-		assertNotNull(received);
-		assertNotNull(received.getHeaders().get(MessageHistory.HEADER_NAME));
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(MessageHistory.HEADER_NAME)).isNotNull();
 		MessageHistory history = received.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class);
-		assertThat(history.size(), equalTo(2));
+		assertThat(history.size()).isEqualTo(2);
 	}
 
 	@Configuration

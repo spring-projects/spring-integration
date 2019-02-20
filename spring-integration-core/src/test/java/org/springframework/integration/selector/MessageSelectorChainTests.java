@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.selector;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -41,7 +40,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -52,7 +51,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 	@Test
@@ -62,7 +61,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -72,7 +71,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 	@Test
@@ -82,7 +81,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -93,7 +92,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -103,7 +102,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 	@Test
@@ -114,7 +113,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 	@Test
@@ -124,7 +123,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -135,7 +134,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
-		assertTrue(chain.accept(message));
+		assertThat(chain.accept(message)).isTrue();
 	}
 
 	@Test
@@ -145,7 +144,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 	@Test
@@ -156,7 +155,7 @@ public class MessageSelectorChainTests {
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
-		assertFalse(chain.accept(message));
+		assertThat(chain.accept(message)).isFalse();
 	}
 
 

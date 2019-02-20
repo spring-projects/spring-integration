@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,12 +61,12 @@ public class SubscriberOrderTests {
 		channel.send(new GenericMessage<String>("test-4"));
 		channel.send(new GenericMessage<String>("test-5"));
 		List<Integer> calls = testBean.calls;
-		assertEquals(5, calls.size());
-		assertEquals(1, calls.get(0).intValue());
-		assertEquals(2, calls.get(1).intValue());
-		assertEquals(3, calls.get(2).intValue());
-		assertEquals(4, calls.get(3).intValue());
-		assertEquals(5, calls.get(4).intValue());
+		assertThat(calls.size()).isEqualTo(5);
+		assertThat(calls.get(0).intValue()).isEqualTo(1);
+		assertThat(calls.get(1).intValue()).isEqualTo(2);
+		assertThat(calls.get(2).intValue()).isEqualTo(3);
+		assertThat(calls.get(3).intValue()).isEqualTo(4);
+		assertThat(calls.get(4).intValue()).isEqualTo(5);
 		context.close();
 	}
 
@@ -94,21 +94,21 @@ public class SubscriberOrderTests {
 		channel.send(new GenericMessage<String>("test-8"));
 		channel.send(new GenericMessage<String>("test-9"));
 		channel.send(new GenericMessage<String>("test-10"));
-		assertEquals(10, testBean.calls.size());
-		assertEquals(1, testBean.calls.get(0).intValue());
-		assertEquals(1, testBean.calls.get(1).intValue());
-		assertEquals(2, testBean.calls.get(2).intValue());
-		assertEquals(2, testBean.calls.get(3).intValue());
-		assertEquals(3, testBean.calls.get(4).intValue());
-		assertEquals(3, testBean.calls.get(5).intValue());
-		assertEquals(4, testBean.calls.get(6).intValue());
-		assertEquals(4, testBean.calls.get(7).intValue());
-		assertEquals(5, testBean.calls.get(8).intValue());
-		assertEquals(5, testBean.calls.get(9).intValue());
+		assertThat(testBean.calls.size()).isEqualTo(10);
+		assertThat(testBean.calls.get(0).intValue()).isEqualTo(1);
+		assertThat(testBean.calls.get(1).intValue()).isEqualTo(1);
+		assertThat(testBean.calls.get(2).intValue()).isEqualTo(2);
+		assertThat(testBean.calls.get(3).intValue()).isEqualTo(2);
+		assertThat(testBean.calls.get(4).intValue()).isEqualTo(3);
+		assertThat(testBean.calls.get(5).intValue()).isEqualTo(3);
+		assertThat(testBean.calls.get(6).intValue()).isEqualTo(4);
+		assertThat(testBean.calls.get(7).intValue()).isEqualTo(4);
+		assertThat(testBean.calls.get(8).intValue()).isEqualTo(5);
+		assertThat(testBean.calls.get(9).intValue()).isEqualTo(5);
 		testBean.reset();
 		channel.send(new GenericMessage<String>("test-11"));
-		assertEquals(1, testBean.calls.size());
-		assertEquals(1, testBean.calls.get(0).intValue());
+		assertThat(testBean.calls.size()).isEqualTo(1);
+		assertThat(testBean.calls.get(0).intValue()).isEqualTo(1);
 		context.close();
 	}
 
@@ -131,12 +131,12 @@ public class SubscriberOrderTests {
 		channel.send(new GenericMessage<String>("test-4"));
 		channel.send(new GenericMessage<String>("test-5"));
 		List<Integer> calls = testBean.calls;
-		assertEquals(5, calls.size());
-		assertEquals(1, calls.get(0).intValue());
-		assertEquals(2, calls.get(1).intValue());
-		assertEquals(3, calls.get(2).intValue());
-		assertEquals(4, calls.get(3).intValue());
-		assertEquals(5, calls.get(4).intValue());
+		assertThat(calls.size()).isEqualTo(5);
+		assertThat(calls.get(0).intValue()).isEqualTo(1);
+		assertThat(calls.get(1).intValue()).isEqualTo(2);
+		assertThat(calls.get(2).intValue()).isEqualTo(3);
+		assertThat(calls.get(3).intValue()).isEqualTo(4);
+		assertThat(calls.get(4).intValue()).isEqualTo(5);
 		context.close();
 	}
 

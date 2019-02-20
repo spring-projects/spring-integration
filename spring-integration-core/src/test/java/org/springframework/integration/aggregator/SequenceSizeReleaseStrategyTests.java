@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -39,7 +38,7 @@ public class SequenceSizeReleaseStrategyTests {
 		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
-		assertFalse(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isFalse();
 	}
 
 	@Test
@@ -50,13 +49,13 @@ public class SequenceSizeReleaseStrategyTests {
 		messages.add(message1);
 		messages.add(message2);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
 	public void testEmptyList() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
-		assertTrue(releaseStrategy.canRelease(new SimpleMessageGroup("FOO")));
+		assertThat(releaseStrategy.canRelease(new SimpleMessageGroup("FOO"))).isTrue();
 	}
 
 	@Test
@@ -67,7 +66,7 @@ public class SequenceSizeReleaseStrategyTests {
 		Message<String> message = MessageBuilder.withPayload("test1").setSequenceSize(1).build();
 		messages.add(message);
 		messages.remove(message);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
@@ -77,7 +76,7 @@ public class SequenceSizeReleaseStrategyTests {
 
 		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 
-		assertTrue(releaseStrategy.canRelease(groupWithFirstMessagesOfIncompleteSequence(messages)));
+		assertThat(releaseStrategy.canRelease(groupWithFirstMessagesOfIncompleteSequence(messages))).isTrue();
 	}
 
 	private SimpleMessageGroup groupWithFirstMessagesOfIncompleteSequence(SimpleMessageGroup messages) {
@@ -96,7 +95,7 @@ public class SequenceSizeReleaseStrategyTests {
 
 		boolean canRelease = releaseStrategy.canRelease(groupWithLastAndFirstMessagesOfIncompleteSequence());
 
-		assertTrue(canRelease);
+		assertThat(canRelease).isTrue();
 	}
 
 	private MessageGroup groupWithLastAndFirstMessagesOfIncompleteSequence() {
@@ -124,15 +123,15 @@ public class SequenceSizeReleaseStrategyTests {
 		Message<String> message5 = MessageBuilder.withPayload("test5").setSequenceSize(5).setSequenceNumber(5).build();
 
 		messages.add(message5);
-		assertFalse(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isFalse();
 		messages.add(message1);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 		messages.add(message2);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 		messages.add(message3);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 		messages.add(message4);
-		assertTrue(releaseStrategy.canRelease(messages));
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 }

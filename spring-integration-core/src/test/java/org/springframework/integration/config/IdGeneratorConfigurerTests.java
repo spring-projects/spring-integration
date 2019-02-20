@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,13 +47,13 @@ public class IdGeneratorConfigurerTests {
 		context.registerBeanDefinition("foo", new RootBeanDefinition(MyIdGenerator.class));
 		context.refresh();
 		MessageHeaders headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 		context.close();
 		headers = new MessageHeaders(null);
-		assertNotEquals(1, headers.getId().getMostSignificantBits());
-		assertNotEquals(2, headers.getId().getLeastSignificantBits());
-		assertNull(TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(headers.getId().getMostSignificantBits()).isNotEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isNotEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -69,7 +66,7 @@ public class IdGeneratorConfigurerTests {
 
 		// multiple beans are ignored with warning
 		MessageHeaders headers = new MessageHeaders(null);
-		assertNull(TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
 
 		context.close();
 	}
@@ -81,7 +78,7 @@ public class IdGeneratorConfigurerTests {
 		context.refresh();
 
 		MessageHeaders headers = new MessageHeaders(null);
-		assertNull(TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
 
 		context.close();
 	}
@@ -93,8 +90,8 @@ public class IdGeneratorConfigurerTests {
 		context.registerBeanDefinition("foo", new RootBeanDefinition(MyIdGenerator.class));
 		context.refresh();
 		MessageHeaders headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 
 		GenericApplicationContext context2 = new GenericApplicationContext();
 		context2.registerBeanDefinition("bfpp", new RootBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class));
@@ -105,10 +102,10 @@ public class IdGeneratorConfigurerTests {
 		context2.close();
 
 		headers = new MessageHeaders(null);
-		assertNotEquals(1, headers.getId().getMostSignificantBits());
-		assertNotEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isNotEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isNotEqualTo(2);
 
-		assertNull(TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -118,8 +115,8 @@ public class IdGeneratorConfigurerTests {
 		context.registerBeanDefinition("foo", new RootBeanDefinition(MyIdGenerator.class));
 		context.refresh();
 		MessageHeaders headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 
 		GenericApplicationContext context2 = new GenericApplicationContext();
 		context2.registerBeanDefinition("bfpp", new RootBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class));
@@ -129,16 +126,16 @@ public class IdGeneratorConfigurerTests {
 		context.close();
 		// we should still use the custom strategy
 		headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 
 		context2.close();
 		// back to default
 		headers = new MessageHeaders(null);
-		assertNotEquals(1, headers.getId().getMostSignificantBits());
-		assertNotEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isNotEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isNotEqualTo(2);
 
-		assertNull(TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isNull();
 	}
 
 	@Test
@@ -148,8 +145,8 @@ public class IdGeneratorConfigurerTests {
 		context.registerBeanDefinition("foo", new RootBeanDefinition(MyIdGenerator.class));
 		context.refresh();
 		MessageHeaders headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 
 		GenericApplicationContext context2 = new GenericApplicationContext();
 		context2.registerBeanDefinition("bfpp", new RootBeanDefinition(DefaultConfiguringBeanFactoryPostProcessor.class));
@@ -159,8 +156,8 @@ public class IdGeneratorConfigurerTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertEquals("'MessageHeaders.idGenerator' has already been set and can not be set again",
-					e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("'MessageHeaders.idGenerator' has already been set and can not be set again");
 		}
 
 		context.close();
@@ -174,7 +171,7 @@ public class IdGeneratorConfigurerTests {
 		context.registerBeanDefinition("foo", new RootBeanDefinition(JdkIdGenerator.class));
 		context.refresh();
 		MessageHeaders headers = new MessageHeaders(null);
-		assertSame(context.getBean(IdGenerator.class), TestUtils.getPropertyValue(headers, "idGenerator"));
+		assertThat(TestUtils.getPropertyValue(headers, "idGenerator")).isSameAs(context.getBean(IdGenerator.class));
 
 		context.close();
 	}
@@ -187,19 +184,19 @@ public class IdGeneratorConfigurerTests {
 		context.refresh();
 		IdGenerator idGenerator = context.getBean(IdGenerator.class);
 		MessageHeaders headers = new MessageHeaders(null);
-		assertEquals(0, headers.getId().getMostSignificantBits());
-		assertEquals(1, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(0);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(1);
 		headers = new MessageHeaders(null);
-		assertEquals(0, headers.getId().getMostSignificantBits());
-		assertEquals(2, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(0);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(2);
 		AtomicLong bottomBits = TestUtils.getPropertyValue(idGenerator, "bottomBits", AtomicLong.class);
 		bottomBits.set(0xffffffff);
 		headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(0, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(0);
 		headers = new MessageHeaders(null);
-		assertEquals(1, headers.getId().getMostSignificantBits());
-		assertEquals(1, headers.getId().getLeastSignificantBits());
+		assertThat(headers.getId().getMostSignificantBits()).isEqualTo(1);
+		assertThat(headers.getId().getLeastSignificantBits()).isEqualTo(1);
 
 		context.close();
 	}

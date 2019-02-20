@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -66,7 +66,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
-			assertEquals("bar", siReplyMessage.getPayload());
+			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();
@@ -94,7 +94,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
-			assertEquals("bar", siReplyMessage.getPayload());
+			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();
@@ -122,7 +122,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
-			assertEquals("bar", siReplyMessage.getPayload());
+			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();

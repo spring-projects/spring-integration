@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -70,38 +65,38 @@ public class DefaultOutboundChannelAdapterParserTests {
 	@Test
 	public void checkConfig() {
 		Object adapter = context.getBean("adapter");
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
-		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
-		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(handler.getClass()).isEqualTo(MethodInvokingMessageHandler.class);
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(99);
 	}
 
 	@Test
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertThat(TestUtils.getPropertyValue(adapter, "autoStartup")).isEqualTo(Boolean.FALSE);
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
-		assertTrue(AopUtils.isAopProxy(handler));
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
-				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+		assertThat(AopUtils.isAopProxy(handler)).isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
+				.isInstanceOf(RequestHandlerRetryAdvice.class);
 
 		handler.handleMessage(new GenericMessage<>("foo"));
 		QueueChannel recovery = context.getBean("recovery", QueueChannel.class);
 		Message<?> received = recovery.receive(10000);
-		assertNotNull(received);
-		assertThat(received, instanceOf(ErrorMessage.class));
-		assertThat(received.getPayload(), instanceOf(MessagingException.class));
-		assertEquals("foo", ((MessagingException) received.getPayload()).getFailedMessage().getPayload());
+		assertThat(received).isNotNull();
+		assertThat(received).isInstanceOf(ErrorMessage.class);
+		assertThat(received.getPayload()).isInstanceOf(MessagingException.class);
+		assertThat(((MessagingException) received.getPayload()).getFailedMessage().getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void checkConfigWithInnerMessageHandler() {
 		Object adapter = context.getBean("adapterC");
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
-		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
-		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
+		assertThat(handler.getClass()).isEqualTo(MethodInvokingMessageHandler.class);
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(99);
 		Object targetObject = TestUtils.getPropertyValue(handler, "processor.delegate.targetObject");
-		assertEquals(TestConsumer.class, targetObject.getClass());
+		assertThat(targetObject.getClass()).isEqualTo(TestConsumer.class);
 	}
 
 

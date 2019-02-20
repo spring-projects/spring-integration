@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,10 +71,10 @@ public class GatewayProxyMessageMappingTests {
 		m.put("k2", "v2");
 		gateway.payloadAndHeaderMapWithoutAnnotations("foo", m);
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
-		assertEquals("v1", result.getHeaders().get("k1"));
-		assertEquals("v2", result.getHeaders().get("k2"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
+		assertThat(result.getHeaders().get("k1")).isEqualTo("v1");
+		assertThat(result.getHeaders().get("k2")).isEqualTo("v2");
 	}
 
 	@Test
@@ -86,20 +84,20 @@ public class GatewayProxyMessageMappingTests {
 		m.put("k2", "v2");
 		gateway.payloadAndHeaderMapWithAnnotations("foo", m);
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("foo", result.getPayload());
-		assertEquals("v1", result.getHeaders().get("k1"));
-		assertEquals("v2", result.getHeaders().get("k2"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foo");
+		assertThat(result.getHeaders().get("k1")).isEqualTo("v1");
+		assertThat(result.getHeaders().get("k2")).isEqualTo("v2");
 	}
 
 	@Test
 	public void headerValuesAndPayloadWithAnnotations() throws Exception {
 		gateway.headerValuesAndPayloadWithAnnotations("headerValue1", "payloadValue", "headerValue2");
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("payloadValue", result.getPayload());
-		assertEquals("headerValue1", result.getHeaders().get("k1"));
-		assertEquals("headerValue2", result.getHeaders().get("k2"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("payloadValue");
+		assertThat(result.getHeaders().get("k1")).isEqualTo("headerValue1");
+		assertThat(result.getHeaders().get("k2")).isEqualTo("headerValue2");
 	}
 
 	@Test
@@ -109,10 +107,10 @@ public class GatewayProxyMessageMappingTests {
 		map.put("k2", "v2");
 		gateway.mapOnly(map);
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals(map, result.getPayload());
-		assertNull(result.getHeaders().get("k1"));
-		assertNull(result.getHeaders().get("k2"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(map);
+		assertThat(result.getHeaders().get("k1")).isNull();
+		assertThat(result.getHeaders().get("k2")).isNull();
 	}
 
 	@Test
@@ -123,18 +121,18 @@ public class GatewayProxyMessageMappingTests {
 		map2.put("k2", "v2");
 		gateway.twoMapsAndOneAnnotatedWithPayload(map1, map2);
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals(map1, result.getPayload());
-		assertEquals("v2", result.getHeaders().get("k2"));
-		assertNull(result.getHeaders().get("k1"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(map1);
+		assertThat(result.getHeaders().get("k2")).isEqualTo("v2");
+		assertThat(result.getHeaders().get("k1")).isNull();
 	}
 
 	@Test
 	public void payloadAnnotationAtMethodLevel() throws Exception {
 		gateway.payloadAnnotationAtMethodLevel("foo", "bar");
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("foobar!", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("foobar!");
 	}
 
 	@Test
@@ -151,8 +149,8 @@ public class GatewayProxyMessageMappingTests {
 		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
 		gateway.payloadAnnotationAtMethodLevelUsingBeanResolver("foo");
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("FOO!!!", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("FOO!!!");
 		context.close();
 	}
 
@@ -160,8 +158,8 @@ public class GatewayProxyMessageMappingTests {
 	public void payloadAnnotationWithExpression() throws Exception {
 		gateway.payloadAnnotationWithExpression("foo");
 		Message<?> result = channel.receive(0);
-		assertNotNull(result);
-		assertEquals("FOO", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -179,12 +177,12 @@ public class GatewayProxyMessageMappingTests {
 		gateway.payloadAnnotationWithExpressionUsingBeanResolver("foo");
 		gateway.payloadAnnotationWithExpressionUsingBeanResolver("bar");
 		Message<?> fooResult = channel.receive(0);
-		assertNotNull(fooResult);
-		assertEquals(324, fooResult.getPayload());
+		assertThat(fooResult).isNotNull();
+		assertThat(fooResult.getPayload()).isEqualTo(324);
 		Message<?> barResult = channel.receive(0);
-		assertNotNull(barResult);
-		assertEquals(309, barResult.getPayload());
-		assertNull(channel.receive(0));
+		assertThat(barResult).isNotNull();
+		assertThat(barResult.getPayload()).isEqualTo(309);
+		assertThat(channel.receive(0)).isNull();
 		context.close();
 	}
 

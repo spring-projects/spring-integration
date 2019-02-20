@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,9 +68,9 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root.size()");
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals(5, resultMessage.getPayload());
+		assertThat(resultMessage.getPayload()).isEqualTo(5);
 	}
 
 	@Test
@@ -81,9 +80,9 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals("bar", resultMessage.getHeaders().get("foo"));
+		assertThat(resultMessage.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -92,16 +91,16 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		processor = new ExpressionEvaluatingMessageGroupProcessor("![payload]");
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertTrue(resultMessage.getPayload() instanceof Collection<?>);
+		assertThat(resultMessage.getPayload() instanceof Collection<?>).isTrue();
 		Collection<?> list = (Collection<?>) resultMessage.getPayload();
-		assertEquals(5, list.size());
-		assertTrue(list.contains(1));
-		assertTrue(list.contains(2));
-		assertTrue(list.contains(3));
-		assertTrue(list.contains(4));
-		assertTrue(list.contains(5));
+		assertThat(list.size()).isEqualTo(5);
+		assertThat(list.contains(1)).isTrue();
+		assertThat(list.contains(2)).isTrue();
+		assertThat(list.contains(3)).isTrue();
+		assertThat(list.contains(4)).isTrue();
+		assertThat(list.contains(5)).isTrue();
 	}
 
 	@Test
@@ -110,14 +109,14 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		processor = new ExpressionEvaluatingMessageGroupProcessor("?[payload>2].![payload]");
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertTrue(resultMessage.getPayload() instanceof Collection<?>);
+		assertThat(resultMessage.getPayload() instanceof Collection<?>).isTrue();
 		Collection<?> list = (Collection<?>) resultMessage.getPayload();
-		assertEquals(3, list.size());
-		assertTrue(list.contains(3));
-		assertTrue(list.contains(4));
-		assertTrue(list.contains(5));
+		assertThat(list.size()).isEqualTo(3);
+		assertThat(list.contains(3)).isTrue();
+		assertThat(list.contains(4)).isTrue();
+		assertThat(list.contains(5)).isTrue();
 	}
 
 	@Test
@@ -127,9 +126,9 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 				getClass().getName()));
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
-		assertTrue(result instanceof AbstractIntegrationMessageBuilder<?>);
+		assertThat(result instanceof AbstractIntegrationMessageBuilder<?>).isTrue();
 		Message<?> resultMessage = ((AbstractIntegrationMessageBuilder<?>) result).build();
-		assertEquals(3 + 4 + 5, resultMessage.getPayload());
+		assertThat(resultMessage.getPayload()).isEqualTo(3 + 4 + 5);
 	}
 
 

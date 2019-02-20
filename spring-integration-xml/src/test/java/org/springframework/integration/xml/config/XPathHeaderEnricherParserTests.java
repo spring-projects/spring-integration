@@ -16,14 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -77,42 +70,42 @@ public class XPathHeaderEnricherParserTests {
 	@Test
 	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
 	public void stringResultByDefault() {
 		Message<?> result = this.getResultMessage();
-		assertEquals("John Doe", result.getHeaders().get("name"));
+		assertThat(result.getHeaders().get("name")).isEqualTo("John Doe");
 	}
 
 	@Test
 	public void numberResult() {
 		Message<?> result = this.getResultMessage();
-		assertEquals(42, result.getHeaders().get("age"));
+		assertThat(result.getHeaders().get("age")).isEqualTo(42);
 	}
 
 	@Test
 	public void booleanResult() {
 		Message<?> result = this.getResultMessage();
-		assertEquals(Boolean.TRUE, result.getHeaders().get("married"));
+		assertThat(result.getHeaders().get("married")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void nodeResult() {
 		Message<?> result = this.getResultMessage();
 		Object header = result.getHeaders().get("node-test");
-		assertTrue(header instanceof Node);
+		assertThat(header instanceof Node).isTrue();
 		Node node = (Node) header;
-		assertEquals("42", node.getTextContent());
+		assertThat(node.getTextContent()).isEqualTo("42");
 	}
 
 	@Test
@@ -120,36 +113,37 @@ public class XPathHeaderEnricherParserTests {
 	public void nodeListResult() {
 		Message<?> result = this.getResultMessage();
 		Object header = result.getHeaders().get("node-list-test");
-		assertThat(header, instanceOf(List.class));
+		assertThat(header).isInstanceOf(List.class);
 		List<Node> nodeList = (List<Node>) header;
-		assertNotNull(nodeList);
-		assertEquals(3, nodeList.size());
+		assertThat(nodeList).isNotNull();
+		assertThat(nodeList.size()).isEqualTo(3);
 	}
 
 	@Test
 	public void expressionRef() {
 		Message<?> result = getResultMessage();
-		assertEquals(84d, result.getHeaders().get("ref-test"));
+		assertThat(result.getHeaders().get("ref-test")).isEqualTo(84d);
 	}
 
 	@Test
 	public void testDefaultHeaderEnricher() {
-		assertFalse(getEnricherProperty("defaultHeaderEnricher", "defaultOverwrite"));
-		assertTrue(getEnricherProperty("defaultHeaderEnricher", "shouldSkipNulls"));
+		assertThat(getEnricherProperty("defaultHeaderEnricher", "defaultOverwrite")).isFalse();
+		assertThat(getEnricherProperty("defaultHeaderEnricher", "shouldSkipNulls")).isTrue();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testCustomHeaderEnricher() {
-		assertTrue(getEnricherProperty("customHeaderEnricher", "defaultOverwrite"));
-		assertFalse(getEnricherProperty("customHeaderEnricher", "shouldSkipNulls"));
+		assertThat(getEnricherProperty("customHeaderEnricher", "defaultOverwrite")).isTrue();
+		assertThat(getEnricherProperty("customHeaderEnricher", "shouldSkipNulls")).isFalse();
 		Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd =
 				TestUtils.getPropertyValue(this.context.getBean("customHeaderEnricher"),
 						"handler.transformer.headersToAdd", Map.class);
 		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headersToAdd.get("foo");
-		assertThat(headerValueMessageProcessor, instanceOf(XPathExpressionEvaluatingHeaderValueMessageProcessor.class));
-		assertSame(this.context.getBean("xmlPayloadConverter"),
-				TestUtils.getPropertyValue(headerValueMessageProcessor, "converter"));
+		assertThat(headerValueMessageProcessor)
+				.isInstanceOf(XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
+		assertThat(TestUtils.getPropertyValue(headerValueMessageProcessor, "converter"))
+				.isSameAs(this.context.getBean("xmlPayloadConverter"));
 	}
 
 	@Test
@@ -161,8 +155,8 @@ public class XPathHeaderEnricherParserTests {
 				.build();
 		this.context.getBean("defaultInput", MessageChannel.class).send(request);
 		Message<?> reply = replyChannel.receive();
-		assertNotNull(reply);
-		assertEquals("John Doe", reply.getHeaders().get("foo"));
+		assertThat(reply).isNotNull();
+		assertThat(reply.getHeaders().get("foo")).isEqualTo("John Doe");
 	}
 
 	@Test
@@ -174,8 +168,8 @@ public class XPathHeaderEnricherParserTests {
 				.build();
 		this.context.getBean("customInput", MessageChannel.class).send(request);
 		Message<?> reply = replyChannel.receive();
-		assertNotNull(reply);
-		assertEquals("bar", reply.getHeaders().get("foo"));
+		assertThat(reply).isNotNull();
+		assertThat(reply.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 

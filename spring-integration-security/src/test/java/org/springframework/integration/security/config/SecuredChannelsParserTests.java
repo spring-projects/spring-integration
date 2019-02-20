@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.security.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,16 +65,17 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		messageChannel.setBeanName(beanName);
 		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
 				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
-		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		assertThat(AopUtils.isAopProxy(proxy)).as("Channel was not proxied").isTrue();
 		Advisor[] advisors = ((Advised) proxy).getAdvisors();
-		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		assertThat(advisors.length).as("Wrong number of interceptors").isEqualTo(1);
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
-		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		assertThat(policy).as("Pattern '" + beanName + "' is not included in mappings").isNotNull();
 		Collection<ConfigAttribute> sendDefinition = policy.getConfigAttributesForSend();
 		Collection<ConfigAttribute> receiveDefinition = policy.getConfigAttributesForReceive();
-		assertTrue("ROLE_ADMIN not found as send attribute", this.getRolesFromDefintion(sendDefinition).contains("ROLE_ADMIN"));
-		assertTrue("Policy applies to receive", receiveDefinition.size() == 0);
+		assertThat(this.getRolesFromDefintion(sendDefinition).contains("ROLE_ADMIN"))
+				.as("ROLE_ADMIN not found as send attribute").isTrue();
+		assertThat(receiveDefinition.size() == 0).as("Policy applies to receive").isTrue();
 	}
 
 	@Test
@@ -85,18 +84,18 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		messageChannel.setBeanName(beanName);
 		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
 				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
-		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		assertThat(AopUtils.isAopProxy(proxy)).as("Channel was not proxied").isTrue();
 		Advisor[] advisors = ((Advised) proxy).getAdvisors();
-		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		assertThat(advisors.length).as("Wrong number of interceptors").isEqualTo(1);
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
-		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		assertThat(policy).as("Pattern '" + beanName + "' is not included in mappings").isNotNull();
 		Collection<ConfigAttribute> sendDefinition = policy.getConfigAttributesForSend();
 		Collection<ConfigAttribute> receiveDefinition = policy.getConfigAttributesForReceive();
 		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
-		assertTrue("ROLE_ADMIN not found as send attribute", sendRoles.contains("ROLE_ADMIN"));
-		assertTrue("ROLE_USER not found as send attribute", sendRoles.contains("ROLE_USER"));
-		assertTrue("Policy applies to receive", receiveDefinition.size() == 0);
+		assertThat(sendRoles.contains("ROLE_ADMIN")).as("ROLE_ADMIN not found as send attribute").isTrue();
+		assertThat(sendRoles.contains("ROLE_USER")).as("ROLE_USER not found as send attribute").isTrue();
+		assertThat(receiveDefinition.size() == 0).as("Policy applies to receive").isTrue();
 	}
 
 	@Test
@@ -105,17 +104,17 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		messageChannel.setBeanName(beanName);
 		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
 				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
-		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		assertThat(AopUtils.isAopProxy(proxy)).as("Channel was not proxied").isTrue();
 		Advisor[] advisors = ((Advised) proxy).getAdvisors();
-		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		assertThat(advisors.length).as("Wrong number of interceptors").isEqualTo(1);
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
-		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		assertThat(policy).as("Pattern '" + beanName + "' is not included in mappings").isNotNull();
 		Collection<ConfigAttribute> sendDefinition = policy.getConfigAttributesForSend();
 		Collection<ConfigAttribute> receiveDefinition = policy.getConfigAttributesForReceive();
 		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
-		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
-		assertTrue("Policy applies to receive", sendDefinition.size() == 0);
+		assertThat(receiveRoles.contains("ROLE_ADMIN")).as("ROLE_ADMIN not found as receive attribute").isTrue();
+		assertThat(sendDefinition.size() == 0).as("Policy applies to receive").isTrue();
 	}
 
 	@Test
@@ -124,18 +123,18 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		messageChannel.setBeanName(beanName);
 		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
 				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
-		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		assertThat(AopUtils.isAopProxy(proxy)).as("Channel was not proxied").isTrue();
 		Advisor[] advisors = ((Advised) proxy).getAdvisors();
-		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		assertThat(advisors.length).as("Wrong number of interceptors").isEqualTo(1);
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
-		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		assertThat(policy).as("Pattern '" + beanName + "' is not included in mappings").isNotNull();
 		Collection<ConfigAttribute> sendDefinition = policy.getConfigAttributesForSend();
 		Collection<ConfigAttribute> receiveDefinition = policy.getConfigAttributesForReceive();
 		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
-		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
-		assertTrue("ROLE_USER not found as receive attribute", receiveRoles.contains("ROLE_USER"));
-		assertTrue("Policy applies to receive", sendDefinition.size() == 0);
+		assertThat(receiveRoles.contains("ROLE_ADMIN")).as("ROLE_ADMIN not found as receive attribute").isTrue();
+		assertThat(receiveRoles.contains("ROLE_USER")).as("ROLE_USER not found as receive attribute").isTrue();
+		assertThat(sendDefinition.size() == 0).as("Policy applies to receive").isTrue();
 	}
 
 	@Test
@@ -144,20 +143,20 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		messageChannel.setBeanName(beanName);
 		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
 				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
-		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		assertThat(AopUtils.isAopProxy(proxy)).as("Channel was not proxied").isTrue();
 		Advisor[] advisors = ((Advised) proxy).getAdvisors();
-		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		assertThat(advisors.length).as("Wrong number of interceptors").isEqualTo(1);
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
-		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		assertThat(policy).as("Pattern '" + beanName + "' is not included in mappings").isNotNull();
 		Collection<ConfigAttribute> sendDefinition = policy.getConfigAttributesForSend();
 		Collection<ConfigAttribute> receiveDefinition = policy.getConfigAttributesForReceive();
-		assertNotNull("Pattern does not apply to 'send'", sendDefinition);
-		assertNotNull("Pattern does not apply to 'receive'", receiveDefinition);
+		assertThat(sendDefinition).as("Pattern does not apply to 'send'").isNotNull();
+		assertThat(receiveDefinition).as("Pattern does not apply to 'receive'").isNotNull();
 		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
 		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
-		assertTrue("ROLE_ADMIN not found in send attributes", sendRoles.contains("ROLE_ADMIN"));
-		assertTrue("ROLE_ADMIN not found in receive attributes", receiveRoles.contains("ROLE_ADMIN"));
+		assertThat(sendRoles.contains("ROLE_ADMIN")).as("ROLE_ADMIN not found in send attributes").isTrue();
+		assertThat(receiveRoles.contains("ROLE_ADMIN")).as("ROLE_ADMIN not found in receive attributes").isTrue();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.jms;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -120,12 +115,12 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertEquals(1, receivedList1.size());
-		assertNotNull(receivedList1.get(0));
-		assertEquals("foo", receivedList1.get(0).getPayload());
-		assertEquals(1, receivedList2.size());
-		assertNotNull(receivedList2.get(0));
-		assertEquals("bar", receivedList2.get(0).getPayload());
+		assertThat(receivedList1.size()).isEqualTo(1);
+		assertThat(receivedList1.get(0)).isNotNull();
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList2.size()).isEqualTo(1);
+		assertThat(receivedList2.get(0)).isNotNull();
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("bar");
 		channel.stop();
 	}
 
@@ -158,12 +153,12 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertEquals(2, receivedList1.size());
-		assertEquals("foo", receivedList1.get(0).getPayload());
-		assertEquals("bar", receivedList1.get(1).getPayload());
-		assertEquals(2, receivedList2.size());
-		assertEquals("foo", receivedList2.get(0).getPayload());
-		assertEquals("bar", receivedList2.get(1).getPayload());
+		assertThat(receivedList1.size()).isEqualTo(2);
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList1.get(1).getPayload()).isEqualTo("bar");
+		assertThat(receivedList2.size()).isEqualTo(2);
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList2.get(1).getPayload()).isEqualTo("bar");
 		channel.stop();
 	}
 
@@ -195,15 +190,16 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
 
-		assertTrue("Countdown latch should have counted down to 0 but was "
-				+ latch.getCount(), latch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(TIMEOUT, TimeUnit.MILLISECONDS))
+				.as("Countdown latch should have counted down to 0 but was "
+						+ latch.getCount()).isTrue();
 
-		assertEquals(1, receivedList1.size());
-		assertNotNull(receivedList1.get(0));
-		assertEquals("foo", receivedList1.get(0).getPayload());
-		assertEquals(1, receivedList2.size());
-		assertNotNull(receivedList2.get(0));
-		assertEquals("bar", receivedList2.get(0).getPayload());
+		assertThat(receivedList1.size()).isEqualTo(1);
+		assertThat(receivedList1.get(0)).isNotNull();
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList2.size()).isEqualTo(1);
+		assertThat(receivedList2.get(0)).isNotNull();
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("bar");
 		channel.stop();
 	}
 
@@ -238,12 +234,12 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-		assertEquals(2, receivedList1.size());
-		assertEquals("foo", receivedList1.get(0).getPayload());
-		assertEquals("bar", receivedList1.get(1).getPayload());
-		assertEquals(2, receivedList2.size());
-		assertEquals("foo", receivedList2.get(0).getPayload());
-		assertEquals("bar", receivedList2.get(1).getPayload());
+		assertThat(receivedList1.size()).isEqualTo(2);
+		assertThat(receivedList1.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList1.get(1).getPayload()).isEqualTo("bar");
+		assertThat(receivedList2.size()).isEqualTo(2);
+		assertThat(receivedList2.get(0).getPayload()).isEqualTo("foo");
+		assertThat(receivedList2.get(1).getPayload()).isEqualTo("bar");
 		channel.stop();
 	}
 
@@ -257,11 +253,11 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		context.registerBeanDefinition("channel", builder.getBeanDefinition());
 		SubscribableJmsChannel channel = context.getBean("channel", SubscribableJmsChannel.class);
-		assertFalse(channel.isRunning());
+		assertThat(channel.isRunning()).isFalse();
 		context.refresh();
-		assertTrue(channel.isRunning());
+		assertThat(channel.isRunning()).isTrue();
 		context.stop();
-		assertFalse(channel.isRunning());
+		assertThat(channel.isRunning()).isFalse();
 		context.close();
 	}
 
@@ -285,8 +281,8 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage(),
-					containsString("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'."));
+			assertThat(e.getMessage())
+					.contains("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.");
 		}
 	}
 
@@ -332,18 +328,18 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 	}
 
 	private void verifyLogReceived(final List<String> logList) {
-		assertTrue("Failed to get expected exception", logList.size() > 0);
+		assertThat(logList.size() > 0).as("Failed to get expected exception").isTrue();
 		boolean expectedExceptionFound = false;
 		while (logList.size() > 0) {
 			String message = logList.remove(0);
-			assertNotNull("Failed to get expected exception", message);
+			assertThat(message).as("Failed to get expected exception").isNotNull();
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertEquals("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.", message);
+				assertThat(message).isEqualTo("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.");
 				break;
 			}
 		}
-		assertTrue("Failed to get expected exception", expectedExceptionFound);
+		assertThat(expectedExceptionFound).as("Failed to get expected exception").isTrue();
 	}
 
 	/**

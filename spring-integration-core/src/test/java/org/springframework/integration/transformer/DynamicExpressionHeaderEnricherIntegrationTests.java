@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,7 @@ public class DynamicExpressionHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.input.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("foo", result.getHeaders().get("testHeader"));
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo("foo");
 	}
 
 }

@@ -16,11 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -52,8 +48,8 @@ public class ServiceActivatorEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
 		Message<?> reply = channel.receive(0);
-		assertNotNull(reply);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -65,10 +61,10 @@ public class ServiceActivatorEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel2).build();
 		endpoint.handleMessage(message);
 		Message<?> reply1 = channel1.receive(0);
-		assertNotNull(reply1);
-		assertEquals("FOO", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("FOO");
 		Message<?> reply2 = channel2.receive(0);
-		assertNull(reply2);
+		assertThat(reply2).isNull();
 	}
 
 	@Test
@@ -78,8 +74,8 @@ public class ServiceActivatorEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = channel.receive(0);
-		assertNotNull(reply);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test
@@ -98,8 +94,8 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannelName("testChannel").build();
 		endpoint.handleMessage(message);
 		Message<?> reply = channel.receive(0);
-		assertNotNull(reply);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 		testApplicationContext.close();
 	}
 
@@ -127,18 +123,18 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel1).build();
 		endpoint.handleMessage(testMessage1);
 		Message<?> reply1 = replyChannel1.receive(50);
-		assertNotNull(reply1);
-		assertEquals("foobar", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foobar");
 		Message<?> reply2 = replyChannel2.receive(0);
-		assertNull(reply2);
+		assertThat(reply2).isNull();
 		Message<String> testMessage2 = MessageBuilder.fromMessage(testMessage1)
 				.setReplyChannelName("replyChannel2").build();
 		endpoint.handleMessage(testMessage2);
 		reply1 = replyChannel1.receive(0);
-		assertNull(reply1);
+		assertThat(reply1).isNull();
 		reply2 = replyChannel2.receive(0);
-		assertNotNull(reply2);
-		assertEquals("foobar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("foobar");
 		testApplicationContext.close();
 	}
 
@@ -149,8 +145,8 @@ public class ServiceActivatorEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = channel.receive(0);
-		assertNotNull(reply);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 	}
 
 	@Test(expected = MessagingException.class)
@@ -169,7 +165,7 @@ public class ServiceActivatorEndpointTests {
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
-		assertNull(channel.receive(0));
+		assertThat(channel.receive(0)).isNull();
 	}
 
 	@Test(expected = ReplyRequiredException.class)
@@ -202,7 +198,7 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
-		assertNull(new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
+		assertThat(new IntegrationMessageHeaderAccessor(reply).getCorrelationId()).isNull();
 	}
 
 	@Test
@@ -225,8 +221,8 @@ public class ServiceActivatorEndpointTests {
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = new IntegrationMessageHeaderAccessor(reply).getCorrelationId();
-		assertNotEquals(message.getHeaders().getId(), correlationId);
-		assertEquals("ABC-123", correlationId);
+		assertThat(correlationId).isNotEqualTo(message.getHeaders().getId());
+		assertThat(correlationId).isEqualTo("ABC-123");
 	}
 
 	@Test
@@ -236,8 +232,8 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setBeanFactory(mock);
 		endpoint.afterPropertiesSet();
 		Object beanFactory = TestUtils.getPropertyValue(endpoint, "processor.beanFactory");
-		assertNotNull(beanFactory);
-		assertSame(mock, beanFactory);
+		assertThat(beanFactory).isNotNull();
+		assertThat(beanFactory).isSameAs(mock);
 	}
 
 

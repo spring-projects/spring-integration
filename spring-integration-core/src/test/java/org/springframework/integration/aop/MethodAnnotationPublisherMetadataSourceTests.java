@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aop;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -52,8 +49,8 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		Method method = getMethod("methodWithChannelAndExplicitReturnAsPayload");
 		String channelName = source.getChannelName(method);
 		Expression payloadExpression = source.getExpressionForPayload(method);
-		assertEquals("foo", channelName);
-		assertEquals("#return", payloadExpression.getExpressionString());
+		assertThat(channelName).isEqualTo("foo");
+		assertThat(payloadExpression.getExpressionString()).isEqualTo("#return");
 	}
 
 	@Test
@@ -61,40 +58,40 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		Method method = getMethod("methodWithChannelAndEmptyPayloadAnnotation");
 		String channelName = source.getChannelName(method);
 		Expression payloadExpression = source.getExpressionForPayload(method);
-		assertEquals("foo", channelName);
-		assertEquals("#return", payloadExpression.getExpressionString());
+		assertThat(channelName).isEqualTo("foo");
+		assertThat(payloadExpression.getExpressionString()).isEqualTo("#return");
 	}
 
 	@Test
 	public void payloadButNoHeaders() {
 		Method method = getMethod("methodWithPayloadAnnotation", String.class, int.class);
 		String expressionString = source.getExpressionForPayload(method).getExpressionString();
-		assertEquals("testExpression1", expressionString);
+		assertThat(expressionString).isEqualTo("testExpression1");
 		Map<String, Expression> headerMap = source.getExpressionsForHeaders(method);
-		assertNotNull(headerMap);
-		assertEquals(0, headerMap.size());
+		assertThat(headerMap).isNotNull();
+		assertThat(headerMap.size()).isEqualTo(0);
 	}
 
 	@Test
 	public void payloadAndHeaders() {
 		Method method = getMethod("methodWithHeaderAnnotations", String.class, String.class, String.class);
 		String expressionString = source.getExpressionForPayload(method).getExpressionString();
-		assertEquals("testExpression2", expressionString);
+		assertThat(expressionString).isEqualTo("testExpression2");
 		Map<String, Expression> headerMap = source.getExpressionsForHeaders(method);
-		assertNotNull(headerMap);
-		assertEquals(2, headerMap.size());
-		assertEquals("#args[1]", headerMap.get("foo").getExpressionString());
-		assertEquals("#args[2]", headerMap.get("bar").getExpressionString());
+		assertThat(headerMap).isNotNull();
+		assertThat(headerMap.size()).isEqualTo(2);
+		assertThat(headerMap.get("foo").getExpressionString()).isEqualTo("#args[1]");
+		assertThat(headerMap.get("bar").getExpressionString()).isEqualTo("#args[2]");
 	}
 
 	@Test
 	public void expressionsAreConcurrentHashMap() {
-		assertThat("Expressions should be concurrent to allow startup",
-				ReflectionTestUtils.getField(source, "channels"), instanceOf(ConcurrentHashMap.class));
-		assertThat("Expressions should be concurrent to allow startup",
-				ReflectionTestUtils.getField(source, "payloadExpressions"), instanceOf(ConcurrentHashMap.class));
-		assertThat("Expressions should be concurrent to allow startup",
-				ReflectionTestUtils.getField(source, "headersExpressions"), instanceOf(ConcurrentHashMap.class));
+		assertThat(ReflectionTestUtils.getField(source, "channels"))
+				.as("Expressions should be concurrent to allow startup").isInstanceOf(ConcurrentHashMap.class);
+		assertThat(ReflectionTestUtils.getField(source, "payloadExpressions"))
+				.as("Expressions should be concurrent to allow startup").isInstanceOf(ConcurrentHashMap.class);
+		assertThat(ReflectionTestUtils.getField(source, "headersExpressions"))
+				.as("Expressions should be concurrent to allow startup").isInstanceOf(ConcurrentHashMap.class);
 	}
 
 	@Test
@@ -102,8 +99,8 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		Method method = getMethod("methodWithVoidReturnAndMethodNameAsPayload");
 		String channelName = source.getChannelName(method);
 		String payloadExpression = source.getExpressionForPayload(method).getExpressionString();
-		assertEquals("foo", channelName);
-		assertEquals("#method", payloadExpression);
+		assertThat(channelName).isEqualTo("foo");
+		assertThat(payloadExpression).isEqualTo("#method");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -116,7 +113,7 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	public void voidReturnAndParameterPayloadAnnotation() {
 		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotation", String.class);
 		String payloadExpression = source.getExpressionForPayload(method).getExpressionString();
-		assertEquals("#args[0]", payloadExpression);
+		assertThat(payloadExpression).isEqualTo("#args[0]");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -129,14 +126,14 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	public void explicitAnnotationAttributeOverride() {
 		Method method = getMethod("methodWithExplicitAnnotationAttributeOverride");
 		String channelName = source.getChannelName(method);
-		assertEquals("foo", channelName);
+		assertThat(channelName).isEqualTo("foo");
 	}
 
 	@Test
 	public void explicitAnnotationAttributeOverrideOnDeclaringClass() {
 		Method method = getMethodFromTestClass("methodWithAnnotationOnTheDeclaringClass");
 		String channelName = source.getChannelName(method);
-		assertEquals("bar", channelName);
+		assertThat(channelName).isEqualTo("bar");
 	}
 
 	private static Method getMethodFromTestClass(String name, Class<?>... params) {

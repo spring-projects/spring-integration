@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class AggregatorExpressionIntegrationTests {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			this.input.send(new GenericMessage<>(i, headers));
 		}
-		assertEquals("[0, 1, 2, 3, 4]", this.output.receive().getPayload());
+		assertThat(this.output.receive().getPayload()).isEqualTo("[0, 1, 2, 3, 4]");
 	}
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {

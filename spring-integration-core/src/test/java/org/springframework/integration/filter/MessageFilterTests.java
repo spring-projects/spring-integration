@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -43,8 +40,8 @@ public class MessageFilterTests {
 		filter.setOutputChannel(output);
 		filter.handleMessage(message);
 		Message<?> received = output.receive(0);
-		assertEquals(message.getPayload(), received.getPayload());
-		assertEquals(message.getHeaders().getId(), received.getHeaders().getId());
+		assertThat(received.getPayload()).isEqualTo(message.getPayload());
+		assertThat(received.getHeaders().getId()).isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test
@@ -53,7 +50,7 @@ public class MessageFilterTests {
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
 		filter.handleMessage(new GenericMessage<String>("test"));
-		assertNull(output.receive(0));
+		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -74,10 +71,10 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertTrue(inputChannel.send(message));
+		assertThat(inputChannel.send(message)).isTrue();
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals(message.getPayload(), reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo(message.getPayload());
 	}
 
 	@Test
@@ -89,8 +86,8 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertTrue(inputChannel.send(message));
-		assertNull(outputChannel.receive(0));
+		assertThat(inputChannel.send(message)).isTrue();
+		assertThat(outputChannel.receive(0)).isNull();
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -103,7 +100,7 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertTrue(inputChannel.send(message));
+		assertThat(inputChannel.send(message)).isTrue();
 	}
 
 	@Test
@@ -117,11 +114,11 @@ public class MessageFilterTests {
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
-		assertTrue(inputChannel.send(message));
+		assertThat(inputChannel.send(message)).isTrue();
 		Message<?> reply = discardChannel.receive(0);
-		assertNotNull(reply);
-		assertEquals(message, reply);
-		assertNull(outputChannel.receive(0));
+		assertThat(reply).isNotNull();
+		assertThat(reply).isEqualTo(message);
+		assertThat(outputChannel.receive(0)).isNull();
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -137,16 +134,16 @@ public class MessageFilterTests {
 		endpoint.start();
 		Message<?> message = new GenericMessage<String>("test");
 		try {
-			assertTrue(inputChannel.send(message));
+			assertThat(inputChannel.send(message)).isTrue();
 		}
 		catch (Exception e) {
 			throw e;
 		}
 		finally {
 			Message<?> reply = discardChannel.receive(0);
-			assertNotNull(reply);
-			assertEquals(message, reply);
-			assertNull(outputChannel.receive(0));
+			assertThat(reply).isNotNull();
+			assertThat(reply).isEqualTo(message);
+			assertThat(outputChannel.receive(0)).isNull();
 		}
 
 	}

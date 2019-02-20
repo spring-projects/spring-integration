@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -58,29 +54,29 @@ public class TcpConnectionEventListenerTests {
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
 
-		assertTrue(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class))).isTrue();
 		TcpConnectionEvent event1 = new TcpConnectionOpenEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event1);
 
-		assertTrue(eventProducer.supportsEventType(ResolvableType.forClass(FooEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(FooEvent.class))).isTrue();
 		FooEvent event2 = new FooEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event2);
 
-		assertTrue(eventProducer.supportsEventType(ResolvableType.forClass(BarEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(BarEvent.class))).isTrue();
 		BarEvent event3 = new BarEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event3);
 
 		Message<?> message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertSame(event1, message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isSameAs(event1);
 		message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertSame(event2, message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isSameAs(event2);
 		message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertSame(event3, message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isSameAs(event3);
 		message = outputChannel.receive(0);
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@Test
@@ -98,24 +94,24 @@ public class TcpConnectionEventListenerTests {
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
 
-		assertFalse(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(TcpConnectionOpenEvent.class))).isFalse();
 
-		assertTrue(eventProducer.supportsEventType(ResolvableType.forClass(FooEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(FooEvent.class))).isTrue();
 		FooEvent event2 = new FooEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event2);
 
-		assertTrue(eventProducer.supportsEventType(ResolvableType.forClass(BarEvent.class)));
+		assertThat(eventProducer.supportsEventType(ResolvableType.forClass(BarEvent.class))).isTrue();
 		BarEvent event3 = new BarEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event3);
 
 		Message<?> message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertSame(event2, message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isSameAs(event2);
 		message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertSame(event3, message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isSameAs(event3);
 		message = outputChannel.receive(0);
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@SuppressWarnings("serial")

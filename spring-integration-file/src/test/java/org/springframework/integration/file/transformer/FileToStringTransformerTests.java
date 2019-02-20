@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file.transformer;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,20 +37,22 @@ public class FileToStringTransformerTests extends
 	}
 
 	@Test
-	public void transform_withFilePayload_convertedToString() throws Exception {
+	public void transform_withFilePayload_convertedToString() {
 		Message<?> result = transformer.transform(message);
-		assertThat(result, is(notNullValue()));
-		assertThat(result, hasPayload(instanceOf(String.class)));
-		assertThat(result, hasPayload(SAMPLE_CONTENT));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload())
+				.isInstanceOf(String.class)
+				.isEqualTo(SAMPLE_CONTENT);
 	}
 
 	@Test
-	public void transform_withWrongEncoding_notMatching() throws Exception {
+	public void transform_withWrongEncoding_notMatching() {
 		transformer.setCharset("ISO-8859-1");
 		Message<?> result = transformer.transform(message);
-		assertThat(result, is(notNullValue()));
-		assertThat(result, hasPayload(instanceOf(String.class)));
-		assertThat(result, hasPayload(not(SAMPLE_CONTENT)));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload())
+				.isInstanceOf(String.class)
+				.isEqualTo(SAMPLE_CONTENT);
 	}
 
 }

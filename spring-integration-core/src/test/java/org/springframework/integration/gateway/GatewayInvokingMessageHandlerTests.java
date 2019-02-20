@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.gateway;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,9 +71,9 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayInTheChainViaChannel() {
 		output.subscribe(message -> {
-			Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
-			Assert.assertEquals("foo", message.getHeaders().get("foo"));
-			Assert.assertEquals("oleg", message.getHeaders().get("name"));
+			assertThat(message.getPayload()).isEqualTo("echo:echo:echo:hello");
+			assertThat(message.getHeaders().get("foo")).isEqualTo("foo");
+			assertThat(message.getHeaders().get("name")).isEqualTo("oleg");
 		});
 		channel.send(new GenericMessage<String>("hello"));
 	}
@@ -79,85 +81,74 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayInTheChainViaAnotherGateway() {
 		output.subscribe(message -> {
-			Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
-			Assert.assertEquals("foo", message.getHeaders().get("foo"));
-			Assert.assertEquals("oleg", message.getHeaders().get("name"));
+			assertThat(message.getPayload()).isEqualTo("echo:echo:echo:hello");
+			assertThat(message.getHeaders().get("foo")).isEqualTo("foo");
+			assertThat(message.getHeaders().get("name")).isEqualTo("oleg");
 		});
 		String result = gateway.process("hello");
-		Assert.assertEquals("echo:echo:echo:hello", result);
+		assertThat(result).isEqualTo("echo:echo:echo:hello");
 	}
 
 	@Test
 	public void validateGatewayWithErrorMessageReturned() {
-		try {
-			String result = gatewayWithErrorChannelAndTransformer.process("echoWithRuntimeExceptionChannel");
-			Assert.assertNotNull(result);
-			Assert.assertEquals("Error happened in message: echoWithRuntimeExceptionChannel", result);
-		}
-		catch (Exception e) {
-			Assert.fail();
-		}
+		String result = gatewayWithErrorChannelAndTransformer.process("echoWithRuntimeExceptionChannel");
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("Error happened in message: echoWithRuntimeExceptionChannel");
 
 		try {
 			gatewayWithError.process("echoWithRuntimeExceptionChannel");
-			Assert.fail();
+			fail("SampleRuntimeException expected");
 		}
 		catch (SampleRuntimeException e) {
-			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("echoWithRuntimeExceptionChannel");
 		}
 
 		try {
 			gatewayWithError.process("echoWithMessagingExceptionChannel");
-			Assert.fail();
+			fail("MessageHandlingException expected");
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("echoWithMessagingExceptionChannel", e.getFailedMessage().getPayload());
+			assertThat(e.getFailedMessage().getPayload()).isEqualTo("echoWithMessagingExceptionChannel");
 		}
 
-		try {
-			String result = gatewayWithErrorChannelAndTransformer.process("echoWithMessagingExceptionChannel");
-			Assert.assertNotNull(result);
-			Assert.assertEquals("Error happened in message: echoWithMessagingExceptionChannel", result);
-		}
-		catch (Exception e) {
-			Assert.fail();
-		}
+		result = gatewayWithErrorChannelAndTransformer.process("echoWithMessagingExceptionChannel");
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("Error happened in message: echoWithMessagingExceptionChannel");
 	}
 
 	@Test
 	public void validateGatewayWithErrorAsync() {
 		try {
 			gatewayWithErrorAsync.process("echoWithErrorAsyncChannel");
-			Assert.fail();
+			fail("SampleRuntimeException expected");
 		}
 		catch (Exception e) {
-			Assert.assertEquals(SampleRuntimeException.class, e.getClass());
+			assertThat(e.getClass()).isEqualTo(SampleRuntimeException.class);
 		}
 	}
 
 	@Test
 	public void validateGatewayWithErrorFlowReturningMessage() {
-		try {
-			Object result = gatewayWithErrorChannelAndTransformer.process("echoWithErrorAsyncChannel");
-			Assert.assertEquals("Error happened in message: echoWithErrorAsyncChannel", result);
-		}
-		catch (Exception e) {
-			Assert.fail();
-		}
+		Object result = gatewayWithErrorChannelAndTransformer.process("echoWithErrorAsyncChannel");
+		assertThat(result).isEqualTo("Error happened in message: echoWithErrorAsyncChannel");
 	}
 
 
 	public static class SampleErrorTransformer {
-		public Message<?> toMessage(Throwable object) throws Exception {
+
+		public Message<?> toMessage(Throwable object) {
 			MessageHandlingException ex = (MessageHandlingException) object;
-			return MessageBuilder.withPayload("Error happened in message: " + ex.getFailedMessage().getPayload()).build();
+			return MessageBuilder.withPayload("Error happened in message: " + ex.getFailedMessage().getPayload())
+					.build();
 		}
 
 	}
 
 
 	public interface SimpleGateway {
+
 		String process(String str);
+
 	}
 
 
@@ -172,28 +163,33 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 
 		public String echoWithMessagingException(String value) {
-			throw new MessageHandlingException(new GenericMessage<String>(value));
+			throw new MessageHandlingException(new GenericMessage<>(value));
 		}
 
 		public String echoWithErrorAsync(String value) {
 			throw new SampleRuntimeException(value);
 		}
+
 	}
 
 
 	@SuppressWarnings("serial")
 	public static class SampleCheckedException extends Exception {
+
 		public SampleCheckedException(String message) {
 			super(message);
 		}
+
 	}
 
 
 	@SuppressWarnings("serial")
 	public static class SampleRuntimeException extends RuntimeException {
+
 		public SampleRuntimeException(String message) {
 			super(message);
 		}
+
 	}
 
 }

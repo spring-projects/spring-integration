@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doAnswer;
@@ -139,7 +133,7 @@ public class TcpNioConnectionTests {
 				e.printStackTrace();
 			}
 		});
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -150,8 +144,9 @@ public class TcpNioConnectionTests {
 			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
 		}
 		catch (Exception e) {
-			assertTrue("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
-					":" + e.getMessage(), e instanceof SocketTimeoutException);
+			assertThat(e instanceof SocketTimeoutException)
+					.as("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
+							":" + e.getMessage()).isTrue();
 		}
 		done.countDown();
 		factory.stop();
@@ -179,7 +174,7 @@ public class TcpNioConnectionTests {
 				e.printStackTrace();
 			}
 		});
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -195,7 +190,7 @@ public class TcpNioConnectionTests {
 					break;
 				}
 			}
-			assertTrue(!connection.isOpen());
+			assertThat(!connection.isOpen()).isTrue();
 		}
 		catch (Exception e) {
 			fail("Unexpected exception " + e);
@@ -223,7 +218,7 @@ public class TcpNioConnectionTests {
 				e.printStackTrace();
 			}
 		});
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
@@ -232,9 +227,9 @@ public class TcpNioConnectionTests {
 		try {
 			TcpConnection connection = factory.getConnection();
 			Map<SocketChannel, TcpNioConnection> connections = factory.getConnections();
-			assertEquals(1, connections.size());
+			assertThat(connections.size()).isEqualTo(1);
 			connection.close();
-			assertTrue(!connection.isOpen());
+			assertThat(!connection.isOpen()).isTrue();
 			TestUtils.getPropertyValue(factory, "selector", Selector.class).wakeup();
 			int n = 0;
 			while (connections.size() > 0) {
@@ -243,7 +238,7 @@ public class TcpNioConnectionTests {
 					break;
 				}
 			}
-			assertEquals(0, connections.size());
+			assertThat(connections.size()).isEqualTo(0);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -282,30 +277,30 @@ public class TcpNioConnectionTests {
 		HashSet<SelectionKey> keys = new HashSet<>();
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(3, connections.size()); // all open
+		assertThat(connections.size()).isEqualTo(3); // all open
 
 		ReflectionUtils.setField(field, chan1, false);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(3, connections.size()); // interval didn't pass
+		assertThat(connections.size()).isEqualTo(3); // interval didn't pass
 		Thread.sleep(110);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(2, connections.size()); // first is closed
+		assertThat(connections.size()).isEqualTo(2); // first is closed
 
 		ReflectionUtils.setField(field, chan2, false);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(2, connections.size()); // interval didn't pass
+		assertThat(connections.size()).isEqualTo(2); // interval didn't pass
 		Thread.sleep(110);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(1, connections.size()); // second is closed
+		assertThat(connections.size()).isEqualTo(1); // second is closed
 
 		ReflectionUtils.setField(field, chan3, false);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(1, connections.size()); // interval didn't pass
+		assertThat(connections.size()).isEqualTo(1); // interval didn't pass
 		Thread.sleep(110);
 		factory.processNioSelections(1, selector, null, connections);
-		assertEquals(0, connections.size()); // third is closed
+		assertThat(connections.size()).isEqualTo(0); // third is closed
 
-		assertEquals(0, TestUtils.getPropertyValue(factory, "connections", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(factory, "connections", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -343,7 +338,7 @@ public class TcpNioConnectionTests {
 			fail("Expected exception, got " + o);
 		}
 		catch (ExecutionException e) {
-			assertEquals("Timed out waiting for buffer space", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("Timed out waiting for buffer space");
 		}
 		finally {
 			exec.shutdownNow();
@@ -388,7 +383,7 @@ public class TcpNioConnectionTests {
 			return null;
 		});
 		future.get(60, TimeUnit.SECONDS);
-		assertTrue(messageLatch.await(10, TimeUnit.SECONDS));
+		assertThat(messageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		exec.shutdownNow();
 	}
@@ -404,12 +399,12 @@ public class TcpNioConnectionTests {
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[2];
 		int n = stream.read(out);
-		assertEquals(2, n);
-		assertEquals("fo", new String(out));
+		assertThat(n).isEqualTo(2);
+		assertThat(new String(out)).isEqualTo("fo");
 		out = new byte[2];
 		n = stream.read(out);
-		assertEquals(1, n);
-		assertEquals("o\u0000", new String(out));
+		assertThat(n).isEqualTo(1);
+		assertThat(new String(out)).isEqualTo("o\u0000");
 	}
 
 	@Test
@@ -424,8 +419,8 @@ public class TcpNioConnectionTests {
 		stream.write(ByteBuffer.wrap("bar".getBytes()));
 		byte[] out = new byte[6];
 		int n = stream.read(out);
-		assertEquals(6, n);
-		assertEquals("foobar", new String(out));
+		assertThat(n).isEqualTo(6);
+		assertThat(new String(out)).isEqualTo("foobar");
 	}
 
 	@Test
@@ -439,8 +434,8 @@ public class TcpNioConnectionTests {
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 		int n = stream.read(out, 1, 4);
-		assertEquals(3, n);
-		assertEquals("\u0000foo\u0000", new String(out));
+		assertThat(n).isEqualTo(3);
+		assertThat(new String(out)).isEqualTo("\u0000foo\u0000");
 	}
 
 	@Test
@@ -465,8 +460,8 @@ public class TcpNioConnectionTests {
 		}
 		catch (IllegalArgumentException e) {
 		}
-		assertEquals(0, stream.read(out, 0, 0));
-		assertEquals(3, stream.read(out));
+		assertThat(stream.read(out, 0, 0)).isEqualTo(0);
+		assertThat(stream.read(out)).isEqualTo(3);
 	}
 
 	@Test
@@ -489,10 +484,10 @@ public class TcpNioConnectionTests {
 			latch.countDown();
 		});
 		Thread.sleep(1000);
-		assertEquals(0x00, out[0]);
+		assertThat(out[0]).isEqualTo((byte) 0x00);
 		stream.write(ByteBuffer.wrap("foo".getBytes()));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("foo\u0000", new String(out));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(new String(out)).isEqualTo("foo\u0000");
 	}
 
 	@Test
@@ -558,10 +553,10 @@ public class TcpNioConnectionTests {
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.readPacket();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(inboundMessage.get());
-		assertEquals("foo", inboundMessage.get().getPayload());
-		assertEquals("baz", inboundMessage.get().getHeaders().get("bar"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(inboundMessage.get()).isNotNull();
+		assertThat(inboundMessage.get().getPayload()).isEqualTo("foo");
+		assertThat(inboundMessage.get().getHeaders().get("bar")).isEqualTo("baz");
 	}
 
 	@Test
@@ -602,12 +597,12 @@ public class TcpNioConnectionTests {
 			}
 			Thread.sleep(100);
 		}
-		assertTrue("Could not open socket to localhost:" + port, n < 100);
+		assertThat(n < 100).as("Could not open socket to localhost:" + port).isTrue();
 		socket.getOutputStream().write("foo\r\n".getBytes());
 		socket.close();
 
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertThat(threadName.get(), containsString("assembler"));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(threadName.get()).contains("assembler");
 
 		factory.stop();
 
@@ -652,7 +647,7 @@ public class TcpNioConnectionTests {
 				}
 				Thread.sleep(1);
 			}
-			assertTrue("Could not open socket to localhost:" + port, n < 100);
+			assertThat(n < 100).as("Could not open socket to localhost:" + port).isTrue();
 			sockets[i] = socket;
 		}
 		for (int i = 0; i < numberOfSockets; i++) {
@@ -682,7 +677,7 @@ public class TcpNioConnectionTests {
 			sockets[i].close();
 		}
 
-		assertTrue("latch is still " + latch.getCount(), latch.await(60, TimeUnit.SECONDS));
+		assertThat(latch.await(60, TimeUnit.SECONDS)).as("latch is still " + latch.getCount()).isTrue();
 
 		factory.stop();
 
@@ -750,7 +745,7 @@ public class TcpNioConnectionTests {
 		TestingUtilities.waitListening(factory, 10000L);
 		int port = factory.getPort();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		assertTrue(connectionLatch.await(10, TimeUnit.SECONDS));
+		assertThat(connectionLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", Map.class)
 				.values().iterator().next();
@@ -758,7 +753,8 @@ public class TcpNioConnectionTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(connection);
 		dfa.setPropertyValue("logger", logger);
 
-		ChannelInputStream cis = spy(TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
+		ChannelInputStream cis = spy(TestUtils
+				.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class));
 		dfa.setPropertyValue("channelInputStream", cis);
 
 		final CountDownLatch readerLatch = new CountDownLatch(4); // 3 dataAvailable, 1 continuing
@@ -799,11 +795,11 @@ public class TcpNioConnectionTests {
 
 		socket.getOutputStream().write("foo\r\n".getBytes());
 
-		assertTrue(assemblerLatch.await(10, TimeUnit.SECONDS));
-		assertTrue(readerFinishedLatch.await(10, TimeUnit.SECONDS));
+		assertThat(assemblerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(readerFinishedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		StackTraceElement[] stackTrace = assembler.get().getStackTrace();
-		assertThat(Arrays.asList(stackTrace).toString(), not(containsString("ChannelInputStream.getNextBuffer")));
+		assertThat(Arrays.asList(stackTrace).toString()).doesNotContain("ChannelInputStream.getNextBuffer");
 		socket.close();
 		factory.stop();
 
@@ -831,13 +827,13 @@ public class TcpNioConnectionTests {
 		});
 		cf.afterPropertiesSet();
 		cf.start();
-		assertTrue(listening.await(10, TimeUnit.SECONDS));
+		assertThat(listening.await(10, TimeUnit.SECONDS)).isTrue();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", cf.getPort());
 		socket.getOutputStream().write("x".getBytes());
-		assertTrue(reading.await(10, TimeUnit.SECONDS));
+		assertThat(reading.await(10, TimeUnit.SECONDS)).isTrue();
 		socket.close();
 		cf.stop();
-		assertThat(watch.getLastTaskTimeMillis(), lessThan(950L));
+		assertThat(watch.getLastTaskTimeMillis()).isLessThan(950L);
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {

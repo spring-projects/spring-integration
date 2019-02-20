@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,43 +84,43 @@ public class ServiceActivatorParserTests {
 	@Test
 	public void literalExpression() {
 		Object result = this.sendAndReceive(literalExpressionInput, "hello");
-		assertEquals("foo", result);
+		assertThat(result).isEqualTo("foo");
 	}
 
 	@Test
 	public void beanAsTarget() {
 		Object result = this.sendAndReceive(beanAsTargetInput, "hello");
-		assertEquals("HELLO", result);
+		assertThat(result).isEqualTo("HELLO");
 	}
 
 	@Test
 	public void beanAsArgument() {
 		Object result = this.sendAndReceive(beanAsArgumentInput, new TestPayload());
-		assertEquals("TestBean", result);
+		assertThat(result).isEqualTo("TestBean");
 	}
 
 	@Test
 	public void beanInvocationResult() {
 		Object result = this.sendAndReceive(beanInvocationResultInput, "hello");
-		assertEquals("helloFOO", result);
+		assertThat(result).isEqualTo("helloFOO");
 	}
 
 	@Test
 	public void multipleLiteralArgs() {
 		Object result = this.sendAndReceive(multipleLiteralArgsInput, "hello");
-		assertEquals("foobar", result);
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
 	public void multipleArgsFromPayload() {
 		Object result = this.sendAndReceive(multipleArgsFromPayloadInput, new TestPerson("John", "Doe"));
-		assertEquals("JohnDoe", result);
+		assertThat(result).isEqualTo("JohnDoe");
 	}
 
 	@Test
 	public void advised() {
 		Object result = this.sendAndReceive(advisedInput, "hello");
-		assertEquals("bar", result);
+		assertThat(result).isEqualTo("bar");
 	}
 
 	@Test
@@ -132,8 +131,9 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of 'ref' or 'expression' is permitted, not both, " +
-					"on element 'service-activator' with id='test'."));
+			assertThat(e.getMessage()
+					.startsWith("Configuration problem: Only one of 'ref' or 'expression' is permitted, not both, " +
+							"on element 'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
@@ -145,10 +145,10 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Ambiguous definition. " +
+			assertThat(e.getMessage().startsWith("Configuration problem: Ambiguous definition. " +
 					"Inner bean org.springframework.integration.config.xml.ServiceActivatorParserTests$TestBean " +
 					"declaration and \"ref\" testBean are not allowed together on element " +
-					"'service-activator' with id='test'."));
+					"'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
@@ -160,9 +160,9 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Neither 'ref' nor 'expression' " +
+			assertThat(e.getMessage().startsWith("Configuration problem: Neither 'ref' nor 'expression' " +
 					"are permitted when an inner bean (<bean/>) is configured on element " +
-					"'service-activator' with id='test'."));
+					"'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
@@ -174,9 +174,9 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Exactly one of the 'ref' " +
+			assertThat(e.getMessage().startsWith("Configuration problem: Exactly one of the 'ref' " +
 					"attribute, 'expression' attribute, or inner bean (<bean/>) definition " +
-					"is required for element 'service-activator' with id='test'."));
+					"is required for element 'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
@@ -188,9 +188,10 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Neither 'ref' nor 'expression' are permitted when " +
-					"an inner 'expression' element is configured on element " +
-					"'service-activator' with id='test'."));
+			assertThat(e.getMessage()
+					.startsWith("Configuration problem: Neither 'ref' nor 'expression' are permitted when " +
+							"an inner 'expression' element is configured on element " +
+							"'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
@@ -202,14 +203,15 @@ public class ServiceActivatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: A 'method' attribute is not permitted when configuring " +
-					"an 'expression' on element 'service-activator' with id='test'."));
+			assertThat(e.getMessage()
+					.startsWith("Configuration problem: A 'method' attribute is not permitted when configuring " +
+							"an 'expression' on element 'service-activator' with id='test'.")).isTrue();
 		}
 	}
 
 	@Test
 	public void testConsumerEndpointFactoryBeanDefaultPhase() {
-		assertEquals(Integer.MIN_VALUE, this.testAliasEndpoint.getPhase());
+		assertThat(this.testAliasEndpoint.getPhase()).isEqualTo(Integer.MIN_VALUE);
 	}
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {

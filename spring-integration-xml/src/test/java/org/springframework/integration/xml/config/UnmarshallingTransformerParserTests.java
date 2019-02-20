@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -67,15 +63,15 @@ public class UnmarshallingTransformerParserTests {
 	@Test
 	public void testParse() throws Exception {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("parseOnly");
-		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
-		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
-		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.order")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
+		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		SmartLifecycleRoleController roleController = appContext.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, contains((SmartLifecycle) consumer));
+		assertThat(list).containsExactly((SmartLifecycle) consumer);
 	}
 
 	@Test
@@ -86,8 +82,9 @@ public class UnmarshallingTransformerParserTests {
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
-		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
+		assertThat(result.getPayload()).as("Wrong payload after unmarshalling").isEqualTo("unmarshalled");
+		assertThat(unmarshaller.sourcesPassed.poll() instanceof StringSource).as("Wrong source passed to unmarshaller")
+				.isTrue();
 	}
 
 	@Test
@@ -98,8 +95,9 @@ public class UnmarshallingTransformerParserTests {
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>");
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
-		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
+		assertThat(result.getPayload()).as("Wrong payload after unmarshalling").isEqualTo("unmarshalled");
+		assertThat(unmarshaller.sourcesPassed.poll() instanceof StringSource).as("Wrong source passed to unmarshaller")
+				.isTrue();
 	}
 
 	@Test
@@ -110,8 +108,9 @@ public class UnmarshallingTransformerParserTests {
 				XmlTestUtil.getDocumentForString("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
 		input.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
-		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
+		assertThat(result.getPayload()).as("Wrong payload after unmarshalling").isEqualTo("unmarshalled");
+		assertThat(unmarshaller.sourcesPassed.poll() instanceof DOMSource).as("Wrong source passed to unmarshaller")
+				.isTrue();
 	}
 
 	@Test
@@ -122,8 +121,9 @@ public class UnmarshallingTransformerParserTests {
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
 		input.send(message);
 		Message<?> result = output.receive(5000);
-		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
-		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
+		assertThat(result.getPayload()).as("Wrong payload after unmarshalling").isEqualTo("unmarshalled");
+		assertThat(unmarshaller.sourcesPassed.poll() instanceof StringSource).as("Wrong source passed to unmarshaller")
+				.isTrue();
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 
@@ -75,7 +74,7 @@ public class HandlerMonitoringIntegrationTests {
 	public void testErrorLogger() {
 		ClassPathXmlApplicationContext context = createContext("anonymous-handler.xml", "anonymous");
 		try {
-			assertTrue(Arrays.asList(messageHandlersMonitor.getHandlerNames()).contains("errorLogger"));
+			assertThat(Arrays.asList(messageHandlersMonitor.getHandlerNames()).contains("errorLogger")).isTrue();
 		}
 		finally {
 			context.close();
@@ -88,10 +87,10 @@ public class HandlerMonitoringIntegrationTests {
 		try {
 			int before = service.getCounter();
 			channel.send(new GenericMessage<>("bar"));
-			assertEquals(before + 1, service.getCounter());
+			assertThat(service.getCounter()).isEqualTo(before + 1);
 
 			int count = messageHandlersMonitor.getHandlerDuration(monitor).getCount();
-			assertTrue("No statistics for input channel", count > 0);
+			assertThat(count > 0).as("No statistics for input channel").isTrue();
 
 		}
 		finally {

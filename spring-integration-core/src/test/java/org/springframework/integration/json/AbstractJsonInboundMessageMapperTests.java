@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -27,17 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.messaging.Message;
 
 /**
@@ -51,12 +48,6 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 
 	private final JsonObjectMapper<?, ?> mapper = JsonObjectMapperProvider.newInstance();
 
-	@Factory
-	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> operand) {
-		return new MessageMatcher(operand);
-	}
-
-
 	@Test
 	public void testToMessageWithHeadersAndStringPayload() throws Exception {
 		UUID id = UUID.randomUUID();
@@ -68,7 +59,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 				.build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -78,7 +69,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
 		mapper.setMapToPayload(true);
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(expected);
 	}
 
 	@Test
@@ -93,7 +84,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 				.build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -103,7 +94,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, getParser());
 		mapper.setMapToPayload(true);
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result.getPayload());
+		assertThat(result.getPayload()).isEqualTo(expected);
 	}
 
 	@Test
@@ -116,11 +107,11 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 				.setHeader("myHeader", bean)
 				.build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
-		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
+		Map<String, Class<?>> headerTypes = new HashMap<>();
 		headerTypes.put("myHeader", TestBean.class);
 		mapper.setHeaderTypes(headerTypes);
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -139,7 +130,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		}.getType();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(type, getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -160,7 +151,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		}.getType();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(type, getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -174,7 +165,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 				.build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertThat(result, sameExceptImmutableHeaders(expected));
+		assertThat(result).matches(new MessagePredicate(expected));
 	}
 
 	@Test
@@ -183,7 +174,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
 		try {
 			mapper.toMessage(jsonMessage);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException ex) {
 			//Expected
@@ -197,7 +188,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
 		try {
 			mapper.toMessage(jsonMessage);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException ex) {
 			//Expected
@@ -212,7 +203,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		mapper.setMapToPayload(true);
 		try {
 			mapper.toMessage(jsonMessage);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException ex) {
 			//Expected
@@ -228,7 +219,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, getParser());
 		mapper.setMapToPayload(true);
 		Message<?> message = mapper.toMessage(jsonMessage);
-		assertEquals(bean, message.getPayload());
+		assertThat(message.getPayload()).isEqualTo(bean);
 	}
 
 	@Test
@@ -240,7 +231,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(Long.class, getParser());
 		try {
 			mapper.toMessage(jsonMessage);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException ex) {
 			//Expected
@@ -254,12 +245,12 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\",\"myHeader\":" +
 				getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, getParser());
-		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
+		Map<String, Class<?>> headerTypes = new HashMap<>();
 		headerTypes.put("myHeader", Long.class);
 		mapper.setHeaderTypes(headerTypes);
 		try {
 			mapper.toMessage(jsonMessage);
-			fail();
+			fail("IllegalArgumentException expected");
 		}
 		catch (IllegalArgumentException ex) {
 			//Expected

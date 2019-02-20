@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -75,20 +73,20 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	public void testInboundAdapter() {
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");
-		assertEquals(context.getBean("errorChannel"), errorChannel);
-		assertFalse(adapter.isAutoStartup());
+		assertThat(errorChannel).isEqualTo(context.getBean("errorChannel"));
+		assertThat(adapter.isAutoStartup()).isFalse();
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(adapter, "outputChannel");
-		assertEquals("xmppInbound", channel.getComponentName());
+		assertThat(channel.getComponentName()).isEqualTo("xmppInbound");
 		XMPPConnection connection = (XMPPConnection) TestUtils.getPropertyValue(adapter, "xmppConnection");
-		assertSame(connection, context.getBean("testConnection"));
+		assertThat(context.getBean("testConnection")).isSameAs(connection);
 		Object stanzaFilter = context.getBean("stanzaFilter");
-		assertSame(stanzaFilter, TestUtils.getPropertyValue(adapter, "stanzaFilter"));
-		assertEquals("#root", TestUtils.getPropertyValue(adapter, "payloadExpression.expression"));
+		assertThat(TestUtils.getPropertyValue(adapter, "stanzaFilter")).isSameAs(stanzaFilter);
+		assertThat(TestUtils.getPropertyValue(adapter, "payloadExpression.expression")).isEqualTo("#root");
 		adapter.start();
 		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
-		assertEquals(6, asyncRecvListeners.size());
+		assertThat(asyncRecvListeners.size()).isEqualTo(6);
 		Object lastListener = asyncRecvListeners.values().stream().reduce((first, second) -> second).get();
-		assertSame(stanzaFilter, TestUtils.getPropertyValue(lastListener, "packetFilter"));
+		assertThat(TestUtils.getPropertyValue(lastListener, "packetFilter")).isSameAs(stanzaFilter);
 		adapter.stop();
 	}
 
@@ -111,13 +109,13 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		JivePropertiesManager.addProperty(message, "bar", "bar");
 		stanzaListener.processStanza(message);
 		org.springframework.messaging.Message<?> siMessage = xmppInbound.receive(0);
-		assertEquals("foo", siMessage.getHeaders().get("foo"));
-		assertEquals("oleg", siMessage.getHeaders().get("xmpp_to"));
+		assertThat(siMessage.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(siMessage.getHeaders().get("xmpp_to")).isEqualTo("oleg");
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -58,19 +55,19 @@ public class FileToChannelIntegrationTests {
 		file.setLastModified(System.currentTimeMillis() - 1000);
 
 		Message<?> received = this.fileMessages.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		Message<?> result = this.resultChannel.receive(10000);
-		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getPayload());
-		assertTrue(!file.exists());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
+		assertThat(!file.exists()).isTrue();
 	}
 
 	@Test
 	public void directoryExhaustion() throws Exception {
 		File.createTempFile("test", null, inputDirectory).setLastModified(System.currentTimeMillis() - 1000);
 		Message<?> received = this.fileMessages.receive(10000);
-		assertNotNull(received);
-		assertNull(fileMessages.receive(200));
+		assertThat(received).isNotNull();
+		assertThat(fileMessages.receive(200)).isNull();
 	}
 
 }

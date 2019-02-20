@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.dsl.transformers;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +26,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -100,19 +92,19 @@ public class TransformerTests {
 				.build();
 		this.enricherInput.send(message);
 		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Bar Bar", receive.getHeaders().get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get("foo")).isEqualTo("Bar Bar");
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar Bar", result.getName());
-		assertNotNull(result.getDate());
-		assertThat(new Date(), Matchers.greaterThanOrEqualTo(result.getDate()));
+		assertThat(result.getName()).isEqualTo("Bar Bar");
+		assertThat(result.getDate()).isNotNull();
+		assertThat(new Date()).isAfterOrEqualsTo(result.getDate());
 
 		this.enricherInput.send(new GenericMessage<>(new TestPojo("junk")));
 
 		Message<?> errorMessage = this.enricherErrorChannel.receive(10_000);
-		assertNotNull(errorMessage);
+		assertThat(errorMessage).isNotNull();
 	}
 
 	@Test
@@ -123,14 +115,14 @@ public class TransformerTests {
 				.build();
 		this.enricherInput2.send(message);
 		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertNull(receive.getHeaders().get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get("foo")).isNull();
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar Bar", result.getName());
-		assertNotNull(result.getDate());
-		assertThat(new Date(), Matchers.greaterThanOrEqualTo(result.getDate()));
+		assertThat(result.getName()).isEqualTo("Bar Bar");
+		assertThat(result.getDate()).isNotNull();
+		assertThat(new Date()).isAfterOrEqualsTo(result.getDate());
 	}
 
 	@Test
@@ -141,13 +133,13 @@ public class TransformerTests {
 				.build();
 		this.enricherInput3.send(message);
 		Message<?> receive = replyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Bar Bar", receive.getHeaders().get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get("foo")).isEqualTo("Bar Bar");
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 		TestPojo result = (TestPojo) payload;
-		assertEquals("Bar", result.getName());
-		assertNull(result.getDate());
+		assertThat(result.getName()).isEqualTo("Bar");
+		assertThat(result.getDate()).isNull();
 	}
 
 	@Autowired
@@ -166,21 +158,21 @@ public class TransformerTests {
 	public void testSubFlowContentEnricher() {
 		this.replyProducingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
 		Message<?> receive = this.subFlowTestReplyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Foo Bar (Reply Producing)", receive.getHeaders().get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get("foo")).isEqualTo("Foo Bar (Reply Producing)");
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 		TestPojo result = (TestPojo) payload;
-		assertThat(result.getName(), is("Foo Bar (Reply Producing)"));
+		assertThat(result.getName()).isEqualTo("Foo Bar (Reply Producing)");
 
 		this.terminatingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
 		receive = this.subFlowTestReplyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Foo Bar (Terminating)", receive.getHeaders().get("foo"));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().get("foo")).isEqualTo("Foo Bar (Terminating)");
 		payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 		result = (TestPojo) payload;
-		assertThat(result.getName(), is("Foo Bar (Terminating)"));
+		assertThat(result.getName()).isEqualTo("Foo Bar (Terminating)");
 	}
 
 	@Autowired
@@ -199,15 +191,15 @@ public class TransformerTests {
 	public void testCodec() {
 		this.encodingFlowInput.send(new GenericMessage<>("bar"));
 		Message<?> receive = this.codecReplyChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(byte[].class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(byte[].class);
 		byte[] transformed = (byte[]) receive.getPayload();
-		assertArrayEquals("foo".getBytes(), transformed);
+		assertThat(transformed).isEqualTo("foo".getBytes());
 
 		this.decodingFlowInput.send(new GenericMessage<>(transformed));
 		receive = this.codecReplyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(42, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(42);
 	}
 
 
@@ -229,21 +221,21 @@ public class TransformerTests {
 				.build();
 		this.pojoTransformFlowInput.send(message);
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("FooBar", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FooBar");
 
 		try {
 			this.pojoTransformFlowInput.send(message);
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageRejectedException.class));
-			assertThat(e.getMessage(), containsString("IdempotentReceiver"));
-			assertThat(e.getMessage(), containsString("rejected duplicate Message"));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
+			assertThat(e.getMessage()).contains("IdempotentReceiver");
+			assertThat(e.getMessage()).contains("rejected duplicate Message");
 		}
 
-		assertNotNull(this.idempotentDiscardChannel.receive(10000));
-		assertNotNull(this.adviceChannel.receive(10000));
+		assertThat(this.idempotentDiscardChannel.receive(10000)).isNotNull();
+		assertThat(this.adviceChannel.receive(10000)).isNotNull();
 	}
 
 	@Autowired
@@ -262,16 +254,16 @@ public class TransformerTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		Object payload = receive.getPayload();
 
-		assertThat(payload, instanceOf(TestPojo.class));
+		assertThat(payload).isInstanceOf(TestPojo.class);
 
 		TestPojo testPojo = (TestPojo) payload;
 
-		assertEquals("Baz", testPojo.getName());
-		assertEquals(date, testPojo.getDate());
+		assertThat(testPojo.getName()).isEqualTo("Baz");
+		assertThat(testPojo.getDate()).isEqualTo(date);
 	}
 
 	@Configuration

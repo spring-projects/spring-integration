@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,25 +43,25 @@ public class ChannelCapacityPlaceholderTests {
 	@Test
 	public void verifyCapacityValueChanges() {
 		QueueChannel channel = context.getBean("channel", QueueChannel.class);
-		assertNotNull(channel);
-		assertEquals(99, channel.getRemainingCapacity());
+		assertThat(channel).isNotNull();
+		assertThat(channel.getRemainingCapacity()).isEqualTo(99);
 		channel.send(MessageBuilder.withPayload("test1").build());
 		channel.send(MessageBuilder.withPayload("test2").build());
-		assertEquals(97, channel.getRemainingCapacity());
-		assertNotNull(channel.receive(0));
-		assertEquals(98, channel.getRemainingCapacity());
+		assertThat(channel.getRemainingCapacity()).isEqualTo(97);
+		assertThat(channel.receive(0)).isNotNull();
+		assertThat(channel.getRemainingCapacity()).isEqualTo(98);
 	}
 
 	@Test
 	public void testCapacityOnPriorityChannel() {
 		PriorityChannel channel = context.getBean("priorityChannel", PriorityChannel.class);
-		assertNotNull(channel);
-		assertEquals(99, channel.getRemainingCapacity());
+		assertThat(channel).isNotNull();
+		assertThat(channel.getRemainingCapacity()).isEqualTo(99);
 		channel.send(MessageBuilder.withPayload("test1").build());
 		channel.send(MessageBuilder.withPayload("test2").build());
-		assertEquals(97, channel.getRemainingCapacity());
-		assertNotNull(channel.receive(0));
-		assertEquals(98, channel.getRemainingCapacity());
+		assertThat(channel.getRemainingCapacity()).isEqualTo(97);
+		assertThat(channel.receive(0)).isNotNull();
+		assertThat(channel.getRemainingCapacity()).isEqualTo(98);
 	}
 
 }

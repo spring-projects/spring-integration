@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aop;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -74,9 +73,9 @@ public class PublisherExpressionTests {
 		TestBean proxy = (TestBean) pf.getProxy();
 		proxy.test("123");
 		Message<?> message = testChannel.receive(0);
-		assertNotNull(message);
-		assertEquals("hellofoo", message.getPayload());
-		assertEquals("123", message.getHeaders().get("foo"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("hellofoo");
+		assertThat(message.getHeaders().get("foo")).isEqualTo("123");
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -73,21 +73,21 @@ public class P2pChannelTests {
 
 		MessageHandler handler1 = mock(MessageHandler.class);
 		channel.subscribe(handler1);
-		assertEquals(1, channel.getSubscriberCount());
-		assertEquals(String.format(log, 1), logs.remove(0));
+		assertThat(channel.getSubscriberCount()).isEqualTo(1);
+		assertThat(logs.remove(0)).isEqualTo(String.format(log, 1));
 		MessageHandler handler2 = mock(MessageHandler.class);
 		channel.subscribe(handler2);
-		assertEquals(2, channel.getSubscriberCount());
-		assertEquals(String.format(log, 2), logs.remove(0));
+		assertThat(channel.getSubscriberCount()).isEqualTo(2);
+		assertThat(logs.remove(0)).isEqualTo(String.format(log, 2));
 		channel.unsubscribe(handler1);
-		assertEquals(1, channel.getSubscriberCount());
-		assertEquals(String.format(log, 1), logs.remove(0));
+		assertThat(channel.getSubscriberCount()).isEqualTo(1);
+		assertThat(logs.remove(0)).isEqualTo(String.format(log, 1));
 		channel.unsubscribe(handler1);
-		assertEquals(1, channel.getSubscriberCount());
-		assertEquals(0, logs.size());
+		assertThat(channel.getSubscriberCount()).isEqualTo(1);
+		assertThat(logs.size()).isEqualTo(0);
 		channel.unsubscribe(handler2);
-		assertEquals(0, channel.getSubscriberCount());
-		assertEquals(String.format(log, 0), logs.remove(0));
+		assertThat(channel.getSubscriberCount()).isEqualTo(0);
+		assertThat(logs.remove(0)).isEqualTo(String.format(log, 0));
 		verify(logger, times(4)).info(Mockito.anyString());
 	}
 

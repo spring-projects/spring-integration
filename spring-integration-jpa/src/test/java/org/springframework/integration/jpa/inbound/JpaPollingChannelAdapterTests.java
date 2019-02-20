@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jpa.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,12 +118,12 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertEquals(3, primeNumbers.size());
+		assertThat(primeNumbers.size()).isEqualTo(3);
 	}
 
 	/**
@@ -161,12 +159,12 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertEquals(3, primeNumbers.size());
+		assertThat(primeNumbers.size()).isEqualTo(3);
 	}
 
 	/**
@@ -203,12 +201,12 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertEquals(1, primeNumbers.size());
+		assertThat(primeNumbers.size()).isEqualTo(1);
 	}
 
 	/**
@@ -243,16 +241,16 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> students = message.getPayload();
 
-		assertEquals(1, students.size());
+		assertThat(students.size()).isEqualTo(1);
 
 		StudentDomain student = (StudentDomain) students.iterator().next();
 
-		assertEquals("Last Two", student.getLastName());
+		assertThat(student.getLastName()).isEqualTo("Last Two");
 	}
 
 	/**
@@ -292,16 +290,16 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull("Message is null.", message);
-		assertNotNull(message.getPayload());
+		assertThat(message).as("Message is null.").isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> students = message.getPayload();
 
-		assertEquals(3, students.size());
+		assertThat(students.size()).isEqualTo(3);
 
 		Long studentCount = waitForDeletes(students);
 
-		assertEquals(Long.valueOf(0), studentCount);
+		assertThat(studentCount).isEqualTo(Long.valueOf(0));
 	}
 
 	private Long waitForDeletes(Collection<?> students) throws InterruptedException {
@@ -348,7 +346,7 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	/**
@@ -384,16 +382,16 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull("Message is null.", message);
-		assertNotNull(message.getPayload());
+		assertThat(message).as("Message is null.").isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		final Collection<?> students = message.getPayload();
 
-		assertEquals(3, students.size());
+		assertThat(students.size()).isEqualTo(3);
 
 		Long studentCount = waitForDeletes(students);
 
-		assertEquals(Long.valueOf(0), studentCount);
+		assertThat(studentCount).isEqualTo(Long.valueOf(0));
 
 	}
 
@@ -430,12 +428,12 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> students = message.getPayload();
 
-		assertEquals(1, students.size());
+		assertThat(students.size()).isEqualTo(1);
 	}
 
 	/**
@@ -471,12 +469,12 @@ public class JpaPollingChannelAdapterTests {
 
 		adapter.stop();
 
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isNotNull();
 
 		Collection<?> students = message.getPayload();
 
-		assertEquals(1, students.size());
+		assertThat(students.size()).isEqualTo(1);
 	}
 
 }

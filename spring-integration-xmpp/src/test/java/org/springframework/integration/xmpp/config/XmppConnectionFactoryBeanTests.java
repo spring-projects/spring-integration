@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -45,7 +43,7 @@ public class XmppConnectionFactoryBeanTests {
 						.setXmppDomain("foo")
 						.build());
 		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
-		assertNotNull(connection);
+		assertThat(connection).isNotNull();
 	}
 
 	@Test
@@ -71,7 +69,7 @@ public class XmppConnectionFactoryBeanTests {
 		xmppConnectionFactoryBean.start();
 		XMPPConnection connection = xmppConnectionFactoryBean.getObject();
 
-		assertFalse(Roster.getInstanceFor(connection).isRosterLoadedAtLogin());
+		assertThat(Roster.getInstanceFor(connection).isRosterLoadedAtLogin()).isFalse();
 	}
 
 	@Test
@@ -91,7 +89,7 @@ public class XmppConnectionFactoryBeanTests {
 		xmppConnectionFactoryBean.start();
 		XMPPConnection connection = xmppConnectionFactoryBean.getObject();
 
-		assertTrue(Roster.getInstanceFor(connection).isRosterLoadedAtLogin());
+		assertThat(Roster.getInstanceFor(connection).isRosterLoadedAtLogin()).isTrue();
 	}
 
 }

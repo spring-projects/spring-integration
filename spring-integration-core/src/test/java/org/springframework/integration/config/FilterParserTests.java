@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,8 +93,8 @@ public class FilterParserTests {
 
 	@Test
 	public void adviseDiscard() {
-		assertFalse(TestUtils.getPropertyValue(this.advised, "postProcessWithinAdvice", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(this.notAdvised, "postProcessWithinAdvice", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.advised, "postProcessWithinAdvice", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.notAdvised, "postProcessWithinAdvice", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -106,38 +102,38 @@ public class FilterParserTests {
 		adviceCalled = 0;
 		adapterInput.send(new GenericMessage<>("test"));
 		Message<?> reply = adapterOutput.receive(0);
-		assertNotNull(reply);
-		assertEquals("test", reply.getPayload());
-		assertEquals(1, adviceCalled);
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("test");
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
 	public void filterWithSelectorAdapterRejects() {
 		adapterInput.send(new GenericMessage<>(""));
 		Message<?> reply = adapterOutput.receive(0);
-		assertNull(reply);
+		assertThat(reply).isNull();
 	}
 
 	@Test
 	public void filterWithSelectorImplementationAccepts() {
 		implementationInput.send(new GenericMessage<>("test"));
 		Message<?> reply = implementationOutput.receive(0);
-		assertNotNull(reply);
-		assertEquals("test", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("test");
 	}
 
 	@Test
 	public void filterWithSelectorImplementationRejects() {
 		implementationInput.send(new GenericMessage<>(""));
 		Message<?> reply = implementationOutput.receive(0);
-		assertNull(reply);
+		assertThat(reply).isNull();
 	}
 
 	@Test
 	public void exceptionThrowingFilterAccepts() {
 		exceptionInput.send(new GenericMessage<>("test"));
 		Message<?> reply = implementationOutput.receive(0);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -149,9 +145,9 @@ public class FilterParserTests {
 	public void filterWithDiscardChannel() {
 		discardInput.send(new GenericMessage<>(""));
 		Message<?> discard = discardOutput.receive(0);
-		assertNotNull(discard);
-		assertEquals("", discard.getPayload());
-		assertNull(adapterOutput.receive(0));
+		assertThat(discard).isNotNull();
+		assertThat(discard.getPayload()).isEqualTo("");
+		assertThat(adapterOutput.receive(0)).isNull();
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -164,9 +160,9 @@ public class FilterParserTests {
 			exception = e;
 		}
 		Message<?> discard = discardAndExceptionOutput.receive(0);
-		assertNotNull(discard);
-		assertEquals("", discard.getPayload());
-		assertNull(adapterOutput.receive(0));
+		assertThat(discard).isNotNull();
+		assertThat(discard.getPayload()).isEqualTo("");
+		assertThat(adapterOutput.receive(0)).isNull();
 		throw exception;
 	}
 

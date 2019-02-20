@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,18 +44,18 @@ public class CodecTransformerTests {
 		EncodingPayloadTransformer<String> enc = new EncodingPayloadTransformer<String>(codec);
 		Message<?> message = new GenericMessage<String>("bar");
 		byte[] transformed = enc.doTransform(message);
-		assertArrayEquals("foo".getBytes(), transformed);
+		assertThat(transformed).isEqualTo("foo".getBytes());
 		DecodingTransformer<?> dec = new DecodingTransformer<String>(codec, String.class);
-		assertEquals("foo", dec.doTransform(new GenericMessage<byte[]>(transformed)));
+		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed))).isEqualTo("foo");
 
 		dec = new DecodingTransformer<Integer>(codec, new SpelExpressionParser().parseExpression("T(Integer)"));
 		dec.setEvaluationContext(new StandardEvaluationContext());
-		assertEquals(42, dec.doTransform(new GenericMessage<byte[]>(transformed)));
+		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed))).isEqualTo(42);
 
 		dec = new DecodingTransformer<Integer>(codec, new SpelExpressionParser().parseExpression("headers['type']"));
 		dec.setEvaluationContext(new StandardEvaluationContext());
-		assertEquals(42, dec.doTransform(new GenericMessage<byte[]>(transformed,
-				Collections.singletonMap("type", Integer.class))));
+		assertThat(dec.doTransform(new GenericMessage<byte[]>(transformed,
+				Collections.singletonMap("type", Integer.class)))).isEqualTo(42);
 	}
 
 	public static class MyCodec implements Codec {

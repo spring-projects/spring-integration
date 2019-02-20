@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -49,7 +40,6 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -105,14 +95,14 @@ public class AdvisedMessageHandlerTests {
 			fail("expected exception");
 		}
 		catch (MessageHandlingException e) {
-			assertThat(e.getCause(), Matchers.instanceOf(ArithmeticException.class));
+			assertThat(e.getCause()).isInstanceOf(ArithmeticException.class);
 		}
 		try {
 			input.send(message);
 			fail("expected exception");
 		}
 		catch (RuntimeException e) {
-			assertThat(e.getMessage(), containsString("Circuit Breaker is Open for"));
+			assertThat(e.getMessage()).contains("Circuit Breaker is Open for");
 		}
 	}
 
@@ -138,8 +128,8 @@ public class AdvisedMessageHandlerTests {
 		// no advice
 		handler.handleMessage(message);
 		Message<?> reply = replies.receive(1000);
-		assertNotNull(reply);
-		assertEquals("baz", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("baz");
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
@@ -170,15 +160,15 @@ public class AdvisedMessageHandlerTests {
 		// advice with success
 		handler.handleMessage(message);
 		reply = replies.receive(1000);
-		assertNotNull(reply);
-		assertEquals("baz", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("baz");
 
-		assertEquals(componentName, compName.get());
+		assertThat(compName.get()).isEqualTo(componentName);
 
 		Message<?> success = successChannel.receive(1000);
-		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
-		assertEquals("foo", success.getPayload());
+		assertThat(success).isNotNull();
+		assertThat(((AdviceMessage<?>) success).getInputMessage().getPayload()).isEqualTo("Hello, world!");
+		assertThat(success.getPayload()).isEqualTo("foo");
 
 		// advice with failure, not trapped
 		doFail.set(true);
@@ -187,34 +177,40 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertEquals("qux", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("qux");
 		}
 
 		Message<?> failure = failureChannel.receive(1000);
-		assertNotNull(failure);
-		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
-		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
+		assertThat(failure).isNotNull();
+		assertThat(((MessagingException) failure.getPayload()).getFailedMessage().getPayload())
+				.isEqualTo("Hello, world!");
+		assertThat(((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult())
+				.isEqualTo("bar:qux");
 
 		// advice with failure, trapped
 		advice.setTrapException(true);
 		handler.handleMessage(message);
 		failure = failureChannel.receive(1000);
-		assertNotNull(failure);
-		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
-		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
-		assertNull(replies.receive(1));
+		assertThat(failure).isNotNull();
+		assertThat(((MessagingException) failure.getPayload()).getFailedMessage().getPayload())
+				.isEqualTo("Hello, world!");
+		assertThat(((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult())
+				.isEqualTo("bar:qux");
+		assertThat(replies.receive(1)).isNull();
 
 		// advice with failure, eval is result
 		advice.setReturnFailureExpressionResult(true);
 		handler.handleMessage(message);
 		failure = failureChannel.receive(1000);
-		assertNotNull(failure);
-		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
-		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
+		assertThat(failure).isNotNull();
+		assertThat(((MessagingException) failure.getPayload()).getFailedMessage().getPayload())
+				.isEqualTo("Hello, world!");
+		assertThat(((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult())
+				.isEqualTo("bar:qux");
 
 		reply = replies.receive(1000);
-		assertNotNull(reply);
-		assertEquals("bar:qux", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("bar:qux");
 
 	}
 
@@ -253,14 +249,14 @@ public class AdvisedMessageHandlerTests {
 		// failing advice with success
 		handler.handleMessage(message);
 		Message<?> reply = replies.receive(1000);
-		assertNotNull(reply);
-		assertEquals("baz", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("baz");
 
 		Message<?> success = successChannel.receive(1000);
-		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
-		assertEquals(ArithmeticException.class, success.getPayload().getClass());
-		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
+		assertThat(success).isNotNull();
+		assertThat(((AdviceMessage<?>) success).getInputMessage().getPayload()).isEqualTo("Hello, world!");
+		assertThat(success.getPayload().getClass()).isEqualTo(ArithmeticException.class);
+		assertThat(((Exception) success.getPayload()).getMessage()).isEqualTo("/ by zero");
 
 		// propagate failing advice with success
 		advice.setPropagateEvaluationFailures(true);
@@ -269,16 +265,16 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected Exception");
 		}
 		catch (MessageHandlingException e) {
-			assertEquals("/ by zero", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("/ by zero");
 		}
 		reply = replies.receive(1);
-		assertNull(reply);
+		assertThat(reply).isNull();
 
 		success = successChannel.receive(1000);
-		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
-		assertEquals(ArithmeticException.class, success.getPayload().getClass());
-		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
+		assertThat(success).isNotNull();
+		assertThat(((AdviceMessage<?>) success).getInputMessage().getPayload()).isEqualTo("Hello, world!");
+		assertThat(success.getPayload().getClass()).isEqualTo(ArithmeticException.class);
+		assertThat(((Exception) success.getPayload()).getMessage()).isEqualTo("/ by zero");
 
 	}
 
@@ -320,16 +316,17 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertEquals("qux", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("qux");
 		}
 		Message<?> reply = replies.receive(1);
-		assertNull(reply);
+		assertThat(reply).isNull();
 
 		Message<?> failure = failureChannel.receive(10000);
-		assertNotNull(failure);
-		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
-		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
-		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getMessage());
+		assertThat(failure).isNotNull();
+		assertThat(((MessagingException) failure.getPayload()).getFailedMessage().getPayload())
+				.isEqualTo("Hello, world!");
+		assertThat(failure.getPayload().getClass()).isEqualTo(MessageHandlingExpressionEvaluatingAdviceException.class);
+		assertThat(((Exception) failure.getPayload()).getCause().getMessage()).isEqualTo("qux");
 
 		// propagate failing advice with failure; expect original exception
 		advice.setPropagateEvaluationFailures(true);
@@ -338,16 +335,17 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected Exception");
 		}
 		catch (MessageHandlingException e) {
-			assertEquals("qux", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("qux");
 		}
 		reply = replies.receive(1);
-		assertNull(reply);
+		assertThat(reply).isNull();
 
 		failure = failureChannel.receive(10000);
-		assertNotNull(failure);
-		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
-		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
-		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getMessage());
+		assertThat(failure).isNotNull();
+		assertThat(((MessagingException) failure.getPayload()).getFailedMessage().getPayload())
+				.isEqualTo("Hello, world!");
+		assertThat(failure.getPayload().getClass()).isEqualTo(MessageHandlingExpressionEvaluatingAdviceException.class);
+		assertThat(((Exception) failure.getPayload()).getCause().getMessage()).isEqualTo("qux");
 
 	}
 
@@ -390,22 +388,22 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("foo", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("foo");
 		}
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("foo", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("foo");
 		}
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
-			assertSame(message, ((MessagingException) e).getFailedMessage());
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
+			assertThat(((MessagingException) e).getFailedMessage()).isSameAs(message);
 		}
 
 		Map metadataMap = TestUtils.getPropertyValue(advice, "metadataMap", Map.class);
@@ -421,14 +419,14 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("foo", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("foo");
 		}
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
 		}
 
 		// Simulate some timeout in between requests
@@ -442,21 +440,21 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("foo", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("foo");
 		}
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("foo", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("foo");
 		}
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
 		}
 	}
 
@@ -485,10 +483,10 @@ public class AdvisedMessageHandlerTests {
 
 		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
-		assertTrue(counter.get() == -1);
+		assertThat(counter.get() == -1).isTrue();
 		Message<?> reply = replies.receive(10000);
-		assertNotNull(reply);
-		assertEquals("bar", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("bar");
 
 	}
 
@@ -523,13 +521,13 @@ public class AdvisedMessageHandlerTests {
 				handler.handleMessage(message);
 			}
 			catch (Exception e) {
-				assertTrue(i < 2);
+				assertThat(i < 2).isTrue();
 			}
 		}
-		assertTrue(counter.get() == -1);
+		assertThat(counter.get() == -1).isTrue();
 		Message<?> reply = replies.receive(10000);
-		assertNotNull(reply);
-		assertEquals("bar", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("bar");
 
 	}
 
@@ -597,10 +595,10 @@ public class AdvisedMessageHandlerTests {
 			catch (Exception e) {
 			}
 		}
-		assertTrue(counter.get() == 0);
+		assertThat(counter.get() == 0).isTrue();
 		Message<?> reply = replies.receive(10000);
-		assertNotNull(reply);
-		assertEquals("baz", reply.getPayload());
+		assertThat(reply).isNotNull();
+		assertThat(reply.getPayload()).isEqualTo("baz");
 	}
 
 	@Test
@@ -626,8 +624,8 @@ public class AdvisedMessageHandlerTests {
 		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
-		assertNotNull(error);
-		assertEquals("fooException", ((Exception) error.getPayload()).getCause().getMessage());
+		assertThat(error).isNotNull();
+		assertThat(((Exception) error.getPayload()).getCause().getMessage()).isEqualTo("fooException");
 
 	}
 
@@ -667,10 +665,11 @@ public class AdvisedMessageHandlerTests {
 		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
-		assertNotNull(error);
-		assertTrue(error.getPayload() instanceof ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException);
-		assertNotNull(((MessagingException) error.getPayload()).getFailedMessage());
-		assertSame(message, ((MessagingException) error.getPayload()).getFailedMessage());
+		assertThat(error).isNotNull();
+		assertThat(error.getPayload() instanceof ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException)
+				.isTrue();
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage()).isNotNull();
+		assertThat(((MessagingException) error.getPayload()).getFailedMessage()).isSameAs(message);
 	}
 
 	@Test
@@ -702,11 +701,11 @@ public class AdvisedMessageHandlerTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertEquals(RuntimeException.class, cause.getClass());
-			assertEquals("intentional", cause.getMessage());
+			assertThat(cause.getClass()).isEqualTo(RuntimeException.class);
+			assertThat(cause.getMessage()).isEqualTo("intentional");
 		}
 
-		assertTrue(counter.get() == 0);
+		assertThat(counter.get() == 0).isTrue();
 	}
 
 	@Test
@@ -752,9 +751,9 @@ public class AdvisedMessageHandlerTests {
 
 		handler.handleMessage(new GenericMessage<>("test"));
 		Message<?> receive = replies.receive(10000);
-		assertNotNull(receive);
-		assertEquals("intentional: 3", receive.getPayload());
-		assertEquals(1, outerCounter.get());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("intentional: 3");
+		assertThat(outerCounter.get()).isEqualTo(1);
 	}
 
 
@@ -793,17 +792,17 @@ public class AdvisedMessageHandlerTests {
 			handler.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (Exception e) {
-			assertEquals("intentional: 3", e.getCause().getMessage());
+			assertThat(e.getCause().getMessage()).isEqualTo("intentional: 3");
 		}
 
 		for (int i = 1; i <= 3; i++) {
 			Message<?> receive = errors.receive(10000);
-			assertNotNull(receive);
-			assertEquals("intentional: " + i,
-					((MessageHandlingExpressionEvaluatingAdviceException) receive.getPayload()).getEvaluationResult());
+			assertThat(receive).isNotNull();
+			assertThat(((MessageHandlingExpressionEvaluatingAdviceException) receive.getPayload())
+					.getEvaluationResult()).isEqualTo("intentional: " + i);
 		}
 
-		assertNull(errors.receive(1));
+		assertThat(errors.receive(1)).isNull();
 
 	}
 
@@ -842,7 +841,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected throwable");
 		}
 		catch (Throwable t) {
-			assertSame(theThrowable, t);
+			assertThat(t).isSameAs(theThrowable);
 		}
 	}
 
@@ -870,10 +869,10 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected throwable");
 		}
 		catch (Throwable t) {
-			assertSame(theThrowable, t);
+			assertThat(t).isSameAs(theThrowable);
 			ErrorMessage error = (ErrorMessage) errors.receive(10000);
-			assertNotNull(error);
-			assertSame(theThrowable, error.getPayload().getCause());
+			assertThat(error).isNotNull();
+			assertThat(error.getPayload().getCause()).isSameAs(theThrowable);
 		}
 	}
 
@@ -899,7 +898,7 @@ public class AdvisedMessageHandlerTests {
 		consumer.start();
 
 		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "pollingTask", Callable.class);
-		assertTrue(AopUtils.isAopProxy(pollingTask));
+		assertThat(AopUtils.isAopProxy(pollingTask)).isTrue();
 		Log logger = TestUtils.getPropertyValue(advice, "logger", Log.class);
 		logger = spy(logger);
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
@@ -912,11 +911,11 @@ public class AdvisedMessageHandlerTests {
 		accessor.setPropertyValue("logger", logger);
 
 		pollingTask.call();
-		assertFalse(called.get());
-		assertNotNull(logMessage.get());
-		assertThat(logMessage.get(), Matchers.containsString("can only be used for MessageHandlers; " +
+		assertThat(called.get()).isFalse();
+		assertThat(logMessage.get()).isNotNull();
+		assertThat(logMessage.get()).contains("can only be used for MessageHandlers; " +
 				"an attempt to advise method 'call' in " +
-				"'org.springframework.integration.endpoint.AbstractPollingEndpoint"));
+				"'org.springframework.integration.endpoint.AbstractPollingEndpoint");
 		consumer.stop();
 		exec.shutdownNow();
 	}
@@ -926,7 +925,7 @@ public class AdvisedMessageHandlerTests {
 		QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		filter.handleMessage(new GenericMessage<>("foo"));
-		assertNotNull(discardChannel.receive(0));
+		assertThat(discardChannel.receive(0)).isNotNull();
 	}
 
 	@Test
@@ -949,8 +948,8 @@ public class AdvisedMessageHandlerTests {
 		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
-		assertNotNull(discardedWithinAdvice.get());
-		assertNull(discardChannel.receive(0));
+		assertThat(discardedWithinAdvice.get()).isNotNull();
+		assertThat(discardChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -976,9 +975,9 @@ public class AdvisedMessageHandlerTests {
 		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
 		filter.handleMessage(new GenericMessage<>("foo"));
-		assertTrue(adviceCalled.get());
-		assertNull(discardedWithinAdvice.get());
-		assertNotNull(discardChannel.receive(0));
+		assertThat(adviceCalled.get()).isTrue();
+		assertThat(discardedWithinAdvice.get()).isNull();
+		assertThat(discardChannel.receive(0)).isNotNull();
 	}
 
 	@Test
@@ -1034,11 +1033,11 @@ public class AdvisedMessageHandlerTests {
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessagingException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(MyException.class));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getCause()).isInstanceOf(MyException.class);
 		}
 
-		assertEquals(expected, counter.get());
+		assertThat(counter.get()).isEqualTo(expected);
 	}
 
 	@Test
@@ -1047,13 +1046,13 @@ public class AdvisedMessageHandlerTests {
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(channel);
 		recoverer.publish(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));
 		Message<?> error = channel.receive(0);
-		assertThat(error, instanceOf(ErrorMessage.class));
-		assertThat(error.getPayload(), instanceOf(MessagingException.class));
+		assertThat(error).isInstanceOf(ErrorMessage.class);
+		assertThat(error.getPayload()).isInstanceOf(MessagingException.class);
 		MessagingException payload = (MessagingException) error.getPayload();
-		assertThat(payload.getCause(), instanceOf(RuntimeException.class));
-		assertThat(payload.getCause().getMessage(), equalTo("baz"));
-		assertThat(payload.getFailedMessage().getPayload(), equalTo("bar"));
-		assertThat(((ErrorMessage) error).getOriginalMessage().getPayload(), equalTo("foo"));
+		assertThat(payload.getCause()).isInstanceOf(RuntimeException.class);
+		assertThat(payload.getCause().getMessage()).isEqualTo("baz");
+		assertThat(payload.getFailedMessage().getPayload()).isEqualTo("bar");
+		assertThat(((ErrorMessage) error).getOriginalMessage().getPayload()).isEqualTo("foo");
 	}
 
 	private interface Bar {

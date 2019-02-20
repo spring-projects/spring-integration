@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,24 +55,24 @@ public class TransformerContextTests {
 		PollableChannel output = this.context.getBean("output", PollableChannel.class);
 		input.send(new GenericMessage<>("foo"));
 		Message<?> reply = output.receive(0);
-		assertEquals("FOO", reply.getPayload());
-		assertEquals(1, adviceCalled);
+		assertThat(reply.getPayload()).isEqualTo("FOO");
+		assertThat(adviceCalled).isEqualTo(1);
 
 		input = this.context.getBean("direct", MessageChannel.class);
 		input.send(new GenericMessage<>("foo"));
 		reply = output.receive(0);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 
 		input = this.context.getBean("directRef", MessageChannel.class);
 		input.send(new GenericMessage<>("foo"));
 		reply = output.receive(0);
-		assertEquals("FOO", reply.getPayload());
-		assertEquals(2, adviceCalled);
+		assertThat(reply.getPayload()).isEqualTo("FOO");
+		assertThat(adviceCalled).isEqualTo(2);
 
 		input = this.context.getBean("service", MessageChannel.class);
 		input.send(new GenericMessage<>("foo"));
-		assertEquals(1, bazCalled);
-		assertEquals(3, adviceCalled);
+		assertThat(bazCalled).isEqualTo(1);
+		assertThat(adviceCalled).isEqualTo(3);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

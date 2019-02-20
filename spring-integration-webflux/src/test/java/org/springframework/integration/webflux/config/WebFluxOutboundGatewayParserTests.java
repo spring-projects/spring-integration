@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.webflux.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -74,19 +70,19 @@ public class WebFluxOutboundGatewayParserTests {
 		Object handler = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint).getPropertyValue("handler");
 		Object requestChannel = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint)
 				.getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNull(replyChannel);
-		assertSame(this.webClient, handlerAccessor.getPropertyValue("webClient"));
+		assertThat(replyChannel).isNull();
+		assertThat(handlerAccessor.getPropertyValue("webClient")).isSameAs(this.webClient);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
-		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
-		assertEquals(false, handlerAccessor.getPropertyValue("replyPayloadToFlux"));
+		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.POST.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(false);
+		assertThat(handlerAccessor.getPropertyValue("replyPayloadToFlux")).isEqualTo(false);
 	}
 
 	@Test
@@ -96,40 +92,40 @@ public class WebFluxOutboundGatewayParserTests {
 		Object handler = endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.reactiveFullConfigEndpoint).getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(77, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
+		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(77);
+		assertThat(endpointAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNotNull(replyChannel);
-		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
+		assertThat(replyChannel).isNotNull();
+		assertThat(replyChannel).isEqualTo(this.applicationContext.getBean("replies"));
 
-		assertEquals(String.class.getName(),
-				TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
+		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
+				.isEqualTo(String.class.getName());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test2", uriExpression.getValue());
-		assertEquals(HttpMethod.PUT.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
+		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.PUT.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertEquals(new Long("1234"), sendTimeout);
+		assertThat(sendTimeout).isEqualTo(new Long("1234"));
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
-		assertEquals(1, uriVariableExpressions.size());
-		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
+		assertThat(uriVariableExpressions.size()).isEqualTo(1);
+		assertThat(uriVariableExpressions.get("foo").getExpressionString()).isEqualTo("headers.bar");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("headerMapper"));
 		String[] mappedRequestHeaders = (String[]) mapperAccessor.getPropertyValue("outboundHeaderNames");
 		String[] mappedResponseHeaders = (String[]) mapperAccessor.getPropertyValue("inboundHeaderNames");
-		assertEquals(2, mappedRequestHeaders.length);
-		assertEquals(1, mappedResponseHeaders.length);
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
-		assertEquals("responseHeader", mappedResponseHeaders[0]);
-		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
-		assertEquals(true, handlerAccessor.getPropertyValue("replyPayloadToFlux"));
-		assertSame(this.bodyExtractor, handlerAccessor.getPropertyValue("bodyExtractor"));
+		assertThat(mappedRequestHeaders.length).isEqualTo(2);
+		assertThat(mappedResponseHeaders.length).isEqualTo(1);
+		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1")).isTrue();
+		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
+		assertThat(mappedResponseHeaders[0]).isEqualTo("responseHeader");
+		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("replyPayloadToFlux")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("bodyExtractor")).isSameAs(this.bodyExtractor);
 	}
 
 }

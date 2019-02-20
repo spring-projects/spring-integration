@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.willReturn;
@@ -70,9 +68,9 @@ public class AmqpMessageSourceTests {
 		AmqpMessageSource source = new AmqpMessageSource(ccf, "foo");
 		source.setRawMessageHeader(true);
 		Message<?> received = source.receive();
-		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE),
-				instanceOf(org.springframework.amqp.core.Message.class));
-		assertThat(received.getHeaders().get(AmqpHeaders.CONSUMER_QUEUE), equalTo("foo"));
+		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE))
+				.isInstanceOf(org.springframework.amqp.core.Message.class);
+		assertThat(received.getHeaders().get(AmqpHeaders.CONSUMER_QUEUE)).isEqualTo("foo");
 		// make sure channel is not cached
 		org.springframework.amqp.rabbit.connection.Connection conn = ccf.createConnection();
 		Channel notCached = conn.createChannel(false); // should not have been "closed"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -51,10 +50,18 @@ public class MBeanRegistrationCustomNamingTests {
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler,*"), null);
-		assertEquals(6, names.size());
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler,name=chain,bean=endpoint")));
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler,name=chain$child.t1,bean=handler")));
-		assertTrue(names.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler,name=chain$child.f1,bean=handler")));
+		assertThat(names.size()).isEqualTo(6);
+		assertThat(names
+				.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler," +
+						"name=chain,bean=endpoint")))
+				.isTrue();
+		assertThat(names
+				.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler," +
+						"name=chain$child.t1,bean=handler")))
+				.isTrue();
+		assertThat(names
+				.contains(new ObjectName("test.MBeanRegistration:type=Integration,componentType=MessageHandler,name=chain$child.f1,bean=handler")))
+				.isTrue();
 	}
 
 	public static class Source {

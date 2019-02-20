@@ -16,10 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -96,7 +93,7 @@ public class MessagingGatewayTests {
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(true);
 		this.messagingGateway.send(messageMock);
 		Mockito.verify(requestChannel).send(messageMock, 1000L);
-		assertEquals(1, this.messagingGateway.getMessageCount());
+		assertThat(this.messagingGateway.getMessageCount()).isEqualTo(1);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -109,7 +106,7 @@ public class MessagingGatewayTests {
 	@Test
 	public void sendObject() {
 		Mockito.doAnswer(invocation -> {
-			assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
+			assertThat(((Message<?>) invocation.getArguments()[0]).getPayload()).isEqualTo("test");
 			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 
@@ -120,7 +117,7 @@ public class MessagingGatewayTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void sendObject_failure() {
 		Mockito.doAnswer(invocation -> {
-			assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
+			assertThat(((Message<?>) invocation.getArguments()[0]).getPayload()).isEqualTo("test");
 			return false;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 
@@ -138,14 +135,14 @@ public class MessagingGatewayTests {
 	public void receiveMessage() {
 		Mockito.when(replyChannel.receive(1000L)).thenReturn(messageMock);
 		Mockito.when(messageMock.getPayload()).thenReturn("test");
-		assertEquals("test", this.messagingGateway.receive());
+		assertThat(this.messagingGateway.receive()).isEqualTo("test");
 		Mockito.verify(replyChannel).receive(1000L);
 	}
 
 	@Test
 	public void receiveMessage_null() {
 		Mockito.when(replyChannel.receive(1000L)).thenReturn(null);
-		assertNull(this.messagingGateway.receive());
+		assertThat(this.messagingGateway.receive()).isNull();
 		Mockito.verify(replyChannel).receive(1000L);
 	}
 
@@ -165,7 +162,7 @@ public class MessagingGatewayTests {
 		// TODO: if timeout is 0, this will fail occasionally
 		this.messagingGateway.setReplyTimeout(100);
 		Object test = this.messagingGateway.sendAndReceive("test");
-		assertEquals("test", test);
+		assertThat(test).isEqualTo("test");
 	}
 
 	@Test
@@ -186,7 +183,7 @@ public class MessagingGatewayTests {
 
 		this.messagingGateway.setReplyTimeout(0);
 		Object o = this.messagingGateway.sendAndReceive(messageMock);
-		assertEquals("foo", o);
+		assertThat(o).isEqualTo("foo");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -207,7 +204,7 @@ public class MessagingGatewayTests {
 
 		this.messagingGateway.setReplyTimeout(100L);
 		Message<?> receiveMessage = this.messagingGateway.sendAndReceiveMessage("test");
-		assertSame(messageMock, receiveMessage);
+		assertThat(receiveMessage).isSameAs(messageMock);
 	}
 
 	@Test
@@ -227,7 +224,7 @@ public class MessagingGatewayTests {
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
 		Message<?> receiveMessage = this.messagingGateway.sendAndReceiveMessage(messageMock);
-		assertSame(messageMock, receiveMessage);
+		assertThat(receiveMessage).isSameAs(messageMock);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -288,7 +285,7 @@ public class MessagingGatewayTests {
 
 		this.messagingGateway.send("hello");
 
-		assertTrue(myOneWayErrorService.errorReceived.await(10, TimeUnit.SECONDS));
+		assertThat(myOneWayErrorService.errorReceived.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	public static class MyErrorService {

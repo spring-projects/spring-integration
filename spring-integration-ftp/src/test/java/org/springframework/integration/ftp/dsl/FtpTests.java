@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.ftp.dsl;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -36,7 +29,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import org.apache.commons.net.ftp.FTPFile;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -105,20 +97,20 @@ public class FtpTests extends FtpTestSupport {
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertThat(payload, instanceOf(File.class));
+		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;
-		assertThat(file.getName(), isOneOf(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a"));
-		assertThat(file.getAbsolutePath(), containsString("localTarget"));
+		assertThat(file.getName()).isIn(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a");
+		assertThat(file.getAbsolutePath()).contains("localTarget");
 
 		message = out.receive(10_000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		file = (File) message.getPayload();
-		assertThat(file.getName(), isOneOf(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a"));
-		assertThat(file.getAbsolutePath(), containsString("localTarget"));
+		assertThat(file.getName()).isIn(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a");
+		assertThat(file.getAbsolutePath()).contains("localTarget");
 
-		assertNull(out.receive(10));
+		assertThat(out.receive(10)).isNull();
 
 		File remoteFile = new File(this.sourceRemoteDirectory, " " + prefix() + "Source1.txt");
 
@@ -128,21 +120,21 @@ public class FtpTests extends FtpTestSupport {
 		remoteFile.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
 
 		message = out.receive(10_000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		payload = message.getPayload();
-		assertThat(payload, instanceOf(File.class));
+		assertThat(payload).isInstanceOf(File.class);
 		file = (File) payload;
-		assertEquals(" FTPSOURCE1.TXT.a", file.getName());
-		assertEquals("New content", FileCopyUtils.copyToString(new FileReader(file)));
+		assertThat(file.getName()).isEqualTo(" FTPSOURCE1.TXT.a");
+		assertThat(FileCopyUtils.copyToString(new FileReader(file))).isEqualTo("New content");
 
 		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(10));
+		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(10);
 
-		assertNotNull(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source"));
+		assertThat(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source")).isNotNull();
 
 		registration.destroy();
 
-		assertNull(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source"));
+		assertThat(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source")).isNull();
 	}
 
 	@Test
@@ -158,19 +150,19 @@ public class FtpTests extends FtpTestSupport {
 				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" ftpSource1.txt", "ftpSource2.txt");
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);
-		assertNotNull(message);
-		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" ftpSource1.txt", "ftpSource2.txt");
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		MessageSource<?> source = context.getBean(FtpStreamingMessageSource.class);
-		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(11));
+		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize")).isEqualTo(11);
 		registration.destroy();
 	}
 
@@ -191,8 +183,8 @@ public class FtpTests extends FtpTestSupport {
 		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(sessionFactory());
 		FTPFile[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
-		assertEquals(1, files.length);
-		assertEquals(3, files[0].getSize());
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getSize()).isEqualTo(3);
 
 		registration.destroy();
 	}
@@ -214,17 +206,16 @@ public class FtpTests extends FtpTestSupport {
 		String dir = "ftpSource/";
 		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
 		Message<?> result = out.receive(10_000);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 		List<File> localFiles = (List<File>) result.getPayload();
 		// should have filtered ftpSource2.txt
-		assertEquals("unexpected local files " + localFiles, 2, localFiles.size());
+		assertThat(localFiles.size()).as("unexpected local files " + localFiles).isEqualTo(2);
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-					Matchers.containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				Matchers.containsString(dir + "subFtpSource"));
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
+				.contains(dir + "subFtpSource");
 
 		registration.destroy();
 	}

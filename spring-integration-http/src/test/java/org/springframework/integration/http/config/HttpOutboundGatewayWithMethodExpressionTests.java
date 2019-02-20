@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -70,35 +69,35 @@ public class HttpOutboundGatewayWithMethodExpressionTests {
 	}
 
 	@Test
-	public void testDefaultMethod() throws Exception {
+	public void testDefaultMethod() {
 		this.mockServer.expect(requestTo("/testApps/httpMethod"))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(HttpMethod.POST.name(), MediaType.TEXT_PLAIN));
 
-		this.defaultChannel.send(new GenericMessage<String>("Hello"));
+		this.defaultChannel.send(new GenericMessage<>("Hello"));
 		Message<?> message = this.replyChannel.receive(5000);
-		assertNotNull(message);
-		assertEquals("POST", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("POST");
 
 		this.mockServer.verify();
 	}
 
 	@Test
-	public void testExplicitlySetMethod() throws Exception {
+	public void testExplicitlySetMethod() {
 		this.mockServer.expect(requestTo("/testApps/httpMethod"))
 				.andExpect(method(HttpMethod.GET))
 				.andRespond(withSuccess(HttpMethod.GET.name(), MediaType.TEXT_PLAIN));
 
-		this.requestChannel.send(new GenericMessage<String>("GET"));
+		this.requestChannel.send(new GenericMessage<>("GET"));
 		Message<?> message = replyChannel.receive(5000);
-		assertNotNull(message);
-		assertEquals("GET", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("GET");
 
 		this.mockServer.verify();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
-	public void testMutuallyExclusivityInMethodAndMethodExpression() throws Exception {
+	public void testMutuallyExclusivityInMethodAndMethodExpression() {
 		new ClassPathXmlApplicationContext(
 				"http-outbound-gateway-with-httpmethod-expression-fail.xml", getClass())
 				.close();

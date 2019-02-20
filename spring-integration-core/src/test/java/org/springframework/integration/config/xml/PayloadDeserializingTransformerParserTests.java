@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -76,13 +72,13 @@ public class PayloadDeserializingTransformerParserTests {
 		byte[] bytes = serialize("foo");
 		directInput.send(new GenericMessage<byte[]>(bytes));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof String);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof String).isTrue();
+		assertThat(result.getPayload()).isEqualTo("foo");
 		Set<?> patterns = TestUtils.getPropertyValue(this.handler, "transformer.converter.whiteListPatterns",
 				Set.class);
-		assertThat(patterns.size(), equalTo(1));
-		assertThat(patterns.iterator().next(), equalTo("*"));
+		assertThat(patterns.size()).isEqualTo(1);
+		assertThat(patterns.iterator().next()).isEqualTo("*");
 	}
 
 	@Test
@@ -90,9 +86,9 @@ public class PayloadDeserializingTransformerParserTests {
 		byte[] bytes = serialize("foo");
 		queueInput.send(new GenericMessage<byte[]>(bytes));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof String);
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof String).isTrue();
+		assertThat(result.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -100,9 +96,9 @@ public class PayloadDeserializingTransformerParserTests {
 		byte[] bytes = serialize(new TestBean());
 		directInput.send(new GenericMessage<byte[]>(bytes));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertEquals(TestBean.class, result.getPayload().getClass());
-		assertEquals("test", ((TestBean) result.getPayload()).name);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) result.getPayload()).name).isEqualTo("test");
 	}
 
 	@Test
@@ -110,9 +106,9 @@ public class PayloadDeserializingTransformerParserTests {
 		byte[] bytes = serialize(new TestBean());
 		queueInput.send(new GenericMessage<byte[]>(bytes));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertEquals(TestBean.class, result.getPayload().getClass());
-		assertEquals("test", ((TestBean) result.getPayload()).name);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) result.getPayload()).name).isEqualTo("test");
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -125,9 +121,9 @@ public class PayloadDeserializingTransformerParserTests {
 	public void customDeserializer() throws Exception {
 		customDeserializerInput.send(new GenericMessage<byte[]>("test".getBytes("UTF-8")));
 		Message<?> result = output.receive(10000);
-		assertNotNull(result);
-		assertEquals(String.class, result.getPayload().getClass());
-		assertEquals("TEST", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(String.class);
+		assertThat(result.getPayload()).isEqualTo("TEST");
 	}
 
 

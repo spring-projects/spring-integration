@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -57,11 +56,11 @@ public class MultiChannelRouterTests {
 		Message<String> message = new GenericMessage<>("test");
 		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test");
 		Message<?> result2 = channel2.receive(25);
-		assertNotNull(result2);
-		assertEquals("test", result2.getPayload());
+		assertThat(result2).isNotNull();
+		assertThat(result2.getPayload()).isEqualTo("test");
 	}
 
 	@Test(expected = MessagingException.class)

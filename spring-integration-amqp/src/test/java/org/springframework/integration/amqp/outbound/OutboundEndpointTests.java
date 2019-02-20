@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,19 +72,19 @@ public class OutboundEndpointTests {
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		verify(amqpTemplate).send(eq("foo"), eq("bar"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
+		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
 		endpoint.setExpectReply(true);
 		endpoint.setOutputChannel(new NullChannel());
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
+		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
 
 		endpoint.setDelay(23);
 		endpoint.setRoutingKey("baz");
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("baz"), captor.capture(), isNull());
-		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(23));
+		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(23);
 	}
 
 	@Test
@@ -111,7 +107,7 @@ public class OutboundEndpointTests {
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		gateway.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture());
-		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
+		assertThat(captor.getValue().getMessageProperties().getDelay()).isEqualTo(42);
 	}
 
 	@Test
@@ -130,8 +126,8 @@ public class OutboundEndpointTests {
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.build();
 		endpoint.handleMessage(message);
-		assertNotNull(amqpMessage.get());
-		assertEquals("bar", amqpMessage.get().getMessageProperties().getContentType());
+		assertThat(amqpMessage.get()).isNotNull();
+		assertThat(amqpMessage.get().getMessageProperties().getContentType()).isEqualTo("bar");
 	}
 
 	@Test
@@ -156,9 +152,9 @@ public class OutboundEndpointTests {
 				.setReplyChannel(new QueueChannel())
 				.build();
 		endpoint.handleMessage(message);
-		assertNotNull(amqpMessage.get());
-		assertEquals("bar", amqpMessage.get().getMessageProperties().getContentType());
-		assertNull(amqpMessage.get().getMessageProperties().getHeaders().get(MessageHeaders.REPLY_CHANNEL));
+		assertThat(amqpMessage.get()).isNotNull();
+		assertThat(amqpMessage.get().getMessageProperties().getContentType()).isEqualTo("bar");
+		assertThat(amqpMessage.get().getMessageProperties().getHeaders().get(MessageHeaders.REPLY_CHANNEL)).isNull();
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -91,9 +90,9 @@ public class JdbcMessageStoreChannelTests {
 	@Test
 	public void testSendAndActivate() throws InterruptedException {
 		this.input.send(new GenericMessage<>("foo"));
-		assertTrue(this.afterCommitLatch.await(10, TimeUnit.SECONDS));
-		assertEquals(1, Service.messages.size());
-		assertEquals(0, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
+		assertThat(this.afterCommitLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(Service.messages.size()).isEqualTo(1);
+		assertThat(messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size()).isEqualTo(0);
 	}
 
 	@Test
@@ -101,9 +100,9 @@ public class JdbcMessageStoreChannelTests {
 		Service.fail = true;
 		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
-		assertEquals(1, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(1);
 		// After a rollback in the poller the message is still waiting to be delivered
-		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
+		assertThat(messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size()).isEqualTo(1);
 	}
 
 	@Test
@@ -119,9 +118,9 @@ public class JdbcMessageStoreChannelTests {
 			// expected
 		}
 		// So no activation
-		assertEquals(0, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(0);
 		// But inside the transaction the message is still there
-		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
+		assertThat(messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size()).isEqualTo(1);
 	}
 
 	public static class Service {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,21 +55,21 @@ public class ResequencerWithMessageStoreParserTests {
 	public void testResequence() {
 
 		input.send(createMessage("123", "id1", 3, 1, null));
-		assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
+		assertThat(messageGroupStore.getMessageGroup("id1").size()).isEqualTo(1);
 		input.send(createMessage("789", "id1", 3, 3, null));
-		assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
+		assertThat(messageGroupStore.getMessageGroup("id1").size()).isEqualTo(2);
 		input.send(createMessage("456", "id1", 3, 2, null));
 
 		Message<?> message1 = output.receive(500);
 		Message<?> message2 = output.receive(500);
 		Message<?> message3 = output.receive(500);
 
-		assertNotNull(message1);
-		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
-		assertNotNull(message2);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
-		assertNotNull(message3);
-		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertThat(message1).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message1).getSequenceNumber()).isEqualTo(1);
+		assertThat(message2).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message2).getSequenceNumber()).isEqualTo(2);
+		assertThat(message3).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(message3).getSequenceNumber()).isEqualTo(3);
 
 	}
 

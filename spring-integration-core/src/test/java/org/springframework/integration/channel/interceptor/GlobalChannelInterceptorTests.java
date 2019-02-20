@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,60 +72,60 @@ public class GlobalChannelInterceptorTests {
 			ChannelInterceptor[] interceptors = channel.getChannelInterceptors()
 					.toArray(new ChannelInterceptor[channel.getChannelInterceptors().size()]);
 			if (channelName.equals("inputA")) { // 328741
-				assertTrue(interceptors.length == 10);
-				assertEquals("interceptor-three", interceptors[0].toString());
-				assertEquals("interceptor-two", interceptors[1].toString());
-				assertEquals("interceptor-eight", interceptors[2].toString());
-				assertEquals("interceptor-seven", interceptors[3].toString());
-				assertEquals("interceptor-five", interceptors[4].toString());
-				assertEquals("interceptor-six", interceptors[5].toString());
-				assertEquals("interceptor-ten", interceptors[6].toString());
-				assertEquals("interceptor-eleven", interceptors[7].toString());
-				assertEquals("interceptor-four", interceptors[8].toString());
-				assertEquals("interceptor-one", interceptors[9].toString());
+				assertThat(interceptors.length == 10).isTrue();
+				assertThat(interceptors[0].toString()).isEqualTo("interceptor-three");
+				assertThat(interceptors[1].toString()).isEqualTo("interceptor-two");
+				assertThat(interceptors[2].toString()).isEqualTo("interceptor-eight");
+				assertThat(interceptors[3].toString()).isEqualTo("interceptor-seven");
+				assertThat(interceptors[4].toString()).isEqualTo("interceptor-five");
+				assertThat(interceptors[5].toString()).isEqualTo("interceptor-six");
+				assertThat(interceptors[6].toString()).isEqualTo("interceptor-ten");
+				assertThat(interceptors[7].toString()).isEqualTo("interceptor-eleven");
+				assertThat(interceptors[8].toString()).isEqualTo("interceptor-four");
+				assertThat(interceptors[9].toString()).isEqualTo("interceptor-one");
 			}
 			else if (channelName.equals("inputB")) {
-				assertTrue(interceptors.length == 6);
-				assertEquals("interceptor-three", interceptors[0].toString());
-				assertEquals("interceptor-two", interceptors[1].toString());
-				assertEquals("interceptor-ten", interceptors[2].toString());
-				assertEquals("interceptor-eleven", interceptors[3].toString());
-				assertEquals("interceptor-four", interceptors[4].toString());
-				assertEquals("interceptor-one", interceptors[5].toString());
+				assertThat(interceptors.length == 6).isTrue();
+				assertThat(interceptors[0].toString()).isEqualTo("interceptor-three");
+				assertThat(interceptors[1].toString()).isEqualTo("interceptor-two");
+				assertThat(interceptors[2].toString()).isEqualTo("interceptor-ten");
+				assertThat(interceptors[3].toString()).isEqualTo("interceptor-eleven");
+				assertThat(interceptors[4].toString()).isEqualTo("interceptor-four");
+				assertThat(interceptors[5].toString()).isEqualTo("interceptor-one");
 			}
 			else if (channelName.equals("foo")) {
-				assertTrue(interceptors.length == 6);
-				assertEquals("interceptor-two", interceptors[0].toString());
-				assertEquals("interceptor-five", interceptors[1].toString());
-				assertEquals("interceptor-ten", interceptors[2].toString());
-				assertEquals("interceptor-eleven", interceptors[3].toString());
-				assertEquals("interceptor-four", interceptors[4].toString());
-				assertEquals("interceptor-one", interceptors[5].toString());
+				assertThat(interceptors.length == 6).isTrue();
+				assertThat(interceptors[0].toString()).isEqualTo("interceptor-two");
+				assertThat(interceptors[1].toString()).isEqualTo("interceptor-five");
+				assertThat(interceptors[2].toString()).isEqualTo("interceptor-ten");
+				assertThat(interceptors[3].toString()).isEqualTo("interceptor-eleven");
+				assertThat(interceptors[4].toString()).isEqualTo("interceptor-four");
+				assertThat(interceptors[5].toString()).isEqualTo("interceptor-one");
 			}
 			else if (channelName.equals("bar")) {
-				assertTrue(interceptors.length == 4);
-				assertEquals("interceptor-eight", interceptors[0].toString());
-				assertEquals("interceptor-seven", interceptors[1].toString());
-				assertEquals("interceptor-ten", interceptors[2].toString());
-				assertEquals("interceptor-eleven", interceptors[3].toString());
+				assertThat(interceptors.length == 4).isTrue();
+				assertThat(interceptors[0].toString()).isEqualTo("interceptor-eight");
+				assertThat(interceptors[1].toString()).isEqualTo("interceptor-seven");
+				assertThat(interceptors[2].toString()).isEqualTo("interceptor-ten");
+				assertThat(interceptors[3].toString()).isEqualTo("interceptor-eleven");
 			}
 			else if (channelName.equals("baz")) {
-				assertTrue(interceptors.length == 2);
-				assertEquals("interceptor-ten", interceptors[0].toString());
-				assertEquals("interceptor-eleven", interceptors[1].toString());
+				assertThat(interceptors.length == 2).isTrue();
+				assertThat(interceptors[0].toString()).isEqualTo("interceptor-ten");
+				assertThat(interceptors[1].toString()).isEqualTo("interceptor-eleven");
 			}
 			else if (channelName.equals("inputWithProxy")) {
-				assertTrue(interceptors.length == 6);
+				assertThat(interceptors.length == 6).isTrue();
 			}
 			else if (channelName.equals("test")) {
-				assertNotNull(interceptors);
-				assertTrue(interceptors.length == 2);
+				assertThat(interceptors).isNotNull();
+				assertThat(interceptors.length == 2).isTrue();
 				List<String> interceptorNames = new ArrayList<String>();
 				for (ChannelInterceptor interceptor : interceptors) {
 					interceptorNames.add(interceptor.toString());
 				}
-				assertTrue(interceptorNames.contains("interceptor-ten"));
-				assertTrue(interceptorNames.contains("interceptor-eleven"));
+				assertThat(interceptorNames.contains("interceptor-ten")).isTrue();
+				assertThat(interceptorNames.contains("interceptor-eleven")).isTrue();
 			}
 		}
 	}
@@ -142,8 +138,8 @@ public class GlobalChannelInterceptorTests {
 		for (ChannelInterceptor interceptor : channelInterceptors) {
 			interceptorNames.add(interceptor.toString());
 		}
-		assertTrue(interceptorNames.contains("interceptor-ten"));
-		assertTrue(interceptorNames.contains("interceptor-eleven"));
+		assertThat(interceptorNames.contains("interceptor-ten")).isTrue();
+		assertThat(interceptorNames.contains("interceptor-eleven")).isTrue();
 	}
 
 	@Test
@@ -154,9 +150,9 @@ public class GlobalChannelInterceptorTests {
 
 		List<ChannelInterceptor> channelInterceptors = testChannel.getChannelInterceptors();
 
-		assertEquals(2, channelInterceptors.size());
-		assertThat(channelInterceptors.get(0), instanceOf(SampleInterceptor.class));
-		assertThat(channelInterceptors.get(0), instanceOf(SampleInterceptor.class));
+		assertThat(channelInterceptors.size()).isEqualTo(2);
+		assertThat(channelInterceptors.get(0)).isInstanceOf(SampleInterceptor.class);
+		assertThat(channelInterceptors.get(0)).isInstanceOf(SampleInterceptor.class);
 	}
 
 	public static class SampleInterceptor implements ChannelInterceptor {

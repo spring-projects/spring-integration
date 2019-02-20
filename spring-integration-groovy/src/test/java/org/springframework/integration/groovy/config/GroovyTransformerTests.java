@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,10 +64,10 @@ public class GroovyTransformerTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.referencedScriptInput.send(message);
 		}
-		assertEquals("groovy-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("groovy-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("groovy-test-3", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("groovy-test-1");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("groovy-test-2");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("groovy-test-3");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -80,20 +78,20 @@ public class GroovyTransformerTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.inlineScriptInput.send(message);
 		}
-		assertEquals("inline-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-1");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-2");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("inline-test-3");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
-		assertTrue(this.groovyTransformerMessageHandler instanceof MessageTransformingHandler);
+		assertThat(this.groovyTransformerMessageHandler instanceof MessageTransformingHandler).isTrue();
 		Transformer transformer = TestUtils.getPropertyValue(this.groovyTransformerMessageHandler, "transformer", Transformer.class);
-		assertTrue(transformer instanceof AbstractMessageProcessingTransformer);
+		assertThat(transformer instanceof AbstractMessageProcessingTransformer).isTrue();
 		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor = TestUtils.getPropertyValue(transformer, "messageProcessor", MessageProcessor.class);
 		//before it was MethodInvokingMessageProcessor
-		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
+		assertThat(messageProcessor instanceof GroovyScriptExecutingMessageProcessor).isTrue();
 	}
 }

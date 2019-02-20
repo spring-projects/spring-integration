@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -53,12 +50,12 @@ public class JmsInboundChannelAdapterParserTests {
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(timeoutOnReceive);
 			MessageHistory history = MessageHistory.read(message);
-			assertNotNull(history);
+			assertThat(history).isNotNull();
 			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundAdapter", 0);
-			assertNotNull(componentHistoryRecord);
-			assertEquals("jms:inbound-channel-adapter", componentHistoryRecord.get("type"));
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
+			assertThat(componentHistoryRecord).isNotNull();
+			assertThat(componentHistoryRecord.get("type")).isEqualTo("jms:inbound-channel-adapter");
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
 		}
 	}
 
@@ -70,7 +67,7 @@ public class JmsInboundChannelAdapterParserTests {
 			JmsTemplate jmsTemplate =
 					TestUtils.getPropertyValue(context.getBean("inboundAdapterWithoutJmsTemplate"),
 							"source.jmsTemplate", JmsTemplate.class);
-			assertTrue(jmsTemplate.isSessionTransacted());
+			assertThat(jmsTemplate.isSessionTransacted()).isTrue();
 		}
 	}
 
@@ -81,10 +78,10 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
-			assertFalse(TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class)
-					.isSessionTransacted());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
+			assertThat(TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class)
+					.isSessionTransacted()).isFalse();
 		}
 	}
 
@@ -95,13 +92,13 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(this.timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
 			JmsDestinationPollingSource jmsDestinationPollingSource = context
 					.getBean(JmsDestinationPollingSource.class);
 			JmsTemplate jmsTemplate =
 					TestUtils.getPropertyValue(jmsDestinationPollingSource, "jmsTemplate", JmsTemplate.class);
-			assertEquals(1000, jmsTemplate.getReceiveTimeout());
+			assertThat(jmsTemplate.getReceiveTimeout()).isEqualTo(1000);
 		}
 	}
 
@@ -117,7 +114,7 @@ public class JmsInboundChannelAdapterParserTests {
 		}
 		catch (BeanCreationException e) {
 			Throwable rootCause = e.getRootCause();
-			assertEquals(NoSuchBeanDefinitionException.class, rootCause.getClass());
+			assertThat(rootCause.getClass()).isEqualTo(NoSuchBeanDefinitionException.class);
 			throw e;
 		}
 	}
@@ -129,8 +126,8 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
 		}
 	}
 
@@ -146,8 +143,8 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
 		}
 	}
 
@@ -158,10 +155,10 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("polling-test", message.getPayload());
-			assertEquals("foo", message.getHeaders().get("testProperty"));
-			assertEquals(123, message.getHeaders().get("testAttribute"));
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("polling-test");
+			assertThat(message.getHeaders().get("testProperty")).isEqualTo("foo");
+			assertThat(message.getHeaders().get("testAttribute")).isEqualTo(123);
 		}
 	}
 
@@ -172,8 +169,8 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output1");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("test [with selector: TestProperty = 'foo']");
 		}
 	}
 
@@ -184,7 +181,7 @@ public class JmsInboundChannelAdapterParserTests {
 
 			JmsTemplate jmsTemplate =
 					TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class);
-			assertEquals(99, jmsTemplate.getReceiveTimeout());
+			assertThat(jmsTemplate.getReceiveTimeout()).isEqualTo(99);
 		}
 	}
 
@@ -195,8 +192,8 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output1");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("converted-test", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("converted-test");
 		}
 	}
 
@@ -207,8 +204,8 @@ public class JmsInboundChannelAdapterParserTests {
 
 			PollableChannel output = (PollableChannel) context.getBean("output2");
 			Message<?> message = output.receive(timeoutOnReceive);
-			assertNotNull("message should not be null", message);
-			assertEquals("converted-test", message.getPayload());
+			assertThat(message).as("message should not be null").isNotNull();
+			assertThat(message.getPayload()).isEqualTo("converted-test");
 		}
 	}
 

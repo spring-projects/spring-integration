@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.enablecomponentscan;
 
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -55,8 +53,7 @@ public class EnableComponentScanTests {
 
 	@Test
 	public void testCustomIntegrationComponentScan() {
-		assertThat(applicationContext.getBeanNamesForType(IntegrationFlowTests.ControlBusGateway.class),
-				not(emptyArray()));
+		assertThat(applicationContext.getBeanNamesForType(IntegrationFlowTests.ControlBusGateway.class)).isNotEmpty();
 	}
 
 	@Configuration

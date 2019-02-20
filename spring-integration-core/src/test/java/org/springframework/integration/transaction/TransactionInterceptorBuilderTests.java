@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.transaction;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -59,13 +56,13 @@ public class TransactionInterceptorBuilderTests {
 	}
 
 	private void verify(TransactionInterceptor interceptor, PlatformTransactionManager txm) throws Exception {
-		assertSame(txm, interceptor.getTransactionManager());
+		assertThat(interceptor.getTransactionManager()).isSameAs(txm);
 		TransactionAttribute atts = interceptor.getTransactionAttributeSource()
 				.getTransactionAttribute(TransactionInterceptorBuilderTests.class.getDeclaredMethod("test"), null);
-		Assert.assertThat(atts.getPropagationBehavior(), equalTo(Propagation.REQUIRES_NEW.value()));
-		Assert.assertThat(atts.getIsolationLevel(), equalTo(Isolation.SERIALIZABLE.value()));
-		Assert.assertThat(atts.getTimeout(), equalTo(42));
-		assertTrue(atts.isReadOnly());
+		assertThat(atts.getPropagationBehavior()).isEqualTo(Propagation.REQUIRES_NEW.value());
+		assertThat(atts.getIsolationLevel()).isEqualTo(Isolation.SERIALIZABLE.value());
+		assertThat(atts.getTimeout()).isEqualTo(42);
+		assertThat(atts.isReadOnly()).isTrue();
 	}
 
 

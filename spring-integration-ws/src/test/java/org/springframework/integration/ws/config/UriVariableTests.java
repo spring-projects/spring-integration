@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doAnswer;
 
@@ -36,7 +35,6 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 
-import org.hamcrest.Matchers;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
 import org.junit.Test;
@@ -131,14 +129,10 @@ public class UriVariableTests {
 				.setHeader("x", "integration")
 				.setHeader("param", "test1 & test2")
 				.build();
-		try {
-			this.inputHttp.send(message);
-		}
-		catch (MessageHandlingException e) {
-			// expected
-			assertThat(e.getCause(), Matchers.is(Matchers.instanceOf(WebServiceIOException.class))); // offline
-		}
-		assertEquals("http://localhost/spring-integration?param=test1%20&%20test2", uri.get());
+
+		assertThatThrownBy(() -> this.inputHttp.send(message))
+				.hasCauseInstanceOf(WebServiceIOException.class); // offline
+		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20&%20test2");
 	}
 
 	@Test
@@ -173,14 +167,14 @@ public class UriVariableTests {
 		catch (MessageHandlingException e) {
 			// expected
 			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceIOException.class.equals(causeType)); // offline
+			assertThat(WebServiceIOException.class.equals(causeType)).isTrue(); // offline
 		}
 		URI uri = URI.create("jms:SPRING.INTEGRATION.QUEUE?deliveryMode=NON_PERSISTENT&priority=5");
 		Mockito.verify(this.jmsMessageSender).createConnection(uri);
 
 		Mockito.verify(session).createQueue(destinationName);
 
-		assertEquals("jms:" + destinationName, this.interceptor.getLastUri().toString());
+		assertThat(this.interceptor.getLastUri().toString()).isEqualTo("jms:" + destinationName);
 		Mockito.verify(producer).setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		Mockito.verify(producer).setPriority(5);
 	}
@@ -199,12 +193,13 @@ public class UriVariableTests {
 		catch (MessageHandlingException e) {
 			// expected
 			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceIOException.class.equals(causeType)); // offline
+			assertThat(WebServiceIOException.class.equals(causeType)).isTrue(); // offline
 		}
 		WebServiceConnection webServiceConnection = this.emailInterceptor.getLastWebServiceConnection();
-		assertEquals(testEmailTo, TestUtils.getPropertyValue(webServiceConnection, "to").toString());
-		assertEquals(testEmailSubject, TestUtils.getPropertyValue(webServiceConnection, "subject"));
-		assertEquals("mailto:user@example.com?subject=Test%20subject", this.emailInterceptor.getLastUri().toString());
+		assertThat(TestUtils.getPropertyValue(webServiceConnection, "to").toString()).isEqualTo(testEmailTo);
+		assertThat(TestUtils.getPropertyValue(webServiceConnection, "subject")).isEqualTo(testEmailSubject);
+		assertThat(this.emailInterceptor.getLastUri().toString())
+				.isEqualTo("mailto:user@example.com?subject=Test%20subject");
 	}
 
 	@Test
@@ -220,14 +215,14 @@ public class UriVariableTests {
 		catch (MessageHandlingException e) {
 			// expected
 			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceIOException.class.equals(causeType)); // offline
+			assertThat(WebServiceIOException.class.equals(causeType)).isTrue(); // offline
 		}
 
 		ArgumentCaptor<Stanza> argument = ArgumentCaptor.forClass(Stanza.class);
 		Mockito.verify(this.xmppConnection).sendStanza(argument.capture());
-		assertEquals("user@jabber.org", argument.getValue().getTo().toString());
+		assertThat(argument.getValue().getTo().toString()).isEqualTo("user@jabber.org");
 
-		assertEquals("xmpp:user@jabber.org", this.interceptor.getLastUri().toString());
+		assertThat(this.interceptor.getLastUri().toString()).isEqualTo("xmpp:user@jabber.org");
 	}
 
 	private static class TestClientInterceptor implements ClientInterceptor {

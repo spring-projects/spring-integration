@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,11 +74,11 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof NotTerm);
+		assertThat(searchTerms instanceof NotTerm).isTrue();
 		NotTerm notTerm = (NotTerm) searchTerms;
 		Flags siFlags = new Flags();
 		siFlags.add(userFlag);
-		assertEquals(siFlags, ((FlagTerm) notTerm.getTerm()).getFlags());
+		assertThat(((FlagTerm) notTerm.getTerm()).getFlags()).isEqualTo(siFlags);
 	}
 
 	@Test
@@ -100,16 +99,16 @@ public class ImapMailSearchTermsTests {
 		Flags flags = new Flags();
 		flags.add(Flag.ANSWERED);
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof AndTerm);
+		assertThat(searchTerms instanceof AndTerm).isTrue();
 		AndTerm andTerm = (AndTerm) searchTerms;
 		SearchTerm[] terms = andTerm.getTerms();
-		assertEquals(2, terms.length);
+		assertThat(terms.length).isEqualTo(2);
 		NotTerm notTerm = (NotTerm) terms[0];
-		assertTrue(((FlagTerm) notTerm.getTerm()).getFlags().contains(Flag.ANSWERED));
+		assertThat(((FlagTerm) notTerm.getTerm()).getFlags().contains(Flag.ANSWERED)).isTrue();
 		notTerm = (NotTerm) terms[1];
 		Flags siFlags = new Flags();
 		siFlags.add(AbstractMailReceiver.DEFAULT_SI_USER_FLAG);
-		assertTrue(((FlagTerm) notTerm.getTerm()).getFlags().contains(siFlags));
+		assertThat(((FlagTerm) notTerm.getTerm()).getFlags().contains(siFlags)).isTrue();
 	}
 
 	@Test
@@ -129,7 +128,7 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof NotTerm);
+		assertThat(searchTerms instanceof NotTerm).isTrue();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executor;
 
@@ -89,28 +81,28 @@ public class ChannelParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("capacityChannel");
 		for (int i = 0; i < 10; i++) {
 			boolean result = channel.send(new GenericMessage<String>("test"), 10);
-			assertTrue(result);
+			assertThat(result).isTrue();
 		}
-		assertFalse(channel.send(new GenericMessage<String>("test"), 3));
+		assertThat(channel.send(new GenericMessage<String>("test"), 3)).isFalse();
 	}
 
 	@Test
 	public void testDirectChannelByDefault() throws InterruptedException {
 		MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
-		assertThat(channel, instanceOf(DirectChannel.class));
+		assertThat(channel).isInstanceOf(DirectChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
-		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
-		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"),
-				is(instanceOf(RoundRobinLoadBalancingStrategy.class)));
+		assertThat(dispatcher).isInstanceOf(UnicastingDispatcher.class);
+		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"))
+				.isInstanceOf(RoundRobinLoadBalancingStrategy.class);
 	}
 
 	@Test
 	public void testExecutorChannel() throws InterruptedException {
 		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
-		assertThat(channel, instanceOf(ExecutorChannel.class));
-		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter"));
-		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
+		assertThat(channel).isInstanceOf(ExecutorChannel.class);
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
 	}
 
 	@Test
@@ -118,63 +110,63 @@ public class ChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"ChannelParserTests-no-converter-context.xml", this.getClass());
 		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
-		assertThat(channel, instanceOf(ExecutorChannel.class));
-		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter"));
-		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
+		assertThat(channel).isInstanceOf(ExecutorChannel.class);
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
 		context.close();
 	}
 
 	@Test
 	public void channelWithFailoverDispatcherAttribute() throws Exception {
 		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailover");
-		assertEquals(DirectChannel.class, channel.getClass());
+		assertThat(channel.getClass()).isEqualTo(DirectChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
-		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
-		assertNull(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
+		assertThat(dispatcher).isInstanceOf(UnicastingDispatcher.class);
+		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy")).isNull();
 	}
 
 	@Test
 	public void testPublishSubscribeChannel() throws InterruptedException {
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
-		assertEquals(PublishSubscribeChannel.class, channel.getClass());
+		assertThat(channel.getClass()).isEqualTo(PublishSubscribeChannel.class);
 	}
 
 	@Test
 	public void testPublishSubscribeChannelWithTaskExecutorReference() throws InterruptedException {
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannelWithTaskExecutorRef");
-		assertEquals(PublishSubscribeChannel.class, channel.getClass());
+		assertThat(channel.getClass()).isEqualTo(PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("dispatcher"));
 		Object executorProperty = accessor.getPropertyValue("executor");
-		assertNotNull(executorProperty);
-		assertEquals(ErrorHandlingTaskExecutor.class, executorProperty.getClass());
+		assertThat(executorProperty).isNotNull();
+		assertThat(executorProperty.getClass()).isEqualTo(ErrorHandlingTaskExecutor.class);
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executorProperty);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		Object executorBean = context.getBean("taskExecutor");
-		assertEquals(executorBean, innerExecutor);
+		assertThat(innerExecutor).isEqualTo(executorBean);
 	}
 
 	@Test
 	public void channelWithCustomQueue() {
 		Object customQueue = context.getBean("customQueue");
 		Object channelWithCustomQueue = context.getBean("channelWithCustomQueue");
-		assertEquals(QueueChannel.class, channelWithCustomQueue.getClass());
+		assertThat(channelWithCustomQueue.getClass()).isEqualTo(QueueChannel.class);
 		Object actualQueue = new DirectFieldAccessor(channelWithCustomQueue).getPropertyValue("queue");
-		assertSame(customQueue, actualQueue);
+		assertThat(actualQueue).isSameAs(customQueue);
 	}
 
 	@Test
 	public void testDatatypeChannelWithCorrectType() {
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
-		assertTrue(channel.send(new GenericMessage<Integer>(123)));
+		assertThat(channel.send(new GenericMessage<Integer>(123))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
 	public void testDatatypeChannelWithIncorrectType() {
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
 		channel.send(new GenericMessage<String>("incorrect type"));
-		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter);
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter).isTrue();
 	}
 
 	@Test
@@ -183,25 +175,25 @@ public class ChannelParserTests {
 				new ClassPathXmlApplicationContext("channelParserGlobalConverterTests.xml", getClass());
 		MessageChannel channel = context.getBean("integerChannel", MessageChannel.class);
 		context.close();
-		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter);
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter).isTrue();
 	}
 
 	@Test
 	public void testDatatypeChannelWithAssignableSubTypes() {
 		MessageChannel channel = (MessageChannel) context.getBean("numberChannel");
-		assertTrue(channel.send(new GenericMessage<>(123)));
-		assertTrue(channel.send(new GenericMessage<>(123.45)));
-		assertTrue(channel.send(new GenericMessage<>(Boolean.TRUE)));
-		assertThat(TestUtils.getPropertyValue(channel, "messageConverter"),
-				instanceOf(DefaultDatatypeChannelMessageConverter.class));
-		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
+		assertThat(channel.send(new GenericMessage<>(123))).isTrue();
+		assertThat(channel.send(new GenericMessage<>(123.45))).isTrue();
+		assertThat(channel.send(new GenericMessage<>(Boolean.TRUE))).isTrue();
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter"))
+				.isInstanceOf(DefaultDatatypeChannelMessageConverter.class);
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService")).isNotNull();
 	}
 
 	@Test
 	public void testMultipleDatatypeChannelWithCorrectTypes() {
 		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
-		assertTrue(channel.send(new GenericMessage<>(123)));
-		assertTrue(channel.send(new GenericMessage<>("accepted type")));
+		assertThat(channel.send(new GenericMessage<>(123))).isTrue();
+		assertThat(channel.send(new GenericMessage<>("accepted type"))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -216,12 +208,12 @@ public class ChannelParserTests {
 				new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorRef");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
-		assertEquals(0, interceptor.getSendCount());
+		assertThat(interceptor.getSendCount()).isEqualTo(0);
 		channel.send(new GenericMessage<>("test"));
-		assertEquals(1, interceptor.getSendCount());
-		assertEquals(0, interceptor.getReceiveCount());
+		assertThat(interceptor.getSendCount()).isEqualTo(1);
+		assertThat(interceptor.getReceiveCount()).isEqualTo(0);
 		channel.receive();
-		assertEquals(1, interceptor.getReceiveCount());
+		assertThat(interceptor.getReceiveCount()).isEqualTo(1);
 		context.close();
 	}
 
@@ -232,7 +224,7 @@ public class ChannelParserTests {
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorInnerBean");
 		channel.send(new GenericMessage<String>("test"));
 		Message<?> transformed = channel.receive(1000);
-		assertEquals("TEST", transformed.getPayload());
+		assertThat(transformed.getPayload()).isEqualTo("TEST");
 		context.close();
 	}
 
@@ -248,9 +240,9 @@ public class ChannelParserTests {
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
 		Message<?> reply3 = channel.receive(0);
-		assertEquals("high", reply1.getPayload());
-		assertEquals("mid", reply2.getPayload());
-		assertEquals("low", reply3.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("high");
+		assertThat(reply2.getPayload()).isEqualTo("mid");
+		assertThat(reply3.getPayload()).isEqualTo("low");
 	}
 
 	@Test
@@ -264,10 +256,10 @@ public class ChannelParserTests {
 		Message<?> reply2 = channel.receive(0);
 		Message<?> reply3 = channel.receive(0);
 		Message<?> reply4 = channel.receive(0);
-		assertEquals("A", reply1.getPayload());
-		assertEquals("B", reply2.getPayload());
-		assertEquals("C", reply3.getPayload());
-		assertEquals("D", reply4.getPayload());
+		assertThat(reply1.getPayload()).isEqualTo("A");
+		assertThat(reply2.getPayload()).isEqualTo("B");
+		assertThat(reply3.getPayload()).isEqualTo("C");
+		assertThat(reply4.getPayload()).isEqualTo("D");
 	}
 
 	@Test
@@ -276,18 +268,18 @@ public class ChannelParserTests {
 		channel.send(new GenericMessage<>(3));
 		channel.send(new GenericMessage<>(2));
 		channel.send(new GenericMessage<>(1));
-		assertEquals(1, channel.receive(0).getPayload());
-		assertEquals(2, channel.receive(0).getPayload());
-		assertEquals(3, channel.receive(0).getPayload());
+		assertThat(channel.receive(0).getPayload()).isEqualTo(1);
+		assertThat(channel.receive(0).getPayload()).isEqualTo(2);
+		assertThat(channel.receive(0).getPayload()).isEqualTo(3);
 		boolean threwException = false;
 		try {
 			channel.send(new GenericMessage<>("wrong type"));
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("wrong type", e.getFailedMessage().getPayload());
+			assertThat(e.getFailedMessage().getPayload()).isEqualTo("wrong type");
 			threwException = true;
 		}
-		assertTrue(threwException);
+		assertThat(threwException).isTrue();
 	}
 
 	public static class TestInterceptor implements ChannelInterceptor {

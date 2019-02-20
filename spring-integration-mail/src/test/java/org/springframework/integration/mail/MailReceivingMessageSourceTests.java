@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -47,11 +46,11 @@ public class MailReceivingMessageSourceTests {
 		mailReceiver.messages.add(new javax.mail.Message[] { message4 });
 
 		MailReceivingMessageSource source = new MailReceivingMessageSource(mailReceiver);
-		assertEquals("Wrong message for number 1", message1, source.receive().getPayload());
-		assertEquals("Wrong message for number 2", message2, source.receive().getPayload());
-		assertEquals("Wrong message for number 3", message3, source.receive().getPayload());
-		assertEquals("Wrong message for number 4", message4, source.receive().getPayload());
-		assertNull("Expected null after exhausting all messages", source.receive());
+		assertThat(source.receive().getPayload()).as("Wrong message for number 1").isEqualTo(message1);
+		assertThat(source.receive().getPayload()).as("Wrong message for number 2").isEqualTo(message2);
+		assertThat(source.receive().getPayload()).as("Wrong message for number 3").isEqualTo(message3);
+		assertThat(source.receive().getPayload()).as("Wrong message for number 4").isEqualTo(message4);
+		assertThat(source.receive()).as("Expected null after exhausting all messages").isNull();
 	}
 
 

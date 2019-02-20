@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -95,8 +90,8 @@ public class AggregatorIntegrationTests {
 			input.send(new GenericMessage<>(i, headers));
 		}
 		Message<?> receive = output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(1 + 2 + 3 + 4, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(1 + 2 + 3 + 4);
 	}
 
 	@Test
@@ -105,21 +100,21 @@ public class AggregatorIntegrationTests {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			nonExpiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
-		assertNotNull(output.receive(0));
+		assertThat(output.receive(0)).isNotNull();
 
-		assertNull(discard.receive(0));
+		assertThat(discard.receive(0)).isNull();
 
 		for (int i = 5; i < 10; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			nonExpiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
-		assertNull(output.receive(0));
+		assertThat(output.receive(0)).isNull();
 
-		assertNotNull(discard.receive(0));
-		assertNotNull(discard.receive(0));
-		assertNotNull(discard.receive(0));
-		assertNotNull(discard.receive(0));
-		assertNotNull(discard.receive(0));
+		assertThat(discard.receive(0)).isNotNull();
+		assertThat(discard.receive(0)).isNotNull();
+		assertThat(discard.receive(0)).isNotNull();
+		assertThat(discard.receive(0)).isNotNull();
+		assertThat(discard.receive(0)).isNotNull();
 	}
 
 	@Test
@@ -128,17 +123,17 @@ public class AggregatorIntegrationTests {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			expiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
-		assertNotNull(output.receive(0));
+		assertThat(output.receive(0)).isNotNull();
 
-		assertNull(discard.receive(0));
+		assertThat(discard.receive(0)).isNull();
 
 		for (int i = 5; i < 10; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			expiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
-		assertNotNull(output.receive(0));
+		assertThat(output.receive(0)).isNotNull();
 
-		assertNull(discard.receive(0));
+		assertThat(discard.receive(0)).isNull();
 
 	}
 
@@ -155,9 +150,9 @@ public class AggregatorIntegrationTests {
 			while (n++ < 100 && mgs.getMessageGroupCount() > 0) {
 				Thread.sleep(100);
 			}
-			assertTrue("Group did not complete", n < 100);
-			assertNotNull(this.output.receive(10000));
-			assertNull(this.discard.receive(0));
+			assertThat(n < 100).as("Group did not complete").isTrue();
+			assertThat(this.output.receive(10000)).isNotNull();
+			assertThat(this.discard.receive(0)).isNull();
 		}
 	}
 
@@ -180,50 +175,50 @@ public class AggregatorIntegrationTests {
 				TestUtils.getPropertyValue(this.output, "queue", Queue.class).clear();
 			}
 		}
-		assertTrue("Group did not complete", n < 100);
+		assertThat(n < 100).as("Group did not complete").isTrue();
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(Collections.singletonList(1), receive.getPayload());
-		assertNull(this.discard.receive(0));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(Collections.singletonList(1));
+		assertThat(this.discard.receive(0)).isNull();
 	}
 
 	@Test
 	public void testGroupTimeoutExpressionScheduling() {
 		// Since group-timeout-expression="size() >= 2 ? 100 : null". The first message won't be scheduled to 'forceComplete'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(1, stubHeaders(1, 6, 1)));
-		assertNull(this.output.receive(0));
-		assertNull(this.discard.receive(0));
+		assertThat(this.output.receive(0)).isNull();
+		assertThat(this.discard.receive(0)).isNull();
 
 		// As far as 'group.size() >= 2' it will be scheduled to 'forceComplete'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(2, stubHeaders(2, 6, 1)));
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(2, ((Collection<?>) receive.getPayload()).size());
-		assertNull(this.discard.receive(0));
+		assertThat(receive).isNotNull();
+		assertThat(((Collection<?>) receive.getPayload()).size()).isEqualTo(2);
+		assertThat(this.discard.receive(0)).isNull();
 
 		// The same with these three messages
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(3, stubHeaders(3, 6, 1)));
-		assertNull(this.output.receive(0));
-		assertNull(this.discard.receive(0));
+		assertThat(this.output.receive(0)).isNull();
+		assertThat(this.discard.receive(0)).isNull();
 
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(4, stubHeaders(4, 6, 1)));
-		assertNull(this.output.receive(0));
-		assertNull(this.discard.receive(0));
+		assertThat(this.output.receive(0)).isNull();
+		assertThat(this.discard.receive(0)).isNull();
 
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(5, stubHeaders(5, 6, 1)));
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(3, ((Collection<?>) receive.getPayload()).size());
-		assertNull(this.discard.receive(0));
+		assertThat(receive).isNotNull();
+		assertThat(((Collection<?>) receive.getPayload()).size()).isEqualTo(3);
+		assertThat(this.discard.receive(0)).isNull();
 
 		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(6, stubHeaders(6, 6, 1)));
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(1, ((Collection<?>) receive.getPayload()).size());
-		assertNull(this.discard.receive(0));
+		assertThat(receive).isNotNull();
+		assertThat(((Collection<?>) receive.getPayload()).size()).isEqualTo(1);
+		assertThat(this.discard.receive(0)).isNull();
 	}
 
 	@Test
@@ -239,9 +234,9 @@ public class AggregatorIntegrationTests {
 			this.output.send(message);
 			this.zeroGroupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(1, stubHeaders(1, 2, 1)));
 			ErrorMessage em = (ErrorMessage) this.errors.receive(10000);
-			assertNotNull(em);
-			assertThat(em.getPayload().getMessage().toLowerCase(),
-					containsString("failed to send message to channel 'output' within timeout: 10"));
+			assertThat(em).isNotNull();
+			assertThat(em.getPayload().getMessage().toLowerCase())
+					.contains("failed to send message to channel 'output' within timeout: 10");
 		}
 		finally {
 			this.output.purge(null);

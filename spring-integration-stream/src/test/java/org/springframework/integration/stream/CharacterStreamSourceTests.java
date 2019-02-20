@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -49,10 +45,11 @@ public class CharacterStreamSourceTests {
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertEquals("test", message1.getPayload());
+		assertThat(message1.getPayload()).isEqualTo("test");
 		Message<?> message2 = source.receive();
-		assertNull(message2);
+		assertThat(message2).isNull();
 	}
 
 	@Test
@@ -61,10 +58,11 @@ public class CharacterStreamSourceTests {
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 		source.setApplicationEventPublisher(publisher);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message1 = source.receive();
-		assertEquals("test", message1.getPayload());
+		assertThat(message1.getPayload()).isEqualTo("test");
 		Message<?> message2 = source.receive();
-		assertNull(message2);
+		assertThat(message2).isNull();
 		verify(publisher).publishEvent(any(StreamClosedEvent.class));
 	}
 
@@ -72,6 +70,7 @@ public class CharacterStreamSourceTests {
 	public void testEOFIntegrationTest() throws Exception {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
+		source.setBeanFactory(mock(BeanFactory.class));
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		CountDownLatch latch = new CountDownLatch(2);
 		source.setApplicationEventPublisher(e -> {
@@ -93,10 +92,10 @@ public class CharacterStreamSourceTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 		Message<?> received = out.receive(10000);
-		assertNotNull(received);
-		assertEquals("test", received.getPayload());
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(adapter.isRunning());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("test");
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(adapter.isRunning()).isFalse();
 		scheduler.shutdown();
 	}
 

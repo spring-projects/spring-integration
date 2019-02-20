@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -112,11 +106,11 @@ public class AmqpTests {
 
 	@Test
 	public void testAmqpInboundGatewayFlow() {
-		assertNotNull(this.amqpInboundGatewayContainer);
-		assertSame(this.amqpTemplate, TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate"));
+		assertThat(this.amqpInboundGatewayContainer).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate")).isSameAs(this.amqpTemplate);
 
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
-		assertEquals("HELLO WORLD", result);
+		assertThat(result).isEqualTo("HELLO WORLD");
 
 		this.amqpInboundGateway.stop();
 		//INTEXT-209
@@ -125,7 +119,7 @@ public class AmqpTests {
 		this.amqpTemplate.convertAndSend(this.amqpQueue.getName(), "world");
 		((RabbitTemplate) this.amqpTemplate).setReceiveTimeout(10000);
 		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");
-		assertEquals("HELLO WORLD", result);
+		assertThat(result).isEqualTo("HELLO WORLD");
 	}
 
 	@Autowired
@@ -153,8 +147,8 @@ public class AmqpTests {
 		}
 		while (i < 10);
 
-		assertNotNull(receive);
-		assertEquals("HELLO THROUGH THE AMQP", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("HELLO THROUGH THE AMQP");
 
 		((Lifecycle) this.amqpOutboundInput).stop();
 	}
@@ -165,8 +159,8 @@ public class AmqpTests {
 				this.rabbitConnectionFactory)
 				.autoStartup(false)
 				.templateChannelTransacted(true));
-		assertTrue(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
-				Boolean.class));
+		assertThat(TestUtils.getPropertyValue(flow, "currentMessageChannel.amqpTemplate.transactional",
+				Boolean.class)).isTrue();
 	}
 
 	@Autowired
@@ -181,8 +175,8 @@ public class AmqpTests {
 				.build());
 
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("HELLO ASYNC GATEWAY", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("HELLO ASYNC GATEWAY");
 
 		this.asyncOutboundGateway.stop();
 	}
@@ -197,19 +191,19 @@ public class AmqpTests {
 	@Test
 	public void testInboundMessagingExceptionFlow() {
 		this.amqpTemplate.convertAndSend("si.dsl.exception.test", "foo");
-		assertNotNull(this.amqpTemplate.receive("si.dsl.exception.test.dlq", 30_000));
-		assertNull(this.lefe.get());
-		assertNotNull(this.raw.get());
+		assertThat(this.amqpTemplate.receive("si.dsl.exception.test.dlq", 30_000)).isNotNull();
+		assertThat(this.lefe.get()).isNull();
+		assertThat(this.raw.get()).isNotNull();
 		this.raw.set(null);
 	}
 
 	@Test
 	public void testInboundConversionExceptionFlow() {
 		this.amqpTemplate.convertAndSend("si.dsl.conv.exception.test", "foo");
-		assertNotNull(this.amqpTemplate.receive("si.dsl.conv.exception.test.dlq", 30_000));
-		assertNotNull(this.lefe.get());
-		assertThat(this.lefe.get().getCause(), instanceOf(MessageConversionException.class));
-		assertNotNull(this.raw.get());
+		assertThat(this.amqpTemplate.receive("si.dsl.conv.exception.test.dlq", 30_000)).isNotNull();
+		assertThat(this.lefe.get()).isNotNull();
+		assertThat(this.lefe.get().getCause()).isInstanceOf(MessageConversionException.class);
+		assertThat(this.raw.get()).isNotNull();
 		this.raw.set(null);
 		this.lefe.set(null);
 	}
@@ -225,11 +219,11 @@ public class AmqpTests {
 
 	@Test
 	public void unitTestChannel() {
-		assertEquals(MessageDeliveryMode.NON_PERSISTENT,
-				TestUtils.getPropertyValue(this.unitChannel, "defaultDeliveryMode"));
-		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.unitChannel, "inboundHeaderMapper"));
-		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.unitChannel, "outboundHeaderMapper"));
-		assertTrue(TestUtils.getPropertyValue(this.unitChannel, "extractPayload", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.unitChannel, "defaultDeliveryMode"))
+				.isEqualTo(MessageDeliveryMode.NON_PERSISTENT);
+		assertThat(TestUtils.getPropertyValue(this.unitChannel, "inboundHeaderMapper")).isSameAs(this.mapperIn);
+		assertThat(TestUtils.getPropertyValue(this.unitChannel, "outboundHeaderMapper")).isSameAs(this.mapperOut);
+		assertThat(TestUtils.getPropertyValue(this.unitChannel, "extractPayload", Boolean.class)).isTrue();
 	}
 
 	@Configuration

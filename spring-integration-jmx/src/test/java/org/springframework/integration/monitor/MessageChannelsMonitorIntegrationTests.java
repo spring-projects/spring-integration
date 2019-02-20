@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -28,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -89,14 +86,14 @@ public class MessageChannelsMonitorIntegrationTests {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals(before + 50, service.getCounter());
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(service.getCounter()).isEqualTo(before + 50);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
-			assertEquals("No send statistics for input channel", 50, sends, 0.01);
+			assertThat(sends).as("No send statistics for input channel").isEqualTo(50);
 			long sendsLong = messageChannelsMonitor.getChannelSendRate("" + channel).getCountLong();
-			assertEquals("No send statistics for input channel", sendsLong, sends, 0.01);
+			assertThat(sends).as("No send statistics for input channel").isEqualTo(sendsLong);
 
 		}
 		finally {
@@ -127,14 +124,14 @@ public class MessageChannelsMonitorIntegrationTests {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals(before + 10, service.getCounter());
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(service.getCounter()).isEqualTo(before + 10);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
-			assertEquals("No send statistics for input channel", 11, sends, 0.01);
+			assertThat(sends).as("No send statistics for input channel").isEqualTo(11);
 			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
-			assertEquals("No error statistics for input channel", 1, errors, 0.01);
+			assertThat(errors).as("No error statistics for input channel").isEqualTo(1);
 		}
 		finally {
 			context.close();
@@ -164,16 +161,16 @@ public class MessageChannelsMonitorIntegrationTests {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals(before + 10, service.getCounter());
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(service.getCounter()).isEqualTo(before + 10);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
-			assertEquals("No send statistics for input channel", 11, sends);
+			assertThat(sends).as("No send statistics for input channel").isEqualTo(11);
 			int receives = messageChannelsMonitor.getChannelReceiveCount("" + channel);
-			assertEquals("No send statistics for input channel", 11, receives);
+			assertThat(receives).as("No send statistics for input channel").isEqualTo(11);
 			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
-			assertEquals("Expect no errors for input channel (handler fails)", 0, errors);
+			assertThat(errors).as("Expect no errors for input channel (handler fails)").isEqualTo(0);
 		}
 		finally {
 			context.close();
@@ -191,17 +188,18 @@ public class MessageChannelsMonitorIntegrationTests {
 			CountDownLatch latch = new CountDownLatch(1);
 			service.setLatch(latch);
 			channel.send(new GenericMessage<String>("bar"));
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals(before + 1, service.getCounter());
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(service.getCounter()).isEqualTo(before + 1);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
-			assertEquals("No statistics for input channel", 1, sends, 0.01);
+			assertThat(sends).as("No statistics for input channel").isEqualTo(1);
 
-			assertThat(channel, Matchers.instanceOf(ChannelInterceptorAware.class));
-			List<ChannelInterceptor> channelInterceptors = ((ChannelInterceptorAware) channel).getChannelInterceptors();
-			assertEquals(1, channelInterceptors.size());
-			assertThat(channelInterceptors.get(0), Matchers.instanceOf(WireTap.class));
+			assertThat(channel).isInstanceOf(ChannelInterceptorAware.class);
+			List<ChannelInterceptor> channelInterceptors =
+					((ChannelInterceptorAware) channel).getChannelInterceptors();
+			assertThat(channelInterceptors.size()).isEqualTo(1);
+			assertThat(channelInterceptors.get(0)).isInstanceOf(WireTap.class);
 		}
 		finally {
 			context.close();
@@ -238,6 +236,7 @@ public class MessageChannelsMonitorIntegrationTests {
 		public int getCounter() {
 			return counter;
 		}
+
 	}
 
 	@Aspect

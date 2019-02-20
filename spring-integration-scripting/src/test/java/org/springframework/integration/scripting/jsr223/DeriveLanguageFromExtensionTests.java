@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -53,7 +52,7 @@ public class DeriveLanguageFromExtensionTests {
 
 		Map<String, ScriptExecutingMessageProcessor> scriptProcessors = ctx
 				.getBeansOfType(ScriptExecutingMessageProcessor.class);
-		assertEquals(4, scriptProcessors.size());
+		assertThat(scriptProcessors.size()).isEqualTo(4);
 
 		for (int i = 0; i < 4; i++) {
 
@@ -63,8 +62,8 @@ public class DeriveLanguageFromExtensionTests {
 
 			AbstractScriptExecutor executor = (AbstractScriptExecutor) TestUtils.getPropertyValue(processor,
 					"scriptExecutor");
-			assertEquals(langs[i], executor.language);
-			assertEquals(executors[i], executor.getClass());
+			assertThat(executor.language).isEqualTo(langs[i]);
+			assertThat(executor.getClass()).isEqualTo(executors[i]);
 		}
 	}
 
@@ -75,7 +74,7 @@ public class DeriveLanguageFromExtensionTests {
 					.close();
 		}
 		catch (Exception e) {
-			assertTrue(e.getMessage().contains("No suitable scripting engine found for extension 'xx'"));
+			assertThat(e.getMessage().contains("No suitable scripting engine found for extension 'xx'")).isTrue();
 		}
 	}
 
@@ -86,7 +85,7 @@ public class DeriveLanguageFromExtensionTests {
 					.close();
 		}
 		catch (Exception e) {
-			assertTrue(e.getMessage().contains("Unable to determine language for script 'foo'"));
+			assertThat(e.getMessage().contains("Unable to determine language for script 'foo'")).isTrue();
 		}
 	}
 

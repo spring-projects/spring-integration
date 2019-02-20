@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aop;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,32 +51,32 @@ public class MessagePublishingAnnotationUsageTests {
 	@Test
 	public void headerWithExplicitName() {
 		String name = this.testBean.defaultPayload("John", "Doe");
-		assertNotNull(name);
+		assertThat(name).isNotNull();
 		Message<?> message = this.channel.receive(1000);
-		assertNotNull(message);
-		assertEquals("John Doe", message.getPayload());
-		assertEquals("Doe", message.getHeaders().get("last"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John Doe");
+		assertThat(message.getHeaders().get("last")).isEqualTo("Doe");
 	}
 
 	@Test
 	public void headerWithImplicitName() {
 		String name = this.testBean.defaultPayloadButExplicitAnnotation("John", "Doe");
-		assertNotNull(name);
+		assertThat(name).isNotNull();
 		Message<?> message = this.channel.receive(1000);
-		assertNotNull(message);
-		assertEquals("John Doe", message.getPayload());
-		assertEquals("Doe", message.getHeaders().get("lname"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John Doe");
+		assertThat(message.getHeaders().get("lname")).isEqualTo("Doe");
 	}
 
 	@Test
 	public void payloadAsArgument() {
 		String name = this.testBean.argumentAsPayload("John", "Doe");
-		assertNotNull(name);
-		assertEquals("John Doe", name);
+		assertThat(name).isNotNull();
+		assertThat(name).isEqualTo("John Doe");
 		Message<?> message = this.channel.receive(1000);
-		assertNotNull(message);
-		assertEquals("John", message.getPayload());
-		assertEquals("Doe", message.getHeaders().get("lname"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John");
+		assertThat(message.getHeaders().get("lname")).isEqualTo("Doe");
 	}
 
 

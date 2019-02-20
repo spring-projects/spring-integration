@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.mqtt.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -71,49 +66,47 @@ public class MqttOutboundChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithConverter() throws Exception {
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withConverterHandler, "url"));
-		assertEquals("foo", TestUtils.getPropertyValue(withConverterHandler, "clientId"));
-		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "defaultTopic")).isEqualTo("bar");
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertEquals("bar",
-				TestUtils.getPropertyValue(withConverterHandler, "topicProcessor", MessageProcessor.class)
-						.processMessage(message));
-		assertEquals(2, TestUtils.getPropertyValue(withConverterHandler, "qosProcessor", MessageProcessor.class)
-				.processMessage(message));
-		assertEquals(Boolean.TRUE,
-				TestUtils.getPropertyValue(withConverterHandler, "retainedProcessor", MessageProcessor.class)
-						.processMessage(message));
-		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
-		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
-		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class));
-		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "asyncEvents", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "topicProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo("bar");
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "qosProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "retainedProcessor", MessageProcessor.class)
+				.processMessage(message)).isEqualTo(Boolean.TRUE);
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "converter")).isSameAs(converter);
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(withConverterHandler, "asyncEvents", Boolean.class)).isFalse();
 
 		Object handler = TestUtils.getPropertyValue(this.withConverterEndpoint, "handler");
 
-		assertTrue(AopUtils.isAopProxy(handler));
+		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 
-		assertSame(((Advised) handler).getTargetSource().getTarget(), this.withConverterHandler);
+		assertThat(this.withConverterHandler).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
-				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
+				.isInstanceOf(RequestHandlerRetryAdvice.class);
 	}
 
 	@Test
 	public void testWithDefaultConverter() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withDefaultConverterHandler, "url"));
-		assertEquals("foo", TestUtils.getPropertyValue(withDefaultConverterHandler, "clientId"));
-		assertEquals("bar", TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic"));
-		assertEquals(1, TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos"));
-		assertEquals(Boolean.TRUE,
-				TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "url")).isEqualTo("tcp://localhost:1883");
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "clientId")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic")).isEqualTo("bar");
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos")).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class))
+				.isEqualTo(Boolean.TRUE);
 		DefaultPahoMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler,
 				"converter", DefaultPahoMessageConverter.class);
-		assertEquals(1, defaultConverter.fromMessage(message, null).getQos());
-		assertTrue(defaultConverter.fromMessage(message, null).isRetained());
-		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
-		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class));
+		assertThat(defaultConverter.fromMessage(message, null).getQos()).isEqualTo(1);
+		assertThat(defaultConverter.fromMessage(message, null).isRetained()).isTrue();
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory")).isSameAs(clientFactory);
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class)).isTrue();
 	}
 
 }

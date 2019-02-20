@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
@@ -41,17 +39,17 @@ public class XmppConnectionParserTests {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
-		assertEquals("my.domain", connection.getXMPPServiceDomain().toString());
-		assertFalse(connection.isConnected());
+		assertThat(connection.getXMPPServiceDomain().toString()).isEqualTo("my.domain");
+		assertThat(connection.isConnected()).isFalse();
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
-		assertEquals("happy.user@my.domain", TestUtils.getPropertyValue(xmppFb, "user"));
-		assertEquals("blah", TestUtils.getPropertyValue(xmppFb, "password"));
-		assertNull(TestUtils.getPropertyValue(xmppFb, "resource"));
-		assertEquals("accept_all", TestUtils.getPropertyValue(xmppFb, "subscriptionMode").toString());
+		assertThat(TestUtils.getPropertyValue(xmppFb, "user")).isEqualTo("happy.user@my.domain");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "password")).isEqualTo("blah");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "resource")).isNull();
+		assertThat(TestUtils.getPropertyValue(xmppFb, "subscriptionMode").toString()).isEqualTo("accept_all");
 
 		xmppFb = ac.getBean("&connectionWithResource", XmppConnectionFactoryBean.class);
-		assertEquals("Smack", TestUtils.getPropertyValue(xmppFb, "resource"));
-		assertNull(TestUtils.getPropertyValue(xmppFb, "subscriptionMode"));
+		assertThat(TestUtils.getPropertyValue(xmppFb, "resource")).isEqualTo("Smack");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "subscriptionMode")).isNull();
 		ac.close();
 	}
 
@@ -60,13 +58,13 @@ public class XmppConnectionParserTests {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-complete.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
-		assertEquals("foogle.com", connection.getXMPPServiceDomain().toString());
-		assertFalse(connection.isConnected());
+		assertThat(connection.getXMPPServiceDomain().toString()).isEqualTo("foogle.com");
+		assertThat(connection.isConnected()).isFalse();
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
-		assertEquals("happy.user", TestUtils.getPropertyValue(xmppFb, "user"));
-		assertEquals("blah", TestUtils.getPropertyValue(xmppFb, "password"));
-		assertEquals("SpringSource", TestUtils.getPropertyValue(xmppFb, "resource"));
-		assertEquals("reject_all", TestUtils.getPropertyValue(xmppFb, "subscriptionMode").toString());
+		assertThat(TestUtils.getPropertyValue(xmppFb, "user")).isEqualTo("happy.user");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "password")).isEqualTo("blah");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "resource")).isEqualTo("SpringSource");
+		assertThat(TestUtils.getPropertyValue(xmppFb, "subscriptionMode").toString()).isEqualTo("reject_all");
 		ac.close();
 	}
 

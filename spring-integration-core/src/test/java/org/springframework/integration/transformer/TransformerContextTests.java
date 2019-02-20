@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,29 +68,29 @@ public class TransformerContextTests {
 	public void methodInvokingTransformer() {
 		this.input.send(new GenericMessage<String>("foo"));
 		Message<?> reply = this.output.receive(0);
-		assertEquals("FOO", reply.getPayload());
-		assertEquals(1, adviceCalled);
+		assertThat(reply.getPayload()).isEqualTo("FOO");
+		assertThat(adviceCalled).isEqualTo(1);
 
 		this.direct.send(new GenericMessage<String>("foo"));
 		reply = this.output.receive(0);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
+		assertThat(st[6].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
 
 		this.directRef.send(new GenericMessage<String>("foo"));
 		reply = this.output.receive(0);
-		assertEquals("FOO", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("FOO");
 		st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doSend", st[6].getMethodName()); // no MethodInvokerHelper
+		assertThat(st[6].getMethodName()).isEqualTo("doSend"); // no MethodInvokerHelper
 
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 		this.pojoTransformer.stop();
-		assertFalse(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isFalse();
 		this.pojoTransformer.start();
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 
 		this.directRef.send(new GenericMessage<String>("bar"));
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

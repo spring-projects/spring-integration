@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.jms.TextMessage;
 
@@ -70,14 +69,14 @@ public class JmsDynamicDestinationTests {
 		channelAdapterChannel.send(message2);
 		Message<?> result1 = channelAdapterResults1.receive(5000);
 		Message<?> result2 = channelAdapterResults2.receive(5000);
-		assertNotNull(result1);
-		assertNotNull(result2);
+		assertThat(result1).isNotNull();
+		assertThat(result2).isNotNull();
 		TextMessage jmsResult1 = (TextMessage) result1.getPayload();
 		TextMessage jmsResult2 = (TextMessage) result2.getPayload();
-		assertEquals("test-1", jmsResult1.getText());
-		assertEquals("queue://queue.test.dynamic.adapter.1", jmsResult1.getJMSDestination().toString());
-		assertEquals("test-2", jmsResult2.getText());
-		assertEquals("queue://queue.test.dynamic.adapter.2", jmsResult2.getJMSDestination().toString());
+		assertThat(jmsResult1.getText()).isEqualTo("test-1");
+		assertThat(jmsResult1.getJMSDestination().toString()).isEqualTo("queue://queue.test.dynamic.adapter.1");
+		assertThat(jmsResult2.getText()).isEqualTo("test-2");
+		assertThat(jmsResult2.getJMSDestination().toString()).isEqualTo("queue://queue.test.dynamic.adapter.2");
 	}
 
 	@Test
@@ -87,10 +86,10 @@ public class JmsDynamicDestinationTests {
 		MessagingTemplate template = new MessagingTemplate();
 		Message<?> result1 = template.sendAndReceive(gatewayChannel, message1);
 		Message<?> result2 = template.sendAndReceive(gatewayChannel, message2);
-		assertNotNull(result1);
-		assertNotNull(result2);
-		assertEquals("test-1!", result1.getPayload());
-		assertEquals("test-2!!", result2.getPayload());
+		assertThat(result1).isNotNull();
+		assertThat(result2).isNotNull();
+		assertThat(result1.getPayload()).isEqualTo("test-1!");
+		assertThat(result2.getPayload()).isEqualTo("test-2!!");
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jpa.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.text.ParseException;
@@ -28,8 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-
-import org.junit.Assert;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +61,7 @@ public class AbstractJpaOperationsTests {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
 		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
-		Assert.assertTrue(students.size() == 3);
+		assertThat(students.size() == 3).isTrue();
 
 	}
 
@@ -74,8 +70,8 @@ public class AbstractJpaOperationsTests {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
 		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 2);
-		Assert.assertTrue(String.format("Was expecting 2 Students to be returned but got '%s'.", students.size()),
-				students.size() == 2);
+		assertThat(students.size() == 2)
+				.as(String.format("Was expecting 2 Students to be returned but got '%s'.", students.size())).isTrue();
 
 	}
 
@@ -86,7 +82,7 @@ public class AbstractJpaOperationsTests {
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
 		List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
-		Assert.assertTrue(students.size() == 3);
+		assertThat(students.size() == 3).isTrue();
 
 		ParameterSourceFactory requestParameterSourceFactory =
 				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
@@ -98,8 +94,8 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue(1 == updatedRecords);
-		Assert.assertNull(student.getRollNumber());
+		assertThat(1 == updatedRecords).isTrue();
+		assertThat(student.getRollNumber()).isNull();
 
 	}
 
@@ -116,8 +112,8 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue(1 == updatedRecords);
-		Assert.assertNull(student.getRollNumber());
+		assertThat(1 == updatedRecords).isTrue();
+		assertThat(student.getRollNumber()).isNull();
 	}
 
 	public void testExecuteUpdateWithNativeQuery() {
@@ -135,8 +131,8 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue(1 == updatedRecords);
-		Assert.assertNull(student.getRollNumber());
+		assertThat(1 == updatedRecords).isTrue();
+		assertThat(student.getRollNumber()).isNull();
 	}
 
 	public void testExecuteSelectWithNativeQueryReturningEntityClass() throws ParseException {
@@ -148,17 +144,17 @@ public class AbstractJpaOperationsTests {
 
 		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, entityClass, null, 0, 0);
 
-		Assert.assertTrue(students.size() == 1);
+		assertThat(students.size() == 1).isTrue();
 
 		StudentDomain retrievedStudent = (StudentDomain) students.iterator().next();
 
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 
-		assertEquals(formatter.parse("1980/01/01"), retrievedStudent.getDateOfBirth());
-		assertEquals("First One", retrievedStudent.getFirstName());
-		assertEquals(Gender.MALE, retrievedStudent.getGender());
-		assertEquals("Last One", retrievedStudent.getLastName());
-		assertNotNull(retrievedStudent.getLastUpdated());
+		assertThat(retrievedStudent.getDateOfBirth()).isEqualTo(formatter.parse("1980/01/01"));
+		assertThat(retrievedStudent.getFirstName()).isEqualTo("First One");
+		assertThat(retrievedStudent.getGender()).isEqualTo(Gender.MALE);
+		assertThat(retrievedStudent.getLastName()).isEqualTo("Last One");
+		assertThat(retrievedStudent.getLastUpdated()).isNotNull();
 
 	}
 
@@ -170,18 +166,18 @@ public class AbstractJpaOperationsTests {
 
 		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, null, null, 0, 0);
 
-		Assert.assertTrue(students.size() == 1);
+		assertThat(students.size() == 1).isTrue();
 
 		Object[] retrievedStudent = (Object[]) students.iterator().next();
 
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 
-		assertNotNull(retrievedStudent[0]);
-		assertEquals("First One", retrievedStudent[1]);
-		assertEquals("Last One", retrievedStudent[2]);
-		assertEquals("M", retrievedStudent[3]);
-		assertEquals(formatter.parse("1980/01/01"), retrievedStudent[4]);
-		assertNotNull(retrievedStudent[5]);
+		assertThat(retrievedStudent[0]).isNotNull();
+		assertThat(retrievedStudent[1]).isEqualTo("First One");
+		assertThat(retrievedStudent[2]).isEqualTo("Last One");
+		assertThat(retrievedStudent[3]).isEqualTo("M");
+		assertThat(retrievedStudent[4]).isEqualTo(formatter.parse("1980/01/01"));
+		assertThat(retrievedStudent[5]).isNotNull();
 
 	}
 
@@ -198,8 +194,8 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue(1 == updatedRecords);
-		Assert.assertNull(student.getRollNumber());
+		assertThat(1 == updatedRecords).isTrue();
+		assertThat(student.getRollNumber()).isNull();
 	}
 
 	/**
@@ -210,14 +206,14 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		Assert.assertNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNull();
 		final StudentDomain savedStudent = (StudentDomain) jpaOperations.merge(student);
 		entityManager.flush();
-		Assert.assertNull(student.getRollNumber());
-		Assert.assertNotNull(savedStudent);
-		Assert.assertNotNull(savedStudent.getRollNumber());
+		assertThat(student.getRollNumber()).isNull();
+		assertThat(savedStudent).isNotNull();
+		assertThat(savedStudent.getRollNumber()).isNotNull();
 
-		Assert.assertTrue(student != savedStudent);
+		assertThat(student != savedStudent).isTrue();
 	}
 
 	public void testMergeCollection() {
@@ -237,20 +233,20 @@ public class AbstractJpaOperationsTests {
 		students.add(student2);
 		students.add(student3);
 
-		Assert.assertNull(student1.getRollNumber());
-		Assert.assertNull(student2.getRollNumber());
-		Assert.assertNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNull();
+		assertThat(student2.getRollNumber()).isNull();
+		assertThat(student3.getRollNumber()).isNull();
 
 		Object savedStudents = jpaOperations.merge(students, 10, true);
 
-		Assert.assertTrue(savedStudents instanceof List<?>);
+		assertThat(savedStudents instanceof List<?>).isTrue();
 
 		@SuppressWarnings("unchecked")
 		List<StudentDomain> savedStudentCollection = (List<StudentDomain>) savedStudents;
 
-		Assert.assertNotNull(savedStudentCollection.get(0).getRollNumber());
-		Assert.assertNotNull(savedStudentCollection.get(1).getRollNumber());
-		Assert.assertNotNull(savedStudentCollection.get(2).getRollNumber());
+		assertThat(savedStudentCollection.get(0).getRollNumber()).isNotNull();
+		assertThat(savedStudentCollection.get(1).getRollNumber()).isNotNull();
+		assertThat(savedStudentCollection.get(2).getRollNumber()).isNotNull();
 	}
 
 	public void testMergeNullCollection() {
@@ -260,11 +256,11 @@ public class AbstractJpaOperationsTests {
 			jpaOperations.merge(null);
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("The object to merge must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("The object to merge must not be null.");
 			return;
 		}
 
-		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+		fail("Expected an IllegalArgumentException to be thrown.");
 
 	}
 
@@ -273,7 +269,7 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
+		assertThat(studentsFromDbBeforeTest.size()).isEqualTo(3);
 
 		final StudentDomain student1 = JpaTestUtils.getTestStudent();
 		final StudentDomain student2 = null;
@@ -288,20 +284,20 @@ public class AbstractJpaOperationsTests {
 		students.add(student2);
 		students.add(student3);
 
-		Assert.assertNull(student1.getRollNumber());
-		Assert.assertNull(student2);
-		Assert.assertNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNull();
+		assertThat(student2).isNull();
+		assertThat(student3.getRollNumber()).isNull();
 
 		Object savedStudents = jpaOperations.merge(students);
 		entityManager.flush();
 
-		Assert.assertTrue(savedStudents instanceof List<?>);
+		assertThat(savedStudents instanceof List<?>).isTrue();
 
 		@SuppressWarnings("unchecked")
 		List<StudentDomain> savedStudentCollection = (List<StudentDomain>) savedStudents;
 
-		Assert.assertNotNull(savedStudentCollection.get(0).getRollNumber());
-		Assert.assertNotNull(savedStudentCollection.get(1).getRollNumber());
+		assertThat(savedStudentCollection.get(0).getRollNumber()).isNotNull();
+		assertThat(savedStudentCollection.get(1).getRollNumber()).isNotNull();
 
 	}
 
@@ -313,11 +309,11 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		Assert.assertNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNull();
 		jpaOperations.persist(student, 1, false);
-		Assert.assertNotNull(student.getRollNumber());
+		assertThat(student.getRollNumber()).isNotNull();
 
-		assertTrue(entityManager.contains(student));
+		assertThat(entityManager.contains(student)).isTrue();
 	}
 
 	public void testPersistCollection() {
@@ -337,18 +333,18 @@ public class AbstractJpaOperationsTests {
 		students.add(student2);
 		students.add(student3);
 
-		Assert.assertNull(student1.getRollNumber());
-		Assert.assertNull(student2.getRollNumber());
-		Assert.assertNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNull();
+		assertThat(student2.getRollNumber()).isNull();
+		assertThat(student3.getRollNumber()).isNull();
 
 		jpaOperations.persist(students, 1, true);
-		Assert.assertNotNull(student1.getRollNumber());
-		Assert.assertNotNull(student2.getRollNumber());
-		Assert.assertNotNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNotNull();
+		assertThat(student2.getRollNumber()).isNotNull();
+		assertThat(student3.getRollNumber()).isNotNull();
 
-		assertFalse(entityManager.contains(student1));
-		assertFalse(entityManager.contains(student2));
-		assertFalse(entityManager.contains(student3));
+		assertThat(entityManager.contains(student1)).isFalse();
+		assertThat(entityManager.contains(student2)).isFalse();
+		assertThat(entityManager.contains(student3)).isFalse();
 	}
 
 	public void testPersistNullCollection() {
@@ -358,11 +354,11 @@ public class AbstractJpaOperationsTests {
 			jpaOperations.persist(null);
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("The object to persist must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("The object to persist must not be null.");
 			return;
 		}
 
-		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+		fail("Expected an IllegalArgumentException to be thrown.");
 
 	}
 
@@ -371,7 +367,7 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
+		assertThat(studentsFromDbBeforeTest.size()).isEqualTo(3);
 
 		final StudentDomain student1 = JpaTestUtils.getTestStudent();
 		final StudentDomain student2 = null;
@@ -386,19 +382,19 @@ public class AbstractJpaOperationsTests {
 		students.add(student2);
 		students.add(student3);
 
-		Assert.assertNull(student1.getRollNumber());
-		Assert.assertNull(student2);
-		Assert.assertNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNull();
+		assertThat(student2).isNull();
+		assertThat(student3.getRollNumber()).isNull();
 
 		jpaOperations.persist(students, 10, false);
 
-		Assert.assertNotNull(student1.getRollNumber());
-		Assert.assertNotNull(student3.getRollNumber());
+		assertThat(student1.getRollNumber()).isNotNull();
+		assertThat(student3.getRollNumber()).isNotNull();
 
 		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(studentsFromDb);
-		Assert.assertEquals(5, studentsFromDb.size());
+		assertThat(studentsFromDb).isNotNull();
+		assertThat(studentsFromDb.size()).isEqualTo(5);
 	}
 
 	public void testDeleteInBatch() {
@@ -406,7 +402,7 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(students);
+		assertThat(students).isNotNull();
 
 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -424,8 +420,8 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(studentsFromDb);
-		Assert.assertTrue(studentsFromDb.size() == 0);
+		assertThat(studentsFromDb).isNotNull();
+		assertThat(studentsFromDb.size() == 0).isTrue();
 
 	}
 
@@ -443,13 +439,13 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(studentsFromDb);
-		Assert.assertTrue(studentsFromDb.size() == 3);
+		assertThat(studentsFromDb).isNotNull();
+		assertThat(studentsFromDb.size() == 3).isTrue();
 
 
 		final StudentDomain student = jpaOperations.find(StudentDomain.class, 1001L);
 
-		Assert.assertNotNull(student);
+		assertThat(student).isNotNull();
 
 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -467,8 +463,8 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDbAfterDelete = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(studentsFromDbAfterDelete);
-		Assert.assertTrue(studentsFromDbAfterDelete.size() == 2);
+		assertThat(studentsFromDbAfterDelete).isNotNull();
+		assertThat(studentsFromDbAfterDelete.size() == 2).isTrue();
 
 	}
 
@@ -477,8 +473,8 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(students);
-		Assert.assertTrue(students.size() == 3);
+		assertThat(students).isNotNull();
+		assertThat(students.size() == 3).isTrue();
 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		// explicitly setting the transaction name is something that can only be done programmatically
@@ -495,15 +491,15 @@ public class AbstractJpaOperationsTests {
 
 		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
-		Assert.assertNotNull(studentsFromDb);
-		Assert.assertTrue(studentsFromDb.size() == 3); //Nothing should have happened
+		assertThat(studentsFromDb).isNotNull();
+		assertThat(studentsFromDb.size() == 3).isTrue(); //Nothing should have happened
 
 	}
 
 	public void testGetAllStudentsFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		List<?> results = jpaOperations.getResultListForClass(StudentDomain.class, 2, 0);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 
@@ -511,27 +507,28 @@ public class AbstractJpaOperationsTests {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		String query = "select * from Student";
 		List<?> results = jpaOperations.getResultListForNativeQuery(query, StudentDomain.class, null, 2, 0);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 
 	public void testGetAllStudentsUsingNamedQueryFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		List<?> results = jpaOperations.getResultListForNamedQuery("selectAllStudents", null, 2, 0);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	public void testGetAllStudentsUsingJPAQueryFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		String query = "select s from Student s";
 		List<?> results = jpaOperations.getResultListForQuery(query, null, 2, 0);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	public void testWithNegativeMaxNumberofResults() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		String query = "select s from Student s";
 		List<?> results = jpaOperations.getResultListForQuery(query, null, 0, -1);
-		assertEquals(3, results.size());
+		assertThat(results.size()).isEqualTo(3);
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -85,7 +82,7 @@ public class UdpChannelAdapterTests {
 		final CountDownLatch stopLatch = new CountDownLatch(1);
 		final CountDownLatch exitLatch = new CountDownLatch(1);
 		final AtomicBoolean stopping = new AtomicBoolean();
-		final AtomicReference<Exception> exceptionHolder = new AtomicReference<Exception>();
+		final AtomicReference<Exception> exceptionHolder = new AtomicReference<>();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0) {
 
 			@Override
@@ -95,7 +92,7 @@ public class UdpChannelAdapterTests {
 						stopLatch.await(10, TimeUnit.SECONDS);
 					}
 					catch (InterruptedException e) {
-						fail();
+						fail("Test is interrupted");
 					}
 					return true;
 				}
@@ -156,14 +153,14 @@ public class UdpChannelAdapterTests {
 		datagramSocket.close();
 		@SuppressWarnings("unchecked")
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		assertThat(receivedMessage).isNotNull();
+		assertThat(new String(receivedMessage.getPayload())).isEqualTo(new String(message.getPayload()));
 		stopping.set(true);
 		adapter.stop();
 		stopLatch.countDown();
 		exitLatch.await(10, TimeUnit.SECONDS);
 		// Previously it failed with NPE
-		assertNull(exceptionHolder.get());
+		assertThat(exceptionHolder.get()).isNull();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -200,20 +197,20 @@ public class UdpChannelAdapterTests {
 					}
 				});
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
-		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		assertThat(new String(receivedMessage.getPayload())).isEqualTo(new String(message.getPayload()));
 		String replyString = "reply:" + System.currentTimeMillis();
 		byte[] replyBytes = replyString.getBytes();
 		DatagramPacket reply = new DatagramPacket(replyBytes, replyBytes.length);
 		reply.setSocketAddress(new InetSocketAddress(
 				(String) receivedMessage.getHeaders().get(IpHeaders.IP_ADDRESS),
 				(Integer) receivedMessage.getHeaders().get(IpHeaders.PORT)));
-		assertTrue(receiverReadyLatch.await(10, TimeUnit.SECONDS));
+		assertThat(receiverReadyLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		DatagramSocket datagramSocket = new DatagramSocket();
 		datagramSocket.send(reply);
-		assertTrue(replyReceivedLatch.await(10, TimeUnit.SECONDS));
+		assertThat(replyReceivedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		DatagramPacket answerPacket = theAnswer.get();
-		assertNotNull(answerPacket);
-		assertEquals(replyString, new String(answerPacket.getData(), 0, answerPacket.getLength()));
+		assertThat(answerPacket).isNotNull();
+		assertThat(new String(answerPacket.getData(), 0, answerPacket.getLength())).isEqualTo(replyString);
 		datagramSocket.close();
 		socket.close();
 		adapter.stop();
@@ -240,7 +237,7 @@ public class UdpChannelAdapterTests {
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
-		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		assertThat(new String(receivedMessage.getPayload())).isEqualTo(new String(message.getPayload()));
 		adapter.stop();
 		handler.stop();
 	}
@@ -267,8 +264,8 @@ public class UdpChannelAdapterTests {
 		datagramSocket.close();
 
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		assertThat(receivedMessage).isNotNull();
+		assertThat(new String(receivedMessage.getPayload())).isEqualTo(new String(message.getPayload()));
 		adapter.stop();
 	}
 
@@ -291,8 +288,8 @@ public class UdpChannelAdapterTests {
 		handler.handleMessage(message);
 
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		assertThat(receivedMessage).isNotNull();
+		assertThat(new String(receivedMessage.getPayload())).isEqualTo(new String(message.getPayload()));
 		adapter.stop();
 		handler.stop();
 	}
@@ -320,8 +317,8 @@ public class UdpChannelAdapterTests {
 		datagramSocket.send(packet);
 		datagramSocket.close();
 		Message<?> receivedMessage = errorChannel.receive(10000);
-		assertNotNull(receivedMessage);
-		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
+		assertThat(receivedMessage).isNotNull();
+		assertThat(((Exception) receivedMessage.getPayload()).getCause().getMessage()).isEqualTo("Failed");
 		adapter.stop();
 	}
 
@@ -337,8 +334,8 @@ public class UdpChannelAdapterTests {
 		DatagramSocket socket = new DatagramSocket();
 		socket.send(packet);
 		socket.receive(packet);
-		assertEquals("FOO", new String(packet.getData()));
-		assertEquals(receiverServerPort, packet.getPort());
+		assertThat(new String(packet.getData())).isEqualTo("FOO");
+		assertThat(packet.getPort()).isEqualTo(receiverServerPort);
 		socket.close();
 		context.close();
 	}

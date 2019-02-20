@@ -16,9 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -61,11 +59,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -77,11 +75,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -93,11 +91,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -109,11 +107,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -125,11 +123,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -141,11 +139,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -161,16 +159,16 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
-		assertEquals("myValue", reply1.getHeaders().get("myHeader"));
-		assertEquals("bar", reply1.getHeaders().get("foo"));
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
+		assertThat(reply1.getHeaders().get("myHeader")).isEqualTo("myValue");
+		assertThat(reply1.getHeaders().get("foo")).isEqualTo("bar");
 
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
-		assertEquals("myValue", reply2.getHeaders().get("myHeader"));
-		assertEquals("bar", reply2.getHeaders().get("foo"));
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
+		assertThat(reply2.getHeaders().get("myHeader")).isEqualTo("myValue");
+		assertThat(reply2.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -182,11 +180,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -198,11 +196,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -214,11 +212,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -230,11 +228,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -248,11 +246,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -264,11 +262,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -280,11 +278,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -296,11 +294,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -312,11 +310,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -330,11 +328,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -356,11 +354,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -394,12 +392,12 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
-		assertTrue("Expected stream.close()", closed.get());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
+		assertThat(closed.get()).as("Expected stream.close()").isTrue();
 	}
 
 	@Test
@@ -411,15 +409,17 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
+		assertThat(reply1).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
+		assertThat(reply2).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test
@@ -431,15 +431,17 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
+		assertThat(reply1).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
+		assertThat(reply2).isNotNull();
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getSequenceSize()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(reply2).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test
@@ -451,11 +453,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -471,17 +473,17 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("a", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("a");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("b", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("b");
 		Message<?> reply3 = replies.get(2);
-		assertNotNull(reply3);
-		assertEquals("c", reply3.getPayload());
+		assertThat(reply3).isNotNull();
+		assertThat(reply3.getPayload()).isEqualTo("c");
 		Message<?> reply4 = replies.get(3);
-		assertNotNull(reply4);
-		assertEquals("d", reply4.getPayload());
+		assertThat(reply4).isNotNull();
+		assertThat(reply4.getPayload()).isEqualTo("d");
 	}
 
 	@Test
@@ -496,11 +498,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -520,11 +522,11 @@ public class MethodInvokingSplitterTests {
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("foo");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("bar", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("bar");
 	}
 
 	@Test(expected = IllegalArgumentException.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +38,7 @@ public class MessageHeadersTests {
 	@Test
 	public void testTimestamp() {
 		MessageHeaders headers = new MessageHeaders(null);
-		assertNotNull(headers.getTimestamp());
+		assertThat(headers.getTimestamp()).isNotNull();
 	}
 
 	@Test
@@ -50,20 +46,20 @@ public class MessageHeadersTests {
 		MessageHeaders headers1 = new MessageHeaders(null);
 		Thread.sleep(50L);
 		MessageHeaders headers2 = new MessageHeaders(headers1);
-		assertNotSame(headers1.getTimestamp(), headers2.getTimestamp());
+		assertThat(headers2.getTimestamp()).isNotSameAs(headers1.getTimestamp());
 	}
 
 	@Test
 	public void testIdOverwritten() throws Exception {
 		MessageHeaders headers1 = new MessageHeaders(null);
 		MessageHeaders headers2 = new MessageHeaders(headers1);
-		assertNotSame(headers1.getId(), headers2.getId());
+		assertThat(headers2.getId()).isNotSameAs(headers1.getId());
 	}
 
 	@Test
 	public void testId() {
 		MessageHeaders headers = new MessageHeaders(null);
-		assertNotNull(headers.getId());
+		assertThat(headers.getId()).isNotNull();
 	}
 
 	@Test
@@ -72,7 +68,7 @@ public class MessageHeadersTests {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
-		assertEquals(value, headers.get("test"));
+		assertThat(headers.get("test")).isEqualTo(value);
 	}
 
 	@Test
@@ -81,7 +77,7 @@ public class MessageHeadersTests {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
-		assertEquals(value, headers.get("test", Integer.class));
+		assertThat(headers.get("test", Integer.class)).isEqualTo(value);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -90,21 +86,21 @@ public class MessageHeadersTests {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
-		assertEquals(value, headers.get("test", String.class));
+		assertThat(headers.get("test", String.class)).isEqualTo(value);
 	}
 
 	@Test
 	public void testNullHeaderValue() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		MessageHeaders headers = new MessageHeaders(map);
-		assertNull(headers.get("nosuchattribute"));
+		assertThat(headers.get("nosuchattribute")).isNull();
 	}
 
 	@Test
 	public void testNullHeaderValueWithTypedAccess() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		MessageHeaders headers = new MessageHeaders(map);
-		assertNull(headers.get("nosuchattribute", String.class));
+		assertThat(headers.get("nosuchattribute", String.class)).isNull();
 	}
 
 	@Test
@@ -114,8 +110,8 @@ public class MessageHeadersTests {
 		map.put("key2", new Integer(123));
 		MessageHeaders headers = new MessageHeaders(map);
 		Set<String> keys = headers.keySet();
-		assertTrue(keys.contains("key1"));
-		assertTrue(keys.contains("key2"));
+		assertThat(keys.contains("key1")).isTrue();
+		assertThat(keys.contains("key2")).isTrue();
 	}
 
 	@Test
@@ -125,8 +121,8 @@ public class MessageHeadersTests {
 		map.put("age", 42);
 		MessageHeaders input = new MessageHeaders(map);
 		MessageHeaders output = (MessageHeaders) serializeAndDeserialize(input);
-		assertEquals("joe", output.get("name"));
-		assertEquals(42, output.get("age"));
+		assertThat(output.get("name")).isEqualTo("joe");
+		assertThat(output.get("age")).isEqualTo(42);
 	}
 
 	@Test
@@ -137,8 +133,8 @@ public class MessageHeadersTests {
 		map.put("address", address);
 		MessageHeaders input = new MessageHeaders(map);
 		MessageHeaders output = (MessageHeaders) serializeAndDeserialize(input);
-		assertEquals("joe", output.get("name"));
-		assertNull(output.get("address"));
+		assertThat(output.get("name")).isEqualTo("joe");
+		assertThat(output.get("address")).isNull();
 	}
 
 

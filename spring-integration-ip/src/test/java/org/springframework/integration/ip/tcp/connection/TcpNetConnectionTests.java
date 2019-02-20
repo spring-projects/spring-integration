@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -73,11 +72,10 @@ public class TcpNetConnectionTests {
 		connection.registerListener(mock(TcpListener.class));
 		connection.setMapper(new TcpMessageMapper());
 		connection.run();
-		assertNotNull(log.get());
-		assertEquals("Read exception " +
-						connection.getConnectionId() +
-						" MessageMappingException:Expected STX to begin message",
-				log.get());
+		assertThat(log.get()).isNotNull();
+		assertThat(log.get()).isEqualTo("Read exception " +
+				connection.getConnectionId() +
+				" MessageMappingException:Expected STX to begin message");
 	}
 
 	@Test
@@ -89,7 +87,7 @@ public class TcpNetConnectionTests {
 		ChannelInputStream inputStream =
 				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
 		inputStream.write(ByteBuffer.wrap(new byte[] { (byte) 0x80 }));
-		assertEquals(0x80, inputStream.read());
+		assertThat(inputStream.read()).isEqualTo(0x80);
 	}
 
 	@Test
@@ -132,9 +130,9 @@ public class TcpNetConnectionTests {
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.run();
-		assertNotNull(inboundMessage.get());
-		assertEquals("foo", inboundMessage.get().getPayload());
-		assertEquals("baz", inboundMessage.get().getHeaders().get("bar"));
+		assertThat(inboundMessage.get()).isNotNull();
+		assertThat(inboundMessage.get().getPayload()).isEqualTo("foo");
+		assertThat(inboundMessage.get().getHeaders().get("bar")).isEqualTo("baz");
 	}
 
 }

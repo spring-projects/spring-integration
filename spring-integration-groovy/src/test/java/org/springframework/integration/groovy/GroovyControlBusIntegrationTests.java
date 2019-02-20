@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.groovy;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 
@@ -65,7 +64,7 @@ public class GroovyControlBusIntegrationTests {
 
 		this.scheduler.destroy();
 		// ensure the delayer did not release any messages
-		assertNull(this.output.receive(500));
+		assertThat(this.output.receive(500)).isNull();
 		this.scheduler.afterPropertiesSet();
 
 		Resource scriptResource = new ClassPathResource("GroovyControlBusDelayerManagementTest.groovy", getClass());
@@ -73,8 +72,8 @@ public class GroovyControlBusIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload(scriptSource.getScriptAsString()).build();
 		this.controlBus.send(message);
 
-		assertNotNull(this.output.receive(10000));
-		assertNotNull(this.output.receive(10000));
+		assertThat(this.output.receive(10000)).isNotNull();
+		assertThat(this.output.receive(10000)).isNotNull();
 	}
 
 }

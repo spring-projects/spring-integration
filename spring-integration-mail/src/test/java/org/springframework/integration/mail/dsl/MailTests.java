@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.mail.dsl;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Properties;
 
@@ -95,7 +88,7 @@ public class MailTests {
 				|| !imapServer.isListening()) || !imapIdleServer.isListening()) {
 			Thread.sleep(100);
 		}
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 	}
 
 	@AfterClass
@@ -127,11 +120,11 @@ public class MailTests {
 
 	@Test
 	public void testSmtp() throws Exception {
-		assertEquals("localhost", TestUtils.getPropertyValue(this.sendMailHandler, "mailSender.host"));
+		assertThat(TestUtils.getPropertyValue(this.sendMailHandler, "mailSender.host")).isEqualTo("localhost");
 
 		Properties javaMailProperties = TestUtils.getPropertyValue(this.sendMailHandler,
 				"mailSender.javaMailProperties", Properties.class);
-		assertEquals("false", javaMailProperties.getProperty("mail.debug"));
+		assertThat(javaMailProperties.getProperty("mail.debug")).isEqualTo("false");
 
 		this.sendMailChannel.send(MessageBuilder.withPayload("foo").build());
 
@@ -140,49 +133,50 @@ public class MailTests {
 			Thread.sleep(100);
 		}
 
-		assertTrue(smtpServer.getMessages().size() > 0);
+		assertThat(smtpServer.getMessages().size() > 0).isTrue();
 		String message = smtpServer.getMessages().get(0);
-		assertThat(message, endsWith("foo\n"));
-		assertThat(message, containsString("foo@bar"));
-		assertThat(message, containsString("bar@baz"));
-		assertThat(message, containsString("user:user"));
-		assertThat(message, containsString("password:pw"));
+		assertThat(message).endsWith("foo\n");
+		assertThat(message).contains("foo@bar");
+		assertThat(message).contains("bar@baz");
+		assertThat(message).contains("user:user");
+		assertThat(message).contains("password:pw");
 
 	}
 
 	@Test
 	public void testPop3() throws Exception {
 		Message<?> message = this.pop3Channel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
-		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
-		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
-		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n\r\n", message.getPayload());
+		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
+		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
+		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
 	}
 
 	@Test
 	public void testImap() throws Exception {
 		Message<?> message = this.imapChannel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		MimeMessage mm = (MimeMessage) message.getPayload();
-		assertEquals("Foo <foo@bar>", mm.getRecipients(RecipientType.TO)[0].toString());
-		assertEquals("Bar <bar@baz>", mm.getFrom()[0].toString());
-		assertEquals("Test Email", mm.getSubject());
-		assertThat(mm.getContent(), equalTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n"));
+		assertThat(mm.getRecipients(RecipientType.TO)[0].toString()).isEqualTo("Foo <foo@bar>");
+		assertThat(mm.getFrom()[0].toString()).isEqualTo("Bar <bar@baz>");
+		assertThat(mm.getSubject()).isEqualTo("Test Email");
+		assertThat(mm.getContent()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
 	}
 
 	@Test
 	public void testImapIdle() {
 		Message<?> message = this.imapIdleChannel.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
-		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
-		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
-		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertThat(message.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n"));
+		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
+		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
+		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
+		assertThat(message.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n");
 		this.imapIdleAdapter.stop();
-		assertFalse(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
+				.isFalse();
 	}
 
 	@Configuration

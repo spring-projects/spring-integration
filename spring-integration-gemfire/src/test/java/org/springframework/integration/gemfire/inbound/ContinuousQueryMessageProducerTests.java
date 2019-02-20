@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gemfire.inbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.apache.geode.cache.Operation;
@@ -66,8 +66,8 @@ public class ContinuousQueryMessageProducerTests {
 
 		cqMessageProducer.onEvent(cqEvent);
 
-		assertEquals(1, handler.count);
-		assertEquals(cqEvent, handler.payload);
+		assertThat(handler.count).isEqualTo(1);
+		assertThat(handler.payload).isEqualTo(cqEvent);
 	}
 
 	@Test
@@ -76,7 +76,7 @@ public class ContinuousQueryMessageProducerTests {
 
 		cqMessageProducer.onEvent(cqEvent);
 
-		assertEquals(0, handler.count);
+		assertThat(handler.count).isEqualTo(0);
 	}
 
 	@Test
@@ -87,8 +87,8 @@ public class ContinuousQueryMessageProducerTests {
 		cqMessageProducer.setSupportedEventTypes(CqEventType.DESTROYED);
 		cqMessageProducer.onEvent(cqEvent);
 
-		assertEquals(1, handler.count);
-		assertEquals(cqEvent, handler.payload);
+		assertThat(handler.count).isEqualTo(1);
+		assertThat(handler.payload).isEqualTo(cqEvent);
 	}
 
 	@Test
@@ -98,8 +98,8 @@ public class ContinuousQueryMessageProducerTests {
 		cqMessageProducer.afterPropertiesSet();
 
 		cqMessageProducer.onEvent(cqEvent);
-		assertEquals(1, handler.count);
-		assertEquals("HELLO, WORLD", handler.payload);
+		assertThat(handler.count).isEqualTo(1);
+		assertThat(handler.payload).isEqualTo("HELLO, WORLD");
 	}
 
 	CqEvent event(final Operation operation, final Object value) {

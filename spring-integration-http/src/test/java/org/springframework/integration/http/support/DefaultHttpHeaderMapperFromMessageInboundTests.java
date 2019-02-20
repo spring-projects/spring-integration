@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.http.support;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -73,8 +70,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(1, headers.getAllow().size());
-		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
+		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
 	@Test
@@ -85,8 +82,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(1, headers.getAllow().size());
-		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
+		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
 	@Test
@@ -97,8 +94,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(1, headers.getAllow().size());
-		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
+		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
 	@Test
@@ -109,9 +106,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.getAllow().size());
-		assertTrue(headers.getAllow().contains(HttpMethod.GET));
-		assertTrue(headers.getAllow().contains(HttpMethod.POST));
+		assertThat(headers.getAllow().size()).isEqualTo(2);
+		assertThat(headers.getAllow().contains(HttpMethod.GET)).isTrue();
+		assertThat(headers.getAllow().contains(HttpMethod.POST)).isTrue();
 	}
 
 	@Test
@@ -122,9 +119,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.getAllow().size());
-		assertTrue(headers.getAllow().contains(HttpMethod.GET));
-		assertTrue(headers.getAllow().contains(HttpMethod.POST));
+		assertThat(headers.getAllow().size()).isEqualTo(2);
+		assertThat(headers.getAllow().contains(HttpMethod.GET)).isTrue();
+		assertThat(headers.getAllow().contains(HttpMethod.POST)).isTrue();
 	}
 
 	@Test
@@ -135,9 +132,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.getAllow().size());
-		assertTrue(headers.getAllow().contains(HttpMethod.GET));
-		assertTrue(headers.getAllow().contains(HttpMethod.POST));
+		assertThat(headers.getAllow().size()).isEqualTo(2);
+		assertThat(headers.getAllow().contains(HttpMethod.GET)).isTrue();
+		assertThat(headers.getAllow().contains(HttpMethod.POST)).isTrue();
 	}
 
 	@Test
@@ -148,9 +145,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.getAllow().size());
-		assertTrue(headers.getAllow().contains(HttpMethod.GET));
-		assertTrue(headers.getAllow().contains(HttpMethod.POST));
+		assertThat(headers.getAllow().size()).isEqualTo(2);
+		assertThat(headers.getAllow().contains(HttpMethod.GET)).isTrue();
+		assertThat(headers.getAllow().contains(HttpMethod.POST)).isTrue();
 	}
 
 	@Test
@@ -161,9 +158,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.getAllow().size());
-		assertTrue(headers.getAllow().contains(HttpMethod.GET));
-		assertTrue(headers.getAllow().contains(HttpMethod.POST));
+		assertThat(headers.getAllow().size()).isEqualTo(2);
+		assertThat(headers.getAllow().contains(HttpMethod.GET)).isTrue();
+		assertThat(headers.getAllow().contains(HttpMethod.POST)).isTrue();
 	}
 
 	// Cache-Control tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
@@ -181,7 +178,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals("\"1234\"", headers.getETag());
+		assertThat(headers.getETag()).isEqualTo("\"1234\"");
 	}
 
 	// Expires tests
@@ -196,7 +193,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
+		assertThat(headers.getExpires()).isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	@Test
@@ -209,7 +206,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
+		assertThat(headers.getExpires()).isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	@Test
@@ -222,7 +219,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
+		assertThat(headers.getExpires()).isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	// Last-Modified tests
@@ -237,7 +234,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
+		assertThat(headers.getLastModified())
+				.isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	@Test
@@ -250,7 +248,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
+		assertThat(headers.getLastModified())
+				.isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	@Test
@@ -263,7 +262,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
-		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
+		assertThat(headers.getLastModified())
+				.isEqualTo(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime());
 	}
 
 	// Location tests
@@ -276,7 +276,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
-		assertEquals(new URI("http://foo.com").toString(), headers.getLocation().toString());
+		assertThat(headers.getLocation().toString()).isEqualTo(new URI("http://foo.com").toString());
 	}
 
 	// Transfer Encoding tests
@@ -289,8 +289,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
-		assertTrue(String.format("'Headers' is not empty. It contains '%s' element(s).",
-				headers.size()), headers.isEmpty());
+		assertThat(headers.isEmpty()).as(String.format("'Headers' is not empty. It contains '%s' element(s).",
+				headers.size())).isTrue();
 	}
 
 	@Test
@@ -301,8 +301,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		headers.set("Transfer-Encoding", "chunked");
 
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(1, result.size());
-		assertEquals("chunked", result.get("Transfer-Encoding"));
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get("Transfer-Encoding")).isEqualTo("chunked");
 
 	}
 
@@ -314,8 +314,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		headers.set("Transfer-Encoding", "chunked");
 
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertTrue(String.format("'result' is not empty. It contains '%s' element(s).",
-				result.size()), result.isEmpty());
+		assertThat(result.isEmpty()).as(String.format("'result' is not empty. It contains '%s' element(s).",
+				result.size())).isTrue();
 
 	}
 
@@ -330,11 +330,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("bar", "123");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.size());
-		assertEquals(1, headers.get("foo").size());
-		assertEquals("abc", headers.getFirst("foo"));
-		assertEquals(1, headers.get("bar").size());
-		assertEquals("123", headers.getFirst("bar"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.get("foo").size()).isEqualTo(1);
+		assertThat(headers.getFirst("foo")).isEqualTo("abc");
+		assertThat(headers.get("bar").size()).isEqualTo(1);
+		assertThat(headers.getFirst("bar")).isEqualTo("123");
 	}
 
 	@Test
@@ -351,17 +351,17 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("abcdef", "abcdef-value");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(3, headers.size());
-		assertNull(headers.get("1x"));
-		assertNull(headers.get("z1"));
-		assertNull(headers.get("abc"));
-		assertNull(headers.get("def"));
-		assertEquals(1, headers.get("x1").size());
-		assertEquals("x1-value", headers.getFirst("x1"));
-		assertEquals(1, headers.get("1z").size());
-		assertEquals("1z-value", headers.getFirst("1z"));
-		assertEquals(1, headers.get("abcdef").size());
-		assertEquals("abcdef-value", headers.getFirst("abcdef"));
+		assertThat(headers.size()).isEqualTo(3);
+		assertThat(headers.get("1x")).isNull();
+		assertThat(headers.get("z1")).isNull();
+		assertThat(headers.get("abc")).isNull();
+		assertThat(headers.get("def")).isNull();
+		assertThat(headers.get("x1").size()).isEqualTo(1);
+		assertThat(headers.getFirst("x1")).isEqualTo("x1-value");
+		assertThat(headers.get("1z").size()).isEqualTo(1);
+		assertThat(headers.getFirst("1z")).isEqualTo("1z-value");
+		assertThat(headers.get("abcdef").size()).isEqualTo(1);
+		assertThat(headers.getFirst("abcdef")).isEqualTo("abcdef-value");
 	}
 
 	@Test
@@ -375,11 +375,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Content-Type", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.size());
-		assertTrue(headers.getAccept().isEmpty());
-		assertEquals(MediaType.TEXT_XML, headers.getContentType());
-		assertEquals(1, headers.get("X-foobar").size());
-		assertEquals("abc", headers.getFirst("X-foobar"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.getAccept().isEmpty()).isTrue();
+		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
+		assertThat(headers.get("X-foobar").size()).isEqualTo(1);
+		assertThat(headers.getFirst("X-foobar")).isEqualTo("abc");
 	}
 
 	@Test
@@ -393,11 +393,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Content-Type", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.size());
-		assertTrue(headers.getAccept().isEmpty());
-		assertEquals(MediaType.TEXT_XML, headers.getContentType());
-		assertEquals(1, headers.get("Z-foobar").size());
-		assertEquals("abc", headers.getFirst("Z-foobar"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.getAccept().isEmpty()).isTrue();
+		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
+		assertThat(headers.get("Z-foobar").size()).isEqualTo(1);
+		assertThat(headers.getFirst("Z-foobar")).isEqualTo("abc");
 	}
 
 	@Test
@@ -411,11 +411,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Content-Type", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.size());
-		assertTrue(headers.getAccept().isEmpty());
-		assertEquals(MediaType.TEXT_XML, headers.getContentType());
-		assertEquals(1, headers.get("foobar").size());
-		assertEquals("abc", headers.getFirst("foobar"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.getAccept().isEmpty()).isTrue();
+		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
+		assertThat(headers.get("foobar").size()).isEqualTo(1);
+		assertThat(headers.getFirst("foobar")).isEqualTo("abc");
 	}
 
 	@Test
@@ -429,11 +429,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Content-Type", "text/xml");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals(2, headers.size());
-		assertTrue(headers.getAccept().isEmpty());
-		assertEquals(MediaType.TEXT_XML, headers.getContentType());
-		assertEquals(1, headers.get("foobar").size());
-		assertEquals("abc", headers.getFirst("foobar"));
+		assertThat(headers.size()).isEqualTo(2);
+		assertThat(headers.getAccept().isEmpty()).isTrue();
+		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
+		assertThat(headers.get("foobar").size()).isEqualTo(1);
+		assertThat(headers.getFirst("foobar")).isEqualTo("abc");
 	}
 
 	@Test
@@ -444,9 +444,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		headers.set("foo", "abc");
 		headers.set("bar", "123");
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(2, result.size());
-		assertEquals("abc", result.get("foo"));
-		assertEquals("123", result.get("bar"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.get("foo")).isEqualTo("abc");
+		assertThat(result.get("bar")).isEqualTo("123");
 	}
 
 	@Test
@@ -462,14 +462,14 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		headers.set("def", "def-value");
 		headers.set("abcdef", "abcdef-value");
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(3, result.size());
-		assertNull(result.get("1x"));
-		assertNull(result.get("z1"));
-		assertNull(result.get("abc"));
-		assertNull(result.get("def"));
-		assertEquals("x1-value", result.get("x1"));
-		assertEquals("1z-value", result.get("1z"));
-		assertEquals("abcdef-value", result.get("abcdef"));
+		assertThat(result.size()).isEqualTo(3);
+		assertThat(result.get("1x")).isNull();
+		assertThat(result.get("z1")).isNull();
+		assertThat(result.get("abc")).isNull();
+		assertThat(result.get("def")).isNull();
+		assertThat(result.get("x1")).isEqualTo("x1-value");
+		assertThat(result.get("1z")).isEqualTo("1z-value");
+		assertThat(result.get("abcdef")).isEqualTo("abcdef-value");
 	}
 
 	@Test
@@ -481,10 +481,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		headers.setAccept(Collections.singletonList(MediaType.TEXT_XML));
 		headers.setLocation(new URI("http://example.org"));
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(2, result.size());
-		assertNull(result.get("Location"));
-		assertEquals("abc", result.get("foobar"));
-		assertEquals(MediaType.TEXT_XML, result.get("Accept"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.get("Location")).isNull();
+		assertThat(result.get("foobar")).isEqualTo("abc");
+		assertThat(result.get("Accept")).isEqualTo(MediaType.TEXT_XML);
 	}
 
 	@Test
@@ -498,8 +498,8 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("customHeaderB", new TestClass());
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNull(headers.get("X-customHeaderA"));
-		assertNull(headers.get("X-customHeaderB"));
+		assertThat(headers.get("X-customHeaderA")).isNull();
+		assertThat(headers.get("X-customHeaderB")).isNull();
 	}
 
 
@@ -519,9 +519,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("customHeaderB", new TestClass());
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNotNull(headers.get("customHeaderA"));
-		assertEquals("123", headers.get("customHeaderA").get(0));
-		assertNull(headers.get("customHeaderB"));
+		assertThat(headers.get("customHeaderA")).isNotNull();
+		assertThat(headers.get("customHeaderA").get(0)).isEqualTo("123");
+		assertThat(headers.get("customHeaderB")).isNull();
 	}
 
 	@Test
@@ -541,10 +541,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("customHeaderB", new TestClass());
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNotNull(headers.get("customHeaderA"));
-		assertEquals("123", headers.get("customHeaderA").get(0));
-		assertNotNull(headers.get("customHeaderB"));
-		assertEquals("TestClass.class", headers.get("customHeaderB").get(0));
+		assertThat(headers.get("customHeaderA")).isNotNull();
+		assertThat(headers.get("customHeaderA").get(0)).isEqualTo("123");
+		assertThat(headers.get("customHeaderB")).isNotNull();
+		assertThat(headers.get("customHeaderB").get(0)).isEqualTo("TestClass.class");
 	}
 
 	@Test
@@ -556,7 +556,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		Map<String, Object> messageHeaders = mapper.toHeaders(headers);
 		headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNull(headers.get("Content-Length"));
+		assertThat(headers.get("Content-Length")).isNull();
 	}
 
 	@Test
@@ -570,7 +570,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		Calendar c = Calendar.getInstance();
 		c.setTime(ifModifiedSince);
 		c.set(Calendar.MILLISECOND, 0);
-		assertEquals(c.getTimeInMillis(), result.get("If-Modified-Since"));
+		assertThat(result.get("If-Modified-Since")).isEqualTo(c.getTimeInMillis());
 	}
 
 	@Test
@@ -581,7 +581,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		MessageHeaders messageHeaders = new MessageHeaders(map);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		mapper.fromHeaders(messageHeaders, httpHeaders);
-		assertEquals(MediaType.valueOf("text/plain"), httpHeaders.getContentType());
+		assertThat(httpHeaders.getContentType()).isEqualTo(MediaType.valueOf("text/plain"));
 	}
 
 	@Test
@@ -590,7 +590,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.CONTENT_TYPE.toLowerCase(), "text/plain");
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(MediaType.valueOf("text/plain"), result.get(MessageHeaders.CONTENT_TYPE));
+		assertThat(result.get(MessageHeaders.CONTENT_TYPE)).isEqualTo(MediaType.valueOf("text/plain"));
 	}
 
 

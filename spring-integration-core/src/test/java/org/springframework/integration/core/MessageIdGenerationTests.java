@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.core;
 
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -178,7 +178,7 @@ public class MessageIdGenerationTests {
 	private void assertDestroy() throws Exception {
 		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGenField);
-		assertNull("the idGenerator field has not been properly reset to null", idGenField.get(null));
+		assertThat(idGenField.get(null)).as("the idGenerator field has not been properly reset to null").isNull();
 	}
 
 

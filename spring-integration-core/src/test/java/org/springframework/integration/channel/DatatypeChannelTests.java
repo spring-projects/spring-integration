@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Date;
@@ -63,7 +58,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void supportedType() {
 		MessageChannel channel = createChannel(String.class);
-		assertTrue(channel.send(new GenericMessage<String>("test")));
+		assertThat(channel.send(new GenericMessage<String>("test"))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -79,7 +74,7 @@ public class DatatypeChannelTests {
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertTrue(channel.send(new GenericMessage<String>("123")));
+		assertThat(channel.send(new GenericMessage<String>("123"))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -89,7 +84,7 @@ public class DatatypeChannelTests {
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
+		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
 	}
 
 	@Test
@@ -105,8 +100,8 @@ public class DatatypeChannelTests {
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(1, channel.receive().getPayload());
+		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
+		assertThat(channel.receive().getPayload()).isEqualTo(1);
 	}
 
 	@Test
@@ -135,10 +130,10 @@ public class DatatypeChannelTests {
 		context.refresh();
 
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
-		assertSame(context.getBean(ConversionService.class),
-				TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
-		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(1, channel.receive().getPayload());
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"))
+				.isSameAs(context.getBean(ConversionService.class));
+		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
+		assertThat(channel.receive().getPayload()).isEqualTo(1);
 		context.close();
 	}
 
@@ -174,16 +169,16 @@ public class DatatypeChannelTests {
 		context.refresh();
 
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
-		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(99, channel.receive().getPayload());
+		assertThat(channel.send(new GenericMessage<Boolean>(Boolean.TRUE))).isTrue();
+		assertThat(channel.receive().getPayload()).isEqualTo(99);
 		context.close();
 	}
 
 	@Test
 	public void multipleTypes() {
 		MessageChannel channel = createChannel(String.class, Integer.class);
-		assertTrue(channel.send(new GenericMessage<String>("test1")));
-		assertTrue(channel.send(new GenericMessage<Integer>(2)));
+		assertThat(channel.send(new GenericMessage<String>("test1"))).isTrue();
+		assertThat(channel.send(new GenericMessage<Integer>(2))).isTrue();
 		Exception exception = null;
 		try {
 			channel.send(new GenericMessage<Date>(new Date()));
@@ -191,13 +186,13 @@ public class DatatypeChannelTests {
 		catch (MessageDeliveryException e) {
 			exception = e;
 		}
-		assertNotNull(exception);
+		assertThat(exception).isNotNull();
 	}
 
 	@Test
 	public void subclassOfAcceptedType() {
 		MessageChannel channel = createChannel(RuntimeException.class);
-		assertTrue(channel.send(new ErrorMessage(new MessagingException("test"))));
+		assertThat(channel.send(new ErrorMessage(new MessagingException("test")))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -215,12 +210,12 @@ public class DatatypeChannelTests {
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
-		assertTrue(channel.send(new GenericMessage<String>("foo")));
+		assertThat(channel.send(new GenericMessage<String>("foo"))).isTrue();
 		Message<?> out = channel.receive(0);
-		assertThat(out.getPayload(), instanceOf(Bar.class));
-		assertTrue(channel.send(new GenericMessage<Integer>(42)));
+		assertThat(out.getPayload()).isInstanceOf(Bar.class);
+		assertThat(channel.send(new GenericMessage<Integer>(42))).isTrue();
 		out = channel.receive(0);
-		assertThat(out.getPayload(), instanceOf(Baz.class));
+		assertThat(out.getPayload()).isInstanceOf(Baz.class);
 	}
 
 

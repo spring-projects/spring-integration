@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.support;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.springframework.integration.test.support.PayloadValidator;
 import org.springframework.integration.test.support.RequestResponseScenario;
@@ -34,7 +34,7 @@ public class SingleScenarioTests extends SingleRequestResponseScenarioTests {
 			.setResponseValidator(new PayloadValidator<String>() {
 				@Override
 				protected void validateResponse(String response) {
-					assertEquals("HELLO", response);
+					assertThat(response).isEqualTo("HELLO");
 				}
 			});
 		return scenario;

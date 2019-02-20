@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -65,10 +64,10 @@ public class Jsr223TransformerTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.referencedScriptInput.send(message);
 		}
-		assertEquals("ruby-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("ruby-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("ruby-test-3", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("ruby-test-1");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("ruby-test-2");
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("ruby-test-3");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -79,10 +78,10 @@ public class Jsr223TransformerTests {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.inlineScriptInput.send(message);
 		}
-		assertEquals("inline-test-1", replyChannel.receive(0).getPayload().toString());
-		assertEquals("inline-test-2", replyChannel.receive(0).getPayload().toString());
-		assertEquals("inline-test-3", replyChannel.receive(0).getPayload().toString());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload().toString()).isEqualTo("inline-test-1");
+		assertThat(replyChannel.receive(0).getPayload().toString()).isEqualTo("inline-test-2");
+		assertThat(replyChannel.receive(0).getPayload().toString()).isEqualTo("inline-test-3");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -98,7 +97,7 @@ public class Jsr223TransformerTests {
 			result.add(message.getPayload());
 		}
 
-		assertEquals(100, result.size());
+		assertThat(result.size()).isEqualTo(100);
 
 	}
 

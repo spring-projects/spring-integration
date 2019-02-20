@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.mail;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.DataInputStream;
 
@@ -84,12 +78,12 @@ public class MailSendingMessageHandlerContextTests {
 	public void stringMessagesWithConfiguration() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
-		assertEquals("no mime message should have been sent",
-				0, this.mailSender.getSentMimeMessages().size());
-		assertEquals("only one simple message must be sent",
-				1, this.mailSender.getSentSimpleMailMessages().size());
-		assertEquals("message content different from expected",
-				mailMessage, this.mailSender.getSentSimpleMailMessages().get(0));
+		assertThat(this.mailSender.getSentMimeMessages().size()).as("no mime message should have been sent")
+				.isEqualTo(0);
+		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
+		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+				.isEqualTo(mailMessage);
 	}
 
 	@Test
@@ -101,19 +95,19 @@ public class MailSendingMessageHandlerContextTests {
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.build();
 		this.handler.handleMessage(message);
-		assertEquals("no mime message should have been sent",
-				1, this.mailSender.getSentMimeMessages().size());
-		assertEquals("only one simple message must be sent",
-				0, this.mailSender.getSentSimpleMailMessages().size());
+		assertThat(this.mailSender.getSentMimeMessages().size()).as("no mime message should have been sent")
+				.isEqualTo(1);
+		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(0);
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
-		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
+		assertThat(mimeMessage.getContent() instanceof Multipart).as("message must be multipart").isTrue();
 		int size = new DataInputStream(((Multipart) mimeMessage.getContent()).getBodyPart(0).getInputStream()).read(buffer);
-		assertEquals("buffer size does not match", payload.length, size);
+		assertThat(size).as("buffer size does not match").isEqualTo(payload.length);
 		byte[] messageContent = new byte[size];
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
-		assertArrayEquals("buffer content does not match", payload, messageContent);
-		assertEquals(mimeMessage.getRecipients(Message.RecipientType.TO).length, MailTestsHelper.TO.length);
+		assertThat(messageContent).as("buffer content does not match").isEqualTo(payload);
+		assertThat(MailTestsHelper.TO.length).isEqualTo(mimeMessage.getRecipients(Message.RecipientType.TO).length);
 	}
 
 	@Test(expected = MessageMappingException.class)
@@ -124,29 +118,34 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Test //INT-2275
 	public void mailOutboundChannelAdapterWithinChain() {
-		assertNotNull(this.beanFactory.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.mail-outbound-channel-adapter-within-chain.handler"));
+		assertThat(this.beanFactory
+				.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child" +
+						".mail-outbound-channel-adapter-within-chain.handler"))
+				.isNotNull();
 		this.sendMailOutboundChainChannel.send(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
-		assertEquals("no mime message should have been sent", 0, this.mailSender.getSentMimeMessages().size());
-		assertEquals("only one simple message must be sent", 1, this.mailSender.getSentSimpleMailMessages().size());
-		assertEquals("message content different from expected", mailMessage, this.mailSender.getSentSimpleMailMessages().get(0));
+		assertThat(this.mailSender.getSentMimeMessages().size()).as("no mime message should have been sent")
+				.isEqualTo(0);
+		assertThat(this.mailSender.getSentSimpleMailMessages().size()).as("only one simple message must be sent")
+				.isEqualTo(1);
+		assertThat(this.mailSender.getSentSimpleMailMessages().get(0)).as("message content different from expected")
+				.isEqualTo(mailMessage);
 	}
 
 	@Test
 	public void testOutboundChannelAdapterWithSimpleMailSender() {
 		this.simpleEmailChannel.send(MailTestsHelper.createIntegrationMessage());
-		assertEquals(1, this.simpleMailSender.getSentMessages().size());
-		assertEquals(MailTestsHelper.createSimpleMailMessage(), this.simpleMailSender.getSentMessages().get(0));
+		assertThat(this.simpleMailSender.getSentMessages().size()).isEqualTo(1);
+		assertThat(this.simpleMailSender.getSentMessages().get(0)).isEqualTo(MailTestsHelper.createSimpleMailMessage());
 
 		try {
 			this.simpleEmailChannel.send(new GenericMessage<byte[]>(new byte[0]));
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(),
-					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 		}
 
 		try {
@@ -157,10 +156,9 @@ public class MailSendingMessageHandlerContextTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(),
-					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 		}
 
 		try {
@@ -168,10 +166,9 @@ public class MailSendingMessageHandlerContextTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(),
-					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 		}
 	}
 

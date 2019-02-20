@@ -16,8 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -40,7 +39,7 @@ public class MethodInvokingSelectorTests {
 	public void acceptedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(selector.accept(new GenericMessage<>("should accept")));
+		assertThat(selector.accept(new GenericMessage<>("should accept"))).isTrue();
 	}
 
 	@Test
@@ -49,14 +48,14 @@ public class MethodInvokingSelectorTests {
 		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(selector.accept(new GenericMessage<>("should accept")));
+		assertThat(selector.accept(new GenericMessage<>("should accept"))).isTrue();
 	}
 
 	@Test
 	public void rejectedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertFalse(selector.accept(new GenericMessage<>(99)));
+		assertThat(selector.accept(new GenericMessage<>(99))).isFalse();
 	}
 
 	@Test
@@ -65,14 +64,14 @@ public class MethodInvokingSelectorTests {
 		Method method = testBean.getClass().getMethod("acceptString", Message.class);
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertFalse(selector.accept(new GenericMessage<>(99)));
+		assertThat(selector.accept(new GenericMessage<>(99))).isFalse();
 	}
 
 	@Test
 	public void noArgMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "noArgs");
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(selector.accept(new GenericMessage<>("test")));
+		assertThat(selector.accept(new GenericMessage<>("test"))).isTrue();
 	}
 
 	@Test
@@ -81,7 +80,7 @@ public class MethodInvokingSelectorTests {
 		Method method = testBean.getClass().getMethod("noArgs");
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		selector.setBeanFactory(mock(BeanFactory.class));
-		assertTrue(selector.accept(new GenericMessage<>("test")));
+		assertThat(selector.accept(new GenericMessage<>("test"))).isTrue();
 	}
 
 	@Test(expected = IllegalArgumentException.class)

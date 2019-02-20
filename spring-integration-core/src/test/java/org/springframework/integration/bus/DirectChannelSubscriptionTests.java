@@ -16,7 +16,7 @@
 
 package org.springframework.integration.bus;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -73,7 +73,7 @@ public class DirectChannelSubscriptionTests {
 		context.refresh();
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
-		assertEquals("foo!", response.getPayload());
+		assertThat(response.getPayload()).isEqualTo("foo!");
 	}
 
 	@Test
@@ -86,7 +86,7 @@ public class DirectChannelSubscriptionTests {
 		this.context.refresh();
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
-		assertEquals("foo-from-annotated-endpoint", response.getPayload());
+		assertThat(response.getPayload()).isEqualTo("foo-from-annotated-endpoint");
 	}
 
 	@Test(expected = MessagingException.class)

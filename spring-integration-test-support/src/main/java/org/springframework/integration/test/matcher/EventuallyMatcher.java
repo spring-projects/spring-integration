@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.test.matcher;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 
@@ -31,7 +30,10 @@ import org.hamcrest.Matcher;
  * @author Artem Bilan
  *
  * @since 4.2
+ *
+ * @deprecated since 5.2 in favor of <a href="https://github.com/awaitility/awaitility">Awaitility</a>
  */
+@Deprecated
 public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 
 	private final Matcher<U> delegate;
@@ -50,12 +52,10 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 		this.pause = pause;
 	}
 
-	@Factory
 	public static <U> Matcher<U> eventually(int nbAttempts, int pause, Matcher<U> delegate) {
 		return new EventuallyMatcher<>(delegate, nbAttempts, pause);
 	}
 
-	@Factory
 	public static <U> Matcher<U> eventually(Matcher<U> delegate) {
 		return new EventuallyMatcher<>(delegate);
 	}
@@ -69,7 +69,8 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 	@Override
 	protected boolean matches(Object item, Description mismatchDescription) {
 		mismatchDescription.appendText(
-				String.format("failed after %d*%d=%dms:%n", this.nbAttempts, this.pause, this.nbAttempts * this.pause));
+				String.format("failed after %d*%d=%dms:%n", this.nbAttempts, this.pause,
+						this.nbAttempts * this.pause));
 
 		for (int i = 0; i < this.nbAttempts; i++) {
 			boolean result = this.delegate.matches(item);

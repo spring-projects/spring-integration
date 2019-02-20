@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.springframework.integration.file.dsl;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -157,8 +149,8 @@ public class FileTests {
 			fail("NullPointerException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(NullPointerException.class));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(NullPointerException.class);
 		}
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setBeanFactory(this.beanFactory);
@@ -170,15 +162,15 @@ public class FileTests {
 			}
 		}
 		DirectFieldAccessor dfa = new DirectFieldAccessor(targetFileWritingMessageHandler);
-		assertEquals(Boolean.FALSE, dfa.getPropertyValue("flushWhenIdle"));
-		assertEquals(60000L, dfa.getPropertyValue("flushInterval"));
+		assertThat(dfa.getPropertyValue("flushWhenIdle")).isEqualTo(Boolean.FALSE);
+		assertThat(dfa.getPropertyValue("flushInterval")).isEqualTo(60000L);
 		dfa.setPropertyValue("fileNameGenerator", fileNameGenerator);
 		this.fileFlow1Input.send(message);
 
-		assertTrue(new File(tmpDir.getRoot(), "foo").exists());
+		assertThat(new File(tmpDir.getRoot(), "foo").exists()).isTrue();
 
 		this.fileTriggerFlowInput.send(new GenericMessage<>("trigger"));
-		assertTrue(this.flushPredicateCalled.await(10, TimeUnit.SECONDS));
+		assertThat(this.flushPredicateCalled.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -190,10 +182,10 @@ public class FileTests {
 		this.tailer.start();
 		for (int i = 0; i < 50; i++) {
 			Message<?> message = this.tailChannel.receive(5000);
-			assertNotNull(message);
-			assertEquals("hello " + i, message.getPayload());
+			assertThat(message).isNotNull();
+			assertThat(message.getPayload()).isEqualTo("hello " + i);
 		}
-		assertNull(this.tailChannel.receive(1));
+		assertThat(this.tailChannel.receive(1)).isNull();
 
 		this.controlBus.send("@tailer.stop()");
 		file.close();
@@ -218,18 +210,18 @@ public class FileTests {
 		}
 
 		Message<?> message = fileReadingResultChannel.receive(60000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertThat(payload, instanceOf(List.class));
+		assertThat(payload).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
 		List<String> result = (List<String>) payload;
-		assertEquals(25, result.size());
-		result.forEach(s -> assertTrue(evens.contains(Integer.parseInt(s))));
+		assertThat(result.size()).isEqualTo(25);
+		result.forEach(s -> assertThat(evens.contains(Integer.parseInt(s))).isTrue());
 
 		new File(tmpDir.getRoot(), "a.sitest").createNewFile();
 		Message<?> receive = this.filePollingErrorChannel.receive(60000);
-		assertNotNull(receive);
-		assertThat(receive, instanceOf(ErrorMessage.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive).isInstanceOf(ErrorMessage.class);
 	}
 
 	@Test
@@ -237,15 +229,15 @@ public class FileTests {
 		String payload = "Spring Integration";
 		this.fileWritingInput.send(new GenericMessage<>(payload));
 		Message<?> receive = this.fileWritingResultChannel.receive(1000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(File.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(File.class);
 		File resultFile = (File) receive.getPayload();
-		assertThat(resultFile.getAbsolutePath(),
-				endsWith(TestUtils.applySystemFileSeparator("fileWritingFlow/foo.write")));
+		assertThat(resultFile.getAbsolutePath())
+				.endsWith(TestUtils.applySystemFileSeparator("fileWritingFlow/foo.write"));
 		String fileContent = FileCopyUtils.copyToString(new FileReader(resultFile));
-		assertEquals(payload, fileContent);
+		assertThat(fileContent).isEqualTo(payload);
 		if (FileUtils.IS_POSIX) {
-			assertThat(java.nio.file.Files.getPosixFilePermissions(resultFile.toPath()).size(), equalTo(9));
+			assertThat(java.nio.file.Files.getPosixFilePermissions(resultFile.toPath()).size()).isEqualTo(9);
 		}
 	}
 
@@ -261,19 +253,19 @@ public class FileTests {
 		file.close();
 
 		Message<?> receive = this.fileSplittingResultChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(FileSplitter.FileMarker.class)); // FileMarker.Mark.START
-		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.START
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.fileSplittingResultChannel.receive(10000);
-		assertNotNull(receive); //HelloWorld
+		assertThat(receive).isNotNull(); //HelloWorld
 		receive = this.fileSplittingResultChannel.receive(10000);
-		assertNotNull(receive); //äöüß
+		assertThat(receive).isNotNull(); //äöüß
 		receive = this.fileSplittingResultChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(FileSplitter.FileMarker.class)); // FileMarker.Mark.END
-		assertNull(this.fileSplittingResultChannel.receive(1));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(FileSplitter.FileMarker.class); // FileMarker.Mark.END
+		assertThat(this.fileSplittingResultChannel.receive(1)).isNull();
 
-		assertEquals(StandardCharsets.US_ASCII, TestUtils.getPropertyValue(this.fileSplitter, "charset"));
+		assertThat(TestUtils.getPropertyValue(this.fileSplitter, "charset")).isEqualTo(StandardCharsets.US_ASCII);
 	}
 
 	@Autowired
@@ -301,13 +293,13 @@ public class FileTests {
 
 		Set<String> payloads = new TreeSet<>();
 		Message<?> receive = this.dynamicAdaptersResult.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		payloads.add((String) receive.getPayload());
 		receive = this.dynamicAdaptersResult.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		payloads.add((String) receive.getPayload());
 
-		assertArrayEquals(new String[] { "bar", "foo" }, payloads.toArray());
+		assertThat(payloads.toArray()).isEqualTo(new String[] { "bar", "foo" });
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -83,12 +80,12 @@ public class ObjectToMapTransformerParserTests {
 
 		Message<Map<String, Object>> outputMessage = (Message<Map<String, Object>>) output.receive();
 		Map<String, Object> transformedMap = outputMessage.getPayload();
-		assertNotNull(outputMessage.getPayload());
+		assertThat(outputMessage.getPayload()).isNotNull();
 		for (String key : transformedMap.keySet()) {
 			Expression expression = parser.parseExpression(key);
 			Object valueFromTheMap = transformedMap.get(key);
 			Object valueFromExpression = expression.getValue(context);
-			assertEquals(valueFromTheMap, valueFromExpression);
+			assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 		}
 	}
 
@@ -113,11 +110,11 @@ public class ObjectToMapTransformerParserTests {
 		@SuppressWarnings("unchecked")
 		Message<Map<String, Object>> outputMessage = (Message<Map<String, Object>>) nestedOutput.receive(1000);
 		Map<String, Object> transformedMap = outputMessage.getPayload();
-		assertNotNull(outputMessage.getPayload());
+		assertThat(outputMessage.getPayload()).isNotNull();
 
-		assertEquals(employee.getCompanyName(), transformedMap.get("companyName"));
-		assertThat(transformedMap.get("companyAddress"), Matchers.instanceOf(Map.class));
-		assertThat(transformedMap.get("departments"), Matchers.instanceOf(List.class));
+		assertThat(transformedMap.get("companyName")).isEqualTo(employee.getCompanyName());
+		assertThat(transformedMap.get("companyAddress")).isInstanceOf(Map.class);
+		assertThat(transformedMap.get("departments")).isInstanceOf(List.class);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

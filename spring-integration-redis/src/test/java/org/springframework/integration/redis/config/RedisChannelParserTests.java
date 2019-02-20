@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -79,16 +77,18 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 		RedisConnectionFactory connectionFactory =
 				TestUtils.getPropertyValue(this.redisChannel, "connectionFactory", RedisConnectionFactory.class);
 		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer", RedisSerializer.class);
-		assertEquals(connectionFactory, this.context.getBean("redisConnectionFactory"));
-		assertEquals(redisSerializer, this.context.getBean("redisSerializer"));
-		assertEquals("si.test.topic.parser", TestUtils.getPropertyValue(redisChannel, "topicName"));
-		assertEquals(Integer.MAX_VALUE, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(this.redisChannel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
+		assertThat(this.context.getBean("redisConnectionFactory")).isEqualTo(connectionFactory);
+		assertThat(this.context.getBean("redisSerializer")).isEqualTo(redisSerializer);
+		assertThat(TestUtils.getPropertyValue(redisChannel, "topicName")).isEqualTo("si.test.topic.parser");
+		assertThat(TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(this.redisChannel, "dispatcher"), "maxSubscribers", Integer.class)
+				.intValue()).isEqualTo(Integer.MAX_VALUE);
 
-		assertEquals(1,
-				TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "dispatcher.maxSubscribers", Integer.class).intValue());
+		assertThat(TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "dispatcher.maxSubscribers",
+				Integer.class)
+				.intValue()).isEqualTo(1);
 		Object mbf = this.context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
-		assertSame(mbf, TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "messageBuilderFactory"));
+		assertThat(TestUtils.getPropertyValue(this.redisChannelWithSubLimit, "messageBuilderFactory")).isSameAs(mbf);
 	}
 
 	@Test
@@ -101,13 +101,13 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		this.redisChannel.subscribe(message -> {
-			assertEquals(m.getPayload(), message.getPayload());
+			assertThat(message.getPayload()).isEqualTo(m.getPayload());
 			latch.countDown();
 		});
 
 		this.redisChannel.send(m);
 
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }

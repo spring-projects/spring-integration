@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +48,7 @@ public class ResequencingMessageGroupProcessorTests {
 		messages.add(message3);
 		SimpleMessageGroup group = new SimpleMessageGroup(messages, "x");
 		List<Message> processedMessages = (List<Message>) processor.processMessageGroup(group);
-		assertThat(processedMessages, hasItems(message1, message2, message3));
+		assertThat(processedMessages).contains(message1, message2, message3);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -66,8 +64,8 @@ public class ResequencingMessageGroupProcessorTests {
 		messages.add(message3);
 		SimpleMessageGroup group = new SimpleMessageGroup(messages, "x");
 		List<Message> processedMessages = (List<Message>) processor.processMessageGroup(group);
-		assertThat(processedMessages, hasItems(message1));
-		assertThat(processedMessages.size(), is(1));
+		assertThat(processedMessages).contains(message1);
+		assertThat(processedMessages.size()).isEqualTo(1);
 	}
 
 }

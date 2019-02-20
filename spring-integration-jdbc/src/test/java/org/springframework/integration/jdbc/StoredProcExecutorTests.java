@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class StoredProcExecutorTests {
 			new StoredProcExecutor(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("dataSource must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("dataSource must not be null.");
 			return;
 		}
 
@@ -80,8 +80,8 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.afterPropertiesSet();
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("You must either provide a "
-					+ "Stored Procedure Name or a Stored Procedure Name Expression.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("You must either provide a "
+					+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 			return;
 		}
 
@@ -98,7 +98,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setStoredProcedureName("      ");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("storedProcedureName must not be null and cannot be empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("storedProcedureName must not be null and cannot be empty.");
 			return;
 		}
 
@@ -119,7 +119,8 @@ public class StoredProcExecutorTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 		storedProcExecutor.afterPropertiesSet();
 
-		assertEquals("headers['stored_procedure_name']", storedProcExecutor.getStoredProcedureNameExpressionAsString());
+		assertThat(storedProcExecutor.getStoredProcedureNameExpressionAsString())
+				.isEqualTo("headers['stored_procedure_name']");
 	}
 
 	@Test
@@ -132,8 +133,8 @@ public class StoredProcExecutorTests {
 		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 		storedProcExecutor.afterPropertiesSet();
 
-		assertEquals("123", storedProcExecutor.getStoredProcedureName());
-		assertEquals("123", storedProcExecutor.getStoredProcedureNameExpressionAsString());
+		assertThat(storedProcExecutor.getStoredProcedureName()).isEqualTo("123");
+		assertThat(storedProcExecutor.getStoredProcedureNameExpressionAsString()).isEqualTo("123");
 	}
 
 	@Test
@@ -146,7 +147,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setReturningResultSetRowMappers(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("returningResultSetRowMappers must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("returningResultSetRowMappers must not be null.");
 			return;
 		}
 
@@ -167,7 +168,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("The provided map cannot contain null values.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("The provided map cannot contain null values.");
 			return;
 		}
 
@@ -198,7 +199,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setSqlParameterSourceFactory(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("sqlParameterSourceFactory must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("sqlParameterSourceFactory must not be null.");
 			return;
 		}
 
@@ -219,7 +220,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setSqlParameters(sqlParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("The provided list (sqlParameters) cannot contain null values.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("The provided list (sqlParameters) cannot contain null values.");
 			return;
 		}
 
@@ -239,7 +240,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setSqlParameters(sqlParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("sqlParameters must not be null or empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("sqlParameters must not be null or empty.");
 			return;
 		}
 
@@ -257,7 +258,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setSqlParameters(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("sqlParameters must not be null or empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("sqlParameters must not be null or empty.");
 			return;
 		}
 
@@ -278,7 +279,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setProcedureParameters(procedureParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("The provided list (procedureParameters) cannot contain null values.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("The provided list (procedureParameters) cannot contain null values.");
 			return;
 		}
 
@@ -298,7 +299,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setProcedureParameters(procedureParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("procedureParameters must not be null or empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("procedureParameters must not be null or empty.");
 			return;
 		}
 
@@ -316,7 +317,7 @@ public class StoredProcExecutorTests {
 			storedProcExecutor.setProcedureParameters(null);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("procedureParameters must not be null or empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("procedureParameters must not be null or empty.");
 			return;
 		}
 
@@ -358,7 +359,9 @@ public class StoredProcExecutorTests {
 							.build());
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("Unable to resolve Stored Procedure/Function name for the provided Expression 'headers['stored_procedure_name']'.", e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("Unable to resolve Stored Procedure/Function name for the provided Expression " +
+							"'headers['stored_procedure_name']'.");
 			return;
 		}
 
@@ -395,9 +398,9 @@ public class StoredProcExecutorTests {
 		LOGGER.info(stats);
 		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
 
-		assertEquals(stats.hitCount(), 2);
-		assertEquals(stats.missCount(), 1);
-		assertEquals(stats.loadCount(), 1);
+		assertThat(2).isEqualTo(stats.hitCount());
+		assertThat(1).isEqualTo(stats.missCount());
+		assertThat(1).isEqualTo(stats.loadCount());
 
 	}
 
@@ -430,7 +433,7 @@ public class StoredProcExecutorTests {
 
 		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
 		LOGGER.info(stats);
-		assertEquals("Expected a cache misscount of 10", 10, stats.missCount());
+		assertThat(stats.missCount()).as("Expected a cache misscount of 10").isEqualTo(10);
 
 	}
 

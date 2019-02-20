@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class DefaultFileNameGeneratorTests {
 		generator.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("foo", filename);
+		assertThat(filename).isEqualTo("foo");
 	}
 
 	@Test
@@ -48,7 +48,7 @@ public class DefaultFileNameGeneratorTests {
 		generator.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
-		assertEquals(message.getHeaders().getId() + ".msg", filename);
+		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class DefaultFileNameGeneratorTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, new Integer(123))
 				.build();
 		String filename = generator.generateFileName(message);
-		assertEquals(message.getHeaders().getId() + ".msg", filename);
+		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class DefaultFileNameGeneratorTests {
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("bar", filename);
+		assertThat(filename).isEqualTo("bar");
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class DefaultFileNameGeneratorTests {
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		String filename = generator.generateFileName(message);
-		assertEquals(message.getHeaders().getId() + ".msg", filename);
+		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
 	}
 
 	@Test
@@ -88,7 +88,7 @@ public class DefaultFileNameGeneratorTests {
 		generator.setHeaderName("foo");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", new Integer(123)).build();
 		String filename = generator.generateFileName(message);
-		assertEquals(message.getHeaders().getId() + ".msg", filename);
+		assertThat(filename).isEqualTo(message.getHeaders().getId() + ".msg");
 	}
 
 	@Test
@@ -98,7 +98,7 @@ public class DefaultFileNameGeneratorTests {
 		File payload = new File("/some/path/foo");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		String filename = generator.generateFileName(message);
-		assertEquals("foo", filename);
+		assertThat(filename).isEqualTo("foo");
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class DefaultFileNameGeneratorTests {
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "foo").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("foo", filename);
+		assertThat(filename).isEqualTo("foo");
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class DefaultFileNameGeneratorTests {
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("bar", filename);
+		assertThat(filename).isEqualTo("bar");
 	}
 
 	@Test
@@ -130,7 +130,7 @@ public class DefaultFileNameGeneratorTests {
 		File payload = new File("/some/path/ignore");
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		String filename = generator.generateFileName(message);
-		assertEquals("foobar", filename);
+		assertThat(filename).isEqualTo("foobar");
 	}
 
 	@Test
@@ -141,7 +141,7 @@ public class DefaultFileNameGeneratorTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, "ignore")
 				.setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("bar", filename);
+		assertThat(filename).isEqualTo("bar");
 	}
 
 	@Test
@@ -153,7 +153,7 @@ public class DefaultFileNameGeneratorTests {
 		Message<?> message = MessageBuilder.withPayload(payload).setHeader(FileHeaders.FILENAME, "ignore2")
 				.setHeader("foo", "bar").build();
 		String filename = generator.generateFileName(message);
-		assertEquals("bar", filename);
+		assertThat(filename).isEqualTo("bar");
 	}
 
 }

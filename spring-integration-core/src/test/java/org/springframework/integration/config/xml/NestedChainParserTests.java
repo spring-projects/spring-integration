@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertNotSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -48,8 +48,8 @@ public class NestedChainParserTests {
 	public void chainsAreNotSame() {
 		ParentTestBean bean1 = context.getBean("concreteParent1", ParentTestBean.class);
 		ParentTestBean bean2 = context.getBean("concreteParent2", ParentTestBean.class);
-		assertNotSame(bean1, bean2);
-		assertNotSame(bean1.chain, bean2.chain);
+		assertThat(bean2).isNotSameAs(bean1);
+		assertThat(bean2.chain).isNotSameAs(bean1.chain);
 	}
 
 	@Test
@@ -63,7 +63,7 @@ public class NestedChainParserTests {
 				(List<MessageHandler>) new DirectFieldAccessor(bean2.chain).getPropertyValue("handlers");
 		MessageHandler handler1 = handlerList1.get(0);
 		MessageHandler handler2 = handlerList2.get(0);
-		assertNotSame(handler1, handler2);
+		assertThat(handler2).isNotSameAs(handler1);
 	}
 
 

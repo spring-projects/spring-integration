@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ip.dsl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -65,8 +64,8 @@ public class ConnectionFacforyTests {
 		client.afterPropertiesSet();
 		client.start();
 		client.getConnection().send(new GenericMessage<>("foo"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("foo", received.get().getPayload());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(received.get().getPayload()).isEqualTo("foo");
 		client.stop();
 		server.stop();
 	}
@@ -74,19 +73,19 @@ public class ConnectionFacforyTests {
 	@Test
 	public void shouldReturnNioFlavor() throws Exception {
 		AbstractServerConnectionFactory server = Tcp.nioServer(0).get();
-		assertTrue(server instanceof TcpNioServerConnectionFactory);
+		assertThat(server instanceof TcpNioServerConnectionFactory).isTrue();
 
 		AbstractClientConnectionFactory client = Tcp.nioClient("localhost", server.getPort()).get();
-		assertTrue(client instanceof TcpNioClientConnectionFactory);
+		assertThat(client instanceof TcpNioClientConnectionFactory).isTrue();
 	}
 
 	@Test
 	public void shouldReturnNetFlavor() throws Exception {
 		AbstractServerConnectionFactory server = Tcp.netServer(0).get();
-		assertTrue(server instanceof TcpNetServerConnectionFactory);
+		assertThat(server instanceof TcpNetServerConnectionFactory).isTrue();
 
 		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).get();
-		assertTrue(client instanceof TcpNetClientConnectionFactory);
+		assertThat(client instanceof TcpNetClientConnectionFactory).isTrue();
 	}
 
 }

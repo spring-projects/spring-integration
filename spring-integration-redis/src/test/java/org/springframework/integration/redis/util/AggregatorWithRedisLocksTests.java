@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -93,13 +90,14 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 1));
-		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
-		assertEquals(1, this.template.keys("aggregatorWithRedisLocksTests:*").size());
+		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(1);
 		this.releaseStrategy.latch1.countDown();
-		assertNotNull(this.out.receive(10000));
-		assertEquals(1, this.releaseStrategy.maxCallers.get());
+		assertThat(this.out.receive(10000)).isNotNull();
+		assertThat(this.releaseStrategy.maxCallers.get()).isEqualTo(1);
 		this.assertNoLocksAfterTest();
-		assertNull("Unexpected exception:" + (this.exception != null ? this.exception.toString() : ""), this.exception);
+		assertThat(this.exception)
+				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
 	}
 
 	@Test
@@ -112,17 +110,18 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 2));
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 3));
 		Executors.newSingleThreadExecutor().execute(asyncSend("bar", 2, 3));
-		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
-		assertEquals(3, this.template.keys("aggregatorWithRedisLocksTests:*").size());
+		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(3);
 		this.releaseStrategy.latch1.countDown();
 		this.releaseStrategy.latch1.countDown();
 		this.releaseStrategy.latch1.countDown();
-		assertNotNull(this.out.receive(10000));
-		assertNotNull(this.out.receive(10000));
-		assertNotNull(this.out.receive(10000));
-		assertEquals(3, this.releaseStrategy.maxCallers.get());
+		assertThat(this.out.receive(10000)).isNotNull();
+		assertThat(this.out.receive(10000)).isNotNull();
+		assertThat(this.out.receive(10000)).isNotNull();
+		assertThat(this.releaseStrategy.maxCallers.get()).isEqualTo(3);
 		this.assertNoLocksAfterTest();
-		assertNull("Unexpected exception:" + (this.exception != null ? this.exception.toString() : ""), this.exception);
+		assertThat(this.exception)
+				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
 	}
 
 	@Test
@@ -139,13 +138,14 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 				exception = e;
 			}
 		});
-		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
-		assertEquals(1, this.template.keys("aggregatorWithRedisLocksTests:*").size());
+		assertThat(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(1);
 		this.releaseStrategy.latch1.countDown();
-		assertNotNull(this.out.receive(10000));
-		assertEquals(1, this.releaseStrategy.maxCallers.get());
+		assertThat(this.out.receive(10000)).isNotNull();
+		assertThat(this.releaseStrategy.maxCallers.get()).isEqualTo(1);
 		this.assertNoLocksAfterTest();
-		assertNull("Unexpected exception:" + (this.exception != null ? this.exception.toString() : ""), this.exception);
+		assertThat(this.exception)
+				.as("Unexpected exception:" + (this.exception != null ? this.exception.toString() : "")).isNull();
 	}
 
 	private void assertNoLocksAfterTest() throws Exception {
@@ -153,7 +153,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 		while (n++ < 100 && this.template.keys("aggregatorWithRedisLocksTests:*").size() > 0) {
 			Thread.sleep(100);
 		}
-		assertEquals(0, this.template.keys("aggregatorWithRedisLocksTests:*").size());
+		assertThat(this.template.keys("aggregatorWithRedisLocksTests:*").size()).isEqualTo(0);
 	}
 
 	private Runnable asyncSend(final String payload, final int sequence, final int correlation) {

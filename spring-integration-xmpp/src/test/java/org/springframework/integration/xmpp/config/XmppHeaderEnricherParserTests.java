@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -71,8 +69,8 @@ public class XmppHeaderEnricherParserTests {
 		willAnswer(invocation -> {
 			Message<?> message = invocation.getArgument(0);
 			String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
-			assertNotNull(chatToUser);
-			assertEquals("test1@example.org", chatToUser);
+			assertThat(chatToUser).isNotNull();
+			assertThat(chatToUser).isEqualTo("test1@example.org");
 			callLatch.countDown();
 			return null;
 		})
@@ -80,7 +78,7 @@ public class XmppHeaderEnricherParserTests {
 				.handleMessage(Mockito.any(Message.class));
 		this.output.subscribe(handler);
 		messagingTemplate.send(this.input, MessageBuilder.withPayload("foo").build());
-		assertTrue(callLatch.await(10, TimeUnit.SECONDS));
+		assertThat(callLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 

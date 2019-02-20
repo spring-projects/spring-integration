@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.redis.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -63,7 +60,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<?> message = store.getMessage(UUID.randomUUID());
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@Test
@@ -71,7 +68,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 	public void testGetMessageCountWhenEmpty() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
-		assertEquals(0, store.getMessageCount());
+		assertThat(store.getMessageCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -81,8 +78,8 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
 		Message<String> storedMessage =  store.addMessage(stringMessage);
-		assertNotSame(stringMessage, storedMessage);
-		assertEquals("Hello Redis", storedMessage.getPayload());
+		assertThat(storedMessage).isNotSameAs(stringMessage);
+		assertThat(storedMessage.getPayload()).isEqualTo("Hello Redis");
 	}
 
 	@Test
@@ -96,8 +93,8 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 		Message<Person> objectMessage = new GenericMessage<Person>(person);
 		Message<Person> storedMessage =  store.addMessage(objectMessage);
-		assertNotSame(objectMessage, storedMessage);
-		assertEquals("Barak Obama", storedMessage.getPayload().getName());
+		assertThat(storedMessage).isNotSameAs(objectMessage);
+		assertThat(storedMessage.getPayload().getName()).isEqualTo("Barak Obama");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -119,8 +116,8 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
 		store.addMessage(stringMessage);
 		Message<String> retrievedMessage = (Message<String>) store.getMessage(stringMessage.getHeaders().getId());
-		assertNotNull(retrievedMessage);
-		assertEquals("Hello Redis", retrievedMessage.getPayload());
+		assertThat(retrievedMessage).isNotNull();
+		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -132,13 +129,13 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
 		store.addMessage(stringMessage);
 		Message<String> retrievedMessage = (Message<String>) store.getMessage(stringMessage.getHeaders().getId());
-		assertNotNull(retrievedMessage);
-		assertEquals("Hello Redis", retrievedMessage.getPayload());
+		assertThat(retrievedMessage).isNotNull();
+		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
 
 		StringRedisTemplate template = createStringRedisTemplate(getConnectionFactoryForTest());
 		BoundValueOperations<String, String> ops =
 				template.boundValueOps("foo" + "MESSAGE_" + stringMessage.getHeaders().getId());
-		assertNotNull(ops.get());
+		assertThat(ops.get()).isNotNull();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -150,9 +147,9 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
 		store.addMessage(stringMessage);
 		Message<String> retrievedMessage = (Message<String>) store.removeMessage(stringMessage.getHeaders().getId());
-		assertNotNull(retrievedMessage);
-		assertEquals("Hello Redis", retrievedMessage.getPayload());
-		assertNull(store.getMessage(stringMessage.getHeaders().getId()));
+		assertThat(retrievedMessage).isNotNull();
+		assertThat(retrievedMessage.getPayload()).isEqualTo("Hello Redis");
+		assertThat(store.getMessage(stringMessage.getHeaders().getId())).isNull();
 	}
 
 	@Test
@@ -172,11 +169,11 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		store.addMessage(message);
 		message = store.getMessage(message.getHeaders().getId());
 		MessageHistory messageHistory = MessageHistory.read(message);
-		assertNotNull(messageHistory);
-		assertEquals(2, messageHistory.size());
+		assertThat(messageHistory).isNotNull();
+		assertThat(messageHistory.size()).isEqualTo(2);
 		Properties fooChannelHistory = messageHistory.get(0);
-		assertEquals("fooChannel", fooChannelHistory.get("name"));
-		assertEquals("channel", fooChannelHistory.get("type"));
+		assertThat(fooChannelHistory.get("name")).isEqualTo("fooChannel");
+		assertThat(fooChannelHistory.get("type")).isEqualTo("channel");
 	}
 
 	@Test
@@ -193,7 +190,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		}
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 		messageStore.removeMessageGroup("X");
 	}
 

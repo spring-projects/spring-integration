@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.file.remote.session;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -81,19 +78,19 @@ public class DelegatingSessionFactoryTests {
 
 	@Test
 	public void testDelegates() {
-		assertEquals(foo.mockSession, this.dsf.getSession("foo"));
-		assertEquals(bar.mockSession, this.dsf.getSession("bar"));
-		assertEquals(bar.mockSession, this.dsf.getSession("junk"));
-		assertEquals(bar.mockSession, this.dsf.getSession());
+		assertThat(this.dsf.getSession("foo")).isEqualTo(foo.mockSession);
+		assertThat(this.dsf.getSession("bar")).isEqualTo(bar.mockSession);
+		assertThat(this.dsf.getSession("junk")).isEqualTo(bar.mockSession);
+		assertThat(this.dsf.getSession()).isEqualTo(bar.mockSession);
 		this.dsf.setThreadKey("foo");
-		assertEquals(foo.mockSession, this.dsf.getSession("foo"));
+		assertThat(this.dsf.getSession("foo")).isEqualTo(foo.mockSession);
 		this.dsf.clearThreadKey();
 		TestSessionFactory factory = new TestSessionFactory();
 		this.sessionFactoryLocator.addSessionFactory("baz", factory);
 		this.dsf.setThreadKey("baz");
-		assertEquals(factory.mockSession, this.dsf.getSession("baz"));
+		assertThat(this.dsf.getSession("baz")).isEqualTo(factory.mockSession);
 		this.dsf.clearThreadKey();
-		assertSame(factory, sessionFactoryLocator.removeSessionFactory("baz"));
+		assertThat(sessionFactoryLocator.removeSessionFactory("baz")).isSameAs(factory);
 	}
 
 	@Test
@@ -102,9 +99,9 @@ public class DelegatingSessionFactoryTests {
 				.willReturn(new String[0]);
 		in.send(new GenericMessage<>("foo"));
 		Message<?> received = out.receive(0);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		verify(foo.mockSession).list("foo/");
-		assertNull(TestUtils.getPropertyValue(dsf, "threadKey", ThreadLocal.class).get());
+		assertThat(TestUtils.getPropertyValue(dsf, "threadKey", ThreadLocal.class).get()).isNull();
 	}
 
 	@Configuration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,10 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
 
 import java.util.List;
@@ -54,6 +45,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageHandle
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -131,23 +123,25 @@ public class MockMessageHandlerTests {
 
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = replies.receive(10000);
-			assertNotNull(receive);
-			assertEquals("foo", receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo("foo");
 		}
 
 		List<Message<?>> messages = this.messageArgumentCaptor.getAllValues();
 
-		assertEquals(4, messages.size());
+		assertThat(messages).hasSize(4);
 
-		assertThat(messages.get(0), hasHeader("bar", "BAR"));
-		assertThat(messages.get(1),
-				sameExceptIgnorableHeaders(MessageBuilder.withPayload("foo")
-								.setHeader("baz", "BAZ")
-								.build(),
-						"bar", MessageHeaders.REPLY_CHANNEL));
+		assertThat(messages.get(0).getHeaders()).containsEntry("bar", "BAR");
+		assertThat(messages.get(1))
+				.matches(
+						new MessagePredicate(
+								MessageBuilder.withPayload("foo")
+										.setHeader("baz", "BAZ")
+										.build(),
+								"bar", MessageHeaders.REPLY_CHANNEL));
 
-		assertThat(messages.get(2), hasPayload("foo"));
-		assertThat(messages.get(3), hasPayload("foo"));
+		assertThat(messages.get(2).getPayload()).isEqualTo("foo");
+		assertThat(messages.get(3).getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -156,8 +150,8 @@ public class MockMessageHandlerTests {
 
 		Message<?> receive = this.results.receive(10000);
 
-		assertNotNull(receive);
-		assertEquals("barbar", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("barbar");
 
 		MessageHandler mockMessageHandler =
 				mockMessageHandler()
@@ -170,15 +164,15 @@ public class MockMessageHandlerTests {
 		this.pojoServiceChannel.send(new GenericMessage<>("foo"));
 		receive = this.results.receive(10000);
 
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 
 		try {
 			this.pojoServiceChannel.send(new GenericMessage<>("bar"));
 			fail("AssertionError expected");
 		}
 		catch (Error e) {
-			assertThat(e, instanceOf(AssertionError.class));
+			assertThat(e).isInstanceOf(AssertionError.class);
 		}
 	}
 
@@ -194,7 +188,7 @@ public class MockMessageHandlerTests {
 		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
 
 		Object endpoint = this.context.getBean(endpointId);
-		assertSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class)).isSameAs(mockMessageHandler);
 
 		GenericMessage<String> message = new GenericMessage<>("foo");
 
@@ -203,7 +197,7 @@ public class MockMessageHandlerTests {
 		verify(mockMessageHandler)
 				.handleMessage(message);
 
-		assertSame(message, messageArgumentCaptor.getValue());
+		assertThat(messageArgumentCaptor.getValue()).isSameAs(message);
 
 		this.mockIntegrationContext.resetBeans(endpointId);
 
@@ -216,14 +210,16 @@ public class MockMessageHandlerTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("with replies can't replace simple MessageHandler"));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage()).contains("with replies can't replace simple MessageHandler");
 		}
 
 		this.mockIntegrationContext.resetBeans();
 
-		assertNotSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class));
-		assertNotSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "subscriber", Subscriber.class));
+		assertThat(TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class))
+				.isNotSameAs(mockMessageHandler);
+		assertThat(TestUtils.getPropertyValue(endpoint, "subscriber", Subscriber.class))
+				.isNotSameAs(mockMessageHandler);
 	}
 
 	/**
@@ -239,7 +235,7 @@ public class MockMessageHandlerTests {
 		this.startChannel.send(message);
 		this.startChannel.send(message);
 		List<Message<?>> list = argumentCaptorForOutputTest.getAllValues();
-		assertEquals(2, list.size());
+		assertThat(list.size()).isEqualTo(2);
 	}
 
 	@Configuration

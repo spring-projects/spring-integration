@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -65,8 +62,8 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 		strategy = new ExpressionEvaluatingCorrelationStrategy(expression);
 		strategy.setBeanFactory(mock(BeanFactory.class));
 		Object correlationKey = strategy.getCorrelationKey(new GenericMessage<String>("bla"));
-		assertThat(correlationKey, is(instanceOf(String.class)));
-		assertThat((String) correlationKey, is("b"));
+		assertThat(correlationKey).isInstanceOf(String.class);
+		assertThat((String) correlationKey).isEqualTo("b");
 	}
 
 	@Test
@@ -78,7 +75,7 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setSequenceNumber(1).setSequenceSize(1).build();
 		inputChannel.send(message);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
+		assertThat(reply).isNotNull();
 		context.close();
 	}
 

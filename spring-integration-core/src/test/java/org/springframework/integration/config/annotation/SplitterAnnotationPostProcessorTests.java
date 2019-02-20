@@ -16,11 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
@@ -71,26 +67,26 @@ public class SplitterAnnotationPostProcessorTests {
 		context.refresh();
 		inputChannel.send(new GenericMessage<>("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);
-		assertNotNull(message1);
-		assertEquals("this", message1.getPayload());
+		assertThat(message1).isNotNull();
+		assertThat(message1.getPayload()).isEqualTo("this");
 		Message<?> message2 = outputChannel.receive(500);
-		assertNotNull(message2);
-		assertEquals("is", message2.getPayload());
+		assertThat(message2).isNotNull();
+		assertThat(message2.getPayload()).isEqualTo("is");
 		Message<?> message3 = outputChannel.receive(500);
-		assertNotNull(message3);
-		assertEquals("a", message3.getPayload());
+		assertThat(message3).isNotNull();
+		assertThat(message3.getPayload()).isEqualTo("a");
 		Message<?> message4 = outputChannel.receive(500);
-		assertNotNull(message4);
-		assertEquals("test", message4.getPayload());
-		assertNull(outputChannel.receive(0));
+		assertThat(message4).isNotNull();
+		assertThat(message4.getPayload()).isEqualTo("test");
+		assertThat(outputChannel.receive(0)).isNull();
 
 		AbstractEndpoint endpoint = context.getBean(AbstractEndpoint.class);
 
-		assertTrue(splitter.isRunning());
+		assertThat(splitter.isRunning()).isTrue();
 		endpoint.stop();
-		assertFalse(splitter.isRunning());
+		assertThat(splitter.isRunning()).isFalse();
 		endpoint.start();
-		assertTrue(splitter.isRunning());
+		assertThat(splitter.isRunning()).isTrue();
 
 		context.stop();
 	}

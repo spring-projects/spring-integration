@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.http;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
 import java.net.URI;
@@ -115,7 +112,7 @@ public class HttpProxyScenarioTests {
 		request.setContentType("text/plain");
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
-		assertNotNull(handler);
+		assertThat(handler).isNotNull();
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -125,12 +122,12 @@ public class HttpProxyScenarioTests {
 
 		Mockito.doAnswer(invocation -> {
 			URI uri = invocation.getArgument(0);
-			assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
+			assertThat(uri).isEqualTo(new URI("http://testServer/test?foo=bar&FOO=BAR"));
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
-			assertEquals(ifModifiedSince, httpHeaders.getIfModifiedSince());
-			assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
-			assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
+			assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
+			assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
+			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
 
 			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
 			responseHeaders.set("Connection", "close");
@@ -147,17 +144,17 @@ public class HttpProxyScenarioTests {
 
 		this.handlerAdapter.handle(request, response, handler);
 
-		assertEquals(ifModifiedSinceValue, response.getHeaderValue("If-Modified-Since"));
-		assertEquals(ifUnmodifiedSinceValue, response.getHeaderValue("If-Unmodified-Since"));
-		assertEquals("close", response.getHeaderValue("Connection"));
-		assertEquals(contentDispositionValue, response.getHeader("Content-Disposition"));
-		assertEquals("text/plain", response.getContentType());
+		assertThat(response.getHeaderValue("If-Modified-Since")).isEqualTo(ifModifiedSinceValue);
+		assertThat(response.getHeaderValue("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
+		assertThat(response.getHeaderValue("Connection")).isEqualTo("close");
+		assertThat(response.getHeader("Content-Disposition")).isEqualTo(contentDispositionValue);
+		assertThat(response.getContentType()).isEqualTo("text/plain");
 
 		Message<?> message = this.checkHeadersChannel.receive(2000);
 		MessageHeaders headers = message.getHeaders();
 
-		assertEquals(ifModifiedSince, headers.get("If-Modified-Since"));
-		assertEquals(ifUnmodifiedSince, headers.get("If-Unmodified-Since"));
+		assertThat(headers.get("If-Modified-Since")).isEqualTo(ifModifiedSince);
+		assertThat(headers.get("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSince);
 
 		RequestContextHolder.resetRequestAttributes();
 	}
@@ -171,23 +168,23 @@ public class HttpProxyScenarioTests {
 		request.setContent("foo".getBytes());
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
-		assertNotNull(handler);
+		assertThat(handler).isNotNull();
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 		Mockito.doAnswer(invocation -> {
 			URI uri = invocation.getArgument(0);
-			assertEquals(new URI("http://testServer/testmp"), uri);
+			assertThat(uri).isEqualTo(new URI("http://testServer/testmp"));
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
-			assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
-			assertEquals("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ",
-					httpHeaders.getContentType().toString());
+			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
+			assertThat(httpHeaders.getContentType().toString())
+					.isEqualTo("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
 
 			HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
-			assertThat(entity.getBody(), instanceOf(byte[].class));
-			assertEquals("foo", new String((byte[]) entity.getBody()));
+			assertThat(entity.getBody()).isInstanceOf(byte[].class);
+			assertThat(new String((byte[]) entity.getBody())).isEqualTo("foo");
 
 			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
 			responseHeaders.set("Connection", "close");
@@ -204,8 +201,8 @@ public class HttpProxyScenarioTests {
 
 		this.handlerAdapter.handle(request, response, handler);
 
-		assertEquals("close", response.getHeaderValue("Connection"));
-		assertEquals("text/plain", response.getContentType());
+		assertThat(response.getHeaderValue("Connection")).isEqualTo("close");
+		assertThat(response.getContentType()).isEqualTo("text/plain");
 
 		RequestContextHolder.resetRequestAttributes();
 	}

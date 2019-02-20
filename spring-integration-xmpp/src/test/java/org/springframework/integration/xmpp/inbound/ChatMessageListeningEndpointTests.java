@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.xmpp.inbound;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -93,14 +89,14 @@ public class ChatMessageListeningEndpointTests {
 		}).given(connection)
 				.removeAsyncStanzaListener(any(StanzaListener.class));
 
-		assertEquals(0, packetListSet.size());
+		assertThat(packetListSet.size()).isEqualTo(0);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 		endpoint.start();
-		assertEquals(1, packetListSet.size());
+		assertThat(packetListSet.size()).isEqualTo(1);
 		endpoint.stop();
-		assertEquals(0, packetListSet.size());
+		assertThat(packetListSet.size()).isEqualTo(0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -117,7 +113,7 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
-		assertNotNull(TestUtils.getPropertyValue(endpoint, "xmppConnection"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "xmppConnection")).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -152,7 +148,7 @@ public class ChatMessageListeningEndpointTests {
 
 		ErrorMessage msg =
 				(ErrorMessage) errorChannel.receive();
-		assertEquals("hello", ((MessagingException) msg.getPayload()).getFailedMessage().getPayload());
+		assertThat(((MessagingException) msg.getPayload()).getFailedMessage().getPayload()).isEqualTo("hello");
 	}
 
 	@Test
@@ -178,12 +174,12 @@ public class ChatMessageListeningEndpointTests {
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
 		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(Message.class));
-		assertEquals(smackMessage.getStanzaId(), ((Message) payload).getStanzaId());
-		assertEquals(smackMessage.getBody(), ((Message) payload).getBody());
+		assertThat(payload).isInstanceOf(Message.class);
+		assertThat(((Message) payload).getStanzaId()).isEqualTo(smackMessage.getStanzaId());
+		assertThat(((Message) payload).getBody()).isEqualTo(smackMessage.getBody());
 
 		Log logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", Log.class));
 		given(logger.isInfoEnabled()).willReturn(true);
@@ -205,12 +201,12 @@ public class ChatMessageListeningEndpointTests {
 
 		ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 
-		assertTrue(logLatch.await(10, TimeUnit.SECONDS));
+		assertThat(logLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		verify(logger).info(argumentCaptor.capture());
 
-		assertEquals("The XMPP Message [" + smackMessage + "] with empty body is ignored.",
-				argumentCaptor.getValue());
+		assertThat(argumentCaptor.getValue())
+				.isEqualTo("The XMPP Message [" + smackMessage + "] with empty body is ignored.");
 
 		endpoint.stop();
 	}
@@ -248,9 +244,9 @@ public class ChatMessageListeningEndpointTests {
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
 		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertEquals(data, receive.getPayload());
+		assertThat(receive.getPayload()).isEqualTo(data);
 
 		endpoint.stop();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +74,7 @@ public class BarrierParserTests {
 		this.in.send(new GenericMessage<String>("foo"));
 		this.release.send(new GenericMessage<String>("bar"));
 		Message<?> received = out.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		this.barrier1.stop();
 	}
 
@@ -87,15 +82,14 @@ public class BarrierParserTests {
 	public void parserFieldPopulationTests() {
 		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
 				BarrierMessageHandler.class);
-		assertEquals(10000L, TestUtils.getPropertyValue(handler, "timeout"));
-		assertTrue(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class));
-		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"),
-				instanceOf(HeaderAttributeCorrelationStrategy.class));
-		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.messageGroupProcessor"),
-				instanceOf(TestMGP.class));
-		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy"),
-				instanceOf(TestCS.class));
-		assertSame(handler.getDiscardChannel(), this.discards);
+		assertThat(TestUtils.getPropertyValue(handler, "timeout")).isEqualTo(10000L);
+		assertThat(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"))
+				.isInstanceOf(HeaderAttributeCorrelationStrategy.class);
+		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.messageGroupProcessor"))
+				.isInstanceOf(TestMGP.class);
+		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy")).isInstanceOf(TestCS.class);
+		assertThat(this.discards).isSameAs(handler.getDiscardChannel());
 	}
 
 	public static class TestMGP implements MessageGroupProcessor {

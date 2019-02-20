@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jpa.support.parametersource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -45,15 +44,15 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 	public void testSetStaticParameters() {
 		factory.setParameters(Collections.singletonList(new JpaParameter("foo", "bar", null)));
 		ParameterSource source = factory.createParameterSource(null);
-		assertTrue(source.hasValue("foo"));
-		assertEquals("bar", source.getValue("foo"));
+		assertThat(source.hasValue("foo")).isTrue();
+		assertThat(source.getValue("foo")).isEqualTo("bar");
 	}
 
 	@Test
 	public void testMapInput() {
 		ParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
-		assertTrue(source.hasValue("foo"));
-		assertEquals("bar", source.getValue("foo"));
+		assertThat(source.hasValue("foo")).isTrue();
+		assertThat(source.getValue("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -62,24 +61,24 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		ParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "foo";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[bar, bucket]", source.getValue(expression).toString());
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[bar, bucket]");
 	}
 
 	@Test
 	public void testMapInputWithExpression() {
 		ParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
-		assertTrue(source.hasValue("foo.toUpperCase()"));
-		assertEquals("BAR", source.getValue("foo.toUpperCase()"));
+		assertThat(source.hasValue("foo.toUpperCase()")).isTrue();
+		assertThat(source.getValue("foo.toUpperCase()")).isEqualTo("BAR");
 	}
 
 	@Test
 	public void testMapInputWithMappedExpression() {
 		factory.setParameters(Collections.singletonList(new JpaParameter("spam", null, "foo.toUpperCase()")));
 		ParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
-		assertTrue(source.hasValue("spam"));
-		assertEquals("BAR", source.getValue("spam"));
+		assertThat(source.hasValue("spam")).isTrue();
+		assertThat(source.getValue("spam")).isEqualTo("BAR");
 	}
 
 	@Test
@@ -91,8 +90,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		factory.setParameters(parameters);
 
 		ParameterSource source = factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
-		assertTrue(source.hasValue("spam"));
-		assertEquals("BAR", source.getValue("spam"));
+		assertThat(source.hasValue("spam")).isTrue();
+		assertThat(source.getValue("spam")).isEqualTo("BAR");
 	}
 
 	@Test
@@ -102,8 +101,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		ParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
 	}
 
 	@Test
@@ -118,8 +117,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		String position0 = (String) source.getValueByPosition(0);
 		String position1 = (String) source.getValueByPosition(1);
 
-		assertEquals("foo", position0);
-		assertEquals("bar", position1);
+		assertThat(position0).isEqualTo("foo");
+		assertThat(position1).isEqualTo("bar");
 	}
 
 	@Test
@@ -134,8 +133,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		String position0 = (String) source.getValueByPosition(0);
 		String position1 = (String) source.getValueByPosition(1);
 
-		assertEquals("VERY IMPORTANT", position0);
-		assertEquals("bar", position1);
+		assertThat(position0).isEqualTo("VERY IMPORTANT");
+		assertThat(position1).isEqualTo("bar");
 	}
 
 	@Test
@@ -152,8 +151,8 @@ public class ExpressionEvaluatingParameterSourceFactoryTests {
 		String position0 = (String) source.getValueByPosition(0);
 		String position1 = (String) source.getValueByPosition(1);
 
-		assertEquals("VERY IMPORTANT", position1);
-		assertEquals("bar", position0);
+		assertThat(position1).isEqualTo("VERY IMPORTANT");
+		assertThat(position0).isEqualTo("bar");
 	}
 
 }

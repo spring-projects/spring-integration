@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,35 +49,35 @@ public class HeaderEnricherParserTests {
 	public void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
-		assertEquals(-1L, sendTimeout);
+		assertThat(sendTimeout).isEqualTo(-1L);
 	}
 
 	@Test // INT-1154
 	public void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
-		assertEquals(1234L, sendTimeout);
+		assertThat(sendTimeout).isEqualTo(1234L);
 	}
 
 	@Test // INT-1167
 	public void shouldSkipNullsDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
-		assertEquals(Boolean.TRUE, shouldSkipNulls);
+		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test // INT-1167
 	public void shouldSkipNullsFalseConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
 		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
-		assertEquals(Boolean.FALSE, shouldSkipNulls);
+		assertThat(shouldSkipNulls).isEqualTo(Boolean.FALSE);
 	}
 
 	@Test // INT-1167
 	public void shouldSkipNullsTrueConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
 		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
-		assertEquals(Boolean.TRUE, shouldSkipNulls);
+		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -98,10 +96,10 @@ public class HeaderEnricherParserTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 		messageHandler.handleMessage(message);
 		Message<?> transformed = replyChannel.receive(1000);
-		assertNotNull(transformed);
+		assertThat(transformed).isNotNull();
 		Object priority = transformed.getHeaders().get("priority");
-		assertNotNull(priority);
-		assertTrue(priority instanceof Integer);
+		assertThat(priority).isNotNull();
+		assertThat(priority instanceof Integer).isTrue();
 	}
 
 }

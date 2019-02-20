@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -108,8 +107,8 @@ public class RoundRobinDispatcherConcurrentTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
-		assertFalse("not all messages were accepted", failed.get());
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(failed.get()).as("not all messages were accepted").isFalse();
 		verify(handler1, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
 		verify(handler3, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
@@ -142,7 +141,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -172,8 +171,8 @@ public class RoundRobinDispatcherConcurrentTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(10, TimeUnit.SECONDS));
-		assertFalse("not all messages were accepted", failed.get());
+		assertThat(allDone.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(failed.get()).as("not all messages were accepted").isFalse();
 		verify(handler1, times(TOTAL_EXECUTIONS / 2)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS)).handleMessage(message);
 	}

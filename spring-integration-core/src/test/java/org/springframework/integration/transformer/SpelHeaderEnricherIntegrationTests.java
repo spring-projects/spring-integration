@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +63,7 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.simpleInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals(8, result.getHeaders().get("testHeader"));
+		assertThat(result.getHeaders().get("testHeader")).isEqualTo(8);
 	}
 
 	@Test
@@ -72,7 +71,7 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
 		this.beanResolvingInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals(243, result.getHeaders().get("num"));
+		assertThat(result.getHeaders().get("num")).isEqualTo(243);
 	}
 
 	@Test
@@ -80,7 +79,7 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
 		this.expressionNotExecutedInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals(3, result.getHeaders().get("num"));
+		assertThat(result.getHeaders().get("num")).isEqualTo(3);
 	}
 
 	@Test
@@ -88,7 +87,7 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
 		this.headerNotRemovedInput.send(message);
 		Message<?> result = output.receive(0);
-		assertEquals(3, result.getHeaders().get("num"));
+		assertThat(result.getHeaders().get("num")).isEqualTo(3);
 	}
 
 	@Test
@@ -96,7 +95,7 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
 		this.headerRemovedInput.send(message);
 		Message<?> result = output.receive(0);
-		assertNull(result.getHeaders().get("num"));
+		assertThat(result.getHeaders().get("num")).isNull();
 	}
 
 	static class TestBean {

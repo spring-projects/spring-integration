@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,22 +55,22 @@ public class LoggingChannelAdapterParserTests {
 	@Test
 	public void verifyConfig() {
 		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler", LoggingHandler.class);
-		assertEquals("org.springframework.integration.test.logger",
-				TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"));
-		assertEquals(1, TestUtils.getPropertyValue(loggingHandler, "order"));
-		assertEquals("WARN", TestUtils.getPropertyValue(loggingHandler, "level").toString());
-		assertEquals("#root", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
+				.isEqualTo("org.springframework.integration.test.logger");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "level").toString()).isEqualTo("WARN");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression.expression")).isEqualTo("#root");
 	}
 
 	@Test
 	public void verifyExpressionAndOtherDefaultConfig() {
 		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
-		assertEquals("org.springframework.integration.handler.LoggingHandler",
-				TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"));
-		assertEquals(Ordered.LOWEST_PRECEDENCE, TestUtils.getPropertyValue(loggingHandler, "order"));
-		assertEquals("INFO", TestUtils.getPropertyValue(loggingHandler, "level").toString());
-		assertEquals("payload.foo", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
-		assertNotNull(TestUtils.getPropertyValue(loggingHandler, "evaluationContext.beanResolver"));
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
+				.isEqualTo("org.springframework.integration.handler.LoggingHandler");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(Ordered.LOWEST_PRECEDENCE);
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "level").toString()).isEqualTo("INFO");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression.expression")).isEqualTo("payload.foo");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test
@@ -83,8 +81,9 @@ public class LoggingChannelAdapterParserTests {
 			fail("BeanDefinitionParsingException expected");
 		}
 		catch (BeansException e) {
-			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("The 'expression' and 'log-full-message' attributes are mutually exclusive."));
+			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
+			assertThat(e.getMessage()
+					.contains("The 'expression' and 'log-full-message' attributes are mutually exclusive.")).isTrue();
 		}
 	}
 

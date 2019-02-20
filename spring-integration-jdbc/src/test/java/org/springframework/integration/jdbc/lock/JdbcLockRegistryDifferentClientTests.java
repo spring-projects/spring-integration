@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,12 +121,12 @@ public class JdbcLockRegistryDifferentClientTests {
 							latch3.countDown();
 						}
 					});
-			assertTrue(latch1.await(10, TimeUnit.SECONDS));
-			assertFalse(locked.get());
+			assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(locked.get()).isFalse();
 			lock1.unlock();
 			latch2.countDown();
-			assertTrue(latch3.await(10, TimeUnit.SECONDS));
-			assertTrue(locked.get());
+			assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(locked.get()).isTrue();
 		}
 	}
 
@@ -181,10 +178,10 @@ public class JdbcLockRegistryDifferentClientTests {
 				}
 			});
 
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 			// eventually they both get the lock and release it
-			assertTrue(locked.contains("1"));
-			assertTrue(locked.contains("2"));
+			assertThat(locked.contains("1")).isTrue();
+			assertThat(locked.contains("2")).isTrue();
 			pool.shutdownNow();
 		}
 	}
@@ -226,9 +223,9 @@ public class JdbcLockRegistryDifferentClientTests {
 			logger.info("Starting: " + i);
 			pool.invokeAll(tasks);
 
-			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			assertEquals(1, locked.size());
-			assertTrue(locked.contains("done"));
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(locked.size()).isEqualTo(1);
+			assertThat(locked.contains("done")).isTrue();
 			pool.shutdownNow();
 		}
 	}
@@ -265,7 +262,7 @@ public class JdbcLockRegistryDifferentClientTests {
 						lock2.unlock();
 					}
 				});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		data.add(1);
 		Thread.sleep(100);
 		data.add(2);
@@ -274,8 +271,8 @@ public class JdbcLockRegistryDifferentClientTests {
 		lock1.unlock();
 		for (int i = 0; i < 6; i++) {
 			Integer integer = data.poll(10, TimeUnit.SECONDS);
-			assertNotNull(integer);
-			assertEquals(i + 1, integer.intValue());
+			assertThat(integer).isNotNull();
+			assertThat(integer.intValue()).isEqualTo(i + 1);
 		}
 	}
 

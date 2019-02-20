@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,15 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
@@ -43,40 +38,31 @@ public class BridgeHandlerTests {
 
 	private final BridgeHandler handler = new BridgeHandler();
 
-	@Factory
-	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-		return new MessageMatcher(expected);
-	}
-
 	@Test
 	public void simpleBridge() {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		Message<?> request = new GenericMessage<String>("test");
+		Message<?> request = new GenericMessage<>("test");
 		handler.handleMessage(request);
 		Message<?> reply = outputChannel.receive(0);
-		assertNotNull(reply);
-		assertThat(reply, sameExceptImmutableHeaders(request));
+		assertThat(reply).isNotNull();
+		assertThat(reply).matches(new MessagePredicate(request));
 	}
 
 	@Test
 	public void missingOutputChannelVerifiedAtRuntime() {
-		Message<?> request = new GenericMessage<String>("test");
-		try {
-			handler.handleMessage(request);
-			fail("Expected exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause(), instanceOf(DestinationResolutionException.class));
-		}
+		Message<?> request = new GenericMessage<>("test");
+
+		assertThatThrownBy(() -> handler.handleMessage(request))
+				.hasCauseInstanceOf(DestinationResolutionException.class);
 	}
 
 	@Test(timeout = 1000)
-	public void missingOutputChannelAllowedForReplyChannelMessages() throws Exception {
+	public void missingOutputChannelAllowedForReplyChannelMessages() {
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel).build();
 		handler.handleMessage(request);
-		assertThat(replyChannel.receive(), sameExceptImmutableHeaders(request));
+		assertThat(replyChannel.receive()).matches(new MessagePredicate(request));
 	}
 
 }

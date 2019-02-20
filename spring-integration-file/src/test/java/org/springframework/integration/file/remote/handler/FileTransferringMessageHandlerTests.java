@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.file.remote.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -66,7 +64,7 @@ public class FileTransferringMessageHandlerTests {
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
 			String path =  invocation.getArgument(1);
-			assertFalse(path.startsWith("/"));
+			assertThat(path.startsWith("/")).isFalse();
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		ExpressionParser parser = new SpelExpressionParser();
@@ -99,8 +97,8 @@ public class FileTransferringMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
-		assertEquals("bar", temporaryPath.get().substring(0, 3));
-		assertEquals("foo", finalPath.get().substring(0, 3));
+		assertThat(temporaryPath.get().substring(0, 3)).isEqualTo("bar");
+		assertThat(finalPath.get().substring(0, 3)).isEqualTo("foo");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -112,7 +110,7 @@ public class FileTransferringMessageHandlerTests {
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
 			String path =  invocation.getArgument(1);
-			assertFalse(path.startsWith("/"));
+			assertThat(path.startsWith("/")).isFalse();
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		ExpressionParser parser = new SpelExpressionParser();
@@ -176,16 +174,16 @@ public class FileTransferringMessageHandlerTests {
 				handler.handleMessage(new GenericMessage<String>("hello"));
 			}
 			catch (Exception e) {
-				assertEquals("test", e.getCause().getCause().getMessage());
+				assertThat(e.getCause().getCause().getMessage()).isEqualTo("test");
 			}
 		}
 		verify(session1, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 		verify(session2, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 		verify(session3, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 		SimplePool<?> pool = TestUtils.getPropertyValue(csf, "pool", SimplePool.class);
-		assertEquals(1, pool.getAllocatedCount());
-		assertEquals(1, pool.getIdleCount());
-		assertSame(session3, TestUtils.getPropertyValue(pool, "allocated", Set.class).iterator().next());
+		assertThat(pool.getAllocatedCount()).isEqualTo(1);
+		assertThat(pool.getIdleCount()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(pool, "allocated", Set.class).iterator().next()).isSameAs(session3);
 	}
 
 	private <F> Session<F> newSession() throws IOException {

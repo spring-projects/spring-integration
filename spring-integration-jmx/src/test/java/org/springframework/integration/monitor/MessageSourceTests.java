@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 
@@ -64,12 +63,12 @@ public class MessageSourceTests {
 	public void testMaxFetch() throws Exception {
 		Set<ObjectName> query = this.server.queryNames(new ObjectName("foo:type=MessageSource,*"), null);
 		for (ObjectName instance : query) {
-			assertThat(this.server.getAttribute(instance, "MaxFetchSize"), equalTo(123));
+			assertThat(this.server.getAttribute(instance, "MaxFetchSize")).isEqualTo(123);
 			this.server.setAttribute(instance, new Attribute("MaxFetchSize", 456));
-			assertThat(this.server.getAttribute(instance, "MaxFetchSize"), equalTo(456));
+			assertThat(this.server.getAttribute(instance, "MaxFetchSize")).isEqualTo(456);
 		}
-		assertThat(this.source1.getMaxFetchSize(), equalTo(456));
-		assertThat(this.source2.getMaxFetchSize(), equalTo(456));
+		assertThat(this.source1.getMaxFetchSize()).isEqualTo(456);
+		assertThat(this.source2.getMaxFetchSize()).isEqualTo(456);
 	}
 
 	@Configuration

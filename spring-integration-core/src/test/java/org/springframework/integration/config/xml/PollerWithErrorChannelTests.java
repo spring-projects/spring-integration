@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
@@ -70,7 +69,7 @@ public class PollerWithErrorChannelTests {
 		errorChannel.subscribe(handler);
 		adapter.start();
 
-		assertTrue(handleLatch.await(10, TimeUnit.SECONDS));
+		assertThat(handleLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		adapter.stop();
 		ac.close();
@@ -83,7 +82,7 @@ public class PollerWithErrorChannelTests {
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannel", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(10000));
+		assertThat(errorChannel.receive(10000)).isNotNull();
 		adapter.stop();
 		ac.close();
 	}
@@ -96,7 +95,7 @@ public class PollerWithErrorChannelTests {
 				SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(10000));
+		assertThat(errorChannel.receive(10000)).isNotNull();
 		adapter.stop();
 		ac.close();
 	}
@@ -110,7 +109,7 @@ public class PollerWithErrorChannelTests {
 				SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("errChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(10000));
+		assertThat(errorChannel.receive(10000)).isNotNull();
 		adapter.stop();
 		ac.close();
 	}
@@ -123,7 +122,7 @@ public class PollerWithErrorChannelTests {
 		MessageChannel serviceWithPollerChannel = ac.getBean("serviceWithPollerChannel", MessageChannel.class);
 		QueueChannel errorChannel = ac.getBean("serviceErrorChannel", QueueChannel.class);
 		serviceWithPollerChannel.send(new GenericMessage<>(""));
-		assertNotNull(errorChannel.receive(10000));
+		assertThat(errorChannel.receive(10000)).isNotNull();
 		ac.close();
 	}
 

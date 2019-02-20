@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 
 package org.springframework.integration.http.config;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -125,28 +118,28 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getRequestOk() throws Exception {
-		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class));
-		assertEquals(1001, TestUtils.getPropertyValue(this.defaultAdapter, "phase"));
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "phase")).isEqualTo(1001);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		this.defaultAdapter.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 		this.defaultAdapter.start();
 		response = new MockHttpServletResponse();
 		this.defaultAdapter.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_SWITCHING_PROTOCOLS, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_SWITCHING_PROTOCOLS);
 		Message<?> message = requests.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertTrue(payload instanceof MultiValueMap);
+		assertThat(payload instanceof MultiValueMap).isTrue();
 		MultiValueMap<String, String> map = (MultiValueMap<String, String>) payload;
-		assertEquals(1, map.size());
-		assertEquals("foo", map.keySet().iterator().next());
-		assertEquals(1, map.get("foo").size());
-		assertEquals("bar", map.getFirst("foo"));
-		assertNotNull(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel"));
+		assertThat(map.size()).isEqualTo(1);
+		assertThat(map.keySet().iterator().next()).isEqualTo("foo");
+		assertThat(map.get("foo").size()).isEqualTo(1);
+		assertThat(map.getFirst("foo")).isEqualTo("bar");
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel")).isNotNull();
 	}
 
 	@Test
@@ -159,9 +152,9 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
 		Map<String, Object> map = headerMapper.toHeaders(headers);
-		assertTrue(map.size() == 2);
-		assertEquals("foo", map.get("foo"));
-		assertEquals("bar", map.get("bar"));
+		assertThat(map.size() == 2).isTrue();
+		assertThat(map.get("foo")).isEqualTo("foo");
+		assertThat(map.get("bar")).isEqualTo("bar");
 	}
 
 	@Test
@@ -184,13 +177,13 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundAdapterWithExpressions.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 		Message<?> message = requests.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
-		assertTrue(payload instanceof String);
-		assertEquals("bill", payload);
-		assertEquals("clinton", message.getHeaders().get("lname"));
+		assertThat(payload instanceof String).isTrue();
+		assertThat(payload).isEqualTo("bill");
+		assertThat(message.getHeaders().get("lname")).isEqualTo("clinton");
 	}
 
 	@Test
@@ -203,8 +196,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 			this.integrationRequestMappingHandlerMapping.getHandler(request);
 		}
 		catch (HttpRequestMethodNotSupportedException e) {
-			assertEquals("GET", e.getMethod());
-			assertArrayEquals(new String[] {"POST"}, e.getSupportedMethods());
+			assertThat(e.getMethod()).isEqualTo("GET");
+			assertThat(e.getSupportedMethods()).isEqualTo(new String[] { "POST" });
 		}
 
 	}
@@ -218,15 +211,15 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		postOnlyAdapter.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 		Message<?> message = requests.receive(0);
 		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
+		assertThat(history).isNotNull();
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "postOnlyAdapter", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("http:inbound-channel-adapter", componentHistoryRecord.get("type"));
-		assertNotNull(message);
-		assertEquals("test", message.getPayload());
+		assertThat(componentHistoryRecord).isNotNull();
+		assertThat(componentHistoryRecord.get("type")).isEqualTo("http:inbound-channel-adapter");
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
 	@Test @DirtiesContext
@@ -242,11 +235,11 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		adapterWithCustomConverterWithDefaults.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
 		Message<?> message = requests.receive(0);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof TestObject);
-		assertEquals("testObject", ((TestObject) message.getPayload()).text);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof TestObject).isTrue();
+		assertThat(((TestObject) message.getPayload()).text).isEqualTo("testObject");
 	}
 
 
@@ -254,46 +247,47 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	public void putOrDeleteMethodsSupported() throws Exception {
 		HttpMethod[] supportedMethods =
 				TestUtils.getPropertyValue(putOrDeleteAdapter, "requestMapping.methods", HttpMethod[].class);
-		assertEquals(2, supportedMethods.length);
-		assertArrayEquals(new HttpMethod[]{HttpMethod.PUT, HttpMethod.DELETE}, supportedMethods);
+		assertThat(supportedMethods.length).isEqualTo(2);
+		assertThat(supportedMethods).isEqualTo(new HttpMethod[] { HttpMethod.PUT, HttpMethod.DELETE });
 	}
 
 	@Test
 	public void testController() throws Exception {
 		String errorCode = TestUtils.getPropertyValue(inboundController, "errorCode", String.class);
-		assertEquals("oops", errorCode);
+		assertThat(errorCode).isEqualTo("oops");
 		Expression viewExpression = TestUtils.getPropertyValue(inboundController, "viewExpression", Expression.class);
-		assertEquals("foo", viewExpression.getExpressionString());
+		assertThat(viewExpression.getExpressionString()).isEqualTo("foo");
 
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundController.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_ACCEPTED, response.getStatus());
+		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_ACCEPTED);
 		Message<?> message = requests.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 	}
 
 	@Test
 	public void testInt2717ControllerWithViewExpression() throws Exception {
 		Expression viewExpression = TestUtils.getPropertyValue(inboundControllerViewExp, "viewExpression", Expression.class);
-		assertEquals("'foo'", viewExpression.getExpressionString());
+		assertThat(viewExpression.getExpressionString()).isEqualTo("'foo'");
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "requestChannel"));
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "requestChannel")).isSameAs(autoChannel);
 	}
 
 	@Test
 	public void testInboundAdapterWithMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterWithDefaults, "messageConverters", List.class);
-		assertTrue("There should be more than 1 message converter. The customized one and the defaults.", messageConverters.size() > 1);
+		assertThat(messageConverters.size() > 1)
+				.as("There should be more than 1 message converter. The customized one and the defaults.").isTrue();
 
 		//First converter should be the customized one
-		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
 	}
 
 	@Test
@@ -301,15 +295,17 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterNoDefaults, "messageConverters", List.class);
 		//First converter should be the customized one
-		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
-		assertTrue("There should be only the customized messageconverter registered.", messageConverters.size() == 1);
+		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
+		assertThat(messageConverters.size() == 1).as("There should be only the customized messageconverter registered.")
+				.isTrue();
 	}
 
 	@Test
 	public void testInboundAdapterWithNoMessageConverterNoDefaults() {
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters", List.class);
-		assertTrue("There should be more than 1 message converter. The defaults.", messageConverters.size() > 1);
+		assertThat(messageConverters.size() > 1).as("There should be more than 1 message converter. The defaults.")
+				.isTrue();
 	}
 
 	@SuppressWarnings("serial")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -93,7 +91,7 @@ public class PollingLifecycleTests {
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.start();
-		assertTrue(latch.await(2, TimeUnit.SECONDS));
+		assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
 		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		consumer.stop();
 		Mockito.reset(handler);
@@ -130,10 +128,10 @@ public class PollingLifecycleTests {
 		adapter.setTaskScheduler(this.taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(20, TimeUnit.SECONDS));
-		assertNotNull(channel.receive(100));
+		assertThat(latch.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(channel.receive(100)).isNotNull();
 		adapter.stop();
-		assertNull(channel.receive(10));
+		assertThat(channel.receive(10)).isNull();
 		Mockito.verify(source, times(1)).receive();
 	}
 
@@ -171,11 +169,11 @@ public class PollingLifecycleTests {
 		adapter.setTaskScheduler(this.taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		//
 		adapter.stop();
 
-		assertTrue(interruptedLatch.await(10, TimeUnit.SECONDS));
+		assertThat(interruptedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		Mockito.verify(caughtInterrupted, times(1)).run();
 	}
 
@@ -220,8 +218,8 @@ public class PollingLifecycleTests {
 		adapter.start();
 		adapter.stop();
 
-		assertTrue(startInvoked.get());
-		assertTrue(stopInvoked.get());
+		assertThat(startInvoked.get()).isTrue();
+		assertThat(stopInvoked.get()).isTrue();
 	}
 
 }

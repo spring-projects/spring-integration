@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -78,32 +73,34 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt3017DefaultConfig() throws Exception {
-		assertSame(this.connectionFactory, TestUtils.getPropertyValue(this.defaultAdapter, "template.connectionFactory"));
-		assertEquals("foo", TestUtils.getPropertyValue(this.defaultAdapter, "queueNameExpression", Expression.class).getExpressionString());
-		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "extractPayload", Boolean.class));
-		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "serializerExplicitlySet", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "template.connectionFactory"))
+				.isSameAs(this.connectionFactory);
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "queueNameExpression", Expression.class)
+				.getExpressionString()).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "extractPayload", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializerExplicitlySet", Boolean.class)).isFalse();
 
 		Object handler = TestUtils.getPropertyValue(this.defaultEndpoint, "handler");
 
-		assertTrue(AopUtils.isAopProxy(handler));
+		assertThat(AopUtils.isAopProxy(handler)).isTrue();
 
-		assertSame(((Advised) handler).getTargetSource().getTarget(), this.defaultAdapter);
+		assertThat(this.defaultAdapter).isSameAs(((Advised) handler).getTargetSource().getTarget());
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
-				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
-		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "leftPush", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"))
+				.isInstanceOf(RequestHandlerRetryAdvice.class);
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "leftPush", Boolean.class)).isTrue();
 	}
 
 	@Test
 	public void testInt3017CustomConfig() {
-		assertSame(this.customRedisConnectionFactory,
-				TestUtils.getPropertyValue(this.customAdapter, "template.connectionFactory"));
-		assertEquals("headers['redis_queue']",
-				TestUtils.getPropertyValue(this.customAdapter, "queueNameExpression.expression"));
-		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "extractPayload", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "serializerExplicitlySet", Boolean.class));
-		assertSame(this.serializer, TestUtils.getPropertyValue(this.customAdapter, "serializer"));
-		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "leftPush", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "template.connectionFactory"))
+				.isSameAs(this.customRedisConnectionFactory);
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "queueNameExpression.expression"))
+				.isEqualTo("headers['redis_queue']");
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "extractPayload", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "serializerExplicitlySet", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "serializer")).isSameAs(this.serializer);
+		assertThat(TestUtils.getPropertyValue(this.customAdapter, "leftPush", Boolean.class)).isFalse();
 	}
 
 }

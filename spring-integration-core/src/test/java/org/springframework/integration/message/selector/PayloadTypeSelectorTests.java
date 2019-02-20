@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.message.selector;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -35,33 +34,33 @@ public class PayloadTypeSelectorTests {
 	@Test
 	public void testAcceptedTypeIsSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(String.class);
-		assertTrue(selector.accept(new GenericMessage<>("test")));
+		assertThat(selector.accept(new GenericMessage<>("test"))).isTrue();
 	}
 
 	@Test
 	public void testNonAcceptedTypeIsNotSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(Integer.class);
-		assertFalse(selector.accept(new GenericMessage<>("test")));
+		assertThat(selector.accept(new GenericMessage<>("test"))).isFalse();
 	}
 
 	@Test
 	public void testMultipleAcceptedTypes() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
-		assertTrue(selector.accept(new GenericMessage<>("test1")));
-		assertTrue(selector.accept(new GenericMessage<>(2)));
-		assertFalse(selector.accept(new ErrorMessage(new RuntimeException())));
+		assertThat(selector.accept(new GenericMessage<>("test1"))).isTrue();
+		assertThat(selector.accept(new GenericMessage<>(2))).isTrue();
+		assertThat(selector.accept(new ErrorMessage(new RuntimeException()))).isFalse();
 	}
 
 	@Test
 	public void testSubclassOfAcceptedTypeIsSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(RuntimeException.class);
-		assertTrue(selector.accept(new ErrorMessage(new MessagingException("test"))));
+		assertThat(selector.accept(new ErrorMessage(new MessagingException("test")))).isTrue();
 	}
 
 	@Test
 	public void testSuperclassOfAcceptedTypeIsNotSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(RuntimeException.class);
-		assertFalse(selector.accept(new ErrorMessage(new Exception("test"))));
+		assertThat(selector.accept(new ErrorMessage(new Exception("test")))).isFalse();
 	}
 
 }

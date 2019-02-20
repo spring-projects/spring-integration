@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -70,7 +66,7 @@ public class ObjectToMapTransformerTests {
 
 		Message<?> transformedMessage = transformer.transform(message);
 		Map<String, Object> transformedMap = (Map<String, Object>) transformedMessage.getPayload();
-		assertNotNull(transformedMap);
+		assertThat(transformedMap).isNotNull();
 
 		Object valueFromTheMap = null;
 		Object valueFromExpression = null;
@@ -79,78 +75,78 @@ public class ObjectToMapTransformerTests {
 		expression = parser.parseExpression("departments[0]");
 		valueFromTheMap = transformedMap.get("departments[0]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.address.coordinates");
 		valueFromTheMap = transformedMap.get("person.address.coordinates");
 		valueFromExpression = expression.getValue(context, employee, Map.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.akaNames[0]");
 		valueFromTheMap = transformedMap.get("person.akaNames[0]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("testMapInMapData.internalMapA.bar");
 		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.bar");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("companyAddress.street");
 		valueFromTheMap = transformedMap.get("companyAddress.street");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.lname");
 		valueFromTheMap = transformedMap.get("person.lname");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.address.mapWithListData.mapWithListTestData[1]");
 		valueFromTheMap = transformedMap.get("person.address.mapWithListData.mapWithListTestData[1]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("companyAddress.city");
 		valueFromTheMap = transformedMap.get("companyAddress.city");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.akaNames[2]");
 		valueFromTheMap = transformedMap.get("person.akaNames[2]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.child");
 		valueFromTheMap = transformedMap.get("person.child");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertNull(valueFromTheMap);
-		assertNull(valueFromExpression);
+		assertThat(valueFromTheMap).isNull();
+		assertThat(valueFromExpression).isNull();
 
 		expression = parser.parseExpression("testMapInMapData.internalMapA.foo");
 		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.foo");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.address.city");
 		valueFromTheMap = transformedMap.get("person.address.city");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("companyAddress.coordinates.latitude[0]");
 		valueFromTheMap = transformedMap.get("companyAddress.coordinates.latitude[0]");
 		valueFromExpression = expression.getValue(context, employee, Integer.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("person.remarks[1].baz");
 		valueFromTheMap = transformedMap.get("person.remarks[1].baz");
 		valueFromExpression = expression.getValue(context, employee, String.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 
 		expression = parser.parseExpression("listOfDates[0][1]");
 		valueFromTheMap = new Date((Long) transformedMap.get("listOfDates[0][1]"));
 		valueFromExpression = expression.getValue(context, employee, Date.class);
-		assertEquals(valueFromTheMap, valueFromExpression);
+		assertThat(valueFromExpression).isEqualTo(valueFromTheMap);
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -177,7 +173,7 @@ public class ObjectToMapTransformerTests {
 
 		// If JSR310 support is enabled by calling findAndRegisterModules() on the Jackson mapper,
 		// Instant field should not be broken. Thus the count should exactly be 1 here.
-		assertEquals(1L, transformedMap.values().stream().filter(Objects::nonNull).count());
+		assertThat(transformedMap.values().stream().filter(Objects::nonNull).count()).isEqualTo(1L);
 	}
 
 	@Test
@@ -191,13 +187,13 @@ public class ObjectToMapTransformerTests {
 				new ObjectToMapTransformer(new Jackson2JsonObjectMapper(customMapper))
 						.transformPayload(employee);
 
-		assertThat(transformedMap.get("listOfDates[0][0]"), instanceOf(String.class));
+		assertThat(transformedMap.get("listOfDates[0][0]")).isInstanceOf(String.class);
 
-		assertThat(transformedMap.get("listOfDates[0][1]"), instanceOf(String.class));
+		assertThat(transformedMap.get("listOfDates[0][1]")).isInstanceOf(String.class);
 
-		assertThat(transformedMap.get("listOfDates[1][0]"), instanceOf(String.class));
+		assertThat(transformedMap.get("listOfDates[1][0]")).isInstanceOf(String.class);
 
-		assertThat(transformedMap.get("listOfDates[1][1]"), instanceOf(String.class));
+		assertThat(transformedMap.get("listOfDates[1][1]")).isInstanceOf(String.class);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

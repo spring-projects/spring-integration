@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -75,8 +75,8 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 		Query query = new BasicQuery("{'name' : 'Bob'}");
 		Person person = template.findOne(query, Person.class, "data");
 
-		assertEquals("Bob", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Bob");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 	@Test
@@ -95,8 +95,8 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 		Query query = new BasicQuery("{'name' : 'Bob'}");
 		Person person = template.findOne(query, Person.class, "foo");
 
-		assertEquals("Bob", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Bob");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
 	@Test
@@ -119,8 +119,8 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 		Query query = new BasicQuery("{'name' : 'Bob'}");
 		Person person = template.findOne(query, Person.class, "foo");
 
-		assertEquals("Bob", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Bob");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 		verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 
@@ -145,8 +145,8 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 		Query query = new BasicQuery("{'name' : 'Bob'}");
 		Person person = readingTemplate.findOne(query, Person.class, "foo");
 
-		assertEquals("Bob", person.getName());
-		assertEquals("PA", person.getAddress().getState());
+		assertThat(person.getName()).isEqualTo("Bob");
+		assertThat(person.getAddress().getState()).isEqualTo("PA");
 		verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 
@@ -51,10 +50,10 @@ public class JsonOutboundMessageMapperTests {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
-		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
+		assertThat(result.contains("\"headers\":{")).isTrue();
+		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
+		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
+		assertThat(result.contains("\"payload\":\"myPayloadStuff\"")).isTrue();
 	}
 
 	@Test
@@ -65,17 +64,17 @@ public class JsonOutboundMessageMapperTests {
 		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(3));
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
-		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
-		assertTrue(result.contains("\"history\":"));
-		assertTrue(result.contains("testName-1"));
-		assertTrue(result.contains("testType-1"));
-		assertTrue(result.contains("testName-2"));
-		assertTrue(result.contains("testType-2"));
-		assertTrue(result.contains("testName-3"));
-		assertTrue(result.contains("testType-3"));
+		assertThat(result.contains("\"headers\":{")).isTrue();
+		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
+		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
+		assertThat(result.contains("\"payload\":\"myPayloadStuff\"")).isTrue();
+		assertThat(result.contains("\"history\":")).isTrue();
+		assertThat(result.contains("testName-1")).isTrue();
+		assertThat(result.contains("testType-1")).isTrue();
+		assertThat(result.contains("testName-2")).isTrue();
+		assertThat(result.contains("testType-2")).isTrue();
+		assertThat(result.contains("testName-3")).isTrue();
+		assertThat(result.contains("testType-3")).isTrue();
 	}
 
 	@Test
@@ -85,7 +84,7 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		mapper.setShouldExtractPayload(true);
 		String result = mapper.fromMessage(testMessage);
-		assertEquals(expected, result);
+		assertThat(result).isEqualTo(expected);
 	}
 
 	@Test
@@ -94,11 +93,11 @@ public class JsonOutboundMessageMapperTests {
 		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).build();
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
+		assertThat(result.contains("\"headers\":{")).isTrue();
+		assertThat(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp())).isTrue();
+		assertThat(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\"")).isTrue();
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
-		assertEquals(payload, parsedPayload);
+		assertThat(parsedPayload).isEqualTo(payload);
 	}
 
 	@Test
@@ -108,9 +107,9 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		mapper.setShouldExtractPayload(true);
 		String result = mapper.fromMessage(testMessage);
-		assertTrue(!result.contains("headers"));
+		assertThat(!result.contains("headers")).isTrue();
 		TestBean parsedPayload = objectMapper.readValue(result, TestBean.class);
-		assertEquals(payload, parsedPayload);
+		assertThat(parsedPayload).isEqualTo(payload);
 	}
 
 	private TestBean extractJsonPayloadToTestBean(String json) throws IOException {

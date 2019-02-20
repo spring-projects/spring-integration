@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.Collection;
@@ -64,7 +58,7 @@ public class InboundChannelAdapterParserTests {
 			new ClassPathXmlApplicationContext("SftpInboundAutostartup-context.xml", this.getClass());
 
 		SourcePollingChannelAdapter adapter = context.getBean("sftpAutoStartup", SourcePollingChannelAdapter.class);
-		assertFalse(adapter.isRunning());
+		assertThat(adapter.isRunning()).isFalse();
 		context.close();
 	}
 
@@ -72,37 +66,37 @@ public class InboundChannelAdapterParserTests {
 	public void testWithLocalFiles() throws Exception {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
-		assertTrue(new File("src/main/resources").exists());
+		assertThat(new File("src/main/resources").exists()).isTrue();
 
 		Object adapter = context.getBean("sftpAdapterAutoCreate");
-		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		assertThat(adapter instanceof SourcePollingChannelAdapter).isTrue();
 		SftpInboundFileSynchronizingMessageSource source =
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		assertNotNull(source);
+		assertThat(source).isNotNull();
 
 		PriorityBlockingQueue<?> blockingQueue =
 				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		Comparator<?> comparator = blockingQueue.comparator();
 
-		assertNotNull(comparator);
+		assertThat(comparator).isNotNull();
 		SftpInboundFileSynchronizer synchronizer =
 				TestUtils.getPropertyValue(source, "synchronizer", SftpInboundFileSynchronizer.class);
-		assertEquals("'/foo'", TestUtils.getPropertyValue(synchronizer, "remoteDirectoryExpression", Expression.class)
-				.getExpressionString());
-		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));
-		assertTrue(TestUtils.getPropertyValue(synchronizer, "preserveTimestamp", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(synchronizer, "remoteDirectoryExpression", Expression.class)
+				.getExpressionString()).isEqualTo("'/foo'");
+		assertThat(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(synchronizer, "preserveTimestamp", Boolean.class)).isTrue();
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
-		assertEquals(".bar", TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class));
-		assertNotNull(remoteFileSeparator);
-		assertEquals(".", remoteFileSeparator);
+		assertThat(TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class)).isEqualTo(".bar");
+		assertThat(remoteFileSeparator).isNotNull();
+		assertThat(remoteFileSeparator).isEqualTo(".");
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
-		assertNotNull(requestChannel.receive(10000));
+		assertThat(requestChannel.receive(10000)).isNotNull();
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
 		@SuppressWarnings("unchecked")
 		Collection<FileListFilter<?>> filters =
 				TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class);
-		assertThat(filters, hasItem(acceptAllFilter));
-		assertEquals(42, source.getMaxFetchSize());
+		assertThat(filters).contains(acceptAllFilter);
+		assertThat(source.getMaxFetchSize()).isEqualTo(42);
 		context.close();
 	}
 
@@ -114,27 +108,28 @@ public class InboundChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter",
 				SourcePollingChannelAdapter.class);
-		assertEquals("/foo", TestUtils
-				.getPropertyValue(autoChannelAdapter, "source.synchronizer.remoteDirectoryExpression", Expression.class)
-				.getExpressionString());
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
-		assertEquals(Integer.MIN_VALUE, TestUtils.getPropertyValue(autoChannelAdapter, "source.maxFetchSize"));
+		assertThat(TestUtils
+				.getPropertyValue(autoChannelAdapter, "source.synchronizer.remoteDirectoryExpression",
+						Expression.class)
+				.getExpressionString()).isEqualTo("/foo");
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel")).isSameAs(autoChannel);
+		assertThat(TestUtils.getPropertyValue(autoChannelAdapter, "source.maxFetchSize")).isEqualTo(Integer.MIN_VALUE);
 		context.close();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)
 	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
 	public void testFailWithFilePatternAndFilter() throws Exception {
-		assertTrue(!new File("target/bar").exists());
+		assertThat(!new File("target/bar").exists()).isTrue();
 		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml", this.getClass()).close();
 	}
 
 	@Test
 	public void testLocalDirAutoCreated() throws Exception {
-		assertFalse(new File("foo").exists());
+		assertThat(new File("foo").exists()).isFalse();
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"InboundChannelAdapterParserTests-context.xml", this.getClass());
-		assertTrue(new File("foo").exists());
+		assertThat(new File("foo").exists()).isTrue();
 		context.close();
 	}
 

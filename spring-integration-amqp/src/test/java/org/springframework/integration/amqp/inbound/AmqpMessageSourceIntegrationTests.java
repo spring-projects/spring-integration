@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.amqp.inbound;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -126,16 +122,16 @@ public class AmqpMessageSourceIntegrationTests {
 		template.convertAndSend(DSL_QUEUE, "bar");
 		template.convertAndSend(INTERCEPT_QUEUE, "baz");
 		template.convertAndSend(NOAUTOACK_QUEUE, "qux");
-		assertTrue(this.config.latch.await(10, TimeUnit.SECONDS));
-		assertThat(this.config.received, equalTo("foo"));
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.received).isEqualTo("foo");
 		Message dead = template.receive(DLQ, 10_000);
-		assertNotNull(dead);
-		assertThat(this.config.fromDsl, equalTo("bar"));
-		assertThat(this.config.fromInterceptedSource, equalTo("BAZ"));
-		assertNull(template.receive(NOAUTOACK_QUEUE));
-		assertThat(this.config.requeueLatch.getCount(), equalTo(1L));
+		assertThat(dead).isNotNull();
+		assertThat(this.config.fromDsl).isEqualTo("bar");
+		assertThat(this.config.fromInterceptedSource).isEqualTo("BAZ");
+		assertThat(template.receive(NOAUTOACK_QUEUE)).isNull();
+		assertThat(this.config.requeueLatch.getCount()).isEqualTo(1L);
 		this.config.callback.acknowledge(Status.REQUEUE);
-		assertTrue(this.config.requeueLatch.await(10, TimeUnit.SECONDS));
+		assertThat(this.config.requeueLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Configuration

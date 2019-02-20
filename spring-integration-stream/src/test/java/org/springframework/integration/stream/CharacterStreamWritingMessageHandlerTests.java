@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringWriter;
@@ -79,7 +79,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void singleString() {
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals("foo", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo");
 	}
 
 	@Test
@@ -91,12 +91,12 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foo", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo");
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foobar", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -110,12 +110,12 @@ public class CharacterStreamWritingMessageHandlerTests {
 		trigger.await();
 		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine, writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo" + newLine);
 		trigger.reset();
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
 	}
 
 	@Test
@@ -127,7 +127,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foobar", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -142,7 +142,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		trigger.await();
 		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
 	}
 
 	@Test
@@ -154,7 +154,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foo", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo");
 	}
 
 	@Test
@@ -169,7 +169,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
-		assertEquals("foobar", writer.toString());
+		assertThat(writer.toString()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -186,7 +186,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		trigger.await();
 		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
+		assertThat(writer.toString()).isEqualTo("foo" + newLine + "bar" + newLine);
 	}
 
 

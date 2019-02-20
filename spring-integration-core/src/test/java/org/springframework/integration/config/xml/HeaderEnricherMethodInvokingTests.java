@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,12 +54,12 @@ public class HeaderEnricherMethodInvokingTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("test", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-		assertEquals(123, result.getHeaders().get("foo"));
-		assertEquals("ABC", result.getHeaders().get("bar"));
-		assertEquals("zzz", result.getHeaders().get("other"));
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo("test");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
+		assertThat(result.getHeaders().get("foo")).isEqualTo(123);
+		assertThat(result.getHeaders().get("bar")).isEqualTo("ABC");
+		assertThat(result.getHeaders().get("other")).isEqualTo("zzz");
 	}
 
 

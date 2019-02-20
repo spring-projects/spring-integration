@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.jdbc.store;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.NotSerializableException;
 import java.util.List;
@@ -30,7 +25,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -106,7 +100,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	public void testSendAndActivate() throws Exception {
 		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
-		assertEquals(1, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -114,7 +108,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		Service.fail = true;
 		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
-		assertThat(Service.messages.size(), Matchers.greaterThanOrEqualTo(1));
+		assertThat(Service.messages.size()).isGreaterThanOrEqualTo(1);
 		// After a rollback in the poller the message is still waiting to be delivered
 		// but unless we use a transaction here there is a chance that the queue will
 		// appear empty....
@@ -122,8 +116,8 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 			synchronized (storeLock) {
 
-				assertEquals(1, input.getQueueSize());
-				assertNotNull(input.receive(100L));
+				assertThat(input.getQueueSize()).isEqualTo(1);
+				assertThat(input.receive(100L)).isNotNull();
 
 			}
 			return null;
@@ -155,7 +149,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 		});
 
-		assertTrue("Could not send message", result);
+		assertThat(result).as("Could not send message").isTrue();
 
 		waitForMessage();
 
@@ -170,7 +164,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		}
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
-		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
+		assertThat(stopWatch.getTotalTimeMillis() < 10000).as("Timed out waiting for receive").isTrue();
 
 	}
 
@@ -183,7 +177,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 			Thread.sleep(50);
 		}
 
-		assertEquals(1, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -213,7 +207,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 						try {
 							stopWatch.start();
-							assertNotNull(input.receive(100L));
+							assertThat(input.receive(100L)).isNotNull();
 						}
 						finally {
 							stopWatch.stop();
@@ -225,13 +219,13 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 				});
 
-		assertTrue("Could not send message", result);
+		assertThat(result).as("Could not send message").isTrue();
 
 		// So no activation
-		assertEquals(0, Service.messages.size());
+		assertThat(Service.messages.size()).isEqualTo(0);
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
-		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 1000);
+		assertThat(stopWatch.getTotalTimeMillis() < 1000).as("Timed out waiting for receive").isTrue();
 
 	}
 
@@ -242,11 +236,11 @@ public class JdbcMessageStoreChannelIntegrationTests {
 			fail("MessageDeliveryException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(SerializationFailedException.class));
-			assertThat(e.getCause().getCause(), instanceOf(NotSerializableException.class));
-			assertThat(e.getMessage(),
-					containsString("org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getCause()).isInstanceOf(SerializationFailedException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(NotSerializableException.class);
+			assertThat(e.getMessage())
+					.contains("org.springframework.integration.routingslip.ExpressionEvaluatingRoutingSlipRouteStrategy");
 		}
 	}
 

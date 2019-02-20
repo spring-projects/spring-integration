@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.ws;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
@@ -34,7 +31,6 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -113,8 +109,8 @@ public class SimpleWebServiceOutboundGatewayTests {
 		catch (MessageHandlingException e) {
 			// expected
 		}
-		assertNotNull(soapActionFromCallback.get());
-		assertEquals("\"" + soapActionHeaderValue + "\"", soapActionFromCallback.get());
+		assertThat(soapActionFromCallback.get()).isNotNull();
+		assertThat(soapActionFromCallback.get()).isEqualTo("\"" + soapActionHeaderValue + "\"");
 	}
 
 
@@ -126,7 +122,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		channel.send(MessageBuilder.withPayload("<test>foo</test>").build());
 		PollableChannel replyChannel = context.getBean("replyChannel", PollableChannel.class);
 		Message<?> replyMessage = replyChannel.receive();
-		assertThat(replyMessage.getPayload().toString(), Matchers.endsWith(response));
+		assertThat(replyMessage.getPayload().toString()).endsWith(response);
 		context.close();
 	}
 
@@ -181,21 +177,22 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 		WebServiceMessage requestMessage = requestFuture.get(10, TimeUnit.SECONDS);
 
-		assertNotNull(requestMessage);
-		assertThat(requestMessage, instanceOf(MimeMessage.class));
+		assertThat(requestMessage).isNotNull();
+		assertThat(requestMessage).isInstanceOf(MimeMessage.class);
 
 		transformer = transformerFactory.newTransformer();
 		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 		StringResult stringResult = new StringResult();
 		transformer.transform(requestMessage.getPayloadSource(), stringResult);
 
-		assertEquals(request, stringResult.toString());
+		assertThat(stringResult.toString()).isEqualTo(request);
 
 		Attachment myAttachment = ((MimeMessage) requestMessage).getAttachment("myAttachment");
 
-		assertNotNull(myAttachment);
-		assertEquals("text/plain", myAttachment.getContentType());
-		assertEquals("my_data", FileCopyUtils.copyToString(new InputStreamReader(myAttachment.getInputStream())));
+		assertThat(myAttachment).isNotNull();
+		assertThat(myAttachment.getContentType()).isEqualTo("text/plain");
+		assertThat(FileCopyUtils.copyToString(new InputStreamReader(myAttachment.getInputStream())))
+				.isEqualTo("my_data");
 	}
 
 	@Test
@@ -230,8 +227,8 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 		WebServiceMessage requestMessage = requestFuture.get(10, TimeUnit.SECONDS);
 
-		assertNotNull(requestMessage);
-		assertThat(requestMessage, instanceOf(PoxMessage.class));
+		assertThat(requestMessage).isNotNull();
+		assertThat(requestMessage).isInstanceOf(PoxMessage.class);
 
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
@@ -240,7 +237,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		StringResult stringResult = new StringResult();
 		transformer.transform(requestMessage.getPayloadSource(), stringResult);
 
-		assertEquals(request, stringResult.toString());
+		assertThat(stringResult.toString()).isEqualTo(request);
 	}
 
 	public static WebServiceMessageSender createMockMessageSender(final String mockResponseMessage) throws Exception {

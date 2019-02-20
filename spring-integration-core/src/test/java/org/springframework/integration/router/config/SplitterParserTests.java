@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
@@ -51,14 +48,14 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
-		assertEquals("this", result1.getPayload());
+		assertThat(result1.getPayload()).isEqualTo("this");
 		Message<?> result2 = output.receive(1000);
-		assertEquals("is", result2.getPayload());
+		assertThat(result2.getPayload()).isEqualTo("is");
 		Message<?> result3 = output.receive(1000);
-		assertEquals("a", result3.getPayload());
+		assertThat(result3.getPayload()).isEqualTo("a");
 		Message<?> result4 = output.receive(1000);
-		assertEquals("test", result4.getPayload());
-		assertNull(output.receive(0));
+		assertThat(result4.getPayload()).isEqualTo("test");
+		assertThat(output.receive(0)).isNull();
 		context.close();
 	}
 
@@ -71,14 +68,14 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
-		assertEquals("this", result1.getPayload());
+		assertThat(result1.getPayload()).isEqualTo("this");
 		Message<?> result2 = output.receive(1000);
-		assertEquals("is", result2.getPayload());
+		assertThat(result2.getPayload()).isEqualTo("is");
 		Message<?> result3 = output.receive(1000);
-		assertEquals("a", result3.getPayload());
+		assertThat(result3.getPayload()).isEqualTo("a");
 		Message<?> result4 = output.receive(1000);
-		assertEquals("test", result4.getPayload());
-		assertNull(output.receive(0));
+		assertThat(result4.getPayload()).isEqualTo("test");
+		assertThat(output.receive(0)).isNull();
 		context.close();
 	}
 
@@ -91,14 +88,14 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
-		assertEquals("this", result1.getPayload());
+		assertThat(result1.getPayload()).isEqualTo("this");
 		Message<?> result2 = output.receive(1000);
-		assertEquals("is", result2.getPayload());
+		assertThat(result2.getPayload()).isEqualTo("is");
 		Message<?> result3 = output.receive(1000);
-		assertEquals("a", result3.getPayload());
+		assertThat(result3.getPayload()).isEqualTo("a");
 		Message<?> result4 = output.receive(1000);
-		assertEquals("test", result4.getPayload());
-		assertNull(output.receive(0));
+		assertThat(result4.getPayload()).isEqualTo("test");
+		assertThat(output.receive(0)).isNull();
 		context.close();
 	}
 
@@ -121,8 +118,8 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
 		Message<?> message = output.receive(1000);
-		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber(), is(0));
-		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), is(0));
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber()).isEqualTo(0);
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize()).isEqualTo(0);
 		context.close();
 	}
 

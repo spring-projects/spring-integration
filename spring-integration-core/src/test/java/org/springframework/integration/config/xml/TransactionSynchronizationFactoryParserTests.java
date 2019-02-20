@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -49,35 +47,35 @@ public class TransactionSynchronizationFactoryParserTests {
 
 		DefaultTransactionSynchronizationFactory syncFactory = context.getBean("syncFactoryComplete",
 				DefaultTransactionSynchronizationFactory.class);
-		assertNotNull(syncFactory);
+		assertThat(syncFactory).isNotNull();
 		TransactionSynchronizationProcessor processor = TestUtils.getPropertyValue(syncFactory, "processor",
 				ExpressionEvaluatingTransactionSynchronizationProcessor.class);
-		assertNotNull(processor);
+		assertThat(processor).isNotNull();
 
 		MessageChannel beforeCommitResultChannel = TestUtils.getPropertyValue(processor, "beforeCommitChannel",
 				MessageChannel.class);
-		assertNotNull(beforeCommitResultChannel);
-		assertEquals(beforeCommitResultChannel, context.getBean("beforeCommitChannel"));
+		assertThat(beforeCommitResultChannel).isNotNull();
+		assertThat(context.getBean("beforeCommitChannel")).isEqualTo(beforeCommitResultChannel);
 		Object beforeCommitExpression = TestUtils.getPropertyValue(processor, "beforeCommitExpression");
-		assertNull(beforeCommitExpression);
+		assertThat(beforeCommitExpression).isNull();
 
 		MessageChannel afterCommitResultChannel = TestUtils.getPropertyValue(processor, "afterCommitChannel",
 				MessageChannel.class);
-		assertNotNull(afterCommitResultChannel);
-		assertEquals(afterCommitResultChannel, context.getBean("nullChannel"));
+		assertThat(afterCommitResultChannel).isNotNull();
+		assertThat(context.getBean("nullChannel")).isEqualTo(afterCommitResultChannel);
 		Expression afterCommitExpression = TestUtils.getPropertyValue(processor, "afterCommitExpression",
 				Expression.class);
-		assertNotNull(afterCommitExpression);
-		assertEquals("'afterCommit'", ((SpelExpression) afterCommitExpression).getExpressionString());
+		assertThat(afterCommitExpression).isNotNull();
+		assertThat(((SpelExpression) afterCommitExpression).getExpressionString()).isEqualTo("'afterCommit'");
 
 		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackChannel",
 				MessageChannel.class);
-		assertNotNull(afterRollbackResultChannel);
-		assertEquals(afterRollbackResultChannel, context.getBean("afterRollbackChannel"));
+		assertThat(afterRollbackResultChannel).isNotNull();
+		assertThat(context.getBean("afterRollbackChannel")).isEqualTo(afterRollbackResultChannel);
 		Expression afterRollbackExpression = TestUtils.getPropertyValue(processor, "afterRollbackExpression",
 				Expression.class);
-		assertNotNull(afterRollbackExpression);
-		assertEquals("'afterRollback'", ((SpelExpression) afterRollbackExpression).getExpressionString());
+		assertThat(afterRollbackExpression).isNotNull();
+		assertThat(((SpelExpression) afterRollbackExpression).getExpressionString()).isEqualTo("'afterRollback'");
 		context.close();
 	}
 

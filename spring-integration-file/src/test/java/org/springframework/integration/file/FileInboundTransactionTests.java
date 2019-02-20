@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -90,7 +85,7 @@ public class FileInboundTransactionTests {
 	public void testNoTx() throws Exception {
 
 		Object scanner = TestUtils.getPropertyValue(pseudoTx.getMessageSource(), "scanner");
-		assertThat(scanner.getClass().getName(), containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+		assertThat(scanner.getClass().getName()).contains("FileReadingMessageSource$WatchServiceDirectoryScanner");
 
 		@SuppressWarnings("unchecked")
 		ResettableFileListFilter<File> fileListFilter =
@@ -110,19 +105,19 @@ public class FileInboundTransactionTests {
 		File file = new File(tmpDir.getRoot(), "si-test1/foo");
 		file.createNewFile();
 		Message<?> result = successChannel.receive(60000);
-		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getPayload());
-		assertFalse(file.delete());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
+		assertThat(file.delete()).isFalse();
 		crash.set(true);
 		file = new File(tmpDir.getRoot(), "si-test1/bar");
 		file.createNewFile();
 		result = failureChannel.receive(60000);
-		assertNotNull(result);
-		assertTrue(file.delete());
-		assertEquals("foo", result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(file.delete()).isTrue();
+		assertThat(result.getPayload()).isEqualTo("foo");
 		pseudoTx.stop();
-		assertFalse(transactionManager.getCommitted());
-		assertFalse(transactionManager.getRolledBack());
+		assertThat(transactionManager.getCommitted()).isFalse();
+		assertThat(transactionManager.getRolledBack()).isFalse();
 
 		verify(fileListFilter).remove(new File(tmpDir.getRoot(), "si-test1/foo"));
 	}
@@ -141,19 +136,19 @@ public class FileInboundTransactionTests {
 		File file = new File(tmpDir.getRoot(), "si-test2/baz");
 		file.createNewFile();
 		Message<?> result = successChannel.receive(60000);
-		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getPayload());
-		assertTrue(file.delete());
-		assertTrue(transactionManager.getCommitted());
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
+		assertThat(file.delete()).isTrue();
+		assertThat(transactionManager.getCommitted()).isTrue();
 		crash.set(true);
 		file = new File(tmpDir.getRoot(), "si-test2/qux");
 		file.createNewFile();
 		result = failureChannel.receive(60000);
-		assertNotNull(result);
-		assertTrue(file.delete());
-		assertEquals(Boolean.TRUE, result.getPayload());
+		assertThat(result).isNotNull();
+		assertThat(file.delete()).isTrue();
+		assertThat(result.getPayload()).isEqualTo(Boolean.TRUE);
 		realTx.stop();
-		assertTrue(transactionManager.getRolledBack());
+		assertThat(transactionManager.getRolledBack()).isTrue();
 	}
 
 	public static class DummyTxManager extends AbstractPlatformTransactionManager {

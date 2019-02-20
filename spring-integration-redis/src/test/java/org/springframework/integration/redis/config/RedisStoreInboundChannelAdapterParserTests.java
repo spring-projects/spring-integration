@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,18 +55,23 @@ public class RedisStoreInboundChannelAdapterParserTests {
 	public void validateWithStringTemplate() {
 		RedisStoreMessageSource withStringTemplate =
 				TestUtils.getPropertyValue(context.getBean("withStringTemplate"), "source", RedisStoreMessageSource.class);
-		assertEquals("'presidents'", ((SpelExpression) TestUtils.getPropertyValue(withStringTemplate, "keyExpression")).getExpressionString());
-		assertEquals("LIST", ((CollectionType) TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString());
-		assertTrue(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate);
+		assertThat(((SpelExpression) TestUtils.getPropertyValue(withStringTemplate, "keyExpression"))
+				.getExpressionString()).isEqualTo("'presidents'");
+		assertThat(((CollectionType) TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString())
+				.isEqualTo("LIST");
+		assertThat(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate)
+				.isTrue();
 	}
 
 	@Test
 	public void validateWithExternalTemplate() {
 		RedisStoreMessageSource withExternalTemplate =
 				TestUtils.getPropertyValue(context.getBean("withExternalTemplate"), "source", RedisStoreMessageSource.class);
-		assertEquals("'presidents'", ((SpelExpression) TestUtils.getPropertyValue(withExternalTemplate, "keyExpression")).getExpressionString());
-		assertEquals("LIST", ((CollectionType) TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString());
-		assertSame(redisTemplate, TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate"));
+		assertThat(((SpelExpression) TestUtils.getPropertyValue(withExternalTemplate, "keyExpression"))
+				.getExpressionString()).isEqualTo("'presidents'");
+		assertThat(((CollectionType) TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString())
+				.isEqualTo("LIST");
+		assertThat(TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate")).isSameAs(redisTemplate);
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)

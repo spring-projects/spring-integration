@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -67,7 +66,8 @@ public class JdbcOutboundGatewayTests {
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("If you want to set 'maxRows', then you must provide a 'selectQuery'.", e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("If you want to set 'maxRows', then you must provide a 'selectQuery'.");
 		}
 
 		dataSource.shutdown();
@@ -81,7 +81,7 @@ public class JdbcOutboundGatewayTests {
 			new JdbcOutboundGateway(jdbcOperations, "select * from DOES_NOT_EXIST");
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("'jdbcOperations' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'jdbcOperations' must not be null.");
 			return;
 		}
 
@@ -99,8 +99,8 @@ public class JdbcOutboundGatewayTests {
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.",
-					e.getMessage());
+			assertThat(e.getMessage())
+					.isEqualTo("The 'updateQuery' and the 'selectQuery' must not both be null or empty.");
 		}
 	}
 
@@ -114,7 +114,7 @@ public class JdbcOutboundGatewayTests {
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'maxRows' must not be null.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'maxRows' must not be null.");
 		}
 	}
 

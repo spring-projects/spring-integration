@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -75,7 +67,7 @@ public class MessageBuilderTests {
 	@Test
 	public void testSimpleMessageCreation() {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		assertEquals("foo", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -84,8 +76,8 @@ public class MessageBuilderTests {
 				.setHeader("foo", "bar")
 				.setHeader("count", 123)
 				.build();
-		assertEquals("bar", message.getHeaders().get("foo", String.class));
-		assertEquals(new Integer(123), message.getHeaders().get("count", Integer.class));
+		assertThat(message.getHeaders().get("foo", String.class)).isEqualTo("bar");
+		assertThat(message.getHeaders().get("count", Integer.class)).isEqualTo(new Integer(123));
 	}
 
 	@Test
@@ -99,12 +91,12 @@ public class MessageBuilderTests {
 				.setHeader("foo", "42")
 				.setHeaderIfAbsent("bar", "99")
 				.build();
-		assertEquals("test1", message1.getPayload());
-		assertEquals("test2", message2.getPayload());
-		assertEquals("1", message1.getHeaders().get("foo"));
-		assertEquals("42", message2.getHeaders().get("foo"));
-		assertEquals("2", message1.getHeaders().get("bar"));
-		assertEquals("2", message2.getHeaders().get("bar"));
+		assertThat(message1.getPayload()).isEqualTo("test1");
+		assertThat(message2.getPayload()).isEqualTo("test2");
+		assertThat(message1.getHeaders().get("foo")).isEqualTo("1");
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("42");
+		assertThat(message1.getHeaders().get("bar")).isEqualTo("2");
+		assertThat(message2.getHeaders().get("bar")).isEqualTo("2");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -127,8 +119,8 @@ public class MessageBuilderTests {
 				.setHeader("foo", 123)
 				.copyHeadersIfAbsent(message1.getHeaders())
 				.build();
-		assertEquals("test2", message2.getPayload());
-		assertEquals(123, message2.getHeaders().get("foo"));
+		assertThat(message2.getPayload()).isEqualTo("test2");
+		assertThat(message2.getHeaders().get("foo")).isEqualTo(123);
 	}
 
 	@Test
@@ -136,8 +128,8 @@ public class MessageBuilderTests {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
 		Message<String> message2 = MessageBuilder.fromMessage(message1).build();
-		assertEquals("test", message2.getPayload());
-		assertEquals("bar", message2.getHeaders().get("foo"));
+		assertThat(message2.getPayload()).isEqualTo("test");
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -145,18 +137,18 @@ public class MessageBuilderTests {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
 		Message<String> message2 = MessageBuilder.fromMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message2.getHeaders().get("foo"));
-		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("bar");
+		assertThat(message2.getHeaders().getId()).isNotSameAs(message1.getHeaders().getId());
 	}
 
 	@Test
 	public void mutate() {
-		assertTrue(this.messageBuilderFactory instanceof MutableMessageBuilderFactory);
+		assertThat(this.messageBuilderFactory instanceof MutableMessageBuilderFactory).isTrue();
 		in.send(new GenericMessage<>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
-		assertThat(m1, instanceOf(MutableMessage.class));
-		assertTrue(m1 == m2);
+		assertThat(m1).isInstanceOf(MutableMessage.class);
+		assertThat(m1 == m2).isTrue();
 	}
 
 	@Test
@@ -165,9 +157,9 @@ public class MessageBuilderTests {
 		Message<String> message1 = builder
 				.setHeader("foo", "bar").build();
 		Message<String> message2 = MutableMessageBuilder.fromMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message2.getHeaders().get("foo"));
-		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
-		assertTrue(message2 == message1);
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("bar");
+		assertThat(message2.getHeaders().getId()).isSameAs(message1.getHeaders().getId());
+		assertThat(message2 == message1).isTrue();
 	}
 
 	@Test
@@ -175,28 +167,29 @@ public class MessageBuilderTests {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
 		Message<String> message2 = MutableMessageBuilder.fromMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message2.getHeaders().get("foo"));
-		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
-		assertNotSame(message1, message2);
-		assertFalse(message2 == message1);
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("bar");
+		assertThat(message2.getHeaders().getId()).isSameAs(message1.getHeaders().getId());
+		assertThat(message2).isNotSameAs(message1);
+		assertThat(message2 == message1).isFalse();
 	}
 
 	@Test
 	public void mutableFromImmutableMutate() {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = new MutableMessageBuilderFactory().fromMessage(message1).setHeader("another", 1).build();
-		assertEquals("bar", message2.getHeaders().get("foo"));
-		assertSame(message1.getHeaders().getId(), message2.getHeaders().getId());
-		assertNotSame(message1, message2);
-		assertFalse(message2 == message1);
+		Message<String> message2 = new MutableMessageBuilderFactory().fromMessage(message1).setHeader("another", 1)
+				.build();
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("bar");
+		assertThat(message2.getHeaders().getId()).isSameAs(message1.getHeaders().getId());
+		assertThat(message2).isNotSameAs(message1);
+		assertThat(message2 == message1).isFalse();
 	}
 
 	@Test
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 				.setPriority(123).build();
-		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(importantMessage).getPriority());
+		assertThat(new IntegrationMessageHeaderAccessor(importantMessage).getPriority()).isEqualTo(new Integer(123));
 	}
 
 	@Test
@@ -206,7 +199,7 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 				.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
 				.build();
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(message2).getPriority());
+		assertThat(new IntegrationMessageHeaderAccessor(message2).getPriority()).isEqualTo(new Integer(42));
 	}
 
 	@Test
@@ -214,7 +207,7 @@ public class MessageBuilderTests {
 		Long past = System.currentTimeMillis() - (60 * 1000);
 		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(past).build();
-		assertEquals(past, new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate());
+		assertThat(new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate()).isEqualTo(past);
 	}
 
 	@Test
@@ -222,7 +215,7 @@ public class MessageBuilderTests {
 		Long past = System.currentTimeMillis() - (60 * 1000);
 		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(new Date(past)).build();
-		assertEquals(past, new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate());
+		assertThat(new IntegrationMessageHeaderAccessor(expiredMessage).getExpirationDate()).isEqualTo(past);
 	}
 
 	@Test
@@ -232,7 +225,7 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 				.removeHeader("foo")
 				.build();
-		assertFalse(message2.getHeaders().containsKey("foo"));
+		assertThat(message2.getHeaders().containsKey("foo")).isFalse();
 	}
 
 	@Test
@@ -242,119 +235,123 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 				.setHeader("foo", null)
 				.build();
-		assertFalse(message2.getHeaders().containsKey("foo"));
+		assertThat(message2.getHeaders().containsKey("foo")).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetails() throws Exception {
+	public void testPushAndPopSequenceDetails() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).pushSequenceDetails("foo", 1, 2).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetailsWhenNoCorrelationId() throws Exception {
+	public void testPushAndPopSequenceDetailsWhenNoCorrelationId() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPopSequenceDetailsWhenNotPopped() throws Exception {
+	public void testPopSequenceDetailsWhenNotPopped() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).popSequenceDetails().build();
-		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetailsWhenNoSequence() throws Exception {
+	public void testPushAndPopSequenceDetailsWhenNoSequence() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1).setCorrelationId("foo").build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetailsMutable() throws Exception {
+	public void testPushAndPopSequenceDetailsMutable() {
 		Message<Integer> message1 = MutableMessageBuilder.withPayload(1).pushSequenceDetails("foo", 1, 2).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
-		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
+		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1)
+				.build();
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
 		Message<Integer> message3 = MutableMessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetailsWhenNoCorrelationIdMutable() throws Exception {
+	public void testPushAndPopSequenceDetailsWhenNoCorrelationIdMutable() {
 		Message<Integer> message1 = MutableMessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
-		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
+		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1)
+				.build();
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message3 = MutableMessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPopSequenceDetailsWhenNotPoppedMutable() throws Exception {
+	public void testPopSequenceDetailsWhenNotPoppedMutable() {
 		Message<Integer> message1 = MutableMessageBuilder.withPayload(1).build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).popSequenceDetails().build();
-		assertFalse(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testPushAndPopSequenceDetailsWhenNoSequenceMutable() throws Exception {
+	public void testPushAndPopSequenceDetailsWhenNoSequenceMutable() {
 		Message<Integer> message1 = MutableMessageBuilder.withPayload(1).setCorrelationId("foo").build();
-		assertFalse(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
-		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
-		assertTrue(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message1.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
+		Message<Integer> message2 = MutableMessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1)
+				.build();
+		assertThat(message2.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
 		Message<Integer> message3 = MutableMessageBuilder.fromMessage(message2).popSequenceDetails().build();
-		assertFalse(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(message3.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isFalse();
 	}
 
 	@Test
-	public void testNotModifiedSameMessage() throws Exception {
+	public void testNotModifiedSameMessage() {
 		Message<?> original = MessageBuilder.withPayload("foo").build();
 		Message<?> result = MessageBuilder.fromMessage(original).build();
-		assertEquals(original, result);
+		assertThat(result).isEqualTo(original);
 	}
 
 	@Test
-	public void testContainsHeaderNotModifiedSameMessage() throws Exception {
+	public void testContainsHeaderNotModifiedSameMessage() {
 		Message<?> original = MessageBuilder.withPayload("foo").setHeader("bar", 42).build();
 		Message<?> result = MessageBuilder.fromMessage(original).build();
-		assertEquals(original, result);
+		assertThat(result).isEqualTo(original);
 	}
 
 	@Test
-	public void testSameHeaderValueAddedNotModifiedSameMessage() throws Exception {
+	public void testSameHeaderValueAddedNotModifiedSameMessage() {
 		Message<?> original = MessageBuilder.withPayload("foo").setHeader("bar", 42).build();
 		Message<?> result = MessageBuilder.fromMessage(original).setHeader("bar", 42).build();
-		assertEquals(original, result);
+		assertThat(result).isEqualTo(original);
 	}
 
 	@Test
-	public void testCopySameHeaderValuesNotModifiedSameMessage() throws Exception {
+	public void testCopySameHeaderValuesNotModifiedSameMessage() {
 		Date current = new Date();
-		Map<String, Object> originalHeaders = new HashMap<String, Object>();
+		Map<String, Object> originalHeaders = new HashMap<>();
 		originalHeaders.put("b", "xyz");
 		originalHeaders.put("c", current);
-		Message<?> original = MessageBuilder.withPayload("foo").setHeader("a", 123).copyHeaders(originalHeaders).build();
-		Map<String, Object> newHeaders = new HashMap<String, Object>();
+		Message<?> original = MessageBuilder.withPayload("foo").setHeader("a", 123).copyHeaders(originalHeaders)
+				.build();
+		Map<String, Object> newHeaders = new HashMap<>();
 		newHeaders.put("a", 123);
 		newHeaders.put("b", "xyz");
 		newHeaders.put("c", current);
 		Message<?> result = MessageBuilder.fromMessage(original).copyHeaders(newHeaders).build();
-		assertEquals(original, result);
+		assertThat(result).isEqualTo(original);
 	}
 
 	@Test
@@ -374,12 +371,13 @@ public class MessageBuilderTests {
 						.pushSequenceDetails("bar", 1, 1)
 						.build();
 
-		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.CORRELATION_ID));
-		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertThat(message, not(hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)));
-		assertThat(message, not(hasHeaderKey(MessageHeaders.ID)));
-		assertThat(message, not(hasHeaderKey(MessageHeaders.TIMESTAMP)));
+		assertThat(message.getHeaders())
+				.containsKeys(IntegrationMessageHeaderAccessor.CORRELATION_ID,
+						IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+						IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)
+				.doesNotContainKeys(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS,
+						MessageHeaders.ID,
+						MessageHeaders.TIMESTAMP);
 	}
 
 }

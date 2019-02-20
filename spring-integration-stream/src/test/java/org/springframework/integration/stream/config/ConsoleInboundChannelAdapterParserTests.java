@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.stream.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -59,24 +57,24 @@ public class ConsoleInboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter = context.getBean("adapterWithDefaultCharset.adapter",
 				SourcePollingChannelAdapter.class);
 		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
-		assertTrue(source instanceof NamedComponent);
-		assertEquals("adapterWithDefaultCharset.adapter", adapter.getComponentName());
-		assertEquals("stream:stdin-channel-adapter(character)", adapter.getComponentType());
-		assertEquals("stream:stdin-channel-adapter(character)", ((NamedComponent) source).getComponentType());
+		assertThat(source instanceof NamedComponent).isTrue();
+		assertThat(adapter.getComponentName()).isEqualTo("adapterWithDefaultCharset.adapter");
+		assertThat(adapter.getComponentType()).isEqualTo("stream:stdin-channel-adapter(character)");
+		assertThat(((NamedComponent) source).getComponentType()).isEqualTo("stream:stdin-channel-adapter(character)");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
-		assertEquals(BufferedReader.class, bufferedReader.getClass());
+		assertThat(bufferedReader.getClass()).isEqualTo(BufferedReader.class);
 		DirectFieldAccessor bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		Reader reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
-		assertEquals(InputStreamReader.class, reader.getClass());
+		assertThat(reader.getClass()).isEqualTo(InputStreamReader.class);
 		Charset readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
-		assertEquals(Charset.defaultCharset(), readerCharset);
+		assertThat(readerCharset).isEqualTo(Charset.defaultCharset());
 		Message<?> message = source.receive();
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
 		adapter = context.getBean("pipedAdapterNoCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class)).isTrue();
 		context.close();
 	}
 
@@ -89,26 +87,26 @@ public class ConsoleInboundChannelAdapterParserTests {
 		MessageSource<?> source = adapter.getMessageSource();
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
-		assertEquals(BufferedReader.class, bufferedReader.getClass());
-		assertEquals(false, sourceAccessor.getPropertyValue("blockToDetectEOF"));
+		assertThat(bufferedReader.getClass()).isEqualTo(BufferedReader.class);
+		assertThat(sourceAccessor.getPropertyValue("blockToDetectEOF")).isEqualTo(false);
 		DirectFieldAccessor bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		Reader reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
-		assertEquals(InputStreamReader.class, reader.getClass());
+		assertThat(reader.getClass()).isEqualTo(InputStreamReader.class);
 		Charset readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
-		assertEquals(Charset.forName("UTF-8"), readerCharset);
+		assertThat(readerCharset).isEqualTo(Charset.forName("UTF-8"));
 		Message<?> message = source.receive();
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
 		adapter = context.getBean("pipedAdapterWithCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class)).isTrue();
 		bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
-		assertEquals(BufferedReader.class, bufferedReader.getClass());
+		assertThat(bufferedReader.getClass()).isEqualTo(BufferedReader.class);
 		bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
-		assertEquals(InputStreamReader.class, reader.getClass());
+		assertThat(reader.getClass()).isEqualTo(InputStreamReader.class);
 		readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
-		assertEquals(Charset.forName("UTF-8"), readerCharset);
+		assertThat(readerCharset).isEqualTo(Charset.forName("UTF-8"));
 		context.close();
 	}
 
@@ -123,7 +121,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 			beanCreationException = e;
 		}
 		Throwable rootCause = beanCreationException.getRootCause();
-		assertEquals(UnsupportedEncodingException.class, rootCause.getClass());
+		assertThat(rootCause.getClass()).isEqualTo(UnsupportedEncodingException.class);
 	}
 
 }

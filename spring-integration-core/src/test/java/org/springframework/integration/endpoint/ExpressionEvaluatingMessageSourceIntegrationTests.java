@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -78,17 +78,17 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		}
 		scheduler.destroy();
 		Message<?> message1 = messages.get(0);
-		assertEquals("test-1", message1.getPayload());
-		assertEquals("x", message1.getHeaders().get("foo"));
-		assertEquals(42, message1.getHeaders().get("bar"));
+		assertThat(message1.getPayload()).isEqualTo("test-1");
+		assertThat(message1.getHeaders().get("foo")).isEqualTo("x");
+		assertThat(message1.getHeaders().get("bar")).isEqualTo(42);
 		Message<?> message2 = messages.get(1);
-		assertEquals("test-2", message2.getPayload());
-		assertEquals("x", message2.getHeaders().get("foo"));
-		assertEquals(42, message2.getHeaders().get("bar"));
+		assertThat(message2.getPayload()).isEqualTo("test-2");
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("x");
+		assertThat(message2.getHeaders().get("bar")).isEqualTo(42);
 		Message<?> message3 = messages.get(2);
-		assertEquals("test-3", message3.getPayload());
-		assertEquals("x", message3.getHeaders().get("foo"));
-		assertEquals(42, message3.getHeaders().get("bar"));
+		assertThat(message3.getPayload()).isEqualTo("test-3");
+		assertThat(message3.getHeaders().get("foo")).isEqualTo("x");
+		assertThat(message3.getHeaders().get("bar")).isEqualTo(42);
 	}
 
 

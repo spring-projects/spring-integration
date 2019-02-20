@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,10 +73,10 @@ public class ConverterParserTests {
 				.setReplyChannel(replyChannel).build();
 		this.serviceActivatorChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean2.class, result.getPayload().getClass());
-		assertEquals("SERVICE-TEST", ((TestBean2) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean2.class);
+		assertThat(((TestBean2) result.getPayload()).text).isEqualTo("SERVICE-TEST");
 	}
 
 	@Test
@@ -87,10 +86,10 @@ public class ConverterParserTests {
 				.setReplyChannel(replyChannel).build();
 		this.serviceActivatorChannel3.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean3.class, result.getPayload().getClass());
-		assertEquals("SERVICE-TEST", ((TestBean3) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean3.class);
+		assertThat(((TestBean3) result.getPayload()).text).isEqualTo("SERVICE-TEST");
 	}
 
 	@Test
@@ -100,10 +99,10 @@ public class ConverterParserTests {
 				.setReplyChannel(replyChannel).build();
 		this.transformerChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean2.class, result.getPayload().getClass());
-		assertEquals("TRANSFORMER-TEST", ((TestBean2) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean2.class);
+		assertThat(((TestBean2) result.getPayload()).text).isEqualTo("TRANSFORMER-TEST");
 	}
 
 	@Test
@@ -113,10 +112,10 @@ public class ConverterParserTests {
 				.setReplyChannel(replyChannel).build();
 		this.splitterChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean2.class, result.getPayload().getClass());
-		assertEquals("SPLITTER-TEST", ((TestBean2) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean2.class);
+		assertThat(((TestBean2) result.getPayload()).text).isEqualTo("SPLITTER-TEST");
 	}
 
 	@Test
@@ -126,10 +125,10 @@ public class ConverterParserTests {
 				.setReplyChannel(replyChannel).build();
 		this.filterChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean1.class, result.getPayload().getClass());
-		assertEquals("filter-test", ((TestBean1) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean1.class);
+		assertThat(((TestBean1) result.getPayload()).text).isEqualTo("filter-test");
 	}
 
 	@Test
@@ -137,10 +136,10 @@ public class ConverterParserTests {
 		Message<?> message = MessageBuilder.withPayload(new TestBean1("router-test")).build();
 		this.routerChannel.send(message);
 		Message<?> result = this.routerTargetChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getPayload());
-		assertEquals(TestBean1.class, result.getPayload().getClass());
-		assertEquals("router-test", ((TestBean1) result.getPayload()).text);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload()).isNotNull();
+		assertThat(result.getPayload().getClass()).isEqualTo(TestBean1.class);
+		assertThat(((TestBean1) result.getPayload()).text).isEqualTo("router-test");
 	}
 
 

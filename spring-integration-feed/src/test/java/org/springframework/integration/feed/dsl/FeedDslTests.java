@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@
 package org.springframework.integration.feed.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.FileReader;
 import java.util.Properties;
@@ -77,9 +73,9 @@ public class FeedDslTests {
 		long time1 = message1.getPayload().getPublishedDate().getTime();
 		long time2 = message2.getPayload().getPublishedDate().getTime();
 		long time3 = message3.getPayload().getPublishedDate().getTime();
-		assertTrue(time1 < time2);
-		assertTrue(time2 < time3);
-		assertNull(this.entries.receive(10));
+		assertThat(time1 < time2).isTrue();
+		assertThat(time2 < time3).isTrue();
+		assertThat(this.entries.receive(10)).isNull();
 
 		this.metadataStore.flush();
 
@@ -87,9 +83,9 @@ public class FeedDslTests {
 				new FileReader(tempFolder.getRoot().getAbsolutePath() + "/metadata-store.properties");
 		Properties metadataStoreProperties = new Properties();
 		metadataStoreProperties.load(metadataStoreFile);
-		assertFalse(metadataStoreProperties.isEmpty());
-		assertEquals(1, metadataStoreProperties.size());
-		assertTrue(metadataStoreProperties.containsKey("feedTest"));
+		assertThat(metadataStoreProperties.isEmpty()).isFalse();
+		assertThat(metadataStoreProperties.size()).isEqualTo(1);
+		assertThat(metadataStoreProperties.containsKey("feedTest")).isTrue();
 	}
 
 	@Configuration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -61,23 +60,23 @@ public class CGLibProxyChannelTests {
 
 	@Test
 	public void testProxyDirect() {
-		assertTrue(AopUtils.isCglibProxy(this.directChannel));
+		assertThat(AopUtils.isCglibProxy(this.directChannel)).isTrue();
 		final AtomicReference<Message<?>> message = new AtomicReference<>();
 		this.directChannel.subscribe(m -> message.set(m));
 		this.directChannel.send(new GenericMessage<>("foo"));
-		assertNotNull(message.get());
+		assertThat(message.get()).isNotNull();
 	}
 
 	@Test
 	public void testProxyQueue() {
-		assertTrue(AopUtils.isCglibProxy(this.queueChannel));
+		assertThat(AopUtils.isCglibProxy(this.queueChannel)).isTrue();
 		this.queueChannel.send(new GenericMessage<>("foo"));
-		assertNotNull(this.queueChannel.receive(0));
+		assertThat(this.queueChannel.receive(0)).isNotNull();
 	}
 
 	@Test
 	public void testProxyExecutor() throws Exception {
-		assertTrue(AopUtils.isCglibProxy(this.executorChannel));
+		assertThat(AopUtils.isCglibProxy(this.executorChannel)).isTrue();
 		final AtomicReference<Message<?>> message = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		this.executorChannel.subscribe(m -> {
@@ -85,13 +84,13 @@ public class CGLibProxyChannelTests {
 			latch.countDown();
 		});
 		this.executorChannel.send(new GenericMessage<>("foo"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(message.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(message.get()).isNotNull();
 	}
 
 	@Test
 	public void testProxyPubSubWithExec() throws Exception {
-		assertTrue(AopUtils.isCglibProxy(this.publishSubscribeChannel));
+		assertThat(AopUtils.isCglibProxy(this.publishSubscribeChannel)).isTrue();
 		final AtomicReference<Message<?>> message = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		this.publishSubscribeChannel.subscribe(m -> {
@@ -99,8 +98,8 @@ public class CGLibProxyChannelTests {
 			latch.countDown();
 		});
 		this.publishSubscribeChannel.send(new GenericMessage<>("foo"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertNotNull(message.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(message.get()).isNotNull();
 	}
 
 	@Configuration

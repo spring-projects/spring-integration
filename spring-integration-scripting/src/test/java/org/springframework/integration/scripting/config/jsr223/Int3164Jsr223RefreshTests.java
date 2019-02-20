@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,13 +77,13 @@ public class Int3164Jsr223RefreshTests {
 	@Test
 	public void testRefreshingScript() throws Exception {
 		this.referencedScriptInput.send(new GenericMessage<Object>("test"));
-		assertEquals(1, this.outputChannel.receive(100).getPayload());
+		assertThat(this.outputChannel.receive(100).getPayload()).isEqualTo(1);
 
 		FileCopyUtils.copy("2".getBytes(), scriptFile);
 		scriptFile.setLastModified(System.currentTimeMillis() + 10000); // force refresh
 
 		this.referencedScriptInput.send(new GenericMessage<Object>("test"));
-		assertEquals(2, this.outputChannel.receive(100).getPayload());
+		assertThat(this.outputChannel.receive(100).getPayload()).isEqualTo(2);
 	}
 
 }

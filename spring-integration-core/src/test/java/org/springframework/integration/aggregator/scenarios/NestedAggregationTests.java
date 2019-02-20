@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.aggregator.scenarios;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,16 +54,16 @@ public class NestedAggregationTests {
 						Arrays.asList("foo", "bar", "spam"),
 						Arrays.asList("bar", "foo")));
 		List<String> result = sendAndReceiveMessage(splitter, 2000, input);
-		assertNotNull("Expected result and got null", result);
-		assertEquals("[[foo, bar, spam], [bar, foo]]", result.toString());
+		assertThat(result).as("Expected result and got null").isNotNull();
+		assertThat(result.toString()).isEqualTo("[[foo, bar, spam], [bar, foo]]");
 	}
 
 	@Test
 	public void testAggregatorWithNestedRouter() {
 		Message<?> input = new GenericMessage<>(Arrays.asList("bar", "foo"));
 		List<String> result = sendAndReceiveMessage(router, 2000, input);
-		assertNotNull("Expected result and got null", result);
-		assertEquals("[[bar, foo], [bar, foo]]", result.toString());
+		assertThat(result).as("Expected result and got null").isNotNull();
+		assertThat(result.toString()).isEqualTo("[[bar, foo], [bar, foo]]");
 	}
 
 	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout, Message<?> input) {

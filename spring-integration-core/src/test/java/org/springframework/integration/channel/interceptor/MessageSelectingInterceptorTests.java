@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,7 +41,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		assertTrue(channel.send(new GenericMessage<>("test1")));
+		assertThat(channel.send(new GenericMessage<>("test1"))).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -63,8 +62,8 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		assertTrue(channel.send(new GenericMessage<>("test1")));
-		assertEquals(2, counter.get());
+		assertThat(channel.send(new GenericMessage<>("test1"))).isTrue();
+		assertThat(counter.get()).isEqualTo(2);
 	}
 
 	@Test
@@ -85,8 +84,8 @@ public class MessageSelectingInterceptorTests {
 		catch (MessageDeliveryException e) {
 			exceptionThrown = true;
 		}
-		assertTrue(exceptionThrown);
-		assertEquals(2, counter.get());
+		assertThat(exceptionThrown).isTrue();
+		assertThat(counter.get()).isEqualTo(2);
 	}
 
 

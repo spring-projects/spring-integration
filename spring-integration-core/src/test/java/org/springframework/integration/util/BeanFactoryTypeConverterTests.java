@@ -16,14 +16,7 @@
 
 package org.springframework.integration.util;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -80,10 +73,10 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		List<String> sourceObject = new ArrayList<>();
 		ArrayList<BeanFactoryTypeConverterTests> convertedCollection =
-			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject,
-					TypeDescriptor.forObject(sourceObject),
-					TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
-		assertEquals(sourceObject, convertedCollection);
+				(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject,
+						TypeDescriptor.forObject(sourceObject),
+						TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
+		assertThat(convertedCollection).isEqualTo(sourceObject);
 	}
 
 	@Test
@@ -92,7 +85,7 @@ public class BeanFactoryTypeConverterTests {
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		String converted = (String) typeConverter.convertValue(1234, TypeDescriptor.valueOf(Integer.class),
 				TypeDescriptor.valueOf(String.class));
-		assertEquals("1234", converted);
+		assertThat(converted).isEqualTo("1234");
 	}
 
 	@Test
@@ -103,7 +96,7 @@ public class BeanFactoryTypeConverterTests {
 		Collection<Integer> converted = (Collection<Integer>) typeConverter.convertValue(1234,
 				TypeDescriptor.valueOf(Integer.class),
 				TypeDescriptor.forObject(new ArrayList<>(Arrays.asList(1))));
-		assertEquals(Collections.singletonList(1234), converted);
+		assertThat(converted).isEqualTo(Collections.singletonList(1234));
 	}
 
 	@Test
@@ -111,8 +104,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		MessageHeaders headers = new GenericMessage<>("foo").getHeaders();
-		assertSame(headers, typeConverter.convertValue(headers, TypeDescriptor.valueOf(MessageHeaders.class),
-				TypeDescriptor.valueOf(MessageHeaders.class)));
+		assertThat(typeConverter.convertValue(headers, TypeDescriptor.valueOf(MessageHeaders.class),
+				TypeDescriptor.valueOf(MessageHeaders.class))).isSameAs(headers);
 	}
 
 	@Test
@@ -121,6 +114,7 @@ public class BeanFactoryTypeConverterTests {
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		Message<String> message = new GenericMessage<>("foo");
 		message = MessageHistory.write(message, new NamedComponent() {
+
 			@Override
 			public String getComponentName() {
 				return "bar";
@@ -132,8 +126,8 @@ public class BeanFactoryTypeConverterTests {
 			}
 		});
 		MessageHistory history = MessageHistory.read(message);
-		assertSame(history, typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHistory.class),
-				TypeDescriptor.valueOf(MessageHistory.class)));
+		assertThat(typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHistory.class),
+				TypeDescriptor.valueOf(MessageHistory.class))).isSameAs(history);
 	}
 
 	@Test
@@ -141,8 +135,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		byte[] bytes = new byte[1];
-		assertSame(bytes, typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class),
-				TypeDescriptor.valueOf(byte[].class)));
+		assertThat(typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class),
+				TypeDescriptor.valueOf(byte[].class))).isSameAs(bytes);
 	}
 
 	@Test
@@ -150,22 +144,22 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		String string = "foo";
-		assertSame(string, typeConverter.convertValue(string, TypeDescriptor.valueOf(String.class),
-				TypeDescriptor.valueOf(Object.class)));
+		assertThat(typeConverter.convertValue(string, TypeDescriptor.valueOf(String.class),
+				TypeDescriptor.valueOf(Object.class))).isSameAs(string);
 	}
 
 	@Test
 	public void testObjectToStringIsConverted() {
 		ConversionService conversionService = mock(ConversionService.class);
 		when(conversionService.canConvert(any(TypeDescriptor.class), any(TypeDescriptor.class)))
-			.thenReturn(true);
+				.thenReturn(true);
 		when(conversionService.convert(any(), any(TypeDescriptor.class), any(TypeDescriptor.class)))
-			.thenReturn("foo");
+				.thenReturn("foo");
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		Object object = new Object();
-		assertEquals("foo", typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class),
-				TypeDescriptor.valueOf(String.class)));
+		assertThat(typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class),
+				TypeDescriptor.valueOf(String.class))).isEqualTo("foo");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -174,6 +168,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Foo, Bar>() { // Must be explicit type with generics
+
 			@Override
 			public Bar convert(Foo source) {
 				return new Bar();
@@ -198,10 +193,10 @@ public class BeanFactoryTypeConverterTests {
 		foos.put("foo", fooMap);
 
 		bars = (Map<String, Map<String, Set<Bar>>>) typeConverter.convertValue(foos, sourceType, targetType);
-		assertThat(bars.get("foo").get("foo").iterator().next(), instanceOf(Bar.class));
+		assertThat(bars.get("foo").get("foo").iterator().next()).isInstanceOf(Bar.class);
 
 		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
+		MethodInvokingMessageProcessor<Service> processor = new MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(beanFactory);
@@ -210,8 +205,8 @@ public class BeanFactoryTypeConverterTests {
 		handler.setOutputChannel(replyChannel);
 		handler.handleMessage(new GenericMessage<>(foos));
 		Message<?> message = replyChannel.receive(0);
-		assertNotNull(message);
-		assertEquals("bar", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("bar");
 	}
 
 	@Test
@@ -219,6 +214,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Foo, Bar>() { // Must be explicit type with generics
+
 			@Override
 			public Bar convert(Foo source) {
 				return new Bar();
@@ -229,7 +225,7 @@ public class BeanFactoryTypeConverterTests {
 		typeConverter.setBeanFactory(beanFactory);
 
 		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
+		MethodInvokingMessageProcessor<Service> processor = new MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(beanFactory);
@@ -238,8 +234,8 @@ public class BeanFactoryTypeConverterTests {
 		handler.setOutputChannel(replyChannel);
 		handler.handleMessage(new GenericMessage<Collection<Foo>>(Collections.singletonList(new Foo())));
 		Message<?> message = replyChannel.receive(10000);
-		assertNotNull(message);
-		assertEquals("baz", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("baz");
 	}
 
 	@Test
@@ -247,7 +243,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultConversionService conversionService = new DefaultConversionService();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Bar.class));
-		assertNull(foo);
+		assertThat(foo).isNull();
 	}
 
 	@Test
@@ -255,9 +251,9 @@ public class BeanFactoryTypeConverterTests {
 		DefaultConversionService conversionService = new DefaultConversionService();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Void.class));
-		assertNull(foo);
+		assertThat(foo).isNull();
 		foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Void.TYPE));
-		assertNull(foo);
+		assertThat(foo).isNull();
 	}
 
 	@Test
@@ -267,7 +263,7 @@ public class BeanFactoryTypeConverterTests {
 		UUID uuid = UUID.randomUUID();
 		Object foo = typeConverter.convertValue(uuid, TypeDescriptor.valueOf(UUID.class),
 				TypeDescriptor.valueOf(String.class));
-		assertEquals(uuid.toString(), foo);
+		assertThat(foo).isEqualTo(uuid.toString());
 	}
 
 	@Test
@@ -275,6 +271,7 @@ public class BeanFactoryTypeConverterTests {
 		DefaultConversionService conversionService = new DefaultConversionService();
 		final Foo foo = new Foo();
 		conversionService.addConverter(new Converter<String, Foo>() { // Must be explicit type with generics
+
 			@Override
 			public Foo convert(String source) {
 				return foo;
@@ -284,7 +281,7 @@ public class BeanFactoryTypeConverterTests {
 		UUID uuid = UUID.randomUUID();
 		Object convertedFoo = typeConverter.convertValue(uuid, TypeDescriptor.valueOf(UUID.class),
 				TypeDescriptor.valueOf(Foo.class));
-		assertSame(foo, convertedFoo);
+		assertThat(convertedFoo).isSameAs(foo);
 	}
 
 	@Test
@@ -294,13 +291,14 @@ public class BeanFactoryTypeConverterTests {
 		UUID uuid = UUID.randomUUID();
 		Object converted = typeConverter.convertValue(uuid.toString(), TypeDescriptor.valueOf(String.class),
 				TypeDescriptor.valueOf(UUID.class));
-		assertEquals(uuid, converted);
+		assertThat(converted).isEqualTo(uuid);
 	}
 
 	@Test
 	@Ignore("Too sensitive for the time")
 	public void initialConcurrency() throws Exception {
-		ConversionService conversionService = mock(ConversionService.class); // can convert nothing so we drop down to P.E.s
+		ConversionService conversionService = mock(ConversionService.class); // can convert nothing so we drop down to
+		// P.E.s
 		final BeanFactoryTypeConverter beanFactoryTypeConverter = new BeanFactoryTypeConverter(conversionService);
 		ConfigurableBeanFactory beanFactory = mock(ConfigurableBeanFactory.class);
 		SimpleTypeConverter typeConverter = spy(new SimpleTypeConverter());
@@ -327,9 +325,9 @@ public class BeanFactoryTypeConverterTests {
 		exec.execute(test);
 		exec.execute(test);
 		exec.shutdown();
-		assertTrue(exec.awaitTermination(10, TimeUnit.SECONDS));
-		assertEquals(4, count.get());
-		assertFalse(concurrentlyInGetDefaultEditor.get());
+		assertThat(exec.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(count.get()).isEqualTo(4);
+		assertThat(concurrentlyInGetDefaultEditor.get()).isFalse();
 	}
 
 	public static class Foo {
@@ -343,12 +341,12 @@ public class BeanFactoryTypeConverterTests {
 	public static class Service {
 
 		public String handle(Map<String, Map<String, Set<Bar>>> payload) {
-			assertThat(payload.get("foo").get("foo").iterator().next(), instanceOf(Bar.class));
+			assertThat(payload.get("foo").get("foo").iterator().next()).isInstanceOf(Bar.class);
 			return "bar";
 		}
 
 		public String handle(Collection<Bar> payload) {
-			assertThat(payload.iterator().next(), instanceOf(Bar.class));
+			assertThat(payload.iterator().next()).isInstanceOf(Bar.class);
 			return "baz";
 		}
 

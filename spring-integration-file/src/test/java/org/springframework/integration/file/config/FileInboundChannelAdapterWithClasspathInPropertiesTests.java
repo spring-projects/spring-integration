@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.Iterator;
@@ -67,21 +64,21 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	public void inputDirectory() throws Exception {
 		File expected = new ClassPathResource("").getFile();
 		File actual = (File) accessor.getPropertyValue("directory");
-		assertEquals("'directory' should be set", expected, actual);
+		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
 
 		FileListFilter<File> fileListFilter =
 				TestUtils.getPropertyValue(this.source, "scanner.filter", FileListFilter.class);
-		assertThat(fileListFilter, instanceOf(CompositeFileListFilter.class));
+		assertThat(fileListFilter).isInstanceOf(CompositeFileListFilter.class);
 		Set<FileListFilter<File>> fileFilters =
 				TestUtils.getPropertyValue(fileListFilter, "fileFilters", Set.class);
-		assertEquals(2, fileFilters.size());
+		assertThat(fileFilters.size()).isEqualTo(2);
 		Iterator<FileListFilter<File>> iterator = fileFilters.iterator();
 		iterator.next();
 		FileListFilter<File> expressionFilter = iterator.next();
-		assertThat(expressionFilter, instanceOf(ExpressionFileListFilter.class));
-		assertEquals("true",
-				TestUtils.getPropertyValue(expressionFilter, "expression.expression", String.class));
-		assertSame(this.beanFactory, TestUtils.getPropertyValue(expressionFilter, "beanFactory"));
+		assertThat(expressionFilter).isInstanceOf(ExpressionFileListFilter.class);
+		assertThat(TestUtils.getPropertyValue(expressionFilter, "expression.expression", String.class))
+				.isEqualTo("true");
+		assertThat(TestUtils.getPropertyValue(expressionFilter, "beanFactory")).isSameAs(this.beanFactory);
 	}
 
 }

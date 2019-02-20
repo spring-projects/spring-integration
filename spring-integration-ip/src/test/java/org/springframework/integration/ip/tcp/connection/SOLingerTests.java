@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +111,7 @@ public class SOLingerTests {
 			byte[] buff = new byte[test.length() + 5];
 			try {
 				readFully(socket.getInputStream(), buff);
-				assertEquals("echo:" + test, new String(buff));
+				assertThat(new String(buff)).isEqualTo("echo:" + test);
 			}
 			catch (SocketException se) {
 				if (hasLinger) {
@@ -123,7 +123,7 @@ public class SOLingerTests {
 			}
 			int n = socket.getInputStream().read();
 			// we expect an orderly close
-			assertEquals(-1, n);
+			assertThat(n).isEqualTo(-1);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -146,7 +146,7 @@ public class SOLingerTests {
 				// if we do, verify it is as expected, if not, the RST
 				// arrived before the final data.
 				readFully(socket.getInputStream(), buff);
-				assertEquals("echo:" + test, new String(buff));
+				assertThat(new String(buff)).isEqualTo("echo:" + test);
 				socket.getInputStream().read();
 				fail("Expected SocketException");
 			}

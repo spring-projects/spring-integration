@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.event.dsl;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -91,32 +87,32 @@ public class IntegrationFlowEventsTests {
 
 	@Test
 	public void testEventsFlow() {
-		assertNull(this.eventHolder.get());
+		assertThat(this.eventHolder.get()).isNull();
 		this.flow3Input.send(new GenericMessage<>("2"));
-		assertNotNull(this.eventHolder.get());
-		assertEquals(4, this.eventHolder.get());
+		assertThat(this.eventHolder.get()).isNotNull();
+		assertThat(this.eventHolder.get()).isEqualTo(4);
 	}
 
 	@Test
 	public void testRawApplicationEventListeningMessageProducer() {
 		this.applicationContext.publishEvent(new TestApplicationEvent1());
 		Message<?> receive = this.resultsChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(TestApplicationEvent1.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(TestApplicationEvent1.class);
 
 		this.applicationContext.publishEvent(new TestApplicationEvent2());
 		receive = this.resultsChannel.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(TestApplicationEvent2.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(TestApplicationEvent2.class);
 	}
 
 	@Test
 	public void testDelayRescheduling() {
 		Message<?> receive = this.delayedResults.receive(10000);
-		assertNotNull(receive);
-		assertEquals("foo", receive.getPayload());
-		assertEquals(1, messageGroupStore.getMessageGroupCount());
-		assertEquals(0, messageGroupStore.getMessageCountForAllMessageGroups());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("foo");
+		assertThat(messageGroupStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageGroupStore.getMessageCountForAllMessageGroups()).isEqualTo(0);
 	}
 
 

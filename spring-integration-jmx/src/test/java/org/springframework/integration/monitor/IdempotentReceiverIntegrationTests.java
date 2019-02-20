@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
@@ -137,28 +131,29 @@ public class IdempotentReceiverIntegrationTests {
 		Message<String> message = new GenericMessage<>("foo");
 		this.input.send(message);
 		Message<?> receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(1, this.adviceCalled.get());
-		assertEquals(1, TestUtils.getPropertyValue(this.store, "metadata", Map.class).size());
+		assertThat(receive).isNotNull();
+		assertThat(this.adviceCalled.get()).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(this.store, "metadata", Map.class).size()).isEqualTo(1);
 		String foo = this.store.get("foo");
-		assertEquals("FOO", foo);
+		assertThat(foo).isEqualTo("FOO");
 
 		try {
 			this.input.send(message);
 			fail("MessageRejectedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageRejectedException.class));
+			assertThat(e).isInstanceOf(MessageRejectedException.class);
 		}
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(false);
 		this.input.send(message);
 		receive = this.output.receive(10000);
-		assertNotNull(receive);
-		assertEquals(2, this.adviceCalled.get());
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
-		assertEquals(1, TestUtils.getPropertyValue(store, "metadata", Map.class).size());
+		assertThat(receive).isNotNull();
+		assertThat(this.adviceCalled.get()).isEqualTo(2);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
+		assertThat(TestUtils.getPropertyValue(store, "metadata", Map.class).size()).isEqualTo(1);
 
-		assertTrue(this.txSupplied.get());
+		assertThat(this.txSupplied.get()).isTrue();
 	}
 
 	@Test
@@ -168,11 +163,10 @@ public class IdempotentReceiverIntegrationTests {
 		this.annotatedMethodChannel.send(message);
 		this.annotatedMethodChannel.send(message);
 
-		assertEquals(2, this.fooService.messages.size());
-		assertTrue(
-				this.fooService.messages.get(1)
-						.getHeaders()
-						.get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+		assertThat(this.fooService.messages.size()).isEqualTo(2);
+		assertThat(this.fooService.messages.get(1)
+				.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -182,14 +176,15 @@ public class IdempotentReceiverIntegrationTests {
 		this.annotatedBeanMessageHandlerChannel.send(message);
 
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
 
 		this.annotatedBeanMessageHandlerChannel.send(message);
 		receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
 
 		this.annotatedBeanMessageHandlerChannel2.send(new GenericMessage<String>("baz"));
 		try {
@@ -197,7 +192,7 @@ public class IdempotentReceiverIntegrationTests {
 			fail("MessageHandlingException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage(), containsString("duplicate message has been received"));
+			assertThat(e.getMessage()).contains("duplicate message has been received");
 		}
 	}
 
@@ -209,14 +204,15 @@ public class IdempotentReceiverIntegrationTests {
 		this.bridgeChannel.send(message);
 
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
 
 		this.bridgeChannel.send(message);
 		receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
 	}
 
 	@Test
@@ -225,14 +221,15 @@ public class IdempotentReceiverIntegrationTests {
 		this.toBridgeChannel.send(message);
 
 		Message<?> receive = this.bridgePollableChannel.receive(10000);
-		assertNotNull(receive);
-		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isFalse();
 
 		this.toBridgeChannel.send(message);
 		receive = this.bridgePollableChannel.receive(10000);
-		assertNotNull(receive);
-		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
-		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)).isTrue();
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class))
+				.isTrue();
 	}
 
 	@Configuration

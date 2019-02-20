@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -89,7 +84,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
-		assertEquals(0, messageStore.getMessageGroupCount());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(0);
 		Message<String> message1 = MessageBuilder.withPayload("test1").build();
 		input.send(message1);
 		input.send(MessageBuilder.withPayload("test2").build());
@@ -107,42 +102,43 @@ public class DelayerHandlerRescheduleIntegrationTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertTrue(e instanceof IllegalStateException);
-			assertTrue(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"));
+			assertThat(e instanceof IllegalStateException).isTrue();
+			assertThat(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"))
+					.isTrue();
 		}
 
 		String delayerMessageGroupId = UUIDConverter.getUUID(DELAYER_ID + ".messageGroupId").toString();
 
-		assertEquals(1, messageStore.getMessageGroupCount());
-		assertEquals(delayerMessageGroupId, messageStore.iterator().next().getGroupId());
-		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
-		assertEquals(2, messageStore.getMessageCountForAllMessageGroups());
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageStore.iterator().next().getGroupId()).isEqualTo(delayerMessageGroupId);
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(2);
+		assertThat(messageStore.getMessageCountForAllMessageGroups()).isEqualTo(2);
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
 		// Ensure that with the lazyLoadMessageGroups = false the MessageStore doesn't return PersistentMessageGroup
-		assertThat(messageGroup, instanceOf(SimpleMessageGroup.class));
+		assertThat(messageGroup).isInstanceOf(SimpleMessageGroup.class);
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
 
 		//INT-3049
-		assertTrue(payload instanceof DelayHandler.DelayedMessageWrapper);
-		assertEquals(message1, ((DelayHandler.DelayedMessageWrapper) payload).getOriginal());
+		assertThat(payload instanceof DelayHandler.DelayedMessageWrapper).isTrue();
+		assertThat(((DelayHandler.DelayedMessageWrapper) payload).getOriginal()).isEqualTo(message1);
 
 		context.refresh();
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
 
 		Message<?> message = output.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 
 		Object payload1 = message.getPayload();
 
 		message = output.receive(20000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Object payload2 = message.getPayload();
-		assertNotSame(payload1, payload2);
+		assertThat(payload2).isNotSameAs(payload1);
 
-		assertEquals(1, messageStore.getMessageGroupCount());
-		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
+		assertThat(messageStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(0);
 		context.close();
 	}
 
@@ -154,22 +150,22 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 		String delayerMessageGroupId = UUIDConverter.getUUID("transactionalDelayer.messageGroupId").toString();
-		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(0);
 
 		input.send(MessageBuilder.withPayload("test").build());
 
 		Thread.sleep(1000);
 
-		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(1);
 
 		//To check that 'rescheduling' works in the transaction boundaries too
 		context.close();
 		context.refresh();
 
-		assertTrue(RollbackTxSync.latch.await(20, TimeUnit.SECONDS));
+		assertThat(RollbackTxSync.latch.await(20, TimeUnit.SECONDS)).isTrue();
 
 		//On transaction rollback the delayed Message should remain in the persistent MessageStore
-		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
+		assertThat(messageStore.messageGroupSize(delayerMessageGroupId)).isEqualTo(1);
 		context.close();
 	}
 

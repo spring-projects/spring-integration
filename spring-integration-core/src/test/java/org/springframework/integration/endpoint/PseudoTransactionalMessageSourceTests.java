@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,14 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -102,7 +98,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		MessageChannel afterCommitChannel = TestUtils.getPropertyValue(syncProcessor, "afterCommitChannel",
 				MessageChannel.class);
-		assertThat(afterCommitChannel, Matchers.instanceOf(NullChannel.class));
+		assertThat(afterCommitChannel).isInstanceOf(NullChannel.class);
 
 		Log logger = TestUtils.getPropertyValue(afterCommitChannel, "logger", Log.class);
 
@@ -119,8 +115,8 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerBeforeCommit(false);
 		TransactionSynchronizationUtils.triggerAfterCommit();
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
-		assertNotNull(beforeCommitMessage);
-		assertEquals("qox", beforeCommitMessage.getPayload());
+		assertThat(beforeCommitMessage).isNotNull();
+		assertThat(beforeCommitMessage.getPayload()).isEqualTo("qox");
 
 		Mockito.verify(logger).debug(Mockito.anyString());
 
@@ -162,11 +158,11 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerBeforeCommit(false);
 		TransactionSynchronizationUtils.triggerAfterCommit();
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
-		assertNotNull(beforeCommitMessage);
-		assertEquals("qox", beforeCommitMessage.getPayload());
+		assertThat(beforeCommitMessage).isNotNull();
+		assertThat(beforeCommitMessage.getPayload()).isEqualTo("qox");
 		Message<?> afterCommitMessage = queueChannel.receive(1000);
-		assertNotNull(afterCommitMessage);
-		assertEquals("qux", afterCommitMessage.getPayload());
+		assertThat(afterCommitMessage).isNotNull();
+		assertThat(afterCommitMessage.getPayload()).isEqualTo("qux");
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
@@ -210,8 +206,8 @@ public class PseudoTransactionalMessageSourceTests {
 		doPoll(adapter);
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
 		Message<?> rollbackMessage = queueChannel.receive(1000);
-		assertNotNull(rollbackMessage);
-		assertSame(testMessage, rollbackMessage);
+		assertThat(rollbackMessage).isNotNull();
+		assertThat(rollbackMessage).isSameAs(testMessage);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 	}
@@ -254,11 +250,11 @@ public class PseudoTransactionalMessageSourceTests {
 			return null;
 		});
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
-		assertNotNull(beforeCommitMessage);
-		assertEquals("qox", beforeCommitMessage.getPayload());
+		assertThat(beforeCommitMessage).isNotNull();
+		assertThat(beforeCommitMessage.getPayload()).isEqualTo("qox");
 		Message<?> afterCommitMessage = queueChannel.receive(1000);
-		assertNotNull(afterCommitMessage);
-		assertEquals("qux", afterCommitMessage.getPayload());
+		assertThat(afterCommitMessage).isNotNull();
+		assertThat(afterCommitMessage.getPayload()).isEqualTo("qux");
 	}
 
 	@Test
@@ -298,11 +294,11 @@ public class PseudoTransactionalMessageSourceTests {
 			});
 		}
 		catch (Exception e) {
-			assertEquals("Force rollback", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Force rollback");
 		}
 		Message<?> rollbackMessage = queueChannel.receive(1000);
-		assertNotNull(rollbackMessage);
-		assertEquals("qux", rollbackMessage.getPayload());
+		assertThat(rollbackMessage).isNotNull();
+		assertThat(rollbackMessage.getPayload()).isEqualTo("qux");
 	}
 
 	@Test
@@ -341,8 +337,8 @@ public class PseudoTransactionalMessageSourceTests {
 			return null;
 		});
 		Message<?> rollbackMessage = queueChannel.receive(1000);
-		assertNotNull(rollbackMessage);
-		assertEquals("qux", rollbackMessage.getPayload());
+		assertThat(rollbackMessage).isNotNull();
+		assertThat(rollbackMessage.getPayload()).isEqualTo("qux");
 	}
 
 	@Test
@@ -389,7 +385,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertEquals(1, txSyncCounter.get());
+		assertThat(txSyncCounter.get()).isEqualTo(1);
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
@@ -397,7 +393,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertEquals(2, txSyncCounter.get());
+		assertThat(txSyncCounter.get()).isEqualTo(2);
 	}
 
 	protected void doPoll(SourcePollingChannelAdapter adapter) {

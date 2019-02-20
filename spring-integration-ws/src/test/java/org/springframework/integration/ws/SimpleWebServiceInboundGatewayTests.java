@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,13 +33,10 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -100,8 +97,8 @@ public class SimpleWebServiceInboundGatewayTests {
 		when(request.getPayloadSource()).thenReturn(payloadSource);
 		gateway.start();
 		gateway.invoke(context);
-		verify(requestChannel).send(messageWithPayload(payloadSource), eq(1000L));
-		assertTrue(output.toString().endsWith(input));
+		verify(requestChannel).send(argThat(m -> m.getPayload().equals(payloadSource)), eq(1000L));
+		assertThat(output.toString().endsWith(input)).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -113,22 +110,6 @@ public class SimpleWebServiceInboundGatewayTests {
 		gateway.invoke(context);
 	}
 
-
-	private Message<?> messageWithPayload(final Object payload) {
-		return argThat(new HamcrestArgumentMatcher<>(new BaseMatcher<Message<?>>() {
-
-			@Override
-			public boolean matches(Object candidate) {
-				return ((Message<?>) candidate).getPayload().equals(payload);
-			}
-
-			@Override
-			public void describeTo(Description description) {
-				description.appendText("A message with payload: " + payload);
-			}
-
-		}));
-	}
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {
 		return invocation -> {

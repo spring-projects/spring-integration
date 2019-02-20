@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -83,21 +81,21 @@ public class AnnotatedEndpointActivationTests {
 	public void sendAndReceive() {
 		this.input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
-		assertNotNull(message);
-		assertEquals("foo: 1", message.getPayload());
-		assertEquals(1, count);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo: 1");
+		assertThat(count).isEqualTo(1);
 
-		assertTrue(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator"));
-		assertTrue(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
+		assertThat(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator")).isTrue();
+		assertThat(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator")).isTrue();
 	}
 
 	@Test
 	public void sendAndReceiveAsync() {
 		this.inputAsync.send(new GenericMessage<>("foo"));
 		Message<?> message = this.outputAsync.receive(100);
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
-		assertTrue(this.applicationContext.containsBean("annotatedEndpoint3.process.serviceActivator"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
+		assertThat(this.applicationContext.containsBean("annotatedEndpoint3.process.serviceActivator")).isTrue();
 	}
 
 	@Test
@@ -105,9 +103,9 @@ public class AnnotatedEndpointActivationTests {
 		MessageChannel input = this.applicationContext.getBean("inputImplicit", MessageChannel.class);
 		input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
-		assertNotNull(message);
-		assertEquals("foo: 1", message.getPayload());
-		assertEquals(1, count);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo: 1");
+		assertThat(count).isEqualTo(1);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -124,9 +122,9 @@ public class AnnotatedEndpointActivationTests {
 		applicationContext.start();
 		this.input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
-		assertNotNull(message);
-		assertEquals("foo: 1", message.getPayload());
-		assertEquals(1, count);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo: 1");
+		assertThat(count).isEqualTo(1);
 	}
 
 	@MessageEndpoint

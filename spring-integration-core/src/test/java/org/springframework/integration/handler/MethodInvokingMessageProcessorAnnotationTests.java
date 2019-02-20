@@ -16,11 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -36,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -79,13 +74,13 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 				public void run() {
 					Object result = processor.processMessage(new GenericMessage<>("foo"));
-					assertNotNull(result);
+					assertThat(result).isNotNull();
 				}
 			});
 		}
 		exec.shutdown();
-		assertTrue(exec.awaitTermination(10, TimeUnit.SECONDS));
-		assertEquals(0, concurrencyFailures);
+		assertThat(exec.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(concurrencyFailures).isEqualTo(0);
 	}
 
 	@Test
@@ -94,7 +89,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(new GenericMessage<>("foo"));
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -126,7 +121,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(message);
-		assertEquals(123, result);
+		assertThat(result).isEqualTo(123);
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -147,7 +142,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", 123).build();
 		Object result = processor.processMessage(message);
-		assertEquals("null123", result);
+		assertThat(result).isEqualTo("null123");
 	}
 
 	@Test
@@ -160,7 +155,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("prop", "bar")
 				.build();
 		Object result = processor.processMessage(message);
-		assertEquals("bar123", result);
+		assertThat(result).isEqualTo("bar123");
 	}
 
 	@Test
@@ -170,21 +165,22 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
-		assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class)).isFalse();
 		for (int i = 0; i < 99; i++) {
 			Object result = processor.processMessage(message);
 			Properties props = (Properties) result;
-			assertEquals("foo", props.getProperty("prop1"));
-			assertEquals("bar", props.getProperty("prop2"));
-			assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
+			assertThat(props.getProperty("prop1")).isEqualTo("foo");
+			assertThat(props.getProperty("prop2")).isEqualTo("bar");
+			assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class))
+					.isFalse();
 		}
 
 		Object result = processor.processMessage(message);
 		Properties props = (Properties) result;
-		assertEquals("foo", props.getProperty("prop1"));
-		assertEquals("bar", props.getProperty("prop2"));
+		assertThat(props.getProperty("prop1")).isEqualTo("foo");
+		assertThat(props.getProperty("prop2")).isEqualTo("bar");
 
-		assertTrue(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -196,9 +192,9 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object result = processor.processMessage(message);
 		Properties props = (Properties) result;
-		assertEquals("foo", props.getProperty("prop1"));
-		assertEquals("bar", props.getProperty("prop2"));
-		assertEquals("test", props.getProperty("payload"));
+		assertThat(props.getProperty("prop1")).isEqualTo("foo");
+		assertThat(props.getProperty("prop2")).isEqualTo("bar");
+		assertThat(props.getProperty("payload")).isEqualTo("test");
 	}
 
 	@Test
@@ -209,12 +205,12 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Map<?, ?> result = (Map<?, ?>) processor.processMessage(message);
-		assertEquals(5, result.size());
-		assertTrue(result.containsKey(MessageHeaders.ID));
-		assertTrue(result.containsKey(MessageHeaders.TIMESTAMP));
-		assertEquals("foo", result.get("prop1"));
-		assertEquals("bar", result.get("prop2"));
-		assertEquals("test", result.get("payload"));
+		assertThat(result.size()).isEqualTo(5);
+		assertThat(result.containsKey(MessageHeaders.ID)).isTrue();
+		assertThat(result.containsKey(MessageHeaders.TIMESTAMP)).isTrue();
+		assertThat(result.get("prop1")).isEqualTo("foo");
+		assertThat(result.get("prop2")).isEqualTo("bar");
+		assertThat(result.get("payload")).isEqualTo("test");
 	}
 
 	@Test
@@ -228,9 +224,9 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Message<Properties> message = MessageBuilder.withPayload(payload)
 				.setHeader("prop1", "not").setHeader("prop2", "these").build();
 		Properties result = (Properties) processor.processMessage(message);
-		assertEquals(2, result.size());
-		assertEquals("foo", result.getProperty("prop1"));
-		assertEquals("bar", result.getProperty("prop2"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.getProperty("prop1")).isEqualTo("foo");
+		assertThat(result.getProperty("prop2")).isEqualTo("bar");
 	}
 
 	@Test
@@ -242,8 +238,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("attrib1", 123)
 				.setHeader("attrib2", 456).build();
 		Map<String, Object> result = (Map<String, Object>) processor.processMessage(message);
-		assertEquals(123, result.get("attrib1"));
-		assertEquals(456, result.get("attrib2"));
+		assertThat(result.get("attrib1")).isEqualTo(123);
+		assertThat(result.get("attrib2")).isEqualTo(456);
 	}
 
 	@Test
@@ -258,9 +254,9 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("attrib1", 123)
 				.setHeader("attrib2", 456).build();
 		Map<String, Integer> result = (Map<String, Integer>) processor.processMessage(message);
-		assertEquals(2, result.size());
-		assertEquals(new Integer(88), result.get("attrib1"));
-		assertEquals(new Integer(99), result.get("attrib2"));
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.get("attrib1")).isEqualTo(new Integer(88));
+		assertThat(result.get("attrib2")).isEqualTo(new Integer(99));
 	}
 
 	@Test
@@ -270,7 +266,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(message);
-		Assert.assertEquals("monday", result);
+		assertThat(result).isEqualTo("monday");
 	}
 
 	@Test
@@ -280,7 +276,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessage(message);
-		assertEquals("foo", result);
+		assertThat(result).isEqualTo("foo");
 	}
 
 	@Test
@@ -295,13 +291,13 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Object[] parameters = (Object[]) processor.processMessage(message);
-		assertNotNull(parameters);
-		assertEquals(5, parameters.length);
-		assertEquals("monday", parameters[0]);
-		assertEquals("September", parameters[1]);
-		assertEquals(parameters[2], employee);
-		assertEquals("oleg", parameters[3]);
-		assertTrue(parameters[4] instanceof Map);
+		assertThat(parameters).isNotNull();
+		assertThat(parameters.length).isEqualTo(5);
+		assertThat(parameters[0]).isEqualTo("monday");
+		assertThat(parameters[1]).isEqualTo("September");
+		assertThat(employee).isEqualTo(parameters[2]);
+		assertThat(parameters[3]).isEqualTo("oleg");
+		assertThat(parameters[4] instanceof Map).isTrue();
 	}
 
 	@Test
@@ -311,8 +307,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
-		Assert.assertTrue(result instanceof Map);
-		Assert.assertEquals("jkl", ((Map<?, ?>) result).get("number"));
+		assertThat(result instanceof Map).isTrue();
+		assertThat(((Map<?, ?>) result).get("number")).isEqualTo("jkl");
 	}
 
 	@Test
@@ -322,8 +318,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
-		Assert.assertTrue(result instanceof String);
-		Assert.assertEquals("oleg", result);
+		assertThat(result instanceof String).isTrue();
+		assertThat(result).isEqualTo("oleg");
 	}
 
 	@Test
@@ -333,7 +329,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
-		Assert.assertEquals("oleg zhurakousky", result);
+		assertThat(result).isEqualTo("oleg zhurakousky");
 	}
 
 	@Test
@@ -343,7 +339,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("day", "monday").build();
 		Object result = processor.processMessage(message);
-		Assert.assertEquals("olegmonday", result);
+		assertThat(result).isEqualTo("olegmonday");
 	}
 
 	@Test(expected = MessagingException.class)
@@ -363,7 +359,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Employee employee = new Employee("John", "Doe");
 		Message<?> message = MessageBuilder.withPayload("payload").setHeader("emp", employee).build();
 		Object result = processor.processMessage(message);
-		assertEquals("DOE, John", result);
+		assertThat(result).isEqualTo("DOE, John");
 	}
 
 	@Test
@@ -373,7 +369,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = MessageBuilder.withPayload("payload").setHeader("foo-bar", "abc").build();
 		Object result = processor.processMessage(message);
-		assertEquals("ABC", result);
+		assertThat(result).isEqualTo("ABC");
 	}
 
 

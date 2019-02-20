@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.groovy;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,15 +67,15 @@ public class ScriptsFactoryTests {
 		Message<?> message2 = MessageBuilder.withPayload("good").setHeader("type", "good").build();
 		this.filterInput.send(message1);
 		this.filterInput.send(message2);
-		assertEquals("good", this.results.receive(10000).getPayload());
-		assertNull(this.results.receive(0));
-		assertEquals("bad", this.discardChannel.receive(10000).getPayload());
-		assertNull(this.discardChannel.receive(0));
+		assertThat(this.results.receive(10000).getPayload()).isEqualTo("good");
+		assertThat(this.results.receive(0)).isNull();
+		assertThat(this.discardChannel.receive(10000).getPayload()).isEqualTo("bad");
+		assertThat(this.discardChannel.receive(0)).isNull();
 
 		MessageProcessor<?> delegate = TestUtils.getPropertyValue(this.scriptMessageProcessor, "delegate",
 				MessageProcessor.class);
 
-		assertThat(delegate, instanceOf(GroovyScriptExecutingMessageProcessor.class));
+		assertThat(delegate).isInstanceOf(GroovyScriptExecutingMessageProcessor.class);
 	}
 
 

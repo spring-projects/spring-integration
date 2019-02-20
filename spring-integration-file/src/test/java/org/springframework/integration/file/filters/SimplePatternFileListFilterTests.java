@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -32,17 +31,17 @@ public class SimplePatternFileListFilterTests {
 
 	@Test
 	public void shouldMatchExactly() {
-		assertThat(new SimplePatternFileListFilter("bar").accept(new File("bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("bar").accept(new File("bar"))).isTrue();
 	}
 
 	@Test
 	public void shouldMatchQuestionMark() {
-		assertThat(new SimplePatternFileListFilter("*bar").accept(new File("bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("*bar").accept(new File("bar"))).isTrue();
 	}
 
 	@Test
 	public void shouldMatchWildcard() {
-		assertThat(new SimplePatternFileListFilter("ba?").accept(new File("bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("ba?").accept(new File("bar"))).isTrue();
 	}
 
 }

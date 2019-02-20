@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,9 +46,9 @@ public class MarshallingTransformerTests {
 		transformer.setResultFactory(new StringResultFactory());
 		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
 		Object resultPayload = resultMessage.getPayload();
-		assertEquals(StringResult.class, resultPayload.getClass());
-		assertEquals("hello world", resultPayload.toString());
-		assertEquals("world", marshaller.payloads.get(0));
+		assertThat(resultPayload.getClass()).isEqualTo(StringResult.class);
+		assertThat(resultPayload.toString()).isEqualTo("hello world");
+		assertThat(marshaller.payloads.get(0)).isEqualTo("world");
 	}
 
 	@Test
@@ -58,8 +57,8 @@ public class MarshallingTransformerTests {
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
 		Object resultPayload = resultMessage.getPayload();
-		assertEquals(DOMResult.class, resultPayload.getClass());
-		assertEquals("world", marshaller.payloads.get(0));
+		assertThat(resultPayload.getClass()).isEqualTo(DOMResult.class);
+		assertThat(marshaller.payloads.get(0)).isEqualTo("world");
 	}
 
 	@Test
@@ -69,9 +68,9 @@ public class MarshallingTransformerTests {
 		transformer.setExtractPayload(false);
 		Message<?> message = new GenericMessage<String>("test");
 		transformer.transform(message);
-		assertEquals(0, marshaller.payloads.size());
-		assertEquals(1, marshaller.messages.size());
-		assertSame(message, marshaller.messages.get(0));
+		assertThat(marshaller.payloads.size()).isEqualTo(0);
+		assertThat(marshaller.messages.size()).isEqualTo(1);
+		assertThat(marshaller.messages.get(0)).isSameAs(message);
 	}
 
 

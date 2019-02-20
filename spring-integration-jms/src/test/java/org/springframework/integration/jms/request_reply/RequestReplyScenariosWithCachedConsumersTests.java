@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.TextMessage;
@@ -45,6 +45,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -60,9 +61,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml",
+				this
+				.getClass());
 		try {
-			RequestReplyExchanger gateway = context.getBean("standardMessageIdCopyingConsumerWithOptimization", RequestReplyExchanger.class);
+			RequestReplyExchanger gateway = context
+					.getBean("standardMessageIdCopyingConsumerWithOptimization", RequestReplyExchanger.class);
 			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 			final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
 
@@ -90,9 +94,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml",
+				this
+				.getClass());
 		try {
-			RequestReplyExchanger gateway = context.getBean("standardMessageIdCopyingConsumerWithoutOptimization", RequestReplyExchanger.class);
+			RequestReplyExchanger gateway = context
+					.getBean("standardMessageIdCopyingConsumerWithoutOptimization", RequestReplyExchanger.class);
 			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 			final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
 
@@ -108,8 +115,9 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 					return message;
 				});
 			}).start();
-			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
-			assertEquals("bar", siReplyMessage.getPayload());
+			org.springframework.messaging.Message<?> siReplyMessage = gateway
+					.exchange(new GenericMessage<String>("foo"));
+			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();
@@ -119,9 +127,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	@Test
 	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml",
+				this
+				.getClass());
 		try {
-			RequestReplyExchanger gateway = context.getBean("correlationPropagatingConsumerWithOptimization", RequestReplyExchanger.class);
+			RequestReplyExchanger gateway = context
+					.getBean("correlationPropagatingConsumerWithOptimization", RequestReplyExchanger.class);
 			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 
 			final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
@@ -137,8 +148,9 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 					return message;
 				});
 			}).start();
-			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
-			assertEquals("bar", siReplyMessage.getPayload());
+			org.springframework.messaging.Message<?> siReplyMessage = gateway
+					.exchange(new GenericMessage<String>("foo"));
+			assertThat(siReplyMessage.getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();
@@ -148,9 +160,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	@Test(expected = MessageTimeoutException.class)
 	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml",
+				this
+				.getClass());
 		try {
-			RequestReplyExchanger gateway = context.getBean("correlationPropagatingConsumerWithoutOptimization", RequestReplyExchanger.class);
+			RequestReplyExchanger gateway = context
+					.getBean("correlationPropagatingConsumerWithoutOptimization", RequestReplyExchanger.class);
 			CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 
 			final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
@@ -180,8 +195,10 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
 		try {
 			RequestReplyExchanger gateway =
-					context.getBean("correlationPropagatingConsumerWithOptimizationDelayFirstReply", RequestReplyExchanger.class);
-			final ConnectionFactory connectionFactory = context.getBean("jmsConnectionFactory", ConnectionFactory.class);
+					context.getBean("correlationPropagatingConsumerWithOptimizationDelayFirstReply",
+							RequestReplyExchanger.class);
+			final ConnectionFactory connectionFactory = context
+					.getBean("jmsConnectionFactory", ConnectionFactory.class);
 
 			final Destination requestDestination = context.getBean("siOutQueueE", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueE", Destination.class);
@@ -220,24 +237,18 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			latch.await();
 
 
-
-			TestUtils.getPropertyValue(context.getBean("fastGateway"), "handler", JmsOutboundGateway.class).setReceiveTimeout(10000);
+			TestUtils.getPropertyValue(context.getBean("fastGateway"), "handler", JmsOutboundGateway.class)
+					.setReceiveTimeout(10000);
 			Thread.sleep(1000);
-			assertEquals("bar", gateway.exchange(new GenericMessage<String>("bar")).getPayload());
+			assertThat(gateway.exchange(new GenericMessage<>("bar")).getPayload()).isEqualTo("bar");
 		}
 		finally {
 			context.close();
 		}
 	}
 
-	private Object extractPayload(Message jmsMessage) {
-		try {
-			return converter.fromMessage(jmsMessage);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			fail();
-		}
-		return null;
+	private Object extractPayload(Message jmsMessage) throws JMSException {
+		return this.converter.fromMessage(jmsMessage);
 	}
+
 }

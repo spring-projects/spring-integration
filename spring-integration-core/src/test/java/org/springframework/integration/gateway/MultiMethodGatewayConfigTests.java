@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.gateway;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,12 +45,9 @@ public class MultiMethodGatewayConfigTests {
 	public void validateGatewayMethods() {
 		TestGateway gateway = this.applicationContext.getBean("myGateway", TestGateway.class);
 		String parentClassName = "org.springframework.integration.gateway.MultiMethodGatewayConfigTests";
-		Assert.assertEquals(gateway.echo("oleg"),
-				parentClassName + "$TestBeanA:oleg");
-		Assert.assertEquals(gateway.echoUpperCase("oleg"),
-				parentClassName + "$TestBeanB:oleg");
-		Assert.assertEquals(gateway.echoViaDefault("oleg"),
-				parentClassName + "$TestBeanC:oleg");
+		assertThat(parentClassName + "$TestBeanA:oleg").isEqualTo(gateway.echo("oleg"));
+		assertThat(parentClassName + "$TestBeanB:oleg").isEqualTo(gateway.echoUpperCase("oleg"));
+		assertThat(parentClassName + "$TestBeanC:oleg").isEqualTo(gateway.echoViaDefault("oleg"));
 	}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,15 +55,15 @@ public class DynamicExpressionSplitterIntegrationTests {
 		Message<?> two = output.receive(0);
 		Message<?> three = output.receive(0);
 		Message<?> four = output.receive(0);
-		assertEquals(1, one.getPayload());
-		assertEquals("foo", one.getHeaders().get("foo"));
-		assertEquals(2, two.getPayload());
-		assertEquals("foo", two.getHeaders().get("foo"));
-		assertEquals(3, three.getPayload());
-		assertEquals("foo", three.getHeaders().get("foo"));
-		assertEquals(4, four.getPayload());
-		assertEquals("foo", four.getHeaders().get("foo"));
-		assertNull(output.receive(0));
+		assertThat(one.getPayload()).isEqualTo(1);
+		assertThat(one.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(two.getPayload()).isEqualTo(2);
+		assertThat(two.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(three.getPayload()).isEqualTo(3);
+		assertThat(three.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(four.getPayload()).isEqualTo(4);
+		assertThat(four.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(output.receive(0)).isNull();
 	}
 
 

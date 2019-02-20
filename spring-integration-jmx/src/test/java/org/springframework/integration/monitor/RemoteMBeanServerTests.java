@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.management.Notification;
 
@@ -69,27 +67,27 @@ public class RemoteMBeanServerTests {
 	@Test
 	public void testAttrPoll() throws Exception {
 		Message<?> message = attrChannel.receive(100000);
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
 	public void testPublish() {
 		publishChannel.send(new GenericMessage<String>("bar"));
 		Message<?> message = publishInChannel.receive(100000);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof Notification);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof Notification).isTrue();
 		Notification notification = (Notification) message.getPayload();
-		assertEquals("bar", notification.getMessage());
-		assertEquals("foo", notification.getType());
+		assertThat(notification.getMessage()).isEqualTo("bar");
+		assertThat(notification.getType()).isEqualTo("foo");
 	}
 
 	@Test
 	public void testOperation() {
 		opChannel.send(new GenericMessage<String>("foo"));
 		Message<?> message = opOutChannel.receive(100000);
-		assertNotNull(message);
-		assertEquals("bar", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("bar");
 	}
 
 	public interface TesterMBean {

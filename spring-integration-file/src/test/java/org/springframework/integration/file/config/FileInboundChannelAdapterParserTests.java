@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.Comparator;
@@ -85,25 +77,26 @@ public class FileInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void channelName() throws Exception {
+	public void channelName() {
 		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
-		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
+		assertThat(channel.getComponentName()).as("Channel should be available under specified id")
+				.isEqualTo("inputDirPoller");
 	}
 
 	@Test
-	public void justFilter() throws Exception {
+	public void justFilter() {
 		Iterator<?> filterIterator = TestUtils
 				.getPropertyValue(this.inboundWithJustFilterSource, "scanner.filter.fileFilters", Set.class).iterator();
-		assertThat(filterIterator.next(), instanceOf(IgnoreHiddenFileListFilter.class));
-		assertSame(this.filter, filterIterator.next());
+		assertThat(filterIterator.next()).isInstanceOf(IgnoreHiddenFileListFilter.class);
+		assertThat(filterIterator.next()).isSameAs(this.filter);
 	}
 
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
 		File actual = (File) this.accessor.getPropertyValue("directory");
-		assertEquals("'directory' should be set", expected, actual);
-		assertThat(this.accessor.getPropertyValue("scanEachPoll"), is(Boolean.TRUE));
+		assertThat(actual).as("'directory' should be set").isEqualTo(expected);
+		assertThat(this.accessor.getPropertyValue("scanEachPoll")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -111,26 +104,27 @@ public class FileInboundChannelAdapterParserTests {
 		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
 		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
 		Object filter = scannerAccessor.getPropertyValue("filter");
-		assertTrue("'filter' should be set and be of instance AcceptOnceFileListFilter but got "
-			+ filter.getClass().getSimpleName(), filter instanceof AcceptOnceFileListFilter);
+		assertThat(filter instanceof AcceptOnceFileListFilter)
+				.as("'filter' should be set and be of instance AcceptOnceFileListFilter but got "
+						+ filter.getClass().getSimpleName()).isTrue();
 
-		assertThat(scanner.getClass().getName(),
-				containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+		assertThat(scanner.getClass().getName()).contains("FileReadingMessageSource$WatchServiceDirectoryScanner");
 
 		FileReadingMessageSource.WatchEventType[] watchEvents =
 				(FileReadingMessageSource.WatchEventType[]) this.accessor.getPropertyValue("watchEvents");
-		assertEquals(2, watchEvents.length);
+		assertThat(watchEvents.length).isEqualTo(2);
 		for (FileReadingMessageSource.WatchEventType watchEvent : watchEvents) {
-			assertNotEquals(FileReadingMessageSource.WatchEventType.CREATE, watchEvent);
-			assertThat(watchEvent, isOneOf(FileReadingMessageSource.WatchEventType.MODIFY,
-					FileReadingMessageSource.WatchEventType.DELETE));
+			assertThat(watchEvent).isNotEqualTo(FileReadingMessageSource.WatchEventType.CREATE);
+			assertThat(watchEvent)
+					.isIn(FileReadingMessageSource.WatchEventType.MODIFY,
+							FileReadingMessageSource.WatchEventType.DELETE);
 		}
 	}
 
 	@Test
-	public void comparator() throws Exception {
+	public void comparator() {
 		Object priorityQueue = accessor.getPropertyValue("toBeReceived");
-		assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
+		assertThat(priorityQueue).isInstanceOf(PriorityBlockingQueue.class);
 		Object expected = context.getBean("testComparator");
 		DirectFieldAccessor queueAccessor = new DirectFieldAccessor(priorityQueue);
 		Object innerQueue = queueAccessor.getPropertyValue("q");
@@ -142,7 +136,7 @@ public class FileInboundChannelAdapterParserTests {
 			// probably running under JDK 7
 			actual = queueAccessor.getPropertyValue("comparator");
 		}
-		assertSame("comparator reference not set, ", expected, actual);
+		assertThat(actual).as("comparator reference not set, ").isSameAs(expected);
 	}
 
 	static class TestComparator implements Comparator<File> {
@@ -151,5 +145,7 @@ public class FileInboundChannelAdapterParserTests {
 		public int compare(File f1, File f2) {
 			return 0;
 		}
+
 	}
+
 }

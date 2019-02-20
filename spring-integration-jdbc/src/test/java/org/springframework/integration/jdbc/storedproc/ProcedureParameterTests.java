@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.jdbc.storedproc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class ProcedureParameterTests {
 			new ProcedureParameter(null, "value", "expression");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'name' must not be empty.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'name' must not be empty.");
 			return;
 		}
 
@@ -48,7 +47,7 @@ public class ProcedureParameterTests {
 		Map<String, String> expressionParameters =
 				ProcedureParameter.convertExpressions(procedureParameters);
 
-		assertTrue("Expected 2 expression parameters.", expressionParameters.size() == 2);
+		assertThat(expressionParameters.size() == 2).as("Expected 2 expression parameters.").isTrue();
 	}
 
 	@Test
@@ -58,7 +57,7 @@ public class ProcedureParameterTests {
 		Map<String, Object> staticParameters =
 				ProcedureParameter.convertStaticParameters(procedureParameters);
 
-		assertTrue("Expected 3 static parameters.", staticParameters.size() == 3);
+		assertThat(staticParameters.size() == 3).as("Expected 3 static parameters.").isTrue();
 	}
 
 	@Test
@@ -71,7 +70,7 @@ public class ProcedureParameterTests {
 			ProcedureParameter.convertStaticParameters(procedureParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'procedureParameters' must not contain null values.");
 			return;
 		}
 
@@ -89,7 +88,7 @@ public class ProcedureParameterTests {
 			ProcedureParameter.convertExpressions(procedureParameters);
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'procedureParameters' must not contain null values.");
 			return;
 		}
 

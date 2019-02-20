@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,20 +54,20 @@ public class FilterContextTests {
 	public void methodInvokingFilterRejects() {
 		this.input.send(new GenericMessage<String>("foo"));
 		Message<?> reply = this.output.receive(0);
-		assertNull(reply);
+		assertThat(reply).isNull();
 
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 		this.pojoFilter.stop();
-		assertFalse(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isFalse();
 		this.pojoFilter.start();
-		assertTrue(this.testBean.isRunning());
+		assertThat(this.testBean.isRunning()).isTrue();
 	}
 
 	@Test
 	public void methodInvokingFilterAccepts() {
 		this.input.send(new GenericMessage<String>("foobar"));
 		Message<?> reply = this.output.receive(0);
-		assertEquals("foobar", reply.getPayload());
+		assertThat(reply.getPayload()).isEqualTo("foobar");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
@@ -65,11 +64,11 @@ public class JdbcMessageHandlerParserTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", "FOO", map.get("ID"));
-		assertEquals("Wrong id", "foo", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo("FOO");
+		assertThat(map.get("name")).as("Wrong id").isEqualTo("foo");
 		JdbcMessageHandler handler = context.getBean(JdbcMessageHandler.class);
-		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
-		assertEquals(1, adviceCalled);
+		assertThat(TestUtils.getPropertyValue(handler, "order")).isEqualTo(23);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
@@ -78,19 +77,19 @@ public class JdbcMessageHandlerParserTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "abc").build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().get("$foo_id").toString(), map.get("ID"));
-		assertEquals("Wrong id", "foo", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().get("$foo_id").toString());
+		assertThat(map.get("name")).as("Wrong id").isEqualTo("foo");
 	}
 
 	@Test
 	public void testMapPayloadOutboundChannelAdapter() {
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
-		assertTrue(context.containsBean("jdbcAdapter"));
+		assertThat(context.containsBean("jdbcAdapter")).isTrue();
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 	}
 
 	@Test
@@ -99,8 +98,8 @@ public class JdbcMessageHandlerParserTests {
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 	}
 
 	@Test
@@ -109,8 +108,8 @@ public class JdbcMessageHandlerParserTests {
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "bar", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo(message.getHeaders().getId().toString());
+		assertThat(map.get("name")).as("Wrong name").isEqualTo("bar");
 	}
 
 	@Test
@@ -127,12 +126,12 @@ public class JdbcMessageHandlerParserTests {
 			Thread.sleep(100);
 			result = jdbcTemplate.query("SELECT * from FOOW", new ColumnMapRowMapper());
 		}
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 
-		assertEquals(1, result.size());
+		assertThat(result.size()).isEqualTo(1);
 		Map<String, Object> map = result.get(0);
-		assertEquals("Wrong id", "FOO", map.get("ID"));
-		assertEquals("Wrong id", "foo", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo("FOO");
+		assertThat(map.get("name")).as("Wrong id").isEqualTo("foo");
 	}
 
 	@Test
@@ -141,8 +140,8 @@ public class JdbcMessageHandlerParserTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", "FOO", map.get("ID"));
-		assertEquals("Wrong id", "foo", map.get("name"));
+		assertThat(map.get("ID")).as("Wrong id").isEqualTo("FOO");
+		assertThat(map.get("name")).as("Wrong id").isEqualTo("foo");
 	}
 
 	@After

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,10 +69,10 @@ public class SpelSplitterIntegrationTests {
 		this.dups.send(message);
 		Message<?> one = output.receive(0);
 		Message<?> two = output.receive(0);
-		assertNotNull(one);
-		assertNotNull(two);
-		assertEquals("one", one.getPayload());
-		assertEquals("one", two.getPayload());
+		assertThat(one).isNotNull();
+		assertThat(two).isNotNull();
+		assertThat(one.getPayload()).isEqualTo("one");
+		assertThat(two.getPayload()).isEqualTo("one");
 	}
 
 	@Test
@@ -85,15 +83,15 @@ public class SpelSplitterIntegrationTests {
 		Message<?> two = output.receive(0);
 		Message<?> three = output.receive(0);
 		Message<?> four = output.receive(0);
-		assertEquals(new Integer(1), one.getPayload());
-		assertEquals("foo", one.getHeaders().get("foo"));
-		assertEquals(new Integer(2), two.getPayload());
-		assertEquals("foo", two.getHeaders().get("foo"));
-		assertEquals(new Integer(3), three.getPayload());
-		assertEquals("foo", three.getHeaders().get("foo"));
-		assertEquals(new Integer(4), four.getPayload());
-		assertEquals("foo", four.getHeaders().get("foo"));
-		assertNull(output.receive(0));
+		assertThat(one.getPayload()).isEqualTo(new Integer(1));
+		assertThat(one.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(two.getPayload()).isEqualTo(new Integer(2));
+		assertThat(two.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(three.getPayload()).isEqualTo(new Integer(3));
+		assertThat(three.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(four.getPayload()).isEqualTo(new Integer(4));
+		assertThat(four.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test
@@ -104,11 +102,11 @@ public class SpelSplitterIntegrationTests {
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);
 		Message<?> d = output.receive(0);
-		assertEquals("a", a.getPayload());
-		assertEquals("b", b.getPayload());
-		assertEquals("c", c.getPayload());
-		assertEquals("d", d.getPayload());
-		assertNull(output.receive(0));
+		assertThat(a.getPayload()).isEqualTo("a");
+		assertThat(b.getPayload()).isEqualTo("b");
+		assertThat(c.getPayload()).isEqualTo("c");
+		assertThat(d.getPayload()).isEqualTo("d");
+		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test
@@ -118,19 +116,19 @@ public class SpelSplitterIntegrationTests {
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);
 		Message<?> d = output.receive(0);
-		assertEquals("a", a.getPayload());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(a).getSequenceSize());
-		assertEquals("b", b.getPayload());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(b).getSequenceSize());
-		assertEquals("c", c.getPayload());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(c).getSequenceSize());
-		assertEquals("d", d.getPayload());
-		assertEquals(4, new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(d).getSequenceSize());
-		assertNull(output.receive(0));
+		assertThat(a.getPayload()).isEqualTo("a");
+		assertThat(new IntegrationMessageHeaderAccessor(a).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(a).getSequenceSize()).isEqualTo(0);
+		assertThat(b.getPayload()).isEqualTo("b");
+		assertThat(new IntegrationMessageHeaderAccessor(b).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(b).getSequenceSize()).isEqualTo(0);
+		assertThat(c.getPayload()).isEqualTo("c");
+		assertThat(new IntegrationMessageHeaderAccessor(c).getSequenceNumber()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(c).getSequenceSize()).isEqualTo(0);
+		assertThat(d.getPayload()).isEqualTo("d");
+		assertThat(new IntegrationMessageHeaderAccessor(d).getSequenceNumber()).isEqualTo(4);
+		assertThat(new IntegrationMessageHeaderAccessor(d).getSequenceSize()).isEqualTo(0);
+		assertThat(output.receive(0)).isNull();
 	}
 
 	@Test
@@ -140,19 +138,19 @@ public class SpelSplitterIntegrationTests {
 		Message<?> b = output.receive(0);
 		Message<?> c = output.receive(0);
 		Message<?> d = output.receive(0);
-		assertEquals("a", a.getPayload());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(a).getSequenceSize());
-		assertEquals("b", b.getPayload());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(b).getSequenceSize());
-		assertEquals("c", c.getPayload());
-		assertEquals(3, new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(c).getSequenceSize());
-		assertEquals("d", d.getPayload());
-		assertEquals(4, new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(d).getSequenceSize());
-		assertNull(output.receive(0));
+		assertThat(a.getPayload()).isEqualTo("a");
+		assertThat(new IntegrationMessageHeaderAccessor(a).getSequenceNumber()).isEqualTo(1);
+		assertThat(new IntegrationMessageHeaderAccessor(a).getSequenceSize()).isEqualTo(0);
+		assertThat(b.getPayload()).isEqualTo("b");
+		assertThat(new IntegrationMessageHeaderAccessor(b).getSequenceNumber()).isEqualTo(2);
+		assertThat(new IntegrationMessageHeaderAccessor(b).getSequenceSize()).isEqualTo(0);
+		assertThat(c.getPayload()).isEqualTo("c");
+		assertThat(new IntegrationMessageHeaderAccessor(c).getSequenceNumber()).isEqualTo(3);
+		assertThat(new IntegrationMessageHeaderAccessor(c).getSequenceSize()).isEqualTo(0);
+		assertThat(d.getPayload()).isEqualTo("d");
+		assertThat(new IntegrationMessageHeaderAccessor(d).getSequenceNumber()).isEqualTo(4);
+		assertThat(new IntegrationMessageHeaderAccessor(d).getSequenceSize()).isEqualTo(0);
+		assertThat(output.receive(0)).isNull();
 	}
 
 

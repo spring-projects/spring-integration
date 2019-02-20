@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,10 +51,10 @@ public class StopStartTests {
 	public void test() {
 		MessagingTemplate template = new MessagingTemplate(this.test);
 		this.outGateway.start();
-		assertEquals("FOO", template.convertSendAndReceive("foo", String.class));
+		assertThat(template.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
 		this.outGateway.stop();
 		this.outGateway.start();
-		assertEquals("BAR", template.convertSendAndReceive("bar", String.class));
+		assertThat(template.convertSendAndReceive("bar", String.class)).isEqualTo("BAR");
 		this.outGateway.stop();
 	}
 

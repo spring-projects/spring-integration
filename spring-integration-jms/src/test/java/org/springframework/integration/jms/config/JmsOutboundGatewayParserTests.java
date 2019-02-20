@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -80,14 +73,14 @@ public class JmsOutboundGatewayParserTests {
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
 		int deliveryMode = (Integer) accessor.getPropertyValue("deliveryMode");
-		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
-		assertTrue(TestUtils.getPropertyValue(gateway, "async", Boolean.class));
+		assertThat(deliveryMode).isEqualTo(DeliveryMode.PERSISTENT);
+		assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isTrue();
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
-		assertEquals(4, TestUtils.getPropertyValue(container, "concurrentConsumers"));
-		assertEquals(5, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
-		assertEquals(10, TestUtils.getPropertyValue(container, "maxMessagesPerTask"));
-		assertEquals(2000L, TestUtils.getPropertyValue(container, "receiveTimeout"));
+		assertThat(TestUtils.getPropertyValue(container, "concurrentConsumers")).isEqualTo(4);
+		assertThat(TestUtils.getPropertyValue(container, "maxConcurrentConsumers")).isEqualTo(5);
+		assertThat(TestUtils.getPropertyValue(container, "maxMessagesPerTask")).isEqualTo(10);
+		assertThat(TestUtils.getPropertyValue(container, "receiveTimeout")).isEqualTo(2000L);
 		Object recoveryInterval;
 		try {
 			recoveryInterval = TestUtils.getPropertyValue(container, "recoveryInterval");
@@ -95,14 +88,14 @@ public class JmsOutboundGatewayParserTests {
 		catch (NotReadablePropertyException e) {
 			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
 		}
-		assertEquals(10000L, recoveryInterval);
+		assertThat(recoveryInterval).isEqualTo(10000L);
 
-		assertEquals(7, TestUtils.getPropertyValue(container, "idleConsumerLimit"));
-		assertEquals(2, TestUtils.getPropertyValue(container, "idleTaskExecutionLimit"));
-		assertEquals(3, TestUtils.getPropertyValue(container, "cacheLevel"));
-		assertTrue(container.isSessionTransacted());
-		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
-		assertEquals(1234000L, TestUtils.getPropertyValue(gateway, "idleReplyContainerTimeout"));
+		assertThat(TestUtils.getPropertyValue(container, "idleConsumerLimit")).isEqualTo(7);
+		assertThat(TestUtils.getPropertyValue(container, "idleTaskExecutionLimit")).isEqualTo(2);
+		assertThat(TestUtils.getPropertyValue(container, "cacheLevel")).isEqualTo(3);
+		assertThat(container.isSessionTransacted()).isTrue();
+		assertThat(TestUtils.getPropertyValue(container, "taskExecutor")).isSameAs(context.getBean("exec"));
+		assertThat(TestUtils.getPropertyValue(gateway, "idleReplyContainerTimeout")).isEqualTo(1234000L);
 		context.close();
 	}
 
@@ -112,10 +105,10 @@ public class JmsOutboundGatewayParserTests {
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
 		JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
-		assertFalse(TestUtils.getPropertyValue(gateway, "async", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "async", Boolean.class)).isFalse();
 		gateway.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
-		assertEquals(3, TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode"));
+		assertThat(adviceCalled).isEqualTo(1);
+		assertThat(TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode")).isEqualTo(3);
 		context.close();
 	}
 
@@ -128,7 +121,7 @@ public class JmsOutboundGatewayParserTests {
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
 		MessageConverter converter = (MessageConverter) accessor.getPropertyValue("messageConverter");
-		assertTrue("Wrong message converter", converter instanceof StubMessageConverter);
+		assertThat(converter instanceof StubMessageConverter).as("Wrong message converter").isTrue();
 		context.close();
 	}
 
@@ -140,8 +133,8 @@ public class JmsOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		Object order = accessor.getPropertyValue("order");
-		assertEquals(99, order);
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
+		assertThat(order).isEqualTo(99);
+		assertThat(accessor.getPropertyValue("requiresReply")).isEqualTo(Boolean.TRUE);
 		context.close();
 	}
 
@@ -153,7 +146,7 @@ public class JmsOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
-		assertSame(context.getBean("replyQueue"), accessor.getPropertyValue("replyDestination"));
+		assertThat(accessor.getPropertyValue("replyDestination")).isSameAs(context.getBean("replyQueue"));
 		context.close();
 	}
 
@@ -165,7 +158,7 @@ public class JmsOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
-		assertEquals("replyQueueName", accessor.getPropertyValue("replyDestinationName"));
+		assertThat(accessor.getPropertyValue("replyDestinationName")).isEqualTo("replyQueueName");
 		context.close();
 	}
 
@@ -180,9 +173,9 @@ public class JmsOutboundGatewayParserTests {
 				ExpressionEvaluatingMessageProcessor.class);
 		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
 				Expression.class);
-		assertEquals("payload", expression.getExpressionString());
+		assertThat(expression.getExpressionString()).isEqualTo("payload");
 		Message<?> message = MessageBuilder.withPayload("foo").build();
-		assertEquals("foo", processor.processMessage(message));
+		assertThat(processor.processMessage(message)).isEqualTo("foo");
 
 		Method method = JmsOutboundGateway.class.getDeclaredMethod("determineReplyDestination", Message.class, Session.class);
 		method.setAccessible(true);
@@ -191,7 +184,7 @@ public class JmsOutboundGatewayParserTests {
 		Queue queue = mock(Queue.class);
 		when(session.createQueue("foo")).thenReturn(queue);
 		Destination replyQ = (Destination) method.invoke(gateway, message, session);
-		assertSame(queue, replyQ);
+		assertThat(replyQ).isSameAs(queue);
 		context.close();
 	}
 
@@ -206,8 +199,8 @@ public class JmsOutboundGatewayParserTests {
 				ExpressionEvaluatingMessageProcessor.class);
 		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
 				Expression.class);
-		assertEquals("@replyQueue", expression.getExpressionString());
-		assertSame(context.getBean("replyQueue"), processor.processMessage(null));
+		assertThat(expression.getExpressionString()).isEqualTo("@replyQueue");
+		assertThat(processor.processMessage(null)).isSameAs(context.getBean("replyQueue"));
 		context.close();
 	}
 
@@ -219,8 +212,10 @@ public class JmsOutboundGatewayParserTests {
 			fail("Exception expected");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of the " +
-					"'replyQueue', 'reply-destination-name', or 'reply-destination-expression' attributes is allowed."));
+			assertThat(e.getMessage().startsWith("Configuration problem: Only one of the " +
+					"'replyQueue', 'reply-destination-name', or 'reply-destination-expression' attributes is allowed" +
+					"."))
+					.isTrue();
 		}
 	}
 
@@ -233,23 +228,23 @@ public class JmsOutboundGatewayParserTests {
 		SubscribableChannel jmsInput = context.getBean("jmsInput", SubscribableChannel.class);
 		MessageHandler handler = message -> {
 			MessageHistory history = MessageHistory.read(message);
-			assertNotNull(history);
+			assertThat(history).isNotNull();
 			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
-			assertNotNull(componentHistoryRecord);
-			assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
+			assertThat(componentHistoryRecord).isNotNull();
+			assertThat(componentHistoryRecord.get("type")).isEqualTo("jms:inbound-gateway");
 			MessagingTemplate messagingTemplate = new MessagingTemplate();
 			messagingTemplate.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 			messagingTemplate.send(message);
 		};
 		jmsInput.subscribe(handler);
 		String result = gateway.echo("hello");
-		assertEquals("hello", result);
+		assertThat(result).isEqualTo("hello");
 		JmsOutboundGateway gw1 = context.getBean("chain1$child.gateway.handler", JmsOutboundGateway.class);
 		MessageChannel out = TestUtils.getPropertyValue(gw1, "outputChannel", MessageChannel.class);
-		assertThat(out.getClass().getSimpleName(), equalTo("ReplyForwardingMessageChannel"));
+		assertThat(out.getClass().getSimpleName()).isEqualTo("ReplyForwardingMessageChannel");
 		JmsOutboundGateway gw2 = context.getBean("chain2$child.gateway.handler", JmsOutboundGateway.class);
 		out = TestUtils.getPropertyValue(gw2, "outputChannel", MessageChannel.class);
-		assertThat(out.getClass().getName(), containsString("MessageHandlerChain$"));
+		assertThat(out.getClass().getName()).contains("MessageHandlerChain$");
 		context.close();
 	}
 
@@ -260,8 +255,8 @@ public class JmsOutboundGatewayParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		assertFalse((Boolean) accessor.getPropertyValue("requestPubSubDomain"));
-		assertFalse((Boolean) accessor.getPropertyValue("replyPubSubDomain"));
+		assertThat((Boolean) accessor.getPropertyValue("requestPubSubDomain")).isFalse();
+		assertThat((Boolean) accessor.getPropertyValue("replyPubSubDomain")).isFalse();
 		context.close();
 	}
 
@@ -272,8 +267,8 @@ public class JmsOutboundGatewayParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("pubSubDomainGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		assertTrue((Boolean) accessor.getPropertyValue("requestPubSubDomain"));
-		assertTrue((Boolean) accessor.getPropertyValue("replyPubSubDomain"));
+		assertThat((Boolean) accessor.getPropertyValue("requestPubSubDomain")).isTrue();
+		assertThat((Boolean) accessor.getPropertyValue("replyPubSubDomain")).isTrue();
 		context.close();
 	}
 

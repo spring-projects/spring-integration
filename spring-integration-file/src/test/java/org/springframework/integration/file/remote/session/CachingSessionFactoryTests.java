@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.integration.file.remote.session;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,29 +49,29 @@ public class CachingSessionFactoryTests {
 		CachingSessionFactory<String> cache = new CachingSessionFactory<String>(factory);
 		cache.setTestSession(true);
 		Session<String> sess1 = cache.getSession();
-		assertEquals("session:1", TestUtils.getPropertyValue(sess1, "targetSession.id"));
+		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:1");
 		Session<String> sess2 = cache.getSession();
-		assertEquals("session:2", TestUtils.getPropertyValue(sess2, "targetSession.id"));
+		assertThat(TestUtils.getPropertyValue(sess2, "targetSession.id")).isEqualTo("session:2");
 		sess1.close();
 		// session back to pool; should be open and reused.
-		assertTrue(sess1.isOpen());
+		assertThat(sess1.isOpen()).isTrue();
 		sess1 = cache.getSession();
-		assertEquals("session:1", TestUtils.getPropertyValue(sess1, "targetSession.id"));
-		assertTrue((TestUtils.getPropertyValue(sess1, "targetSession.testCalled", Boolean.class)));
+		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:1");
+		assertThat((TestUtils.getPropertyValue(sess1, "targetSession.testCalled", Boolean.class))).isTrue();
 		sess1.close();
-		assertTrue(sess1.isOpen());
+		assertThat(sess1.isOpen()).isTrue();
 		// reset the cache; should close idle (sess1); sess2 should closed later
 		cache.resetCache();
-		assertFalse(sess1.isOpen());
+		assertThat(sess1.isOpen()).isFalse();
 		sess1 = cache.getSession();
-		assertEquals("session:3", TestUtils.getPropertyValue(sess1, "targetSession.id"));
+		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:3");
 		sess1.close();
-		assertTrue(sess1.isOpen());
+		assertThat(sess1.isOpen()).isTrue();
 		// session from previous epoch is closed on return
 		sess2.close();
-		assertFalse(sess2.isOpen());
+		assertThat(sess2.isOpen()).isFalse();
 		cache.resetCache();
-		assertFalse(sess1.isOpen());
+		assertThat(sess1.isOpen()).isFalse();
 	}
 
 	@Test
@@ -100,8 +95,8 @@ public class CachingSessionFactoryTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause(), instanceOf(RuntimeException.class));
-			assertThat(e.getCause().getMessage(), equalTo("bar"));
+			assertThat(e.getCause()).isInstanceOf(RuntimeException.class);
+			assertThat(e.getCause().getMessage()).isEqualTo("bar");
 		}
 		verify(session).close();
 	}

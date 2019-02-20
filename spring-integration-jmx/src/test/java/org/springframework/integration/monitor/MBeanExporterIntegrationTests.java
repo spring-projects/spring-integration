@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.monitor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -81,55 +77,54 @@ public class MBeanExporterIntegrationTests {
 	public void testCircularReferenceNoChannel() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 	}
 
 	@Test
 	public void testCircularReferenceNoChannelInFactoryBean() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 	}
 
 	@Test
 	public void testCircularReferenceWithChannel() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-channel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 	}
 
 	@Test
 	public void testCircularReferenceWithChannelInFactoryBean() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
-		assertTrue(Arrays.asList(messageChannelsMonitor.getChannelNames()).contains("anonymous"));
+		assertThat(messageChannelsMonitor).isNotNull();
+		assertThat(Arrays.asList(messageChannelsMonitor.getChannelNames()).contains("anonymous")).isTrue();
 		MBeanServer server = context.getBean(MBeanServer.class);
-		assertEquals(1, server.queryNames(ObjectName.getInstance("com.foo:*"), null).size());
-		assertEquals(1,
-				server.queryNames(ObjectName.getInstance("org.springframework.integration:name=anonymous,*"), null)
-						.size());
+		assertThat(server.queryNames(ObjectName.getInstance("com.foo:*"), null).size()).isEqualTo(1);
+		assertThat(server.queryNames(ObjectName.getInstance("org.springframework.integration:name=anonymous,*"), null)
+				.size()).isEqualTo(1);
 	}
 
 	@Test
 	public void testCircularReferenceWithChannelInFactoryBeanAutodetected() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel-autodetect.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 	}
 
 	@Test
 	public void testLifecycleInEndpointWithMessageSource() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "lifecycle-source.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectName> names =
 				server.queryNames(
 						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
-		assertEquals(2, names.size());
+		assertThat(names.size()).isEqualTo(2);
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=explicit,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		MBeanOperationInfo[] operations = server.getMBeanInfo(names.iterator().next()).getOperations();
 		String startName = null;
 		for (MBeanOperationInfo info : operations) {
@@ -139,17 +134,17 @@ public class MBeanExporterIntegrationTests {
 			}
 		}
 		// Lifecycle method name
-		assertEquals("start", startName);
-		assertTrue((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
+		assertThat(startName).isEqualTo("start");
+		assertThat((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null)).isTrue();
 		messageChannelsMonitor.stopActiveComponents(100);
-		assertFalse((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
+		assertThat((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null)).isFalse();
 		ActiveChannel activeChannel = context.getBean("activeChannel", ActiveChannel.class);
-		assertTrue(activeChannel.isStopCalled());
+		assertThat(activeChannel.isStopCalled()).isTrue();
 		OtherActiveComponent otherActiveComponent = context.getBean(OtherActiveComponent.class);
-		assertTrue(otherActiveComponent.isBeforeCalled());
-		assertTrue(otherActiveComponent.isAfterCalled());
-		assertTrue(otherActiveComponent.isRunning());
-		assertFalse(context.getBean(AMessageProducer.class).isRunning());
+		assertThat(otherActiveComponent.isBeforeCalled()).isTrue();
+		assertThat(otherActiveComponent.isAfterCalled()).isTrue();
+		assertThat(otherActiveComponent.isRunning()).isTrue();
+		assertThat(context.getBean(AMessageProducer.class).isRunning()).isFalse();
 
 		// check pollers are still running
 		QueueChannel input = (QueueChannel) extractTarget(context.getBean("input"));
@@ -157,7 +152,7 @@ public class MBeanExporterIntegrationTests {
 		input.purge(null);
 		input2.purge(null);
 		input.send(new GenericMessage<>("foo"));
-		assertNotNull(input2.receive(10000));
+		assertThat(input2.receive(10000)).isNotNull();
 	}
 
 	private Object extractTarget(Object bean) {
@@ -195,14 +190,14 @@ public class MBeanExporterIntegrationTests {
 	public void testLifecycleInEndpointWithoutMessageSource() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "lifecycle-no-source.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectName> names =
 				server.queryNames(
 						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		MBeanOperationInfo[] operations = server.getMBeanInfo(names.iterator().next()).getOperations();
 		String startName = null;
 		for (MBeanOperationInfo info : operations) {
@@ -212,7 +207,7 @@ public class MBeanExporterIntegrationTests {
 			}
 		}
 		// Lifecycle method name
-		assertEquals("start", startName);
+		assertThat(startName).isEqualTo("start");
 
 		context.close();
 
@@ -220,45 +215,45 @@ public class MBeanExporterIntegrationTests {
 		server = context.getBean(MBeanServer.class);
 		names = server.queryNames(
 				ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Test
 	public void testComponentNames() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "excluded-components.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectName> names =
 				server.queryNames(
 						ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		names = server.queryNames(
 				ObjectName.getInstance("org.springframework.integration:type=MessageHandler,*"), null);
-		assertEquals(0, names.size());
+		assertThat(names.size()).isEqualTo(0);
 	}
 
 	@Test
 	public void testDuplicateComponentNames() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "duplicate-components.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
-		assertNotNull(messageChannelsMonitor);
+		assertThat(messageChannelsMonitor).isNotNull();
 		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectName> names =
 				server.queryNames(
 						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
-		assertEquals(2, names.size());
+		assertThat(names.size()).isEqualTo(2);
 	}
 
 	@Test
 	public void testSingleMBeanServer() {
 		AnnotationConfigApplicationContext ctx1 = new AnnotationConfigApplicationContext(Config1.class);
 		AnnotationConfigApplicationContext ctx2 = new AnnotationConfigApplicationContext(Config2.class);
-		assertSame(TestUtils.getPropertyValue(ctx1.getBean(IntegrationMBeanExporter.class), "server"),
-				TestUtils.getPropertyValue(ctx2.getBean(IntegrationMBeanExporter.class), "server"));
+		assertThat(TestUtils.getPropertyValue(ctx2.getBean(IntegrationMBeanExporter.class), "server"))
+				.isSameAs(TestUtils.getPropertyValue(ctx1.getBean(IntegrationMBeanExporter.class), "server"));
 		ctx1.close();
 		ctx2.close();
 	}

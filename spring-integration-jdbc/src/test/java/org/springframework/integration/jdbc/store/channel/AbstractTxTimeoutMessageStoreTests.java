@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -36,8 +33,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -118,6 +113,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 			log.info("Sending message: " + message);
 
 			transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+
 				@Override
 				protected void doInTransactionWithoutResult(TransactionStatus status) {
 					inputChannel.send(MessageBuilder.withPayload(message).build());
@@ -129,17 +125,17 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 
 		log.info("Done sending " + maxMessages + " messages.");
 
-		Assert.assertTrue(String.format("Countdown latch did not count down from " +
-				"%s to 0 in %sms.", maxMessages, maxWaitTime), testService.await(maxWaitTime));
+		assertThat(testService.await(maxWaitTime)).as(String.format("Countdown latch did not count down from " +
+				"%s to 0 in %sms.", maxMessages, maxWaitTime)).isTrue();
 
 		for (int i = 0; i < maxMessages; i++) {
 			Message<?> afterTxMessage = this.afterTxChannel.receive(10000);
-			assertNotNull(afterTxMessage);
+			assertThat(afterTxMessage).isNotNull();
 		}
 
-		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache()));
-		Assert.assertEquals(Integer.valueOf(maxMessages), Integer.valueOf(testService.getSeenMessages().size()));
-		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(testService.getDuplicateMessagesCount()));
+		assertThat(Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache())).isEqualTo(Integer.valueOf(0));
+		assertThat(Integer.valueOf(testService.getSeenMessages().size())).isEqualTo(Integer.valueOf(maxMessages));
+		assertThat(Integer.valueOf(testService.getDuplicateMessagesCount())).isEqualTo(Integer.valueOf(0));
 	}
 
 	@Test
@@ -189,11 +185,11 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		}
 
 		for (int j = 0; j < concurrency; j++) {
-			assertTrue(completionService.take().get());
+			assertThat(completionService.take().get()).isTrue();
 		}
 
 		executorService.shutdown();
-		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -202,9 +198,9 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 			this.first.send(new GenericMessage<Object>("test"));
 		}
 
-		assertTrue(this.successfulLatch.await(20, TimeUnit.SECONDS));
+		assertThat(this.successfulLatch.await(20, TimeUnit.SECONDS)).isTrue();
 
-		assertEquals(0, errorAtomicInteger.get());
+		assertThat(errorAtomicInteger.get()).isEqualTo(0);
 	}
 
 	@Test
@@ -218,23 +214,24 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 
 		List<Map<String, Object>> result =
 				jdbcTemplate.queryForList("SELECT MESSAGE_SEQUENCE FROM INT_CHANNEL_MESSAGE " +
-				"WHERE GROUP_KEY = ? ORDER BY CREATED_DATE", UUIDConverter.getUUID(messageGroup).toString());
-		assertEquals(2, result.size());
+						"WHERE GROUP_KEY = ? ORDER BY CREATED_DATE", UUIDConverter.getUUID(messageGroup).toString());
+		assertThat(result.size()).isEqualTo(2);
 		Object messageSequence1 = result.get(0).get("MESSAGE_SEQUENCE");
 		Object messageSequence2 = result.get(1).get("MESSAGE_SEQUENCE");
-		assertNotNull(messageSequence1);
-		assertThat(messageSequence1, Matchers.instanceOf(Number.class));
-		assertNotNull(messageSequence2);
-		assertThat(messageSequence2, Matchers.instanceOf(Number.class));
+		assertThat(messageSequence1).isNotNull();
+		assertThat(messageSequence1).isInstanceOf(Number.class);
+		assertThat(messageSequence2).isNotNull();
+		assertThat(messageSequence2).isInstanceOf(Number.class);
 
-		assertThat(((Number) messageSequence1).longValue(), Matchers.lessThan(((Number) messageSequence2).longValue()));
+		assertThat(((Number) messageSequence1).longValue()).isLessThan(((Number) messageSequence2).longValue());
 
 		this.jdbcChannelMessageStore.removeMessageGroup(messageGroup);
 	}
 
 	@Test
-	public void testPriorityChannel() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+	public void testPriorityChannel() {
+		Message<String> message = MessageBuilder.withPayload("1")
+				.setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
 		priorityChannel.send(message);
 		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
 		priorityChannel.send(message);
@@ -250,32 +247,32 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		priorityChannel.send(message);
 
 		Message<?> receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("3", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("3");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("31", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("31");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("2", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("2");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("1", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("1");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("0", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("0");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("-1", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("-1");
 
 		receive = priorityChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("none", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("none");
 	}
 
 }

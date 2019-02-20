@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.emptyCollectionOf;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 
@@ -77,7 +71,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 			fail("Expected a MessagingException");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(), containsString("'testChannel'"));
+			assertThat(e.getMessage()).contains("'testChannel'");
 		}
 	}
 
@@ -92,10 +86,10 @@ public class AbstractReplyProducingMessageHandlerTests {
 			}
 
 		};
-		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
+		assertThat(handler.getNotPropagatedHeaders()).isEmpty();
 		handler.setNotPropagatedHeaders("f*", "*r");
 		handler.setOutputChannel(this.channel);
-		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("f*", "*r"));
+		assertThat(handler.getNotPropagatedHeaders()).contains("f*", "*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());
 		handler.handleMessage(MessageBuilder.withPayload("hello")
@@ -104,10 +98,10 @@ public class AbstractReplyProducingMessageHandlerTests {
 				.setHeader("baz", "BAZ")
 				.build());
 		Message<?> out = captor.getValue();
-		assertThat(out, notNullValue());
-		assertThat(out.getHeaders().get("foo"), nullValue());
-		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
-		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
+		assertThat(out).isNotNull();
+		assertThat(out.getHeaders().get("foo")).isNull();
+		assertThat(out.getHeaders().get("bar")).isEqualTo("RAB");
+		assertThat(out.getHeaders().get("baz")).isEqualTo("BAZ");
 	}
 
 	@Test
@@ -122,7 +116,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 
 		};
 		handler.addNotPropagatedHeaders("boom");
-		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("boom"));
+		assertThat(handler.getNotPropagatedHeaders()).contains("boom");
 		handler.setOutputChannel(this.channel);
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());
@@ -132,10 +126,10 @@ public class AbstractReplyProducingMessageHandlerTests {
 				.setHeader("baz", "BAZ")
 				.build());
 		Message<?> out = captor.getValue();
-		assertThat(out, notNullValue());
-		assertThat(out.getHeaders().get("boom"), nullValue());
-		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
-		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
+		assertThat(out).isNotNull();
+		assertThat(out.getHeaders().get("boom")).isNull();
+		assertThat(out.getHeaders().get("bar")).isEqualTo("RAB");
+		assertThat(out.getHeaders().get("baz")).isEqualTo("BAZ");
 	}
 
 	@Test
@@ -149,11 +143,11 @@ public class AbstractReplyProducingMessageHandlerTests {
 			}
 
 		};
-		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
+		assertThat(handler.getNotPropagatedHeaders()).isEmpty();
 		handler.setNotPropagatedHeaders("foo");
 		handler.addNotPropagatedHeaders("b*r");
 		handler.setOutputChannel(this.channel);
-		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "b*r"));
+		assertThat(handler.getNotPropagatedHeaders()).contains("foo", "b*r");
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());
 		handler.handleMessage(
@@ -163,10 +157,10 @@ public class AbstractReplyProducingMessageHandlerTests {
 						.setHeader("baz", "BAZ")
 						.build());
 		Message<?> out = captor.getValue();
-		assertThat(out, notNullValue());
-		assertThat(out.getHeaders().get("foo"), nullValue());
-		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
-		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
+		assertThat(out).isNotNull();
+		assertThat(out.getHeaders().get("foo")).isNull();
+		assertThat(out.getHeaders().get("bar")).isEqualTo("RAB");
+		assertThat(out.getHeaders().get("baz")).isEqualTo("BAZ");
 	}
 
 }

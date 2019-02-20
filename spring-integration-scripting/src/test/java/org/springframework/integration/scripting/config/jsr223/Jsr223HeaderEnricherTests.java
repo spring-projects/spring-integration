@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,12 +53,12 @@ public class Jsr223HeaderEnricherTests {
 	@Test
 	public void referencedScript() throws Exception {
 		inputA.send(new GenericMessage<String>("Hello"));
-		assertEquals("jruby", outputA.receive(20000).getHeaders().get("TEST_HEADER"));
+		assertThat(outputA.receive(20000).getHeaders().get("TEST_HEADER")).isEqualTo("jruby");
 	}
 
 	@Test
 	public void inlineScript() throws Exception {
 		inputB.send(new GenericMessage<String>("Hello"));
-		assertEquals("js", outputB.receive(20000).getHeaders().get("TEST_HEADER"));
+		assertThat(outputB.receive(20000).getHeaders().get("TEST_HEADER")).isEqualTo("js");
 	}
 }

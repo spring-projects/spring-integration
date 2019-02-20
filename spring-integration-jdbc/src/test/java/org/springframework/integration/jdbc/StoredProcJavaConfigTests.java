@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -29,7 +26,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -80,16 +76,17 @@ public class StoredProcJavaConfigTests {
 	@Test
 	public void test() {
 		Message<?> received = fooChannel.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		Collection<?> primes = (Collection<?>) received.getPayload();
-		assertThat(primes, Matchers.<Object>contains(2, 3, 5, 7));
+		assertThat(primes).containsExactly(2, 3, 5, 7);
 		received = fooChannel.receive(100);
 		// verify maxMessagesPerPoll == 1
-		assertNull(received);
+		assertThat(received).isNull();
 		MessagingTemplate template = new MessagingTemplate(this.control);
 		template.convertAndSend("@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.stop()");
-		assertFalse(template.convertSendAndReceive(
-				"@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.isRunning()", Boolean.class));
+		assertThat(template.convertSendAndReceive(
+				"@'storedProcJavaConfigTests.Config.storedProc.inboundChannelAdapter'.isRunning()", Boolean.class))
+				.isFalse();
 	}
 
 	@Configuration

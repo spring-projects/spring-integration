@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -102,12 +99,12 @@ public class NotificationListeningMessageProducerTests {
 		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("foo");
 		Message<?> message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof Notification);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof Notification).isTrue();
 		Notification notification = (Notification) message.getPayload();
-		assertEquals("foo", notification.getMessage());
-		assertEquals(objectName, notification.getSource());
-		assertNull(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+		assertThat(notification.getMessage()).isEqualTo("foo");
+		assertThat(notification.getSource()).isEqualTo(objectName);
+		assertThat(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK)).isNull();
 	}
 
 	@Test
@@ -125,12 +122,12 @@ public class NotificationListeningMessageProducerTests {
 		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("foo");
 		Message<?> message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof Notification);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof Notification).isTrue();
 		Notification notification = (Notification) message.getPayload();
-		assertEquals("foo", notification.getMessage());
-		assertEquals(objectName, notification.getSource());
-		assertEquals(handback, message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+		assertThat(notification.getMessage()).isEqualTo("foo");
+		assertThat(notification.getSource()).isEqualTo(objectName);
+		assertThat(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK)).isEqualTo(handback);
 	}
 
 	@Test
@@ -148,13 +145,13 @@ public class NotificationListeningMessageProducerTests {
 		adapter.onApplicationEvent(new ContextRefreshedEvent(Mockito.mock(ApplicationContext.class)));
 		this.numberHolder.publish("bad");
 		Message<?> message = outputChannel.receive(0);
-		assertNull(message);
+		assertThat(message).isNull();
 		this.numberHolder.publish("okay");
 		message = outputChannel.receive(0);
-		assertNotNull(message);
-		assertTrue(message.getPayload() instanceof Notification);
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload() instanceof Notification).isTrue();
 		Notification notification = (Notification) message.getPayload();
-		assertEquals("okay", notification.getMessage());
+		assertThat(notification.getMessage()).isEqualTo("okay");
 	}
 
 

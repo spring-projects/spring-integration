@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
@@ -87,8 +81,8 @@ public class GroovyFilterTests {
 				.build();
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
-		assertEquals("test-2", replyChannel.receive(0).getPayload());
-		assertNull(replyChannel.receive(0));
+		assertThat(replyChannel.receive(0).getPayload()).isEqualTo("test-2");
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -100,21 +94,21 @@ public class GroovyFilterTests {
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		Message<?> received = replyChannel.receive(0);
-		assertNotNull(received);
-		assertEquals("good", received.getPayload());
-		assertEquals(message2, received);
-		assertNull(replyChannel.receive(0));
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("good");
+		assertThat(received).isEqualTo(message2);
+		assertThat(replyChannel.receive(0)).isNull();
 	}
 
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
-		assertTrue(this.groovyFilterMessageHandler instanceof MessageFilter);
+		assertThat(this.groovyFilterMessageHandler instanceof MessageFilter).isTrue();
 		MessageSelector selector = TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector",
 				MethodInvokingSelector.class);
 		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor = TestUtils.getPropertyValue(selector, "messageProcessor", MessageProcessor.class);
 		//before it was MethodInvokingMessageProcessor
-		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
+		assertThat(messageProcessor instanceof GroovyScriptExecutingMessageProcessor).isTrue();
 	}
 
 	@Test
@@ -124,9 +118,9 @@ public class GroovyFilterTests {
 			fail("MultipleCompilationErrorsException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), instanceOf(MultipleCompilationErrorsException.class));
-			assertThat(e.getMessage(), containsString("[Static type checking] - The variable [payload] is undeclared."));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(MultipleCompilationErrorsException.class);
+			assertThat(e.getMessage()).contains("[Static type checking] - The variable [payload] is undeclared.");
 		}
 	}
 

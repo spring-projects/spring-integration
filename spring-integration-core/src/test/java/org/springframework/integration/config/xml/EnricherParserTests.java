@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -71,31 +65,31 @@ public class EnricherParserTests {
 	@SuppressWarnings("unchecked")
 	public void configurationCheck() {
 		Object endpoint = context.getBean("enricher");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		assertThat(endpoint.getClass()).isEqualTo(EventDrivenConsumer.class);
 		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(ContentEnricher.class, handler.getClass());
+		assertThat(handler.getClass()).isEqualTo(ContentEnricher.class);
 		ContentEnricher enricher = (ContentEnricher) handler;
-		assertEquals(99, enricher.getOrder());
+		assertThat(enricher.getOrder()).isEqualTo(99);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
-		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(true, accessor.getPropertyValue("shouldClonePayload"));
-		assertNull(accessor.getPropertyValue("requestPayloadExpression"));
-		assertNotNull(TestUtils.getPropertyValue(enricher, "gateway.beanFactory"));
+		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(true);
+		assertThat(accessor.getPropertyValue("requestPayloadExpression")).isNull();
+		assertThat(TestUtils.getPropertyValue(enricher, "gateway.beanFactory")).isNotNull();
 
 		Map<Expression, Expression> propertyExpressions =
 				(Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
 		for (Map.Entry<Expression, Expression> e : propertyExpressions.entrySet()) {
 			if ("name".equals(e.getKey().getExpressionString())) {
-				assertEquals("payload.sourceName", e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo("payload.sourceName");
 			}
 			else if ("age".equals(e.getKey().getExpressionString())) {
-				assertEquals("42", e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo("42");
 			}
 			else if ("gender".equals(e.getKey().getExpressionString())) {
-				assertEquals(Gender.MALE.name(), e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo(Gender.MALE.name());
 			}
 			else if ("married".equals(e.getKey().getExpressionString())) {
-				assertEquals(Boolean.TRUE.toString(), e.getValue().getExpressionString());
+				assertThat(e.getValue().getExpressionString()).isEqualTo(Boolean.TRUE.toString());
 			}
 			else {
 				throw new IllegalStateException("expected 'name', 'age', 'gender' and married only, not: "
@@ -113,8 +107,8 @@ public class EnricherParserTests {
 		Long requestTimeout = TestUtils.getPropertyValue(endpoint, "handler.requestTimeout", Long.class);
 		Long replyTimeout = TestUtils.getPropertyValue(endpoint, "handler.replyTimeout", Long.class);
 
-		assertEquals(Long.valueOf(1234L), requestTimeout);
-		assertEquals(Long.valueOf(9876L), replyTimeout);
+		assertThat(requestTimeout).isEqualTo(Long.valueOf(1234L));
+		assertThat(replyTimeout).isEqualTo(Long.valueOf(9876L));
 
 	}
 
@@ -125,7 +119,7 @@ public class EnricherParserTests {
 
 		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
 
-		assertTrue("Was expecting requiresReply to be 'false'", requiresReply);
+		assertThat(requiresReply).as("Was expecting requiresReply to be 'false'").isTrue();
 
 	}
 
@@ -156,18 +150,18 @@ public class EnricherParserTests {
 
 		Message<?> reply = output.receive(0);
 		Target enriched = (Target) reply.getPayload();
-		assertEquals("foo", enriched.getName());
-		assertEquals(42, enriched.getAge());
-		assertEquals(Gender.MALE, enriched.getGender());
-		assertTrue(enriched.isMarried());
-		assertNotSame(original, enriched);
-		assertEquals(1, adviceCalled);
+		assertThat(enriched.getName()).isEqualTo("foo");
+		assertThat(enriched.getAge()).isEqualTo(42);
+		assertThat(enriched.getGender()).isEqualTo(Gender.MALE);
+		assertThat(enriched.isMarried()).isTrue();
+		assertThat(enriched).isNotSameAs(original);
+		assertThat(adviceCalled).isEqualTo(1);
 
 		MessageHeaders headers = reply.getHeaders();
-		assertEquals("bar", headers.get("foo"));
-		assertEquals(Gender.MALE, headers.get("testBean"));
-		assertEquals("foo", headers.get("sourceName"));
-		assertEquals("test", headers.get("notOverwrite"));
+		assertThat(headers.get("foo")).isEqualTo("bar");
+		assertThat(headers.get("testBean")).isEqualTo(Gender.MALE);
+		assertThat(headers.get("sourceName")).isEqualTo("foo");
+		assertThat(headers.get("notOverwrite")).isEqualTo("test");
 		requests.unsubscribe(foo);
 		adviceCalled--;
 	}
@@ -179,10 +173,10 @@ public class EnricherParserTests {
 			input.send(new GenericMessage<Object>("test"));
 		}
 		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
-			assertThat(e.getCause(), Matchers.instanceOf(TypeMismatchException.class));
-			assertThat(e.getCause().getMessage(),
-					Matchers.startsWith("Failed to convert value of type 'java.util.Date' to required type 'int'"));
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isInstanceOf(TypeMismatchException.class);
+			assertThat(e.getCause().getMessage())
+					.startsWith("Failed to convert value of type 'java.util.Date' to required type 'int'");
 		}
 	}
 

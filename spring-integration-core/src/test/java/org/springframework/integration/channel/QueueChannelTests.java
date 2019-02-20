@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -60,7 +57,7 @@ public class QueueChannelTests {
 			}
 		});
 		channel.send(new GenericMessage<>("testing"));
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -76,7 +73,7 @@ public class QueueChannelTests {
 			}
 		});
 		channel.send(new GenericMessage<>("testing"));
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -92,7 +89,7 @@ public class QueueChannelTests {
 			}
 		});
 		channel.send(new GenericMessage<>("testing"));
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(latch.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -110,7 +107,7 @@ public class QueueChannelTests {
 		};
 		Runnable sendTask = () -> channel.send(new GenericMessage<>("testing"));
 		singleThreadExecutor.execute(receiveTask1);
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		singleThreadExecutor.execute(sendTask);
 		Runnable receiveTask2 = () -> {
 			Message<?> message = channel.receive(0);
@@ -119,7 +116,7 @@ public class QueueChannelTests {
 			}
 		};
 		singleThreadExecutor.execute(receiveTask2);
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		singleThreadExecutor.shutdownNow();
 	}
 
@@ -135,8 +132,8 @@ public class QueueChannelTests {
 			latch.countDown();
 		});
 		exec.shutdownNow();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertTrue(messageNull.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(messageNull.get()).isTrue();
 	}
 
 	@Test
@@ -151,8 +148,8 @@ public class QueueChannelTests {
 			latch.countDown();
 		});
 		exec.shutdownNow();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertTrue(messageNull.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(messageNull.get()).isTrue();
 	}
 
 	@Test
@@ -173,9 +170,9 @@ public class QueueChannelTests {
 				latch.countDown();
 			}
 		});
-		assertTrue(pollLatch.await(10, TimeUnit.SECONDS));
+		assertThat(pollLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		channel.send(new GenericMessage<>("testing"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -197,9 +194,9 @@ public class QueueChannelTests {
 				latch.countDown();
 			}
 		});
-		assertTrue(pollLatch.await(10, TimeUnit.SECONDS));
+		assertThat(pollLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		channel.send(new GenericMessage<>("testing"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -207,20 +204,20 @@ public class QueueChannelTests {
 	public void testImmediateSend() {
 		QueueChannel channel = new QueueChannel(3);
 		boolean result1 = channel.send(new GenericMessage<>("test-1"));
-		assertTrue(result1);
+		assertThat(result1).isTrue();
 		boolean result2 = channel.send(new GenericMessage<>("test-2"), 100);
-		assertTrue(result2);
+		assertThat(result2).isTrue();
 		boolean result3 = channel.send(new GenericMessage<>("test-3"), 0);
-		assertTrue(result3);
+		assertThat(result3).isTrue();
 		boolean result4 = channel.send(new GenericMessage<>("test-4"), 0);
-		assertFalse(result4);
+		assertThat(result4).isFalse();
 	}
 
 	@Test
 	public void testBlockingSendWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<>("test-1"));
-		assertTrue(result1);
+		assertThat(result1).isTrue();
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
@@ -228,14 +225,14 @@ public class QueueChannelTests {
 			latch.countDown();
 		});
 		exec.shutdownNow();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	public void testBlockingSendWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<>("test-1"));
-		assertTrue(result1);
+		assertThat(result1).isTrue();
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
@@ -243,7 +240,7 @@ public class QueueChannelTests {
 			latch.countDown();
 		});
 		exec.shutdownNow();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -252,21 +249,21 @@ public class QueueChannelTests {
 		GenericMessage<String> message1 = new GenericMessage<>("test1");
 		GenericMessage<String> message2 = new GenericMessage<>("test2");
 		GenericMessage<String> message3 = new GenericMessage<>("test3");
-		assertTrue(channel.send(message1));
-		assertTrue(channel.send(message2));
-		assertFalse(channel.send(message3, 0));
+		assertThat(channel.send(message1)).isTrue();
+		assertThat(channel.send(message2)).isTrue();
+		assertThat(channel.send(message3, 0)).isFalse();
 		List<Message<?>> clearedMessages = channel.clear();
-		assertNotNull(clearedMessages);
-		assertEquals(2, clearedMessages.size());
-		assertTrue(channel.send(message3));
+		assertThat(clearedMessages).isNotNull();
+		assertThat(clearedMessages.size()).isEqualTo(2);
+		assertThat(channel.send(message3)).isTrue();
 	}
 
 	@Test
 	public void testClearEmptyChannel() {
 		QueueChannel channel = new QueueChannel();
 		List<Message<?>> clearedMessages = channel.clear();
-		assertNotNull(clearedMessages);
-		assertEquals(0, clearedMessages.size());
+		assertThat(clearedMessages).isNotNull();
+		assertThat(clearedMessages.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -280,13 +277,13 @@ public class QueueChannelTests {
 				.setExpirationDate(past).build();
 		Message<String> unexpiredMessage = MessageBuilder.withPayload("test2")
 				.setExpirationDate(future).build();
-		assertTrue(channel.send(expiredMessage, 0));
-		assertTrue(channel.send(unexpiredMessage, 0));
-		assertFalse(channel.send(new GenericMessage<>("atCapacity"), 0));
+		assertThat(channel.send(expiredMessage, 0)).isTrue();
+		assertThat(channel.send(unexpiredMessage, 0)).isTrue();
+		assertThat(channel.send(new GenericMessage<>("atCapacity"), 0)).isFalse();
 		List<Message<?>> purgedMessages = channel.purge(new UnexpiredMessageSelector());
-		assertNotNull(purgedMessages);
-		assertEquals(1, purgedMessages.size());
-		assertTrue(channel.send(new GenericMessage<>("roomAvailable"), 0));
+		assertThat(purgedMessages).isNotNull();
+		assertThat(purgedMessages.size()).isEqualTo(1);
+		assertThat(channel.send(new GenericMessage<>("roomAvailable"), 0)).isTrue();
 	}
 
 	@Rule

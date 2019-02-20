@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -139,15 +135,15 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertTrue(waitReapCompleteLatch.await(20, TimeUnit.SECONDS));
+		assertThat(waitReapCompleteLatch.await(20, TimeUnit.SECONDS)).isTrue();
 		// Before INT-2751 we got bar + bar + qux
-		assertEquals(2, outputMessages.size()); // bar + qux
+		assertThat(outputMessages.size()).isEqualTo(2); // bar + qux
 		// normal release
-		assertEquals(2, ((MessageGroup) outputMessages.get(0).getPayload()).size()); // 'bar'
+		assertThat(((MessageGroup) outputMessages.get(0).getPayload()).size()).isEqualTo(2); // 'bar'
 		// reaper release
-		assertEquals(1, ((MessageGroup) outputMessages.get(1).getPayload()).size()); // 'qux'
+		assertThat(((MessageGroup) outputMessages.get(1).getPayload()).size()).isEqualTo(1); // 'qux'
 
-		assertNull(discards.receive(0));
+		assertThat(discards.receive(0)).isNull();
 		exec.shutdownNow();
 	}
 
@@ -171,11 +167,13 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertEquals(1, outputMessages.size());
+		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(1);
 		groupStore.expireMessageGroups(0);
-		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(0);
 	}
 
 	@Test // INT-2833
@@ -200,11 +198,13 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		handler.setMinimumTimeoutForEmptyGroups(10_000);
 
-		assertEquals(1, outputMessages.size());
+		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(1);
 		groupStore.expireMessageGroups(0);
-		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(1);
 
 		handler.setMinimumTimeoutForEmptyGroups(10);
 
@@ -220,8 +220,9 @@ public class AbstractCorrelatingMessageHandlerTests {
 			}
 		}
 
-		assertTrue(n < 200);
-		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(n < 200).isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(0);
 	}
 
 	@Test
@@ -245,9 +246,9 @@ public class AbstractCorrelatingMessageHandlerTests {
 		new DirectFieldAccessor(group).setPropertyValue("lastModified", groupNow.getLastModified());
 		forceComplete.invoke(handler, group);
 		Message<?> message = outputChannel.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		Collection<?> payload = (Collection<?>) message.getPayload();
-		assertEquals(1, payload.size());
+		assertThat(payload.size()).isEqualTo(1);
 	}
 
 	@Test /* INT-3216 */
@@ -267,10 +268,10 @@ public class AbstractCorrelatingMessageHandlerTests {
 		forceComplete.setAccessible(true);
 		MessageGroup group = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
 				.get("foo");
-		assertTrue(group.isComplete());
+		assertThat(group.isComplete()).isTrue();
 		forceComplete.invoke(handler, group);
 		verify(mgs, never()).getMessageGroup("foo");
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 	}
 
 	/*
@@ -294,12 +295,12 @@ public class AbstractCorrelatingMessageHandlerTests {
 		forceComplete.setAccessible(true);
 		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
 				.get("foo");
-		assertTrue(groupInStore.isComplete());
-		assertFalse(group.isComplete());
+		assertThat(groupInStore.isComplete()).isTrue();
+		assertThat(group.isComplete()).isFalse();
 		new DirectFieldAccessor(group).setPropertyValue("lastModified", groupInStore.getLastModified());
 		forceComplete.invoke(handler, group);
 		verify(mgs).getMessageGroup("foo");
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 	}
 
 	/*
@@ -322,14 +323,14 @@ public class AbstractCorrelatingMessageHandlerTests {
 		forceComplete.setAccessible(true);
 		MessageGroup groupInStore = (MessageGroup) TestUtils.getPropertyValue(mgs, "groupIdToMessageGroup", Map.class)
 				.get("foo");
-		assertFalse(groupInStore.isComplete());
-		assertFalse(group.isComplete());
+		assertThat(groupInStore.isComplete()).isFalse();
+		assertThat(group.isComplete()).isFalse();
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(group);
 		directFieldAccessor.setPropertyValue("lastModified", groupInStore.getLastModified());
 		directFieldAccessor.setPropertyValue("timestamp", groupInStore.getTimestamp() - 1);
 		forceComplete.invoke(handler, group);
 		verify(mgs).getMessageGroup("foo");
-		assertNull(outputChannel.receive(0));
+		assertThat(outputChannel.receive(0)).isNull();
 	}
 
 	@Test
@@ -373,13 +374,13 @@ public class AbstractCorrelatingMessageHandlerTests {
 		/* Previously lock for the groupId hasn't been unlocked from the 'forceComplete', because it wasn't
 		 reachable in case of exception from the BasicMessageGroupStore.removeMessageGroup
 		  */
-		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
 		/* Since MessageGroup had been marked as 'complete', but hasn't been removed because of exception,
 		 the second message is discarded
 		  */
 		Message<?> receive = discardChannel.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 	}
 
 	@Test
@@ -409,9 +410,10 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertEquals(1, outputMessages.size());
+		assertThat(outputMessages.size()).isEqualTo(1);
 
-		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(1);
 
 		Thread.sleep(100);
 
@@ -422,8 +424,9 @@ public class AbstractCorrelatingMessageHandlerTests {
 			Thread.sleep(50);
 		}
 
-		assertTrue(n < 200);
-		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		assertThat(n < 200).isTrue();
+		assertThat(TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size())
+				.isEqualTo(0);
 	}
 
 	@Test
@@ -449,8 +452,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		groupStore.expireMessageGroups(0);
 
-		assertEquals(2, handler1DiscardChannel.getQueueSize());
-		assertEquals(1, handler2DiscardChannel.getQueueSize());
+		assertThat(handler1DiscardChannel.getQueueSize()).isEqualTo(2);
+		assertThat(handler2DiscardChannel.getQueueSize()).isEqualTo(1);
 	}
 
 	@Test
@@ -473,12 +476,12 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		Message<?> receive = outputChannel.receive(10_000);
 
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID)).isEqualTo(2);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(2);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
+		assertThat(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)).isTrue();
 	}
 
 }

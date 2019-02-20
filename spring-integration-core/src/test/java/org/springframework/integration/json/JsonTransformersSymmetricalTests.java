@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.integration.support.json.BoonJsonObjectMapper;
@@ -50,8 +48,8 @@ public class JsonTransformersSymmetricalTests {
 
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer();
 		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
-		assertThat(result, Matchers.instanceOf(List.class));
-		assertEquals(person, ((List<?>) result).get(0));
+		assertThat(result).isInstanceOf(List.class);
+		assertThat(((List<?>) result).get(0)).isEqualTo(person);
 	}
 
 	@Test
@@ -68,8 +66,8 @@ public class JsonTransformersSymmetricalTests {
 
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer(new BoonJsonObjectMapper());
 		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
-		assertThat(result, Matchers.instanceOf(List.class));
-		assertEquals(person, ((List<?>) result).get(0));
+		assertThat(result).isInstanceOf(List.class);
+		assertThat(((List<?>) result).get(0)).isEqualTo(person);
 	}
 
 

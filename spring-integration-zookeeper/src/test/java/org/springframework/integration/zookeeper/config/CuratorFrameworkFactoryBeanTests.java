@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.zookeeper.config;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -35,9 +35,9 @@ public class CuratorFrameworkFactoryBeanTests {
 		CuratorFrameworkFactoryBean fb = new CuratorFrameworkFactoryBean(testingServer.getConnectString());
 		CuratorFramework client = fb.getObject();
 		fb.start();
-		assertTrue(client.getState().equals(CuratorFrameworkState.STARTED));
+		assertThat(client.getState().equals(CuratorFrameworkState.STARTED)).isTrue();
 		fb.stop();
-		assertTrue(client.getState().equals(CuratorFrameworkState.STOPPED));
+		assertThat(client.getState().equals(CuratorFrameworkState.STOPPED)).isTrue();
 		testingServer.close();
 	}
 

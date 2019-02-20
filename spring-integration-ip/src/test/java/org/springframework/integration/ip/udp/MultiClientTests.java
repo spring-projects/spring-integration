@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -86,8 +85,8 @@ public class MultiClientTests {
 		}
 		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
-			assertNotNull(messageOut);
-			Assert.assertEquals(payload, new String(messageOut.getPayload()));
+			assertThat(messageOut).isNotNull();
+			assertThat(new String(messageOut.getPayload())).isEqualTo(payload);
 		}
 		adapter.stop();
 		done.set(true);
@@ -134,8 +133,8 @@ public class MultiClientTests {
 		}
 		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(20000);
-			assertNotNull(messageOut);
-			Assert.assertEquals(payload, new String(messageOut.getPayload()));
+			assertThat(messageOut).isNotNull();
+			assertThat(new String(messageOut.getPayload())).isEqualTo(payload);
 		}
 		adapter.stop();
 		done.set(true);
@@ -182,8 +181,8 @@ public class MultiClientTests {
 		}
 		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
-			assertNotNull(messageOut);
-			Assert.assertEquals(payload, new String(messageOut.getPayload()));
+			assertThat(messageOut).isNotNull();
+			assertThat(new String(messageOut.getPayload())).isEqualTo(payload);
 		}
 		adapter.stop();
 		done.set(true);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -114,7 +110,7 @@ public class WebServiceInboundGatewayJavaConfigTests {
 
 		this.messageReceiver.receive(context);
 
-		assertTrue(output.toString().endsWith(input));
+		assertThat(output.toString().endsWith(input)).isTrue();
 
 
 		context = mock(MessageContext.class);
@@ -128,10 +124,10 @@ public class WebServiceInboundGatewayJavaConfigTests {
 		this.messageReceiver.receive(context);
 
 		Message<?> receive = this.webserviceRequestsQueue.receive(10000);
-		assertNotNull(receive);
-		assertThat(receive.getPayload(), instanceOf(Element.class));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isInstanceOf(Element.class);
 		Element order = (Element) receive.getPayload();
-		assertEquals("order", order.getLocalName());
+		assertThat(order.getLocalName()).isEqualTo("order");
 	}
 
 	@Configuration

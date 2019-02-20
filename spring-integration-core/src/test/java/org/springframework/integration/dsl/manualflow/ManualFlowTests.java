@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,9 @@
 
 package org.springframework.integration.dsl.manualflow;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -43,7 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -150,23 +139,23 @@ public class ManualFlowTests {
 						.channel(channel)
 						.get();
 		IntegrationFlowRegistration flowRegistration = this.integrationFlowContext.registration(flow).register();
-		assertTrue(started.get());
+		assertThat(started.get()).isTrue();
 
 
 		Set<MessageProducer> replyProducers =
 				TestUtils.getPropertyValue(flowBuilder, "REFERENCED_REPLY_PRODUCERS", Set.class);
 
-		assertTrue(replyProducers.contains(bridgeHandler));
+		assertThat(replyProducers.contains(bridgeHandler)).isTrue();
 
-		assertNotNull(this.integrationManagementConfigurer.getChannelMetrics("channel"));
-		assertNotNull(this.integrationManagementConfigurer.getHandlerMetrics("bridge"));
+		assertThat(this.integrationManagementConfigurer.getChannelMetrics("channel")).isNotNull();
+		assertThat(this.integrationManagementConfigurer.getHandlerMetrics("bridge")).isNotNull();
 
 		flowRegistration.destroy();
 
-		assertFalse(replyProducers.contains(bridgeHandler));
+		assertThat(replyProducers.contains(bridgeHandler)).isFalse();
 
-		assertNull(this.integrationManagementConfigurer.getChannelMetrics("channel"));
-		assertNull(this.integrationManagementConfigurer.getHandlerMetrics("bridge"));
+		assertThat(this.integrationManagementConfigurer.getChannelMetrics("channel")).isNull();
+		assertThat(this.integrationManagementConfigurer.getHandlerMetrics("bridge")).isNull();
 	}
 
 	@Test
@@ -194,7 +183,7 @@ public class ManualFlowTests {
 				.channel(channel)
 				.get();
 		IntegrationFlowRegistration flowRegistration = this.integrationFlowContext.registration(flow).register();
-		assertTrue(started.get());
+		assertThat(started.get()).isTrue();
 
 		flowRegistration.destroy();
 	}
@@ -225,34 +214,34 @@ public class ManualFlowTests {
 		BeanFactoryHandler bean =
 				this.beanFactory.getBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0",
 						BeanFactoryHandler.class);
-		assertSame(additionalBean, bean);
-		assertSame(this.beanFactory, bean.beanFactory);
+		assertThat(bean).isSameAs(additionalBean);
+		assertThat(bean.beanFactory).isSameAs(this.beanFactory);
 		bean = this.beanFactory.getBean(flowRegistrationId + "." + "anId.handler", BeanFactoryHandler.class);
 
 		MessagingTemplate messagingTemplate = flowRegistration.getMessagingTemplate();
 		messagingTemplate.setReceiveTimeout(10000);
 
-		assertEquals("Hello, FOO", messagingTemplate.convertSendAndReceive("foo", String.class));
+		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("Hello, FOO");
 
-		assertEquals("Hello, BAR", messagingTemplate.convertSendAndReceive("bar", String.class));
+		assertThat(messagingTemplate.convertSendAndReceive("bar", String.class)).isEqualTo("Hello, BAR");
 
 		try {
 			messagingTemplate.receive();
 			fail("UnsupportedOperationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(UnsupportedOperationException.class));
-			assertThat(e.getMessage(), containsString("The 'receive()/receiveAndConvert()' isn't supported"));
+			assertThat(e).isInstanceOf(UnsupportedOperationException.class);
+			assertThat(e.getMessage()).contains("The 'receive()/receiveAndConvert()' isn't supported");
 		}
 
-		assertThat(this.beanFactory.getBeanNamesForType(MessageTransformingHandler.class)[0],
-				startsWith(flowId + "."));
+		assertThat(this.beanFactory.getBeanNamesForType(MessageTransformingHandler.class)[0]).startsWith(flowId + ".");
 
 		flowRegistration.destroy();
 
-		assertFalse(this.beanFactory.containsBean(flowRegistrationId));
-		assertFalse(this.beanFactory.containsBean(flowRegistrationId + ".input"));
-		assertFalse(this.beanFactory.containsBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0"));
+		assertThat(this.beanFactory.containsBean(flowRegistrationId)).isFalse();
+		assertThat(this.beanFactory.containsBean(flowRegistrationId + ".input")).isFalse();
+		assertThat(this.beanFactory.containsBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0"))
+				.isFalse();
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
 
@@ -260,9 +249,9 @@ public class ManualFlowTests {
 		while (taskScheduler.getActiveCount() > 0 && n++ < 100) {
 			Thread.sleep(100);
 		}
-		assertThat(n, lessThan(100));
+		assertThat(n).isLessThan(100);
 
-		assertTrue(additionalBean.destroyed);
+		assertThat(additionalBean.destroyed).isTrue();
 	}
 
 	@Test
@@ -272,9 +261,9 @@ public class ManualFlowTests {
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(),
-					containsString("An IntegrationFlow with the id [" + "foo" + "] doesn't exist in the registry."));
+			assertThat(e).isInstanceOf(IllegalStateException.class);
+			assertThat(e.getMessage())
+					.contains("An IntegrationFlow with the id [" + "foo" + "] doesn't exist in the registry.");
 		}
 	}
 
@@ -293,14 +282,14 @@ public class ManualFlowTests {
 		this.integrationFlowContext.messagingTemplateFor("dynamicFlow").send(new GenericMessage<>("test"));
 
 		Message<?> receive = resultChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("test", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
 
 		MessageHistory messageHistory = MessageHistory.read(receive);
-		assertNotNull(messageHistory);
+		assertThat(messageHistory).isNotNull();
 		String messageHistoryString = messageHistory.toString();
-		assertThat(messageHistoryString, Matchers.containsString("dynamicFlow.input"));
-		assertThat(messageHistoryString, Matchers.containsString("dynamicFlow.subFlow#0.channel#1"));
+		assertThat(messageHistoryString).contains("dynamicFlow.input");
+		assertThat(messageHistoryString).contains("dynamicFlow.subFlow#0.channel#1");
 
 		this.integrationFlowContext.remove("dynamicFlow");
 	}
@@ -312,8 +301,8 @@ public class ManualFlowTests {
 		PollableChannel resultChannel = this.beanFactory.getBean("flowAdapterOutput", PollableChannel.class);
 
 		Message<?> receive = resultChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("flowAdapterMessage", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("flowAdapterMessage");
 
 		flowRegistration.destroy();
 	}
@@ -326,8 +315,8 @@ public class ManualFlowTests {
 			fail("BeanCreationNotAllowedException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanCreationNotAllowedException.class));
-			assertThat(e.getMessage(), containsString("IntegrationFlows can not be scoped beans."));
+			assertThat(e).isInstanceOf(BeanCreationNotAllowedException.class);
+			assertThat(e.getMessage()).contains("IntegrationFlows can not be scoped beans.");
 		}
 	}
 
@@ -368,8 +357,8 @@ public class ManualFlowTests {
 				.send(new GenericMessage<>("test"));
 
 		Message<?> receive = resultChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("test", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
 
 		flowRegistration.destroy();
 	}
@@ -393,8 +382,8 @@ public class ManualFlowTests {
 		messagingTemplate.send(new GenericMessage<>("test"));
 
 		Message<?> receive = resultChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("test", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test");
 
 		this.roleController.stopLifecyclesInRole(testRole);
 
@@ -402,8 +391,8 @@ public class ManualFlowTests {
 			messagingTemplate.send(new GenericMessage<>("test2"));
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getMessage(), containsString("Dispatcher has no subscribers for channel"));
+			assertThat(e).isInstanceOf(MessageDeliveryException.class);
+			assertThat(e.getMessage()).contains("Dispatcher has no subscribers for channel");
 		}
 
 		this.roleController.startLifecyclesInRole(testRole);
@@ -411,12 +400,12 @@ public class ManualFlowTests {
 		messagingTemplate.send(new GenericMessage<>("test2"));
 
 		receive = resultChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("test2", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("test2");
 
 		flowRegistration.destroy();
 
-		assertTrue(this.roleController.getEndpointsRunningStatus(testRole).isEmpty());
+		assertThat(this.roleController.getEndpointsRunningStatus(testRole).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -447,10 +436,10 @@ public class ManualFlowTests {
 
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = resultChannel.receive(10_000);
-			assertNotNull(receive);
+			assertThat(receive).isNotNull();
 		}
 
-		assertNull(resultChannel.receive(0));
+		assertThat(resultChannel.receive(0)).isNull();
 
 		flowRegistration.destroy();
 	}
@@ -476,8 +465,8 @@ public class ManualFlowTests {
 					.register();
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(), containsString("with flowId '" + testId + "' is already registered."));
+			assertThat(e).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getMessage()).contains("with flowId '" + testId + "' is already registered.");
 		}
 
 		flowRegistration.destroy();
@@ -514,9 +503,9 @@ public class ManualFlowTests {
 		}
 
 		executorService.shutdownNow();
-		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executorService.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
-		assertFalse(exceptionHappened.get());
+		assertThat(exceptionHappened.get()).isFalse();
 
 		flowRegistrations.forEach(IntegrationFlowRegistration::destroy);
 	}

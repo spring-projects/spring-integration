@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
@@ -68,7 +67,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -83,10 +82,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<List<String>> message = new GenericMessage<List<String>>(list);
 		handler.handleMessage(message);
 
-		assertEquals(3, redisList.size());
-		assertEquals("Manny", redisList.get(0));
-		assertEquals("Moe", redisList.get(1));
-		assertEquals("Jack", redisList.get(2));
+		assertThat(redisList.size()).isEqualTo(3);
+		assertThat(redisList.get(0)).isEqualTo("Manny");
+		assertThat(redisList.get(1)).isEqualTo("Moe");
+		assertThat(redisList.get(2)).isEqualTo("Jack");
 		this.deleteKey(jcf, "foo");
 	}
 
@@ -99,7 +98,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -114,10 +113,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<List<String>> message = MessageBuilder.withPayload(list).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertEquals(3, redisList.size());
-		assertEquals("Manny", redisList.get(0));
-		assertEquals("Moe", redisList.get(1));
-		assertEquals("Jack", redisList.get(2));
+		assertThat(redisList.size()).isEqualTo(3);
+		assertThat(redisList.get(0)).isEqualTo("Manny");
+		assertThat(redisList.get(1)).isEqualTo("Moe");
+		assertThat(redisList.get(2)).isEqualTo("Jack");
 		this.deleteKey(jcf, "foo");
 	}
 
@@ -130,7 +129,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new RedisTemplate<String, String>()));
 
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -155,7 +154,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisList<List<String>> redisList =
 				new DefaultRedisList<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
 
-		assertEquals(0, redisList.size());
+		assertThat(redisList.size()).isEqualTo(0);
 
 		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
 		RedisStoreWritingMessageHandler handler =
@@ -172,11 +171,11 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<List<String>> message = new GenericMessage<List<String>>(list);
 		handler.handleMessage(message);
 
-		assertEquals(1, redisList.size());
+		assertThat(redisList.size()).isEqualTo(1);
 		List<String> resultList = redisList.get(0);
-		assertEquals("Manny", resultList.get(0));
-		assertEquals("Moe", resultList.get(1));
-		assertEquals("Jack", resultList.get(2));
+		assertThat(resultList.get(0)).isEqualTo("Manny");
+		assertThat(resultList.get(1)).isEqualTo("Moe");
+		assertThat(resultList.get(2)).isEqualTo("Jack");
 		this.deleteKey(jcf, "foo");
 	}
 
@@ -189,7 +188,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -207,18 +206,18 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 1);
+			assertThat(pepboy.getScore() == 1).isTrue();
 		}
 
 		handler.handleMessage(message);
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented by 1
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertEquals(Double.valueOf(2), pepboy.getScore());
+			assertThat(pepboy.getScore()).isEqualTo(Double.valueOf(2));
 		}
 		this.deleteKey(jcf, "foo");
 	}
@@ -232,7 +231,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -251,18 +250,18 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 		handler.handleMessage(message);
 
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 1);
+			assertThat(pepboy.getScore() == 1).isTrue();
 		}
 
 		handler.handleMessage(message);
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 2);
+			assertThat(pepboy.getScore() == 2).isTrue();
 		}
 		this.deleteKey(jcf, "foo");
 	}
@@ -276,7 +275,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -295,18 +294,18 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 		handler.handleMessage(message);
 
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 1);
+			assertThat(pepboy.getScore() == 1).isTrue();
 		}
 
 		handler.handleMessage(message);
-		assertEquals(3, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(3);
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
 		// should have incremented
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 2);
+			assertThat(pepboy.getScore() == 2).isTrue();
 		}
 		this.deleteKey(jcf, "foo");
 	}
@@ -320,7 +319,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<List<String>> redisZset =
 				new DefaultRedisZSet<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
 		RedisStoreWritingMessageHandler handler =
@@ -339,10 +338,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 						setHeader("redis_zsetScore", 4).build();
 		handler.handleMessage(message);
 
-		assertEquals(1, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(1);
 		Set<TypedTuple<List<String>>> entries = redisZset.rangeByScoreWithScores(1, 4);
 		for (TypedTuple<List<String>> pepboys : entries) {
-			assertTrue(pepboys.getScore() == 4);
+			assertThat(pepboys.getScore() == 4).isTrue();
 		}
 		this.deleteKey(jcf, "foo");
 	}
@@ -356,7 +355,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -385,10 +384,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<String, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertEquals(13, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(13);
 
 		Set<TypedTuple<String>> entries = redisZset.rangeByScoreWithScores(18, 19);
-		assertEquals(6, entries.size());
+		assertThat(entries.size()).isEqualTo(6);
 		this.deletePresidents(jcf);
 	}
 
@@ -401,7 +400,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<President> redisZset =
 				new DefaultRedisZSet<President>(key, this.initTemplate(jcf, new RedisTemplate<String, President>()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisTemplate<String, President> template = this.initTemplate(jcf, new RedisTemplate<String, President>());
 		RedisStoreWritingMessageHandler handler =
@@ -431,10 +430,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<President, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertEquals(13, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(13);
 
 		Set<TypedTuple<President>> entries = redisZset.rangeByScoreWithScores(18, 19);
-		assertEquals(6, entries.size());
+		assertThat(entries.size()).isEqualTo(6);
 		this.deletePresidents(jcf);
 	}
 
@@ -447,7 +446,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		RedisZSet<Map<President, Double>> redisZset =
 				new DefaultRedisZSet<Map<President, Double>>(key, this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
 
-		assertEquals(0, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(0);
 
 		RedisTemplate<String, Map<President, Double>> template = this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>());
 		RedisStoreWritingMessageHandler handler =
@@ -467,7 +466,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		Message<Map<President, Double>> message = MessageBuilder.withPayload(presidents).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
 
-		assertEquals(1, redisZset.size());
+		assertThat(redisZset.size()).isEqualTo(1);
 		this.deletePresidents(jcf);
 	}
 

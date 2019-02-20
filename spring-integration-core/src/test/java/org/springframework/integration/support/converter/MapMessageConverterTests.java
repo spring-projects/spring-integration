@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.support.converter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Map;
 
@@ -50,25 +47,25 @@ public class MapMessageConverterTests {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 
-		assertNotNull(headers);
-		assertNotNull(map.get("payload"));
-		assertEquals("foo", map.get("payload"));
-		assertNotNull(headers.get("bar"));
-		assertEquals("baz", headers.get("bar"));
-		assertNull(headers.get("baz"));
+		assertThat(headers).isNotNull();
+		assertThat(map.get("payload")).isNotNull();
+		assertThat(map.get("payload")).isEqualTo("foo");
+		assertThat(headers.get("bar")).isNotNull();
+		assertThat(headers.get("bar")).isEqualTo("baz");
+		assertThat(headers.get("baz")).isNull();
 
 		headers.put("baz", "qux");
 		Message<?> converted = converter.toMessage(map, null);
-		assertEquals("foo", converted.getPayload());
-		assertEquals("baz", converted.getHeaders().get("bar"));
-		assertEquals("qux", converted.getHeaders().get("baz"));
+		assertThat(converted.getPayload()).isEqualTo("foo");
+		assertThat(converted.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(converted.getHeaders().get("baz")).isEqualTo("qux");
 
 		converter.setFilterHeadersInToMessage(true);
 
 		converted = converter.toMessage(map, null);
-		assertEquals("foo", converted.getPayload());
-		assertEquals("baz", converted.getHeaders().get("bar"));
-		assertNull(converted.getHeaders().get("baz"));
+		assertThat(converted.getPayload()).isEqualTo("foo");
+		assertThat(converted.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(converted.getHeaders().get("baz")).isNull();
 	}
 
 	@Test
@@ -89,7 +86,7 @@ public class MapMessageConverterTests {
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("'payload' entry cannot be null", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("'payload' entry cannot be null");
 		}
 	}
 
@@ -104,11 +101,11 @@ public class MapMessageConverterTests {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 
-		assertNotNull(headers);
-		assertEquals(0, headers.size());
+		assertThat(headers).isNotNull();
+		assertThat(headers.size()).isEqualTo(0);
 		map.remove("headers");
 		Message<?> converted = converter.toMessage(map, null);
-		assertEquals("foo", converted.getPayload());
+		assertThat(converted.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -123,10 +120,10 @@ public class MapMessageConverterTests {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 
-		assertNotNull(headers);
-		assertNotNull(map.get("payload"));
-		assertEquals("foo", map.get("payload"));
-		assertFalse(headers.keySet().contains("bar"));
-		assertEquals(0, headers.size());
+		assertThat(headers).isNotNull();
+		assertThat(map.get("payload")).isNotNull();
+		assertThat(map.get("payload")).isEqualTo("foo");
+		assertThat(headers.keySet().contains("bar")).isFalse();
+		assertThat(headers.size()).isEqualTo(0);
 	}
 }

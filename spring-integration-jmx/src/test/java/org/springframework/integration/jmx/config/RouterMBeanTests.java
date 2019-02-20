@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -70,7 +70,7 @@ public class RouterMBeanTests {
 		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -78,24 +78,24 @@ public class RouterMBeanTests {
 		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:type=MessageChannel,*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageChannel,name=testChannel,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Test
 	public void testErrorChannelMBeanExists() throws Exception {
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageChannel,name=errorChannel,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 	}
 
 	@Test
 	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
 		// System . err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
-		assertEquals(1, names.size());
+		assertThat(names.size()).isEqualTo(1);
 		// INT-3896
 		names = server.queryNames(new ObjectName("test.RouterMBean:type=ExpressionEvaluatingRouter,*"), null);
-		assertEquals(0, names.size());
+		assertThat(names.size()).isEqualTo(0);
 	}
 
 	public interface Service {

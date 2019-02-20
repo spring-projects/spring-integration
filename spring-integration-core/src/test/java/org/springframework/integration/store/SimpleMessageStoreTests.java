@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.springframework.integration.store;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +52,7 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessage(testMessage1);
-		assertThat(store.getMessage(testMessage1.getHeaders().getId()), is(testMessage1));
+		assertThat(store.getMessage(testMessage1.getHeaders().getId())).isEqualTo(testMessage1);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -81,8 +75,8 @@ public class SimpleMessageStoreTests {
 			fail("Should have thrown");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity (1)"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("was out of capacity (1)");
 		}
 		store.removeMessage(testMessage2.getHeaders().getId());
 		try {
@@ -90,8 +84,8 @@ public class SimpleMessageStoreTests {
 			fail("Should have thrown");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity (1)"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("was out of capacity (1)");
 		}
 		store.removeMessage(testMessage1.getHeaders().getId());
 		store.addMessage(testMessage2);
@@ -116,11 +110,11 @@ public class SimpleMessageStoreTests {
 		// Simulate a blocked consumer
 		Thread.sleep(10);
 		Message<?> t1 = store2.removeMessage(testMessage1.getHeaders().getId());
-		assertEquals(testMessage1, t1);
+		assertThat(t1).isEqualTo(testMessage1);
 
-		assertTrue(message2Latch.await(10, TimeUnit.SECONDS));
+		assertThat(message2Latch.await(10, TimeUnit.SECONDS)).isTrue();
 		Message<?> t2 = store2.getMessage(testMessage2.getHeaders().getId());
-		assertEquals(testMessage2, t2);
+		assertThat(t2).isEqualTo(testMessage2);
 		exec.shutdownNow();
 	}
 
@@ -162,7 +156,7 @@ public class SimpleMessageStoreTests {
 		Thread.sleep(10);
 		store2.removeMessagesFromGroup("foo", testMessage1);
 
-		assertTrue(message2Latch.await(10, TimeUnit.SECONDS));
+		assertThat(message2Latch.await(10, TimeUnit.SECONDS)).isTrue();
 		MessageGroup messageGroup = store2.getMessageGroup("foo");
 		messageGroup.getMessages().contains(testMessage2);
 		exec.shutdownNow();
@@ -198,8 +192,8 @@ public class SimpleMessageStoreTests {
 			fail("Should have thrown");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("was out of capacity (1) for group 'foo'");
 		}
 		store.removeMessagesFromGroup("foo", testMessage2);
 		try {
@@ -207,8 +201,8 @@ public class SimpleMessageStoreTests {
 			fail("Should have thrown");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
+			assertThat(e).isInstanceOf(MessagingException.class);
+			assertThat(e.getMessage()).contains("was out of capacity (1) for group 'foo'");
 		}
 		store.removeMessagesFromGroup("foo", testMessage1);
 		store.addMessageToGroup("foo", testMessage2);
@@ -220,7 +214,7 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
-		assertEquals(1, store.getMessageGroup("bar").size());
+		assertThat(store.getMessageGroup("bar").size()).isEqualTo(1);
 	}
 
 	@Test
@@ -231,8 +225,8 @@ public class SimpleMessageStoreTests {
 		Message<?> testMessage2 = store.getMessageGroup("bar").getOne();
 		store.removeMessagesFromGroup("bar", testMessage2);
 		MessageGroup group = store.getMessageGroup("bar");
-		assertEquals(0, group.size());
-		assertEquals(0, store.getMessageGroup("bar").size());
+		assertThat(group.size()).isEqualTo(0);
+		assertThat(store.getMessageGroup("bar").size()).isEqualTo(0);
 	}
 
 	@Test
@@ -242,8 +236,8 @@ public class SimpleMessageStoreTests {
 			store.addMessageToGroup("bar", MessageBuilder.withPayload("foo").build());
 			store.addMessageToGroup("bar", MessageBuilder.withPayload("foo").build());
 			store.removeMessageGroup("bar");
-			assertEquals(0, store.getMessageGroup("bar").size());
-			assertEquals(0, store.getMessageGroupCount());
+			assertThat(store.getMessageGroup("bar").size()).isEqualTo(0);
+			assertThat(store.getMessageGroupCount()).isEqualTo(0);
 		}
 	}
 
@@ -253,14 +247,14 @@ public class SimpleMessageStoreTests {
 		store.setCopyOnGet(true);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
-		assertNotSame(store.getMessageGroup("bar"), store.getMessageGroup("bar"));
+		assertThat(store.getMessageGroup("bar")).isNotSameAs(store.getMessageGroup("bar"));
 	}
 
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList((messageGroupStore, group) -> { }));
-		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
+		assertThat(((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size()).isEqualTo(1);
 	}
 
 	@Test
@@ -275,11 +269,11 @@ public class SimpleMessageStoreTests {
 
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
-		assertEquals(1, store.getMessageGroup("bar").size());
+		assertThat(store.getMessageGroup("bar").size()).isEqualTo(1);
 
 		store.expireMessageGroups(-10000);
-		assertEquals("[foo]", list.toString());
-		assertEquals(0, store.getMessageGroup("bar").size());
+		assertThat(list.toString()).isEqualTo("[foo]");
+		assertThat(store.getMessageGroup("bar").size()).isEqualTo(0);
 
 	}
 
@@ -294,10 +288,10 @@ public class SimpleMessageStoreTests {
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(25, group.size());
+		assertThat(group.size()).isEqualTo(25);
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
+		assertThat(group.size()).isEqualTo(0);
 	}
 
 }

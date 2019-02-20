@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 
 package org.springframework.integration.transformer;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -47,9 +43,9 @@ public class PayloadDeserializingTransformerTests {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
 		Object payload = result.getPayload();
-		assertNotNull(payload);
-		assertEquals(String.class, payload.getClass());
-		assertEquals("foo", payload);
+		assertThat(payload).isNotNull();
+		assertThat(payload.getClass()).isEqualTo(String.class);
+		assertThat(payload).isEqualTo("foo");
 	}
 
 	@Test
@@ -62,9 +58,9 @@ public class PayloadDeserializingTransformerTests {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
 		Object payload = result.getPayload();
-		assertNotNull(payload);
-		assertEquals(TestBean.class, payload.getClass());
-		assertEquals(testBean.name, ((TestBean) payload).name);
+		assertThat(payload).isNotNull();
+		assertThat(payload.getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) payload).name).isEqualTo(testBean.name);
 	}
 
 	@Test
@@ -81,15 +77,15 @@ public class PayloadDeserializingTransformerTests {
 			fail("expected security exception");
 		}
 		catch (MessageTransformationException e) {
-			assertThat(e.getCause().getCause(), instanceOf(SecurityException.class));
-			assertThat(e.getCause().getCause().getMessage(), startsWith("Attempt to deserialize unauthorized"));
+			assertThat(e.getCause().getCause()).isInstanceOf(SecurityException.class);
+			assertThat(e.getCause().getCause().getMessage()).startsWith("Attempt to deserialize unauthorized");
 		}
 		transformer.setWhiteListPatterns("org.*");
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
 		Object payload = result.getPayload();
-		assertNotNull(payload);
-		assertEquals(TestBean.class, payload.getClass());
-		assertEquals(testBean.name, ((TestBean) payload).name);
+		assertThat(payload).isNotNull();
+		assertThat(payload.getClass()).isEqualTo(TestBean.class);
+		assertThat(((TestBean) payload).name).isEqualTo(testBean.name);
 	}
 
 	@Test(expected = MessageTransformationException.class)
@@ -104,7 +100,7 @@ public class PayloadDeserializingTransformerTests {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
 		transformer.setConverter(source -> "Converted");
 		Message<?> message = transformer.transform(MessageBuilder.withPayload("Test".getBytes()).build());
-		assertEquals("Converted", message.getPayload());
+		assertThat(message.getPayload()).isEqualTo("Converted");
 	}
 
 	@SuppressWarnings("serial")

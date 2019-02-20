@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -87,16 +85,16 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		try {
 			sync.synchronizeToLocalDirectory(mock(File.class));
-			assertEquals(1, count.get());
+			assertThat(count.get()).isEqualTo(1);
 			fail("Expected exception");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause(), instanceOf(MessagingException.class));
-			assertThat(e.getCause().getCause(), instanceOf(IOException.class));
-			assertEquals("fail", e.getCause().getCause().getMessage());
+			assertThat(e.getCause()).isInstanceOf(MessagingException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(IOException.class);
+			assertThat(e.getCause().getCause().getMessage()).isEqualTo("fail");
 		}
 		sync.synchronizeToLocalDirectory(mock(File.class));
-		assertEquals(3, count.get());
+		assertThat(count.get()).isEqualTo(3);
 		sync.close();
 	}
 
@@ -106,11 +104,11 @@ public class AbstractRemoteFileSynchronizerTests {
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
 
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
-		assertEquals(1, count.get());
+		assertThat(count.get()).isEqualTo(1);
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
-		assertEquals(2, count.get());
+		assertThat(count.get()).isEqualTo(2);
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
-		assertEquals(3, count.get());
+		assertThat(count.get()).isEqualTo(3);
 		sync.close();
 	}
 
@@ -123,7 +121,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.start();
 
 		source.receive();
-		assertEquals(1, count.get());
+		assertThat(count.get()).isEqualTo(1);
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
 		source.receive();
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
@@ -139,7 +137,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
-		assertEquals(1, count.get());
+		assertThat(count.get()).isEqualTo(1);
 	}
 
 	@Test
@@ -150,7 +148,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.afterPropertiesSet();
 		source.start();
 		source.receive();
-		assertEquals(1, count.get());
+		assertThat(count.get()).isEqualTo(1);
 	}
 
 	@Test(expected = IllegalStateException.class)

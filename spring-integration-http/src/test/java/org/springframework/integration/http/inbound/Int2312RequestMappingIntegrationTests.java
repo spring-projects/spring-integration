@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,7 +24,6 @@ import java.util.Map;
 
 import javax.servlet.http.Cookie;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -83,7 +78,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		this.handlerAdapter.handle(request, response, handler);
-		assertEquals(TEST_STRING_MULTIPLE_PATHS, response.getContentAsString());
+		assertThat(response.getContentAsString()).isEqualTo(TEST_STRING_MULTIPLE_PATHS);
 
 		request = new MockHttpServletRequest();
 		request.setMethod("GET");
@@ -91,7 +86,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		response = new MockHttpServletResponse();
 		handler = this.handlerMapping.getHandler(request).getHandler();
 		this.handlerAdapter.handle(request, response, handler);
-		assertEquals(TEST_STRING_MULTIPLE_PATHS, response.getContentAsString());
+		assertThat(response.getContentAsString()).isEqualTo(TEST_STRING_MULTIPLE_PATHS);
 	}
 
 
@@ -120,28 +115,28 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		this.toLowerCaseChannel.subscribe(message -> {
 			MessageHeaders headers = message.getHeaders();
 
-			assertEquals(attributes, headers.get("requestAttributes"));
+			assertThat(headers.get("requestAttributes")).isEqualTo(attributes);
 
 			Object requestParams = headers.get("requestParams");
-			assertNotNull(requestParams);
-			assertEquals(params, ((MultiValueMap<String, String>) requestParams).toSingleValueMap());
+			assertThat(requestParams).isNotNull();
+			assertThat(((MultiValueMap<String, String>) requestParams).toSingleValueMap()).isEqualTo(params);
 
 			Object matrixVariables = headers.get("matrixVariables");
-			assertThat(matrixVariables, Matchers.instanceOf(Map.class));
+			assertThat(matrixVariables).isInstanceOf(Map.class);
 			Object value = ((Map<?, ?>) matrixVariables).get("value");
-			assertThat(value, Matchers.instanceOf(MultiValueMap.class));
-			assertEquals("1", ((MultiValueMap<String, ?>) value).getFirst("q1"));
-			assertEquals("2", ((MultiValueMap<String, ?>) value).getFirst("q2"));
+			assertThat(value).isInstanceOf(MultiValueMap.class);
+			assertThat(((MultiValueMap<String, ?>) value).getFirst("q1")).isEqualTo("1");
+			assertThat(((MultiValueMap<String, ?>) value).getFirst("q2")).isEqualTo("2");
 
 			Object requestHeaders = headers.get("requestHeaders");
-			assertNotNull(requestParams);
-			assertEquals(MediaType.TEXT_PLAIN, ((HttpHeaders) requestHeaders).getContentType());
+			assertThat(requestParams).isNotNull();
+			assertThat(((HttpHeaders) requestHeaders).getContentType()).isEqualTo(MediaType.TEXT_PLAIN);
 
 			Map<String, Cookie> cookies = (Map<String, Cookie>) headers.get("cookies");
-			assertEquals(1, cookies.size());
+			assertThat(cookies.size()).isEqualTo(1);
 			Cookie foo = cookies.get("foo");
-			assertNotNull(foo);
-			assertEquals(cookie, foo);
+			assertThat(foo).isNotNull();
+			assertThat(foo).isEqualTo(cookie);
 		});
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -149,7 +144,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		this.handlerAdapter.handle(request, response, handler);
 		final String testResponse = response.getContentAsString();
-		assertEquals(testRequest.split(";")[0].toLowerCase(), testResponse);
+		assertThat(testResponse).isEqualTo(testRequest.split(";")[0].toLowerCase());
 
 		RequestContextHolder.resetRequestAttributes();
 	}
@@ -164,7 +159,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		catch (Exception e) {
 			// There is no matching handlers and some default handler
 			//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
-			assertTrue(e instanceof UnsatisfiedServletRequestParameterException);
+			assertThat(e instanceof UnsatisfiedServletRequestParameterException).isTrue();
 		}
 
 		request = new MockHttpServletRequest("GET", "/params");
@@ -177,7 +172,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 		this.handlerAdapter.handle(request, response, handler);
 		String testResponse = response.getContentAsString();
-		assertEquals("User=1;account=1", testResponse);
+		assertThat(testResponse).isEqualTo("User=1;account=1");
 
 		request = new MockHttpServletRequest("GET", "/params");
 		request.addParameter("param1", "1");
@@ -187,7 +182,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 		this.handlerAdapter.handle(request, response, handler);
 		testResponse = response.getContentAsString();
-		assertEquals("User=1", testResponse);
+		assertThat(testResponse).isEqualTo("User=1");
 	}
 
 	@Test
@@ -199,7 +194,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 		this.handlerAdapter.handle(request, response, handler);
 		String testResponse = response.getContentAsString();
-		assertEquals("BAR", testResponse);
+		assertThat(testResponse).isEqualTo("BAR");
 
 		request = new MockHttpServletRequest("GET", "/consumes");
 		request.setContentType("text/xml");
@@ -208,7 +203,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 		this.handlerAdapter.handle(request, response, handler);
 		testResponse = response.getContentAsString();
-		assertEquals("<test>TEXT_XML</test>", testResponse);
+		assertThat(testResponse).isEqualTo("<test>TEXT_XML</test>");
 	}
 
 	@Test
@@ -218,28 +213,28 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 
 		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
-		assertEquals(Collections.singleton(MediaType.APPLICATION_XML),
-				request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE));
+		assertThat(request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE))
+				.isEqualTo(Collections.singleton(MediaType.APPLICATION_XML));
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		this.handlerAdapter.handle(request, response, handler);
 		String testResponse = response.getContentAsString();
-		assertEquals("<test>XML</test>", testResponse);
+		assertThat(testResponse).isEqualTo("<test>XML</test>");
 
 		request = new MockHttpServletRequest("GET", "/produces");
 		request.addHeader("Accept", "application/json");
 		handler = this.handlerMapping.getHandler(request).getHandler();
 
 		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
-		assertNull("Negated expression should not be listed as a producible type",
-				request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE));
+		assertThat(request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE))
+				.as("Negated expression should not be listed as a producible type").isNull();
 
 		response = new MockHttpServletResponse();
 
 		this.handlerAdapter.handle(request, response, handler);
 		testResponse = response.getContentAsString();
-		assertEquals("{\"json\":\"body\"}", testResponse);
+		assertThat(testResponse).isEqualTo("{\"json\":\"body\"}");
 	}
 
 }

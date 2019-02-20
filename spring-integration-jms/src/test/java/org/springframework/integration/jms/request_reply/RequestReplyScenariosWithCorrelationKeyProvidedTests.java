@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms.request_reply;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 
@@ -76,7 +76,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 		Message<?> result = gateway.exchange(MessageBuilder.withPayload("foo")
 				.setHeader(JmsHeaders.CORRELATION_ID, correlationId)
 				.build());
-		assertEquals(correlationId, result.getHeaders().get("receivedCorrelationId"));
+		assertThat(result.getHeaders().get("receivedCorrelationId")).isEqualTo(correlationId);
 		context.close();
 	}
 
@@ -99,7 +99,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 
 		JmsOutboundGateway outGateway = TestUtils.getPropertyValue(context.getBean("outGateway"), "handler", JmsOutboundGateway.class);
 		outGateway.setReceiveTimeout(5000);
-		assertEquals("foo", gateway.exchange(MessageBuilder.withPayload("foo").build()).getPayload());
+		assertThat(gateway.exchange(MessageBuilder.withPayload("foo").build()).getPayload()).isEqualTo("foo");
 		context.close();
 	}
 

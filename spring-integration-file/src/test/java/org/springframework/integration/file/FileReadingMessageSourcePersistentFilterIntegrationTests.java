@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
@@ -97,25 +94,25 @@ public class FileReadingMessageSourcePersistentFilterIntegrationTests {
 	@Test
 	public void configured() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollableFileSource);
-		assertEquals(inputDir, accessor.getPropertyValue("directory"));
+		assertThat(accessor.getPropertyValue("directory")).isEqualTo(inputDir);
 	}
 
 	@Test
 	public void getFiles() throws Exception {
 		Message<File> received1 = this.pollableFileSource.receive();
-		assertNotNull("This should return the first message", received1);
+		assertThat(received1).as("This should return the first message").isNotNull();
 		Message<File> received2 = this.pollableFileSource.receive();
-		assertNotNull(received2);
+		assertThat(received2).isNotNull();
 		Message<File> received3 = this.pollableFileSource.receive();
-		assertNotNull(received3);
-		assertNotSame(received1 + " == " + received2, received1.getPayload(), received2.getPayload());
-		assertNotSame(received1 + " == " + received3, received1.getPayload(), received3.getPayload());
-		assertNotSame(received2 + " == " + received3, received2.getPayload(), received3.getPayload());
+		assertThat(received3).isNotNull();
+		assertThat(received2.getPayload()).as(received1 + " == " + received2).isNotSameAs(received1.getPayload());
+		assertThat(received3.getPayload()).as(received1 + " == " + received3).isNotSameAs(received1.getPayload());
+		assertThat(received3.getPayload()).as(received2 + " == " + received3).isNotSameAs(received2.getPayload());
 		this.context.close();
 
 		loadContextAndGetMessageSource();
 		Message<File> received4 = this.pollableFileSource.receive();
-		assertNull(received4);
+		assertThat(received4).isNull();
 		this.context.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.sql.Types;
@@ -45,9 +44,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(null);
-		assertTrue(source.hasValue("foo"));
-		assertEquals("bar", source.getValue("foo"));
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("foo"));
+		assertThat(source.hasValue("foo")).isTrue();
+		assertThat(source.getValue("foo")).isEqualTo("bar");
+		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -55,9 +54,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
-		assertTrue(source.hasValue("foo"));
-		assertEquals("bar", source.getValue("foo"));
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("foo"));
+		assertThat(source.hasValue("foo")).isTrue();
+		assertThat(source.getValue("foo")).isEqualTo("bar");
+		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -67,9 +66,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "foo";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[bar, bucket]", source.getValue(expression).toString());
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType(expression));
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[bar, bucket]");
+		assertThat(source.getSqlType(expression)).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -78,9 +77,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
-		assertTrue(source.hasValue("foo.toUpperCase()"));
-		assertEquals("BAR", source.getValue("foo.toUpperCase()"));
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("food"));
+		assertThat(source.hasValue("foo.toUpperCase()")).isTrue();
+		assertThat(source.getValue("foo.toUpperCase()")).isEqualTo("BAR");
+		assertThat(source.getSqlType("food")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -89,9 +88,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
-		assertTrue(source.hasValue("spam"));
-		assertEquals("BAR", source.getValue("spam"));
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("spam"));
+		assertThat(source.hasValue("spam")).isTrue();
+		assertThat(source.getValue("spam")).isEqualTo("BAR");
+		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -101,9 +100,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
-		assertTrue(source.hasValue("spam"));
-		assertEquals("BAR", source.getValue("spam"));
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("spam"));
+		assertThat(source.hasValue("spam")).isTrue();
+		assertThat(source.getValue("spam")).isEqualTo("BAR");
+		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -114,9 +113,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("foo"));
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
+		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
@@ -128,9 +127,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
-		assertEquals(Types.SQLXML, source.getSqlType("spam"));
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
+		assertThat(source.getSqlType("spam")).isEqualTo(Types.SQLXML);
 	}
 
 	@Test
@@ -142,9 +141,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
-		assertTrue(source.hasValue(expression));
-		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
-		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("spam"));
+		assertThat(source.hasValue(expression)).isTrue();
+		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
+		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 }

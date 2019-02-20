@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -65,13 +65,14 @@ public class ConnectionFactoryShutDownTests {
 			}
 			latch2.countDown();
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		StopWatch watch = new StopWatch();
 		watch.start();
 		factory.stop();
 		watch.stop();
-		assertTrue("Expected < 10000, was: " + watch.getLastTaskTimeMillis(), watch.getLastTaskTimeMillis() < 10000);
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(watch.getLastTaskTimeMillis() < 10000).as("Expected < 10000, was: " + watch.getLastTaskTimeMillis())
+				.isTrue();
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }

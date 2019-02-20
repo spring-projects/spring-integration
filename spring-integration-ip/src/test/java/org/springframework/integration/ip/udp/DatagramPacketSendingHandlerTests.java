@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ip.udp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.net.DatagramPacket;
@@ -66,18 +65,18 @@ public class DatagramPacketSendingHandlerTests {
 						e.printStackTrace();
 					}
 				});
-		assertTrue(listening.await(10, TimeUnit.SECONDS));
+		assertThat(listening.await(10, TimeUnit.SECONDS)).isTrue();
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort.get());
 		String payload = "foo";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(received.await(3000, TimeUnit.MILLISECONDS));
+		assertThat(received.await(3000, TimeUnit.MILLISECONDS)).isTrue();
 		byte[] src = receivedPacket.getData();
 		int length = receivedPacket.getLength();
 		int offset = receivedPacket.getOffset();
 		byte[] dest = new byte[length];
 		System.arraycopy(src, offset, dest, 0, length);
-		assertEquals(payload, new String(dest));
+		assertThat(new String(dest)).isEqualTo(payload);
 		handler.stop();
 	}
 
@@ -98,7 +97,7 @@ public class DatagramPacketSendingHandlerTests {
 						DatagramSocket socket = new DatagramSocket();
 						testPort.set(socket.getLocalPort());
 						listening.countDown();
-						assertTrue(ackListening.await(10, TimeUnit.SECONDS));
+						assertThat(ackListening.await(10, TimeUnit.SECONDS)).isTrue();
 						socket.receive(receivedPacket);
 						socket.close();
 						DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -129,13 +128,13 @@ public class DatagramPacketSendingHandlerTests {
 		ackListening.countDown();
 		String payload = "foobar";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(ackSent.await(10000, TimeUnit.MILLISECONDS));
+		assertThat(ackSent.await(10000, TimeUnit.MILLISECONDS)).isTrue();
 		byte[] src = receivedPacket.getData();
 		int length = receivedPacket.getLength();
 		int offset = receivedPacket.getOffset();
 		byte[] dest = new byte[6];
 		System.arraycopy(src, offset + length - 6, dest, 0, 6);
-		assertEquals(payload, new String(dest));
+		assertThat(new String(dest)).isEqualTo(payload);
 		handler.stop();
 	}
 
@@ -144,7 +143,7 @@ public class DatagramPacketSendingHandlerTests {
 		while (n++ < 100 && handler.getAckPort() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 	}
 
 }

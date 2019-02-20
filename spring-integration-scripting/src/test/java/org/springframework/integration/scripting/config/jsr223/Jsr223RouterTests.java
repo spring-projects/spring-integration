@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,13 +67,13 @@ public class Jsr223RouterTests {
 		this.referencedScriptInput.send(message3);
 		this.referencedScriptInput.send(message4);
 		this.referencedScriptInput.send(message5);
-		assertEquals("cat", shortStrings.receive(0).getPayload());
-		assertEquals("dog", shortStrings.receive(0).getPayload());
-		assertEquals("aardvark", longStrings.receive(0).getPayload());
-		assertEquals("bear", longStrings.receive(0).getPayload());
-		assertEquals("elephant", longStrings.receive(0).getPayload());
-		assertNull(shortStrings.receive(0));
-		assertNull(longStrings.receive(0));
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("cat");
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("dog");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("aardvark");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("bear");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("elephant");
+		assertThat(shortStrings.receive(0)).isNull();
+		assertThat(longStrings.receive(0)).isNull();
 	}
 
 	@Test
@@ -89,13 +88,13 @@ public class Jsr223RouterTests {
 		this.inlineScriptInput.send(message3);
 		this.inlineScriptInput.send(message4);
 		this.inlineScriptInput.send(message5);
-		assertEquals("bear", shortStrings.receive(0).getPayload());
-		assertEquals("cat", shortStrings.receive(0).getPayload());
-		assertEquals("dog", shortStrings.receive(0).getPayload());
-		assertEquals("aardvark", longStrings.receive(0).getPayload());
-		assertEquals("elephant", longStrings.receive(0).getPayload());
-		assertNull(shortStrings.receive(0));
-		assertNull(longStrings.receive(0));
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("bear");
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("cat");
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("dog");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("aardvark");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("elephant");
+		assertThat(shortStrings.receive(0)).isNull();
+		assertThat(longStrings.receive(0)).isNull();
 	}
 
 	@Test
@@ -110,13 +109,13 @@ public class Jsr223RouterTests {
 		this.scriptRouterWithinChainInput.send(message3);
 		this.scriptRouterWithinChainInput.send(message4);
 		this.scriptRouterWithinChainInput.send(message5);
-		assertEquals("bear", shortStrings.receive(0).getPayload());
-		assertEquals("cat", shortStrings.receive(0).getPayload());
-		assertEquals("dog", shortStrings.receive(0).getPayload());
-		assertEquals("aardvark", longStrings.receive(0).getPayload());
-		assertEquals("elephant", longStrings.receive(0).getPayload());
-		assertNull(shortStrings.receive(0));
-		assertNull(longStrings.receive(0));
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("bear");
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("cat");
+		assertThat(shortStrings.receive(0).getPayload()).isEqualTo("dog");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("aardvark");
+		assertThat(longStrings.receive(0).getPayload()).isEqualTo("elephant");
+		assertThat(shortStrings.receive(0)).isNull();
+		assertThat(longStrings.receive(0)).isNull();
 	}
 
 }

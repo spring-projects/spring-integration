@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors.
+ * Copyright 2012-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 import java.util.Map;
@@ -56,15 +54,15 @@ public class SyslogTransformerParserTests {
 	public void testMap() {
 		toMapChannel.send(new GenericMessage<>("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE"));
 		Map<?, ?> map = (Map<?, ?>) out.receive(1000).getPayload();
-		assertNotNull(map);
-		assertEquals(6, map.size());
-		assertEquals(19, map.get(SyslogToMapTransformer.FACILITY));
-		assertEquals(5, map.get(SyslogToMapTransformer.SEVERITY));
+		assertThat(map).isNotNull();
+		assertThat(map.size()).isEqualTo(6);
+		assertThat(map.get(SyslogToMapTransformer.FACILITY)).isEqualTo(19);
+		assertThat(map.get(SyslogToMapTransformer.SEVERITY)).isEqualTo(5);
 		Object date = map.get(SyslogToMapTransformer.TIMESTAMP);
-		assertTrue(date instanceof Date || date instanceof String);
-		assertEquals("WEBERN", map.get(SyslogToMapTransformer.HOST));
-		assertEquals("TESTING", map.get(SyslogToMapTransformer.TAG));
-		assertEquals("[70729]: TEST SYSLOG MESSAGE", map.get(SyslogToMapTransformer.MESSAGE));
+		assertThat(date instanceof Date || date instanceof String).isTrue();
+		assertThat(map.get(SyslogToMapTransformer.HOST)).isEqualTo("WEBERN");
+		assertThat(map.get(SyslogToMapTransformer.TAG)).isEqualTo("TESTING");
+		assertThat(map.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("[70729]: TEST SYSLOG MESSAGE");
 	}
 
 }

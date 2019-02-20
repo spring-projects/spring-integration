@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -55,14 +51,14 @@ public class MessageGroupQueueTests {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
 		queue.put(new GenericMessage<>("foo"));
 		Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
 	public void testPollTimeout() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
 		Message<?> result = queue.poll(1, TimeUnit.MILLISECONDS);
-		assertNull(result);
+		assertThat(result).isNull();
 	}
 
 	@Test
@@ -87,9 +83,9 @@ public class MessageGroupQueueTests {
 				Thread.currentThread().interrupt();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
 		queue.put(new GenericMessage<>("foo"));
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		exec.shutdownNow();
 	}
 
@@ -97,9 +93,9 @@ public class MessageGroupQueueTests {
 	public void testSize() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
 		queue.put(new GenericMessage<String>("foo"));
-		assertEquals(1, queue.size());
+		assertThat(queue.size()).isEqualTo(1);
 		queue.poll(100, TimeUnit.MILLISECONDS);
-		assertEquals(0, queue.size());
+		assertThat(queue.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -107,12 +103,12 @@ public class MessageGroupQueueTests {
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO", 2);
 		queue.put(new GenericMessage<>("foo"));
-		assertEquals(1, queue.remainingCapacity());
+		assertThat(queue.remainingCapacity()).isEqualTo(1);
 		queue.put(new GenericMessage<>("bar"));
-		assertEquals(0, queue.remainingCapacity());
+		assertThat(queue.remainingCapacity()).isEqualTo(0);
 		Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
-		assertEquals(1, queue.remainingCapacity());
+		assertThat(result).isNotNull();
+		assertThat(queue.remainingCapacity()).isEqualTo(1);
 	}
 
 	@Test
@@ -120,7 +116,7 @@ public class MessageGroupQueueTests {
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO", 1);
 		queue.put(new GenericMessage<>("foo"));
-		assertFalse(queue.offer(new GenericMessage<>("bar"), 100, TimeUnit.MILLISECONDS));
+		assertThat(queue.offer(new GenericMessage<>("bar"), 100, TimeUnit.MILLISECONDS)).isFalse();
 	}
 
 	@Test
@@ -128,7 +124,7 @@ public class MessageGroupQueueTests {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
 		queue.put(new GenericMessage<>("foo"));
 		Message<?> result = queue.take();
-		assertNotNull(result);
+		assertThat(result).isNotNull();
 	}
 
 	@Test
@@ -185,17 +181,17 @@ public class MessageGroupQueueTests {
 		}
 
 		for (int j = 0; j < 2 * concurrency; j++) {
-			assertTrue(completionService.take().get());
+			assertThat(completionService.take().get()).isTrue();
 		}
 
 		if (set != null) {
 			// Ensure all items polled are unique
-			assertEquals(concurrency * maxPerTask, set.size());
+			assertThat(set.size()).isEqualTo(concurrency * maxPerTask);
 		}
 
-		assertEquals(0, queue.size());
+		assertThat(queue.size()).isEqualTo(0);
 		messageGroupStore.expireMessageGroups(-10000);
-		assertEquals(Integer.MAX_VALUE, queue.remainingCapacity());
+		assertThat(queue.remainingCapacity()).isEqualTo(Integer.MAX_VALUE);
 
 		executorService.shutdown();
 	}

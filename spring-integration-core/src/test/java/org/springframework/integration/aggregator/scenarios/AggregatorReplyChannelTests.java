@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.aggregator.scenarios;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,15 +70,15 @@ public class AggregatorReplyChannelTests {
 	}
 
 	private void verifyReply(Message<?> message) {
-		assertNull(this.output.receive(0));
+		assertThat(this.output.receive(0)).isNull();
 		this.input.send(message);
 		Message<?> result = this.output.receive(0);
-		assertNotNull(result);
-		assertTrue(result.getPayload() instanceof List);
+		assertThat(result).isNotNull();
+		assertThat(result.getPayload() instanceof List).isTrue();
 		List<?> resultList = (List<?>) result.getPayload();
-		assertEquals(2, resultList.size());
-		assertTrue(resultList.contains("foo"));
-		assertTrue(resultList.contains("bar"));
+		assertThat(resultList.size()).isEqualTo(2);
+		assertThat(resultList.contains("foo")).isTrue();
+		assertThat(resultList.contains("bar")).isTrue();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,7 +44,7 @@ public class SmtpTests {
 		while (n++ < 100 && (!smtpServer.isListening())) {
 			Thread.sleep(100);
 		}
-		assertTrue(n < 100);
+		assertThat(n < 100).isTrue();
 	}
 
 	@AfterClass
@@ -75,13 +72,13 @@ public class SmtpTests {
 			Thread.sleep(100);
 		}
 
-		assertTrue(smtpServer.getMessages().size() > 0);
+		assertThat(smtpServer.getMessages().size() > 0).isTrue();
 		String message = smtpServer.getMessages().get(0);
-		assertThat(message, endsWith("foo\n"));
-		assertThat(message, containsString("foo@bar"));
-		assertThat(message, containsString("bar@baz"));
-		assertThat(message, containsString("user:user"));
-		assertThat(message, containsString("password:pw"));
+		assertThat(message).endsWith("foo\n");
+		assertThat(message).contains("foo@bar");
+		assertThat(message).contains("bar@baz");
+		assertThat(message).contains("user:user");
+		assertThat(message).contains("password:pw");
 
 	}
 

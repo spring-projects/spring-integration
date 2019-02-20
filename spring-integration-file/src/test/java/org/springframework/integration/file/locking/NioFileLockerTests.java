@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.file.locking;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,9 +51,9 @@ public class NioFileLockerTests {
 		NioFileLocker filter = new NioFileLocker();
 		File testFile = new File(workdir, "test0");
 		testFile.createNewFile();
-		assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+		assertThat(filter.filterFiles(workdir.listFiles()).get(0)).isEqualTo(testFile);
 		filter.lock(testFile);
-		assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+		assertThat(filter.filterFiles(workdir.listFiles()).get(0)).isEqualTo(testFile);
 	}
 
 	@Test
@@ -63,9 +62,9 @@ public class NioFileLockerTests {
 		FileListFilter<File> filter2 = new NioFileLocker();
 		File testFile = new File(workdir, "test1");
 		testFile.createNewFile();
-		assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
+		assertThat(filter1.filterFiles(workdir.listFiles()).get(0)).isEqualTo(testFile);
 		filter1.lock(testFile);
-		assertThat(filter2.filterFiles(workdir.listFiles()), is((List<File>) new ArrayList<File>()));
+		assertThat(filter2.filterFiles(workdir.listFiles())).isEqualTo((List<File>) new ArrayList<File>());
 	}
 
 }

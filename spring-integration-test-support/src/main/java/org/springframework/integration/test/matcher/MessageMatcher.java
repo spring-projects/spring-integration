@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.test.matcher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +28,8 @@ import org.springframework.messaging.MessageHeaders;
 /**
  * Matcher to make assertions about message equality easier.  Usage:
  *
- * <pre>
+ * <pre class="code">
+ * {@code
  * &#064;Test
  * public void testSomething() {
  *   Message<String> expected = ...;
@@ -39,6 +40,7 @@ import org.springframework.messaging.MessageHeaders;
  * &#064;Factory
  * public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
  *   return new MessageMatcher(expected);
+ * }
  * }
  * </pre>
  *

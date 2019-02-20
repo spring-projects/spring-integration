@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.xml.splitter;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -62,11 +58,11 @@ public class XPathMessageSplitterTests {
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
 		this.splitter.handleMessage(new GenericMessage<>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
-		assertEquals("Wrong number of messages", 3, docMessages.size());
+		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
 		for (Message<?> message : docMessages) {
-			assertThat(message.getPayload(), instanceOf(Node.class));
-			assertThat(message.getPayload(), not(instanceOf(Document.class)));
-			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), greaterThan(0));
+			assertThat(message.getPayload()).isInstanceOf(Node.class);
+			assertThat(message.getPayload()).isNotInstanceOf(Document.class);
+			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize()).isGreaterThan(0);
 		}
 	}
 
@@ -82,12 +78,12 @@ public class XPathMessageSplitterTests {
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
 		this.splitter.handleMessage(new GenericMessage<>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
-		assertEquals("Wrong number of messages", 3, docMessages.size());
+		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
 		for (Message<?> message : docMessages) {
-			assertThat(message.getPayload(), instanceOf(Document.class));
+			assertThat(message.getPayload()).isInstanceOf(Document.class);
 			Document docPayload = (Document) message.getPayload();
-			assertEquals("Wrong root element name", "order", docPayload.getDocumentElement().getLocalName());
-			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), greaterThan(0));
+			assertThat(docPayload.getDocumentElement().getLocalName()).as("Wrong root element name").isEqualTo("order");
+			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize()).isGreaterThan(0);
 		}
 	}
 
@@ -96,10 +92,10 @@ public class XPathMessageSplitterTests {
 		String payload = "<orders><order>one</order><order>two</order><order>three</order></orders>";
 		this.splitter.handleMessage(new GenericMessage<>(payload));
 		List<Message<?>> docMessages = this.replyChannel.clear();
-		assertEquals("Wrong number of messages", 3, docMessages.size());
+		assertThat(docMessages.size()).as("Wrong number of messages").isEqualTo(3);
 		for (Message<?> message : docMessages) {
-			assertThat(message.getPayload(), instanceOf(String.class));
-			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), greaterThan(0));
+			assertThat(message.getPayload()).isInstanceOf(String.class);
+			assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize()).isGreaterThan(0);
 		}
 	}
 

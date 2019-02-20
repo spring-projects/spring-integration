@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.support.locks;
 
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.locks.Lock;
 
@@ -47,9 +46,9 @@ public class DefaultLockRegistryTests {
 		Lock a = registry.obtain(23);
 		Lock b = registry.obtain(new Object());
 		Lock c = registry.obtain("hello");
-		assertSame(a, b);
-		assertSame(a, c);
-		assertSame(b, c);
+		assertThat(b).isSameAs(a);
+		assertThat(c).isSameAs(a);
+		assertThat(c).isSameAs(b);
 	}
 
 	@Test
@@ -69,7 +68,7 @@ public class DefaultLockRegistryTests {
 				return 256;
 			}
 		});
-		assertSame(lock1, lock2);
+		assertThat(lock2).isSameAs(lock1);
 	}
 
 	@Test
@@ -89,7 +88,7 @@ public class DefaultLockRegistryTests {
 				return 255;
 			}
 		});
-		assertNotSame(lock1, lock2);
+		assertThat(lock2).isNotSameAs(lock1);
 	}
 
 	@Test
@@ -127,7 +126,7 @@ public class DefaultLockRegistryTests {
 		for (int i = 0; i < 4; i++) {
 			for (int j = 1; j < 4; j++) {
 				if (i != j) {
-					assertNotSame(locks[i], locks[j]);
+					assertThat(locks[j]).isNotSameAs(locks[i]);
 				}
 			}
 		}
@@ -160,10 +159,10 @@ public class DefaultLockRegistryTests {
 				return 3;
 			}
 		});
-		assertSame(locks[0], moreLocks[0]);
-		assertSame(locks[1], moreLocks[1]);
-		assertSame(locks[2], moreLocks[2]);
-		assertSame(locks[3], moreLocks[3]);
+		assertThat(moreLocks[0]).isSameAs(locks[0]);
+		assertThat(moreLocks[1]).isSameAs(locks[1]);
+		assertThat(moreLocks[2]).isSameAs(locks[2]);
+		assertThat(moreLocks[3]).isSameAs(locks[3]);
 		moreLocks[0] = registry.obtain(new Object() {
 
 			@Override
@@ -192,10 +191,10 @@ public class DefaultLockRegistryTests {
 				return 7;
 			}
 		});
-		assertSame(locks[0], moreLocks[0]);
-		assertSame(locks[1], moreLocks[1]);
-		assertSame(locks[2], moreLocks[2]);
-		assertSame(locks[3], moreLocks[3]);
+		assertThat(moreLocks[0]).isSameAs(locks[0]);
+		assertThat(moreLocks[1]).isSameAs(locks[1]);
+		assertThat(moreLocks[2]).isSameAs(locks[2]);
+		assertThat(moreLocks[3]).isSameAs(locks[3]);
 	}
 
 }

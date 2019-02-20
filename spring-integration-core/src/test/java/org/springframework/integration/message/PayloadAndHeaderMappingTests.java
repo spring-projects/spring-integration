@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,9 +77,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//	assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -97,9 +93,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -113,10 +109,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -129,10 +125,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -146,9 +142,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("bar", "2");
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertFalse(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isFalse();
 	}
 
 	@Test
@@ -163,10 +159,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", "3");
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertFalse(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isFalse();
 	}
 
 	@Test
@@ -180,16 +176,16 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
-		assertTrue(bean.lastHeaders.containsKey("foo2"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertTrue(bean.lastHeaders.containsKey("bar2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.get("bar")).isEqualTo("2");
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("foo2")).isTrue();
+		assertThat(bean.lastHeaders.get("foo2")).isEqualTo("1");
+		assertThat(bean.lastHeaders.containsKey("bar2")).isTrue();
+		assertThat(bean.lastHeaders.get("bar2")).isEqualTo("2");
 	}
 
 	@Test
@@ -204,10 +200,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -222,10 +218,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -238,10 +234,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).as(payload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -256,10 +252,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -270,8 +266,8 @@ public class PayloadAndHeaderMappingTests {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertNull(bean.lastHeaders);
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders).isNull();
 	}
 
 	@Test
@@ -284,10 +280,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -300,10 +296,10 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("baz"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("baz")).isTrue();
 	}
 
 	@Test
@@ -314,8 +310,8 @@ public class PayloadAndHeaderMappingTests {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertNull(bean.lastHeaders);
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders).isNull();
 	}
 
 	@Test
@@ -326,8 +322,8 @@ public class PayloadAndHeaderMappingTests {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertNull(bean.lastHeaders);
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders).isNull();
 	}
 
 	@Test
@@ -339,13 +335,13 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("bar", "2");
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastHeaders);
+		assertThat(bean.lastHeaders).isNull();
 		// String payload should have been converted to Properties
-		assertNotNull(bean.lastPayload);
-		assertTrue(bean.lastPayload instanceof Properties);
+		assertThat(bean.lastPayload).isNotNull();
+		assertThat(bean.lastPayload instanceof Properties).isTrue();
 		Properties payloadProps = (Properties) bean.lastPayload;
-		assertTrue(payloadProps.containsKey("payload"));
-		assertEquals("abc", payloadProps.get("payload"));
+		assertThat(payloadProps.containsKey("payload")).isTrue();
+		assertThat(payloadProps.get("payload")).isEqualTo("abc");
 	}
 
 	@Test
@@ -357,9 +353,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("bar", "2");
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 	}
 
 	@Test
@@ -372,9 +368,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -390,9 +386,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -408,9 +404,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -426,9 +422,9 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -445,12 +441,12 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("baz", 99);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payload, bean.lastPayload);
-		assertTrue(bean.lastHeaders.containsKey("foo"));
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertTrue(bean.lastHeaders.containsKey("bar"));
-		assertTrue(bean.lastHeaders.containsKey("foo2"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.containsKey("foo")).isTrue();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.containsKey("bar")).isTrue();
+		assertThat(bean.lastHeaders.containsKey("foo2")).isTrue();
+		assertThat(bean.lastHeaders.get("foo2")).isEqualTo("1");
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
@@ -467,11 +463,11 @@ public class PayloadAndHeaderMappingTests {
 		headers.put("bar", "2");
 		Message<?> message = MessageBuilder.withPayload("test").copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isEqualTo("2");
+		assertThat(bean.lastHeaders.get("foo2")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar2")).isEqualTo("2");
 	}
 
 	@Test
@@ -484,11 +480,11 @@ public class PayloadAndHeaderMappingTests {
 		payloadMap.put("baz", "99");
 		Message<?> message = MessageBuilder.withPayload(payloadMap).copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
-		assertEquals(null, bean.lastHeaders.get("baz"));
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isEqualTo("2");
+		assertThat(bean.lastHeaders.get("foo2")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar2")).isEqualTo("2");
+		assertThat(bean.lastHeaders.get("baz")).isEqualTo(null);
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -523,10 +519,10 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isEqualTo("2");
+		assertThat(bean.lastHeaders.get("foo2")).isEqualTo("1");
 	}
 
 	@Test
@@ -541,10 +537,10 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNotNull(bean.lastPayload);
-		assertEquals(payload, bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNotNull();
+		assertThat(bean.lastPayload).isEqualTo(payload);
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -556,9 +552,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -570,9 +566,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(new Integer(123))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -586,9 +582,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("1");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -600,9 +596,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(new Integer(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo(new Integer(123));
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -614,9 +610,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(new Integer(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals(new Integer(999), bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo(new Integer(999));
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -628,9 +624,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo(new Integer(123));
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -642,9 +638,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("123", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("123");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -656,9 +652,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(new Object())
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("123", bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo("123");
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -670,9 +666,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(new Integer(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo(new Integer(123));
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -686,9 +682,9 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
-		assertNull(bean.lastHeaders.get("bar"));
+		assertThat(bean.lastPayload).isNull();
+		assertThat(bean.lastHeaders.get("foo")).isEqualTo(new Integer(123));
+		assertThat(bean.lastHeaders.get("bar")).isNull();
 	}
 
 	@Test
@@ -699,9 +695,9 @@ public class PayloadAndHeaderMappingTests {
 		payload.put("bar", 456);
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		handler.handleMessage(message);
-		assertNull(bean.lastHeaders);
-		assertNotNull(bean.lastPayload);
-		assertEquals("123456", bean.lastPayload);
+		assertThat(bean.lastHeaders).isNull();
+		assertThat(bean.lastPayload).isNotNull();
+		assertThat(bean.lastPayload).isEqualTo("123456");
 	}
 
 

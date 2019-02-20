@@ -227,6 +227,11 @@ assertThat(channel.send(message), is(false));
 ----
 ====
 
+==== AssertJ conditions and predicates
+
+Starting with version 5.2, the `MessagePredicate` is introduced to be used in the AssertJ `matches()` assertion.
+It requires a `Message` object as an expectation.
+And also ot can be configured with headers to exclude from expectation as well as from actual message to assert.
 
 
 [[test-context]]

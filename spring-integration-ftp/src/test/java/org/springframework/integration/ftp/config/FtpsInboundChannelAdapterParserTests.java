@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,16 +50,16 @@ public class FtpsInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpsInboundChannelAdapterComplete() {
-		assertEquals("ftpInbound", ftpInbound.getComponentName());
-		assertEquals("ftp:inbound-channel-adapter", ftpInbound.getComponentType());
-		assertNotNull(TestUtils.getPropertyValue(ftpInbound, "pollingTask"));
-		assertEquals(this.ftpChannel, TestUtils.getPropertyValue(ftpInbound, "outputChannel"));
+		assertThat(ftpInbound.getComponentName()).isEqualTo("ftpInbound");
+		assertThat(ftpInbound.getComponentType()).isEqualTo("ftp:inbound-channel-adapter");
+		assertThat(TestUtils.getPropertyValue(ftpInbound, "pollingTask")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(ftpInbound, "outputChannel")).isEqualTo(this.ftpChannel);
 		FtpInboundFileSynchronizingMessageSource inbound =
 				(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
 
 		FtpInboundFileSynchronizer fisync =
 				(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-		assertNotNull(TestUtils.getPropertyValue(fisync, "filter"));
+		assertThat(TestUtils.getPropertyValue(fisync, "filter")).isNotNull();
 
 	}
 

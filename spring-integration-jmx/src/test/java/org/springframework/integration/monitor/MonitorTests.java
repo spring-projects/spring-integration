@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.monitor;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -100,26 +94,26 @@ public class MonitorTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.input);
 		messagingTemplate.setReceiveTimeout(100000);
 		Integer active = messagingTemplate.convertSendAndReceive("foo", Integer.class);
-		assertEquals(1, active.intValue());
-		assertTrue(afterSendLatch.await(10, TimeUnit.SECONDS));
-		assertEquals(0, this.handler.getActiveCount());
-		assertEquals(1, this.handler.getHandleCount());
-		assertThat(this.handler.getDuration().getMax(), greaterThan(99.0));
-		assertThat(this.handler.getDuration().getMax(), lessThan(10000.0));
-		assertEquals(1, this.input.getSendCount());
-		assertEquals(1, this.input.getReceiveCount());
-		assertEquals(1, this.next.getSendCount());
-		assertThat(this.next.getSendDuration().getMax(), greaterThan(99.0));
-		assertThat(this.next.getSendDuration().getMax(), lessThan(10000.0));
+		assertThat(active.intValue()).isEqualTo(1);
+		assertThat(afterSendLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.handler.getActiveCount()).isEqualTo(0);
+		assertThat(this.handler.getHandleCount()).isEqualTo(1);
+		assertThat(this.handler.getDuration().getMax()).isGreaterThan(99.0);
+		assertThat(this.handler.getDuration().getMax()).isLessThan(10000.0);
+		assertThat(this.input.getSendCount()).isEqualTo(1);
+		assertThat(this.input.getReceiveCount()).isEqualTo(1);
+		assertThat(this.next.getSendCount()).isEqualTo(1);
+		assertThat(this.next.getSendDuration().getMax()).isGreaterThan(99.0);
+		assertThat(this.next.getSendDuration().getMax()).isLessThan(10000.0);
 		Message<?> fromInbound = this.output.receive(100000);
-		assertNotNull(fromInbound);
-		assertEquals(0, fromInbound.getPayload());
+		assertThat(fromInbound).isNotNull();
+		assertThat(fromInbound.getPayload()).isEqualTo(0);
 		fromInbound = this.output.receive(10000);
-		assertNotNull(fromInbound);
-		assertEquals(1, fromInbound.getPayload());
-		assertThat(this.source.getMessageCount(), greaterThanOrEqualTo(2));
-		assertThat(this.nullChannel.getSendCount(), greaterThanOrEqualTo(2));
-		assertThat(this.pubsub.getSendCount(), greaterThanOrEqualTo(2));
+		assertThat(fromInbound).isNotNull();
+		assertThat(fromInbound.getPayload()).isEqualTo(1);
+		assertThat(this.source.getMessageCount()).isGreaterThanOrEqualTo(2);
+		assertThat(this.nullChannel.getSendCount()).isGreaterThanOrEqualTo(2);
+		assertThat(this.pubsub.getSendCount()).isGreaterThanOrEqualTo(2);
 	}
 
 	public static class TestHandler extends AbstractReplyProducingMessageHandler {

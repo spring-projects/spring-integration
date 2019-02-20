@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.splitter;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,16 +56,16 @@ public class DefaultSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
-		assertEquals(3, replies.size());
+		assertThat(replies.size()).isEqualTo(3);
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("x", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("x");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("y", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("y");
 		Message<?> reply3 = replies.get(2);
-		assertNotNull(reply3);
-		assertEquals("z", reply3.getPayload());
+		assertThat(reply3).isNotNull();
+		assertThat(reply3.getPayload()).isEqualTo("z");
 	}
 
 	@Test
@@ -83,16 +77,16 @@ public class DefaultSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
-		assertEquals(3, replies.size());
+		assertThat(replies.size()).isEqualTo(3);
 		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("x", reply1.getPayload());
+		assertThat(reply1).isNotNull();
+		assertThat(reply1.getPayload()).isEqualTo("x");
 		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("y", reply2.getPayload());
+		assertThat(reply2).isNotNull();
+		assertThat(reply2.getPayload()).isEqualTo("y");
 		Message<?> reply3 = replies.get(2);
-		assertNotNull(reply3);
-		assertEquals("z", reply3.getPayload());
+		assertThat(reply3).isNotNull();
+		assertThat(reply3.getPayload()).isEqualTo("z");
 	}
 
 	@Test
@@ -104,9 +98,10 @@ public class DefaultSplitterTests {
 		splitter.setOutputChannel(outputChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, splitter);
 		endpoint.start();
-		assertTrue(inputChannel.send(message));
+		assertThat(inputChannel.send(message)).isTrue();
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
+		assertThat(new IntegrationMessageHeaderAccessor(reply).getCorrelationId())
+				.isEqualTo(message.getHeaders().getId());
 	}
 
 	@Test
@@ -117,7 +112,7 @@ public class DefaultSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 		splitter.handleMessage(message);
 		Message<?> output = replyChannel.receive(15);
-		assertThat(output, is(nullValue()));
+		assertThat(output).isNull();
 	}
 
 	@Test
@@ -131,9 +126,10 @@ public class DefaultSplitterTests {
 		splitter.handleMessage(message);
 		for (int i = 0; i < 10; i++) {
 			Message<?> reply = outputChannel.receive(0);
-			assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
+			assertThat(new IntegrationMessageHeaderAccessor(reply).getCorrelationId())
+					.isEqualTo(message.getHeaders().getId());
 		}
-		assertNull(outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isNull();
 	}
 
 	@Test
@@ -156,9 +152,10 @@ public class DefaultSplitterTests {
 		splitter.handleMessage(message);
 		for (int i = 0; i < 10; i++) {
 			Message<?> reply = outputChannel.receive(0);
-			assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply).getCorrelationId());
+			assertThat(new IntegrationMessageHeaderAccessor(reply).getCorrelationId())
+					.isEqualTo(message.getHeaders().getId());
 		}
-		assertNull(outputChannel.receive(10));
+		assertThat(outputChannel.receive(10)).isNull();
 	}
 
 	@Test

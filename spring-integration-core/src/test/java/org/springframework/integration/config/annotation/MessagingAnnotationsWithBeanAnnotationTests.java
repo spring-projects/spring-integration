@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +29,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -153,38 +145,37 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		//this.sourcePollingChannelAdapter.start();
 		for (int i = 0; i < 10; i++) {
 			Message<?> receive = this.discardChannel.receive(10000);
-			assertNotNull(receive);
-			assertEquals(0, ((Integer) receive.getPayload()) % 2);
+			assertThat(receive).isNotNull();
+			assertThat(((Integer) receive.getPayload()) % 2).isEqualTo(0);
 
 			receive = this.counterErrorChannel.receive(10000);
-			assertNotNull(receive);
-			assertThat(receive, instanceOf(ErrorMessage.class));
-			assertThat(receive.getPayload(), instanceOf(MessageRejectedException.class));
+			assertThat(receive).isNotNull();
+			assertThat(receive).isInstanceOf(ErrorMessage.class);
+			assertThat(receive.getPayload()).isInstanceOf(MessageRejectedException.class);
 			MessageRejectedException exception = (MessageRejectedException) receive.getPayload();
-			assertThat(exception.getMessage(),
-					containsString("MessageFilter " +
-							"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'" +
-							" rejected Message"));
+			assertThat(exception.getMessage()).contains("MessageFilter " +
+					"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'" +
+					" rejected Message");
 
 		}
 		for (Message<?> message : this.collector) {
-			assertNotEquals(0, ((Integer) message.getPayload()) % 2);
+			assertThat(((Integer) message.getPayload()) % 2).isNotEqualTo(0);
 			MessageHistory messageHistory = MessageHistory.read(message);
-			assertNotNull(messageHistory);
+			assertThat(messageHistory).isNotNull();
 			String messageHistoryString = messageHistory.toString();
-			assertThat(messageHistoryString, Matchers.containsString("routerChannel"));
-			assertThat(messageHistoryString, Matchers.containsString("filterChannel"));
-			assertThat(messageHistoryString, Matchers.containsString("aggregatorChannel"));
-			assertThat(messageHistoryString, Matchers.containsString("splitterChannel"));
-			assertThat(messageHistoryString, Matchers.containsString("serviceChannel"));
-			assertThat(messageHistoryString, Matchers.not(Matchers.containsString("discardChannel")));
+			assertThat(messageHistoryString).contains("routerChannel");
+			assertThat(messageHistoryString).contains("filterChannel");
+			assertThat(messageHistoryString).contains("aggregatorChannel");
+			assertThat(messageHistoryString).contains("splitterChannel");
+			assertThat(messageHistoryString).contains("serviceChannel");
+			assertThat(messageHistoryString).doesNotContain("discardChannel");
 		}
 
-		assertNull(this.skippedServiceActivator);
-		assertNull(this.skippedMessageHandler);
-		assertNull(this.skippedChannel);
-		assertNull(this.skippedChannel2);
-		assertNull(this.skippedMessageSource);
+		assertThat(this.skippedServiceActivator).isNull();
+		assertThat(this.skippedMessageHandler).isNull();
+		assertThat(this.skippedChannel).isNull();
+		assertThat(this.skippedChannel2).isNull();
+		assertThat(this.skippedMessageSource).isNull();
 
 		QueueChannel replyChannel = new QueueChannel();
 
@@ -196,8 +187,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		Message<?> receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("FOO");
 
 		message = MessageBuilder.withPayload("BAR")
 				.setReplyChannel(replyChannel)
@@ -207,21 +198,21 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		receive = replyChannel.receive(10_000);
 
-		assertNotNull(receive);
-		assertEquals("bar", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("bar");
 
 		this.consumerServiceChannel.send(new GenericMessage<>("baz"));
 
-		assertFalse(this.stringCollector.isEmpty());
-		assertEquals("baz", this.stringCollector.iterator().next());
+		assertThat(this.stringCollector.isEmpty()).isFalse();
+		assertThat(this.stringCollector.iterator().next()).isEqualTo("baz");
 
 		this.collector.clear();
 
 		this.messageConsumerServiceChannel.send(new GenericMessage<>("123"));
 
-		assertFalse(this.collector.isEmpty());
+		assertThat(this.collector.isEmpty()).isFalse();
 		Message<?> next = this.collector.iterator().next();
-		assertEquals("123", next.getPayload());
+		assertThat(next.getPayload()).isEqualTo("123");
 	}
 
 	@Test
@@ -231,9 +222,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			fail("BeanCreationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanCreationException.class));
-			assertThat(e.getCause(), instanceOf(BeanDefinitionValidationException.class));
-			assertThat(e.getMessage(), containsString("The attribute causing the ambiguity is: [applySequence]."));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
+			assertThat(e.getCause()).isInstanceOf(BeanDefinitionValidationException.class);
+			assertThat(e.getMessage()).contains("The attribute causing the ambiguity is: [applySequence].");
 		}
 	}
 

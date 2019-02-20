@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package org.springframework.integration.ftp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,25 +45,25 @@ public class FtpParserInboundTests {
 
 	@Test
 	public void testLocalFilesAutoCreationTrue() throws Exception {
-		assertTrue(!new File("target/foo").exists());
+		assertThat(!new File("target/foo").exists()).isTrue();
 		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass()).close();
-		assertTrue(new File("target/foo").exists());
-		assertTrue(!new File("target/bar").exists());
+		assertThat(new File("target/foo").exists()).isTrue();
+		assertThat(!new File("target/bar").exists()).isTrue();
 	}
 	@Test
 	public void testLocalFilesAutoCreationFalse() throws Exception {
-		assertTrue(!new File("target/bar").exists());
+		assertThat(!new File("target/bar").exists()).isTrue();
 		try {
 			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass()).close();
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
-			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
+			assertThat(e).isInstanceOf(BeanCreationException.class);
 			Throwable cause = e.getCause();
-			assertThat(cause, Matchers.instanceOf(BeanInitializationException.class));
+			assertThat(cause).isInstanceOf(BeanInitializationException.class);
 			cause = cause.getCause();
-			assertThat(cause, Matchers.instanceOf(FileNotFoundException.class));
-			assertEquals("bar", cause.getMessage());
+			assertThat(cause).isInstanceOf(FileNotFoundException.class);
+			assertThat(cause.getMessage()).isEqualTo("bar");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
 import java.util.Map;
@@ -40,14 +38,14 @@ public class SysLogTransformerTests {
 	public void testMap() throws Exception {
 		String syslog = "<158>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE";
 		Map<String, ?> transformed = sut.transformPayload(syslog.getBytes());
-		assertEquals(6, transformed.size());
-		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
-		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
+		assertThat(transformed.size()).isEqualTo(6);
+		assertThat(transformed.get(SyslogToMapTransformer.FACILITY)).isEqualTo(19);
+		assertThat(transformed.get(SyslogToMapTransformer.SEVERITY)).isEqualTo(6);
 		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
-		assertTrue(date instanceof Date || date instanceof String);
-		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
-		assertEquals("TESTING", transformed.get(SyslogToMapTransformer.TAG));
-		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+		assertThat(date instanceof Date || date instanceof String).isTrue();
+		assertThat(transformed.get(SyslogToMapTransformer.HOST)).isEqualTo("WEBERN");
+		assertThat(transformed.get(SyslogToMapTransformer.TAG)).isEqualTo("TESTING");
+		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("[70729]: TEST SYSLOG MESSAGE");
 
 		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
@@ -60,30 +58,30 @@ public class SysLogTransformerTests {
 	public void testBadPattern() throws Exception {
 		String syslog = "&158>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE";
 		Map<String, ?> transformed = sut.transformPayload(syslog.getBytes());
-		assertEquals(1, transformed.size());
-		assertEquals(syslog, transformed.get(SyslogToMapTransformer.UNDECODED));
+		assertThat(transformed.size()).isEqualTo(1);
+		assertThat(transformed.get(SyslogToMapTransformer.UNDECODED)).isEqualTo(syslog);
 	}
 
 	@Test
 	public void testBadFacilitySeverity() throws Exception {
 		String syslog = "<X58>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE";
 		Map<String, ?> transformed = sut.transformPayload(syslog.getBytes());
-		assertEquals(1, transformed.size());
-		assertEquals(syslog, transformed.get(SyslogToMapTransformer.UNDECODED));
+		assertThat(transformed.size()).isEqualTo(1);
+		assertThat(transformed.get(SyslogToMapTransformer.UNDECODED)).isEqualTo(syslog);
 	}
 
 	@Test
 	public void testWithoutTag() throws Exception {
 		String syslog = "<158>JUL 26 22:08:35 WEBERN [70729]: TEST SYSLOG MESSAGE";
 		Map<String, ?> transformed = sut.transformPayload(syslog.getBytes());
-		assertEquals(5, transformed.size());
-		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
-		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
+		assertThat(transformed.size()).isEqualTo(5);
+		assertThat(transformed.get(SyslogToMapTransformer.FACILITY)).isEqualTo(19);
+		assertThat(transformed.get(SyslogToMapTransformer.SEVERITY)).isEqualTo(6);
 		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
-		assertTrue(date instanceof Date || date instanceof String);
-		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
-		assertFalse(transformed.containsKey(SyslogToMapTransformer.TAG));
-		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+		assertThat(date instanceof Date || date instanceof String).isTrue();
+		assertThat(transformed.get(SyslogToMapTransformer.HOST)).isEqualTo("WEBERN");
+		assertThat(transformed.containsKey(SyslogToMapTransformer.TAG)).isFalse();
+		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("[70729]: TEST SYSLOG MESSAGE");
 
 		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
@@ -96,14 +94,14 @@ public class SysLogTransformerTests {
 	public void testTagMaxLength() throws Exception {
 		String syslog = "<158>JUL 26 22:08:35 WEBERN ABCDE1234567890ABCDE1234567890UVXYZ TEST SYSLOG MESSAGE";
 		Map<String, ?> transformed = sut.transformPayload(syslog.getBytes());
-		assertEquals(6, transformed.size());
-		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
-		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
+		assertThat(transformed.size()).isEqualTo(6);
+		assertThat(transformed.get(SyslogToMapTransformer.FACILITY)).isEqualTo(19);
+		assertThat(transformed.get(SyslogToMapTransformer.SEVERITY)).isEqualTo(6);
 		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
-		assertTrue(date instanceof Date || date instanceof String);
-		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
-		assertEquals("ABCDE1234567890ABCDE1234567890UV", transformed.get(SyslogToMapTransformer.TAG));
-		assertEquals("XYZ TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+		assertThat(date instanceof Date || date instanceof String).isTrue();
+		assertThat(transformed.get(SyslogToMapTransformer.HOST)).isEqualTo("WEBERN");
+		assertThat(transformed.get(SyslogToMapTransformer.TAG)).isEqualTo("ABCDE1234567890ABCDE1234567890UV");
+		assertThat(transformed.get(SyslogToMapTransformer.MESSAGE)).isEqualTo("XYZ TEST SYSLOG MESSAGE");
 
 		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
@@ -116,15 +114,15 @@ public class SysLogTransformerTests {
 			Map<String, ?> actualTransformed) {
 		int n = 0;
 		for (Entry<String, ?> entry : actualTransformed.entrySet()) {
-			assertEquals(expectedFields[n++], entry.getKey());
+			assertThat(entry.getKey()).isEqualTo(expectedFields[n++]);
 		}
 		n = 0;
 		for (String key : actualTransformed.keySet()) {
-			assertEquals(expectedFields[n++], key);
+			assertThat(key).isEqualTo(expectedFields[n++]);
 		}
 		n = 0;
 		for (Object value : actualTransformed.values()) {
-			assertEquals(expectedValues[n++], value);
+			assertThat(value).isEqualTo(expectedValues[n++]);
 		}
 	}
 

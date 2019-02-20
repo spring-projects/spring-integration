@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 
@@ -80,7 +78,7 @@ public class ClaimCheckParserTests {
 				new DirectFieldAccessor(checkin).getPropertyValue("handler")).getPropertyValue("transformer");
 		MessageStore messageStore = (MessageStore)
 				new DirectFieldAccessor(transformer).getPropertyValue("messageStore");
-		assertEquals(context.getBean("testMessageStore"), messageStore);
+		assertThat(messageStore).isEqualTo(context.getBean("testMessageStore"));
 	}
 
 	@Test
@@ -89,7 +87,7 @@ public class ClaimCheckParserTests {
 				new DirectFieldAccessor(checkout).getPropertyValue("handler")).getPropertyValue("transformer");
 		MessageStore messageStore = (MessageStore)
 				new DirectFieldAccessor(transformer).getPropertyValue("messageStore");
-		assertEquals(context.getBean("testMessageStore"), messageStore);
+		assertThat(messageStore).isEqualTo(context.getBean("testMessageStore"));
 	}
 
 	@Test
@@ -98,13 +96,13 @@ public class ClaimCheckParserTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		checkinChannel.send(message);
 		Message<?> wiretapMessage = wiretap.receive(0);
-		assertNotNull(wiretapMessage);
+		assertThat(wiretapMessage).isNotNull();
 		UUID payload = (UUID) wiretapMessage.getPayload();
-		assertEquals(message.getHeaders().getId(), payload);
+		assertThat(payload).isEqualTo(message.getHeaders().getId());
 		Message<?> resultMessage = replyChannel.receive(0);
-		assertNotNull(resultMessage);
-		assertEquals("test", resultMessage.getPayload());
-		assertNotNull(this.sampleMessageStore.getMessage(payload));
+		assertThat(resultMessage).isNotNull();
+		assertThat(resultMessage.getPayload()).isEqualTo("test");
+		assertThat(this.sampleMessageStore.getMessage(payload)).isNotNull();
 	}
 
 	@Test
@@ -113,13 +111,13 @@ public class ClaimCheckParserTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		checkinChannelA.send(message);
 		Message<?> wiretapMessage = wiretap.receive(0);
-		assertNotNull(wiretapMessage);
+		assertThat(wiretapMessage).isNotNull();
 		UUID payload = (UUID) wiretapMessage.getPayload();
-		assertEquals(message.getHeaders().getId(), payload);
+		assertThat(payload).isEqualTo(message.getHeaders().getId());
 		Message<?> resultMessage = replyChannel.receive(0);
-		assertNotNull(resultMessage);
-		assertEquals("test", resultMessage.getPayload());
-		assertNull(this.sampleMessageStore.getMessage(payload));
+		assertThat(resultMessage).isNotNull();
+		assertThat(resultMessage.getPayload()).isEqualTo("test");
+		assertThat(this.sampleMessageStore.getMessage(payload)).isNull();
 	}
 
 }

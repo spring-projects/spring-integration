@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class TcpConnectionFactoryFactoryBeanTest {
 		fb.setBeanFactory(mock(BeanFactory.class));
 		fb.afterPropertiesSet();
 		// INT-3578 IllegalArgumentException on 'readDelay'
-		assertEquals(100L, TestUtils.getPropertyValue(fb.getObject(), "readDelay"));
+		assertThat(TestUtils.getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(100L);
 	}
 
 
@@ -50,7 +50,7 @@ public class TcpConnectionFactoryFactoryBeanTest {
 		fb.setReadDelay(1000);
 		fb.setBeanFactory(mock(BeanFactory.class));
 		fb.afterPropertiesSet();
-		assertEquals(1000L, TestUtils.getPropertyValue(fb.getObject(), "readDelay"));
+		assertThat(TestUtils.getPropertyValue(fb.getObject(), "readDelay")).isEqualTo(1000L);
 	}
 
 }

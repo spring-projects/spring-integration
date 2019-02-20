@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -84,16 +79,16 @@ public class FileReadingMessageSourceTests {
 	@Test
 	public void straightProcess() throws Exception {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
-		assertThat(source.receive().getPayload(), is(fileMock));
+		assertThat(source.receive().getPayload()).isEqualTo(fileMock);
 	}
 
 	@Test
 	public void requeueOnFailure() throws Exception {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		source.onFailure(received);
-		assertEquals(received.getPayload(), source.receive().getPayload());
+		assertThat(source.receive().getPayload()).isEqualTo(received.getPayload());
 		verify(inputDirectoryMock, times(1)).listFiles();
 	}
 
@@ -103,9 +98,9 @@ public class FileReadingMessageSourceTests {
 		when(anotherFileMock.getAbsolutePath()).thenReturn("foo/bar/anotherFileMock");
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock, anotherFileMock });
 		source.setScanEachPoll(true);
-		assertNotNull(source.receive());
-		assertNotNull(source.receive());
-		assertNull(source.receive());
+		assertThat(source.receive()).isNotNull();
+		assertThat(source.receive()).isNotNull();
+		assertThat(source.receive()).isNull();
 		verify(inputDirectoryMock, times(3)).listFiles();
 	}
 
@@ -113,9 +108,9 @@ public class FileReadingMessageSourceTests {
 	public void noDuplication() throws Exception {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
-		assertNotNull(received);
-		assertEquals(fileMock, received.getPayload());
-		assertNull(source.receive());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo(fileMock);
+		assertThat(source.receive()).isNull();
 		verify(inputDirectoryMock, times(2)).listFiles();
 	}
 
@@ -128,8 +123,8 @@ public class FileReadingMessageSourceTests {
 	public void lockIsAcquired() throws IOException {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
-		assertNotNull(received);
-		assertEquals(fileMock, received.getPayload());
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo(fileMock);
 		verify(locker).lock(fileMock);
 	}
 
@@ -138,7 +133,7 @@ public class FileReadingMessageSourceTests {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		when(locker.lock(fileMock)).thenReturn(false);
 		Message<File> received = source.receive();
-		assertNull(received);
+		assertThat(received).isNull();
 		verify(locker).lock(fileMock);
 	}
 
@@ -157,10 +152,10 @@ public class FileReadingMessageSourceTests {
 		when(comparator.compare(file3, file2)).thenReturn(-1);
 
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{file2, file3, file1});
-		assertSame(file3, source.receive().getPayload());
-		assertSame(file2, source.receive().getPayload());
-		assertSame(file1, source.receive().getPayload());
-		assertNull(source.receive());
+		assertThat(source.receive().getPayload()).isSameAs(file3);
+		assertThat(source.receive().getPayload()).isSameAs(file2);
+		assertThat(source.receive().getPayload()).isSameAs(file1);
+		assertThat(source.receive()).isNull();
 		verify(inputDirectoryMock, times(2)).listFiles();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.codec.kryo;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,10 +26,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.assertj.core.data.Offset;
 import org.junit.Test;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class KryoCodecTests {
@@ -43,7 +46,7 @@ public class KryoCodecTests {
 		codec.encode(str, bos);
 
 		String s2 = codec.decode(bos.toByteArray(), String.class);
-		assertEquals(str, s2);
+		assertThat(s2).isEqualTo(str);
 	}
 
 	@Test
@@ -58,7 +61,7 @@ public class KryoCodecTests {
 		FileInputStream fis = new FileInputStream(file);
 		String s2 = codec.decode(fis, String.class);
 		file.delete();
-		assertEquals(str, s2);
+		assertThat(s2).isEqualTo(str);
 	}
 
 	@Test
@@ -68,7 +71,7 @@ public class KryoCodecTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		codec.encode(foo, bos);
 		Object foo2 = codec.decode(bos.toByteArray(), SomeClassWithNoDefaultConstructors.class);
-		assertEquals(foo, foo2);
+		assertThat(foo2).isEqualTo(foo);
 	}
 
 	@Test
@@ -78,36 +81,36 @@ public class KryoCodecTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		codec.encode(true, bos);
 		boolean b = codec.decode(bos.toByteArray(), Boolean.class);
-		assertEquals(true, b);
+		assertThat(b).isEqualTo(true);
 		b = codec.decode(bos.toByteArray(), boolean.class);
-		assertEquals(true, b);
+		assertThat(b).isEqualTo(true);
 
 		bos = new ByteArrayOutputStream();
 		codec.encode(3.14159, bos);
 
 		double d = codec.decode(bos.toByteArray(), double.class);
-		assertEquals(3.14159, d, 0.00001);
+		assertThat(d).isCloseTo(3.14159, Offset.offset(0.00001));
 
 		bos = new ByteArrayOutputStream();
 		codec.encode(3.14159, bos);
 
 		d = codec.decode(bos.toByteArray(), Double.class);
-		assertEquals(3.14159, d, 0.00001);
+		assertThat(d).isCloseTo(3.14159, Offset.offset(0.00001));
 
 	}
 
 	@Test
 	public void testMapSerialization() throws IOException {
 		PojoCodec codec = new PojoCodec();
-		Map<String, Integer> map = new HashMap<String, Integer>();
+		Map<String, Integer> map = new HashMap<>();
 		map.put("one", 1);
 		map.put("two", 2);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		codec.encode(map, bos);
 		Map<?, ?> m2 = (Map<?, ?>) codec.decode(bos.toByteArray(), HashMap.class);
-		assertEquals(2, m2.size());
-		assertEquals(1, m2.get("one"));
-		assertEquals(2, m2.get("two"));
+		assertThat(m2.size()).isEqualTo(2);
+		assertThat(m2.get("one")).isEqualTo(1);
+		assertThat(m2.get("two")).isEqualTo(2);
 	}
 
 	@Test
@@ -120,8 +123,8 @@ public class KryoCodecTests {
 		codec.encode(foo, bos);
 
 		Foo foo2 = codec.decode(bos.toByteArray(), Foo.class);
-		assertEquals(1, foo2.get("one"));
-		assertEquals(2, foo2.get("two"));
+		assertThat(foo2.get("one")).isEqualTo(1);
+		assertThat(foo2.get("two")).isEqualTo(2);
 	}
 
 	static class SomeClassWithNoDefaultConstructors {
@@ -158,7 +161,7 @@ public class KryoCodecTests {
 		private Map<Object, Object> map;
 
 		Foo() {
-			map = new HashMap<Object, Object>();
+			this.map = new HashMap<>();
 		}
 
 		public void put(Object key, Object value) {

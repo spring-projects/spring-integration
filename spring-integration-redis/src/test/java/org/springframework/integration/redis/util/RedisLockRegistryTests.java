@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.redis.util;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,9 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -66,9 +57,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	private final String registryKey2 = UUID.randomUUID().toString();
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Before
 	@After
 	public void setupShutDown() {
@@ -89,14 +77,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -107,14 +95,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
 			try {
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 			}
 			finally {
 				lock.unlock();
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -126,7 +114,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			lock1.lock();
 			try {
 				Lock lock2 = registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lock();
 				try {
 					// just get the lock
@@ -140,7 +128,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -152,7 +140,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = registry.obtain("foo");
-				assertSame(lock1, lock2);
+				assertThat(lock2).isSameAs(lock1);
 				lock2.lockInterruptibly();
 				try {
 					// just get the lock
@@ -166,7 +154,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -178,7 +166,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			lock1.lockInterruptibly();
 			try {
 				Lock lock2 = registry.obtain("bar");
-				assertNotSame(lock1, lock2);
+				assertThat(lock2).isNotSameAs(lock1);
 				lock2.lockInterruptibly();
 				try {
 					// just get the lock
@@ -192,7 +180,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 		}
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -215,14 +203,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 			return null;
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		Object ise = result.get(10, TimeUnit.SECONDS);
-		assertThat(ise, instanceOf(IllegalStateException.class));
-		assertThat(((Exception) ise).getMessage(), containsString("You do not own lock at"));
+		assertThat(ise).isInstanceOf(IllegalStateException.class);
+		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -235,13 +223,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			Lock lock2 = registry.obtain("foo");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
-				assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(1);
 				latch2.await(10, TimeUnit.SECONDS);
 				locked.set(true);
 			}
@@ -253,14 +241,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 				latch3.countDown();
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(locked.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isTrue();
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -274,13 +262,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		assertEquals(1, TestUtils.getPropertyValue(registry1, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isEqualTo(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			Lock lock2 = registry2.obtain("foo");
 			try {
 				latch1.countDown();
 				lock2.lockInterruptibly();
-				assertEquals(1, TestUtils.getPropertyValue(registry2, "locks", Map.class).size());
+				assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isEqualTo(1);
 				latch2.await(10, TimeUnit.SECONDS);
 				locked.set(true);
 			}
@@ -298,16 +286,16 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 				}
 			}
 		});
-		assertTrue(latch1.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock1.unlock();
 		latch2.countDown();
-		assertTrue(latch3.await(10, TimeUnit.SECONDS));
-		assertTrue(locked.get());
+		assertThat(latch3.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isTrue();
 		registry1.expireUnusedOlderThan(-1000);
 		registry2.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry1, "locks", Map.class).size());
-		assertEquals(0, TestUtils.getPropertyValue(registry2, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry1, "locks", Map.class).size()).isEqualTo(0);
+		assertThat(TestUtils.getPropertyValue(registry2, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -328,14 +316,14 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			}
 			return null;
 		});
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertFalse(locked.get());
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(locked.get()).isFalse();
 		lock.unlock();
 		Object ise = result.get(10, TimeUnit.SECONDS);
-		assertThat(ise, instanceOf(IllegalStateException.class));
-		assertThat(((Exception) ise).getMessage(), containsString("You do not own lock at"));
+		assertThat(ise).isInstanceOf(IllegalStateException.class);
+		assertThat(((Exception) ise).getMessage()).contains("You do not own lock at");
 		registry.expireUnusedOlderThan(-1000);
-		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -345,11 +333,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry2.obtain("foo");
-		assertTrue(lock1.tryLock());
-		assertFalse(lock2.tryLock());
+		assertThat(lock1.tryLock()).isTrue();
+		assertThat(lock2.tryLock()).isFalse();
 		waitForExpire("foo");
-		assertTrue(lock2.tryLock());
-		assertFalse(lock1.tryLock());
+		assertThat(lock2.tryLock()).isTrue();
+		assertThat(lock1.tryLock()).isFalse();
 	}
 
 	@Test
@@ -357,11 +345,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	public void testExceptionOnExpire() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
 		Lock lock1 = registry.obtain("foo");
-		assertTrue(lock1.tryLock());
-		this.thrown.expect(IllegalStateException.class);
-		this.thrown.expectMessage("Lock was released in the store due to expiration.");
+		assertThat(lock1.tryLock()).isTrue();
 		waitForExpire("foo");
-		lock1.unlock();
+		assertThatThrownBy(lock1::unlock)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("Lock was released in the store due to expiration.");
 	}
 
 
@@ -374,24 +362,24 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, this.registryKey2);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry1.obtain("foo");
-		assertEquals(lock1, lock2);
+		assertThat(lock2).isEqualTo(lock1);
 		lock1.lock();
 		lock2.lock();
-		assertEquals(lock1, lock2);
+		assertThat(lock2).isEqualTo(lock1);
 		lock1.unlock();
 		lock2.unlock();
-		assertEquals(lock1, lock2);
+		assertThat(lock2).isEqualTo(lock1);
 
 		lock1 = registry1.obtain("foo");
 		lock2 = registry2.obtain("foo");
-		assertNotEquals(lock1, lock2);
+		assertThat(lock2).isNotEqualTo(lock1);
 		lock1.lock();
-		assertFalse(lock2.tryLock());
+		assertThat(lock2.tryLock()).isFalse();
 		lock1.unlock();
 
 		lock1 = registry1.obtain("foo");
 		lock2 = registry3.obtain("foo");
-		assertNotEquals(lock1, lock2);
+		assertThat(lock2).isNotEqualTo(lock1);
 		lock1.lock();
 		lock2.lock();
 		lock1.unlock();
@@ -406,19 +394,19 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		for (int i = 0; i < 10; i++) {
 			registry.obtain("foo" + i);
 		}
-		assertEquals(10, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
 
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo" + i);
 			lock.lock();
 		}
-		assertEquals(10, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
 
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo" + i);
 			lock.unlock();
 		}
-		assertEquals(10, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		assertThat(TestUtils.getPropertyValue(registry, "locks", Map.class).size()).isEqualTo(10);
 	}
 
 	@Test
@@ -433,11 +421,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
 			Lock lock2 = registry.obtain("foo");
-			assertFalse(lock2.tryLock());
+			assertThat(lock2.tryLock()).isFalse();
 			return null;
 		});
 		result.get();
-		assertEquals(expire, getExpire(registry, "foo"));
+		assertThat(getExpire(registry, "foo")).isEqualTo(expire);
 		lock.unlock();
 	}
 
@@ -453,7 +441,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		while (n++ < 100 && template.keys(this.registryKey + ":" + key).size() > 0) {
 			Thread.sleep(100);
 		}
-		assertTrue(key + " key did not expire", n < 100);
+		assertThat(n < 100).as(key + " key did not expire").isTrue();
 	}
 
 }

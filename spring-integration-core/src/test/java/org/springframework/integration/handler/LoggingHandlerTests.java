@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -71,7 +71,7 @@ public class LoggingHandlerTests {
 			fail("Expected IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("Cannot set both 'expression' AND 'shouldLogFullMessage' properties", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		}
 
 		loggingHandler = new LoggingHandler("INFO");
@@ -81,7 +81,7 @@ public class LoggingHandlerTests {
 			fail("Expected IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("Cannot set both 'expression' AND 'shouldLogFullMessage' properties", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,13 +82,13 @@ public class NotificationPublishingMessageHandlerTests {
 	@Test
 	public void simplePublish() {
 		MessageHandler handler = context.getBean("testPublisher", MessageHandler.class);
-		assertEquals(0, this.listener.notifications.size());
+		assertThat(this.listener.notifications.size()).isEqualTo(0);
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, this.listener.notifications.size());
+		assertThat(this.listener.notifications.size()).isEqualTo(1);
 		Notification notification = this.listener.notifications.get(0);
-		assertEquals(this.publisherObjectName, notification.getSource());
-		assertEquals("foo", notification.getMessage());
-		assertEquals("test.type", notification.getType());
+		assertThat(notification.getSource()).isEqualTo(this.publisherObjectName);
+		assertThat(notification.getMessage()).isEqualTo("foo");
+		assertThat(notification.getType()).isEqualTo("test.type");
 	}
 
 	public static class TestNotificationListener implements NotificationListener {

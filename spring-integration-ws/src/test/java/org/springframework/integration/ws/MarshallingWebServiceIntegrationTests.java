@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class MarshallingWebServiceIntegrationTests {
 		when(request.getPayloadSource()).thenReturn(stringSource);
 		when(response.getPayloadResult()).thenReturn(stringResult);
 		gateway.invoke(context);
-		assertTrue(output.toString().endsWith(input));
+		assertThat(output.toString().endsWith(input)).isTrue();
 	}
 
 	public static class StubMarshaller implements Marshaller, Unmarshaller {

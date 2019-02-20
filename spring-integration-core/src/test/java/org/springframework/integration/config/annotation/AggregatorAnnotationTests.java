@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.lang.reflect.Method;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -53,11 +48,12 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy);
-		assertNull(getPropertyValue(aggregator, "outputChannel"));
-		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
-		assertEquals(-1L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
-		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
+		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
+				.isTrue();
+		assertThat(getPropertyValue(aggregator, "outputChannel")).isNull();
+		assertThat(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel).isTrue();
+		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(-1L);
+		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
 		context.close();
 	}
 
@@ -67,11 +63,12 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy);
-		assertEquals("outputChannel", getPropertyValue(aggregator, "outputChannelName"));
-		assertEquals("discardChannel", getPropertyValue(aggregator, "discardChannelName"));
-		assertEquals(98765432L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
-		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
+		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
+				.isTrue();
+		assertThat(getPropertyValue(aggregator, "outputChannelName")).isEqualTo("outputChannel");
+		assertThat(getPropertyValue(aggregator, "discardChannelName")).isEqualTo("discardChannel");
+		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(98765432L);
+		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(true);
 		context.close();
 	}
 
@@ -82,14 +79,14 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
-		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		assertThat(releaseStrategy instanceof MethodInvokingReleaseStrategy).isTrue();
 		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) releaseStrategy;
 		Object handlerMethods = new DirectFieldAccessor(releaseStrategyAdapter)
 				.getPropertyValue("adapter.delegate.handlerMethods");
-		assertNull(handlerMethods);
+		assertThat(handlerMethods).isNull();
 		Object handlerMethod = new DirectFieldAccessor(releaseStrategyAdapter)
 				.getPropertyValue("adapter.delegate.handlerMethod");
-		assertTrue(handlerMethod.toString().contains("completionChecker"));
+		assertThat(handlerMethod.toString().contains("completionChecker")).isTrue();
 		context.close();
 	}
 
@@ -100,18 +97,19 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithCorrelationStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
-		Assert.assertTrue(correlationStrategy instanceof MethodInvokingCorrelationStrategy);
+		assertThat(correlationStrategy instanceof MethodInvokingCorrelationStrategy).isTrue();
 		MethodInvokingCorrelationStrategy releaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
 		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
 				.getPropertyValue("processor")).getPropertyValue("delegate"));
 		Object targetObject = processorAccessor.getPropertyValue("targetObject");
-		assertSame(context.getBean(endpointName), targetObject);
-		assertNull(processorAccessor.getPropertyValue("handlerMethods"));
+		assertThat(targetObject).isSameAs(context.getBean(endpointName));
+		assertThat(processorAccessor.getPropertyValue("handlerMethods")).isNull();
 		Object handlerMethod = processorAccessor.getPropertyValue("handlerMethod");
-		assertNotNull(handlerMethod);
+		assertThat(handlerMethod).isNotNull();
 		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethod);
-		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("invocableHandlerMethod.method");
-		assertEquals("correlate", completionCheckerMethod.getName());
+		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue(
+				"invocableHandlerMethod.method");
+		assertThat(completionCheckerMethod.getName()).isEqualTo("correlate");
 		context.close();
 	}
 

@@ -16,14 +16,8 @@
 
 package org.springframework.integration.gateway;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -84,7 +78,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReply("foo");
-		assertEquals("foobar", result);
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
@@ -115,7 +109,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		byte[] result = service.requestReplyInBytes("foo");
-		assertEquals(6, result.length);
+		assertThat(result.length).isEqualTo(6);
 		Mockito.verify(stringToByteConverter, Mockito.times(1)).convert(Mockito.any(String.class));
 	}
 
@@ -131,8 +125,8 @@ public class GatewayProxyFactoryBeanTests {
 		TestService service = (TestService) proxyFactory.getObject();
 		service.oneWay("test");
 		Message<?> message = requestChannel.receive(1000);
-		assertNotNull(message);
-		assertEquals("test", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
 	@Test
@@ -148,8 +142,8 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.solicitResponse();
-		assertNotNull(result);
-		assertEquals("foo", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("foo");
 	}
 
 	@Test
@@ -164,8 +158,8 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<String> message = service.getMessage();
-		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("foo");
 	}
 
 	@Test
@@ -184,7 +178,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
-		assertEquals(new Integer(123456), result);
+		assertThat(result).isEqualTo(new Integer(123456));
 	}
 
 	@Test
@@ -193,7 +187,7 @@ public class GatewayProxyFactoryBeanTests {
 				"gatewayWithRendezvousChannel.xml", GatewayProxyFactoryBeanTests.class);
 		TestService service = (TestService) context.getBean("proxy");
 		String result = service.requestReply("foo");
-		assertEquals("foo!!!", result);
+		assertThat(result).isEqualTo("foo!!!");
 		context.close();
 	}
 
@@ -203,10 +197,10 @@ public class GatewayProxyFactoryBeanTests {
 				"gatewayWithResponseCorrelator.xml", GatewayProxyFactoryBeanTests.class);
 		TestService service = (TestService) context.getBean("proxy");
 		String result = service.requestReply("foo");
-		assertEquals("foo!!!", result);
+		assertThat(result).isEqualTo("foo!!!");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
-		assertEquals(1, interceptor.getSentCount());
-		assertEquals(1, interceptor.getReceivedCount());
+		assertThat(interceptor.getSentCount()).isEqualTo(1);
+		assertThat(interceptor.getReceivedCount()).isEqualTo(1);
 		context.close();
 	}
 
@@ -233,13 +227,13 @@ public class GatewayProxyFactoryBeanTests {
 				latch.countDown();
 			});
 		}
-		assertTrue(latch.await(30, TimeUnit.SECONDS));
+		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		for (int i = 0; i < numRequests; i++) {
-			assertEquals("test-" + i + "!!!", results[i]);
+			assertThat(results[i]).isEqualTo("test-" + i + "!!!");
 		}
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
-		assertEquals(numRequests, interceptor.getSentCount());
-		assertEquals(numRequests, interceptor.getReceivedCount());
+		assertThat(interceptor.getSentCount()).isEqualTo(numRequests);
+		assertThat(interceptor.getReceivedCount()).isEqualTo(numRequests);
 		context.close();
 		executor.shutdownNow();
 	}
@@ -256,7 +250,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithMessageParameter(new GenericMessage<>("foo"));
-		assertEquals("foobar", result);
+		assertThat(result).isEqualTo("foobar");
 	}
 
 	@Test
@@ -271,7 +265,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithPayloadAnnotation();
-		assertEquals("requestReplyWithPayloadAnnotation0bar", result);
+		assertThat(result).isEqualTo("requestReplyWithPayloadAnnotation0bar");
 	}
 
 	@Test
@@ -290,7 +284,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
-		assertEquals("foobar", result.getPayload());
+		assertThat(result.getPayload()).isEqualTo("foobar");
 	}
 
 	@Test
@@ -306,7 +300,7 @@ public class GatewayProxyFactoryBeanTests {
 		catch (IllegalArgumentException e) {
 			// expected
 		}
-		assertEquals(1, count);
+		assertThat(count).isEqualTo(1);
 	}
 
 	@Test
@@ -319,7 +313,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		Object proxy = proxyFactory.getObject();
 		String expected = "gateway proxy for";
-		assertEquals(expected, proxy.toString().substring(0, expected.length()));
+		assertThat(proxy.toString().substring(0, expected.length())).isEqualTo(expected);
 	}
 
 	@Test(expected = TestException.class)
@@ -368,10 +362,10 @@ public class GatewayProxyFactoryBeanTests {
 		gpfb.afterPropertiesSet();
 		((TestEchoService) gpfb.getObject()).echo("foo");
 		Message<?> message = drc.receive(0);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		String bar = (String) message.getHeaders().get("foo");
-		assertNotNull(bar);
-		assertThat(bar, equalTo("bar"));
+		assertThat(bar).isNotNull();
+		assertThat(bar).isEqualTo("bar");
 	}
 
 	@Test
@@ -388,9 +382,9 @@ public class GatewayProxyFactoryBeanTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(),
-					containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 		}
 	}
 
@@ -405,9 +399,9 @@ public class GatewayProxyFactoryBeanTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(),
-					containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 		}
 	}
 
@@ -422,9 +416,9 @@ public class GatewayProxyFactoryBeanTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(),
-					containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 		}
 	}
 
@@ -477,7 +471,7 @@ public class GatewayProxyFactoryBeanTests {
 		gpfb.setBeanFactory(mock(BeanFactory.class));
 		gpfb.afterPropertiesSet();
 		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
-		assertThat(gateways.size(), equalTo(2));
+		assertThat(gateways.size()).isEqualTo(2);
 	}
 
 	public static void throwTestException() throws TestException {

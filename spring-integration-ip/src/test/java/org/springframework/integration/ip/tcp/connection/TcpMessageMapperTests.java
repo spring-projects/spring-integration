@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -89,12 +84,12 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
-		assertNull(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.LOCAL_ADDRESS)).isSameAs(local);
+		assertThat(message.getHeaders().get(MessageHeaders.CONTENT_TYPE)).isNull();
 	}
 
 	@Test
@@ -112,14 +107,15 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
-		assertEquals("application/octet-stream;charset=UTF-8", message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.LOCAL_ADDRESS)).isSameAs(local);
+		assertThat(message.getHeaders().get(MessageHeaders.CONTENT_TYPE))
+				.isEqualTo("application/octet-stream;charset=UTF-8");
 		MimeType parseOk = MimeType.valueOf((String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		assertEquals(message.getHeaders().get(MessageHeaders.CONTENT_TYPE), parseOk.toString());
+		assertThat(parseOk.toString()).isEqualTo(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
@@ -138,14 +134,15 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
-		assertEquals("application/octet-stream;charset=ISO-8859-1", message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.LOCAL_ADDRESS)).isSameAs(local);
+		assertThat(message.getHeaders().get(MessageHeaders.CONTENT_TYPE))
+				.isEqualTo("application/octet-stream;charset=ISO-8859-1");
 		MimeType parseOk = MimeType.valueOf((String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		assertEquals(message.getHeaders().get(MessageHeaders.CONTENT_TYPE), parseOk.toString());
+		assertThat(parseOk.toString()).isEqualTo(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -156,7 +153,7 @@ public class TcpMessageMapperTests {
 			mapper.setContentType("");
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), containsString("'contentType' could not be parsed"));
+			assertThat(e.getMessage()).contains("'contentType' could not be parsed");
 			throw e;
 		}
 	}
@@ -217,23 +214,23 @@ public class TcpMessageMapperTests {
 
 		};
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message
-				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message
-				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message
-				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(0, new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message
+				.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message
+				.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message
+				.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber()).isEqualTo(0);
 		message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message
-				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message
-				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message
-				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(0, new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message
+				.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message
+				.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message
+				.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber()).isEqualTo(0);
 	}
 
 	@Test
@@ -300,29 +297,29 @@ public class TcpMessageMapperTests {
 
 		};
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message
-				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message
-				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message
-				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message
+				.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message
+				.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message
+				.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
 		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
-		assertEquals(1, headerAccessor.getSequenceNumber());
-		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), headerAccessor.getCorrelationId());
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(1);
+		assertThat(headerAccessor.getCorrelationId()).isEqualTo(message.getHeaders().get(IpHeaders.CONNECTION_ID));
 		message = mapper.toMessage(connection);
 		headerAccessor = new IntegrationMessageHeaderAccessor(message);
-		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message
-				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message
-				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message
-				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(2, headerAccessor.getSequenceNumber());
-		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), headerAccessor.getCorrelationId());
-		assertNotNull(message.getHeaders().get("foo"));
-		assertEquals("bar", message.getHeaders().get("foo"));
+		assertThat(new String((byte[]) message.getPayload())).isEqualTo(TEST_PAYLOAD);
+		assertThat(message
+				.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("MyHost");
+		assertThat(message
+				.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message
+				.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(headerAccessor.getSequenceNumber()).isEqualTo(2);
+		assertThat(headerAccessor.getCorrelationId()).isEqualTo(message.getHeaders().get(IpHeaders.CONNECTION_ID));
+		assertThat(message.getHeaders().get("foo")).isNotNull();
+		assertThat(message.getHeaders().get("foo")).isEqualTo("bar");
 
 	}
 
@@ -333,7 +330,7 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setStringToBytes(true);
 		byte[] bArray = (byte[]) mapper.fromMessage(message);
-		assertEquals(s, new String(bArray));
+		assertThat(new String(bArray)).isEqualTo(s);
 
 	}
 
@@ -344,7 +341,7 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setStringToBytes(false);
 		String out = (String) mapper.fromMessage(message);
-		assertEquals(s, out);
+		assertThat(out).isEqualTo(s);
 
 	}
 
@@ -360,7 +357,8 @@ public class TcpMessageMapperTests {
 		MapJsonSerializer serializer = new MapJsonSerializer();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.serialize(map, baos);
-		assertEquals("{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n", new String(baos.toByteArray(), "UTF-8"));
+		assertThat(new String(baos.toByteArray(), "UTF-8"))
+				.isEqualTo("{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n");
 	}
 
 	@Test
@@ -378,12 +376,12 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+		assertThat(message.getPayload()).isEqualTo("foo");
+		assertThat(message.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("someHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.CONNECTION_ID)).isEqualTo("someId");
 	}
 
 	@Test
@@ -408,12 +406,12 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+		assertThat(message.getPayload()).isEqualTo("foo");
+		assertThat(message.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("someHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.CONNECTION_ID)).isEqualTo("someId");
 	}
 
 	@Test
@@ -432,12 +430,12 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+		assertThat(message.getPayload()).isEqualTo("foo");
+		assertThat(message.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("someHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.CONNECTION_ID)).isEqualTo("someId");
 	}
 
 	@Test
@@ -456,12 +454,12 @@ public class TcpMessageMapperTests {
 		when(connection.getPort()).thenReturn(1234);
 		when(connection.getConnectionId()).thenReturn("someId");
 		Message<?> message = mapper.toMessage(connection);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+		assertThat(message.getPayload()).isEqualTo("foo");
+		assertThat(message.getHeaders().get("bar")).isEqualTo("baz");
+		assertThat(message.getHeaders().get(IpHeaders.HOSTNAME)).isEqualTo("someHost");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isEqualTo("1.1.1.1");
+		assertThat(message.getHeaders().get(IpHeaders.REMOTE_PORT)).isEqualTo(1234);
+		assertThat(message.getHeaders().get(IpHeaders.CONNECTION_ID)).isEqualTo("someId");
 	}
 
 }

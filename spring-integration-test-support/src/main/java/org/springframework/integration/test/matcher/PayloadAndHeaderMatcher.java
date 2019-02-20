@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -58,7 +57,6 @@ public class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
 
 	private final String[] ignoreKeys;
 
-	@Factory
 	public static <P> PayloadAndHeaderMatcher<P> sameExceptIgnorableHeaders(Message<P> expected, String... ignoreKeys) {
 		return new PayloadAndHeaderMatcher<>(expected, ignoreKeys);
 	}

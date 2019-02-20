@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,13 @@
 
 package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -100,20 +95,21 @@ public class HttpOutboundGatewayParserTests {
 				this.minimalConfigEndpoint).getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.minimalConfigEndpoint).getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNull(replyChannel);
+		assertThat(replyChannel).isNull();
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
-		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
+		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.POST.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(false);
 	}
 
 	@Test
@@ -123,46 +119,48 @@ public class HttpOutboundGatewayParserTests {
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.fullConfigEndpoint).getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(77, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
+		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(77);
+		assertThat(endpointAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNotNull(replyChannel);
-		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
+		assertThat(replyChannel).isNotNull();
+		assertThat(replyChannel).isEqualTo(this.applicationContext.getBean("replies"));
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		Object converterListBean = this.applicationContext.getBean("converterList");
-		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
+		assertThat(templateAccessor.getPropertyValue("messageConverters")).isEqualTo(converterListBean);
 
-		assertEquals(String.class.getName(), TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
+		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
+				.isEqualTo(String.class.getName());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test2", uriExpression.getValue());
-		assertEquals(HttpMethod.PUT.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
+		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.PUT.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
-		assertEquals(requestFactoryBean, requestFactory);
+		assertThat(requestFactory).isEqualTo(requestFactoryBean);
 		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
-		assertEquals(errorHandlerBean, templateAccessor.getPropertyValue("errorHandler"));
+		assertThat(templateAccessor.getPropertyValue("errorHandler")).isEqualTo(errorHandlerBean);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertEquals(new Long("1234"), sendTimeout);
+		assertThat(sendTimeout).isEqualTo(new Long("1234"));
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
-		assertEquals(1, uriVariableExpressions.size());
-		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
+		assertThat(uriVariableExpressions.size()).isEqualTo(1);
+		assertThat(uriVariableExpressions.get("foo").getExpressionString()).isEqualTo("headers.bar");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("headerMapper"));
 		String[] mappedRequestHeaders = (String[]) mapperAccessor.getPropertyValue("outboundHeaderNames");
 		String[] mappedResponseHeaders = (String[]) mapperAccessor.getPropertyValue("inboundHeaderNames");
-		assertEquals(2, mappedRequestHeaders.length);
-		assertEquals(1, mappedResponseHeaders.length);
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
-		assertEquals("responseHeader", mappedResponseHeaders[0]);
-		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
+		assertThat(mappedRequestHeaders.length).isEqualTo(2);
+		assertThat(mappedResponseHeaders.length).isEqualTo(1);
+		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1")).isTrue();
+		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
+		assertThat(mappedResponseHeaders[0]).isEqualTo("responseHeader");
+		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(true);
 	}
 
 	@Test
@@ -171,29 +169,30 @@ public class HttpOutboundGatewayParserTests {
 				this.withUrlExpressionEndpoint).getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.withUrlExpressionEndpoint).getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNull(replyChannel);
+		assertThat(replyChannel).isNull();
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
-		assertNotNull(expression);
-		assertEquals("'http://localhost/test1'", expression.getExpressionString());
-		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
-		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
+		assertThat(expression).isNotNull();
+		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
+		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
+				.isEqualTo(HttpMethod.POST.name());
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
+		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(false);
 
 		//INT-3055
 		Object uriVariablesExpression = handlerAccessor.getPropertyValue("uriVariablesExpression");
-		assertNotNull(uriVariablesExpression);
-		assertEquals("@uriVariables", ((Expression) uriVariablesExpression).getExpressionString());
+		assertThat(uriVariablesExpression).isNotNull();
+		assertThat(((Expression) uriVariablesExpression).getExpressionString()).isEqualTo("@uriVariables");
 		Object uriVariableExpressions = handlerAccessor.getPropertyValue("uriVariableExpressions");
-		assertNotNull(uriVariableExpressions);
-		assertTrue(((Map<?, ?>) uriVariableExpressions).isEmpty());
+		assertThat(uriVariableExpressions).isNotNull();
+		assertThat(((Map<?, ?>) uriVariableExpressions).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -201,7 +200,7 @@ public class HttpOutboundGatewayParserTests {
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) new DirectFieldAccessor(
 				this.withAdvice).getPropertyValue("handler");
 		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test
@@ -212,14 +211,14 @@ public class HttpOutboundGatewayParserTests {
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {
-			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().contains("'request-channel' attribute isn't allowed for a nested"));
+			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
+			assertThat(e.getMessage().contains("'request-channel' attribute isn't allowed for a nested")).isTrue();
 		}
 	}
 
 	@Test
 	public void withPoller() {
-		assertThat(this.withPoller1, Matchers.instanceOf(PollingConsumer.class));
+		assertThat(this.withPoller1).isInstanceOf(PollingConsumer.class);
 	}
 
 

@@ -16,14 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Calendar;
@@ -126,8 +119,8 @@ public class DelayHandlerTests {
 		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -137,8 +130,8 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -174,10 +167,10 @@ public class DelayHandlerTests {
 			throw new MessagingException(m);
 		});
 		input.send(message);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		Thread.sleep(50);
-		assertThat(count.get(), equalTo(4));
-		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class).size(), equalTo(0));
+		assertThat(count.get()).isEqualTo(4);
+		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class).size()).isEqualTo(0);
 	}
 
 	@Test
@@ -189,8 +182,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", 100).build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -202,8 +195,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", -7000).build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -215,8 +208,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", "not a number").build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -228,8 +221,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -241,8 +234,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -254,8 +247,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", nullDate).build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isSameAs(Thread.currentThread());
 	}
 
 	@Test(expected = TestTimedOutException.class)
@@ -278,8 +271,8 @@ public class DelayHandlerTests {
 				.setHeader("delay", "20").build();
 		input.send(message);
 		waitForLatch(10000);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -300,7 +293,7 @@ public class DelayHandlerTests {
 			}
 		}).start();
 
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -311,8 +304,8 @@ public class DelayHandlerTests {
 		this.delayHandler.handleMessage(new GenericMessage<>("foo"));
 		this.taskScheduler.destroy();
 
-		assertTrue(this.taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS));
-		assertTrue(this.latch.await(10, TimeUnit.SECONDS));
+		assertThat(this.taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -346,11 +339,11 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertSame(message.getPayload(), exceptionPayload.getFailedMessage().getPayload());
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
+		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -378,11 +371,11 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertSame(message.getPayload(), exceptionPayload.getFailedMessage().getPayload());
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
+		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test
@@ -408,11 +401,11 @@ public class DelayHandlerTests {
 		input.send(message);
 		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		assertThat(errorMessage.getPayload().getClass()).isEqualTo(MessageDeliveryException.class);
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertSame(message.getPayload(), exceptionPayload.getFailedMessage().getPayload());
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertThat(exceptionPayload.getFailedMessage().getPayload()).isSameAs(message.getPayload());
+		assertThat(exceptionPayload.getCause().getClass()).isEqualTo(UnsupportedOperationException.class);
+		assertThat(resultHandler.lastThread).isNotSameAs(Thread.currentThread());
 	}
 
 	@Test //INT-1132
@@ -430,15 +423,15 @@ public class DelayHandlerTests {
 		// emulate restart
 		this.taskScheduler.destroy();
 
-		assertEquals(1, messageGroupStore.getMessageGroupCount());
-		assertEquals(DELAYER_MESSAGE_GROUP_ID, messageGroupStore.iterator().next().getGroupId());
-		assertEquals(1, messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID));
-		assertEquals(1, messageGroupStore.getMessageCountForAllMessageGroups());
+		assertThat(messageGroupStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageGroupStore.iterator().next().getGroupId()).isEqualTo(DELAYER_MESSAGE_GROUP_ID);
+		assertThat(messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID)).isEqualTo(1);
+		assertThat(messageGroupStore.getMessageCountForAllMessageGroups()).isEqualTo(1);
 		MessageGroup messageGroup = messageGroupStore.getMessageGroup(DELAYER_MESSAGE_GROUP_ID);
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
-		assertEquals("DelayedMessageWrapper", payload.getClass().getSimpleName());
-		assertEquals(message.getPayload(), TestUtils.getPropertyValue(payload, "original.payload"));
+		assertThat(payload.getClass().getSimpleName()).isEqualTo("DelayedMessageWrapper");
+		assertThat(TestUtils.getPropertyValue(payload, "original.payload")).isEqualTo(message.getPayload());
 
 		this.taskScheduler.afterPropertiesSet();
 		this.delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, this.taskScheduler);
@@ -450,10 +443,10 @@ public class DelayHandlerTests {
 
 		waitForLatch(10000);
 
-		assertSame(message.getPayload(), this.resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), this.resultHandler.lastThread);
-		assertEquals(1, messageGroupStore.getMessageGroupCount());
-		assertEquals(0, messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID));
+		assertThat(this.resultHandler.lastMessage.getPayload()).isSameAs(message.getPayload());
+		assertThat(this.resultHandler.lastThread).isNotSameAs(Thread.currentThread());
+		assertThat(messageGroupStore.getMessageGroupCount()).isEqualTo(1);
+		assertThat(messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID)).isEqualTo(0);
 	}
 
 	@Test //INT-1132
@@ -493,9 +486,9 @@ public class DelayHandlerTests {
 		this.input.send(new GenericMessage<>("foo"));
 		this.delayHandler.reschedulePersistedMessages();
 		Message<?> message = results.receive(10000);
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		message = results.receive(50);
-		assertNull(message);
+		assertThat(message).isNull();
 	}
 
 	@Test
@@ -528,7 +521,7 @@ public class DelayHandlerTests {
 		while (n++ < 2000 && works.size() == 0) {
 			Thread.sleep(10);
 		}
-		assertEquals(1, works.size());
+		assertThat(works.size()).isEqualTo(1);
 	}
 
 

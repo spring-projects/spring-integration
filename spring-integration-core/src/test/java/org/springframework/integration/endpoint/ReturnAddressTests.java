@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -49,8 +46,8 @@ public class ReturnAddressTests {
 				.setReplyChannel(channel5).build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
-		assertNotNull(response);
-		assertEquals("**", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("**");
 		context.close();
 	}
 
@@ -65,8 +62,8 @@ public class ReturnAddressTests {
 				.setReplyChannelName("channel5").build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
-		assertNotNull(response);
-		assertEquals("**", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("**");
 		context.close();
 	}
 
@@ -81,10 +78,10 @@ public class ReturnAddressTests {
 				.setReplyChannel(replyChannel).build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
-		assertNotNull(response);
-		assertEquals("********", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("********");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
-		assertNull(channel2.receive(0));
+		assertThat(channel2.receive(0)).isNull();
 		context.close();
 	}
 
@@ -99,10 +96,10 @@ public class ReturnAddressTests {
 				.setReplyChannelName("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
-		assertNotNull(response);
-		assertEquals("********", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("********");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
-		assertNull(channel2.receive(0));
+		assertThat(channel2.receive(0)).isNull();
 		context.close();
 	}
 
@@ -117,7 +114,7 @@ public class ReturnAddressTests {
 			channel3.send(message);
 		}
 		catch (MessagingException e) {
-			assertTrue(e.getCause() instanceof DestinationResolutionException);
+			assertThat(e.getCause() instanceof DestinationResolutionException).isTrue();
 		}
 		context.close();
 	}
@@ -132,8 +129,8 @@ public class ReturnAddressTests {
 		GenericMessage<String> message = new GenericMessage<String>("*");
 		channel4.send(message);
 		Message<?> response = replyChannel.receive(3000);
-		assertNotNull(response);
-		assertEquals("**", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("**");
 		context.close();
 	}
 
@@ -148,10 +145,10 @@ public class ReturnAddressTests {
 				.setReplyChannelName("channel5").build();
 		channel4.send(message);
 		Message<?> response = replyChannel.receive(3000);
-		assertNotNull(response);
-		assertEquals("**", response.getPayload());
+		assertThat(response).isNotNull();
+		assertThat(response.getPayload()).isEqualTo("**");
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
-		assertNull(channel5.receive(0));
+		assertThat(channel5.receive(0)).isNull();
 		context.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,26 +55,26 @@ public class HeaderEnrichedGatewayTests {
 		testPayload = "hello";
 		gatewayWithHeaderValues.sendString((String) testPayload);
 		Message<?> message1 = channel.receive(0);
-		assertEquals(testPayload, message1.getPayload());
-		assertEquals("foo", message1.getHeaders().get("foo"));
-		assertEquals("bar", message1.getHeaders().get("bar"));
-		assertNull(message1.getHeaders().get("baz"));
+		assertThat(message1.getPayload()).isEqualTo(testPayload);
+		assertThat(message1.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(message1.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(message1.getHeaders().get("baz")).isNull();
 
 		testPayload = 123;
 		gatewayWithHeaderValues.sendInteger((Integer) testPayload);
 		Message<?> message2 = channel.receive(0);
-		assertEquals(testPayload, message2.getPayload());
-		assertEquals("foo", message2.getHeaders().get("foo"));
-		assertEquals("bar", message2.getHeaders().get("bar"));
-		assertNull(message2.getHeaders().get("baz"));
+		assertThat(message2.getPayload()).isEqualTo(testPayload);
+		assertThat(message2.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(message2.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(message2.getHeaders().get("baz")).isNull();
 
 		testPayload = "withAnnotatedHeaders";
 		gatewayWithHeaderValues.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
 		Message<?> message3 = channel.receive(0);
-		assertEquals("foo", message3.getHeaders().get("foo"));
-		assertEquals("bar", message3.getHeaders().get("bar"));
-		assertEquals("headerA", message3.getHeaders().get("headerA"));
-		assertEquals("headerB", message3.getHeaders().get("headerB"));
+		assertThat(message3.getHeaders().get("foo")).isEqualTo("foo");
+		assertThat(message3.getHeaders().get("bar")).isEqualTo("bar");
+		assertThat(message3.getHeaders().get("headerA")).isEqualTo("headerA");
+		assertThat(message3.getHeaders().get("headerB")).isEqualTo("headerB");
 	}
 
 	@Test
@@ -83,26 +82,26 @@ public class HeaderEnrichedGatewayTests {
 		testPayload = "hello";
 		gatewayWithHeaderExpressions.sendString((String) testPayload);
 		Message<?> message1 = channel.receive(0);
-		assertEquals(testPayload, message1.getPayload());
-		assertEquals(42, message1.getHeaders().get("foo"));
-		assertEquals("foobar", message1.getHeaders().get("bar"));
-		assertNull(message1.getHeaders().get("baz"));
+		assertThat(message1.getPayload()).isEqualTo(testPayload);
+		assertThat(message1.getHeaders().get("foo")).isEqualTo(42);
+		assertThat(message1.getHeaders().get("bar")).isEqualTo("foobar");
+		assertThat(message1.getHeaders().get("baz")).isNull();
 
 		testPayload = 123;
 		gatewayWithHeaderExpressions.sendInteger((Integer) testPayload);
 		Message<?> message2 = channel.receive(0);
-		assertEquals(testPayload, message2.getPayload());
-		assertEquals(42, message2.getHeaders().get("foo"));
-		assertEquals("foobar", message2.getHeaders().get("bar"));
-		assertNull(message2.getHeaders().get("baz"));
+		assertThat(message2.getPayload()).isEqualTo(testPayload);
+		assertThat(message2.getHeaders().get("foo")).isEqualTo(42);
+		assertThat(message2.getHeaders().get("bar")).isEqualTo("foobar");
+		assertThat(message2.getHeaders().get("baz")).isNull();
 
 		testPayload = "withAnnotatedHeaders";
 		gatewayWithHeaderExpressions.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
 		Message<?> message3 = channel.receive(0);
-		assertEquals(42, message3.getHeaders().get("foo"));
-		assertEquals("foobar", message3.getHeaders().get("bar"));
-		assertEquals("headerA", message3.getHeaders().get("headerA"));
-		assertEquals("headerB", message3.getHeaders().get("headerB"));
+		assertThat(message3.getHeaders().get("foo")).isEqualTo(42);
+		assertThat(message3.getHeaders().get("bar")).isEqualTo("foobar");
+		assertThat(message3.getHeaders().get("headerA")).isEqualTo("headerA");
+		assertThat(message3.getHeaders().get("headerB")).isEqualTo("headerB");
 	}
 
 

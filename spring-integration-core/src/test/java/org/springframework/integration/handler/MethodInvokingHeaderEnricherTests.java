@@ -16,11 +16,8 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -57,8 +54,8 @@ public class MethodInvokingHeaderEnricherTests {
 		enricher.setDefaultOverwrite(true);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = enricher.transform(message);
-		assertEquals("TEST", result.getHeaders().get("foo"));
-		assertEquals("ABC", result.getHeaders().get("bar"));
+		assertThat(result.getHeaders().get("foo")).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("bar")).isEqualTo("ABC");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -71,8 +68,8 @@ public class MethodInvokingHeaderEnricherTests {
 		enricher.setMessageProcessor(processor);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("bar", "XYZ").build();
 		Message<?> result = enricher.transform(message);
-		assertEquals("TEST", result.getHeaders().get("foo"));
-		assertEquals("XYZ", result.getHeaders().get("bar"));
+		assertThat(result.getHeaders().get("foo")).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("bar")).isEqualTo("XYZ");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -86,8 +83,8 @@ public class MethodInvokingHeaderEnricherTests {
 		enricher.setDefaultOverwrite(false);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("bar", "XYZ").build();
 		Message<?> result = enricher.transform(message);
-		assertEquals("TEST", result.getHeaders().get("foo"));
-		assertEquals("XYZ", result.getHeaders().get("bar"));
+		assertThat(result.getHeaders().get("foo")).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("bar")).isEqualTo("XYZ");
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -101,8 +98,8 @@ public class MethodInvokingHeaderEnricherTests {
 		enricher.setDefaultOverwrite(true);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("bar", "XYZ").build();
 		Message<?> result = enricher.transform(message);
-		assertEquals("TEST", result.getHeaders().get("foo"));
-		assertEquals("ABC", result.getHeaders().get("bar"));
+		assertThat(result.getHeaders().get("foo")).isEqualTo("TEST");
+		assertThat(result.getHeaders().get("bar")).isEqualTo("ABC");
 	}
 
 	@Test
@@ -116,8 +113,9 @@ public class MethodInvokingHeaderEnricherTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("HeaderEnricher cannot override 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage())
+					.contains("HeaderEnricher cannot override 'id' and 'timestamp' read-only headers.");
 		}
 	}
 

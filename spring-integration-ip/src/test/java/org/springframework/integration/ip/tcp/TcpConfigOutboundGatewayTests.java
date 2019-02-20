@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Map;
 
@@ -190,7 +190,7 @@ public class TcpConfigOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		byte[] bytes = ((Message<byte[]>) gateway.handleRequestMessage(message)).getPayload();
-		assertEquals("echo:test", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("echo:test");
 	}
 
 	@Test
@@ -201,7 +201,7 @@ public class TcpConfigOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		Object response = ((Message<Object>) gateway.handleRequestMessage(message)).getPayload();
-		assertEquals("echo:test", response);
+		assertThat(response).isEqualTo("echo:test");
 	}
 
 	@Test
@@ -212,7 +212,7 @@ public class TcpConfigOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		byte[] bytes = ((Message<byte[]>) gateway.handleRequestMessage(message)).getPayload();
-		assertEquals("echo:test", new String(bytes));
+		assertThat(new String(bytes)).isEqualTo("echo:test");
 	}
 
 	@Test //INT-1029
@@ -220,7 +220,7 @@ public class TcpConfigOutboundGatewayTests {
 //		this.ctx.getBean("tcp-outbound-gateway-within-chain.handler", TcpOutboundGateway.class);
 		tcpOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
-		assertEquals("echo:test", new String(bytes).trim());
+		assertThat(new String(bytes).trim()).isEqualTo("echo:test");
 	}
 
 
@@ -228,14 +228,14 @@ public class TcpConfigOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		requestChannel.send(message);
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
-		assertEquals("echo:test", new String(bytes).trim());
+		assertThat(new String(bytes).trim()).isEqualTo("echo:test");
 	}
 
 	private void testOutboundUsingConfigNio() {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		requestChannelNio.send(message);
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
-		assertEquals("echo:test", new String(bytes).trim());
+		assertThat(new String(bytes).trim()).isEqualTo("echo:test");
 	}
 
 }

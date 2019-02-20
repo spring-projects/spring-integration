@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -45,10 +45,10 @@ public class JsonToObjectTransformerTests {
 				"\"address\":{\"number\":123,\"street\":\"Main Street\"}, \"foo\":\"bar\"}";
 		Message<?> message = transformer.transform(new GenericMessage<>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
-		assertEquals("John", person.getFirstName());
-		assertEquals("Doe", person.getLastName());
-		assertEquals(42, person.getAge());
-		assertEquals("123 Main Street", person.getAddress().toString());
+		assertThat(person.getFirstName()).isEqualTo("John");
+		assertThat(person.getLastName()).isEqualTo("Doe");
+		assertThat(person.getAge()).isEqualTo(42);
+		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
 	}
 
 	@Test
@@ -61,10 +61,10 @@ public class JsonToObjectTransformerTests {
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
-		assertEquals("John", person.getFirstName());
-		assertEquals("Doe", person.getLastName());
-		assertEquals(42, person.getAge());
-		assertEquals("123 Main Street", person.getAddress().toString());
+		assertThat(person.getFirstName()).isEqualTo("John");
+		assertThat(person.getLastName()).isEqualTo("Doe");
+		assertThat(person.getAge()).isEqualTo(42);
+		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
 	}
 
 
@@ -75,10 +75,10 @@ public class JsonToObjectTransformerTests {
 				"\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
 		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
-		assertEquals("John", person.getFirstName());
-		assertEquals("Doe", person.getLastName());
-		assertEquals(42, person.getAge());
-		assertEquals("123 Main Street", person.getAddress().toString());
+		assertThat(person.getFirstName()).isEqualTo("John");
+		assertThat(person.getLastName()).isEqualTo("Doe");
+		assertThat(person.getAge()).isEqualTo(42);
+		assertThat(person.getAddress().toString()).isEqualTo("123 Main Street");
 	}
 
 }

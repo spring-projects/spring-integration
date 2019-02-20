@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +30,8 @@ import org.junit.Test;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0.4
  *
  */
@@ -55,13 +57,13 @@ public class LengthHeaderSerializationTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(TEST.getBytes(), bos);
 		byte[] bytes = bos.toByteArray();
-		assertEquals(0, bytes[0]);
-		assertEquals(0, bytes[1]);
-		assertEquals(0, bytes[2]);
-		assertEquals(TEST.length(), bytes[3]);
+		assertThat(bytes[0]).isEqualTo((byte) 0);
+		assertThat(bytes[1]).isEqualTo((byte) 0);
+		assertThat(bytes[2]).isEqualTo((byte) 0);
+		assertThat(bytes[3]).isEqualTo((byte) TEST.length());
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		bytes = serializer.deserialize(bis);
-		assertEquals(TEST, new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(TEST);
 		bytes[0] = -1;
 		bis = new ByteArrayInputStream(bytes);
 		try {
@@ -78,10 +80,10 @@ public class LengthHeaderSerializationTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(test255.getBytes(), bos);
 		byte[] bytes = bos.toByteArray();
-		assertEquals(test255.length(), bytes[0] & 0xff);
+		assertThat(bytes[0] & 0xff).isEqualTo(test255.length());
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		bytes = serializer.deserialize(bis);
-		assertEquals(test255, new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(test255);
 		test255 += "x";
 		try {
 			serializer.serialize(test255.getBytes(), bos);
@@ -97,11 +99,11 @@ public class LengthHeaderSerializationTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(test255.getBytes(), bos);
 		byte[] bytes = bos.toByteArray();
-		assertEquals(0, bytes[0]);
-		assertEquals(test255.length(), bytes[1] & 0xff);
+		assertThat(bytes[0]).isEqualTo((byte) 0);
+		assertThat(bytes[1] & 0xff).isEqualTo(test255.length());
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		bytes = serializer.deserialize(bis);
-		assertEquals(test255, new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(test255);
 	}
 
 	@Test
@@ -112,11 +114,11 @@ public class LengthHeaderSerializationTests {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(testFFFF.getBytes(), bos);
 		byte[] bytes = bos.toByteArray();
-		assertEquals(0xff, bytes[0] & 0xff);
-		assertEquals(0xff, bytes[1] & 0xff);
+		assertThat(bytes[0] & 0xff).isEqualTo(0xff);
+		assertThat(bytes[1] & 0xff).isEqualTo(0xff);
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		bytes = serializer.deserialize(bis);
-		assertEquals(testFFFF, new String(bytes));
+		assertThat(new String(bytes)).isEqualTo(testFFFF);
 		testFFFF += "x";
 		try {
 			serializer.serialize(testFFFF.getBytes(), bos);

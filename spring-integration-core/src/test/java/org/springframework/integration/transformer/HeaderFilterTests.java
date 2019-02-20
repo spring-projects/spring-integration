@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,9 @@
 
 package org.springframework.integration.transformer;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
 
 import java.util.Date;
 import java.util.UUID;
@@ -56,10 +49,10 @@ public class HeaderFilterTests {
 				.build();
 		HeaderFilter filter = new HeaderFilter("x", "z");
 		Message<?> result = filter.transform(message);
-		assertNotNull(result);
-		assertNotNull(result.getHeaders().get("y"));
-		assertNull(result.getHeaders().get("x"));
-		assertNull(result.getHeaders().get("z"));
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("y")).isNotNull();
+		assertThat(result.getHeaders().get("x")).isNull();
+		assertThat(result.getHeaders().get("z")).isNull();
 	}
 
 	@Test
@@ -78,13 +71,13 @@ public class HeaderFilterTests {
 		handler.afterPropertiesSet();
 		handler.handleMessage(message);
 		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertNotNull(result.getHeaders().get("y"));
-		assertNull(result.getHeaders().get("x"));
-		assertNull(result.getHeaders().get("z"));
-		assertEquals("testErrorChannel", result.getHeaders().getErrorChannel());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-		assertEquals(correlationId, new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders().get("y")).isNotNull();
+		assertThat(result.getHeaders().get("x")).isNull();
+		assertThat(result.getHeaders().get("z")).isNull();
+		assertThat(result.getHeaders().getErrorChannel()).isEqualTo("testErrorChannel");
+		assertThat(result.getHeaders().getReplyChannel()).isEqualTo(replyChannel);
+		assertThat(new IntegrationMessageHeaderAccessor(result).getCorrelationId()).isEqualTo(correlationId);
 	}
 
 	@Test
@@ -95,8 +88,8 @@ public class HeaderFilterTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage()).contains("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers.");
 		}
 	}
 
@@ -108,8 +101,8 @@ public class HeaderFilterTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage()).contains("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers.");
 		}
 	}
 
@@ -122,8 +115,8 @@ public class HeaderFilterTests {
 			fail("BeanInitializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+			assertThat(e).isInstanceOf(BeanInitializationException.class);
+			assertThat(e.getMessage()).contains("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers.");
 		}
 	}
 
@@ -139,8 +132,9 @@ public class HeaderFilterTests {
 
 		Message<?> result = filter.transform(message);
 
-		assertThat(result, hasHeaderKey(MessageHeaders.TIMESTAMP));
-		assertThat(result, not(hasHeaderKey("time")));
+		assertThat(result.getHeaders())
+				.containsKey(MessageHeaders.TIMESTAMP)
+				.doesNotContainKey("time");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,15 +43,15 @@ public class CronTriggerParserTests {
 	@Test
 	public void checkConfigWithAttribute() {
 		Object poller = context.getBean("pollerWithAttribute");
-		assertEquals(PollerMetadata.class, poller.getClass());
+		assertThat(poller.getClass()).isEqualTo(PollerMetadata.class);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
-		assertEquals(CronTrigger.class, trigger.getClass());
+		assertThat(trigger.getClass()).isEqualTo(CronTrigger.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		String expression = (String) new DirectFieldAccessor(
 				accessor.getPropertyValue("sequenceGenerator"))
 				.getPropertyValue("expression");
-		assertEquals("*/10 * 9-17 * * MON-FRI", expression);
+		assertThat(expression).isEqualTo("*/10 * 9-17 * * MON-FRI");
 	}
 
 }

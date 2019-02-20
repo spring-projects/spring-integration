@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -45,7 +44,7 @@ public class MessageBusParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannel.xml", this.getClass());
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
-		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
+		assertThat(resolver.resolveDestination("errorChannel")).isEqualTo(context.getBean("errorChannel"));
 		context.close();
 	}
 
@@ -54,7 +53,7 @@ public class MessageBusParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
-		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
+		assertThat(resolver.resolveDestination("errorChannel")).isEqualTo(context.getBean("errorChannel"));
 		context.close();
 	}
 
@@ -67,10 +66,10 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		if (SpringVersion.getVersion().startsWith("2")) {
-			assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+			assertThat(taskExecutor.getClass()).isEqualTo(SyncTaskExecutor.class);
 		}
 		else {
-			assertNull(taskExecutor);
+			assertThat(taskExecutor).isNull();
 		}
 		context.close();
 	}
@@ -85,10 +84,10 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		if (SpringVersion.getVersion().startsWith("2")) {
-			assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+			assertThat(taskExecutor.getClass()).isEqualTo(SyncTaskExecutor.class);
 		}
 		else {
-			assertNull(taskExecutor);
+			assertThat(taskExecutor).isNull();
 		}
 		context.close();
 	}
@@ -102,7 +101,7 @@ public class MessageBusParserTests {
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
-		assertEquals(ThreadPoolTaskExecutor.class, taskExecutor.getClass());
+		assertThat(taskExecutor.getClass()).isEqualTo(ThreadPoolTaskExecutor.class);
 		context.close();
 	}
 
@@ -111,7 +110,7 @@ public class MessageBusParserTests {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithTaskScheduler.xml", this.getClass());
 		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
-		assertEquals(StubTaskScheduler.class, scheduler.getClass());
+		assertThat(scheduler.getClass()).isEqualTo(StubTaskScheduler.class);
 		context.close();
 	}
 
@@ -120,7 +119,7 @@ public class MessageBusParserTests {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithTaskScheduler.xml", this.getClass());
 		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
-		assertEquals(scheduler, IntegrationContextUtils.getTaskScheduler(context));
+		assertThat(IntegrationContextUtils.getTaskScheduler(context)).isEqualTo(scheduler);
 		context.close();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.integration.event.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -62,12 +63,12 @@ public class EventOutboundChannelAdapterParserTests {
 	@Test
 	public void validateEventParser() {
 		EventDrivenConsumer adapter = this.context.getBean("eventAdapter", EventDrivenConsumer.class);
-		Assert.assertNotNull(adapter);
+		assertThat(adapter).isNotNull();
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		MessageHandler handler = (MessageHandler) adapterAccessor.getPropertyValue("handler");
-		Assert.assertTrue(handler instanceof ApplicationEventPublishingMessageHandler);
-		Assert.assertEquals(this.context.getBean("input"), adapterAccessor.getPropertyValue("inputChannel"));
-		Assert.assertTrue(TestUtils.getPropertyValue(handler, "publishPayload", Boolean.class));
+		assertThat(handler instanceof ApplicationEventPublishingMessageHandler).isTrue();
+		assertThat(adapterAccessor.getPropertyValue("inputChannel")).isEqualTo(this.context.getBean("input"));
+		assertThat(TestUtils.getPropertyValue(handler, "publishPayload", Boolean.class)).isTrue();
 	}
 
 	@Test
@@ -83,7 +84,7 @@ public class EventOutboundChannelAdapterParserTests {
 		this.context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
-		Assert.assertTrue(this.receivedEvent);
+		assertThat(this.receivedEvent).isTrue();
 	}
 
 	@Test
@@ -101,8 +102,8 @@ public class EventOutboundChannelAdapterParserTests {
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("inputAdvice", DirectChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
-		Assert.assertTrue(this.receivedEvent);
-		Assert.assertEquals(1, adviceCalled);
+		assertThat(this.receivedEvent).isTrue();
+		assertThat(adviceCalled).isEqualTo(1);
 	}
 
 	@Test //INT-2275
@@ -120,7 +121,7 @@ public class EventOutboundChannelAdapterParserTests {
 		this.context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("inputChain", DirectChannel.class);
 		channel.send(new GenericMessage<String>("foo"));
-		Assert.assertTrue(this.receivedEvent);
+		assertThat(this.receivedEvent).isTrue();
 	}
 
 	@Test(timeout = 10000)
@@ -153,7 +154,7 @@ public class EventOutboundChannelAdapterParserTests {
 		QueueChannel channel = context.getBean("input", QueueChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
 		barrier.await();
-		Assert.assertTrue(this.receivedEvent);
+		assertThat(this.receivedEvent).isTrue();
 		context.close();
 	}
 

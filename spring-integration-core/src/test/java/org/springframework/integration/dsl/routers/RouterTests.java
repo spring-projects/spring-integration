@@ -16,16 +16,9 @@
 
 package org.springframework.integration.dsl.routers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -104,12 +97,12 @@ public class RouterTests {
 
 		for (int i = 0; i < 3; i++) {
 			Message<?> receive = this.oddChannel.receive(2000);
-			assertNotNull(receive);
-			assertEquals(payloads[i * 2] * 3, receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo(payloads[i * 2] * 3);
 
 			receive = this.evenChannel.receive(2000);
-			assertNotNull(receive);
-			assertEquals(payloads[i * 2 + 1], receive.getPayload());
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo(payloads[i * 2 + 1]);
 		}
 	}
 
@@ -125,13 +118,13 @@ public class RouterTests {
 	public void testRouterWithTwoSubflows() {
 		this.routerTwoSubFlowsInput.send(new GenericMessage<Object>(Arrays.asList(1, 2, 3, 4, 5, 6)));
 		Message<?> receive = this.routerTwoSubFlowsOutput.receive(5000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(List.class));
+		assertThat(payload).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
 		List<Integer> results = (List<Integer>) payload;
 
-		assertArrayEquals(new Integer[] { 3, 4, 9, 8, 15, 12 }, results.toArray(new Integer[results.size()]));
+		assertThat(results.toArray(new Integer[results.size()])).isEqualTo(new Integer[] { 3, 4, 9, 8, 15, 12 });
 	}
 
 	@Autowired
@@ -147,8 +140,8 @@ public class RouterTests {
 						.build());
 
 		Message<?> receive = replyChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("BAZ", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("BAZ");
 	}
 
 
@@ -165,11 +158,11 @@ public class RouterTests {
 		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("BOO"));
 
 		Message<?> receive = routerSubflowResult.receive(10000);
-		assertNotNull(receive);
-		assertEquals("boo", receive.getPayload());
-		assertNull(this.defaultOutputChannel.receive(1));
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("boo");
+		assertThat(this.defaultOutputChannel.receive(1)).isNull();
 		this.routeSubflowWithoutReplyToMainFlowInput.send(new GenericMessage<>("foo"));
-		assertNotNull(this.defaultOutputChannel.receive(10000));
+		assertThat(this.defaultOutputChannel.receive(10000)).isNotNull();
 	}
 
 	@Autowired
@@ -211,53 +204,53 @@ public class RouterTests {
 
 		this.recipientListInput.send(fooMessage);
 		Message<?> result1a = this.fooChannel.receive(10000);
-		assertNotNull(result1a);
-		assertEquals("foo", result1a.getPayload());
+		assertThat(result1a).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("foo");
 		Message<?> result1b = this.barChannel.receive(10000);
-		assertNotNull(result1b);
-		assertEquals("foo", result1b.getPayload());
+		assertThat(result1b).isNotNull();
+		assertThat(result1b.getPayload()).isEqualTo("foo");
 		Message<?> result1c = this.recipientListSubFlow1Result.receive(10000);
-		assertNotNull(result1c);
-		assertEquals("FOO", result1c.getPayload());
-		assertNull(this.recipientListSubFlow2Result.receive(0));
+		assertThat(result1c).isNotNull();
+		assertThat(result1c.getPayload()).isEqualTo("FOO");
+		assertThat(this.recipientListSubFlow2Result.receive(0)).isNull();
 
 		this.recipientListInput.send(barMessage);
-		assertNull(this.fooChannel.receive(0));
-		assertNull(this.recipientListSubFlow2Result.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
+		assertThat(this.recipientListSubFlow2Result.receive(0)).isNull();
 		Message<?> result2b = this.barChannel.receive(10000);
-		assertNotNull(result2b);
-		assertEquals("bar", result2b.getPayload());
+		assertThat(result2b).isNotNull();
+		assertThat(result2b.getPayload()).isEqualTo("bar");
 		Message<?> result2c = this.recipientListSubFlow1Result.receive(10000);
-		assertNotNull(result1c);
-		assertEquals("BAR", result2c.getPayload());
+		assertThat(result1c).isNotNull();
+		assertThat(result2c.getPayload()).isEqualTo("BAR");
 
 		this.recipientListInput.send(bazMessage);
-		assertNull(this.fooChannel.receive(0));
-		assertNull(this.barChannel.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
+		assertThat(this.barChannel.receive(0)).isNull();
 		Message<?> result3c = this.recipientListSubFlow1Result.receive(10000);
-		assertNotNull(result3c);
-		assertEquals("BAZ", result3c.getPayload());
+		assertThat(result3c).isNotNull();
+		assertThat(result3c.getPayload()).isEqualTo("BAZ");
 		Message<?> result4c = this.recipientListSubFlow2Result.receive(10000);
-		assertNotNull(result4c);
-		assertEquals("Hello baz", result4c.getPayload());
+		assertThat(result4c).isNotNull();
+		assertThat(result4c.getPayload()).isEqualTo("Hello baz");
 
 		this.recipientListInput.send(badMessage);
-		assertNull(this.fooChannel.receive(0));
-		assertNull(this.barChannel.receive(0));
-		assertNull(this.recipientListSubFlow1Result.receive(0));
-		assertNull(this.recipientListSubFlow2Result.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
+		assertThat(this.barChannel.receive(0)).isNull();
+		assertThat(this.recipientListSubFlow1Result.receive(0)).isNull();
+		assertThat(this.recipientListSubFlow2Result.receive(0)).isNull();
 		Message<?> resultD = this.defaultOutputChannel.receive(10000);
-		assertNotNull(resultD);
-		assertEquals("bad", resultD.getPayload());
+		assertThat(resultD).isNotNull();
+		assertThat(resultD.getPayload()).isEqualTo("bad");
 
 		this.recipientListInput.send(new GenericMessage<>("bax"));
 		Message<?> result5c = this.recipientListSubFlow3Result.receive(10000);
-		assertNotNull(result5c);
-		assertEquals("bax", result5c.getPayload());
-		assertNull(this.fooChannel.receive(0));
-		assertNull(this.barChannel.receive(0));
-		assertNull(this.recipientListSubFlow1Result.receive(0));
-		assertNull(this.recipientListSubFlow2Result.receive(0));
+		assertThat(result5c).isNotNull();
+		assertThat(result5c.getPayload()).isEqualTo("bax");
+		assertThat(this.fooChannel.receive(0)).isNull();
+		assertThat(this.barChannel.receive(0)).isNull();
+		assertThat(this.recipientListSubFlow1Result.receive(0)).isNull();
+		assertThat(this.recipientListSubFlow2Result.receive(0)).isNull();
 	}
 
 	@Autowired
@@ -285,23 +278,22 @@ public class RouterTests {
 		this.routerMethodInput.send(fooMessage);
 
 		Message<?> result1a = this.fooChannel.receive(2000);
-		assertNotNull(result1a);
-		assertEquals("foo", result1a.getPayload());
-		assertNull(this.barChannel.receive(0));
+		assertThat(result1a).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("foo");
+		assertThat(this.barChannel.receive(0)).isNull();
 
 		this.routerMethodInput.send(barMessage);
-		assertNull(this.fooChannel.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
 		Message<?> result2b = this.barChannel.receive(2000);
-		assertNotNull(result2b);
-		assertEquals("bar", result2b.getPayload());
+		assertThat(result2b).isNotNull();
+		assertThat(result2b.getPayload()).isEqualTo("bar");
 
 		try {
 			this.routerMethodInput.send(badMessage);
 			fail("MessageDeliveryException expected.");
 		}
 		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage(),
-					containsString("No channel resolved by router"));
+			assertThat(e.getMessage()).contains("No channel resolved by router");
 		}
 
 	}
@@ -315,24 +307,23 @@ public class RouterTests {
 		this.routerMethod2Input.send(fooMessage);
 
 		Message<?> result1a = this.fooChannel.receive(2000);
-		assertNotNull(result1a);
-		assertEquals("foo", result1a.getPayload());
-		assertNull(this.barChannel.receive(0));
+		assertThat(result1a).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("foo");
+		assertThat(this.barChannel.receive(0)).isNull();
 
 		this.routerMethod2Input.send(barMessage);
-		assertNull(this.fooChannel.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
 		Message<?> result2b = this.barChannel.receive(2000);
-		assertNotNull(result2b);
-		assertEquals("bar", result2b.getPayload());
+		assertThat(result2b).isNotNull();
+		assertThat(result2b.getPayload()).isEqualTo("bar");
 
 		try {
 			this.routerMethod2Input.send(badMessage);
 			fail("DestinationResolutionException expected.");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause(), instanceOf(DestinationResolutionException.class));
-			assertThat(e.getCause().getMessage(),
-					containsString("failed to look up MessageChannel with name 'bad-channel'"));
+			assertThat(e.getCause()).isInstanceOf(DestinationResolutionException.class);
+			assertThat(e.getCause().getMessage()).contains("failed to look up MessageChannel with name 'bad-channel'");
 		}
 
 	}
@@ -346,24 +337,23 @@ public class RouterTests {
 		this.routerMethod3Input.send(fooMessage);
 
 		Message<?> result1a = this.fooChannel.receive(2000);
-		assertNotNull(result1a);
-		assertEquals("foo", result1a.getPayload());
-		assertNull(this.barChannel.receive(0));
+		assertThat(result1a).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("foo");
+		assertThat(this.barChannel.receive(0)).isNull();
 
 		this.routerMethod3Input.send(barMessage);
-		assertNull(this.fooChannel.receive(0));
+		assertThat(this.fooChannel.receive(0)).isNull();
 		Message<?> result2b = this.barChannel.receive(2000);
-		assertNotNull(result2b);
-		assertEquals("bar", result2b.getPayload());
+		assertThat(result2b).isNotNull();
+		assertThat(result2b.getPayload()).isEqualTo("bar");
 
 		try {
 			this.routerMethod3Input.send(badMessage);
 			fail("DestinationResolutionException expected.");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getCause(), instanceOf(DestinationResolutionException.class));
-			assertThat(e.getCause().getMessage(),
-					containsString("failed to look up MessageChannel with name 'bad-channel'"));
+			assertThat(e.getCause()).isInstanceOf(DestinationResolutionException.class);
+			assertThat(e.getCause().getMessage()).contains("failed to look up MessageChannel with name 'bad-channel'");
 		}
 	}
 
@@ -376,27 +366,26 @@ public class RouterTests {
 
 		this.routerMultiInput.send(fooMessage);
 		Message<?> result1a = this.fooChannel.receive(2000);
-		assertNotNull(result1a);
-		assertEquals("foo", result1a.getPayload());
+		assertThat(result1a).isNotNull();
+		assertThat(result1a.getPayload()).isEqualTo("foo");
 		Message<?> result1b = this.barChannel.receive(2000);
-		assertNotNull(result1b);
-		assertEquals("foo", result1b.getPayload());
+		assertThat(result1b).isNotNull();
+		assertThat(result1b.getPayload()).isEqualTo("foo");
 
 		this.routerMultiInput.send(barMessage);
 		Message<?> result2a = this.fooChannel.receive(2000);
-		assertNotNull(result2a);
-		assertEquals("bar", result2a.getPayload());
+		assertThat(result2a).isNotNull();
+		assertThat(result2a.getPayload()).isEqualTo("bar");
 		Message<?> result2b = this.barChannel.receive(2000);
-		assertNotNull(result2b);
-		assertEquals("bar", result2b.getPayload());
+		assertThat(result2b).isNotNull();
+		assertThat(result2b.getPayload()).isEqualTo("bar");
 
 		try {
 			this.routerMultiInput.send(badMessage);
 			fail("MessageDeliveryException expected.");
 		}
 		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage(),
-					containsString("No channel resolved by router"));
+			assertThat(e.getMessage()).contains("No channel resolved by router");
 		}
 	}
 
@@ -420,24 +409,24 @@ public class RouterTests {
 		this.payloadTypeRouteFlowInput.send(new GenericMessage<>("BAR"));
 
 		Message<?> receive = this.stringsChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("foo", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("foo");
 
 		receive = this.stringsChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals("BAR", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("BAR");
 
-		assertNull(this.stringsChannel.receive(10));
-
-		receive = this.integersChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(22, receive.getPayload());
+		assertThat(this.stringsChannel.receive(10)).isNull();
 
 		receive = this.integersChannel.receive(10000);
-		assertNotNull(receive);
-		assertEquals(33, receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(22);
 
-		assertNull(this.integersChannel.receive(10));
+		receive = this.integersChannel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo(33);
+
+		assertThat(this.integersChannel.receive(10)).isNull();
 	}
 
 	@Autowired
@@ -457,17 +446,17 @@ public class RouterTests {
 	public void testRecipientListRouterOrder() {
 		this.recipientListOrderFlowInput.send(new GenericMessage<>(new AtomicReference<>("")));
 		Message<?> receive = this.recipientListOrderResult.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 
 		AtomicReference<String> result = (AtomicReference<String>) receive.getPayload();
-		assertEquals("Hello World", result.get());
+		assertThat(result.get()).isEqualTo("Hello World");
 
 		receive = this.recipientListOrderResult.receive(10000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		result = (AtomicReference<String>) receive.getPayload();
-		assertEquals("Hello World", result.get());
+		assertThat(result.get()).isEqualTo("Hello World");
 
-		assertEquals(1, this.alwaysRecipient.getQueueSize());
+		assertThat(this.alwaysRecipient.getQueueSize()).isEqualTo(1);
 	}
 
 	@Autowired
@@ -482,8 +471,8 @@ public class RouterTests {
 	public void testRouterAsNonLastComponent() {
 		this.routerAsNonLastFlowChannel.send(new GenericMessage<>("Hello World"));
 		Message<?> receive = this.routerAsNonLastDefaultOutputChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("Hello World", receive.getPayload());
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Hello World");
 	}
 
 	@Autowired
@@ -498,10 +487,10 @@ public class RouterTests {
 				.build();
 		this.scatterGatherFlowInput.send(request);
 		Message<?> bestQuoteMessage = replyChannel.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List<?>) payload).size()).isGreaterThanOrEqualTo(1);
 	}
 
 
@@ -531,10 +520,10 @@ public class RouterTests {
 
 		this.exceptionTypeRouteFlowInput.send(message);
 
-		assertNotNull(this.illegalArgumentChannel.receive(1000));
-		assertNull(this.exceptionRouterDefaultChannel.receive(0));
-		assertNull(this.runtimeExceptionChannel.receive(0));
-		assertNull(this.messageHandlingExceptionChannel.receive(0));
+		assertThat(this.illegalArgumentChannel.receive(1000)).isNotNull();
+		assertThat(this.exceptionRouterDefaultChannel.receive(0)).isNull();
+		assertThat(this.runtimeExceptionChannel.receive(0)).isNull();
+		assertThat(this.messageHandlingExceptionChannel.receive(0)).isNull();
 	}
 
 	@Autowired
@@ -550,25 +539,25 @@ public class RouterTests {
 				.build();
 		this.nestedScatterGatherFlowInput.send(request);
 		Message<?> bestQuoteMessage = replyChannel.receive(10000);
-		assertNotNull(bestQuoteMessage);
+		assertThat(bestQuoteMessage).isNotNull();
 		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(String.class));
+		assertThat(payload).isInstanceOf(String.class);
 		List<?> topSequenceDetails =
 				(List<?>) bestQuoteMessage.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, List.class)
 						.get(0);
 
-		assertEquals(request.getHeaders().getId(),
-				bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+		assertThat(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID))
+				.isEqualTo(request.getHeaders().getId());
 
-		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID),
-				topSequenceDetails.get(0));
+		assertThat(topSequenceDetails.get(0))
+				.isEqualTo(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
 
-		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER),
-				topSequenceDetails.get(1));
+		assertThat(topSequenceDetails.get(1))
+				.isEqualTo(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
-		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE),
-				topSequenceDetails.get(2));
+		assertThat(topSequenceDetails.get(2))
+				.isEqualTo(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 	}
 
 	@Autowired
@@ -586,10 +575,10 @@ public class RouterTests {
 		this.scatterGatherAndExecutorChannelSubFlowInput.send(testMessage);
 
 		Message<?> receive = replyChannel.receive(10_000);
-		assertNotNull(receive);
+		assertThat(receive).isNotNull();
 		Object payload = receive.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List) payload).get(1), instanceOf(RuntimeException.class));
+		assertThat(payload).isInstanceOf(List.class);
+		assertThat(((List) payload).get(1)).isInstanceOf(RuntimeException.class);
 	}
 
 	@Autowired

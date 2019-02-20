@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.List;
@@ -96,8 +95,8 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 			List<Map<String, Object>> metaData = new JdbcTemplate(dataSource)
 					.queryForList("SELECT * FROM INT_METADATA_STORE");
 
-			assertEquals(1, metaData.size());
-			assertEquals("43", metaData.get(0).get("METADATA_VALUE"));
+			assertThat(metaData.size()).isEqualTo(1);
+			assertThat(metaData.get(0).get("METADATA_VALUE")).isEqualTo("43");
 		}
 		finally {
 			dataSource.shutdown();
@@ -128,26 +127,26 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertEquals(1, filter.filterFiles(new File[] { file }).size());
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
 		String ts = store.get("foo:" + file.getAbsolutePath());
-		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] { file }).size());
+		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
 		file.setLastModified(file.lastModified() + 5000L);
-		assertEquals(1, filter.filterFiles(new File[] { file }).size());
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(1);
 		ts = store.get("foo:" + file.getAbsolutePath());
-		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] { file }).size());
+		assertThat(ts).isEqualTo(String.valueOf(file.lastModified()));
+		assertThat(filter.filterFiles(new File[] { file }).size()).isEqualTo(0);
 
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);
 
 		Future<Integer> result = Executors.newSingleThreadExecutor()
 				.submit(() -> filter.filterFiles(new File[] { file }).size());
-		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		assertThat(latch2.await(10, TimeUnit.SECONDS)).isTrue();
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();
 		Integer theResult = result.get(10, TimeUnit.SECONDS);
-		assertEquals(Integer.valueOf(0), theResult); // lost the race, key changed
+		assertThat(theResult).isEqualTo(Integer.valueOf(0)); // lost the race, key changed
 
 		file.delete();
 		filter.close();

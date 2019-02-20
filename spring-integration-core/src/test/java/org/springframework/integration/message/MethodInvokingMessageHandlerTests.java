@@ -16,9 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.BlockingQueue;
@@ -66,7 +64,7 @@ public class MethodInvokingMessageHandlerTests {
 			handler.handleMessage(message);
 		}
 		catch (MessagingException e) {
-			assertEquals(e.getFailedMessage(), message);
+			assertThat(message).isEqualTo(e.getFailedMessage());
 			throw e;
 		}
 	}
@@ -85,7 +83,7 @@ public class MethodInvokingMessageHandlerTests {
 		context.registerChannel("channel", channel);
 		Message<String> message = new GenericMessage<>("testing");
 		channel.send(message);
-		assertNull(queue.poll());
+		assertThat(queue.poll()).isNull();
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
 		handler.setBeanFactory(context);
 		PollingConsumer endpoint = new PollingConsumer(channel, handler);
@@ -93,8 +91,8 @@ public class MethodInvokingMessageHandlerTests {
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		String result = queue.poll(2000, TimeUnit.MILLISECONDS);
-		assertNotNull(result);
-		assertEquals("testing", result);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("testing");
 		context.close();
 	}
 
