@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,6 +28,8 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -41,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Andriy Kryvtsun
+ *
  * @since 1.0.1
  */
 public class LoggingHandler extends AbstractMessageHandler {
@@ -51,17 +55,17 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	}
 
-	private volatile Level level;
+	private Level level;
 
-	private volatile boolean expressionSet;
+	private Expression expression = new FunctionExpression<Message<?>>(Message::getPayload);
 
-	private volatile Expression expression = EXPRESSION_PARSER.parseExpression("payload");
+	private boolean expressionSet;
 
-	private volatile EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+	private EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 
-	private volatile boolean shouldLogFullMessageSet;
+	private boolean shouldLogFullMessageSet;
 
-	private volatile Log messageLogger = this.logger;
+	private Log messageLogger = this.logger;
 
 	/**
 	 * Create a LoggingHandler with the given log level (case-insensitive).
@@ -153,9 +157,10 @@ public class LoggingHandler extends AbstractMessageHandler {
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
 		Assert.isTrue(!(this.expressionSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		this.shouldLogFullMessageSet = true;
-		this.expression = shouldLogFullMessage
-				? EXPRESSION_PARSER.parseExpression("#root")
-				: EXPRESSION_PARSER.parseExpression("payload");
+		this.expression =
+				shouldLogFullMessage
+						? new FunctionExpression<Message<?>>(Function.identity())
+						: new FunctionExpression<Message<?>>(Message::getPayload);
 	}
 
 	@Override
@@ -170,7 +175,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		switch (this.level) {
 			case FATAL:
 				if (this.messageLogger.isFatalEnabled()) {
@@ -207,6 +212,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 		}
 	}
 
+	@Nullable
 	private Object createLogMessage(Message<?> message) {
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		return logMessage instanceof Throwable

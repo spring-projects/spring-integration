@@ -17,7 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -76,6 +76,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
@@ -394,13 +395,14 @@ public class MethodInvokingMessageProcessorTests {
 		assertThat(result).isEqualTo(456);
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.processMessage(new GenericMessage<>("foo"));
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")));
 	}
 
 	@Test
@@ -420,8 +422,9 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.isInstanceOf(MessageHandlingException.class);
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withMessageContaining("Failed to convert message payload 'foo' to 'java.lang.Integer'");
 	}
 
 	@Test
@@ -430,8 +433,9 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = service.getClass().getMethod("error", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.hasCauseInstanceOf(UnsupportedOperationException.class);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
 	}
 
 	@Test
@@ -440,8 +444,9 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = service.getClass().getMethod("checked", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.hasCauseInstanceOf(CheckedException.class);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(CheckedException.class);
 	}
 
 	@Test
@@ -451,8 +456,9 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.hasCauseInstanceOf(SpelEvaluationException.class);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(SpelEvaluationException.class);
 	}
 
 	@Test

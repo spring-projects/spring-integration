@@ -38,10 +38,9 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -253,8 +252,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	public void handleMessageInternal(Message<?> message) throws MessageHandlingException,
-			MessageDeliveryException {
+	public void handleMessageInternal(Message<?> message) {
 		if (this.acknowledge) {
 			Assert.state(this.isRunning(), "When 'acknowledge' is enabled, adapter must be running");
 			startAckThread();
@@ -284,12 +282,12 @@ public class UnicastSendingMessageHandler extends
 				}
 			}
 		}
-		catch (MessagingException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			closeSocketIfNeeded();
-			throw new MessageHandlingException(message, "failed to send UDP packet", e);
+		catch (Exception ex) {
+			if (!(ex instanceof MessagingException)) {
+				closeSocketIfNeeded();
+			}
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Failed to send UDP packet", ex);
 		}
 		finally {
 			if (countdownLatch != null) {

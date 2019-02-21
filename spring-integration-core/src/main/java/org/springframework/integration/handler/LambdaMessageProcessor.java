@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
@@ -47,7 +48,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAware {
 
-	private static final Log logger = LogFactory.getLog(LambdaMessageProcessor.class); // NOSONAR lower case static
+	private static final Log LOGGER = LogFactory.getLog(LambdaMessageProcessor.class);
 
 	private final Object target;
 
@@ -103,15 +104,17 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		}
 		catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof ClassCastException) {
-				logger.error("Could not invoke the method due to a class cast exception, if using a lambda in the DSL, "
-						+ "consider using an overloaded EIP method that takes a Class<?> argument to explicitly "
-						+ "specify the type. An example of when this often occurs is if the lambda is configured to "
-						+ "receive a Message<?> argument.", e.getCause());
+				LOGGER.error("Could not invoke the method due to a class cast exception, " +
+						"if using a lambda in the DSL, consider using an overloaded EIP method " +
+						"that takes a Class<?> argument to explicitly  specify the type. " +
+						"An example of when this often occurs is if the lambda is configured to " +
+						"receive a Message<?> argument.", e.getCause());
 			}
 			throw new MessageHandlingException(message, e.getCause());
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "error occurred during processing message in 'LambdaMessageProcessor' [" + this + "]", e);
 		}
 	}
 

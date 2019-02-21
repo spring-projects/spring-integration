@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import org.springframework.expression.MethodExecutor;
 import org.springframework.expression.MethodFilter;
 import org.springframework.expression.MethodResolver;
 import org.springframework.expression.spel.support.ReflectiveMethodResolver;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.util.CollectionUtils;
 
 /**
  * A MessageProcessor implementation that expects an Expression or expressionString
@@ -40,6 +42,8 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
@@ -47,26 +51,31 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	public ExpressionCommandMessageProcessor() {
 	}
 
-	public ExpressionCommandMessageProcessor(MethodFilter methodFilter) {
+	public ExpressionCommandMessageProcessor(@Nullable MethodFilter methodFilter) {
 		this(methodFilter, null);
 	}
 
-	public ExpressionCommandMessageProcessor(MethodFilter methodFilter, BeanFactory beanFactory) {
+	public ExpressionCommandMessageProcessor(@Nullable MethodFilter methodFilter, @Nullable BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.setBeanFactory(beanFactory);
+			setBeanFactory(beanFactory);
 		}
 		if (methodFilter != null) {
 			MethodResolver methodResolver = new ExpressionCommandMethodResolver(methodFilter);
-			this.getEvaluationContext(false).setMethodResolvers(Collections.singletonList(methodResolver));
+			getEvaluationContext(false).setMethodResolvers(Collections.singletonList(methodResolver));
 		}
 	}
 
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+	}
 
 	/**
 	 * Evaluates the Message payload expression as a command.
 	 * @throws IllegalArgumentException if the payload is not an Exception or String
 	 */
 	@Override
+	@Nullable
 	public Object processMessage(Message<?> message) {
 		Object expression = message.getPayload();
 		if (expression instanceof Expression) {
@@ -91,18 +100,17 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 
 		@Override
 		public MethodExecutor resolve(EvaluationContext context,
-				Object targetObject, String name, List<TypeDescriptor> argumentTypes) throws AccessException {
-			this.validateMethod(targetObject, name, (argumentTypes != null ? argumentTypes.size() : 0));
+				Object targetObject, String name, List<TypeDescriptor> argumentTypes)
+				throws AccessException {
+
+			validateMethod(targetObject, name, !CollectionUtils.isEmpty(argumentTypes) ? argumentTypes.size() : 0);
 			return super.resolve(context, targetObject, name, argumentTypes);
 		}
 
 		private void validateMethod(Object targetObject, String name, int argumentCount) {
-			if (this.methodFilter == null) {
-				return;
-			}
 			Class<?> type = (targetObject instanceof Class ? (Class<?>) targetObject : targetObject.getClass());
 			Method[] methods = type.getMethods();
-			List<Method> candidates = new ArrayList<Method>();
+			List<Method> candidates = new ArrayList<>();
 			for (Method method : methods) {
 				if (method.getName().equals(name) && method.getParameterTypes().length == argumentCount) {
 					candidates.add(method);
@@ -111,10 +119,12 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 			List<Method> supportedMethods = this.methodFilter.filter(candidates);
 			if (supportedMethods.size() == 0) {
 				String methodDescription = (candidates.size() > 0) ? candidates.get(0).toString() : name;
-				throw new EvaluationException("The method '" + methodDescription + "' is not supported by this command processor. " +
+				throw new EvaluationException("The method '" + methodDescription +
+						"' is not supported by this command processor. " +
 						"If using the Control Bus, consider adding @ManagedOperation or @ManagedAttribute.");
 			}
 		}
+
 	}
 
 }

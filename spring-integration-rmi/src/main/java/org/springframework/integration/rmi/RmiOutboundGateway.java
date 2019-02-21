@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		if (!(requestMessage.getPayload() instanceof Serializable)) {
 			throw new MessageHandlingException(requestMessage,
 					this.getComponentName() + " expects a Serializable payload type " +
-					"but encountered [" + requestMessage.getPayload().getClass().getName() + "]");
+							"but encountered [" + requestMessage.getPayload().getClass().getName() + "]");
 		}
 		try {
 			return this.proxy.exchange(requestMessage);
@@ -86,8 +86,8 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 			throw new MessageHandlingException(requestMessage, e);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(requestMessage, "Remote failure in RmiOutboundGateway: " +
-					this.getComponentName(), e);
+			throw new MessageHandlingException(requestMessage,
+					"Remote failure in RmiOutboundGateway: " + getComponentName(), e);
 		}
 	}
 

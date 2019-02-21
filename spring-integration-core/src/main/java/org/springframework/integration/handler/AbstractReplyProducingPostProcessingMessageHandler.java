@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -42,6 +45,7 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 	}
 
 	@Override
+	@Nullable
 	protected final Object handleRequestMessage(Message<?> requestMessage) {
 		Object result = this.doHandleRequestMessage(requestMessage);
 		if (this.postProcessWithinAdvice || !this.hasAdviceChain()) {
@@ -51,6 +55,7 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 	}
 
 	@Override
+	@Nullable
 	protected final Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		Object result = super.doInvokeAdvisedRequestHandler(message);
 		if (!this.postProcessWithinAdvice) {
@@ -59,6 +64,7 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 		return result;
 	}
 
+	@Nullable
 	protected abstract Object doHandleRequestMessage(Message<?> requestMessage);
 
 }

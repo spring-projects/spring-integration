@@ -17,6 +17,7 @@
 package org.springframework.integration.stomp.inbound;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -33,13 +34,13 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.support.StompHeaderMapper;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -133,14 +134,14 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		Assert.notNull(destination, "'destination' cannot be null");
 		this.destinationLock.lock();
 		try {
-			for (String d : destination) {
-				if (this.destinations.add(d)) {
-					if (this.logger.isDebugEnabled()) {
-						logger.debug("Subscribe to destination '" + d + "'.");
-					}
-					subscribeDestination(d);
-				}
-			}
+			Arrays.stream(destination)
+					.filter(this.destinations::add)
+					.forEach(d -> {
+						if (this.logger.isDebugEnabled()) {
+							logger.debug("Subscribe to destination '" + d + "'.");
+						}
+						subscribeDestination(d);
+					});
 		}
 		finally {
 			this.destinationLock.unlock();
@@ -156,22 +157,22 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		Assert.notNull(destination, "'destination' cannot be null");
 		this.destinationLock.lock();
 		try {
-			for (String d : destination) {
-				if (this.destinations.remove(d)) {
-					if (this.logger.isDebugEnabled()) {
-						logger.debug("Removed '" + d + "' from subscriptions.");
-					}
-					StompSession.Subscription subscription = this.subscriptions.get(d);
-					if (subscription != null) {
-						subscription.unsubscribe();
-					}
-					else {
+			Arrays.stream(destination)
+					.filter(this.destinations::remove)
+					.forEach(d -> {
 						if (this.logger.isDebugEnabled()) {
-							logger.debug("No subscription for destination '" + d + "'.");
+							logger.debug("Removed '" + d + "' from subscriptions.");
 						}
-					}
-				}
-			}
+						StompSession.Subscription subscription = this.subscriptions.get(d);
+						if (subscription != null) {
+							subscription.unsubscribe();
+						}
+						else {
+							if (this.logger.isDebugEnabled()) {
+								logger.debug("No subscription for destination '" + d + "'.");
+							}
+						}
+					});
 		}
 		finally {
 			this.destinationLock.unlock();
@@ -227,12 +228,11 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 								message = (Message<?>) body;
 							}
 							else {
-								Map<String, Object> headersToCopy =
-										StompInboundChannelAdapter.this.headerMapper.toHeaders(headers);
 								message =
 										getMessageBuilderFactory()
 												.withPayload(body)
-												.copyHeaders(headersToCopy)
+												.copyHeaders(
+														StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
 												.build();
 							}
 							sendMessage(message);
@@ -274,36 +274,32 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			StompInboundChannelAdapter.this.stompSession = session;
-			for (String destination : StompInboundChannelAdapter.this.destinations) {
-				subscribeDestination(destination);
-			}
+			StompInboundChannelAdapter.this.destinations.forEach(StompInboundChannelAdapter.this::subscribeDestination);
 		}
 
 		@Override
-		public void handleException(StompSession session, @Nullable StompCommand command, StompHeaders headers,
-				byte[] payload, Throwable exception) {
+		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
+				Throwable exception) {
+
+			String exceptionMessage = "STOMP Frame handling error.";
 
 			MessageChannel errorChannel = getErrorChannel();
+
 			if (errorChannel != null) {
-				Message<byte[]> failedMessage;
-				// TODO 5.2 Copy all the STOMP headers for error message without any mapping
-				Map<String, Object> headersToCopy = StompInboundChannelAdapter.this.headerMapper.toHeaders(headers);
-				if (command != null) {
-					StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(command);
-					headerAccessor.copyHeaders(headersToCopy);
-					failedMessage = MessageBuilder.createMessage(payload, headerAccessor.getMessageHeaders());
-				}
-				else {
-					failedMessage =
-							MessageBuilder.withPayload(payload)
-									.copyHeaders(headersToCopy)
-									.build();
-				}
+				StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(command);
+				headerAccessor.copyHeaders(StompInboundChannelAdapter.this.headerMapper.toHeaders(headers));
+				Message<byte[]> failedMessage =
+						MessageBuilder.createMessage(payload, headerAccessor.getMessageHeaders());
+
+				Exception ex =
+						IntegrationUtils.wrapInHandlingExceptionIfNecessary(failedMessage,
+								() -> exceptionMessage, exception);
+
 				getMessagingTemplate()
-						.send(errorChannel, new ErrorMessage(new MessageHandlingException(failedMessage, exception)));
+						.send(errorChannel, new ErrorMessage(ex));
 			}
 			else {
-				logger.error("STOMP Frame handling error.", exception);
+				logger.error(exceptionMessage, exception);
 			}
 		}
 

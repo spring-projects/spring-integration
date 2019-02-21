@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
@@ -174,7 +173,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	/**
 	 * True if the converter should not convert the message payload to a String.
 	 * Ignored if a {@link BytesMessageMapper} is provided.
-	 *
 	 * @param payloadAsBytes The payloadAsBytes to set.
 	 * @see #setBytesMessageMapper(BytesMessageMapper)
 	 */
@@ -274,7 +272,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 				return this.bytesMessageMapper.fromMessage(message);
 			}
 			catch (Exception e) {
-				throw new MessageHandlingException(message, "Failed to map outbound message", e);
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+						() -> "Failed to map outbound message", e);
 			}
 		}
 		else {

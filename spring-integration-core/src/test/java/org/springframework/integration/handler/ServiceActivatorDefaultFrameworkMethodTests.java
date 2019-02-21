@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,8 +44,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -57,8 +57,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  * @since 2.0.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Autowired
@@ -109,19 +108,14 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertThat(reply.getHeaders().get("history").toString())
 				.isEqualTo("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel");
 
-		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
-		try {
-			this.gatewayTestInputChannel.send(message);
-			fail("Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageHandlingException.class);
-			assertThat(e.getCause()).isInstanceOf(MessageTransformationException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(MessageHandlingException.class);
-			assertThat(e.getCause().getCause().getCause()).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("Expression evaluation failed");
-			assertThat(e.getMessage()).contains("Wrong payload");
-		}
+		Message<?> message2 = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
+
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> this.gatewayTestInputChannel.send(message2))
+				.withCauseInstanceOf(MessageHandlingException.class)
+				.withRootCauseInstanceOf(IllegalStateException.class)
+				.withMessageContaining("Expression evaluation failed")
+				.withMessageContaining("Wrong payload");
 	}
 
 	@Test

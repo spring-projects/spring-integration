@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -35,15 +36,15 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 
 	public ServiceActivatingHandler(final Object object) {
-		this(new MethodInvokingMessageProcessor<Object>(object, ServiceActivator.class));
+		this(new MethodInvokingMessageProcessor<>(object, ServiceActivator.class));
 	}
 
 	public ServiceActivatingHandler(Object object, Method method) {
-		this(new MethodInvokingMessageProcessor<Object>(object, method));
+		this(new MethodInvokingMessageProcessor<>(object, method));
 	}
 
 	public ServiceActivatingHandler(Object object, String methodName) {
-		this(new MethodInvokingMessageProcessor<Object>(object, methodName));
+		this(new MethodInvokingMessageProcessor<>(object, methodName));
 	}
 
 	public <T> ServiceActivatingHandler(MessageProcessor<T> processor) {
@@ -89,6 +90,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	}
 
 	@Override
+	@Nullable
 	protected Object handleRequestMessage(Message<?> message) {
 		return this.processor.processMessage(message);
 	}
@@ -96,7 +98,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	public String toString() {
 		return "ServiceActivator for [" + this.processor + "]"
-				+ (this.getComponentName() == null ? "" : " (" + this.getComponentName() + ")");
+				+ (getComponentName() == null ? "" : " (" + getComponentName() + ")");
 	}
 
 }

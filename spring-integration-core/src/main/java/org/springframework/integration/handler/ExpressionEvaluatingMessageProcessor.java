@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -28,6 +29,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
@@ -51,7 +53,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	 * @param expression The expression.
 	 * @param expectedType The expected type.
 	 */
-	public ExpressionEvaluatingMessageProcessor(Expression expression, Class<T> expectedType) {
+	public ExpressionEvaluatingMessageProcessor(Expression expression, @Nullable Class<T> expectedType) {
 		Assert.notNull(expression, "The expression must not be null");
 		try {
 			this.expression = expression;
@@ -84,7 +86,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	 * @param expectedType the expected result type.
 	 * @since 5.0
 	 */
-	public ExpressionEvaluatingMessageProcessor(String expression, Class<T> expectedType) {
+	public ExpressionEvaluatingMessageProcessor(String expression, @Nullable Class<T> expectedType) {
 		try {
 			this.expression = EXPRESSION_PARSER.parseExpression(expression);
 			this.expectedType = expectedType;

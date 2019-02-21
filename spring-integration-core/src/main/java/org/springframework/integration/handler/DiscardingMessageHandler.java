@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
@@ -32,6 +33,7 @@ public interface DiscardingMessageHandler extends MessageHandler {
 	 * Return the discard channel.
 	 * @return the channel.
 	 */
+	@Nullable
 	MessageChannel getDiscardChannel();
 
 }

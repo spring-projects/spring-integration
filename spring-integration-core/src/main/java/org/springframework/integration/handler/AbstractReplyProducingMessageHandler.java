@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -137,6 +138,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
+	@Nullable
 	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		return this.advisedRequestHandler.handleRequestMessage(message);
 	}
@@ -149,6 +151,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param requestMessage The request message.
 	 * @return The result of handling the message, or {@code null}.
 	 */
+	@Nullable
 	protected abstract Object handleRequestMessage(Message<?> requestMessage);
 
 
@@ -166,6 +169,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public interface RequestHandler {
 
+		@Nullable
 		Object handleRequestMessage(Message<?> requestMessage);
 
 		/**
@@ -189,6 +193,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 
 		@Override
+		@Nullable
 		public Object handleRequestMessage(Message<?> requestMessage) {
 			return AbstractReplyProducingMessageHandler.this.handleRequestMessage(requestMessage);
 		}

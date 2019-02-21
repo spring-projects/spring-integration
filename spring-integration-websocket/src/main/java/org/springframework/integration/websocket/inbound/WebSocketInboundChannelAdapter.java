@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.json.JacksonPresent;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.ServerWebSocketContainer;
 import org.springframework.integration.websocket.WebSocketListener;
@@ -37,7 +38,6 @@ import org.springframework.integration.websocket.support.PassThruSubProtocolHand
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
@@ -74,8 +74,6 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private final List<MessageConverter> defaultConverters = new ArrayList<>(3);
 
-	private ApplicationEventPublisher eventPublisher;
-
 	{
 		this.defaultConverters.add(new StringMessageConverter());
 		this.defaultConverters.add(new ByteArrayMessageConverter());
@@ -98,17 +96,19 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	private final MessageChannel subProtocolHandlerChannel;
 
-	private final AtomicReference<Class<?>> payloadType = new AtomicReference<Class<?>>(String.class);
+	private final AtomicReference<Class<?>> payloadType = new AtomicReference<>(String.class);
 
-	private volatile List<MessageConverter> messageConverters;
+	private ApplicationEventPublisher eventPublisher;
 
-	private volatile boolean mergeWithDefaultConverters = false;
+	private List<MessageConverter> messageConverters;
 
-	private volatile boolean active;
+	private boolean mergeWithDefaultConverters = false;
 
-	private volatile boolean useBroker;
+	private boolean useBroker;
 
 	private AbstractBrokerMessageHandler brokerHandler;
+
+	private volatile boolean active;
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
@@ -121,14 +121,16 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		this.webSocketContainer = webSocketContainer;
 		this.server = this.webSocketContainer instanceof ServerWebSocketContainer;
 		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
-		this.subProtocolHandlerChannel = new FixedSubscriberChannel(message -> {
-			try {
-				handleMessageAndSend(message);
-			}
-			catch (Exception e) {
-				throw new MessageHandlingException(message, e);
-			}
-		});
+		this.subProtocolHandlerChannel =
+				new FixedSubscriberChannel(message -> {
+					try {
+						handleMessageAndSend(message);
+					}
+					catch (Exception e) {
+						throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+								() -> "Failed to handle and process message.", e);
+					}
+				});
 	}
 
 	/**
@@ -138,7 +140,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	 */
 	public void setMessageConverters(List<MessageConverter> messageConverters) {
 		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
-		this.messageConverters = new ArrayList<MessageConverter>(messageConverters);
+		this.messageConverters = new ArrayList<>(messageConverters);
 	}
 
 
@@ -347,7 +349,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 			this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, ackMessage);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "Error sending connect ack message", e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Error sending connect ack message", e);
 		}
 	}
 

@@ -33,6 +33,7 @@ import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
@@ -338,7 +339,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	@Override
 	public void destroy() throws Exception {
-		this.timers.forEach(t -> t.remove());
+		this.timers.forEach(MeterFacade::remove);
 	}
 
 }

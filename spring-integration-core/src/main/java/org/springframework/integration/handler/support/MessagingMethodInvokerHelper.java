@@ -84,7 +84,7 @@ import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.FixedMethodFilter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.util.UniqueMethodFilter;
-import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -285,7 +285,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	@Override
-	public void setBeanFactory(@NonNull BeanFactory beanFactory) {
+	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		((DefaultMessageHandlerMethodFactory) this.messageHandlerMethodFactory).setBeanFactory(beanFactory);
 
@@ -308,11 +308,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
+	@Nullable
 	public T process(Message<?> message) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(message);
 		return processInternal(parameters);
 	}
 
+	@Nullable
 	public T process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
@@ -468,6 +470,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private T processInternal(ParametersWrapper parameters) throws Exception {
 		if (!this.initialized) {
 			initialize();

@@ -17,7 +17,7 @@
 package org.springframework.integration.rmi;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -26,7 +26,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -38,6 +41,7 @@ import org.springframework.transaction.TransactionDefinition;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -75,7 +79,7 @@ public class BackToBackTests {
 
 	@Test
 	public void testBad() {
-		bad.send(new GenericMessage<String>("foo"));
+		bad.send(new GenericMessage<>("foo"));
 		Message<?> reply = this.reply.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply.getPayload()).isEqualTo("error:foo");
@@ -84,13 +88,11 @@ public class BackToBackTests {
 	@Test
 	public void testUgly() {
 		context.setId("context");
-		try {
-			ugly.send(new GenericMessage<String>("foo"));
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).contains("Dispatcher has no subscribers for channel 'context.baz'.");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> ugly.send(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(MessageDeliveryException.class)
+				.withRootCauseInstanceOf(MessageDispatchingException.class)
+				.withMessageContaining("Dispatcher has no subscribers for channel 'context.baz'.");
 	}
 
 }

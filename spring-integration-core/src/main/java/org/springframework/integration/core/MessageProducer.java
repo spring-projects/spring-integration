@@ -16,6 +16,7 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -49,6 +50,7 @@ public interface MessageProducer {
 	 * @return the channel.
 	 * @since 4.3
 	 */
+	@Nullable
 	MessageChannel getOutputChannel();
 
 }

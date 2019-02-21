@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -56,7 +56,9 @@ public class MessageSourcePollingTemplate implements PollingOperations {
 			}
 			catch (Exception e) {
 				AckUtils.autoNack(ackCallback);
-				throw new MessageHandlingException(message, e);
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+						() -> "error occurred during handling message in 'MessageSourcePollingTemplate' ["
+								+ this + "]", e);
 			}
 			return true;
 		}

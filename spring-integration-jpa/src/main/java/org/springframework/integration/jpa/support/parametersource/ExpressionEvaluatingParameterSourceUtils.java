@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,38 +24,38 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
 final class ExpressionEvaluatingParameterSourceUtils {
 
 	private ExpressionEvaluatingParameterSourceUtils() {
-		throw new AssertionError();
 	}
 
 
 	/**
 	 * Utility method that converts a Collection of {@link JpaParameter} to
 	 * a Map containing only static parameters.
-	 *
 	 * @param jpaParameters Must not be null.
 	 * @return Map containing only the static parameters. Will never be null.
 	 */
 	public static Map<String, Object> convertStaticParameters(Collection<JpaParameter> jpaParameters) {
-
 		Assert.notNull(jpaParameters, "The Collection of jpaParameters must not be null.");
 
 		for (JpaParameter parameter : jpaParameters) {
 			Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
 		}
 
-		final Map<String, Object> staticParameters = new HashMap<String, Object>();
+		final Map<String, Object> staticParameters = new HashMap<>();
 
 		for (JpaParameter parameter : jpaParameters) {
 			if (parameter.getValue() != null) {
@@ -78,6 +78,7 @@ final class ExpressionEvaluatingParameterSourceUtils {
 		}
 
 		@Override
+		@Nullable
 		public Object evaluateExpression(Expression expression, Object input) {
 			return super.evaluateExpression(expression, input);
 		}

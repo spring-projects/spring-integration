@@ -57,6 +57,7 @@ import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -526,7 +527,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						timestamp);
 			}
 			catch (Exception e) {
-				throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage,
+						() -> "failed to write Message payload to file", e);
 			}
 		}
 
