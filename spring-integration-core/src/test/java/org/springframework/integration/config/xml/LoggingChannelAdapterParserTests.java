@@ -17,22 +17,21 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Mark Fisher
@@ -41,14 +40,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class LoggingChannelAdapterParserTests {
 
-	@Autowired @Qualifier("logger.adapter")
+	@Autowired
+	@Qualifier("logger.adapter")
 	private EventDrivenConsumer loggerConsumer;
 
-	@Autowired @Qualifier("loggerWithExpression.adapter")
+	@Autowired
+	@Qualifier("loggerWithExpression.adapter")
 	private EventDrivenConsumer loggerWithExpression;
 
 
@@ -58,33 +58,30 @@ public class LoggingChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
 				.isEqualTo("org.springframework.integration.test.logger");
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(1);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "level").toString()).isEqualTo("WARN");
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression.expression")).isEqualTo("#root");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.WARN);
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression")).isInstanceOf(FunctionExpression.class);
 	}
 
 	@Test
 	public void verifyExpressionAndOtherDefaultConfig() {
-		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
+		LoggingHandler loggingHandler =
+				TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"))
 				.isEqualTo("org.springframework.integration.handler.LoggingHandler");
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "order")).isEqualTo(Ordered.LOWEST_PRECEDENCE);
-		assertThat(TestUtils.getPropertyValue(loggingHandler, "level").toString()).isEqualTo("INFO");
+		assertThat(TestUtils.getPropertyValue(loggingHandler, "level")).isEqualTo(LoggingHandler.Level.INFO);
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "expression.expression")).isEqualTo("payload.foo");
 		assertThat(TestUtils.getPropertyValue(loggingHandler, "evaluationContext.beanResolver")).isNotNull();
 	}
 
 	@Test
 	public void failConfigLogFullMessageAndExpression() {
-		try {
-			new ClassPathXmlApplicationContext("LoggingChannelAdapterParserTests-fail-context.xml", this.getClass())
-					.close();
-			fail("BeanDefinitionParsingException expected");
-		}
-		catch (BeansException e) {
-			assertThat(e instanceof BeanDefinitionParsingException).isTrue();
-			assertThat(e.getMessage()
-					.contains("The 'expression' and 'log-full-message' attributes are mutually exclusive.")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"LoggingChannelAdapterParserTests-fail-context.xml",
+								getClass()))
+				.withMessageContaining("The 'expression' and 'log-full-message' attributes are mutually exclusive.");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,18 +34,18 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
-	private volatile MethodInvokingMessageProcessor<Object> processor;
+	private final MethodInvokingMessageProcessor<Object> processor;
 
-	private volatile String componentType;
+	private String componentType;
 
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		Assert.isTrue(method.getReturnType().equals(void.class),
 				"MethodInvokingMessageHandler requires a void-returning method");
-		this.processor = new MethodInvokingMessageProcessor<Object>(object, method);
+		this.processor = new MethodInvokingMessageProcessor<>(object, method);
 	}
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
-		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
+		this.processor = new MethodInvokingMessageProcessor<>(object, methodName);
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		Object result = this.processor.processMessage(message);
 		if (result != null) {
 			throw new MessagingException(message, "the MethodInvokingMessageHandler method must "

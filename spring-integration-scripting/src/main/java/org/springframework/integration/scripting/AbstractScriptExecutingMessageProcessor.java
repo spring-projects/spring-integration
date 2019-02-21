@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
@@ -33,9 +33,12 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Stefan Reuter
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public abstract class AbstractScriptExecutingMessageProcessor<T> implements MessageProcessor<T>, BeanClassLoaderAware, BeanFactoryAware {
+public abstract class AbstractScriptExecutingMessageProcessor<T>
+		implements MessageProcessor<T>, BeanClassLoaderAware, BeanFactoryAware {
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
@@ -44,7 +47,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	protected volatile BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
-		this.scriptVariableGenerator = new DefaultScriptVariableGenerator();
+		this(new DefaultScriptVariableGenerator());
 	}
 
 	protected AbstractScriptExecutingMessageProcessor(ScriptVariableGenerator scriptVariableGenerator) {
@@ -61,10 +64,10 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 		try {
 			ScriptSource source = this.getScriptSource(message);
 			Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
-			return this.executeScript(source, variables);
+			return executeScript(source, variables);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "failed to execute script", e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message, () -> "Failed to execute script.", e);
 		}
 	}
 
@@ -81,7 +84,6 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	/**
 	 * Subclasses must implement this method to create a script source,
 	 * optionally using the message to locate or create the script.
-	 *
 	 * @param message the message being processed
 	 * @return a ScriptSource to use to create a script
 	 */
@@ -90,8 +92,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	/**
 	 * Subclasses must implement this method. In doing so, the execution context
 	 * for the script should be populated with the provided script variables.
-	 *
-	 * @param scriptSource The script source.
+	 *78546 @param scriptSource The script source.
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 * @throws Exception Any Exception.

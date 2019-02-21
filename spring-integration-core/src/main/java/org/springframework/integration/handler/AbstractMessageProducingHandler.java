@@ -68,8 +68,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private boolean async;
 
+	@Nullable
 	private String outputChannelName;
 
+	@Nullable
 	private MessageChannel outputChannel;
 
 	private String[] notPropagatedHeaders;
@@ -205,6 +207,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	@Override
+	@Nullable
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
 			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);

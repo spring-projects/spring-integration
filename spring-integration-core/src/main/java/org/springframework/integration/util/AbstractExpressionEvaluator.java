@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 
 /**
  * @author Mark Fisher
@@ -64,13 +63,11 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
 	@Override
-	public void setBeanFactory(final @Nullable BeanFactory beanFactory) {
-		if (beanFactory != null) {
-			this.beanFactory = beanFactory;
-			this.typeConverter.setBeanFactory(beanFactory);
-			if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
-				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-			}
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.typeConverter.setBeanFactory(beanFactory);
+		if (this.evaluationContext != null && this.evaluationContext.getBeanResolver() == null) {
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 	}
 
@@ -89,7 +86,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	@Override
-	public final void afterPropertiesSet() throws Exception {
+	public final void afterPropertiesSet() {
 		getEvaluationContext();
 		if (this.beanFactory != null) {
 			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
@@ -99,7 +96,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected StandardEvaluationContext getEvaluationContext() {
-		return this.getEvaluationContext(true);
+		return getEvaluationContext(true);
 	}
 
 	/**
@@ -126,50 +123,52 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		return this.evaluationContext;
 	}
 
-	protected <T> T evaluateExpression(Expression expression, Message<?> message, Class<T> expectedType) {
+	@Nullable
+	protected <T> T evaluateExpression(Expression expression, Message<?> message, @Nullable Class<T> expectedType) {
 		try {
 			return evaluateExpression(expression, (Object) message, expectedType);
 		}
-		catch (EvaluationException e) {
-			Throwable cause = e.getCause();
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("SpEL Expression evaluation failed with EvaluationException.", e);
+		catch (Exception ex) {
+			this.logger.debug("SpEL Expression evaluation failed with Exception.", ex);
+			Throwable cause = null;
+			if (ex instanceof EvaluationException) {
+				cause = ex.getCause();
 			}
-			throw new MessageHandlingException(message, "Expression evaluation failed: "
-					+ expression.getExpressionString(), cause == null ? e : cause);
-		}
-		catch (Exception e) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("SpEL Expression evaluation failed with Exception." + e);
-			}
-			throw new MessageHandlingException(message, "Expression evaluation failed: "
-					+ expression.getExpressionString(), e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Expression evaluation failed: " + expression.getExpressionString(),
+					cause == null ? ex : cause);
 		}
 	}
 
+	@Nullable
 	protected Object evaluateExpression(String expression, Object input) {
-		return this.evaluateExpression(expression, input, null);
+		return evaluateExpression(expression, input, null);
 	}
 
-	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
+	@Nullable
+	protected <T> T evaluateExpression(String expression, Object input, @Nullable Class<T> expectedType) {
 		return EXPRESSION_PARSER.parseExpression(expression)
-				.getValue(this.getEvaluationContext(), input, expectedType);
+				.getValue(getEvaluationContext(), input, expectedType);
 	}
 
+	@Nullable
 	protected Object evaluateExpression(Expression expression, Object input) {
-		return this.evaluateExpression(expression, input, null);
+		return evaluateExpression(expression, input, null);
 	}
 
-	protected <T> T evaluateExpression(Expression expression, Class<T> expectedType) {
-		return expression.getValue(this.getEvaluationContext(), expectedType);
+	@Nullable
+	protected <T> T evaluateExpression(Expression expression, @Nullable Class<T> expectedType) {
+		return expression.getValue(getEvaluationContext(), expectedType);
 	}
 
+	@Nullable
 	protected Object evaluateExpression(Expression expression) {
-		return expression.getValue(this.getEvaluationContext());
+		return expression.getValue(getEvaluationContext());
 	}
 
-	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {
-		return expression.getValue(this.getEvaluationContext(), input, expectedType);
+	@Nullable
+	protected <T> T evaluateExpression(Expression expression, Object input, @Nullable Class<T> expectedType) {
+		return expression.getValue(getEvaluationContext(), input, expectedType);
 	}
 
 	protected void onInit() {

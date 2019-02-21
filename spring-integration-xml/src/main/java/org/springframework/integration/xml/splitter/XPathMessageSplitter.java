@@ -41,11 +41,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
 import org.springframework.xml.DocumentBuilderFactoryUtils;
@@ -221,11 +221,12 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			}
 			return result;
 		}
-		catch (ParserConfigurationException e) {
-			throw new MessageConversionException(message, "failed to create DocumentBuilder", e);
+		catch (ParserConfigurationException ex) {
+			throw new MessageConversionException(message, "failed to create DocumentBuilder", ex);
 		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "failed to split Message payload", e);
+		catch (Exception ex) {
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Failed to split Message payload", ex);
 		}
 	}
 

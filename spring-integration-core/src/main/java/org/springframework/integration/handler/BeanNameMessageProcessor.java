@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.handler;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * An "artificial" {@link MessageProcessor} for lazy-load of target bean by its name.
@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  * @param <T> the expected {@link #processMessage} result type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware {
@@ -48,11 +49,11 @@ public class BeanNameMessageProcessor<T> implements MessageProcessor<T>, BeanFac
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.beanFactory = beanFactory;
 	}
 
 	@Override
+	@Nullable
 	public T processMessage(Message<?> message) {
 		if (this.delegate == null) {
 			Object target = this.beanFactory.getBean(this.beanName);

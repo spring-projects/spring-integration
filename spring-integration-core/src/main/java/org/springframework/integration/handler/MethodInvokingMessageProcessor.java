@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
-import org.springframework.lang.NonNull;
+import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 
 /**
  * A MessageProcessor implementation that invokes a method on a target Object.
@@ -69,7 +69,7 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	}
 
 	@Override
-	public void setBeanFactory(@NonNull BeanFactory beanFactory) {
+	public void setBeanFactory(@Nullable BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.delegate.setBeanFactory(beanFactory);
 	}
@@ -101,12 +101,15 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	}
 
 	@Override
+	@Nullable
 	public T processMessage(Message<?> message) {
 		try {
 			return this.delegate.process(message);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this + "]",
+					e);
 		}
 	}
 

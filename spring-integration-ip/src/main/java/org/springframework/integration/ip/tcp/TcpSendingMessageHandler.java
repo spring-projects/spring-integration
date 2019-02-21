@@ -33,6 +33,7 @@ import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionFailedCorrelationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -119,7 +120,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			catch (Exception ex) {
 				logger.error("Error sending message", ex);
 				connection.close();
-				throw wrapToMessageHandlingExceptionIfNecessary(message, "Error sending message", ex);
+				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+						() -> "Error sending message", ex);
 			}
 			finally {
 				if (this.isSingleUse) { // close after replying
@@ -133,17 +135,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					new MessageHandlingException(message, "Unable to find outbound socket");
 			publishNoConnectionEvent(messageHandlingException, connectionId);
 			throw messageHandlingException;
-		}
-	}
-
-	private MessageHandlingException wrapToMessageHandlingExceptionIfNecessary(Message<?> message, String description,
-			Throwable cause) {
-
-		if (cause instanceof MessageHandlingException) {
-			throw (MessageHandlingException) cause;
-		}
-		else {
-			throw new MessageHandlingException(message, description, cause);
 		}
 	}
 
@@ -190,12 +181,16 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			connection.send(message);
 		}
 		catch (Exception ex) {
-			String connectionId = null;
+			final String connectionId;
 			if (connection != null) {
 				connectionId = connection.getConnectionId();
 			}
-			throw wrapToMessageHandlingExceptionIfNecessary(message,
-					"Failed to handle message using " + connectionId, ex);
+			else {
+				connectionId = null;
+			}
+
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Failed to handle message using " + connectionId, ex);
 		}
 		return connection;
 	}

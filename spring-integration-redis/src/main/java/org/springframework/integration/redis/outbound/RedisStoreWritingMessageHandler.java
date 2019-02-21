@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2018 the original author or authors.
+ * Copyright 2007-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
@@ -289,11 +289,11 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
 		Assert.hasText(key, () -> "Failed to determine a key for the Redis store based on the message: " + message);
 
-		RedisStore store = this.createStoreView(key);
+		RedisStore store = createStoreView(key);
 
 		Assert.state(this.initialized,
 				"handler not initialized - afterPropertiesSet() must be called before the first use");
@@ -314,8 +314,9 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 				writeToProperties((RedisProperties) store, message);
 			}
 		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to store Message data in Redis collection", e);
+		catch (Exception ex) {
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "Failed to store Message data in Redis collection", ex);
 		}
 	}
 
@@ -488,7 +489,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			return 1d;
 		}
 		else {
-			Assert.isInstanceOf(Number.class, scoreHeader, "Header " + RedisHeaders.ZSET_SCORE + " must be a Number");
+			Assert.isInstanceOf(Number.class, scoreHeader,
+					() -> "Header " + RedisHeaders.ZSET_SCORE + " must be a Number");
 			Number score = (Number) scoreHeader;
 			return Double.valueOf(score.toString());
 		}
