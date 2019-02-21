@@ -63,22 +63,20 @@ public class GlobalChannelInterceptorProcessorTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testProcessorWithInterceptorDefaultPattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
-		Map<String, org.springframework.integration.channel.ChannelInterceptorAware> channels = new HashMap<>();
+		Map<String, InterceptableChannel> channels = new HashMap<>();
 		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		org.springframework.integration.channel.ChannelInterceptorAware channel =
-				Mockito.mock(org.springframework.integration.channel.ChannelInterceptorAware.class);
+		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
 
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
 		when(this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class))
 				.thenReturn(interceptors);
-		when(this.beanFactory.getBeansOfType(org.springframework.integration.channel.ChannelInterceptorAware.class))
+		when(this.beanFactory.getBeansOfType(InterceptableChannel.class))
 				.thenReturn(channels);
 
 		this.globalChannelInterceptorProcessor.afterSingletonsInstantiated();
@@ -88,23 +86,21 @@ public class GlobalChannelInterceptorProcessorTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testProcessorWithInterceptorMatchingPattern() {
 		Map<String, GlobalChannelInterceptorWrapper> interceptors = new HashMap<>();
-		Map<String, org.springframework.integration.channel.ChannelInterceptorAware> channels = new HashMap<>();
+		Map<String, InterceptableChannel> channels = new HashMap<>();
 		ChannelInterceptor channelInterceptor = Mockito.mock(ChannelInterceptor.class);
 		GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper =
 				new GlobalChannelInterceptorWrapper(channelInterceptor);
 
-		org.springframework.integration.channel.ChannelInterceptorAware channel =
-				Mockito.mock(org.springframework.integration.channel.ChannelInterceptorAware.class);
+		InterceptableChannel channel = Mockito.mock(InterceptableChannel.class);
 
 		globalChannelInterceptorWrapper.setPatterns(new String[] { "Te*" });
 		interceptors.put("Test-1", globalChannelInterceptorWrapper);
 		channels.put("Test-1", channel);
 		when(this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class))
 				.thenReturn(interceptors);
-		when(this.beanFactory.getBeansOfType(org.springframework.integration.channel.ChannelInterceptorAware.class))
+		when(this.beanFactory.getBeansOfType(InterceptableChannel.class))
 				.thenReturn(channels);
 		this.globalChannelInterceptorProcessor.afterSingletonsInstantiated();
 

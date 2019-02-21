@@ -36,6 +36,7 @@ import org.springframework.integration.channel.interceptor.GlobalChannelIntercep
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -92,7 +93,7 @@ public final class GlobalChannelInterceptorProcessor
 				}
 			});
 
-			this.beanFactory.getBeansOfType(org.springframework.integration.channel.ChannelInterceptorAware.class)
+			this.beanFactory.getBeansOfType(InterceptableChannel.class)
 					.forEach((key, value) -> addMatchingInterceptors(value, key));
 		}
 
@@ -100,11 +101,9 @@ public final class GlobalChannelInterceptorProcessor
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (this.singletonsInstantiated
-				&& bean instanceof org.springframework.integration.channel.ChannelInterceptorAware) {
-			addMatchingInterceptors((org.springframework.integration.channel.ChannelInterceptorAware) bean, beanName);
+		if (this.singletonsInstantiated && bean instanceof InterceptableChannel) {
+			addMatchingInterceptors((InterceptableChannel) bean, beanName);
 		}
 		return bean;
 	}
@@ -114,9 +113,7 @@ public final class GlobalChannelInterceptorProcessor
 	 * @param channel the message channel to add interceptors.
 	 * @param beanName the message channel bean name to match the pattern.
 	 */
-	@SuppressWarnings("deprecation")
-	public void addMatchingInterceptors(org.springframework.integration.channel.ChannelInterceptorAware channel,
-			String beanName) {
+	public void addMatchingInterceptors(InterceptableChannel channel, String beanName) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying global interceptors on channel '" + beanName + "'");

@@ -28,6 +28,7 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -98,10 +99,7 @@ public class ImplicitConsumerChannelTests {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
-		public boolean shouldIntercept(String beanName,
-				org.springframework.integration.channel.ChannelInterceptorAware channel) {
-
+		public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
 			return !this.channel.equals(channel);
 		}
 
@@ -139,10 +137,7 @@ public class ImplicitConsumerChannelTests {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
-		public boolean shouldIntercept(String beanName,
-				org.springframework.integration.channel.ChannelInterceptorAware channel) {
-
+		public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
 			return !this.channel.equals(channel);
 		}
 

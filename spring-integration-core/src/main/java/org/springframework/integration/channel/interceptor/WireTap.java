@@ -31,6 +31,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -172,9 +173,7 @@ public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterc
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public boolean shouldIntercept(String beanName,
-			org.springframework.integration.channel.ChannelInterceptorAware channel) {
+	public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
 
 		return !getChannel().equals(channel);
 	}

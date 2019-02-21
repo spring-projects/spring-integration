@@ -33,8 +33,8 @@ import org.springframework.messaging.support.InterceptableChannel;
  *
  * @since 4.0
  *
- * @deprecated since 5.1.3 in favor of {@link InterceptableChannel}.
- * Will be removed in the next version
+ * @deprecated since 5.2 in favor of {@link InterceptableChannel}.
+ * Will be removed in the next 5.3 version.
  */
 @Deprecated
 public interface ChannelInterceptorAware extends InterceptableChannel {

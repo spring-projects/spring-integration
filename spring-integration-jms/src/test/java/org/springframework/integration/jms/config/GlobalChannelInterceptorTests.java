@@ -40,18 +40,20 @@ public class GlobalChannelInterceptorTests {
 	@Test
 	public void testJmsChannel() {
 		ActiveMqTestUtils.prepare();
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"GlobalChannelInterceptorTests-context.xml",  GlobalChannelInterceptorTests.class);
-		InterceptableChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
-		List<ChannelInterceptor> interceptors = jmsChannel.getInterceptors();
-		assertThat(interceptors).isNotNull();
-		assertThat(interceptors.size()).isEqualTo(1);
-		assertThat(interceptors.get(0) instanceof SampleInterceptor).isTrue();
-		context.close();
+		try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
+				"GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class)) {
+
+			InterceptableChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
+			List<ChannelInterceptor> interceptors = jmsChannel.getInterceptors();
+			assertThat(interceptors).isNotNull();
+			assertThat(interceptors.size()).isEqualTo(1);
+			assertThat(interceptors.get(0) instanceof SampleInterceptor).isTrue();
+		}
 	}
 
 
 	public static class SampleInterceptor implements ChannelInterceptor {
+
 	}
 
 }

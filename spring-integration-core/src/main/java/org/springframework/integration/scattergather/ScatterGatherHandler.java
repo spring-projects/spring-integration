@@ -20,7 +20,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -39,6 +38,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -150,8 +150,8 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		MessageChannel replyChannel = this.gatherChannel;
 
-		if (replyChannel instanceof ChannelInterceptorAware) {
-			((ChannelInterceptorAware) replyChannel)
+		if (replyChannel instanceof InterceptableChannel) {
+			((InterceptableChannel) replyChannel)
 					.addInterceptor(0,
 							new ChannelInterceptor() {
 

@@ -74,16 +74,13 @@ public class MessageChannelsMonitorIntegrationTests {
 
 	@Test
 	public void testRates() throws Exception {
-
-		ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml", "anonymous");
-
-		try {
-
+		try (ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml")) {
+			this.channel = context.getBean("anonymous", MessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(50);
 			service.setLatch(latch);
 			for (int i = 0; i < 50; i++) {
-				channel.send(new GenericMessage<String>("bar"));
+				channel.send(new GenericMessage<>("bar"));
 				Thread.sleep(20L);
 			}
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -96,32 +93,27 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertThat(sends).as("No send statistics for input channel").isEqualTo(sendsLong);
 
 		}
-		finally {
-			context.close();
-		}
-
 	}
 
 	@Test
 	public void testErrors() throws Exception {
-
-		ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml", "anonymous");
-		try {
+		try (ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml")) {
+			this.channel = context.getBean("anonymous", MessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(10);
 			service.setLatch(latch);
 			for (int i = 0; i < 5; i++) {
-				channel.send(new GenericMessage<String>("bar"));
+				channel.send(new GenericMessage<>("bar"));
 				Thread.sleep(20L);
 			}
 			try {
-				channel.send(new GenericMessage<String>("fail"));
+				channel.send(new GenericMessage<>("fail"));
 			}
 			catch (MessageHandlingException e) {
 				// ignore
 			}
 			for (int i = 0; i < 5; i++) {
-				channel.send(new GenericMessage<String>("bar"));
+				channel.send(new GenericMessage<>("bar"));
 				Thread.sleep(20L);
 			}
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -133,32 +125,27 @@ public class MessageChannelsMonitorIntegrationTests {
 			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
 			assertThat(errors).as("No error statistics for input channel").isEqualTo(1);
 		}
-		finally {
-			context.close();
-		}
-
 	}
 
 	@Test
 	public void testQueues() throws Exception {
-
-		ClassPathXmlApplicationContext context = createContext("queue-channel.xml", "queue");
-		try {
+		try (ClassPathXmlApplicationContext context = createContext("queue-channel.xml")) {
+			this.channel = context.getBean("queue", MessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(10);
 			service.setLatch(latch);
 			for (int i = 0; i < 5; i++) {
-				channel.send(new GenericMessage<String>("bar"));
+				channel.send(new GenericMessage<>("bar"));
 				Thread.sleep(20L);
 			}
 			try {
-				channel.send(new GenericMessage<String>("fail"));
+				channel.send(new GenericMessage<>("fail"));
 			}
 			catch (MessageHandlingException e) {
 				// ignore
 			}
 			for (int i = 0; i < 5; i++) {
-				channel.send(new GenericMessage<String>("bar"));
+				channel.send(new GenericMessage<>("bar"));
 				Thread.sleep(20L);
 			}
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -172,22 +159,15 @@ public class MessageChannelsMonitorIntegrationTests {
 			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
 			assertThat(errors).as("Expect no errors for input channel (handler fails)").isEqualTo(0);
 		}
-		finally {
-			context.close();
-		}
-
 	}
 
 	private void doTest(String config, String channelName) throws Exception {
-
-		ClassPathXmlApplicationContext context = createContext(config, channelName);
-
-		try {
-
+		try (ClassPathXmlApplicationContext context = createContext(config)) {
+			this.channel = context.getBean(channelName, MessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(1);
 			service.setLatch(latch);
-			channel.send(new GenericMessage<String>("bar"));
+			channel.send(new GenericMessage<>("bar"));
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 			assertThat(service.getCounter()).isEqualTo(before + 1);
 
@@ -195,23 +175,17 @@ public class MessageChannelsMonitorIntegrationTests {
 			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertThat(sends).as("No statistics for input channel").isEqualTo(1);
 
-			assertThat(channel).isInstanceOf(ChannelInterceptorAware.class);
-			List<ChannelInterceptor> channelInterceptors =
-					((ChannelInterceptorAware) channel).getChannelInterceptors();
+			assertThat(channel).isInstanceOf(InterceptableChannel.class);
+			List<ChannelInterceptor> channelInterceptors = ((InterceptableChannel) channel).getInterceptors();
 			assertThat(channelInterceptors.size()).isEqualTo(1);
 			assertThat(channelInterceptors.get(0)).isInstanceOf(WireTap.class);
 		}
-		finally {
-			context.close();
-		}
-
 	}
 
-	private ClassPathXmlApplicationContext createContext(String config, String channelName) {
+	private ClassPathXmlApplicationContext createContext(String config) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, getClass());
-		context.getAutowireCapableBeanFactory().autowireBeanProperties(this,
-				AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
-		channel = context.getBean(channelName, MessageChannel.class);
+		context.getAutowireCapableBeanFactory()
+				.autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		return context;
 	}
 
