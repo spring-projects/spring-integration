@@ -18,7 +18,6 @@ package org.springframework.integration.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +30,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
@@ -67,9 +65,6 @@ public class ObjectToJsonTransformerParserTests {
 
 	@Autowired
 	private MessageChannel jsonNodeInput;
-
-	@Autowired
-	private MessageChannel boonJsonNodeInput;
 
 	@Autowired
 	private DefaultMessageBuilderFactory defaultMessageBuilderFactory;
@@ -179,29 +174,10 @@ public class ObjectToJsonTransformerParserTests {
 		assertThat(expression.getValue(evaluationContext, payload, Boolean.class)).isTrue();
 	}
 
-	@Test
-	public void testBoonNodeResultType() {
-		TestPerson person = new TestPerson();
-		person.setFirstName("John");
-		person.setLastName("Doe");
-		person.setAge(42);
-		QueueChannel replyChannel = new QueueChannel();
-		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
-		this.boonJsonNodeInput.send(message);
-		Message<?> reply = replyChannel.receive(0);
-		assertThat(reply).isNotNull();
-		Object payload = reply.getPayload();
-		assertThat(payload).isInstanceOf(Map.class);
-		assertThat(reply.getHeaders().get(JsonHeaders.TYPE_ID)).isEqualTo(TestPerson.class);
-
-		Expression expression = new SpelExpressionParser().parseExpression("[firstName] == 'John' and [age] == 42");
-		assertThat(expression.getValue(new StandardEvaluationContext(), payload, Boolean.class)).isTrue();
-	}
-
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {
 
 		@Override
-		public String toJson(Object value) throws Exception {
+		public String toJson(Object value) {
 			return "{" + value.toString() + "}";
 		}
 

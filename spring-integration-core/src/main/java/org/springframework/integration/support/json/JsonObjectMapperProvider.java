@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.util.ClassUtils;
  * @since 3.0
  *
  * @see Jackson2JsonObjectMapper
- * @see BoonJsonObjectMapper
  */
 public final class JsonObjectMapperProvider {
 
@@ -49,12 +48,13 @@ public final class JsonObjectMapperProvider {
 	 * @return the mapper.
 	 * @throws IllegalStateException if an implementation is not available.
 	 */
+	@SuppressWarnings("deprecation")
 	public static JsonObjectMapper<?, ?> newInstance() {
 		if (JacksonPresent.isJackson2Present()) {
 			return new Jackson2JsonObjectMapper();
 		}
 		else if (boonPresent) {
-			return new BoonJsonObjectMapper();
+			return new org.springframework.integration.support.json.BoonJsonObjectMapper();
 		}
 		else {
 			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar is present in the classpath.");
