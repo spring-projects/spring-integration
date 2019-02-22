@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -222,7 +223,7 @@ public class JdbcOutboundGatewayParserTests {
 
 		accessor = new DirectFieldAccessor(messagingTemplate);
 
-		Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
+		Long sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
 		assertThat(sendTimeout).as("Wrong sendTimeout").isEqualTo(Long.valueOf(444L));
 
 	}
@@ -258,7 +259,8 @@ public class JdbcOutboundGatewayParserTests {
 		assertThat(maxRowsPerPoll).as("maxRowsPerPoll should default to 10").isEqualTo(Integer.valueOf(10));
 	}
 
-	@Test //INT-1029
+	@Test
+	@SuppressWarnings("unchecked")
 	public void testOutboundGatewayInsideChain() {
 		setUp("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
 
@@ -274,10 +276,18 @@ public class JdbcOutboundGatewayParserTests {
 
 		PollableChannel outbound = this.context.getBean("replyChannel", PollableChannel.class);
 		Message<?> reply = outbound.receive(10000);
-		assertThat(reply).isNotNull();
-		@SuppressWarnings("unchecked")
-		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		assertThat(payload.get("name")).isEqualTo("bar");
+
+
+		assertThat(reply)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSize(1)
+				.element(0)
+				.isInstanceOf(Map.class)
+				.satisfies(map -> assertThat((Map<String, String>) map)
+						.containsEntry("name", "bar"));
 	}
 
 
