@@ -65,7 +65,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private MBeanServerConnection server;
+	private final MBeanServerConnection server;
 
 	private ObjectName defaultObjectName;
 
@@ -73,17 +73,6 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	private boolean expectReply = true;
 
-	/**
-	 * Construct an instance with no arguments; for backward compatibility.
-	 * The {@link #setServer(MBeanServerConnection)} must be used as well.
-	 * The {@link #OperationInvokingMessageHandler(MBeanServerConnection)}
-	 * is a preferred way for instantiation.
-	 * @since 4.3.20
-	 * @deprecated since 4.3.20
-	 */
-	@Deprecated
-	public OperationInvokingMessageHandler() {
-	}
 
 	/**
 	 * Construct an instance based on the provided {@link MBeanServerConnection}.
@@ -92,17 +81,6 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 */
 	public OperationInvokingMessageHandler(MBeanServerConnection server) {
 		Assert.notNull(server, "MBeanServer is required.");
-		this.server = server;
-	}
-
-	/**
-	 * Provide a reference to the MBeanServer within which the MBean
-	 * target for operation invocation has been registered.
-	 * @param server The MBean server connection.
-	 * @deprecated since 4.3.20 in favor of {@link #OperationInvokingMessageHandler(MBeanServerConnection)}
-	 */
-	@Deprecated
-	public void setServer(MBeanServerConnection server) {
 		this.server = server;
 	}
 
@@ -144,11 +122,6 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	@Override
 	public String getComponentType() {
 		return this.expectReply ? "jmx:operation-invoking-outbound-gateway" : "jmx:operation-invoking-channel-adapter";
-	}
-
-	@Override
-	protected void doInit() {
-		Assert.notNull(this.server, "MBeanServer is required.");
 	}
 
 	@Override
@@ -245,35 +218,36 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	/**
-	 * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
+	 * First checks {@link JmxHeaders#OBJECT_NAME} header in the request message,
+	 * otherwise falls back to {@link #defaultObjectName}.
 	 */
 	private ObjectName resolveObjectName(Message<?> message) {
-		ObjectName objectName = this.defaultObjectName;
-		if (objectName == null) {
-			Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
-			if (objectNameHeader instanceof ObjectName) {
-				objectName = (ObjectName) objectNameHeader;
+		ObjectName objectName;
+		Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
+		if (objectNameHeader != null) {
+			try {
+				objectName = ObjectNameManager.getInstance(objectNameHeader);
 			}
-			else if (objectNameHeader instanceof String) {
-				try {
-					objectName = ObjectNameManager.getInstance(objectNameHeader);
-				}
-				catch (MalformedObjectNameException e) {
-					throw new IllegalArgumentException(e);
-				}
+			catch (MalformedObjectNameException e) {
+				throw new IllegalArgumentException(e);
 			}
 		}
-		Assert.notNull(objectName, "Failed to resolve ObjectName.");
+		else {
+			objectName = this.defaultObjectName;
+
+		}
+		Assert.notNull(objectName, "Failed to resolve ObjectName: either from headers or 'defaultObjectName'.");
 		return objectName;
 	}
 
 	/**
-	 * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
+	 * First checks if {@link JmxHeaders#OPERATION_NAME} header,
+	 * otherwise falls back to {@link #operationName}.
 	 */
 	private String resolveOperationName(Message<?> message) {
-		String operation = this.operationName;
+		String operation = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
 		if (operation == null) {
-			operation = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
+			operation = this.operationName;
 		}
 		Assert.notNull(operation, "Failed to resolve operation name.");
 		return operation;

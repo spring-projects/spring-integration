@@ -184,7 +184,7 @@ You can also implement your own filter.
 
 The operation-invoking channel adapter enables message-driven invocation of any managed operation exposed by an MBean.
 Each invocation requires the operation name to be invoked and the object name of the target MBean.
-Both of these must be explicitly provided by adapter configuration, as the following example shows:
+Both of these must be explicitly provided by adapter configuration or via `JmxHeaders.OBJECT_NAME` and `JmxHeaders.OPERATION_NAME` message headers, respectively:
 
 ====
 [source,xml]

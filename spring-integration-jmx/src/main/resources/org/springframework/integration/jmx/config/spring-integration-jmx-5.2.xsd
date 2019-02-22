@@ -318,8 +318,8 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="mbeanServerIdentifierType">
-				<xsd:attribute name="object-name" type="xsd:string" use="required" />
-				<xsd:attribute name="operation-name" type="xsd:string" use="required" />
+				<xsd:attribute name="object-name" type="xsd:string" />
+				<xsd:attribute name="operation-name" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
