@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.outbound;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -50,6 +51,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	implements Lifecycle {
+
+	private static final UUID NO_ID = new UUID(0L, 0L);
 
 	private String exchangeName;
 
@@ -429,8 +432,18 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	protected CorrelationData generateCorrelationData(Message<?> requestMessage) {
 		CorrelationData correlationData = null;
 		if (this.correlationDataGenerator != null) {
-			correlationData = new CorrelationDataWrapper(requestMessage.getHeaders().getId().toString(),
-					this.correlationDataGenerator.processMessage(requestMessage), requestMessage);
+			UUID messageId = requestMessage.getHeaders().getId();
+			if (messageId == null) {
+				messageId = NO_ID;
+			}
+			Object userData = this.correlationDataGenerator.processMessage(requestMessage);
+			if (userData != null) {
+				correlationData = new CorrelationDataWrapper(messageId.toString(), userData, requestMessage);
+			}
+			else {
+				this.logger.debug("'confirmCorrelationExpression' resolved to 'null'; "
+						+ "no publisher confirm will be sent to the ack or nack channel");
+			}
 		}
 		return correlationData;
 	}
