@@ -25,10 +25,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -99,7 +99,7 @@ public class ImplicitConsumerChannelTests {
 		}
 
 		@Override
-		public boolean shouldIntercept(String beanName, ChannelInterceptorAware channel) {
+		public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
 			return !this.channel.equals(channel);
 		}
 
@@ -137,7 +137,7 @@ public class ImplicitConsumerChannelTests {
 		}
 
 		@Override
-		public boolean shouldIntercept(String beanName, ChannelInterceptorAware channel) {
+		public boolean shouldIntercept(String beanName, InterceptableChannel channel) {
 			return !this.channel.equals(channel);
 		}
 

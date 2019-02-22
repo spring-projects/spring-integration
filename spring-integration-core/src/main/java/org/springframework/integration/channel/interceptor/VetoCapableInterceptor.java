@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.messaging.support.InterceptableChannel;
 
 /**
  * {@link org.springframework.messaging.support.ChannelInterceptor}s implementing this
- * interface can veto
- * global interception of a particular channel. Could be used, for example,
- * when an interceptor itself writes to an output channel (which should
- * not be intercepted with this interceptor).
+ * interface can veto global interception of a particular channel.
+ * Could be used, for example, when an interceptor itself writes to an output channel
+ * (which should not be intercepted with this interceptor).
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -36,6 +37,6 @@ public interface VetoCapableInterceptor {
 	 * @param channel The channel that is about to be intercepted.
 	 * @return false if the intercept wishes to veto the interception.
 	 */
-	boolean shouldIntercept(String beanName, ChannelInterceptorAware channel);
+	boolean shouldIntercept(String beanName, InterceptableChannel channel);
 
 }

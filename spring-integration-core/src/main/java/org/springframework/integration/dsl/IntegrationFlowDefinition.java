@@ -35,7 +35,6 @@ import org.springframework.beans.factory.config.DestructionAwareBeanPostProcesso
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
@@ -90,6 +89,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -430,12 +430,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		if (!(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
+		if (!(this.currentMessageChannel instanceof InterceptableChannel)) {
 			channel(new DirectChannel());
 			this.implicitChannel = true;
 		}
 		addComponent(wireTapSpec);
-		((ChannelInterceptorAware) this.currentMessageChannel).addInterceptor(interceptor);
+		((InterceptableChannel) this.currentMessageChannel).addInterceptor(interceptor);
 		return _this();
 	}
 

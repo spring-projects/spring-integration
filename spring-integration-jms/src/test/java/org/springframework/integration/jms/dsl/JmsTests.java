@@ -43,7 +43,6 @@ import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -74,6 +73,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -160,8 +160,8 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		}
 		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.stop()");
 
-		assertThat(((ChannelInterceptorAware) this.outputChannel).getChannelInterceptors()
-				.contains(this.testChannelInterceptor)).isTrue();
+		assertThat(((InterceptableChannel) this.outputChannel).getInterceptors())
+				.contains(this.testChannelInterceptor);
 		assertThat(this.testChannelInterceptor.invoked.get()).isGreaterThanOrEqualTo(5);
 
 	}
@@ -179,8 +179,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		Message<?> receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("HELLO THROUGH THE JMS");
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("HELLO THROUGH THE JMS");
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("hello THROUGH the JMS")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsMessageDriven")
@@ -188,8 +190,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("hello through the jms");
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("hello through the jms");
 
 		assertThat(this.jmsMessageDrivenChannelCalled.get()).isTrue();
 
@@ -199,8 +203,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		receive = this.jmsOutboundInboundReplyChannel.receive(10000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("foo");
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("foo");
 
 		assertThat(this.jmsOutboundFlowTemplate).isNotNull();
 	}
@@ -218,8 +224,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 		Message<?> receive = replyChannel.receive(5000);
 
-		assertThat(receive).isNotNull();
-		assertThat(receive.getPayload()).isEqualTo("HELLO THROUGH THE JMS PIPELINE");
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("HELLO THROUGH THE JMS PIPELINE");
 
 		assertThat(this.jmsInboundGatewayChannelCalled.get()).isTrue();
 	}
@@ -231,8 +239,10 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		template.setDefaultDestinationName("pubsub");
 		template.convertAndSend("foo");
 		Message<?> received = this.jmsPubSubBridgeChannel.receive(5000);
-		assertThat(received).isNotNull();
-		assertThat(received.getPayload()).isEqualTo("foo");
+		assertThat(received)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("foo");
 	}
 
 	@Test
@@ -340,10 +350,11 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory(), DefaultMessageListenerContainer.class)
+					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory(),
+							DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
 							.destination("jmsMessageDriven")
-					.configureListenerContainer(c -> c.clientId("foo")))
+							.configureListenerContainer(c -> c.clientId("foo")))
 					.<String, String>transform(String::toLowerCase)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();

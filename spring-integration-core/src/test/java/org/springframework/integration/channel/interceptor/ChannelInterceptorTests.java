@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.support.MessageBuilder;
@@ -41,6 +40,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -243,8 +243,8 @@ public class ChannelInterceptorTests {
 	public void testInterceptorBeanWithPNamespace() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("ChannelInterceptorTests-context.xml", ChannelInterceptorTests.class);
-		ChannelInterceptorAware channel = ac.getBean("input", AbstractMessageChannel.class);
-		List<ChannelInterceptor> interceptors = channel.getChannelInterceptors();
+		InterceptableChannel channel = ac.getBean("input", AbstractMessageChannel.class);
+		List<ChannelInterceptor> interceptors = channel.getInterceptors();
 		ChannelInterceptor channelInterceptor = interceptors.get(0);
 		assertThat(channelInterceptor).isInstanceOf(PreSendReturnsMessageInterceptor.class);
 		String foo = ((PreSendReturnsMessageInterceptor) channelInterceptor).getFoo();
