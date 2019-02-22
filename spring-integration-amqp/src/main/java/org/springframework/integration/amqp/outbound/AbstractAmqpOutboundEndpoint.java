@@ -484,6 +484,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			if (userData != null) {
 				correlationData = new CorrelationDataWrapper(messageId.toString(), userData, requestMessage);
 			}
+			else {
+				this.logger.debug("'confirmCorrelationExpression' resolved to 'null'; "
+						+ "no publisher confirm will be sent to the ack or nack channel");
+			}
 		}
 		return correlationData;
 	}
