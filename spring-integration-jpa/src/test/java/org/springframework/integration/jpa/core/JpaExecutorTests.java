@@ -17,7 +17,7 @@
 package org.springframework.integration.jpa.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -282,9 +282,9 @@ public class JpaExecutorTests {
 		executor.setParameterSourceFactory(parameterSourceFactory);
 		executor.setJpaParameters(Collections.singletonList(new JpaParameter("firstName", null, "#this")));
 
-		assertThatThrownBy(executor::afterPropertiesSet)
-				.isExactlyInstanceOf(IllegalStateException.class)
-				.hasMessageStartingWith("The 'jpaParameters' and 'parameterSourceFactory' are mutually exclusive.");
+		assertThatIllegalStateException()
+				.isThrownBy(executor::afterPropertiesSet)
+				.withMessageStartingWith("The 'jpaParameters' and 'parameterSourceFactory' are mutually exclusive.");
 	}
 
 }

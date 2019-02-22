@@ -17,7 +17,7 @@
 package org.springframework.integration.dsl.routers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
@@ -587,8 +587,9 @@ public class RouterTests {
 
 	@Test
 	public void propagateErrorFromGatherer() {
-		assertThatThrownBy(() -> propagateErrorFromGathererGateway.apply("bar"))
-				.hasMessage("intentional");
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> propagateErrorFromGathererGateway.apply("bar"))
+				.withMessage("intentional");
 	}
 
 	@Configuration

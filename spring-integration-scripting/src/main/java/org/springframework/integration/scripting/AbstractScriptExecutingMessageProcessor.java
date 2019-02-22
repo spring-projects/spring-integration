@@ -56,21 +56,6 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	}
 
 
-	/**
-	 * Executes the script and returns the result.
-	 */
-	@Override
-	public final T processMessage(Message<?> message) {
-		try {
-			ScriptSource source = this.getScriptSource(message);
-			Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
-			return executeScript(source, variables);
-		}
-		catch (Exception e) {
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message, () -> "Failed to execute script.", e);
-		}
-	}
-
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
@@ -79,6 +64,21 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	/**
+	 * Executes the script and returns the result.
+	 */
+	@Override
+	public final T processMessage(Message<?> message) {
+		try {
+			ScriptSource source = getScriptSource(message);
+			Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
+			return executeScript(source, variables);
+		}
+		catch (Exception e) {
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message, () -> "Failed to execute script.", e);
+		}
 	}
 
 	/**
@@ -92,11 +92,10 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	/**
 	 * Subclasses must implement this method. In doing so, the execution context
 	 * for the script should be populated with the provided script variables.
-	 *78546 @param scriptSource The script source.
+	 * @param scriptSource The script source.
 	 * @param variables The variables.
 	 * @return The result of the execution.
-	 * @throws Exception Any Exception.
 	 */
-	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception;
+	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
 
 }

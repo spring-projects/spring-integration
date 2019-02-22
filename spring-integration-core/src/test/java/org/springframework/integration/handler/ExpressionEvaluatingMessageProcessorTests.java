@@ -17,7 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -42,6 +42,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -211,8 +212,9 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.hasCauseInstanceOf(EvaluationException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(EvaluationException.class);
 	}
 
 	@Test
@@ -221,8 +223,9 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
-				.hasCauseInstanceOf(UnsupportedOperationException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
+				.withCauseInstanceOf(UnsupportedOperationException.class);
 	}
 
 	@Test
@@ -231,8 +234,9 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor<String> processor =
 				new ExpressionEvaluatingMessageProcessor<>(expression);
 		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
-				.hasCauseInstanceOf(CheckedException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>(new TestPayload())))
+				.withCauseInstanceOf(CheckedException.class);
 	}
 
 

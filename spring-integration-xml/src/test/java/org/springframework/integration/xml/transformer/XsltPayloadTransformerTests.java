@@ -17,7 +17,8 @@
 package org.springframework.integration.xml.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.io.File;
 import java.io.IOException;
@@ -163,21 +164,21 @@ public class XsltPayloadTransformerTests {
 		XsltPayloadTransformer transformer =
 				new XsltPayloadTransformer(getXslResourceThatOutputsText(), "foo.bar.Baz");
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
-		assertThatThrownBy(transformer::afterPropertiesSet)
-				.isExactlyInstanceOf(IllegalStateException.class)
-				.hasCauseExactlyInstanceOf(ClassNotFoundException.class);
+		assertThatIllegalStateException()
+				.isThrownBy(transformer::afterPropertiesSet)
+				.withCauseExactlyInstanceOf(ClassNotFoundException.class);
 	}
 
 	@Test
 	public void testNonXmlString() {
-		assertThatThrownBy(() -> this.transformer.doTransform(new GenericMessage<>("test")))
-				.isExactlyInstanceOf(TransformerException.class);
+		assertThatExceptionOfType(TransformerException.class)
+				.isThrownBy(() -> this.transformer.doTransform(new GenericMessage<>("test")));
 	}
 
 	@Test
 	public void testUnsupportedPayloadType() {
-		assertThatThrownBy(() -> this.transformer.doTransform(new GenericMessage<>(12)))
-				.isExactlyInstanceOf(MessagingException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.transformer.doTransform(new GenericMessage<>(12)));
 	}
 
 	@Test

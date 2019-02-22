@@ -17,7 +17,7 @@
 package org.springframework.integration.dsl.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.Test;
 
@@ -87,9 +87,9 @@ public class GatewayDslTests {
 
 	@Test
 	void testNestedGatewayErrorPropagation() {
-		assertThatThrownBy(() -> this.nestedGatewayErrorPropagationFlowInput.send(new GenericMessage<>("test")))
-				.hasCauseInstanceOf(RuntimeException.class)
-				.hasMessageContaining("intentional");
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> this.nestedGatewayErrorPropagationFlowInput.send(new GenericMessage<>("test")))
+				.withMessageContaining("intentional");
 	}
 
 	@Configuration

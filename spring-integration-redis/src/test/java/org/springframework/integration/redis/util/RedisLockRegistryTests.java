@@ -17,7 +17,7 @@
 package org.springframework.integration.redis.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.Map;
 import java.util.UUID;
@@ -347,9 +347,9 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		Lock lock1 = registry.obtain("foo");
 		assertThat(lock1.tryLock()).isTrue();
 		waitForExpire("foo");
-		assertThatThrownBy(lock1::unlock)
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Lock was released in the store due to expiration.");
+		assertThatIllegalStateException()
+				.isThrownBy(lock1::unlock)
+				.withMessageContaining("Lock was released in the store due to expiration.");
 	}
 
 

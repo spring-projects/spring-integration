@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.Test;
 
@@ -32,29 +32,29 @@ public class InvalidQueueChannelParserTests {
 
 	@Test
 	public void testMessageStoreAndCapacityIllegal() {
-		assertThatThrownBy(() ->
-				new ClassPathXmlApplicationContext("InvalidQueueChannelWithMessageStoreAndCapacityParserTests.xml",
-						getClass()))
-				.isInstanceOf(BeanDefinitionParsingException.class)
-				.hasMessageContaining("'capacity' attribute is not allowed");
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InvalidQueueChannelWithMessageStoreAndCapacityParserTests.xml", getClass()))
+				.withMessageContaining("'capacity' attribute is not allowed");
 	}
 
 	@Test
 	public void testRefAndCapacityIllegal() {
-		assertThatThrownBy(() ->
-				new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndCapacityParserTests.xml",
-						getClass()))
-				.isInstanceOf(BeanDefinitionParsingException.class)
-				.hasMessageContaining("'capacity' attribute is not allowed");
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InvalidQueueChannelWithRefAndCapacityParserTests.xml", getClass()))
+				.withMessageContaining("'capacity' attribute is not allowed");
 	}
 
 	@Test
 	public void testRefAndMessageStoreIllegal() {
-		assertThatThrownBy(() ->
-				new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndMessageStoreParserTests.xml",
-						getClass()))
-				.isInstanceOf(BeanDefinitionParsingException.class)
-				.hasMessageContaining("The 'message-store' attribute is not allowed " +
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InvalidQueueChannelWithRefAndMessageStoreParserTests.xml", getClass()))
+				.withMessageContaining("The 'message-store' attribute is not allowed " +
 						"when providing a 'ref' to a custom queue.");
 	}
 

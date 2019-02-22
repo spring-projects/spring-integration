@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.xml.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Properties;
 
@@ -83,8 +83,8 @@ public class ResultToStringTransformerTests {
 
 	@Test
 	public void testWithUnsupportedSaxResult() {
-		assertThatThrownBy(() -> this.transformer.transformResult(new SAXResult()))
-				.isExactlyInstanceOf(MessagingException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.transformer.transformResult(new SAXResult()));
 	}
 
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.Test;
 
@@ -34,21 +34,20 @@ public class InvalidPriorityChannelParserTests {
 
 	@Test
 	public void testMessageStoreAndCapacityIllegal() {
-		assertThatThrownBy(() ->
-				new ClassPathXmlApplicationContext("InvalidPriorityChannelWithMessageStoreAndCapacityParserTests.xml",
-						getClass()))
-				.isInstanceOf(BeanDefinitionParsingException.class)
-				.hasMessageContaining("'capacity' attribute is not allowed");
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InvalidPriorityChannelWithMessageStoreAndCapacityParserTests.xml", getClass()))
+				.withMessageContaining("'capacity' attribute is not allowed");
 	}
 
 	@Test
 	public void testComparatorAndMessageStoreIllegal() {
-		assertThatThrownBy(() ->
-				new ClassPathXmlApplicationContext(
-						"InvalidPriorityChannelWithComparatorAndMessageStoreParserTests.xml",
-						getClass()))
-				.isInstanceOf(BeanDefinitionParsingException.class)
-				.hasMessageContaining("The 'message-store' attribute is not allowed");
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"InvalidPriorityChannelWithComparatorAndMessageStoreParserTests.xml", getClass()))
+				.withMessageContaining("The 'message-store' attribute is not allowed");
 	}
 
 }

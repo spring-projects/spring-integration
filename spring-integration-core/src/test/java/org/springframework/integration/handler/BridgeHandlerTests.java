@@ -17,7 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.Test;
 
@@ -25,6 +25,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.predicate.MessagePredicate;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
@@ -33,6 +34,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class BridgeHandlerTests {
 
@@ -41,9 +43,9 @@ public class BridgeHandlerTests {
 	@Test
 	public void simpleBridge() {
 		QueueChannel outputChannel = new QueueChannel();
-		handler.setOutputChannel(outputChannel);
+		this.handler.setOutputChannel(outputChannel);
 		Message<?> request = new GenericMessage<>("test");
-		handler.handleMessage(request);
+		this.handler.handleMessage(request);
 		Message<?> reply = outputChannel.receive(0);
 		assertThat(reply).isNotNull();
 		assertThat(reply).matches(new MessagePredicate(request));
@@ -53,15 +55,16 @@ public class BridgeHandlerTests {
 	public void missingOutputChannelVerifiedAtRuntime() {
 		Message<?> request = new GenericMessage<>("test");
 
-		assertThatThrownBy(() -> handler.handleMessage(request))
-				.hasCauseInstanceOf(DestinationResolutionException.class);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.handler.handleMessage(request))
+				.withCauseInstanceOf(DestinationResolutionException.class);
 	}
 
 	@Test(timeout = 1000)
 	public void missingOutputChannelAllowedForReplyChannelMessages() {
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel).build();
-		handler.handleMessage(request);
+		this.handler.handleMessage(request);
 		assertThat(replyChannel.receive()).matches(new MessagePredicate(request));
 	}
 

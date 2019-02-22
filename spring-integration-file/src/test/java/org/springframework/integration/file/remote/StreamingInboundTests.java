@@ -17,7 +17,7 @@
 package org.springframework.integration.file.remote;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
@@ -132,14 +132,14 @@ public class StreamingInboundTests {
 	}
 
 	@Test
-	public void testExceptionOnFetch() throws Exception {
+	public void testExceptionOnFetch() {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
-		assertThatThrownBy(streamer::receive)
-				.isInstanceOf(MessagingException.class);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(streamer::receive);
 	}
 
 	@SuppressWarnings("unchecked")

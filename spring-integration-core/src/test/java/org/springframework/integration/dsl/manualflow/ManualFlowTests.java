@@ -17,7 +17,7 @@
 package org.springframework.integration.dsl.manualflow;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
@@ -513,13 +513,13 @@ public class ManualFlowTests {
 
 	@Test
 	public void testDisabledBeansOverride() {
-		assertThatThrownBy(
-				() -> this.integrationFlowContext
-						.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
-						.register())
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() ->
+						this.integrationFlowContext.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
+								.register())
 				.isExactlyInstanceOf(BeanCreationException.class)
-				.hasCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
-				.hasMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
+				.withCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
+				.withMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
 	}
 
 	@Configuration

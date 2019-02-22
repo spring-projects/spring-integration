@@ -17,7 +17,7 @@
 package org.springframework.integration.amqp.channel;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
@@ -248,9 +248,9 @@ public class ChannelTests {
 				MessageListener.class);
 		willThrow(new MessageConversionException("foo", new IllegalStateException("bar")))
 				.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
-		assertThatThrownBy(() -> listener.onMessage(mock(org.springframework.amqp.core.Message.class)))
-				.isInstanceOf(MessageConversionException.class)
-				.hasCauseInstanceOf(IllegalStateException.class);
+		assertThatExceptionOfType(MessageConversionException.class)
+				.isThrownBy(() -> listener.onMessage(mock(org.springframework.amqp.core.Message.class)))
+				.withCauseInstanceOf(IllegalStateException.class);
 	}
 
 	public static class Foo {

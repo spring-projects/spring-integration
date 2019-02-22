@@ -16,6 +16,8 @@
 
 package org.springframework.integration.groovy;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
@@ -57,6 +59,7 @@ import groovy.transform.CompileStatic;
  * @author Stefan Reuter
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object>
@@ -67,16 +70,17 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private final Lock scriptLock = new ReentrantLock();
 
-	private volatile ScriptSource scriptSource;
+	private ScriptSource scriptSource;
 
-	private volatile GroovyClassLoader groovyClassLoader = AccessController.doPrivileged(
-			(PrivilegedAction<GroovyClassLoader>) () -> new GroovyClassLoader(ClassUtils.getDefaultClassLoader()));
-
-	private volatile Class<?> scriptClass;
+	private GroovyClassLoader groovyClassLoader =
+			AccessController.doPrivileged((PrivilegedAction<GroovyClassLoader>)
+					() -> new GroovyClassLoader(ClassUtils.getDefaultClassLoader()));
 
 	private boolean compileStatic;
 
 	private CompilerConfiguration compilerConfiguration;
+
+	private volatile Class<?> scriptClass;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource} that will use a
@@ -84,7 +88,6 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * @param scriptSource The script source.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		super();
 		this.scriptSource = scriptSource;
 	}
 
@@ -140,7 +143,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.beanFactory != null && this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			((ConfigurableListableBeanFactory) this.beanFactory).ignoreDependencyType(MetaClass.class);
 		}
@@ -155,27 +158,32 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	}
 
 	@Override
-	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
+	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		this.parseScriptIfNecessary(scriptSource);
-		Object result = this.execute(variables);
+		parseScriptIfNecessary(scriptSource);
+		Object result = execute(variables);
 		return (result instanceof GString) ? result.toString() : result;
 	}
 
 
-	private void parseScriptIfNecessary(ScriptSource scriptSource) throws Exception {
+	private void parseScriptIfNecessary(ScriptSource scriptSource) {
 		if (this.scriptClass == null || scriptSource.isModified()) {
-			this.scriptLock.lockInterruptibly();
+			this.scriptLock.lock();
 			try {
 				// synchronized double check
 				if (this.scriptClass == null || scriptSource.isModified()) {
 					String className = scriptSource.suggestedClassName();
-					if (StringUtils.hasText(className)) {
-						this.scriptClass =
-								this.groovyClassLoader.parseClass(scriptSource.getScriptAsString(), className);
+					try {
+						String scriptAsString = scriptSource.getScriptAsString();
+						if (StringUtils.hasText(className)) {
+							this.scriptClass = this.groovyClassLoader.parseClass(scriptAsString, className);
+						}
+						else {
+							this.scriptClass = this.groovyClassLoader.parseClass(scriptAsString);
+						}
 					}
-					else {
-						this.scriptClass = this.groovyClassLoader.parseClass(scriptSource.getScriptAsString());
+					catch (IOException e) {
+						throw new UncheckedIOException(e);
 					}
 				}
 			}
@@ -210,13 +218,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		}
 		catch (IllegalAccessException ex) {
 			throw new ScriptCompilationException(
-					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
+					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(),
+					ex);
 		}
 	}
 
 	private final class BeanFactoryFallbackBinding extends Binding {
 
-		private BeanFactoryFallbackBinding(Map<?, ?> variables) {
+		BeanFactoryFallbackBinding(Map<?, ?> variables) {
 			super(variables);
 		}
 

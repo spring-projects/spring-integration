@@ -17,7 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doAnswer;
 
@@ -51,6 +51,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.client.WebServiceClientException;
@@ -130,8 +131,9 @@ public class UriVariableTests {
 				.setHeader("param", "test1 & test2")
 				.build();
 
-		assertThatThrownBy(() -> this.inputHttp.send(message))
-				.hasCauseInstanceOf(WebServiceIOException.class); // offline
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.inputHttp.send(message))
+				.withCauseInstanceOf(WebServiceIOException.class); // offline
 		assertThat(uri.get()).isEqualTo("http://localhost/spring-integration?param=test1%20&%20test2");
 	}
 

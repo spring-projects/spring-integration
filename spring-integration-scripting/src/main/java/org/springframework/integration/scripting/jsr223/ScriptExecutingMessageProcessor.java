@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.springframework.util.Assert;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
@@ -40,12 +42,10 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	/**
 	 * Create a processor for the {@link ScriptSource} using the provided
 	 * {@link ScriptExecutor} using the DefaultScriptVariableGenerator
-	 *
 	 * @param scriptSource The script source.
 	 * @param scriptExecutor The script executor.
 	 */
 	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor) {
-		super();
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor;
 	}
@@ -53,13 +53,13 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	/**
 	 * Create a processor for the {@link ScriptSource} using the provided
 	 * {@link ScriptExecutor}
-	 *
 	 * @param scriptSource The script source.
 	 * @param scriptVariableGenerator The script variable generator.
 	 * @param scriptExecutor The script executor.
 	 */
 	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator,
 			ScriptExecutor scriptExecutor) {
+
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor;
@@ -68,13 +68,13 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	/**
 	 * Create a processor for the {@link ScriptSource} using the provided
 	 * {@link ScriptExecutor} using the DefaultScriptVariableGenerator
-	 *
 	 * @param scriptSource The script source.
 	 * @param scriptExecutor The script executor.
 	 * @param variables The variables.
 	 */
 	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor,
 			Map<String, Object> variables) {
+
 		super(new DefaultScriptVariableGenerator(variables));
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor;
@@ -87,7 +87,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	}
 
 	@Override
-	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
+	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		return this.scriptExecutor.executeScript(scriptSource, variables);
 	}
