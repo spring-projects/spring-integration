@@ -18,12 +18,16 @@ package org.springframework.integration.amqp.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -143,11 +147,18 @@ public class AmqpOutboundEndpointTests {
 	@Test
 	public void adapterWithReturns() throws Exception {
 		this.withReturns.setErrorMessageStrategy(null);
-		Message<?> message = MessageBuilder.withPayload("hello").build();
+		CorrelationData corrData = new CorrelationData("adapterWithReturns");
+		Message<?> message = MessageBuilder.withPayload("hello")
+				.setHeader("corrData", corrData)
+				.build();
 		this.returnRequestChannel.send(message);
 		Message<?> returned = returnChannel.receive(10000);
 		assertThat(returned).isNotNull();
 		assertThat(returned.getPayload()).isEqualTo(message.getPayload());
+		Confirm confirm = corrData.getFuture().get(10, TimeUnit.SECONDS);
+		assertThat(confirm).isNotNull();
+		assertThat(confirm.isAck()).isTrue();
+		assertThat(corrData.getReturnedMessage()).isNotNull();
 	}
 
 	@Test
