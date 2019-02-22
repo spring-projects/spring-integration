@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -90,23 +91,11 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	/**
-	 * The maximum number of rows to pull out of the query results per poll (if
-	 * greater than zero, otherwise all rows will be packed into the outgoing message).
-	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
-	 * If not specified this value will default to {@code 1}.
-	 * This parameter is only applicable if a selectQuery was provided. Null values
-	 * are not permitted.
-	 * @param maxRowsPerPoll the number of rows to select. Must not be null.
-	 * @deprecated since 5.1 in favor of {@link #setMaxRows(Integer)}
-	 */
-	@Deprecated
-	public void setMaxRowsPerPoll(Integer maxRowsPerPoll) {
-		setMaxRows(maxRowsPerPoll);
-	}
-
-	/**
 	 * The maximum number of rows to query.
-	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
+	 * The value is set on the underlying {@link JdbcPollingChannelAdapter}.
+	 * Also used to check before producing reply:
+	 * if result has only one item and {@code maxRows} is not set or configured to {@code 1},
+	 * only that item is returned. Otherwise the whole list.
 	 * If not specified this value will default to {@code 1}.
 	 * This parameter is only applicable if a selectQuery was provided. Null values
 	 * are not permitted.
@@ -159,32 +148,29 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 			this.poller.setMaxRows(this.maxRows);
 		}
 
+		BeanFactory beanFactory = getBeanFactory();
 		if (this.handler != null) {
-			this.handler.setBeanFactory(this.getBeanFactory());
+			this.handler.setBeanFactory(beanFactory);
 			this.handler.afterPropertiesSet();
 		}
 
-		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
+		if (!this.sqlParameterSourceFactorySet && beanFactory != null) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
-					.setBeanFactory(this.getBeanFactory());
+					.setBeanFactory(beanFactory);
 		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-
-		List<?> list;
+		List<?> list = Collections.emptyList();
 
 		if (this.handler != null) {
 			list = this.handler.executeUpdateQuery(requestMessage, this.keysGenerated);
 		}
-		else {
-			list = Collections.emptyList();
-		}
 
 		if (this.poller != null) {
-			SqlParameterSource sqlQueryParameterSource = this.sqlParameterSourceFactory
-					.createParameterSource(requestMessage);
+			SqlParameterSource sqlQueryParameterSource =
+					this.sqlParameterSourceFactory.createParameterSource(requestMessage);
 			if (this.keysGenerated) {
 				if (!list.isEmpty()) {
 					if (list.size() == 1) {
@@ -196,15 +182,12 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 				}
 			}
 			list = this.poller.doPoll(sqlQueryParameterSource);
-			if (list.isEmpty()) {
-				return null;
-			}
 		}
 		Object payload = list;
 		if (list.isEmpty()) {
 			return null;
 		}
-		if (list.size() == 1) {
+		if (list.size() == 1 && (this.maxRows == null || this.maxRows == 1)) {
 			payload = list.get(0);
 		}
 		return payload;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,25 +74,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "select-sql-parameter-source");
-
-		// TODO remove deprecated option in the next version
-		boolean hasMaxRowsPerPoll = element.hasAttribute("max-rows-per-poll");
-		boolean hasMaxRows = element.hasAttribute("max-rows");
-
-		if (hasMaxRowsPerPoll) {
-			parserContext.getReaderContext()
-					.warning("The 'max-rows-per-poll' is deprecated in favor of 'max-rows'", element);
-
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
-
-			if (hasMaxRows) {
-				parserContext.getReaderContext()
-						.warning("The 'max-rows' has a precedence over 'max-rows-per-poll'", element);
-			}
-		}
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows");
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update", "updateSql");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
 
