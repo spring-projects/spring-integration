@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -57,19 +56,19 @@ public class OperationInvokingChannelAdapterParserTests {
 	private MessageChannel input;
 
 	@Autowired
+	private MessageChannel input2;
+
+	@Autowired
 	private MessageChannel operationWithNonNullReturn;
 
 	@Autowired
-	private MessageChannel 	operationInvokingWithinChain;
+	private MessageChannel operationInvokingWithinChain;
 
 	@Autowired
-	private MessageChannel 	operationWithinChainWithNonNullReturn;
+	private MessageChannel operationWithinChainWithNonNullReturn;
 
 	@Autowired
 	private TestBean testBean;
-
-	@Autowired
-	private BeanFactory beanFactory;
 
 	@Autowired
 	@Qualifier("operationWithNonNullReturn.handler")
@@ -79,7 +78,7 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Qualifier("chainWithOperation$child.operationWithinChainWithNonNullReturnHandler.handler")
 	private OperationInvokingMessageHandler operationWithinChainWithNonNullReturnHandler;
 
-	private static volatile int adviceCalled;
+	private static int adviceCalled;
 
 	@After
 	public void resetLists() {
@@ -119,9 +118,9 @@ public class OperationInvokingChannelAdapterParserTests {
 	// Headers should be ignored
 	public void adapterWitJmxHeaders() {
 		assertThat(testBean.messages.size()).isEqualTo(0);
-		input.send(this.createMessage("1"));
-		input.send(this.createMessage("2"));
-		input.send(this.createMessage("3"));
+		this.input2.send(createMessage("1"));
+		this.input2.send(createMessage("2"));
+		this.input2.send(createMessage("3"));
 		assertThat(testBean.messages.size()).isEqualTo(3);
 	}
 
@@ -134,7 +133,8 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Test
 	public void testOperationWithinChainWithNonNullReturn() {
 		Log logger =
-				spy(TestUtils.getPropertyValue(this.operationWithinChainWithNonNullReturnHandler, "logger", Log.class));
+				spy(TestUtils.getPropertyValue(this.operationWithinChainWithNonNullReturnHandler, "logger",
+						Log.class));
 
 		willReturn(true)
 				.given(logger)
@@ -142,7 +142,7 @@ public class OperationInvokingChannelAdapterParserTests {
 
 		new DirectFieldAccessor(this.operationWithinChainWithNonNullReturnHandler)
 				.setPropertyValue("logger", logger);
-			this.operationWithinChainWithNonNullReturn.send(new GenericMessage<>("test1"));
+		this.operationWithinChainWithNonNullReturn.send(new GenericMessage<>("test1"));
 		verify(logger).warn("This component doesn't expect a reply. " +
 				"The MBean operation 'testWithReturn' result '[test1]' for " +
 				"'org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter' is ignored.");
@@ -150,8 +150,10 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	private Message<?> createMessage(String payload) {
 		return MessageBuilder.withPayload(payload)
-			.setHeader(JmxHeaders.OBJECT_NAME, "org.springframework.integration.jmx.config:type=TestBean,name=foo")
-			.setHeader(JmxHeaders.OPERATION_NAME, "blah").build();
+				.setHeader(JmxHeaders.OBJECT_NAME,
+						"org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter")
+				.setHeader(JmxHeaders.OPERATION_NAME, "test")
+				.build();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
@@ -163,4 +165,5 @@ public class OperationInvokingChannelAdapterParserTests {
 		}
 
 	}
+
 }

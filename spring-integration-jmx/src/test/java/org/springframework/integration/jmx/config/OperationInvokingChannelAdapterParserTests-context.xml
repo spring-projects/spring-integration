@@ -43,4 +43,6 @@
 				operation-name="testWithReturn"/>
 	</si:chain>
 
+	<jmx:operation-invoking-channel-adapter id="input2"/>
+
 </beans>
