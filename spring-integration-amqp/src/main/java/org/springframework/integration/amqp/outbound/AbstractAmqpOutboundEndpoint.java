@@ -44,6 +44,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
@@ -479,8 +480,14 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			if (messageId == null) {
 				messageId = NO_ID;
 			}
-			correlationData = new CorrelationDataWrapper(messageId.toString(),
-					this.correlationDataGenerator.processMessage(requestMessage), requestMessage);
+			Object userData = this.correlationDataGenerator.processMessage(requestMessage);
+			if (userData != null) {
+				correlationData = new CorrelationDataWrapper(messageId.toString(), userData, requestMessage);
+			}
+			else {
+				this.logger.debug("'confirmCorrelationExpression' resolved to 'null'; "
+						+ "no publisher confirm will be sent to the ack or nack channel");
+			}
 		}
 		return correlationData;
 	}
@@ -604,6 +611,23 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			return this.message;
 		}
 
+		@Override
+		public SettableListenableFuture<Confirm> getFuture() {
+			if (this.userData instanceof CorrelationData) {
+				return ((CorrelationData) this.userData).getFuture();
+			}
+			else {
+				return super.getFuture();
+			}
+		}
+
+		@Override
+		public void setReturnedMessage(org.springframework.amqp.core.Message returnedMessage) {
+			if (this.userData instanceof CorrelationData) {
+				((CorrelationData) this.userData).setReturnedMessage(returnedMessage);
+			}
+			super.setReturnedMessage(returnedMessage);
+		}
 	}
 
 }

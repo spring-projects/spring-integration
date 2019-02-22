@@ -70,6 +70,7 @@
 								   routing-key="#{queue.name + queue.name}"
 								   mapped-request-headers="foo*"
 								   amqp-template="amqpTemplateReturns"
+								   confirm-correlation-expression="headers['corrData']"
 								   return-channel="returnChannel" />
 
 	<int:channel id="returnRequestChannel"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +26,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -108,24 +108,24 @@ public class AmqpOutboundEndpointTests {
 				.build();
 		this.pcRequestChannel.send(message);
 		Message<?> ack = this.ackChannel.receive(10000);
-		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+		assertThat(ack).isNotNull();
+		assertThat(ack.getPayload()).isEqualTo("foo");
+		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(Boolean.TRUE);
 
 		org.springframework.amqp.core.Message received = this.amqpTemplateConfirms.receive(this.queue.getName());
-		assertEquals("\"hello\"", new String(received.getBody(), "UTF-8"));
-		assertEquals("application/json", received.getMessageProperties().getContentType());
-		assertEquals("java.lang.String", received.getMessageProperties().getHeaders()
-				.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+		assertThat(new String(received.getBody(), "UTF-8")).isEqualTo("\"hello\"");
+		assertThat(received.getMessageProperties().getContentType()).isEqualTo("application/json");
+		assertThat(received.getMessageProperties().getHeaders()
+				.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))).isEqualTo("java.lang.String");
 
 		// test whole message is correlation
 		message = MessageBuilder.withPayload("hello")
 				.build();
 		this.pcMessageCorrelationRequestChannel.send(message);
 		ack = ackChannel.receive(10000);
-		assertNotNull(ack);
-		assertSame(message.getPayload(), ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+		assertThat(ack).isNotNull();
+		assertThat(ack.getPayload()).isSameAs(message.getPayload());
+		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(Boolean.TRUE);
 
 		while (this.amqpTemplateConfirms.receive(this.queue.getName()) != null) {
 			// drain
@@ -139,19 +139,26 @@ public class AmqpOutboundEndpointTests {
 				.build();
 		this.pcRequestChannelForAdapter.send(message);
 		Message<?> ack = this.ackChannel.receive(10000);
-		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+		assertThat(ack).isNotNull();
+		assertThat(ack.getPayload()).isEqualTo("foo");
+		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
 	public void adapterWithReturns() throws Exception {
 		this.withReturns.setErrorMessageStrategy(null);
-		Message<?> message = MessageBuilder.withPayload("hello").build();
+		CorrelationData corrData = new CorrelationData("adapterWithReturns");
+		Message<?> message = MessageBuilder.withPayload("hello")
+				.setHeader("corrData", corrData)
+				.build();
 		this.returnRequestChannel.send(message);
 		Message<?> returned = returnChannel.receive(10000);
-		assertNotNull(returned);
-		assertEquals(message.getPayload(), returned.getPayload());
+		assertThat(returned).isNotNull();
+		assertThat(returned.getPayload()).isEqualTo(message.getPayload());
+		Confirm confirm = corrData.getFuture().get(10, TimeUnit.SECONDS);
+		assertThat(confirm).isNotNull();
+		assertThat(confirm.isAck()).isTrue();
+		assertThat(corrData.getReturnedMessage()).isNotNull();
 	}
 
 	@Test
@@ -159,11 +166,11 @@ public class AmqpOutboundEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		this.returnRequestChannel.send(message);
 		Message<?> returned = returnChannel.receive(10000);
-		assertNotNull(returned);
-		assertThat(returned, instanceOf(ErrorMessage.class));
-		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		assertThat(returned).isNotNull();
+		assertThat(returned).isInstanceOf(ErrorMessage.class);
+		assertThat(returned.getPayload()).isInstanceOf(ReturnedAmqpMessageException.class);
 		ReturnedAmqpMessageException payload = (ReturnedAmqpMessageException) returned.getPayload();
-		assertEquals(message.getPayload(), payload.getFailedMessage().getPayload());
+		assertThat(payload.getFailedMessage().getPayload()).isEqualTo(message.getPayload());
 	}
 
 	@Test
@@ -178,18 +185,18 @@ public class AmqpOutboundEndpointTests {
 				.build();
 		this.ctRequestChannel.send(message);
 		org.springframework.amqp.core.Message m = receive(template);
-		assertNotNull(m);
-		assertEquals("\"hello\"", new String(m.getBody(), "UTF-8"));
-		assertEquals("application/json", m.getMessageProperties().getContentType());
-		assertEquals("java.lang.String",
-				m.getMessageProperties().getHeaders().get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+		assertThat(m).isNotNull();
+		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("\"hello\"");
+		assertThat(m.getMessageProperties().getContentType()).isEqualTo("application/json");
+		assertThat(m.getMessageProperties().getHeaders().get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")))
+				.isEqualTo("java.lang.String");
 		message = MessageBuilder.withPayload("hello")
 				.build();
 		this.ctRequestChannel.send(message);
 		m = receive(template);
-		assertNotNull(m);
-		assertEquals("hello", new String(m.getBody(), "UTF-8"));
-		assertEquals("text/plain", m.getMessageProperties().getContentType());
+		assertThat(m).isNotNull();
+		assertThat(new String(m.getBody(), "UTF-8")).isEqualTo("hello");
+		assertThat(m.getMessageProperties().getContentType()).isEqualTo("text/plain");
 		while (template.receive() != null) {
 			// drain
 		}
@@ -202,7 +209,7 @@ public class AmqpOutboundEndpointTests {
 			Thread.sleep(100);
 			message = template.receive();
 		}
-		assertNotNull(message);
+		assertThat(message).isNotNull();
 		return message;
 	}
 
