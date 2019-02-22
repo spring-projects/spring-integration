@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -40,7 +39,7 @@ public class JsonTransformersSymmetricalTests {
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 
-		List<TestPerson> payload = new ArrayList<TestPerson>();
+		List<TestPerson> payload = new ArrayList<>();
 		payload.add(person);
 
 		ObjectToJsonTransformer objectToJsonTransformer = new ObjectToJsonTransformer();
@@ -51,24 +50,5 @@ public class JsonTransformersSymmetricalTests {
 		assertThat(result).isInstanceOf(List.class);
 		assertThat(((List<?>) result).get(0)).isEqualTo(person);
 	}
-
-	@Test
-	public void testBoonObjectToJson_JsonToObject() {
-
-		TestPerson person = new TestPerson("John", "Doe", 42);
-		person.setAddress(new TestAddress(123, "Main Street"));
-
-		List<TestPerson> payload = new ArrayList<TestPerson>();
-		payload.add(person);
-
-		ObjectToJsonTransformer objectToJsonTransformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
-		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
-
-		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer(new BoonJsonObjectMapper());
-		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
-		assertThat(result).isInstanceOf(List.class);
-		assertThat(((List<?>) result).get(0)).isEqualTo(person);
-	}
-
 
 }

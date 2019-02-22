@@ -26,13 +26,8 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -194,41 +189,6 @@ public class ObjectToJsonTransformerTests {
 		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString()).contains("SingletonMap");
 		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID)).isEqualTo(Object.class);
 		assertThat(out.getHeaders().get(JsonHeaders.KEY_TYPE_ID)).isEqualTo(String.class);
-	}
-
-	@Test
-	public void testBoonJsonObjectMapper() {
-		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
-		TestPerson person = new TestPerson("John", "Doe", 42);
-		person.setAddress(new TestAddress(123, "Main Street"));
-		String result = (String) transformer.transform(new GenericMessage<>(person)).getPayload();
-		assertThat(result.contains("\"firstName\":\"John\"")).isTrue();
-		assertThat(result.contains("\"lastName\":\"Doe\"")).isTrue();
-		assertThat(result.contains("\"age\":42")).isTrue();
-		Pattern addressPattern = Pattern.compile("(\"address\":\\{.*?\\})");
-		Matcher matcher = addressPattern.matcher(result);
-		assertThat(matcher.find()).isTrue();
-		String addressResult = matcher.group(1);
-		assertThat(addressResult.contains("\"number\":123")).isTrue();
-		assertThat(addressResult.contains("\"street\":\"Main Street\"")).isTrue();
-	}
-
-	@Test
-	public void testBoonJsonObjectMapper_toNode() {
-		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper(),
-				ObjectToJsonTransformer.ResultType.NODE);
-		TestPerson person = new TestPerson("John", "Doe", 42);
-		person.setAddress(new TestAddress(123, "Main Street"));
-		Object payload = transformer.transform(new GenericMessage<>(person)).getPayload();
-		assertThat(payload).isInstanceOf(Map.class);
-
-		SpelExpressionParser parser = new SpelExpressionParser();
-		Expression expression = parser.parseExpression("firstName + ': ' + address.street");
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		String value = expression.getValue(evaluationContext, payload, String.class);
-
-		assertThat(value).isEqualTo("John: Main Street");
 	}
 
 	@Test

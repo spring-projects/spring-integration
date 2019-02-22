@@ -343,16 +343,16 @@ You can provide your own custom `JsonObjectMapper` implementation with appropria
 ====
 Beginning with version 3.0, the `object-mapper` attribute references an instance of a new strategy interface: `JsonObjectMapper`.
 This abstraction lets multiple implementations of JSON mappers be used.
-Implementations that wrap https://github.com/RichardHightower/boon[Boon] and https://github.com/FasterXML[Jackson 2] are provided, with the version being detected on the classpath.
-These classes are `BoonJsonObjectMapper` and `Jackson2JsonObjectMapper`, respectively.
+Implementation that wraps https://github.com/FasterXML[Jackson 2] is provided, with the version being detected on the classpath.
+The class is `Jackson2JsonObjectMapper`, respectively.
 
-Note, `BoonJsonObjectMapper` was added in version 4.1.
+NOTE: The `BoonJsonObjectMapper` is deprecated in 5.2 since the library is out of support.
 ====
 
 [IMPORTANT]
 ====
 If you have requirements to use both Jackson and Boon in the same application, keep in mind that, before version 3.0, the JSON transformers used only Jackson 1.x.
-From 4.1 on, the framework selects Jackson 2 by default, preferring it to the Boon implementation if both are on the classpath.
+From 4.1 on, the framework selects Jackson 2 by default.
 Jackson 1.x is no longer supported by the framework internally.
 However, you can still use it within your code by including the necessary library.
 To avoid unexpected issues with JSON mapping features when you use annotations, you may need to apply annotations from both Jackson and Boon on domain classes, as the following example shows:
@@ -372,6 +372,8 @@ public class Thing1 {
 }
 ----
 ====
+
+NOTE: The Boon support has been deprecated since version 5.2.
 
 You may wish to consider using a `FactoryBean` or a factory method to create the `JsonObjectMapper` with the required characteristics.
 The following example shows how to use such a factory:
@@ -444,7 +446,6 @@ The result node tree representation depends on the implementation of the provide
 By default, the `ObjectToJsonTransformer` uses a `Jackson2JsonObjectMapper` and delegates the conversion of the object to the node tree to the `ObjectMapper#valueToTree` method.
 The node JSON representation provides efficiency for using the `JsonPropertyAccessor` when the downstream message flow uses SpEL expressions with access to the properties of the JSON data.
 See <<spel-property-accessors>> for more information.
-When using Boon, the `NODE` representation is a `Map<String, Object>`
 
 Beginning with version 5.1, the `resultType` can be configured as `BYTES` to produce a message with the `byte[]` payload for convenience when working with downstream handlers which operate with this data type.
 
