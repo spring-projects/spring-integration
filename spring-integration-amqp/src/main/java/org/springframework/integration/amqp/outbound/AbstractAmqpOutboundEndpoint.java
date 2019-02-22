@@ -618,11 +618,6 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 
 		@Override
-		public org.springframework.amqp.core.Message getReturnedMessage() {
-			return super.getReturnedMessage();
-		}
-
-		@Override
 		public void setReturnedMessage(org.springframework.amqp.core.Message returnedMessage) {
 			if (this.userData instanceof CorrelationData) {
 				((CorrelationData) this.userData).setReturnedMessage(returnedMessage);
