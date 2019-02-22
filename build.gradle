@@ -204,7 +204,7 @@ subprojects { subproject ->
 								.include('**/*.xml')
 								.exclude('**/log4j2-test.xml')
 				})
-		outputs.dir('build')
+		outputs.dir('build/resources')
 		doLast {
 			def wrongConfigs = inputs.files.filter {
 				new XmlParser(false, false)
@@ -223,7 +223,7 @@ subprojects { subproject ->
 	task updateCopyrights {
 		onlyIf { !System.getenv('TRAVIS') && !System.getenv('bamboo_buildKey') }
 		inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
-		outputs.dir('build')
+		outputs.dir('build/classes')
 
 		doLast {
 			def now = Calendar.instance.get(Calendar.YEAR) as String
