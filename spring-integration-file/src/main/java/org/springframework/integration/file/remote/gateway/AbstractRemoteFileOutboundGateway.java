@@ -402,7 +402,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
 		}
-		BeanFactory beanFactory = getBeanFactory();
+
 		if ((Command.GET.equals(this.command) && !this.options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
@@ -417,6 +417,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							Option.RECURSIVE.toString() + " to obtain files in subdirectories");
 		}
 
+		populateBeanFactoryIntoComponentsIfAny();
+	}
+
+	private void populateBeanFactoryIntoComponentsIfAny() {
+		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
 			if (this.fileNameProcessor != null) {
 				this.fileNameProcessor.setBeanFactory(beanFactory);
@@ -737,14 +742,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			for (File filteredFile : filteredFiles) {
 				if (!filteredFile.isDirectory()) {
 					String path = doPut(new MutableMessage<>(filteredFile, requestMessage.getHeaders()), subDirectory);
-					if (path == null) { //NOSONAR - false positive
-						if (logger.isDebugEnabled()) {
-							logger.debug("File " + filteredFile.getAbsolutePath()
-									+ " removed before transfer; ignoring");
-						}
-					}
-					else {
+					if (path != null) {
 						replies.add(path);
+					}
+					else if (logger.isDebugEnabled()) {
+						logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
 					}
 				}
 				else if (this.options.contains(Option.RECURSIVE)) {
@@ -757,7 +759,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		catch (Exception ex) {
-			if (replies.size() > 0 || ex instanceof PartialSuccessException) {
+			if (replies.size() > 0 || ex instanceof PartialSuccessException) { // NOSONAR
 				throw new PartialSuccessException(requestMessage,
 						"Partially successful 'mput' operation" +
 								(subDirectory == null ? "" : (" on " + subDirectory)), ex, replies, filteredFiles);

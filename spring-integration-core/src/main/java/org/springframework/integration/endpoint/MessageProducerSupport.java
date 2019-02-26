@@ -190,12 +190,12 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			throw new MessagingException("cannot send a null message");
 		}
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
+			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
 		try {
-			MessageChannel outputChannel = getOutputChannel();
-			Assert.state(outputChannel != null, "The 'outputChannel' or `outputChannelName` must be configured");
-			this.messagingTemplate.send(outputChannel, message);
+			MessageChannel messageChannel = getOutputChannel();
+			Assert.state(messageChannel != null, "The 'outputChannel' or `outputChannelName` must be configured");
+			this.messagingTemplate.send(messageChannel, message);
 		}
 		catch (RuntimeException ex) {
 			if (!sendErrorMessageIfNecessary(message, ex)) {

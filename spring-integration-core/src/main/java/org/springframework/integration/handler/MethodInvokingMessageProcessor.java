@@ -44,22 +44,22 @@ import org.springframework.messaging.Message;
  */
 public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<T> implements Lifecycle {
 
-	private final MessagingMethodInvokerHelper<T> delegate;
+	private final MessagingMethodInvokerHelper delegate;
 
 	public MethodInvokingMessageProcessor(Object targetObject, Method method) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, false);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, method, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, false);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName, boolean canProcessMessageList) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, canProcessMessageList);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, canProcessMessageList);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, false);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, annotationType, false);
 	}
 
 	@Override
@@ -102,14 +102,15 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 
 	@Override
 	@Nullable
+	@SuppressWarnings("unchecked")
 	public T processMessage(Message<?> message) {
 		try {
-			return this.delegate.process(message);
+			return (T) this.delegate.process(message);
 		}
 		catch (Exception e) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this + "]",
-					e);
+					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this +
+							"]", e);
 		}
 	}
 

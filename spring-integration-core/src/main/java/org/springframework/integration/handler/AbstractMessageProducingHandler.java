@@ -274,13 +274,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			Object replyChannel) {
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
-			MessageChannel outputChannel = getOutputChannel();
+			MessageChannel messageChannel = getOutputChannel();
 			if (reply instanceof ListenableFuture<?> ||
-					!(outputChannel instanceof ReactiveStreamsSubscribableChannel)) {
-				asyncNonReactiveReply(requestMessage, requestHeaders, reply, replyChannel);
+					!(messageChannel instanceof ReactiveStreamsSubscribableChannel)) {
+				asyncNonReactiveReply(requestMessage, reply, replyChannel);
 			}
 			else {
-				((ReactiveStreamsSubscribableChannel) outputChannel)
+				((ReactiveStreamsSubscribableChannel) messageChannel)
 						.subscribeTo(
 								Flux.from((Publisher<?>) reply)
 										.map(result -> createOutputMessage(result, requestHeaders)));
@@ -310,8 +310,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
-	private void asyncNonReactiveReply(Message<?> requestMessage, MessageHeaders requestHeaders,
-			Object reply, Object replyChannel) {
+	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, Object replyChannel) {
 
 		ListenableFuture<?> future;
 		if (reply instanceof ListenableFuture<?>) {

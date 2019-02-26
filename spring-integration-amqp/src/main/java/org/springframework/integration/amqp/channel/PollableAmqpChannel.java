@@ -183,13 +183,13 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
+		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
-			if (isLoggingEnabled() && logger.isTraceEnabled()) {
+			if (traceEnabled) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<>();
-
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;
 				}
@@ -197,7 +197,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			Object object = performReceive(timeout);
 			Message<?> message = null;
 			if (object == null) {
-				if (isLoggingEnabled() && logger.isTraceEnabled()) {
+				if (traceEnabled) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
 			}
@@ -215,26 +215,22 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 							.withPayload(object)
 							.build();
 				}
-				if (isLoggingEnabled() && logger.isDebugEnabled()) {
+				if (traceEnabled) {
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 			}
 
-			if (interceptorStack != null) {
-				if (message != null) {
-					message = interceptorList.postReceive(message, this);
-				}
-				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			if (interceptorStack != null && message != null) {
+				message = interceptorList.postReceive(message, this);
 			}
+			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException ex) {
 			if (countsEnabled && !counted) {
 				incrementReceiveErrorCounter(ex);
 			}
-			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
-			}
+			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
 			throw ex;
 		}
 	}

@@ -224,9 +224,9 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
-				MessageChannel discardChannel = getDiscardChannel();
-				if (discardChannel != null) {
-					this.messagingTemplate.send(discardChannel, message);
+				MessageChannel messageChannel = getDiscardChannel();
+				if (messageChannel != null) {
+					this.messagingTemplate.send(messageChannel, message);
 				}
 			}
 		}

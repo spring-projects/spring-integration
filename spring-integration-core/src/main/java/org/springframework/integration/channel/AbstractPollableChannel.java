@@ -127,21 +127,17 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 			}
 
-			if (interceptorStack != null) {
-				if (message != null) {
-					message = interceptorList.postReceive(message, this);
-				}
-				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			if (interceptorStack != null && message != null) {
+				message = interceptorList.postReceive(message, this);
 			}
+			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException ex) {
 			if (countsEnabled && !counted) {
 				incrementReceiveErrorCounter(ex);
 			}
-			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
-			}
+			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
 			throw ex;
 		}
 	}

@@ -138,21 +138,17 @@ public class PollableJmsChannel extends AbstractJmsChannel
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 			}
-			if (interceptorStack != null) {
-				if (message != null) {
-					message = interceptorList.postReceive(message, this);
-				}
-				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			if (interceptorStack != null && message != null) {
+				message = interceptorList.postReceive(message, this);
 			}
+			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException ex) {
 			if (countsEnabled && !counted) {
 				incrementReceiveErrorCounter(ex);
 			}
-			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
-			}
+			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
 			throw ex;
 		}
 	}

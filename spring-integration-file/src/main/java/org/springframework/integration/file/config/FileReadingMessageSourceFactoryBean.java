@@ -116,9 +116,6 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 	}
 
 	private void initSource() {
-		if (this.source != null) {
-			return;
-		}
 		boolean comparatorSet = this.comparator != null;
 		boolean queueSizeSet = this.queueSize != null;
 		if (comparatorSet) {
@@ -143,6 +140,21 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 				this.source.setWatchEvents(this.watchEvents);
 			}
 		}
+		configureFilterAndLockerOnSourceIfAny();
+		if (this.scanEachPoll != null) {
+			this.source.setScanEachPoll(this.scanEachPoll);
+		}
+		if (this.autoCreateDirectory != null) {
+			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+		}
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.source.setBeanFactory(beanFactory);
+		}
+		this.source.afterPropertiesSet();
+	}
+
+	private void configureFilterAndLockerOnSourceIfAny() {
 		if (this.filter != null) {
 			if (this.locker == null) {
 				this.source.setFilter(this.filter);
@@ -162,17 +174,6 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 			this.source.setFilter(compositeFileListFilter);
 			this.source.setLocker(this.locker);
 		}
-		if (this.scanEachPoll != null) {
-			this.source.setScanEachPoll(this.scanEachPoll);
-		}
-		if (this.autoCreateDirectory != null) {
-			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
-		}
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			this.source.setBeanFactory(beanFactory);
-		}
-		this.source.afterPropertiesSet();
 	}
 
 }

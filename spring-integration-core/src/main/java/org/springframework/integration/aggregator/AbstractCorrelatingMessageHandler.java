@@ -613,9 +613,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void discardMessage(Message<?> message) {
-		MessageChannel discardChannel = getDiscardChannel();
-		if (discardChannel != null) {
-			this.messagingTemplate.send(discardChannel, message);
+		MessageChannel messageChannel = getDiscardChannel();
+		if (messageChannel != null) {
+			this.messagingTemplate.send(messageChannel, message);
 		}
 	}
 

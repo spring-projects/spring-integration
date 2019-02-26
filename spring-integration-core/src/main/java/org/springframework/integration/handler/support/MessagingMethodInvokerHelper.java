@@ -124,7 +124,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator implements Lifecycle {
+public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator implements Lifecycle {
 
 	private static final String CANDIDATE_METHODS = "CANDIDATE_METHODS";
 
@@ -309,13 +309,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	@Nullable
-	public T process(Message<?> message) throws Exception {
+	public Object process(Message<?> message) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(message);
 		return processInternal(parameters);
 	}
 
 	@Nullable
-	public T process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
+	public Object process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
 	}
@@ -474,9 +474,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
-	private T processInternal(ParametersWrapper parameters) throws Exception {
+	private Object processInternal(ParametersWrapper parameters) throws Exception {
 		if (!this.initialized) {
 			initialize();
 		}
@@ -490,7 +489,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		Expression expression = candidate.expression;
 
-		T result;
+		Object result;
 		if (this.useSpelInvoker || candidate.spelOnly) {
 			result = invokeExpression(expression, parameters);
 		}
@@ -499,7 +498,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		if (result != null && this.expectedType != null) {
-			return (T) getEvaluationContext(true)
+			return getEvaluationContext(true)
 					.getTypeConverter()
 					.convertValue(result, TypeDescriptor.forObject(result), this.expectedType);
 		}
@@ -627,10 +626,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				.setCustomArgumentResolvers(customArgumentResolvers);
 	}
 
-	@SuppressWarnings("unchecked")
-	private T invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) throws Exception {
+	private Object invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) throws Exception {
 		try {
-			return (T) handlerMethod.invoke(parameters);
+			return handlerMethod.invoke(parameters);
 		}
 		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException e) {
 			if (e instanceof MessageConversionException) {
@@ -666,12 +664,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private T invokeExpression(Expression expression, ParametersWrapper parameters) throws Exception {
+	private Object invokeExpression(Expression expression, ParametersWrapper parameters) throws Exception {
 		try {
 
 			convertJsonPayloadIfNecessary(parameters);
-			return (T) evaluateExpression(expression, parameters);
+			return evaluateExpression(expression, parameters);
 		}
 		catch (Exception ex) {
 			Throwable evaluationException = ex;
@@ -700,30 +697,33 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				this.jsonObjectMapper != null) {
 
 			Class<?> type = this.handlerMethod.targetParameterType;
-			if ((parameters.getPayload() instanceof String && !type.equals(String.class)
+			if ((parameters.getPayload() instanceof String && !type.equals(String.class) // NOSONAR
 					|| parameters.getPayload() instanceof byte[] && !type.equals(byte[].class))
 					&& contentTypeIsJson(parameters.message)) {
 
-				try {
-					Object targetPayload = this.jsonObjectMapper.fromJson(parameters.getPayload(), type);
-
-					if (this.handlerMethod.targetParameterTypeDescriptor.isAssignableTo(MESSAGE_TYPE_DESCRIPTOR)) {
-						parameters.message =
-								getMessageBuilderFactory()
-										.withPayload(targetPayload)
-										.copyHeaders(parameters.getHeaders())
-										.build();
-					}
-					else {
-						parameters.payload = targetPayload;
-					}
-
-
-				}
-				catch (Exception e) {
-					LOGGER.debug("Failed to convert from JSON", e);
-				}
+				doConvertJsonPayload(parameters);
 			}
+		}
+	}
+
+	private void doConvertJsonPayload(ParametersWrapper parameters) {
+		try {
+			Object targetPayload =
+					this.jsonObjectMapper.fromJson(parameters.getPayload(), this.handlerMethod.targetParameterType);
+
+			if (this.handlerMethod.targetParameterTypeDescriptor.isAssignableTo(MESSAGE_TYPE_DESCRIPTOR)) {
+				parameters.message =
+						getMessageBuilderFactory()
+								.withPayload(targetPayload)
+								.copyHeaders(parameters.getHeaders())
+								.build();
+			}
+			else {
+				parameters.payload = targetPayload;
+			}
+		}
+		catch (Exception e) {
+			LOGGER.debug("Failed to convert from JSON", e);
 		}
 	}
 
@@ -1127,13 +1127,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 
-		@SuppressWarnings("unchecked")
-		public <T> T invoke(ParametersWrapper parameters) throws Exception {
+		public Object invoke(ParametersWrapper parameters) throws Exception {
 			Message<?> message = parameters.getMessage();
 			if (this.canProcessMessageList) {
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
-			return (T) this.invocableHandlerMethod.invoke(message);
+			return this.invocableHandlerMethod.invoke(message);
 		}
 
 		Class<?> getTargetParameterType() {
