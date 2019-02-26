@@ -69,7 +69,7 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	}
 
 	@Override
-	public void setBeanFactory(@Nullable BeanFactory beanFactory) {
+	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.delegate.setBeanFactory(beanFactory);
 	}

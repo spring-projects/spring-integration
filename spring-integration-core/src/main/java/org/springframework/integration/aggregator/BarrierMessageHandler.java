@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  * The default output processor is a {@link DefaultAggregatingMessageGroupProcessor}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
  */
@@ -61,9 +62,9 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 
 	private final MessageGroupProcessor messageGroupProcessor;
 
-	private volatile MessageChannel discardChannel;
-
 	private String discardChannelName;
+
+	private MessageChannel discardChannel;
 
 	/**
 	 * Construct an instance with the provided timeout and default correlation and
@@ -135,8 +136,10 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 */
 	@Override
 	public MessageChannel getDiscardChannel() {
-		if (this.discardChannel == null && this.discardChannelName != null && getChannelResolver() != null) {
-			this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
+		String channelName = this.discardChannelName;
+		if (channelName != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			this.discardChannelName = null;
 		}
 		return this.discardChannel;
 	}
@@ -221,8 +224,9 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
-				if (getDiscardChannel() != null) {
-					this.messagingTemplate.send(getDiscardChannel(), message);
+				MessageChannel discardChannel = getDiscardChannel();
+				if (discardChannel != null) {
+					this.messagingTemplate.send(discardChannel, message);
 				}
 			}
 		}

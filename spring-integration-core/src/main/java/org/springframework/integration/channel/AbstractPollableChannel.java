@@ -115,15 +115,13 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			else {
 				if (countsEnabled) {
-					if (getMetricsCaptor() != null) {
-						incrementReceiveCounter();
-					}
+					incrementReceiveCounter();
 					getMetrics().afterReceive();
 					counted = true;
 				}
 
 				if (isLoggingEnabled() && logger.isDebugEnabled()) {
-						logger.debug("postReceive on channel '" + this + "', message: " + message);
+					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 
 			}
@@ -136,39 +134,40 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			return message;
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException ex) {
 			if (countsEnabled && !counted) {
-				if (getMetricsCaptor() != null) {
-					CounterFacade counter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("type", "channel")
-							.tag("result", "failure")
-							.tag("exception", e.getClass().getSimpleName())
-							.description("Messages received")
-							.build();
-					this.meters.add(counter);
-					counter.increment();
-				}
-				getMetrics().afterError();
+				incrementReceiveErrorCounter(ex);
 			}
 			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
+				interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
 			}
-			throw e;
+			throw ex;
 		}
 	}
 
 	private void incrementReceiveCounter() {
 		if (this.receiveCounter == null) {
-			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-					.tag("name", getComponentName())
-					.tag("type", "channel")
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Messages received")
-					.build();
+			this.receiveCounter = buildReceiveCounter(null);
 		}
 		this.receiveCounter.increment();
+	}
+
+	private void incrementReceiveErrorCounter(Exception ex) {
+		buildReceiveCounter(ex).increment();
+		getMetrics().afterError();
+	}
+
+	private CounterFacade buildReceiveCounter(@Nullable Exception ex) {
+		CounterFacade counterFacade = getMetricsCaptor()
+				.counterBuilder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "channel")
+				.tag("result", ex == null ? "success" : "failure")
+				.tag("exception", ex == null ? "none" : ex.getClass().getSimpleName())
+				.description("Messages received")
+				.build();
+		this.meters.add(counterFacade);
+		return counterFacade;
 	}
 
 	@Override
@@ -207,6 +206,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	}
 
 	@Override
+	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
@@ -233,7 +233,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	protected abstract Message<?> doReceive(long timeout);
 
 	@Override
-	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
+	public void destroy() {
 		super.destroy();
 		if (this.receiveCounter != null) {
 			this.receiveCounter.remove();

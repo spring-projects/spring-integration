@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.util.Comparator;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -114,7 +115,7 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		return this.source;
 	}
 
-	private void initSource() { // NOSONAR
+	private void initSource() {
 		if (this.source != null) {
 			return;
 		}
@@ -156,12 +157,7 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		}
 		else if (this.locker != null) {
 			CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<>();
-			try {
-				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
+			compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
 			compositeFileListFilter.addFilter(this.locker);
 			this.source.setFilter(compositeFileListFilter);
 			this.source.setLocker(this.locker);
@@ -172,13 +168,11 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		if (this.autoCreateDirectory != null) {
 			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
 		}
-		this.source.setBeanFactory(getBeanFactory());
-		try {
-			this.source.afterPropertiesSet();
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.source.setBeanFactory(beanFactory);
 		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+		this.source.afterPropertiesSet();
 	}
 
 }

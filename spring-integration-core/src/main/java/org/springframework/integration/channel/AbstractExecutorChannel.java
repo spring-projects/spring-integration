@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,20 +46,23 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
+ * @since 4.2
+ *
  * @see ExecutorChannel
  * @see PublishSubscribeChannel
- * @since 4.2
+ *
  */
 public abstract class AbstractExecutorChannel extends AbstractSubscribableChannel
 		implements ExecutorChannelInterceptorAware {
 
-	protected volatile Executor executor;
+	protected volatile Executor executor; // NOSONAR
 
-	protected volatile AbstractDispatcher dispatcher;
+	protected volatile AbstractDispatcher dispatcher; // NOSONAR
 
-	protected volatile Integer maxSubscribers;
+	protected volatile Integer maxSubscribers; // NOSONAR
 
-	protected volatile int executorInterceptorsSize;
+	protected volatile int executorInterceptorsSize; // NOSONAR
 
 	public AbstractExecutorChannel(@Nullable Executor executor) {
 		this.executor = executor;
@@ -68,7 +71,6 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
-	 *
 	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
@@ -112,6 +114,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 	}
 
 	@Override
+	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
@@ -141,7 +144,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 			Deque<ExecutorChannelInterceptor> interceptorStack = null;
 			try {
 				if (AbstractExecutorChannel.this.executorInterceptorsSize > 0) {
-					interceptorStack = new ArrayDeque<ExecutorChannelInterceptor>();
+					interceptorStack = new ArrayDeque<>();
 					message = applyBeforeHandle(message, interceptorStack);
 					if (message == null) {
 						return;
@@ -156,7 +159,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 				if (!CollectionUtils.isEmpty(interceptorStack)) {
 					triggerAfterMessageHandled(message, ex, interceptorStack);
 				}
-				if (ex instanceof MessagingException) {
+				if (ex instanceof MessagingException) { // NOSONAR
 					throw new MessagingExceptionWrapper(message, (MessagingException) ex);
 				}
 				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;

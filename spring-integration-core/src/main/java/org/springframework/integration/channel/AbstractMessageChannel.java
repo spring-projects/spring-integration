@@ -28,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -356,10 +357,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected void onInit() {
 		super.onInit();
 		if (this.messageConverter == null) {
-			if (getBeanFactory() != null) {
-				if (getBeanFactory().containsBean(
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory != null) {
+				if (beanFactory.containsBean(
 						IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
-					this.messageConverter = this.getBeanFactory().getBean(
+					this.messageConverter = beanFactory.getBean(
 							IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
 							MessageConverter.class);
 				}
@@ -538,7 +540,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 		throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
-				"' expected one of the following datataypes [" +
+				"' expected one of the following data types [" +
 				StringUtils.arrayToCommaDelimitedString(this.datatypes) +
 				"], but received [" + message.getPayload().getClass() + "]");
 	}
@@ -556,7 +558,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected abstract boolean doSend(Message<?> message, long timeout);
 
 	@Override
-	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
+	public void destroy() {
 		this.meters.forEach(MeterFacade::remove);
 		this.meters.clear();
 	}
@@ -568,7 +570,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		private final Log logger;
 
-		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
+		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<>();
 
 		private int size;
 

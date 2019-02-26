@@ -59,13 +59,6 @@ public class MessageMatcher extends BaseMatcher<Message<?>> {
 		this.headers = getHeaders(operand);
 	}
 
-	private Map<String, Object> getHeaders(Message<?> operand) {
-		HashMap<String, Object> headers = new HashMap<>(operand.getHeaders());
-		headers.remove(MessageHeaders.ID);
-		headers.remove(MessageHeaders.TIMESTAMP);
-		return headers;
-	}
-
 	public boolean matches(Object arg) {
 		Message<?> input = (Message<?>) arg;
 		Map<String, Object> inputHeaders = getHeaders(input);
@@ -76,6 +69,13 @@ public class MessageMatcher extends BaseMatcher<Message<?>> {
 		description.appendText("Headers match except ID and timestamp for payload: ")
 				.appendValue(this.payload).appendText(" and headers: ")
 				.appendValue(this.headers);
+	}
+
+	private static Map<String, Object> getHeaders(Message<?> operand) {
+		HashMap<String, Object> headersToFilter = new HashMap<>(operand.getHeaders());
+		headersToFilter.remove(MessageHeaders.ID);
+		headersToFilter.remove(MessageHeaders.TIMESTAMP);
+		return headersToFilter;
 	}
 
 }

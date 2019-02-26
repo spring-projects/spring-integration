@@ -386,13 +386,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@Override
 	public MessageChannel getDiscardChannel() {
-		if (this.discardChannelName != null) {
-			synchronized (this) {
-				if (this.discardChannelName != null) {
-					this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
-					this.discardChannelName = null;
-				}
-			}
+		String channelName = this.discardChannelName;
+		if (channelName != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			this.discardChannelName = null;
 		}
 		return this.discardChannel;
 	}
@@ -449,52 +446,62 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		boolean noOutput = true;
 		lock.lockInterruptibly();
 		try {
-			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
-			if (scheduledFuture != null) {
-				boolean canceled = scheduledFuture.cancel(true);
-				if (canceled && this.logger.isDebugEnabled()) {
-					this.logger.debug("Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ "
-							+ correlationKey + "].");
-				}
-			}
-			MessageGroup messageGroup = this.messageStore.getMessageGroup(correlationKey);
-			if (this.sequenceAware) {
-				messageGroup = new SequenceAwareMessageGroup(messageGroup);
-			}
-
-			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
-				if (this.logger.isTraceEnabled()) {
-					this.logger.trace("Adding message to group [ " + messageGroup + "]");
-				}
-				messageGroup = this.store(correlationKey, message);
-
-				if (this.releaseStrategy.canRelease(messageGroup)) {
-					Collection<Message<?>> completedMessages = null;
-					try {
-						noOutput = false;
-						completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
-					}
-					finally {
-						// Possible clean (implementation dependency) up
-						// even if there was an exception processing messages
-						afterRelease(messageGroup, completedMessages);
-					}
-					if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
-						removeEmptyGroupAfterTimeout(messageGroup, this.minimumTimeoutForEmptyGroups);
-					}
-				}
-				else {
-					scheduleGroupToForceComplete(messageGroup);
-				}
-			}
-			else {
-				noOutput = false;
-				discardMessage(message, lock);
-			}
+			noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
 		}
 		finally {
 			if (noOutput || !this.releaseLockBeforeSend) {
 				lock.unlock();
+			}
+		}
+	}
+
+	private boolean processMessageForGroup(Message<?> message, Object correlationKey, UUID groupIdUuid, Lock lock) {
+		boolean noOutput = true;
+		cancelScheduledFutureIfAny(correlationKey, groupIdUuid, true);
+		MessageGroup messageGroup = this.messageStore.getMessageGroup(correlationKey);
+		if (this.sequenceAware) {
+			messageGroup = new SequenceAwareMessageGroup(messageGroup);
+		}
+
+		if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
+			if (this.logger.isTraceEnabled()) {
+				this.logger.trace("Adding message to group [ " + messageGroup + "]");
+			}
+			messageGroup = store(correlationKey, message);
+
+			if (this.releaseStrategy.canRelease(messageGroup)) {
+				Collection<Message<?>> completedMessages = null;
+				try {
+					noOutput = false;
+					completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
+				}
+				finally {
+					// Possible clean (implementation dependency) up
+					// even if there was an exception processing messages
+					afterRelease(messageGroup, completedMessages);
+				}
+				if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
+					removeEmptyGroupAfterTimeout(messageGroup, this.minimumTimeoutForEmptyGroups);
+				}
+			}
+			else {
+				scheduleGroupToForceComplete(messageGroup);
+			}
+		}
+		else {
+			noOutput = false;
+			discardMessage(message, lock);
+		}
+		return noOutput;
+	}
+
+	private void cancelScheduledFutureIfAny(Object correlationKey, UUID groupIdUuid, boolean mayInterruptIfRunning) {
+		ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
+		if (scheduledFuture != null) {
+			boolean canceled = scheduledFuture.cancel(mayInterruptIfRunning);
+			if (canceled && this.logger.isDebugEnabled()) {
+				this.logger.debug("Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ "
+						+ correlationKey + "].");
 			}
 		}
 	}
@@ -606,7 +613,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void discardMessage(Message<?> message) {
-		this.messagingTemplate.send(getDiscardChannel(), message);
+		MessageChannel discardChannel = getDiscardChannel();
+		if (discardChannel != null) {
+			this.messagingTemplate.send(discardChannel, message);
+		}
 	}
 
 	/**
@@ -630,20 +640,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	protected void forceComplete(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
-		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
+		UUID groupId = UUIDConverter.getUUID(correlationKey);
+		Lock lock = this.lockRegistry.obtain(groupId.toString());
 		boolean removeGroup = true;
 		boolean noOutput = true;
 		try {
 			lock.lockInterruptibly();
 			try {
-				ScheduledFuture<?> scheduledFuture =
-						this.expireGroupScheduledFutures.remove(UUIDConverter.getUUID(correlationKey));
-				if (scheduledFuture != null) {
-					boolean canceled = scheduledFuture.cancel(false);
-					if (canceled && this.logger.isDebugEnabled()) {
-						this.logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
-					}
-				}
+				cancelScheduledFutureIfAny(correlationKey, groupId, false);
 				MessageGroup groupNow = group;
 				/*
 				 * If the group argument is not already complete,

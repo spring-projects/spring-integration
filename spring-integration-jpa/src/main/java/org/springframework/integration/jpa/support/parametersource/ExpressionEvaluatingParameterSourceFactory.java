@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingParameterSourceFactory implements ParameterSourceFactory {
 
-	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSourceFactory.class);
+	private static final Log LOGGER = LogFactory.getLog(ExpressionEvaluatingParameterSourceFactory.class);
 
 	private static final Object ERROR = new Object();
 
@@ -57,7 +57,9 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	}
 
 	public ExpressionEvaluatingParameterSourceFactory(@Nullable BeanFactory beanFactory) {
-		this.expressionEvaluator.setBeanFactory(beanFactory);
+		if (beanFactory != null) {
+			this.expressionEvaluator.setBeanFactory(beanFactory);
+		}
 	}
 
 	/**
@@ -136,8 +138,8 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 					if (parameter.getName() != null) {
 						this.values.put(parameter.getName(), value);
 					}
-					if (logger.isDebugEnabled()) {
-						logger.debug("Resolved expression " + expression + " to " + value);
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Resolved expression " + expression + " to " + value);
 					}
 					return value;
 
@@ -174,8 +176,8 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 			final Object value = this.expressionEvaluator.evaluateExpression(expression, this.input);
 			this.values.put(paramName, value);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Resolved expression " + expression + " to " + value);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Resolved expression " + expression + " to " + value);
 			}
 			return value;
 		}
@@ -184,13 +186,13 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		public boolean hasValue(String paramName) {
 			try {
 				final Object value = getValue(paramName);
-				if (value == ERROR) {
+				if (ERROR.equals(value)) {
 					return false;
 				}
 			}
 			catch (ExpressionException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Could not evaluate expression", e);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Could not evaluate expression", e);
 				}
 				this.values.put(paramName, ERROR);
 				return false;
