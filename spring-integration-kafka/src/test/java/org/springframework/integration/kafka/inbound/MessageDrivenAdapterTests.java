@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -461,7 +462,7 @@ public class MessageDrivenAdapterTests {
 		willAnswer(i -> {
 			commitLatch.countDown();
 			return null;
-		}).given(consumer).commitSync(any(Map.class));
+		}).given(consumer).commitSync(anyMap(), any());
 		given(consumer.assignment()).willReturn(records.keySet());
 		final CountDownLatch pauseLatch = new CountDownLatch(1);
 		willAnswer(i -> {
@@ -488,7 +489,7 @@ public class MessageDrivenAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertThat(commitLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		verify(consumer, times(2)).commitSync(any(Map.class));
+		verify(consumer, times(2)).commitSync(anyMap(), any());
 		assertThat(outputChannel.getQueueSize()).isEqualTo(2);
 		adapter.pause();
 		assertThat(pauseLatch.await(10, TimeUnit.SECONDS)).isTrue();

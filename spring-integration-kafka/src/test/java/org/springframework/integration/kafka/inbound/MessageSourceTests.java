@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -268,6 +268,7 @@ public class MessageSourceTests {
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		source.setCommitTimeout(Duration.ofSeconds(30));
 
 		Message<?> received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
@@ -292,11 +293,13 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)),
+				Duration.ofSeconds(30));
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 1L); // rollback
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)),
+				Duration.ofSeconds(30));
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();

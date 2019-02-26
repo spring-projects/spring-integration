@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -460,6 +460,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	public void processSendResult(final Message<?> message, final ProducerRecord<K, V> producerRecord,
 			ListenableFuture<SendResult<K, V>> future, MessageChannel metadataChannel)
 			throws InterruptedException, ExecutionException {
+
 		if (getSendFailureChannel() != null || metadataChannel != null) {
 			future.addCallback(new ListenableFutureCallback<SendResult<K, V>>() {
 

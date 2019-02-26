@@ -25,8 +25,10 @@ import assertk.assertions.isNull
 import assertk.assertions.isSameAs
 import assertk.assertions.isTrue
 import assertk.catch
+import kafka.tools.ConsoleProducer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.TopicPartition
 import org.junit.ClassRule
 import org.junit.Test
@@ -80,6 +82,7 @@ import java.util.stream.Stream
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 3.0.3
  */
@@ -152,11 +155,6 @@ class KafkaDslKotlinTests {
     @Test
     fun testKafkaAdapters() {
 
-        val exception = catch { this.sendToKafkaFlowInput.send(GenericMessage("foo")) }
-        assertThat(exception!!.message).isNotNull().contains("10 is not in the range")
-
-        this.kafkaProducer1.setPartitionIdExpression(ValueExpression(0))
-        this.kafkaProducer2.setPartitionIdExpression(ValueExpression(0))
         this.sendToKafkaFlowInput.send(GenericMessage("foo", hashMapOf<String, Any>("foo" to "bar")))
 
         assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper)
@@ -280,7 +278,11 @@ class KafkaDslKotlinTests {
                         .get()
 
         @Bean
-        fun producerFactory() = DefaultKafkaProducerFactory<Int, String>(KafkaTestUtils.producerProps(embeddedKafka.embeddedKafka))
+        fun producerFactory(): DefaultKafkaProducerFactory<Int, String> {
+            val props = KafkaTestUtils.producerProps(embeddedKafka.embeddedKafka)
+            props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, "10000")
+            return DefaultKafkaProducerFactory(props)
+        }
 
         @Bean
         fun sendToKafkaFlow() =
@@ -309,7 +311,8 @@ class KafkaDslKotlinTests {
                 Kafka.outboundChannelAdapter(producerFactory)
                         .messageKey<Any> { m -> m.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
                         .headerMapper(mapper())
-                        .partitionId<Any> { _ -> 10 }
+                        .sync(true)
+                        .partitionId<Any> { _ -> 0 }
                         .topicExpression("headers[kafka_topic] ?: '$topic'")
                         .configureKafkaTemplate { t -> t.id("kafkaTemplate:$topic") }
 
@@ -334,7 +337,8 @@ class KafkaDslKotlinTests {
         @Bean
         fun outboundGateFlow() =
                 IntegrationFlows.from(Gate::class.java)
-                        .handle(Kafka.outboundGateway(replyingKafkaTemplate()))
+                        .handle(Kafka.outboundGateway(replyingKafkaTemplate())
+                                .sync(true))
                         .get()
 
         private fun replyContainer(): GenericMessageListenerContainer<Int, String> {
