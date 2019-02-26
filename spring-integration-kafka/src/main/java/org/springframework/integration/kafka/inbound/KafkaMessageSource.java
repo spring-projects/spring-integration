@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
@@ -56,6 +55,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -80,8 +80,7 @@ import org.springframework.util.Assert;
  * @since 3.0.1
  *
  */
-public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
-		implements DisposableBean, Lifecycle {
+public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Lifecycle {
 
 	private static final long DEFAULT_POLL_TIMEOUT = 50L;
 
@@ -115,6 +114,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	private ConsumerRebalanceListener rebalanceListener;
 
 	private boolean rawMessageHeader;
+
+	private Duration commitTimeout;
 
 	private volatile Consumer<K, V> consumer;
 
@@ -230,6 +231,20 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	 */
 	public void setRawMessageHeader(boolean rawMessageHeader) {
 		this.rawMessageHeader = rawMessageHeader;
+	}
+
+	protected Duration getCommitTimeout() {
+		return this.commitTimeout;
+	}
+
+	/**
+	 * Set the timeout for commits.
+	 * @param commitTimeout the timeout.
+	 * @since 3.2
+	 */
+	public void setCommitTimeout(Duration commitTimeout) {
+		this.commitTimeout = commitTimeout;
+		this.ackCallbackFactory.setCommitTimeout(commitTimeout);
 	}
 
 	private ConsumerFactory<K, V> fixOrRejectConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory) {
@@ -372,9 +387,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	 */
 	public static class KafkaAckCallbackFactory<K, V> implements AcknowledgmentCallbackFactory<KafkaAckInfo<K, V>> {
 
+		private Duration commitTimeout;
+
+		public void setCommitTimeout(Duration commitTimeout) {
+			this.commitTimeout = commitTimeout;
+		}
+
 		@Override
 		public AcknowledgmentCallback createCallback(KafkaAckInfo<K, V> info) {
-			return new KafkaAckCallback<>(info);
+			return new KafkaAckCallback<>(info, this.commitTimeout);
 		}
 
 	}
@@ -391,13 +412,20 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		private final KafkaAckInfo<K, V> ackInfo;
 
+		private final Duration commitTimeout;
+
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
 
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo) {
+			this(ackInfo, null);
+		}
+
+		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable Duration commitTimeout) {
 			Assert.notNull(ackInfo, "'ackInfo' cannot be null");
 			this.ackInfo = ackInfo;
+			this.commitTimeout = commitTimeout;
 		}
 
 		@Override
@@ -494,8 +522,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 						this.ackInfo.setAckDeferred(true);
 					}
 					if (ackInfo != null) {
-						ackInfo.getConsumer().commitSync(Collections.singletonMap(ackInfo.getTopicPartition(),
-								new OffsetAndMetadata(ackInfo.getRecord().offset() + 1)));
+						Map<TopicPartition, OffsetAndMetadata> offset =
+								Collections.singletonMap(ackInfo.getTopicPartition(),
+										new OffsetAndMetadata(ackInfo.getRecord().offset() + 1));
+						if (this.commitTimeout == null) {
+							ackInfo.getConsumer().commitSync(offset);
+						}
+						else {
+							ackInfo.getConsumer().commitSync(offset, this.commitTimeout);
+						}
 					}
 					else {
 						if (this.logger.isDebugEnabled()) {

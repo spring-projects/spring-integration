@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.kafka.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -44,7 +44,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
@@ -150,11 +149,6 @@ public class KafkaDslTests {
 	@Test
 	public void testKafkaAdapters() throws Exception {
 
-		assertThatThrownBy(() -> this.sendToKafkaFlowInput.send(new GenericMessage<>("foo")))
-				.hasMessageContaining("10 is not in the range");
-
-		this.kafkaProducer1.setPartitionIdExpression(new ValueExpression<>(0));
-		this.kafkaProducer2.setPartitionIdExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
 		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper);
@@ -298,7 +292,9 @@ public class KafkaDslTests {
 
 		@Bean
 		public ProducerFactory<Integer, String> producerFactory() {
-			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(embeddedKafka.getEmbeddedKafka()));
+			Map<String, Object> props = KafkaTestUtils.producerProps(embeddedKafka.getEmbeddedKafka());
+			props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10000);
+			return new DefaultKafkaProducerFactory<>(props);
 		}
 
 		@Bean
@@ -324,13 +320,15 @@ public class KafkaDslTests {
 
 		private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
 				ProducerFactory<Integer, String> producerFactory, String topic) {
+
 			return Kafka
 					.outboundChannelAdapter(producerFactory)
+					.sync(true)
 					.messageKey(m -> m
 							.getHeaders()
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 					.headerMapper(mapper())
-					.partitionId(m -> 10)
+					.partitionId(m -> 0)
 					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
 					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
 		}
@@ -353,6 +351,7 @@ public class KafkaDslTests {
 		public IntegrationFlow outboundGateFlow() {
 			return IntegrationFlows.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+							.sync(true)
 							.configureKafkaTemplate(t -> t.replyTimeout(30_000)))
 					.get();
 		}
