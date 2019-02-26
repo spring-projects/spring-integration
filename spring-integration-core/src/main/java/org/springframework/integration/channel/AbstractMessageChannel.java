@@ -121,6 +121,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.metricsCaptor = metricsCaptor;
 	}
 
+	@Nullable
 	protected MetricsCaptor getMetricsCaptor() {
 		return this.metricsCaptor;
 	}

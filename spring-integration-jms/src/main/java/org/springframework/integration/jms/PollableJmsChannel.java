@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -157,19 +158,25 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	private void incrementReceiveCounter() {
-		if (this.receiveCounter == null) {
-			this.receiveCounter = buildReceiveCounter(null);
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			if (this.receiveCounter == null) {
+				this.receiveCounter = buildReceiveCounter(metricsCaptor, null);
+			}
+			this.receiveCounter.increment();
 		}
-		this.receiveCounter.increment();
 	}
 
 	private void incrementReceiveErrorCounter(Exception ex) {
-		buildReceiveCounter(ex).increment();
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			buildReceiveCounter(metricsCaptor, ex).increment();
+		}
 		getMetrics().afterError();
 	}
 
-	private CounterFacade buildReceiveCounter(@Nullable Exception ex) {
-		CounterFacade counterFacade = getMetricsCaptor()
+	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {
+		CounterFacade counterFacade = metricsCaptor
 				.counterBuilder(RECEIVE_COUNTER_NAME)
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("type", "channel")
@@ -180,6 +187,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		this.meters.add(counterFacade);
 		return counterFacade;
 	}
+
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		super.setInterceptors(interceptors);
