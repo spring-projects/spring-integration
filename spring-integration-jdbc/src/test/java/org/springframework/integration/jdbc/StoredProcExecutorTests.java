@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -27,8 +28,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -37,14 +36,9 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
-
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.CacheStats;
 
 /**
  * @author Gunnar Hillert
@@ -53,56 +47,33 @@ import com.google.common.cache.CacheStats;
  */
 public class StoredProcExecutorTests {
 
-	private static final Log LOGGER = LogFactory.getLog(StoredProcExecutorTests.class);
-
 	@Test
 	public void testStoredProcExecutorWithNullDataSource() {
-
-		try {
-			new StoredProcExecutor(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("dataSource must not be null.");
-			return;
-		}
-
-		fail("Exception expected.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new StoredProcExecutor(null))
+				.withMessage("dataSource must not be null.");
 	}
 
 	@Test
 	public void testStoredProcExecutorWithNullProcedureName() {
-
 		DataSource datasource = mock(DataSource.class);
 
-		try {
-			StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-			storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
-			storedProcExecutor.afterPropertiesSet();
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("You must either provide a "
-					+ "Stored Procedure Name or a Stored Procedure Name Expression.");
-			return;
-		}
-
-		fail("Exception expected.");
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
+		assertThatIllegalArgumentException()
+				.isThrownBy(storedProcExecutor::afterPropertiesSet)
+				.withMessage("You must either provide a "
+						+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 	}
 
 	@Test
 	public void testStoredProcExecutorWithEmptyProcedureName() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		try {
-			storedProcExecutor.setStoredProcedureName("      ");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("storedProcedureName must not be null and cannot be empty.");
-			return;
-		}
-
-		fail("Exception expected.");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setStoredProcedureName("      "))
+				.withMessage("storedProcedureName must not be null and cannot be empty.");
 	}
 
 	@Test
@@ -124,7 +95,7 @@ public class StoredProcExecutorTests {
 	}
 
 	@Test
-	public void testGetStoredProcedureNameExpressionAsString2() throws Exception {
+	public void testGetStoredProcedureNameExpressionAsString2() {
 
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
@@ -139,41 +110,25 @@ public class StoredProcExecutorTests {
 
 	@Test
 	public void testSetReturningResultSetRowMappersWithNullMap() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		try {
-			storedProcExecutor.setReturningResultSetRowMappers(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("returningResultSetRowMappers must not be null.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setReturningResultSetRowMappers(null))
+				.withMessage("'returningResultSetRowMappers' must not be null.");
 	}
 
 	@Test
 	public void testSetReturningResultSetRowMappersWithMapContainingNullValues() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		Map<String, RowMapper<?>> rowmappers = new HashMap<String, RowMapper<?>>();
-		rowmappers.put("results", null);
+		Map<String, RowMapper<?>> rowMappers = new HashMap<>();
+		rowMappers.put("results", null);
 
-		try {
-			storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("The provided map cannot contain null values.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setReturningResultSetRowMappers(rowMappers))
+				.withMessage("'returningResultSetRowMappers' cannot contain null values.");
 	}
 
 	@Test
@@ -209,102 +164,62 @@ public class StoredProcExecutorTests {
 
 	@Test
 	public void testSetSqlParametersWithNullValueInList() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		List<SqlParameter> sqlParameters = new ArrayList<SqlParameter>();
+		List<SqlParameter> sqlParameters = new ArrayList<>();
 		sqlParameters.add(null);
 
-		try {
-			storedProcExecutor.setSqlParameters(sqlParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("The provided list (sqlParameters) cannot contain null values.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setSqlParameters(sqlParameters))
+				.withMessage("'sqlParameters' cannot contain null values.");
 	}
 
 	@Test
 	public void testSetSqlParametersWithEmptyList() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		List<SqlParameter> sqlParameters = new ArrayList<SqlParameter>();
+		List<SqlParameter> sqlParameters = new ArrayList<>();
 
-		try {
-			storedProcExecutor.setSqlParameters(sqlParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("sqlParameters must not be null or empty.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setSqlParameters(sqlParameters))
+				.withMessage("'sqlParameters' must not be null or empty.");
 	}
 
 	@Test
 	public void testSetSqlParametersWithNullList() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		try {
-			storedProcExecutor.setSqlParameters(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("sqlParameters must not be null or empty.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setSqlParameters(null))
+				.withMessage("'sqlParameters' must not be null or empty.");
 	}
 
 	@Test
 	public void testSetProcedureParametersWithNullValueInList() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
+		List<ProcedureParameter> procedureParameters = new ArrayList<>();
 		procedureParameters.add(null);
 
-		try {
-			storedProcExecutor.setProcedureParameters(procedureParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("The provided list (procedureParameters) cannot contain null values.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setProcedureParameters(procedureParameters))
+				.withMessage("'procedureParameters' cannot contain null values.");
 	}
 
 	@Test
 	public void testSetProcedureParametersWithEmptyList() {
-
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
+		List<ProcedureParameter> procedureParameters = new ArrayList<>();
 
-		try {
-			storedProcExecutor.setProcedureParameters(procedureParameters);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("procedureParameters must not be null or empty.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setProcedureParameters(procedureParameters))
+				.withMessage("'procedureParameters' must not be null or empty.");
 	}
 
 	@Test
@@ -313,21 +228,13 @@ public class StoredProcExecutorTests {
 		DataSource datasource = mock(DataSource.class);
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
-		try {
-			storedProcExecutor.setProcedureParameters(null);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("procedureParameters must not be null or empty.");
-			return;
-		}
-
-		fail("Exception expected.");
-
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> storedProcExecutor.setProcedureParameters(null))
+				.withMessage("'procedureParameters' must not be null or empty.");
 	}
 
 	@Test
 	public void testStoredProcExecutorWithNonResolvingExpression() throws Exception {
-
 		final DataSource datasource = mock(DataSource.class);
 
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
@@ -341,8 +248,11 @@ public class StoredProcExecutorTests {
 
 		storedProcExecutor.afterPropertiesSet();
 
-		this.mockTheOperationsCache(storedProcExecutor);
+		Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap = new HashMap<>();
+		jdbcCallOperationsMap.put("123", mock(SimpleJdbcCallOperations.class));
 
+		new DirectFieldAccessor(storedProcExecutor)
+				.setPropertyValue("jdbcCallOperationsMap", jdbcCallOperationsMap);
 		//This should work
 
 		storedProcExecutor.executeStoredProcedure(
@@ -352,102 +262,14 @@ public class StoredProcExecutorTests {
 
 		//This should cause an exception
 
-		try {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-							.setHeader("some_other_header", "123")
-							.build());
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage())
-					.isEqualTo("Unable to resolve Stored Procedure/Function name for the provided Expression " +
-							"'headers['stored_procedure_name']'.");
-			return;
-		}
-
-		fail("IllegalArgumentException expected.");
-
-	}
-
-	@Test
-	public void testStoredProcExecutorJdbcCallOperationsCache() throws Exception {
-
-		final DataSource datasource = mock(DataSource.class);
-
-		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
-		efb.afterPropertiesSet();
-		final Expression expression = efb.getObject();
-
-		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
-
-		storedProcExecutor.afterPropertiesSet();
-
-		this.mockTheOperationsCache(storedProcExecutor);
-
-		for (int i = 1; i <= 3; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-							.setHeader("stored_procedure_name", "123")
-							.build());
-		}
-
-		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
-		LOGGER.info(stats);
-		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
-
-		assertThat(2).isEqualTo(stats.hitCount());
-		assertThat(1).isEqualTo(stats.missCount());
-		assertThat(1).isEqualTo(stats.loadCount());
-
-	}
-
-	@Test
-	public void testSetJdbcCallOperationsCacheSize() throws Exception {
-
-		final DataSource datasource = mock(DataSource.class);
-
-		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-
-		storedProcExecutor.setJdbcCallOperationsCacheSize(0);
-
-		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
-		efb.afterPropertiesSet();
-		final Expression expression = efb.getObject();
-
-		storedProcExecutor.setStoredProcedureNameExpression(expression);
-		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
-
-		storedProcExecutor.afterPropertiesSet();
-
-		this.mockTheOperationsCache(storedProcExecutor);
-
-		for (int i = 1; i <= 10; i++) {
-			storedProcExecutor.executeStoredProcedure(
-					MessageBuilder.withPayload("test")
-							.setHeader("stored_procedure_name", "123")
-							.build());
-		}
-
-		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
-		LOGGER.info(stats);
-		assertThat(stats.missCount()).as("Expected a cache misscount of 10").isEqualTo(10);
-
-	}
-
-	private void mockTheOperationsCache(final StoredProcExecutor storedProcExecutor) {
-		Object cache = TestUtils.getPropertyValue(storedProcExecutor,
-				"guavaCacheWrapper.jdbcCallOperationsCache.localCache");
-		new DirectFieldAccessor(cache)
-				.setPropertyValue("defaultLoader", new CacheLoader<String, SimpleJdbcCallOperations>() {
-
-					@Override
-					public SimpleJdbcCall load(String storedProcedureName) {
-						return mock(SimpleJdbcCall.class);
-					}
-				});
+		assertThatIllegalArgumentException()
+				.isThrownBy(() ->
+						storedProcExecutor.executeStoredProcedure(
+								MessageBuilder.withPayload("test")
+										.setHeader("some_other_header", "123")
+										.build()))
+				.withMessage("Unable to resolve Stored Procedure/Function name for the provided Expression " +
+						"'headers['stored_procedure_name']'.");
 	}
 
 }
