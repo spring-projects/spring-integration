@@ -102,7 +102,6 @@ subprojects { subproject ->
 		ftpServerVersion = '1.1.1'
 		googleJsr305Version = '3.0.2'
 		groovyVersion = '2.5.6'
-		guavaVersion = '26.0-jre'
 		hamcrestVersion = '2.1'
 		hazelcastVersion = '3.11.1'
 		hibernateVersion = '5.4.1.Final'
@@ -491,7 +490,6 @@ project('spring-integration-jdbc') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-jdbc:$springVersion"
-		compile ("com.google.guava:guava:$guavaVersion", optional)
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
