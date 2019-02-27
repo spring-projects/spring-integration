@@ -17,6 +17,7 @@
 package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -102,7 +103,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	private List<Message<?>> collector;
 
 	@Autowired(required = false)
-	@Qualifier("messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.skippedMessageHandler.serviceActivator")
+	@Qualifier("messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.skippedMessageHandler" +
+			".serviceActivator")
 	private EventDrivenConsumer skippedServiceActivator;
 
 	@Autowired(required = false)
@@ -217,15 +219,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 	@Test
 	public void testInvalidMessagingAnnotationsConfig() {
-		try {
-			new AnnotationConfigApplicationContext(InvalidContextConfiguration.class).close();
-			fail("BeanCreationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanCreationException.class);
-			assertThat(e.getCause()).isInstanceOf(BeanDefinitionValidationException.class);
-			assertThat(e.getMessage()).contains("The attribute causing the ambiguity is: [applySequence].");
-		}
+		assertThatExceptionOfType(BeanDefinitionValidationException.class)
+				.isThrownBy(() -> new AnnotationConfigApplicationContext(InvalidContextConfiguration.class))
+				.withMessageContaining("The attribute causing the ambiguity is: [applySequence].");
 	}
 
 	@Configuration

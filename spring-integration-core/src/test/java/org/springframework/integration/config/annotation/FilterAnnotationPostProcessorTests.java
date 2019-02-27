@@ -17,6 +17,7 @@
 package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,10 +56,11 @@ public class FilterAnnotationPostProcessorTests {
 
 	@Before
 	public void init() {
-		context.registerChannel("input", inputChannel);
-		context.registerChannel("output", outputChannel);
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
+		this.context.registerChannel("input", this.inputChannel);
+		this.context.registerChannel("output", this.outputChannel);
+		this.postProcessor.setBeanFactory(this.context.getBeanFactory());
+		this.postProcessor.afterPropertiesSet();
+		this.postProcessor.afterSingletonsInstantiated();
 	}
 
 	@After
@@ -169,16 +171,18 @@ public class FilterAnnotationPostProcessorTests {
 		testValidFilter(new TestFilterWithBooleanWrapperClass());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void invalidMethodWithStringReturnType() {
 		Object filter = new TestFilterWithStringReturnType();
-		postProcessor.postProcessAfterInitialization(filter, "testFilter");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> this.postProcessor.postProcessAfterInitialization(filter, "testFilter"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void invalidMethodWithVoidReturnType() {
 		Object filter = new TestFilterWithVoidReturnType();
-		postProcessor.postProcessAfterInitialization(filter, "testFilter");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> postProcessor.postProcessAfterInitialization(filter, "testFilter"));
 	}
 
 

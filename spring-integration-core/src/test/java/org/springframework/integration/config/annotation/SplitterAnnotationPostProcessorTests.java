@@ -62,6 +62,7 @@ public class SplitterAnnotationPostProcessorTests {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
+		postProcessor.afterSingletonsInstantiated();
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");
 		context.refresh();
