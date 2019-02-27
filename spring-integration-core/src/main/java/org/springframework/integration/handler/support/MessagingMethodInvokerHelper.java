@@ -646,7 +646,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				throw ex;
 			}
 		}
-		else if (ex instanceof IllegalStateException &&
+		else if (ex instanceof IllegalStateException && // NOSONAR complex boolean expression
 				(!(ex.getCause() instanceof IllegalArgumentException) ||
 				!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
 				(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
@@ -656,6 +656,10 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			throw ex;
 		}
 
+		return fallbackToInvokeExpression(handlerMethod, parameters);
+	}
+
+	private Object fallbackToInvokeExpression(HandlerMethod handlerMethod, ParametersWrapper parameters) {
 		Expression expression = handlerMethod.expression;
 
 		if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
