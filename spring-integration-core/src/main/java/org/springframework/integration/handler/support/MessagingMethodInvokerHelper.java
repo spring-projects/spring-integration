@@ -309,13 +309,13 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	@Nullable
-	public Object process(Message<?> message) throws Exception {
+	public Object process(Message<?> message) {
 		ParametersWrapper parameters = new ParametersWrapper(message);
 		return processInternal(parameters);
 	}
 
 	@Nullable
-	public Object process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
+	public Object process(Collection<Message<?>> messages, Map<String, Object> headers) {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
 	}
@@ -475,7 +475,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	@Nullable
-	private Object processInternal(ParametersWrapper parameters) throws Exception {
+	private Object processInternal(ParametersWrapper parameters) {
 		if (!this.initialized) {
 			initialize();
 		}
@@ -626,64 +626,79 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				.setCustomArgumentResolvers(customArgumentResolvers);
 	}
 
-	private Object invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) throws Exception {
+	private Object invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) {
 		try {
 			return handlerMethod.invoke(parameters);
 		}
-		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException e) {
-			if (e instanceof MessageConversionException) {
-				if (e.getCause() instanceof ConversionFailedException &&
-						!(e.getCause().getCause() instanceof ConverterNotFoundException)) {
-					throw e;
-				}
-			}
-			else if (e instanceof IllegalStateException) {
-				if (!(e.getCause() instanceof IllegalArgumentException) ||
-						!e.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
-						(!"argument type mismatch".equals(e.getCause().getMessage()) &&
-								// JVM generates GeneratedMethodAccessor### after several calls with less error
-								// checking
-								!e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
-					throw e;
-				}
-			}
-
-			Expression expression = handlerMethod.expression;
-
-			if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
-				handlerMethod.spelOnly = true;
-				if (LOGGER.isInfoEnabled()) {
-					LOGGER.info("Failed to invoke [ " + handlerMethod.invocableHandlerMethod +
-							"] with provided arguments [ " + parameters + " ]. \n" +
-							"Falling back to SpEL invocation for expression [ " +
-							expression.getExpressionString() + " ]");
-				}
-			}
-
-			return invokeExpression(expression, parameters);
+		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException ex) {
+			return processInvokeExceptionAndFallbackToExpressionIfAny(handlerMethod, parameters, ex);
+		}
+		catch (RuntimeException ex) {
+			throw ex;
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException("HandlerMethod invocation error", ex);
 		}
 	}
 
-	private Object invokeExpression(Expression expression, ParametersWrapper parameters) throws Exception {
+	private Object processInvokeExceptionAndFallbackToExpressionIfAny(HandlerMethod handlerMethod,
+			ParametersWrapper parameters, RuntimeException ex) {
+
+		if (ex instanceof MessageConversionException) {
+			if (ex.getCause() instanceof ConversionFailedException &&
+					!(ex.getCause().getCause() instanceof ConverterNotFoundException)) {
+				throw ex;
+			}
+		}
+		else if (ex instanceof IllegalStateException) {
+			if (!(ex.getCause() instanceof IllegalArgumentException) ||
+					!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
+					(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
+							// JVM generates GeneratedMethodAccessor### after several calls with less error
+							// checking
+							!ex.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
+				throw ex;
+			}
+		}
+
+		Expression expression = handlerMethod.expression;
+
+		if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
+			handlerMethod.spelOnly = true;
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Failed to invoke [ " + handlerMethod.invocableHandlerMethod +
+						"] with provided arguments [ " + parameters + " ]. \n" +
+						"Falling back to SpEL invocation for expression [ " +
+						expression.getExpressionString() + " ]");
+			}
+		}
+
+		return invokeExpression(expression, parameters);
+	}
+
+	private Object invokeExpression(Expression expression, ParametersWrapper parameters) {
 		try {
 
 			convertJsonPayloadIfNecessary(parameters);
 			return evaluateExpression(expression, parameters);
 		}
 		catch (Exception ex) {
-			Throwable evaluationException = ex;
-			if ((ex instanceof EvaluationException || ex instanceof MessageHandlingException)
-					&& ex.getCause() != null) {
-				evaluationException = ex.getCause();
-			}
-			if (evaluationException instanceof Exception) {
-				throw (Exception) evaluationException;
-			}
-			else {
-				throw new IllegalStateException("Cannot process message", evaluationException);
-			}
+			throw processEvaluationException(ex);
 		}
 	}
+
+	private RuntimeException processEvaluationException(Exception ex) {
+		Throwable evaluationException = ex;
+		if ((ex instanceof EvaluationException || ex instanceof MessageHandlingException)
+				&& ex.getCause() != null) {
+			evaluationException = ex.getCause();
+		}
+		if (evaluationException instanceof RuntimeException) {
+			return (RuntimeException) evaluationException;
+		}
+		return new IllegalStateException("Cannot process message", evaluationException);
+	}
+
 
 	/*
 	 * If there's a single method, it is SpEL only, the content is JSON,
@@ -1127,12 +1142,20 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 
 
-		public Object invoke(ParametersWrapper parameters) throws Exception {
+		public Object invoke(ParametersWrapper parameters) {
 			Message<?> message = parameters.getMessage();
 			if (this.canProcessMessageList) {
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
-			return this.invocableHandlerMethod.invoke(message);
+			try {
+				return this.invocableHandlerMethod.invoke(message);
+			}
+			catch (RuntimeException ex) {
+				throw ex;
+			}
+			catch (Exception ex) {
+				throw new IllegalStateException("InvocableHandlerMethod invoke error", ex);
+			}
 		}
 
 		Class<?> getTargetParameterType() {

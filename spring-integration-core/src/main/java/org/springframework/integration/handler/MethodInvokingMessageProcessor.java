@@ -107,10 +107,10 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		try {
 			return (T) this.delegate.process(message);
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
 					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this +
-							"]", e);
+							"]", ex);
 		}
 	}
 

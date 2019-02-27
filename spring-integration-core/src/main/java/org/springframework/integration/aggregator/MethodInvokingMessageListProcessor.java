@@ -87,15 +87,7 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 
 	@SuppressWarnings("unchecked")
 	public T process(Collection<Message<?>> messages, Map<String, Object> aggregateHeaders) {
-		try {
-			return (T) this.delegate.process(messages, aggregateHeaders);
-		}
-		catch (RuntimeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Failed to process message list", e);
-		}
+		return (T) this.delegate.process(messages, aggregateHeaders);
 	}
 
 	@Override

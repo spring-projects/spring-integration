@@ -446,7 +446,7 @@ public class MethodInvokingMessageProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.withCauseInstanceOf(CheckedException.class);
+				.withRootCauseInstanceOf(CheckedException.class);
 	}
 
 	@Test
@@ -896,8 +896,7 @@ public class MethodInvokingMessageProcessorTests {
 			processor.processMessage(new GenericMessage<>("foo"));
 		}
 		catch (Exception e) {
-			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
 			assertThat(e.getCause().getStackTrace()[0].getClassName()).isEqualTo(A.class.getName());
 		}
 

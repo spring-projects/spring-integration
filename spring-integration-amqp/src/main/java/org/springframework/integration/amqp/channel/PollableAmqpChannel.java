@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -181,7 +182,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	protected Message<?> doReceive(Long timeout) {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
-		boolean counted = false;
+		AtomicBoolean counted = new AtomicBoolean();
 		boolean countsEnabled = isCountsEnabled();
 		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
@@ -195,39 +196,17 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				}
 			}
 			Object object = performReceive(timeout);
-			Message<?> message = null;
-			if (object == null) {
-				if (traceEnabled) {
-					logger.trace("postReceive on channel '" + this + "', message is null");
-				}
-			}
-			else {
-				if (countsEnabled) {
-					incrementReceiveCounter();
-					getMetrics().afterReceive();
-					counted = true;
-				}
-				if (object instanceof Message<?>) {
-					message = (Message<?>) object;
-				}
-				else {
-					message = getMessageBuilderFactory()
-							.withPayload(object)
-							.build();
-				}
-				if (traceEnabled) {
-					logger.debug("postReceive on channel '" + this + "', message: " + message);
-				}
-			}
+			Message<?> message = buildMessageFromResult(object, traceEnabled, countsEnabled ? counted : null);
 
-			if (interceptorStack != null && message != null) {
+
+			if (message != null) {
 				message = interceptorList.postReceive(message, this);
 			}
 			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
 		catch (RuntimeException ex) {
-			if (countsEnabled && !counted) {
+			if (countsEnabled && !counted.get()) {
 				incrementReceiveErrorCounter(ex);
 			}
 			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
@@ -273,6 +252,34 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				return null;
 			}
 		}
+	}
+
+	private Message<?> buildMessageFromResult(@Nullable Object object, boolean traceEnabled,
+			@Nullable AtomicBoolean counted) {
+
+		Message<?> message = null;
+		if (object != null) {
+			if (counted != null) {
+				incrementReceiveCounter();
+				getMetrics().afterReceive();
+				counted.set(true);
+			}
+			if (object instanceof Message<?>) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory()
+						.withPayload(object)
+						.build();
+			}
+		}
+
+		if (traceEnabled) {
+			logger.trace("postReceive on channel '" + this
+					+ "', message" + (message != null ? ": " + message : " is null"));
+		}
+
+		return message;
 	}
 
 	private void incrementReceiveCounter() {
