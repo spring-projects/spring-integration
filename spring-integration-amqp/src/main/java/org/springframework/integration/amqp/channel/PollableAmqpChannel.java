@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -31,6 +32,7 @@ import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -176,80 +178,43 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		return doReceive(timeout);
 	}
 
-
+	@Nullable
 	protected Message<?> doReceive(Long timeout) {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
 		Deque<ChannelInterceptor> interceptorStack = null;
-		boolean counted = false;
+		AtomicBoolean counted = new AtomicBoolean();
 		boolean countsEnabled = isCountsEnabled();
+		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
-			if (isLoggingEnabled() && logger.isTraceEnabled()) {
+			if (traceEnabled) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
 				interceptorStack = new ArrayDeque<>();
-
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;
 				}
 			}
 			Object object = performReceive(timeout);
-			Message<?> message = null;
-			if (object == null) {
-				if (isLoggingEnabled() && logger.isTraceEnabled()) {
-					logger.trace("postReceive on channel '" + this + "', message is null");
-				}
-			}
-			else {
-				if (countsEnabled) {
-					if (getMetricsCaptor() != null) {
-						incrementReceiveCounter();
-					}
-					getMetrics().afterReceive();
-					counted = true;
-				}
-				if (object instanceof Message<?>) {
-					message = (Message<?>) object;
-				}
-				else {
-					message = getMessageBuilderFactory()
-							.withPayload(object)
-							.build();
-				}
-				if (isLoggingEnabled() && logger.isDebugEnabled()) {
-					logger.debug("postReceive on channel '" + this + "', message: " + message);
-				}
-			}
+			Message<?> message = buildMessageFromResult(object, traceEnabled, countsEnabled ? counted : null);
 
-			if (interceptorStack != null) {
-				if (message != null) {
-					message = interceptorList.postReceive(message, this);
-				}
-				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+
+			if (message != null) {
+				message = interceptorList.postReceive(message, this);
 			}
+			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
-		catch (RuntimeException e) {
-			if (countsEnabled && !counted) {
-				if (getMetricsCaptor() != null) {
-					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("type", "channel")
-							.tag("result", "failure")
-							.tag("exception", e.getClass().getSimpleName())
-							.description("Messages received")
-							.build()
-							.increment();
-				}
-				getMetrics().afterError();
+		catch (RuntimeException ex) {
+			if (countsEnabled && !counted.get()) {
+				incrementReceiveErrorCounter(ex);
 			}
-			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
-			}
-			throw e;
+			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
+			throw ex;
 		}
 	}
 
+	@Nullable
 	protected Object performReceive(Long timeout) {
 		if (!this.declared) {
 			doDeclares();
@@ -289,17 +254,63 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		}
 	}
 
-	private void incrementReceiveCounter() {
-		if (this.receiveCounter == null) {
-			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-					.tag("name", getComponentName())
-					.tag("type", "channel")
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Messages received")
-					.build();
+	private Message<?> buildMessageFromResult(@Nullable Object object, boolean traceEnabled,
+			@Nullable AtomicBoolean counted) {
+
+		Message<?> message = null;
+		if (object != null) {
+			if (counted != null) {
+				incrementReceiveCounter();
+				getMetrics().afterReceive();
+				counted.set(true);
+			}
+			if (object instanceof Message<?>) {
+				message = (Message<?>) object;
+			}
+			else {
+				message = getMessageBuilderFactory()
+						.withPayload(object)
+						.build();
+			}
 		}
-		this.receiveCounter.increment();
+
+		if (traceEnabled) {
+			logger.trace("postReceive on channel '" + this
+					+ "', message" + (message != null ? ": " + message : " is null"));
+		}
+
+		return message;
+	}
+
+	private void incrementReceiveCounter() {
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			if (this.receiveCounter == null) {
+				this.receiveCounter = buildReceiveCounter(metricsCaptor, null);
+			}
+			this.receiveCounter.increment();
+		}
+	}
+
+	private void incrementReceiveErrorCounter(Exception ex) {
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			buildReceiveCounter(metricsCaptor, ex).increment();
+		}
+		getMetrics().afterError();
+	}
+
+	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {
+		CounterFacade counterFacade = metricsCaptor
+				.counterBuilder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "channel")
+				.tag("result", ex == null ? "success" : "failure")
+				.tag("exception", ex == null ? "none" : ex.getClass().getSimpleName())
+				.description("Messages received")
+				.build();
+		this.meters.add(counterFacade);
+		return counterFacade;
 	}
 
 
@@ -339,6 +350,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
+	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {
@@ -353,7 +365,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		super.destroy();
 		if (this.receiveCounter != null) {
 			this.receiveCounter.remove();

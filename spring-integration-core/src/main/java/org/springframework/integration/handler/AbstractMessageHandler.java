@@ -338,7 +338,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		this.timers.forEach(MeterFacade::remove);
 	}
 

@@ -27,7 +27,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.channel.QueueChannel;
@@ -69,8 +68,8 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@Test
 	public void testDefaultConfig() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml",
-				this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml", getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
 				SourcePollingChannelAdapter.class);
 		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",
@@ -81,17 +80,18 @@ public class ResourceInboundChannelAdapterParserTests {
 
 		assertThat(TestUtils.getPropertyValue(source, "pattern")).isEqualTo("/**/*");
 		assertThat(TestUtils.getPropertyValue(source, "patternResolver")).isEqualTo(context);
+		context.close();
 	}
 
 	@Test(expected = BeanCreationException.class)
 	public void testDefaultConfigNoLocationPattern() {
-		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", this.getClass()).close();
+		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", getClass()).close();
 	}
 
 	@Test
 	public void testCustomPatternResolver() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"ResourcePatternResolver-config-custom.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
 				SourcePollingChannelAdapter.class);
 		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",

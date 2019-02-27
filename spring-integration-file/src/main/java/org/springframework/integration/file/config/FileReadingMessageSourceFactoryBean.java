@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 import java.util.Comparator;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -114,10 +115,7 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		return this.source;
 	}
 
-	private void initSource() { // NOSONAR
-		if (this.source != null) {
-			return;
-		}
+	private void initSource() {
 		boolean comparatorSet = this.comparator != null;
 		boolean queueSizeSet = this.queueSize != null;
 		if (comparatorSet) {
@@ -142,6 +140,21 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 				this.source.setWatchEvents(this.watchEvents);
 			}
 		}
+		configureFilterAndLockerOnSourceIfAny();
+		if (this.scanEachPoll != null) {
+			this.source.setScanEachPoll(this.scanEachPoll);
+		}
+		if (this.autoCreateDirectory != null) {
+			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+		}
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.source.setBeanFactory(beanFactory);
+		}
+		this.source.afterPropertiesSet();
+	}
+
+	private void configureFilterAndLockerOnSourceIfAny() {
 		if (this.filter != null) {
 			if (this.locker == null) {
 				this.source.setFilter(this.filter);
@@ -156,28 +169,10 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 		}
 		else if (this.locker != null) {
 			CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<>();
-			try {
-				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
+			compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
 			compositeFileListFilter.addFilter(this.locker);
 			this.source.setFilter(compositeFileListFilter);
 			this.source.setLocker(this.locker);
-		}
-		if (this.scanEachPoll != null) {
-			this.source.setScanEachPoll(this.scanEachPoll);
-		}
-		if (this.autoCreateDirectory != null) {
-			this.source.setAutoCreateDirectory(this.autoCreateDirectory);
-		}
-		this.source.setBeanFactory(getBeanFactory());
-		try {
-			this.source.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
 		}
 	}
 

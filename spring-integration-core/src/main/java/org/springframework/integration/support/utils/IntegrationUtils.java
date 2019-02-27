@@ -184,9 +184,11 @@ public final class IntegrationUtils {
 		RuntimeException runtimeException = (ex instanceof RuntimeException)
 				? (RuntimeException) ex
 				: new MessageHandlingException(message, text.get(), ex);
+
 		if (!(ex instanceof MessagingException) ||
 				((MessagingException) ex).getFailedMessage() == null) {
-			runtimeException = new MessageHandlingException(message, text.get(), ex);
+			runtimeException = new MessageHandlingException(message, text.get(),
+					(ex instanceof IllegalStateException && ex.getCause() != null) ? ex.getCause() : ex);
 		}
 		return runtimeException;
 	}

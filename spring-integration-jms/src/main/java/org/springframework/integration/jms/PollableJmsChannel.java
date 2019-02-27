@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -121,9 +122,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 			}
 			else {
 				if (countsEnabled) {
-					if (getMetricsCaptor() != null) {
-						incrementReceiveCounter();
-					}
+					incrementReceiveCounter();
 					getMetrics().afterReceive();
 					counted = true;
 				}
@@ -139,46 +138,50 @@ public class PollableJmsChannel extends AbstractJmsChannel
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 			}
-			if (interceptorStack != null) {
-				if (message != null) {
-					message = interceptorList.postReceive(message, this);
-				}
-				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
+			if (interceptorStack != null && message != null) {
+				message = interceptorList.postReceive(message, this);
 			}
+			interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			return message;
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException ex) {
 			if (countsEnabled && !counted) {
-				if (getMetricsCaptor() != null) {
-					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("type", "channel")
-							.tag("result", "failure")
-							.tag("exception", e.getClass().getSimpleName())
-							.description("Messages received")
-							.build()
-							.increment();
-				}
-				getMetrics().afterError();
+				incrementReceiveErrorCounter(ex);
 			}
-			if (interceptorStack != null) {
-				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
-			}
-			throw e;
+			interceptorList.afterReceiveCompletion(null, this, ex, interceptorStack);
+			throw ex;
 		}
 	}
 
 	private void incrementReceiveCounter() {
-		if (this.receiveCounter == null) {
-			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-					.tag("name", getComponentName())
-					.tag("type", "channel")
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Messages received")
-					.build();
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			if (this.receiveCounter == null) {
+				this.receiveCounter = buildReceiveCounter(metricsCaptor, null);
+			}
+			this.receiveCounter.increment();
 		}
-		this.receiveCounter.increment();
+	}
+
+	private void incrementReceiveErrorCounter(Exception ex) {
+		MetricsCaptor metricsCaptor = getMetricsCaptor();
+		if (metricsCaptor != null) {
+			buildReceiveCounter(metricsCaptor, ex).increment();
+		}
+		getMetrics().afterError();
+	}
+
+	private CounterFacade buildReceiveCounter(MetricsCaptor metricsCaptor, @Nullable Exception ex) {
+		CounterFacade counterFacade = metricsCaptor
+				.counterBuilder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "channel")
+				.tag("result", ex == null ? "success" : "failure")
+				.tag("exception", ex == null ? "none" : ex.getClass().getSimpleName())
+				.description("Messages received")
+				.build();
+		this.meters.add(counterFacade);
+		return counterFacade;
 	}
 
 	@Override
@@ -217,6 +220,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
+	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
 		if (interceptor instanceof ExecutorChannelInterceptor) {

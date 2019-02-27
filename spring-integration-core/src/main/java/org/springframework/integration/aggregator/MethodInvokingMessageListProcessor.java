@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,32 +34,33 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator
 		implements Lifecycle {
 
-	private final MessagingMethodInvokerHelper<T> delegate;
+	private final MessagingMethodInvokerHelper delegate;
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Method method, Class<T> expectedType) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, expectedType, true);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, method, expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Method method) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, true);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, method, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, String methodName, Class<T> expectedType) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName,
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName,
 				expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, String methodName) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, true);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, methodName, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, Object.class, true);
+		this.delegate = new MessagingMethodInvokerHelper(targetObject, annotationType, Object.class, true);
 	}
 
 	@Override
@@ -84,16 +85,9 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 		return this.delegate.toString();
 	}
 
+	@SuppressWarnings("unchecked")
 	public T process(Collection<Message<?>> messages, Map<String, Object> aggregateHeaders) {
-		try {
-			return this.delegate.process(messages, aggregateHeaders);
-		}
-		catch (RuntimeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Failed to process message list", e);
-		}
+		return (T) this.delegate.process(messages, aggregateHeaders);
 	}
 
 	@Override

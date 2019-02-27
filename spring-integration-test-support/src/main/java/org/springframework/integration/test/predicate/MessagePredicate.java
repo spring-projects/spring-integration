@@ -68,9 +68,9 @@ public class MessagePredicate implements Predicate<Message<?>> {
 	}
 
 	private Map<String, Object> getHeaders(Message<?> operand) {
-		HashMap<String, Object> headers = new HashMap<>(operand.getHeaders());
-		this.ignoredHeaders.forEach(headers::remove);
-		return headers;
+		HashMap<String, Object> headersToFilter = new HashMap<>(operand.getHeaders());
+		this.ignoredHeaders.forEach(headersToFilter::remove);
+		return headersToFilter;
 	}
 
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -71,7 +72,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
 
-	protected final ChannelInterceptorList interceptors;
+	protected final ChannelInterceptorList interceptors; // NOSONAR
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
@@ -120,6 +121,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.metricsCaptor = metricsCaptor;
 	}
 
+	@Nullable
 	protected MetricsCaptor getMetricsCaptor() {
 		return this.metricsCaptor;
 	}
@@ -356,19 +358,20 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected void onInit() {
 		super.onInit();
 		if (this.messageConverter == null) {
-			if (getBeanFactory() != null) {
-				if (getBeanFactory().containsBean(
-						IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
-					this.messageConverter = this.getBeanFactory().getBean(
-							IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
-							MessageConverter.class);
-				}
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory != null &&
+					beanFactory.containsBean(
+							IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
+
+				this.messageConverter =
+						beanFactory.getBean(
+								IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
+								MessageConverter.class);
 			}
 		}
 		if (this.statsEnabled) {
 			this.channelMetrics.setFullStatsEnabled(true);
 		}
-
 		this.fullChannelName = null;
 	}
 
@@ -420,7 +423,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Assert.notNull(messageArg.getPayload(), "message payload must not be null");
 		Message<?> message = messageArg;
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
+			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
 
 		Deque<ChannelInterceptor> interceptorStack = null;
@@ -432,9 +435,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		AbstractMessageChannelMetrics metrics = this.channelMetrics;
 		SampleFacade sample = null;
 		try {
-			if (this.datatypes.length > 0) {
-				message = this.convertPayloadIfNecessary(message);
-			}
+			message = convertPayloadIfNecessary(message);
 			boolean debugEnabled = this.loggingEnabled && logger.isDebugEnabled();
 			if (debugEnabled) {
 				logger.debug("preSend on channel '" + this + "', message: " + message);
@@ -471,18 +472,18 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 			return sent;
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			if (countsAreEnabled && !metricsProcessed) {
 				if (sample != null) {
-					sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
+					sample.stop(buildSendTimer(false, ex.getClass().getSimpleName()));
 				}
 				metrics.afterSend(metricsContext, false);
 			}
 			if (interceptorStack != null) {
-				interceptorList.afterSendCompletion(message, this, sent, e, interceptorStack);
+				interceptorList.afterSendCompletion(message, this, sent, ex, interceptorStack);
 			}
 			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
-					() -> "failed to send Message to channel '" + this.getComponentName() + "'", e);
+					() -> "failed to send Message to channel '" + this.getComponentName() + "'", ex);
 		}
 	}
 
@@ -514,33 +515,38 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	private Message<?> convertPayloadIfNecessary(Message<?> message) {
-		// first pass checks if the payload type already matches any of the datatypes
-		for (Class<?> datatype : this.datatypes) {
-			if (datatype.isAssignableFrom(message.getPayload().getClass())) {
-				return message;
-			}
-		}
-		if (this.messageConverter != null) {
-			// second pass applies conversion if possible, attempting datatypes in order
+		if (this.datatypes.length > 0) {
+			// first pass checks if the payload type already matches any of the datatypes
 			for (Class<?> datatype : this.datatypes) {
-				Object converted = this.messageConverter.fromMessage(message, datatype);
-				if (converted != null) {
-					if (converted instanceof Message) {
-						return (Message<?>) converted;
-					}
-					else {
-						return getMessageBuilderFactory()
-								.withPayload(converted)
-								.copyHeaders(message.getHeaders())
-								.build();
+				if (datatype.isAssignableFrom(message.getPayload().getClass())) {
+					return message;
+				}
+			}
+			if (this.messageConverter != null) {
+				// second pass applies conversion if possible, attempting datatypes in order
+				for (Class<?> datatype : this.datatypes) {
+					Object converted = this.messageConverter.fromMessage(message, datatype);
+					if (converted != null) {
+						if (converted instanceof Message) {
+							return (Message<?>) converted;
+						}
+						else {
+							return getMessageBuilderFactory()
+									.withPayload(converted)
+									.copyHeaders(message.getHeaders())
+									.build();
+						}
 					}
 				}
 			}
+			throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
+					"' expected one of the following data types [" +
+					StringUtils.arrayToCommaDelimitedString(this.datatypes) +
+					"], but received [" + message.getPayload().getClass() + "]");
 		}
-		throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
-				"' expected one of the following datataypes [" +
-				StringUtils.arrayToCommaDelimitedString(this.datatypes) +
-				"], but received [" + message.getPayload().getClass() + "]");
+		else {
+			return message;
+		}
 	}
 
 	/**
@@ -556,7 +562,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected abstract boolean doSend(Message<?> message, long timeout);
 
 	@Override
-	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
+	public void destroy() {
 		this.meters.forEach(MeterFacade::remove);
 		this.meters.clear();
 	}
@@ -566,9 +572,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	protected static class ChannelInterceptorList {
 
-		private final Log logger;
+		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<>(); // NOSONAR
 
-		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
+		private final Log logger;
 
 		private int size;
 
@@ -671,15 +677,17 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		public void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel,
-				@Nullable Exception ex, Deque<ChannelInterceptor> interceptorStack) {
+				@Nullable Exception ex, @Nullable Deque<ChannelInterceptor> interceptorStack) {
 
-			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
-				ChannelInterceptor interceptor = iterator.next();
-				try {
-					interceptor.afterReceiveCompletion(message, channel, ex);
-				}
-				catch (Exception ex2) {
-					this.logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+			if (interceptorStack != null) {
+				for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
+					ChannelInterceptor interceptor = iterator.next();
+					try {
+						interceptor.afterReceiveCompletion(message, channel, ex);
+					}
+					catch (Exception ex2) {
+						this.logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+					}
 				}
 			}
 		}

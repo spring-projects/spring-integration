@@ -446,7 +446,7 @@ public class MethodInvokingMessageProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.withCauseInstanceOf(CheckedException.class);
+				.withRootCauseInstanceOf(CheckedException.class);
 	}
 
 	@Test
@@ -896,8 +896,7 @@ public class MethodInvokingMessageProcessorTests {
 			processor.processMessage(new GenericMessage<>("foo"));
 		}
 		catch (Exception e) {
-			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
+			assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
 			assertThat(e.getCause().getStackTrace()[0].getClassName()).isEqualTo(A.class.getName());
 		}
 
@@ -976,8 +975,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testUseSpelInvoker() throws Exception {
 		UseSpelInvokerBean bean = new UseSpelInvokerBean();
-		MessagingMethodInvokerHelper<?> helper =
-				new MessagingMethodInvokerHelper<>(bean,
+		MessagingMethodInvokerHelper helper =
+				new MessagingMethodInvokerHelper(bean,
 						UseSpelInvokerBean.class.getDeclaredMethod("foo", String.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>("Test");
@@ -985,28 +984,28 @@ public class MethodInvokingMessageProcessorTests {
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
 				.isEqualTo(SpelCompilerMode.OFF);
 
-		helper = new MessagingMethodInvokerHelper<>(bean,
+		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("bar", String.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
 				.isEqualTo(SpelCompilerMode.IMMEDIATE);
 
-		helper = new MessagingMethodInvokerHelper<>(bean,
+		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("baz", String.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
 				.isEqualTo(SpelCompilerMode.MIXED);
 
-		helper = new MessagingMethodInvokerHelper<>(bean,
+		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("qux", String.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
 				.isEqualTo(SpelCompilerMode.OFF);
 
-		helper = new MessagingMethodInvokerHelper<>(bean,
+		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("fiz", String.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		try {
@@ -1017,7 +1016,7 @@ public class MethodInvokingMessageProcessorTests {
 					.isEqualTo("No enum constant org.springframework.expression.spel.SpelCompilerMode.JUNK");
 		}
 
-		helper = new MessagingMethodInvokerHelper<>(bean,
+		helper = new MessagingMethodInvokerHelper(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("buz", String.class), false);
 		ConfigurableListableBeanFactory bf = mock(ConfigurableListableBeanFactory.class);
 		willAnswer(returnsFirstArg()).given(bf).resolveEmbeddedValue(anyString());
@@ -1031,13 +1030,13 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		// Check other CTORs
-		helper = new MessagingMethodInvokerHelper<>(bean, "bar", false);
+		helper = new MessagingMethodInvokerHelper(bean, "bar", false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
 				.isEqualTo(SpelCompilerMode.IMMEDIATE);
 
-		helper = new MessagingMethodInvokerHelper<>(bean, ServiceActivator.class, false);
+		helper = new MessagingMethodInvokerHelper(bean, ServiceActivator.class, false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		helper.process(message);
 		assertThat(TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"))
@@ -1047,8 +1046,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testSingleMethodJson() throws Exception {
 		SingleMethodJsonWithSpELBean bean = new SingleMethodJsonWithSpELBean();
-		MessagingMethodInvokerHelper<?> helper =
-				new MessagingMethodInvokerHelper<>(bean,
+		MessagingMethodInvokerHelper helper =
+				new MessagingMethodInvokerHelper(bean,
 						SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo",
 								SingleMethodJsonWithSpELBean.Foo.class),
 						false);
@@ -1063,7 +1062,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testSingleMethodBadJson() throws Exception {
 		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
-		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(bean,
 				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = new GenericMessage<>("baz",
@@ -1075,7 +1074,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testSingleMethodJsonMessageFoo() throws Exception {
 		SingleMethodJsonWithSpELMessageFooBean bean = new SingleMethodJsonWithSpELMessageFooBean();
-		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(bean,
 				SingleMethodJsonWithSpELMessageFooBean.class.getDeclaredMethod("foo", Message.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 
@@ -1088,7 +1087,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testSingleMethodJsonMessageWild() throws Exception {
 		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
-		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(bean,
 				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
 		helper.setBeanFactory(mock(BeanFactory.class));
 

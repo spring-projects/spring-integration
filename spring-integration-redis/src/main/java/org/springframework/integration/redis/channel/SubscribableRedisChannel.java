@@ -197,8 +197,13 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 	}
 
 	@Override
-	public void destroy() throws Exception {
-		this.container.destroy();
+	public void destroy() {
+		try {
+			this.container.destroy();
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException("Cannot destroy " + this.container, ex);
+		}
 	}
 
 	private class MessageListenerDelegate {
@@ -217,11 +222,11 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 				String exceptionMessage = e.getMessage();
 				throw new MessageDeliveryException(siMessage,
 						(exceptionMessage == null ? e.getClass().getSimpleName() : exceptionMessage)
-						+ " for redis-channel '"
-						+ (StringUtils.hasText(SubscribableRedisChannel.this.topicName)
+								+ " for redis-channel '"
+								+ (StringUtils.hasText(SubscribableRedisChannel.this.topicName)
 								? SubscribableRedisChannel.this.topicName
 								: "unknown")
-						+ "' (" + getFullChannelName() + ").", e); // NOSONAR false positive - never null
+								+ "' (" + getFullChannelName() + ").", e); // NOSONAR false positive - never null
 			}
 		}
 

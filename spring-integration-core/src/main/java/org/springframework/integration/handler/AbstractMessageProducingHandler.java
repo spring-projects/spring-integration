@@ -33,6 +33,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -64,7 +65,7 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
 
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
 
 	private boolean async;
 
@@ -209,8 +210,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	@Nullable
 	public MessageChannel getOutputChannel() {
-		if (this.outputChannelName != null) {
-			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+		String channelName = this.outputChannelName;
+		if (channelName != null) {
+			this.outputChannel = getChannelResolver().resolveDestination(channelName);
 			this.outputChannelName = null;
 		}
 		return this.outputChannel;
@@ -272,12 +274,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			Object replyChannel) {
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
+			MessageChannel messageChannel = getOutputChannel();
 			if (reply instanceof ListenableFuture<?> ||
-					!(getOutputChannel() instanceof ReactiveStreamsSubscribableChannel)) {
-				asyncNonReactiveReply(requestMessage, requestHeaders, reply, replyChannel);
+					!(messageChannel instanceof ReactiveStreamsSubscribableChannel)) {
+				asyncNonReactiveReply(requestMessage, reply, replyChannel);
 			}
 			else {
-				((ReactiveStreamsSubscribableChannel) getOutputChannel())
+				((ReactiveStreamsSubscribableChannel) messageChannel)
 						.subscribeTo(
 								Flux.from((Publisher<?>) reply)
 										.map(result -> createOutputMessage(result, requestHeaders)));
@@ -307,8 +310,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return builder;
 	}
 
-	private void asyncNonReactiveReply(final Message<?> requestMessage, final MessageHeaders requestHeaders,
-			Object reply, Object replyChannel) {
+	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, Object replyChannel) {
+
 		ListenableFuture<?> future;
 		if (reply instanceof ListenableFuture<?>) {
 			future = (ListenableFuture<?>) reply;
@@ -322,35 +325,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			future = settableListenableFuture;
 		}
 
-		Object theReplyChannel = replyChannel;
-		future.addCallback(new ListenableFutureCallback<Object>() {
-
-			@Override
-			public void onSuccess(Object result) {
-				Message<?> replyMessage = null;
-				try {
-					replyMessage = createOutputMessage(result, requestHeaders);
-					sendOutput(replyMessage, theReplyChannel, false);
-				}
-				catch (Exception e) {
-					Exception exceptionToLogAndSend = e;
-					if (!(e instanceof MessagingException)) {
-						exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
-						if (replyMessage != null) {
-							exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
-						}
-					}
-					logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
-					onFailure(exceptionToLogAndSend);
-				}
-			}
-
-			@Override
-			public void onFailure(Throwable ex) {
-				sendErrorMessage(requestMessage, ex);
-			}
-
-		});
+		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
@@ -458,7 +433,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return true;
 	}
 
-	protected void sendErrorMessage(final Message<?> requestMessage, Throwable ex) {
+	protected void sendErrorMessage(Message<?> requestMessage, Throwable ex) {
 		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
 		Throwable result = ex;
 		if (!(ex instanceof MessagingException)) {
@@ -473,10 +448,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				sendOutput(new ErrorMessage(result), errorChannel, true);
 			}
 			catch (Exception e) {
-				Exception exceptionToLog = e;
-				if (!(e instanceof MessagingException)) {
-					exceptionToLog = new MessageHandlingException(requestMessage, e);
-				}
+				Exception exceptionToLog =
+						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage, () -> null,  e);
 				logger.error("Failed to send async reply", exceptionToLog);
 			}
 		}
@@ -493,6 +466,45 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 		return errorChannel;
+	}
+
+	private final class ReplyFutureCallback implements ListenableFutureCallback<Object> {
+
+		private final Message<?> requestMessage;
+
+		private final Object replyChannel;
+
+		ReplyFutureCallback(Message<?> requestMessage, Object replyChannel) {
+			this.requestMessage = requestMessage;
+			this.replyChannel = replyChannel;
+		}
+
+
+		@Override
+		public void onSuccess(Object result) {
+			Message<?> replyMessage = null;
+			try {
+				replyMessage = createOutputMessage(result, this.requestMessage.getHeaders());
+				sendOutput(replyMessage, this.replyChannel, false);
+			}
+			catch (Exception ex) {
+				Exception exceptionToLogAndSend = ex;
+				if (!(ex instanceof MessagingException)) { // NOSONAR
+					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, ex);
+					if (replyMessage != null) {
+						exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
+					}
+				}
+				logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+				onFailure(exceptionToLogAndSend);
+			}
+		}
+
+		@Override
+		public void onFailure(Throwable ex) {
+			sendErrorMessage(this.requestMessage, ex);
+		}
+
 	}
 
 }

@@ -47,7 +47,7 @@ import org.springframework.messaging.Message;
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, InitializingBean {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR final
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -131,7 +131,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		catch (Exception ex) {
 			this.logger.debug("SpEL Expression evaluation failed with Exception.", ex);
 			Throwable cause = null;
-			if (ex instanceof EvaluationException) {
+			if (ex instanceof EvaluationException) { // NOSONAR
 				cause = ex.getCause();
 			}
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,

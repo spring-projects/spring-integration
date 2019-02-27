@@ -63,6 +63,8 @@ import org.springframework.util.StringUtils;
 public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
+	private static final int DEFAULT_ACK_TIMEOUT = 5000;
+
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
 	private final Expression destinationExpression;
@@ -80,12 +82,11 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile int ackPort;
 
-	private volatile int ackTimeout = 5000;
+	private volatile int ackTimeout = DEFAULT_ACK_TIMEOUT;
 
 	private volatile int ackCounter = 1;
 
-	private volatile Map<String, CountDownLatch> ackControl =
-			Collections.synchronizedMap(new HashMap<String, CountDownLatch>());
+	private volatile Map<String, CountDownLatch> ackControl = Collections.synchronizedMap(new HashMap<>());
 
 	private volatile int soReceiveBufferSize = -1;
 
@@ -283,7 +284,7 @@ public class UnicastSendingMessageHandler extends
 			}
 		}
 		catch (Exception ex) {
-			if (!(ex instanceof MessagingException)) {
+			if (!(ex instanceof MessagingException)) { // NOSONAR
 				closeSocketIfNeeded();
 			}
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,

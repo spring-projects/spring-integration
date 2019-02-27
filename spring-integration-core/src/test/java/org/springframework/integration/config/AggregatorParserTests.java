@@ -237,14 +237,13 @@ public class AggregatorParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testAggregatorWithPojoReleaseStrategy() {
 		MessageChannel input = this.context.getBean("aggregatorWithPojoReleaseStrategyInput", MessageChannel.class);
 		EventDrivenConsumer endpoint = this.context.getBean("aggregatorWithPojoReleaseStrategy", EventDrivenConsumer.class);
 		ReleaseStrategy releaseStrategy =
 				TestUtils.getPropertyValue(endpoint, "handler.releaseStrategy", ReleaseStrategy.class);
 		assertThat(releaseStrategy instanceof MethodInvokingReleaseStrategy).isTrue();
-		MessagingMethodInvokerHelper<Long> methodInvokerHelper =
+		MessagingMethodInvokerHelper methodInvokerHelper =
 				TestUtils.getPropertyValue(releaseStrategy, "adapter.delegate", MessagingMethodInvokerHelper.class);
 		Object handlerMethods = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethods");
 		assertThat(handlerMethods).isNull();
