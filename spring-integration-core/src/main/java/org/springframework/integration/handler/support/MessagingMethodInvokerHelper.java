@@ -153,12 +153,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private static final TypeDescriptor MESSAGE_TYPE_DESCRIPTOR = TypeDescriptor.valueOf(Message.class);
 
-	@SuppressWarnings("unused")
-	private static final Collection<Message<?>> DUMMY_MESSAGES = Collections.emptyList();
-
 	private static final TypeDescriptor MESSAGE_LIST_TYPE_DESCRIPTOR =
-			new TypeDescriptor(ReflectionUtils.findField(MessagingMethodInvokerHelper.class, // NOSONAR never null
-					"DUMMY_MESSAGES"));
+			TypeDescriptor.collection(Collection.class, TypeDescriptor.valueOf(Message.class));
 
 	private static final TypeDescriptor MESSAGE_ARRAY_TYPE_DESCRIPTOR = TypeDescriptor.valueOf(Message[].class);
 
@@ -633,7 +629,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException ex) {
 			return processInvokeExceptionAndFallbackToExpressionIfAny(handlerMethod, parameters, ex);
 		}
-		catch (RuntimeException ex) {
+		catch (RuntimeException ex) { // NOSONAR no way to handle conditional catch according Sonar rules
 			throw ex;
 		}
 		catch (Exception ex) {
@@ -650,15 +646,14 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				throw ex;
 			}
 		}
-		else if (ex instanceof IllegalStateException) {
-			if (!(ex.getCause() instanceof IllegalArgumentException) ||
-					!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
-					(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
-							// JVM generates GeneratedMethodAccessor### after several calls with less error
-							// checking
-							!ex.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
-				throw ex;
-			}
+		else if (ex instanceof IllegalStateException &&
+				(!(ex.getCause() instanceof IllegalArgumentException) ||
+				!ex.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
+				(!"argument type mismatch".equals(ex.getCause().getMessage()) &&
+						// JVM generates GeneratedMethodAccessor### after several calls with less error
+						// checking
+						!ex.getCause().getMessage().startsWith("java.lang.ClassCastException@")))) {
+			throw ex;
 		}
 
 		Expression expression = handlerMethod.expression;
@@ -1150,7 +1145,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			try {
 				return this.invocableHandlerMethod.invoke(message);
 			}
-			catch (RuntimeException ex) {
+			catch (RuntimeException ex) { // NOSONAR no way to handle conditional catch according Sonar rules
 				throw ex;
 			}
 			catch (Exception ex) {
