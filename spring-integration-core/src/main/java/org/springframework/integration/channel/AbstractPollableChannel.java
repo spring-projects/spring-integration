@@ -40,7 +40,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
 public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
-	private volatile int executorInterceptorsSize;
+	private int executorInterceptorsSize;
 
 	private CounterFacade receiveCounter;
 
@@ -67,7 +67,6 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	/**
 	 * Receive the first available message from this channel. If the channel
 	 * contains no messages, this method will block.
-	 *
 	 * @return the first available message or <code>null</code> if the
 	 * receiving thread is interrupted.
 	 */
@@ -83,9 +82,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * elapses. If the specified timeout is 0, the method will return
 	 * immediately. If less than zero, it will block indefinitely (see
 	 * {@link #receive()}).
-	 *
 	 * @param timeout the timeout in milliseconds
-	 *
 	 * @return the first available message or <code>null</code> if no message
 	 * is available within the allotted time or the receiving thread is
 	 * interrupted.
@@ -97,8 +94,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
+		boolean traceEnabled = isLoggingEnabled() && logger.isTraceEnabled();
 		try {
-			if (isLoggingEnabled() && logger.isTraceEnabled()) {
+			if (traceEnabled) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getSize() > 0) {
@@ -110,7 +108,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			Message<?> message = doReceive(timeout);
 			if (message == null) {
-				if (isLoggingEnabled() && logger.isTraceEnabled()) {
+				if (traceEnabled) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
 			}
@@ -121,10 +119,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 					counted = true;
 				}
 
-				if (isLoggingEnabled() && logger.isDebugEnabled()) {
+				if (traceEnabled) {
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
-
 			}
 
 			if (interceptorStack != null && message != null) {
@@ -234,13 +231,5 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 */
 	@Nullable
 	protected abstract Message<?> doReceive(long timeout);
-
-	@Override
-	public void destroy() {
-		super.destroy();
-		if (this.receiveCounter != null) {
-			this.receiveCounter.remove();
-		}
-	}
 
 }
