@@ -193,10 +193,12 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			catch (Exception e) {
 				throw new MessagingException("MessageSource returned unexpected type.", e);
 			}
-			message = getMessageBuilderFactory()
-					.withPayload(payload)
-					.copyHeaders(headers)
-					.build();
+			AbstractIntegrationMessageBuilder<T> builder = getMessageBuilderFactory()
+					.withPayload(payload);
+			if (!CollectionUtils.isEmpty(headers)) {
+				builder.copyHeaders(headers);
+			}
+			message = builder.build();
 		}
 		if (this.countsEnabled && message != null) {
 			if (this.metricsCaptor != null) {
@@ -220,10 +222,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		this.receiveCounter.increment();
 	}
 
+	@Nullable
 	private Map<String, Object> evaluateHeaders() {
-		return ExpressionEvalMap.from(this.headerExpressions)
-				.usingEvaluationContext(getEvaluationContext())
-				.build();
+		return this.headerExpressions.size() > 0
+				? ExpressionEvalMap.from(this.headerExpressions)
+					.usingEvaluationContext(getEvaluationContext())
+					.build()
+				: null;
 	}
 
 	/**
