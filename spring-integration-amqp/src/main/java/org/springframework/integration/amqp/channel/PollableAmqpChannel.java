@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -232,14 +232,17 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
 				if (getMetricsCaptor() != null) {
-					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("type", "channel")
-							.tag("result", "failure")
-							.tag("exception", e.getClass().getSimpleName())
-							.description("Messages received")
-							.build()
-							.increment();
+					CounterFacade counterFacade =
+							getMetricsCaptor()
+									.counterBuilder(RECEIVE_COUNTER_NAME)
+									.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+									.tag("type", "channel")
+									.tag("result", "failure")
+									.tag("exception", e.getClass().getSimpleName())
+									.description("Messages received")
+									.build();
+					this.meters.add(counterFacade);
+					counterFacade.increment();
 				}
 				getMetrics().afterError();
 			}
@@ -298,6 +301,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 					.tag("exception", "none")
 					.description("Messages received")
 					.build();
+			this.meters.add(this.receiveCounter);
 		}
 		this.receiveCounter.increment();
 	}
@@ -350,14 +354,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	@Override
 	public boolean hasExecutorInterceptors() {
 		return this.executorInterceptorsSize > 0;
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		super.destroy();
-		if (this.receiveCounter != null) {
-			this.receiveCounter.remove();
-		}
 	}
 
 }
