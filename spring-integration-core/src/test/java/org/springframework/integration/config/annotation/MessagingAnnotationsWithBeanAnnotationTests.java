@@ -18,7 +18,6 @@ package org.springframework.integration.config.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,6 @@ import javax.annotation.Resource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
@@ -79,7 +77,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
@@ -89,7 +87,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class MessagingAnnotationsWithBeanAnnotationTests {
 
@@ -103,8 +101,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	private List<Message<?>> collector;
 
 	@Autowired(required = false)
-	@Qualifier("messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.skippedMessageHandler" +
-			".serviceActivator")
+	@Qualifier(
+			"messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.skippedMessageHandler.serviceActivator")
 	private EventDrivenConsumer skippedServiceActivator;
 
 	@Autowired(required = false)
