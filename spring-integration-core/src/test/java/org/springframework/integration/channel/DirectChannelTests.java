@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -38,6 +38,7 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -48,18 +49,19 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public class DirectChannelTests {
+class DirectChannelTests {
 
 	@Test
-	public void testSend() {
+	void testSend() {
 		DirectChannel channel = new DirectChannel();
 		Log logger = spy(TestUtils.getPropertyValue(channel, "logger", Log.class));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		new DirectFieldAccessor(channel).setPropertyValue("logger", logger);
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();
 		channel.subscribe(target);
-		GenericMessage<String> message = new GenericMessage<String>("test");
+		GenericMessage<String> message = new GenericMessage<>("test");
 		assertThat(channel.send(message)).isTrue();
 		assertThat(target.threadName).isEqualTo(Thread.currentThread().getName());
 		DirectFieldAccessor channelAccessor = new DirectFieldAccessor(channel);
@@ -76,7 +78,7 @@ public class DirectChannelTests {
 	}
 
 	@Test
-	public void testSendPerfOneHandler() {
+	void testSendPerfOneHandler() {
 		/*
 		 *  INT-3308 - used to run 12 million/sec
 		 *  1. optimize for single handler 20 million/sec
@@ -89,7 +91,7 @@ public class DirectChannelTests {
 		DirectChannel channel = new DirectChannel();
 		final AtomicInteger count = new AtomicInteger();
 		channel.subscribe(message -> count.incrementAndGet());
-		GenericMessage<String> message = new GenericMessage<String>("test");
+		GenericMessage<String> message = new GenericMessage<>("test");
 		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
@@ -97,7 +99,7 @@ public class DirectChannelTests {
 	}
 
 	@Test
-	public void testSendPerfTwoHandlers() {
+	void testSendPerfTwoHandlers() {
 		/*
 		 *  INT-3308 - used to run 6.4 million/sec
 		 *  1. Skip empty iterators as above 7.2 million/sec
@@ -110,7 +112,7 @@ public class DirectChannelTests {
 		final AtomicInteger count2 = new AtomicInteger();
 		channel.subscribe(message -> count1.incrementAndGet());
 		channel.subscribe(message -> count2.getAndIncrement());
-		GenericMessage<String> message = new GenericMessage<String>("test");
+		GenericMessage<String> message = new GenericMessage<>("test");
 		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 10000000; i++) {
 			channel.send(message);
@@ -120,7 +122,7 @@ public class DirectChannelTests {
 	}
 
 	@Test
-	public void testSendPerfFixedSubscriberChannel() {
+	void testSendPerfFixedSubscriberChannel() {
 		/*
 		 *  INT-3308 - 96 million/sec
 		 *  NOTE: in order to get a measurable time, I had to add some code to the handler -
@@ -130,7 +132,7 @@ public class DirectChannelTests {
 		 */
 		final AtomicInteger count = new AtomicInteger();
 		FixedSubscriberChannel channel = new FixedSubscriberChannel(message -> count.incrementAndGet());
-		GenericMessage<String> message = new GenericMessage<String>("test");
+		GenericMessage<String> message = new GenericMessage<>("test");
 		assertThat(channel.send(message)).isTrue();
 		for (int i = 0; i < 100000000; i++) {
 			channel.send(message, 0);
@@ -138,26 +140,27 @@ public class DirectChannelTests {
 	}
 
 	@Test
-	public void testSendInSeparateThread() throws InterruptedException {
+	void testSendInSeparateThread() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		final DirectChannel channel = new DirectChannel();
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget(latch);
 		channel.subscribe(target);
-		final GenericMessage<String> message = new GenericMessage<String>("test");
+		final GenericMessage<String> message = new GenericMessage<>("test");
 		new Thread((Runnable) () -> channel.send(message), "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertThat(target.threadName).isEqualTo("test-thread");
 	}
 
-	@Test //  See INT-2434
-	public void testChannelCreationWithBeanDefinitionOverrideTrue() throws Exception {
-		ClassPathXmlApplicationContext parentContext = new ClassPathXmlApplicationContext("parent-config.xml", this.getClass());
+	@Test
+	void testChannelCreationWithBeanDefinitionOverrideTrue() throws Exception {
+		ClassPathXmlApplicationContext parentContext =
+				new ClassPathXmlApplicationContext("parent-config.xml", getClass());
 		MessageChannel parentChannelA = parentContext.getBean("parentChannelA", MessageChannel.class);
 		MessageChannel parentChannelB = parentContext.getBean("parentChannelB", MessageChannel.class);
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
 		context.setAllowBeanDefinitionOverriding(false);
-		context.setConfigLocations(new String[]{"classpath:org/springframework/integration/channel/channel-override-config.xml"});
+		context.setConfigLocations("classpath:org/springframework/integration/channel/channel-override-config.xml");
 		context.setParent(parentContext);
 		Method method = ReflectionUtils.findMethod(ClassPathXmlApplicationContext.class, "obtainFreshBeanFactory");
 		method.setAccessible(true);
@@ -177,28 +180,28 @@ public class DirectChannelTests {
 		assertThat(context.containsBean("channelD")).isTrue();
 		EventDrivenConsumer consumerA = context.getBean("serviceA", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerA, "inputChannel")).isEqualTo(context.getBean("channelA"));
-		assertThat(TestUtils.getPropertyValue(consumerA, "handler.outputChannel"))
-				.isEqualTo(context.getBean("channelB"));
+		assertThat(TestUtils.getPropertyValue(consumerA, "handler.outputChannelName")).isEqualTo("channelB");
 
 		EventDrivenConsumer consumerB = context.getBean("serviceB", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerB, "inputChannel")).isEqualTo(context.getBean("channelB"));
-		assertThat(TestUtils.getPropertyValue(consumerB, "handler.outputChannel"))
-				.isEqualTo(context.getBean("channelC"));
+		assertThat(TestUtils.getPropertyValue(consumerB, "handler.outputChannelName")).isEqualTo("channelC");
 
 		EventDrivenConsumer consumerC = context.getBean("serviceC", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerC, "inputChannel")).isEqualTo(context.getBean("channelC"));
-		assertThat(TestUtils.getPropertyValue(consumerC, "handler.outputChannel"))
-				.isEqualTo(context.getBean("channelD"));
+		assertThat(TestUtils.getPropertyValue(consumerC, "handler.outputChannelName")).isEqualTo("channelD");
 
 		EventDrivenConsumer consumerD = context.getBean("serviceD", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerD, "inputChannel")).isEqualTo(parentChannelA);
-		assertThat(TestUtils.getPropertyValue(consumerD, "handler.outputChannel")).isEqualTo(parentChannelB);
+		assertThat(TestUtils.getPropertyValue(consumerD, "handler.outputChannelName")).isEqualTo("parentChannelB");
 
 		EventDrivenConsumer consumerE = context.getBean("serviceE", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerE, "inputChannel")).isEqualTo(parentChannelB);
 
 		EventDrivenConsumer consumerF = context.getBean("serviceF", EventDrivenConsumer.class);
 		assertThat(TestUtils.getPropertyValue(consumerF, "inputChannel")).isEqualTo(channelEarly);
+
+		context.close();
+		parentContext.close();
 	}
 
 
@@ -213,7 +216,7 @@ public class DirectChannelTests {
 			this(null);
 		}
 
-		ThreadNameExtractingTestTarget(CountDownLatch latch) {
+		ThreadNameExtractingTestTarget(@Nullable CountDownLatch latch) {
 			this.latch = latch;
 		}
 
@@ -224,6 +227,7 @@ public class DirectChannelTests {
 				this.latch.countDown();
 			}
 		}
+
 	}
 
 }

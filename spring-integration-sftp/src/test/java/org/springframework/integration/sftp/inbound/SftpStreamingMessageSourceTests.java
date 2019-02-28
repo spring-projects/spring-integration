@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +40,10 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.transformer.StreamTransformer;
@@ -76,6 +80,9 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private ConcurrentMap<String, String> metadataMap;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAllContents() {
@@ -106,7 +113,9 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		this.adapter.stop();
 		this.source.setFileInfoJson(false);
 		this.data.purge(null);
+		this.metadataMap.clear();
 		this.adapter.start();
+		assertThat(this.data.receive(10000)).isNotNull();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(SftpFileInfo.class);
@@ -180,11 +189,19 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		}
 
 		@Bean
+		public ConcurrentMap<String, String> metadataMap() {
+			return new ConcurrentHashMap<>();
+		}
+
+
+		@Bean
 		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(),
 					Comparator.comparing(LsEntry::getFilename));
-			messageSource.setFilter(new AcceptAllFileListFilter<>());
+			messageSource.setFilter(
+					new SftpPersistentAcceptOnceFileListFilter(
+							new SimpleMetadataStore(metadataMap()), "testStreaming"));
 			messageSource.setRemoteDirectory("sftpSource/");
 			return messageSource;
 		}

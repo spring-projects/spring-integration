@@ -71,7 +71,7 @@ public class EnricherParserTests {
 		ContentEnricher enricher = (ContentEnricher) handler;
 		assertThat(enricher.getOrder()).isEqualTo(99);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
-		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("outputChannelName")).isEqualTo("output");
 		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(true);
 		assertThat(accessor.getPropertyValue("requestPayloadExpression")).isNull();
 		assertThat(TestUtils.getPropertyValue(enricher, "gateway.beanFactory")).isNotNull();
@@ -136,6 +136,7 @@ public class EnricherParserTests {
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("foo");
 			}
+
 		}
 
 		Foo foo = new Foo();

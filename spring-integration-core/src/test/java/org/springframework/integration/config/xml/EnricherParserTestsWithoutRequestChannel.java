@@ -64,7 +64,7 @@ public class EnricherParserTestsWithoutRequestChannel {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
 
 		assertThat(accessor.getPropertyValue("gateway")).isNull();
-		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("outputChannelName")).isEqualTo("output");
 		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(false);
 		assertThat(accessor.getPropertyValue("requestPayloadExpression")).isNull();
 

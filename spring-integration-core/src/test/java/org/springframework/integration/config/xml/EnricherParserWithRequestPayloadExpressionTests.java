@@ -42,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -62,7 +63,7 @@ public class EnricherParserWithRequestPayloadExpressionTests {
 		ContentEnricher enricher = (ContentEnricher) handler;
 		assertThat(enricher.getOrder()).isEqualTo(99);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
-		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(accessor.getPropertyValue("outputChannelName")).isEqualTo("output");
 		assertThat(accessor.getPropertyValue("shouldClonePayload")).isEqualTo(false);
 
 		Expression requestPayloadExpression = (Expression) accessor.getPropertyValue("requestPayloadExpression");

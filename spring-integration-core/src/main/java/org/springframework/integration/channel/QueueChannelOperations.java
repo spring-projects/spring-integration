@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ package org.springframework.integration.channel;
 import java.util.List;
 
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * Operations available on a channel that has queuing semantics.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -32,25 +35,25 @@ public interface QueueChannelOperations {
 
 	/**
 	 * Remove all {@link Message Messages} from this channel.
-	 *
 	 * @return The messages that were removed.
 	 */
 	List<Message<?>> clear();
 
 	/**
 	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
-	 *
 	 * @param selector The message selector.
 	 * @return The list of messages that were purged.
 	 */
-	List<Message<?>> purge(MessageSelector selector);
+	List<Message<?>> purge(@Nullable MessageSelector selector);
 
 	/**
+	 * Obtain the current number of queued {@link Message Messages} in this channel.
 	 * @return The current number of queued {@link Message Messages} in this channel.
 	 */
 	int getQueueSize();
 
 	/**
+	 * Obtain the remaining capacity of this channel.
 	 * @return The remaining capacity of this channel.
 	 */
 	int getRemainingCapacity();

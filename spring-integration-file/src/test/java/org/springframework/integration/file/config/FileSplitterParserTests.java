@@ -65,12 +65,12 @@ public class FileSplitterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.splitter, "applySequence", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.splitter, "charset")).isEqualTo(Charset.forName("UTF-8"));
 		assertThat(TestUtils.getPropertyValue(this.splitter, "messagingTemplate.sendTimeout")).isEqualTo(5L);
-		assertThat(TestUtils.getPropertyValue(this.splitter, "outputChannel")).isEqualTo(this.out);
-		assertThat(TestUtils.getPropertyValue(this.splitter, "order")).isEqualTo(2);
 		assertThat(TestUtils.getPropertyValue(this.splitter, "firstLineHeaderName")).isEqualTo("foo");
-		assertThat(TestUtils.getPropertyValue(this.fullBoat, "inputChannel")).isEqualTo(this.in);
-		assertThat(TestUtils.getPropertyValue(this.fullBoat, "autoStartup", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.fullBoat, "phase")).isEqualTo(1);
+		assertThat(this.splitter.getOutputChannel()).isSameAs(this.out);
+		assertThat(this.splitter.getOrder()).isEqualTo(2);
+		assertThat(this.fullBoat.getInputChannel()).isSameAs(this.in);
+		assertThat(this.fullBoat.isAutoStartup()).isFalse();
+		assertThat(this.fullBoat.getPhase()).isEqualTo(1);
 	}
 
 }
