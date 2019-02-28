@@ -251,13 +251,14 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
-			this.successTimer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
-					.tag("type", "channel")
-					.tag("name", getComponentName() == null ? "nullChannel" : getComponentName())
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Subflow process time")
-					.build();
+			this.successTimer =
+					this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
+							.tag("type", "channel")
+							.tag("name", getComponentName() == null ? "nullChannel" : getComponentName())
+							.tag("result", "success")
+							.tag("exception", "none")
+							.description("Subflow process time")
+							.build();
 		}
 		return this.successTimer;
 	}
