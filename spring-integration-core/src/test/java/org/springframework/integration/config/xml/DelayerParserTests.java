@@ -48,6 +48,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ *
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,7 +62,7 @@ public class DelayerParserTests {
 	public void defaultScheduler() {
 		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
 		assertThat(delayHandler.getOrder()).isEqualTo(99);
-		assertThat(TestUtils.getPropertyValue(delayHandler, "outputChannel")).isEqualTo(context.getBean("output"));
+		assertThat(delayHandler.getOutputChannel()).isSameAs(this.context.getBean("output"));
 		assertThat(TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class)).isEqualTo(new Long(1234));
 		//INT-2243
 		assertThat(TestUtils.getPropertyValue(delayHandler, "delayExpression")).isNotNull();
@@ -81,8 +82,8 @@ public class DelayerParserTests {
 		DelayHandler delayHandler = (DelayHandler) handler;
 		assertThat(delayHandler.getOrder()).isEqualTo(Ordered.LOWEST_PRECEDENCE);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
-		assertThat(accessor.getPropertyValue("outputChannel")).isEqualTo(context.getBean("output"));
-		assertThat(accessor.getPropertyValue("defaultDelay")).isEqualTo(new Long(0));
+		assertThat(delayHandler.getOutputChannel()).isSameAs(this.context.getBean("output"));
+		assertThat(accessor.getPropertyValue("defaultDelay")).isEqualTo(0L);
 		assertThat(accessor.getPropertyValue("taskScheduler")).isEqualTo(context.getBean("testScheduler"));
 		assertThat(accessor.getPropertyValue("taskScheduler")).isNotNull();
 		assertThat(new DirectFieldAccessor(

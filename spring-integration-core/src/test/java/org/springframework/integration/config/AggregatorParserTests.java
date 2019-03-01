@@ -153,8 +153,6 @@ public class AggregatorParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
 		CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
-		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertThat(consumer).isInstanceOf(AggregatingMessageHandler.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
@@ -172,12 +170,12 @@ public class AggregatorParserTests {
 		assertThat(accessor.getPropertyValue("correlationStrategy"))
 				.as("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance")
 				.isEqualTo(correlationStrategy);
-		assertThat(accessor.getPropertyValue("outputChannel"))
+		assertThat(accessor.getPropertyValue("outputChannelName"))
 				.as("The AggregatorEndpoint is not injected with the appropriate output channel")
-				.isEqualTo(outputChannel);
-		assertThat(accessor.getPropertyValue("discardChannel"))
+				.isEqualTo("outputChannel");
+		assertThat(accessor.getPropertyValue("discardChannelName"))
 				.as("The AggregatorEndpoint is not injected with the appropriate discard channel")
-				.isEqualTo(discardChannel);
+				.isEqualTo("discardChannel");
 		assertThat(TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"))
 				.as("The AggregatorEndpoint is not set with the appropriate timeout value").isEqualTo(86420000L);
 		assertThat(accessor.getPropertyValue("sendPartialResultOnExpiry"))

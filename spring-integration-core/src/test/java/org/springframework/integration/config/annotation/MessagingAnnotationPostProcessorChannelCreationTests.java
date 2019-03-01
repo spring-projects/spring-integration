@@ -16,8 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -40,6 +39,8 @@ import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3.8
  *
  */
@@ -57,6 +58,7 @@ public class MessagingAnnotationPostProcessorChannelCreationTests {
 		MessagingAnnotationPostProcessor mapp = new MessagingAnnotationPostProcessor();
 		mapp.setBeanFactory(beanFactory);
 		mapp.afterPropertiesSet();
+		mapp.afterSingletonsInstantiated();
 		mapp.postProcessAfterInitialization(new Foo(), "foo");
 		verify(beanFactory).registerSingleton(eq("channel"), any(DirectChannel.class));
 	}
@@ -73,14 +75,10 @@ public class MessagingAnnotationPostProcessorChannelCreationTests {
 		MessagingAnnotationPostProcessor mapp = new MessagingAnnotationPostProcessor();
 		mapp.setBeanFactory(beanFactory);
 		mapp.afterPropertiesSet();
-		try {
-			mapp.postProcessAfterInitialization(new Foo(), "foo");
-			fail("Expected a DestinationResolutionException");
-		}
-		catch (DestinationResolutionException e) {
-			assertThat(e.getMessage())
-					.contains("A bean definition with name 'channel' exists, but failed to be created");
-		}
+		mapp.afterSingletonsInstantiated();
+		assertThatExceptionOfType(DestinationResolutionException.class)
+				.isThrownBy(() -> mapp.postProcessAfterInitialization(new Foo(), "foo"))
+				.withMessageContaining("A bean definition with name 'channel' exists, but failed to be created");
 	}
 
 	public static class Foo {

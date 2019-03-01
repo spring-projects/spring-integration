@@ -57,7 +57,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MockMessageSourceTests.Config.class)
-@SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
+@SpringIntegrationTest(noAutoStartup = { "inboundChannelAdapter", "*Source*" })
 @DirtiesContext
 public class MockMessageSourceTests {
 
@@ -76,7 +76,7 @@ public class MockMessageSourceTests {
 	@After
 	public void tearDown() {
 		this.mockIntegrationContext.resetBeans("mySourceEndpoint", "inboundChannelAdapter");
-		results.purge(null);
+		this.results.purge(null);
 	}
 
 	@Test
@@ -103,8 +103,11 @@ public class MockMessageSourceTests {
 
 	@Test
 	public void testMockMessageSourceInConfig() {
-		this.applicationContext.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
-				Lifecycle.class).start();
+		Lifecycle channelAdapter =
+				this.applicationContext
+						.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
+								Lifecycle.class);
+		channelAdapter.start();
 
 		Message<?> receive = this.results.receive(10_000);
 		assertThat(receive).isNotNull();
@@ -120,13 +123,13 @@ public class MockMessageSourceTests {
 			assertThat(receive.getPayload()).isEqualTo(3);
 		}
 
-		this.applicationContext.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
-				Lifecycle.class).stop();
+		channelAdapter.stop();
 	}
 
 	@Test
 	public void testMockMessageSourceInXml() {
-		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).start();
+		Lifecycle channelAdapter = this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class);
+		channelAdapter.start();
 
 		Message<?> receive = this.results.receive(10_000);
 		assertThat(receive).isNotNull();
@@ -142,7 +145,7 @@ public class MockMessageSourceTests {
 			assertThat(receive.getPayload()).isEqualTo("c");
 		}
 
-		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).stop();
+		channelAdapter.stop();
 	}
 
 	@Test
@@ -199,6 +202,11 @@ public class MockMessageSourceTests {
 		}
 
 		@Bean
+		public QueueChannel results() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow myFlow() {
 			return IntegrationFlows
 					.from(() -> new GenericMessage<>("myData"),
@@ -206,11 +214,6 @@ public class MockMessageSourceTests {
 					.<String, String>transform(String::toUpperCase)
 					.channel(results())
 					.get();
-		}
-
-		@Bean
-		public QueueChannel results() {
-			return new QueueChannel();
 		}
 
 		@InboundChannelAdapter(channel = "results")

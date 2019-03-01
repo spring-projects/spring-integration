@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private MessageChannel outputChannel;
 
+	private String outputChannelName;
+
 	private Integer order;
 
 	private List<Advice> adviceChain;
@@ -117,6 +119,15 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	/**
+	 * Set the handler's output channel name.
+	 * @param outputChannelName the output channel bean name to set.
+	 * @since 5.1.4
+	 */
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
 	}
 
 	/**
@@ -197,9 +208,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				((ApplicationEventPublisherAware) this.handler)
 						.setApplicationEventPublisher(this.applicationEventPublisher);
 			}
-			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
-				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
-			}
+			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
 			if (actualHandler == null) {
 				actualHandler = this.handler;
@@ -245,6 +254,18 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			}
 		}
 		return this.handler;
+	}
+
+	private void configureOutputChannelIfAny() {
+		if (this.handler instanceof MessageProducer) {
+			MessageProducer messageProducer = (MessageProducer) this.handler;
+			if (this.outputChannel != null) {
+				messageProducer.setOutputChannel(this.outputChannel);
+			}
+			else if (this.outputChannelName != null) {
+				messageProducer.setOutputChannelName(this.outputChannelName);
+			}
+		}
 	}
 
 	protected abstract H createHandler();

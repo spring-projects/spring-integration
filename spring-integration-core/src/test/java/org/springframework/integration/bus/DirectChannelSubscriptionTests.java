@@ -17,6 +17,7 @@
 package org.springframework.integration.bus;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.After;
 import org.junit.Before;
@@ -81,6 +82,7 @@ public class DirectChannelSubscriptionTests {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(this.context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
+		postProcessor.afterSingletonsInstantiated();
 		TestEndpoint endpoint = new TestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
 		this.context.refresh();
@@ -105,17 +107,19 @@ public class DirectChannelSubscriptionTests {
 		this.sourceChannel.send(new GenericMessage<>("foo"));
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		this.context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(this.context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
+		postProcessor.afterSingletonsInstantiated();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
 		this.context.refresh();
-		this.sourceChannel.send(new GenericMessage<>("foo"));
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.sourceChannel.send(new GenericMessage<>("foo")));
 	}
 
 

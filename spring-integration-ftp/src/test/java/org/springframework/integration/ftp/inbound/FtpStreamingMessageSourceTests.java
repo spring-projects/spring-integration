@@ -115,11 +115,11 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.data.purge(null);
 		this.metadataMap.clear();
 		this.adapter.start();
+		assertThat(this.data.receive(10000)).isNotNull();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
-		this.adapter.stop();
-
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
+		this.adapter.stop();
 	}
 
 	@Test
