@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,15 +27,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.ResettableFileListFilter;
+import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -47,14 +51,16 @@ import org.springframework.util.Assert;
  * @since 4.3
  *
  */
-public abstract class AbstractRemoteFileStreamingMessageSource<F> extends AbstractMessageSource<InputStream>
-		implements BeanFactoryAware, InitializingBean {
+public abstract class AbstractRemoteFileStreamingMessageSource<F>
+		extends AbstractMessageSource<InputStream> implements Lifecycle {
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
 	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<AbstractFileInfo<F>>();
 
 	private final Comparator<AbstractFileInfo<F>> comparator;
+
+	private final AtomicBoolean running = new AtomicBoolean();
 
 	/**
 	 * the path on the remote server.
@@ -107,7 +113,11 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 	 * @param filter the file list filter.
 	 */
 	public void setFilter(FileListFilter<F> filter) {
-		this.filter = filter;
+		doSetFilter(filter);
+	}
+
+	protected final void doSetFilter(FileListFilter<F> filterToSet) {
+		this.filter = filterToSet;
 	}
 
 	protected RemoteFileTemplate<F> getRemoteFileTemplate() {
@@ -127,24 +137,65 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 	protected void doInit() {
 	}
 
+
+	@Override
+	public void start() {
+		this.running.set(true);
+	}
+
+	@Override
+	public void stop() {
+		if (this.running.compareAndSet(true, false)) {
+			// remove unprocessed files from the queue (and filter)
+			AbstractFileInfo<F> file = this.toBeReceived.poll();
+			while (file != null) {
+				resetFilterIfNecessary(file);
+				file = this.toBeReceived.poll();
+			}
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running.get();
+	}
+
 	@Override
 	protected Object doReceive() {
+		Assert.state(this.running.get(), getComponentName() + " is not running");
 		AbstractFileInfo<F> file = poll();
 		if (file != null) {
-			String remotePath = remotePath(file);
-			Session<?> session = this.remoteFileTemplate.getSession();
 			try {
-				return getMessageBuilderFactory().withPayload(session.readRaw(remotePath))
-						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-						.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
-						.build();
+				String remotePath = remotePath(file);
+				Session<?> session = this.remoteFileTemplate.getSession();
+				try {
+					return getMessageBuilderFactory()
+							.withPayload(session.readRaw(remotePath))
+							.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+							.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
+							.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+							.build();
+				}
+				catch (IOException e) {
+					throw new MessagingException("IOException when retrieving " + remotePath, e);
+				}
 			}
-			catch (IOException e) {
-				throw new MessagingException("IOException when retrieving " + remotePath, e);
+			catch (RuntimeException e) {
+				resetFilterIfNecessary(file);
+				throw e;
 			}
 		}
 		return null;
+	}
+
+	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
+		if (this.filter instanceof ResettableFileListFilter) {
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("Removing the remote file '" + file +
+						"' from the filter for a subsequent transfer attempt");
+			}
+			((ResettableFileListFilter<F>) this.filter).remove(file.getFileInfo());
+		}
 	}
 
 	protected AbstractFileInfo<F> poll() {
