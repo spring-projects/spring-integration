@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,17 @@
 package org.springframework.integration.ftp.inbound;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Comparator;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -50,10 +52,11 @@ import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
-import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -120,12 +123,16 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.source.setFileInfoJson(false);
 		this.data.purge(null);
 		this.metadataMap.clear();
+		this.adapter.setTrigger(new OnlyOnceTrigger());
+		this.adapter.setMaxMessagesPerPoll(1);
 		this.adapter.start();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
+		assertEquals(1, TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class).size());
+		assertEquals(2, this.metadataMap.size());
 		this.adapter.stop();
-
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FtpFileInfo.class));
+		assertTrue(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class).isEmpty());
+		assertEquals(1, this.metadataMap.size());
 	}
 
 	@Test
@@ -133,6 +140,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
@@ -148,6 +156,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
@@ -180,7 +189,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public PollerMetadata defaultPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
 			pollerMetadata.setTrigger(new PeriodicTrigger(500));
-			pollerMetadata.setMaxMessagesPerPoll(2000);
+			pollerMetadata.setMaxMessagesPerPoll(2);
 			return pollerMetadata;
 		}
 
