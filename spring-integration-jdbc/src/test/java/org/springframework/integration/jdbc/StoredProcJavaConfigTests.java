@@ -77,7 +77,8 @@ public class StoredProcJavaConfigTests {
 	public void test() {
 		Message<?> received = fooChannel.receive(10000);
 		assertThat(received).isNotNull();
-		Collection<?> primes = (Collection<?>) received.getPayload();
+		@SuppressWarnings("unchecked")
+		Collection<Integer> primes = (Collection<Integer>) received.getPayload();
 		assertThat(primes).containsExactly(2, 3, 5, 7);
 		received = fooChannel.receive(100);
 		// verify maxMessagesPerPoll == 1

@@ -28,10 +28,13 @@ import static org.mockito.Mockito.verify;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
@@ -40,13 +43,16 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
@@ -67,6 +73,7 @@ public class StreamingInboundTests {
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
+		streamer.start();
 		Message<byte[]> received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertThat(received.getPayload()).isEqualTo("foo\nbar".getBytes());
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("/foo");
@@ -112,6 +119,7 @@ public class StreamingInboundTests {
 		streamer.setMaxFetchSize(1);
 		streamer.setFilter(new AcceptOnceFileListFilter<>());
 		streamer.afterPropertiesSet();
+		streamer.start();
 		Message<byte[]> received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertThat(received.getPayload()).isEqualTo("foo\nbar".getBytes());
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("/foo");
@@ -138,17 +146,18 @@ public class StreamingInboundTests {
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
-		assertThatExceptionOfType(MessagingException.class)
+		streamer.start();
+		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testLineByLine() throws Exception {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/foo");
 		streamer.afterPropertiesSet();
+		streamer.start();
 		QueueChannel out = new QueueChannel();
 		FileSplitter splitter = new FileSplitter();
 		splitter.setBeanFactory(mock(BeanFactory.class));
@@ -160,7 +169,7 @@ public class StreamingInboundTests {
 		assertThat(received.getPayload()).isEqualTo("foo");
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("/foo");
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("foo");
-		received = (Message<byte[]>) out.receive(0);
+		received = out.receive(0);
 		assertThat(received.getPayload()).isEqualTo("bar");
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("/foo");
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("foo");
@@ -185,10 +194,43 @@ public class StreamingInboundTests {
 		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(5)).close();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testStopAdapterRemovesUnprocessed() {
+		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
+		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setRemoteDirectory("/foo");
+		streamer.afterPropertiesSet();
+		streamer.start();
+		assertThat(streamer.receive()).isNotNull();
+		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(streamer.metadataMap).hasSize(2);
+		streamer.stop();
+		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
+		assertThat(streamer.metadataMap).hasSize(1);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFilterReversedOnBadFetch() {
+		Streamer streamer = new Streamer(new StringRemoteFileTemplate(new StringSessionFactory()), null);
+		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setRemoteDirectory("/bad");
+		streamer.afterPropertiesSet();
+		streamer.start();
+		assertThatExceptionOfType(UncheckedIOException.class)
+				.isThrownBy(streamer::receive);
+		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(streamer.metadataMap).hasSize(1);
+	}
+
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
+
+		ConcurrentHashMap<String, String> metadataMap = new ConcurrentHashMap<>();
 
 		protected Streamer(RemoteFileTemplate<String> template, Comparator<String> comparator) {
 			super(template, comparator);
+			doSetFilter(new StringPersistentFileListFilter(new SimpleMetadataStore(this.metadataMap), "streamer"));
 		}
 
 		@Override
@@ -252,11 +294,7 @@ public class StreamingInboundTests {
 
 		@Override
 		public String getFileInfo() {
-			return asString();
-		}
-
-		private String asString() {
-			return "StringFileInfo [name=" + this.name + "]";
+			return name;
 		}
 
 	}
@@ -271,13 +309,13 @@ public class StreamingInboundTests {
 
 	public static class StringSessionFactory implements SessionFactory<String> {
 
-		private Session<String> session;
+		private Session<String> singletonSession;
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public Session<String> getSession() {
-			if (this.session != null) {
-				return this.session;
+			if (this.singletonSession != null) {
+				return this.singletonSession;
 			}
 			try {
 				Session<String> session = mock(Session.class);
@@ -293,18 +331,37 @@ public class StreamingInboundTests {
 				willReturn(foo2).given(session).readRaw("/bar/foo");
 				willReturn(bar2).given(session).readRaw("/bar/bar");
 
-				willReturn(new String[] { "/bad/file" }).given(session).list("/bad");
-				willThrow(new IOException("No file")).given(session).readRaw("/bad/file");
+				willReturn(new String[] { "/bad/file1", "/bad/file2" }).given(session).list("/bad");
+				willThrow(new IOException("No file")).given(session).readRaw("/bad/file1");
+				willThrow(new IOException("No file")).given(session).readRaw("/bad/file2");
 
 				given(session.finalizeRaw()).willReturn(true);
 
-				this.session = session;
+				this.singletonSession = session;
 
 				return session;
 			}
 			catch (Exception e) {
 				throw new RuntimeException("failed to mock session", e);
 			}
+		}
+
+	}
+
+	public static class StringPersistentFileListFilter extends AbstractPersistentAcceptOnceFileListFilter<String> {
+
+		public StringPersistentFileListFilter(ConcurrentMetadataStore store, String prefix) {
+			super(store, prefix);
+		}
+
+		@Override
+		protected long modified(String file) {
+			return 0;
+		}
+
+		@Override
+		protected String fileName(String file) {
+			return file;
 		}
 
 	}
