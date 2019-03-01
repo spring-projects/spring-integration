@@ -178,7 +178,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	@Override
 	protected Object doReceive() {
-		Assert.state(this.running.get(), getComponentName() + " is not running");
+		Assert.state(this.running.get(), () -> getComponentName() + " is not running");
 		AbstractFileInfo<F> file = poll();
 		if (file != null) {
 			try {

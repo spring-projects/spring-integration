@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -52,7 +53,6 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
@@ -147,7 +147,7 @@ public class StreamingInboundTests {
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
 	}
 
@@ -218,7 +218,7 @@ public class StreamingInboundTests {
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();
-		assertThatExceptionOfType(MessagingException.class)
+		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
 		assertThat(streamer.metadataMap).hasSize(1);
