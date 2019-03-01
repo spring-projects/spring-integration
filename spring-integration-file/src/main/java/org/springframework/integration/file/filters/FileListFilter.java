@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
+import java.lang.reflect.Array;
 import java.util.List;
 
 /**
@@ -37,5 +38,27 @@ public interface FileListFilter<F> {
 	 * @return The filtered files.
 	 */
 	List<F> filterFiles(F[] files);
+
+	/**
+	 * Filter a single file.
+	 * @param file the file.
+	 * @return true if the file passes the filter, false to filter.
+	 * @since 5.2
+	 */
+	default boolean accept(F file) {
+		@SuppressWarnings("unchecked")
+		F[] fileArray = (F[]) Array.newInstance(file.getClass(), 1);
+		fileArray[0] = file;
+		return filterFiles(fileArray).size() > 0;
+	}
+
+	/**
+	 * Indicates that this filter supports filtering a single file.
+	 * Default false.
+	 * @return true to allow external calls to {@link #accept(Object)}.
+	 */
+	default boolean supportsSingleFileFiltering() {
+		return false;
+	}
 
 }

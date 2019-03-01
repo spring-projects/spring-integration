@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -53,6 +54,8 @@ public class CompositeFileListFilter<F>
 
 	private Consumer<F> discardCallback;
 
+	private boolean allSupportAccept = true;
+
 
 	public CompositeFileListFilter() {
 		this.fileFilters = new LinkedHashSet<>();
@@ -60,6 +63,7 @@ public class CompositeFileListFilter<F>
 
 	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		this.fileFilters = new LinkedHashSet<>(fileFilters);
+		fileFilters.stream().allMatch(f -> f.supportsSingleFileFiltering());
 	}
 
 
@@ -73,6 +77,7 @@ public class CompositeFileListFilter<F>
 	}
 
 	public CompositeFileListFilter<F> addFilter(FileListFilter<F> filter) {
+		this.allSupportAccept &= filter.supportsSingleFileFiltering();
 		return addFilters(Collections.singletonList(filter));
 	}
 
@@ -83,7 +88,8 @@ public class CompositeFileListFilter<F>
 	 */
 	@SuppressWarnings("unchecked")
 	public CompositeFileListFilter<F> addFilters(FileListFilter<F>... filters) {
-		return addFilters(Arrays.asList(filters));
+		List<FileListFilter<F>> asList = Arrays.asList(filters);
+		return addFilters(asList);
 	}
 
 	/**
@@ -109,18 +115,19 @@ public class CompositeFileListFilter<F>
 			}
 		}
 		this.fileFilters.addAll(filtersToAdd);
+		this.allSupportAccept &= filtersToAdd.stream().allMatch(f -> f.supportsSingleFileFiltering());
 		return this;
 	}
 
 	@Override
-	public void addDiscardCallback(Consumer<F> discardCallback) {
-		this.discardCallback = discardCallback;
+	public void addDiscardCallback(Consumer<F> discardCallbackToSet) {
+		this.discardCallback = discardCallbackToSet;
 		if (this.discardCallback != null) {
 			this.fileFilters
 					.stream()
 					.filter(DiscardAwareFileListFilter.class::isInstance)
 					.map(f -> (DiscardAwareFileListFilter<F>) f)
-					.forEach(f -> f.addDiscardCallback(discardCallback));
+					.forEach(f -> f.addDiscardCallback(discardCallbackToSet));
 		}
 	}
 
@@ -133,6 +140,19 @@ public class CompositeFileListFilter<F>
 			results.retainAll(currentResults);
 		}
 		return results;
+	}
+
+	@Override
+	public boolean accept(F file) {
+		AtomicBoolean allAccept = new AtomicBoolean(true);
+		// we can't use stream().allMatch() because we have to call all filters for this filter's contract
+		this.fileFilters.forEach(f -> allAccept.compareAndSet(true, f.accept(file)));
+		return allAccept.get();
+	}
+
+	@Override
+	public boolean supportsSingleFileFiltering() {
+		return this.allSupportAccept;
 	}
 
 	@Override

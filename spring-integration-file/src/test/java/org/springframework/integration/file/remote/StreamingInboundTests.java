@@ -116,7 +116,6 @@ public class StreamingInboundTests {
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/foo");
-		streamer.setMaxFetchSize(1);
 		streamer.setFilter(new AcceptOnceFileListFilter<>());
 		streamer.afterPropertiesSet();
 		streamer.start();
@@ -133,10 +132,10 @@ public class StreamingInboundTests {
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("/foo");
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("bar");
 
-		// close after list, transform
-		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(4)).close();
+		// close after transform
+		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();
 
-		verify(sessionFactory.getSession(), times(2)).list("/foo");
+		verify(sessionFactory.getSession()).list("/foo");
 	}
 
 	@Test
@@ -204,10 +203,9 @@ public class StreamingInboundTests {
 		streamer.start();
 		assertThat(streamer.receive()).isNotNull();
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
-		assertThat(streamer.metadataMap).hasSize(2);
+		assertThat(streamer.metadataMap).hasSize(1);
 		streamer.stop();
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(0);
-		assertThat(streamer.metadataMap).hasSize(1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -221,7 +219,7 @@ public class StreamingInboundTests {
 		assertThatExceptionOfType(UncheckedIOException.class)
 				.isThrownBy(streamer::receive);
 		assertThat(TestUtils.getPropertyValue(streamer, "toBeReceived", BlockingQueue.class)).hasSize(1);
-		assertThat(streamer.metadataMap).hasSize(1);
+		assertThat(streamer.metadataMap).hasSize(0);
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {

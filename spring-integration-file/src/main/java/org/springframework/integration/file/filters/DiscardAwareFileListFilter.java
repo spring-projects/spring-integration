@@ -22,9 +22,10 @@ import org.springframework.lang.Nullable;
 
 /**
  * The {@link FileListFilter} modification which can accept a {@link Consumer}
- * which can be called when filter discards the file.
+ * which can be called when the filter discards the file.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0.5
  */

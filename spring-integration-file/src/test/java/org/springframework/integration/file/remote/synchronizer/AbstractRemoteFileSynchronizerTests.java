@@ -166,6 +166,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 	private AbstractInboundFileSynchronizingMessageSource<String> createSource(
 			AbstractInboundFileSynchronizer<String> sync) {
+
 		AbstractInboundFileSynchronizingMessageSource<String> source =
 				new AbstractInboundFileSynchronizingMessageSource<String>(sync) {
 

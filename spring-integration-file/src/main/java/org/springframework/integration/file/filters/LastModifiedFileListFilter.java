@@ -105,8 +105,8 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	}
 
 	@Override
-	public void addDiscardCallback(@Nullable Consumer<File> discardCallback) {
-		this.discardCallback = discardCallback;
+	public void addDiscardCallback(@Nullable Consumer<File> discardCallbackToSet) {
+		this.discardCallback = discardCallbackToSet;
 	}
 
 	@Override
@@ -123,5 +123,22 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 		}
 		return list;
 	}
+
+	@Override
+	public boolean accept(File file) {
+		if (file.lastModified() / ONE_SECOND + this.age <= System.currentTimeMillis()) {
+			return true;
+		}
+		else if (this.discardCallback != null) {
+			this.discardCallback.accept(file);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean supportsSingleFileFiltering() {
+		return true;
+	}
+
 
 }

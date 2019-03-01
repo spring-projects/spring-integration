@@ -124,10 +124,9 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
 		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).hasSize(1);
-		assertThat(this.metadataMap).hasSize(2);
+		assertThat(this.metadataMap).hasSize(1);
 		this.adapter.stop();
 		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).isEmpty();
-		assertThat(this.metadataMap).hasSize(1);
 	}
 
 	@Test
@@ -166,7 +165,6 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(this.config.template(),
 				Comparator.comparing(FTPFile::getName));
 		messageSource.setRemoteDirectory("ftpSource/");
-		messageSource.setMaxFetchSize(1);
 		messageSource.setBeanFactory(this.context);
 		return messageSource;
 	}
