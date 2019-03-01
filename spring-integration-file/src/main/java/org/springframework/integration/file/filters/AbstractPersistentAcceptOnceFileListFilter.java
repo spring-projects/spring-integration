@@ -173,7 +173,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 			try {
 				this.flushableStore.flush();
 			}
-			catch (IOException e) {
+			catch (@SuppressWarnings("unused") IOException e) {
 				// store's responsibility to log
 			}
 		}

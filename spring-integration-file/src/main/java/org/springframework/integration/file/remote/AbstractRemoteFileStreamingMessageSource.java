@@ -28,7 +28,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -148,7 +147,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	/**
 	 * Subclasses can override to perform initialization - called from
-	 * {@link InitializingBean#afterPropertiesSet()}.
+	 * {@link org.springframework.beans.factory.InitializingBean#afterPropertiesSet()}.
 	 */
 	protected void doInit() {
 	}
@@ -162,11 +161,16 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	@Override
 	public void stop() {
 		if (this.running.compareAndSet(true, false)) {
-			// remove unprocessed files from the queue (and filter)
-			AbstractFileInfo<F> file = this.toBeReceived.poll();
-			while (file != null) {
-				resetFilterIfNecessary(file);
-				file = this.toBeReceived.poll();
+			if (this.filter == null || this.filter.supportsSingleFileFiltering()) {
+				this.toBeReceived.clear();
+			}
+			else {
+				// remove unprocessed files from the queue (and filter)
+				AbstractFileInfo<F> file = this.toBeReceived.poll();
+				while (file != null) {
+					resetFilterIfNecessary(file);
+					file = this.toBeReceived.poll();
+				}
 			}
 		}
 	}
@@ -180,26 +184,38 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	protected Object doReceive() {
 		Assert.state(this.running.get(), () -> getComponentName() + " is not running");
 		AbstractFileInfo<F> file = poll();
-		if (file != null) {
-			try {
-				String remotePath = remotePath(file);
-				Session<?> session = this.remoteFileTemplate.getSession();
-				try {
-					return getMessageBuilderFactory()
-							.withPayload(session.readRaw(remotePath))
-							.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-							.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-							.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
-							.setHeader(FileHeaders.REMOTE_FILE_INFO,
-									this.fileInfoJson ? file.toJson() : file);
-				}
-				catch (IOException e) {
-					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
-				}
+		while (file != null) {
+			if (this.filter != null && this.filter.supportsSingleFileFiltering()
+						&& !this.filter.accept(file.getFileInfo())) {
+
+					if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
+						file = poll();
+					}
+					else {
+						file = null;
+					}
 			}
-			catch (RuntimeException e) {
-				resetFilterIfNecessary(file);
-				throw e;
+			if (file != null) {
+				try {
+					String remotePath = remotePath(file);
+					Session<?> session = this.remoteFileTemplate.getSession();
+					try {
+						return getMessageBuilderFactory()
+								.withPayload(session.readRaw(remotePath))
+								.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+								.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
+								.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+								.setHeader(FileHeaders.REMOTE_FILE_INFO,
+										this.fileInfoJson ? file.toJson() : file);
+					}
+					catch (IOException e) {
+						throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
+					}
+				}
+				catch (RuntimeException e) {
+					resetFilterIfNecessary(file);
+					throw e;
+				}
 			}
 		}
 		return null;
@@ -240,17 +256,23 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			files = FileUtils.purgeUnwantedElements(files, f -> f == null || isDirectory(f), this.comparator);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
-			int maxFetchSize = getMaxFetchSize();
-			List<F> filteredFiles = this.filter == null ? Arrays.asList(files) : this.filter.filterFiles(files);
-			if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
-				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-				List<F> newList = new ArrayList<>(maxFetchSize);
-				for (int i = 0; i < maxFetchSize; i++) {
-					newList.add(filteredFiles.get(i));
+			List<AbstractFileInfo<F>> fileInfoList;
+			if (this.filter != null && !this.filter.supportsSingleFileFiltering()) {
+				int maxFetchSize = getMaxFetchSize();
+				List<F> filteredFiles = this.filter.filterFiles(files);
+				if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
+					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+					List<F> newList = new ArrayList<>(maxFetchSize);
+					for (int i = 0; i < maxFetchSize; i++) {
+						newList.add(filteredFiles.get(i));
+					}
+					filteredFiles = newList;
 				}
-				filteredFiles = newList;
+				fileInfoList = asFileInfoList(filteredFiles);
 			}
-			List<AbstractFileInfo<F>> fileInfoList = asFileInfoList(filteredFiles);
+			else {
+				fileInfoList = asFileInfoList(Arrays.asList(files));
+			}
 			fileInfoList.forEach(fi -> fi.setRemoteDirectory(remoteDirectory));
 			this.toBeReceived.addAll(fileInfoList);
 		}

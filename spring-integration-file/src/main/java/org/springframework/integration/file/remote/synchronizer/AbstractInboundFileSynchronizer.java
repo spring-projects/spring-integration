@@ -22,11 +22,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -215,9 +215,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 
-	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
-		this.remoteDirectoryExpression = remoteDirectoryExpression;
+	protected final void doSetRemoteDirectoryExpression(Expression expression) {
+		Assert.notNull(expression, "'remoteDirectoryExpression' must not be null");
+		this.remoteDirectoryExpression = expression;
 		evaluateRemoteDirectory();
 	}
 
@@ -229,8 +229,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		doSetFilter(filter);
 	}
 
-	protected final void doSetFilter(@Nullable FileListFilter<F> filter) {
-		this.filter = filter;
+	protected final void doSetFilter(@Nullable FileListFilter<F> filterToSet) {
+		this.filter = filterToSet;
 	}
 
 	/**
@@ -325,19 +325,23 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e), this.comparator);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
-			List<F> filteredFiles = filterFiles(files);
-			if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
-				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-				List<F> newList = new ArrayList<>(maxFetchSize);
-				for (int i = 0; i < maxFetchSize; i++) {
-					newList.add(filteredFiles.get(i));
-				}
-				filteredFiles = newList;
-			}
+			boolean haveFilter = this.filter != null;
+			boolean filteringOneByOne = haveFilter && this.filter.supportsSingleFileFiltering();
+			List<F> filteredFiles = applyFilter(files, haveFilter, filteringOneByOne, maxFetchSize);
 
 			int copied = filteredFiles.size();
+			int accepted = 0;
 
 			for (F file : filteredFiles) {
+				if (filteringOneByOne) {
+					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter.accept(file)) {
+						accepted++;
+					}
+					else {
+						file = null;
+						copied--;
+					}
+				}
 				try {
 					if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
 							localDirectory, session)) {
@@ -345,7 +349,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					}
 				}
 				catch (RuntimeException | IOException e1) {
-					rollbackFromFileToListEnd(filteredFiles, file);
+					if (filteringOneByOne) {
+						resetFilterIfNecessary(file);
+					}
+					else {
+						rollbackFromFileToListEnd(filteredFiles, file);
+					}
 					throw e1;
 				}
 			}
@@ -354,6 +363,27 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		else {
 			return 0;
 		}
+	}
+
+	private List<F> applyFilter(F[] files, boolean haveFilter, boolean filteringOneByOne, int maxFetchSize) {
+		List<F> filteredFiles;
+		if (!filteringOneByOne && haveFilter) {
+			filteredFiles = filterFiles(files);
+		}
+		else {
+			filteredFiles = Arrays.asList(files);
+		}
+		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
+			if (!filteringOneByOne) {
+				if (haveFilter) {
+					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+				}
+				filteredFiles = filteredFiles.stream()
+						.limit(maxFetchSize)
+						.collect(Collectors.toList());
+			}
+		}
+		return filteredFiles;
 	}
 
 	protected void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
@@ -418,12 +448,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				}
 				return true;
 			}
-			else if (this.filter instanceof ResettableFileListFilter) {
-				if (this.logger.isInfoEnabled()) {
-					this.logger.info("Reverting the remote file '" + remoteFile +
-							"' from the filter for a subsequent transfer attempt");
-				}
-				((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
+			else {
+				resetFilterIfNecessary(remoteFile);
 			}
 		}
 		else if (this.logger.isWarnEnabled()) {
@@ -432,6 +458,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 
 		return false;
+	}
+
+	private void resetFilterIfNecessary(F remoteFile) {
+		if (this.filter instanceof ResettableFileListFilter) {
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("Removing the remote file '" + remoteFile +
+						"' from the filter for a subsequent transfer attempt");
+			}
+			((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
+		}
 	}
 
 	private boolean copyRemoteContentToLocalFile(Session<F> session, String remoteFilePath, File localFile) {

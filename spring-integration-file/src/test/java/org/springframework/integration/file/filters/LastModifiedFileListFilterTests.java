@@ -45,10 +45,12 @@ public class LastModifiedFileListFilterTests {
 		FileOutputStream fileOutputStream = new FileOutputStream(foo);
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
-		assertThat(filter.filterFiles(new File[] { foo }).size()).isEqualTo(0);
+		assertThat(filter.filterFiles(new File[] { foo })).hasSize(0);
+		assertThat(filter.accept(foo)).isFalse();
 		// Make a file as of yesterday's
 		foo.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
-		assertThat(filter.filterFiles(new File[] { foo }).size()).isEqualTo(1);
+		assertThat(filter.filterFiles(new File[] { foo })).hasSize(1);
+		assertThat(filter.accept(foo)).isTrue();
 	}
 
 }

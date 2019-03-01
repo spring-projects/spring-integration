@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Gary Russell
  *
  * @since 1.0.0
  */
@@ -37,5 +38,30 @@ public interface FileListFilter<F> {
 	 * @return The filtered files.
 	 */
 	List<F> filterFiles(F[] files);
+
+	/**
+	 * Filter a single file; only called externally if {@link #supportsSingleFileFiltering()}
+	 * returns true.
+	 * @param file the file.
+	 * @return true if the file passes the filter, false to filter.
+	 * @since 5.2
+	 * @see #supportsSingleFileFiltering()
+	 */
+	default boolean accept(F file) {
+		throw new UnsupportedOperationException(
+				"Filters that return true in supportsSingleFileFiltering() must implement this method");
+	}
+
+	/**
+	 * Indicates that this filter supports filtering a single file.
+	 * Filters that return true <b>must</b> override {@link #accept(Object)}.
+	 * Default false.
+	 * @return true to allow external calls to {@link #accept(Object)}.
+	 * @since 5.2
+	 * @see #accept(Object)
+	 */
+	default boolean supportsSingleFileFiltering() {
+		return false;
+	}
 
 }

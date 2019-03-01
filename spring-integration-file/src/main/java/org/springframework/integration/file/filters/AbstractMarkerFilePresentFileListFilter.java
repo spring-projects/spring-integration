@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import java.util.stream.Collectors;
 /**
  * A FileListFilter that only passes files matched by one or more {@link FileListFilter}
  * if a corresponding marker file is also present to indicate a file transfer is complete.
+ *
+ * Since they look at multiple files, they cannot be used for late filtering in the
+ * streaming message source.
  *
  * @author Gary Russell
  * @since 5.0

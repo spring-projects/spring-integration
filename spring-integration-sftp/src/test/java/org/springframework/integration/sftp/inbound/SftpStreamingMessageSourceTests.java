@@ -169,7 +169,6 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 				new SftpStreamingMessageSource(this.config.template(),
 						Comparator.comparing(LsEntry::getFilename));
 		messageSource.setRemoteDirectory("sftpSource/");
-		messageSource.setMaxFetchSize(1);
 		messageSource.setBeanFactory(this.context);
 		return messageSource;
 	}

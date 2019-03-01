@@ -17,6 +17,7 @@
 package org.springframework.integration.file.filters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -99,6 +101,61 @@ public class CompositeFileListFilterTests {
 		verify(fileFilterMock2, never()).filterFiles(isA(File[].class));
 
 		compositeFileFilter.close();
+	}
+
+	@Test
+	public void singleFileCapableUO() throws IOException {
+		CompositeFileListFilter<String> compo =
+				new CompositeFileListFilter<>(Collections.singletonList(new FileListFilter<String>() {
+
+			@Override
+			public List<String> filterFiles(String[] files) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public boolean supportsSingleFileFiltering() {
+				return true;
+			}
+
+		}));
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> compo.accept("foo"));
+		compo.close();
+	}
+
+	@Test
+	public void singleFileCapable() throws IOException {
+		CompositeFileListFilter<String> compo =
+				new CompositeFileListFilter<>(Collections.singletonList(new FileListFilter<String>() {
+
+			@Override
+			public List<String> filterFiles(String[] files) {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public boolean supportsSingleFileFiltering() {
+				return true;
+			}
+
+			@Override
+			public boolean accept(String file) {
+				return true;
+			}
+
+		}));
+		assertThat(compo.accept("foo")).isTrue();
+		compo.addFilter(s -> null);
+		assertThat(compo.supportsSingleFileFiltering()).isFalse();
+		compo.close();
+	}
+
+	@Test
+	public void notSingleFileCapable() throws IOException {
+		CompositeFileListFilter<String> compo =
+				new CompositeFileListFilter<>(Collections.singletonList(s -> null));
+		assertThat(compo.supportsSingleFileFiltering()).isFalse();
+		compo.close();
 	}
 
 }
