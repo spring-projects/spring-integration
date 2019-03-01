@@ -98,6 +98,7 @@ public class StreamingInboundTests {
 		streamer.setRemoteDirectory("/bad");
 		streamer.afterPropertiesSet();
 		streamer.start();
+		streamer.receive();
 	}
 
 	@Test
@@ -226,14 +227,9 @@ public class StreamingInboundTests {
 
 	public static class StringSessionFactory implements SessionFactory<String> {
 
-		private Session<String> singletonSession;
-
 		@SuppressWarnings("unchecked")
 		@Override
 		public Session<String> getSession() {
-			if (this.singletonSession != null) {
-				return this.singletonSession;
-			}
 			try {
 				Session<String> session = mock(Session.class);
 				willReturn(new String[] { "/foo/foo", "/foo/bar" }).given(session).list("/foo");
@@ -253,9 +249,6 @@ public class StreamingInboundTests {
 				willThrow(new IOException("No file")).given(session).readRaw("/bad/file2");
 
 				given(session.finalizeRaw()).willReturn(true);
-
-				this.singletonSession = session;
-
 				return session;
 			}
 			catch (Exception e) {
