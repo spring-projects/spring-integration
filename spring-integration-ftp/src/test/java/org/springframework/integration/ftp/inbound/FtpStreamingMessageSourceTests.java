@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.util.Comparator;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,6 +49,8 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -114,12 +117,17 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.source.setFileInfoJson(false);
 		this.data.purge(null);
 		this.metadataMap.clear();
+		this.adapter.setTrigger(new OnlyOnceTrigger());
+		this.adapter.setMaxMessagesPerPoll(1);
 		this.adapter.start();
-		assertThat(this.data.receive(10000)).isNotNull();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
+		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).hasSize(1);
+		assertThat(this.metadataMap).hasSize(2);
 		this.adapter.stop();
+		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).isEmpty();
+		assertThat(this.metadataMap).hasSize(1);
 	}
 
 	@Test
@@ -127,6 +135,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo(" ftpSource1.txt");
@@ -142,6 +151,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo(" ftpSource1.txt");
@@ -174,7 +184,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public PollerMetadata defaultPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
 			pollerMetadata.setTrigger(new PeriodicTrigger(500));
-			pollerMetadata.setMaxMessagesPerPoll(1);
+			pollerMetadata.setMaxMessagesPerPoll(2);
 			return pollerMetadata;
 		}
 
