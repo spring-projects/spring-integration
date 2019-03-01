@@ -123,6 +123,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
@@ -136,6 +137,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
@@ -149,6 +151,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(Arrays::asList);
 		messageSource.afterPropertiesSet();
+		messageSource.start();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
