@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,7 +41,6 @@ import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -165,7 +165,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			// remove unprocessed files from the queue (and filter)
 			AbstractFileInfo<F> file = this.toBeReceived.poll();
 			while (file != null) {
-				resetFilterIfnecessary(file);
+				resetFilterIfNecessary(file);
 				file = this.toBeReceived.poll();
 			}
 		}
@@ -194,11 +194,11 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 									this.fileInfoJson ? file.toJson() : file);
 				}
 				catch (IOException e) {
-					throw new MessagingException("IOException when retrieving " + remotePath, e);
+					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
 				}
 			}
 			catch (RuntimeException e) {
-				resetFilterIfnecessary(file);
+				resetFilterIfNecessary(file);
 				throw e;
 			}
 		}
@@ -210,7 +210,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		return doReceive();
 	}
 
-	private void resetFilterIfnecessary(AbstractFileInfo<F> file) {
+	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
 		if (this.filter instanceof ResettableFileListFilter) {
 			if (this.logger.isInfoEnabled()) {
 				this.logger.info("Removing the remote file '" + file +
