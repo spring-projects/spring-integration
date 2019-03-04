@@ -21,9 +21,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 
 /**
  * Reads data in an InputStream to a byte[]; data must be preceded by
@@ -66,7 +63,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 
 	private final int headerSize;
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private int headerAdjust;
 
 	/**
 	 * Constructs the serializer using {@link #HEADER_SIZE_INT}
@@ -91,6 +88,42 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	}
 
 	/**
+	 * Return true if the lenght header value includes its own length.
+	 * @return true if the length includes the header length.
+	 * @since 5.2
+	 */
+	protected boolean isInclusive() {
+		return this.headerAdjust > 0;
+	}
+
+	/**
+	 * Set to true to set the length header to include the length of the header in
+	 * addition to the payload. Valid header sizes are {@link #HEADER_SIZE_INT} (default),
+	 * {@link #HEADER_SIZE_UNSIGNED_BYTE} and {@link #HEADER_SIZE_UNSIGNED_SHORT} and 4, 1
+	 * and 2 will be added to the payload length respectively.
+	 * @param inclusive true to include the header length.
+	 * @since 5.2
+	 * @see #inclusive()
+	 */
+	public void setInclusive(boolean inclusive) {
+		this.headerAdjust = inclusive ? this.headerSize : 0;
+	}
+
+	/**
+	 * Include the length of the header in addition to the payload. Valid header sizes are
+	 * {@link #HEADER_SIZE_INT} (default), {@link #HEADER_SIZE_UNSIGNED_BYTE} and
+	 * {@link #HEADER_SIZE_UNSIGNED_SHORT} and 4, 1 and 2 will be added to the payload
+	 * length respectively. Fluent API form of {@link #setInclusive(boolean)}.
+	 * @return the serializer.
+	 * @since 5.2
+	 * @see #setInclusive(boolean)
+	 */
+	public ByteArrayLengthHeaderSerializer inclusive() {
+		setInclusive(true);
+		return this;
+	}
+
+	/**
 	 * Reads the header from the stream and then reads the provided length
 	 * from the stream and returns the data in a byte[]. Throws an
 	 * IOException if the length field exceeds the maxMessageSize.
@@ -102,7 +135,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 */
 	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
-		int messageLength = this.readHeader(inputStream);
+		int messageLength = this.readHeader(inputStream) - this.headerAdjust;
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Message length is " + messageLength);
 		}
@@ -135,7 +168,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 */
 	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
-		this.writeHeader(outputStream, bytes.length);
+		this.writeHeader(outputStream, bytes.length + this.headerAdjust);
 		outputStream.write(bytes);
 	}
 
