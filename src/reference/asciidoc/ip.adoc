@@ -373,6 +373,7 @@ The following example shows a client connection factory that uses `java.net.Sock
 ----
 ====
 
+[[tcp-codecs]]
 ==== Message Demarcation (Serializers and Deserializers)
 
 TCP is a streaming protocol.
@@ -398,6 +399,8 @@ The default size of the length header is four bytes (an Integer), allowing for m
 However, the `length` header can be a single byte (unsigned) for messages up to 255 bytes, or an unsigned short (2 bytes) for messages up to (2^16 - 1) bytes.
 If you need any other format for the header, you can subclass `ByteArrayLengthHeaderSerializer` and provide implementations for the `readHeader` and `writeHeader` methods.
 The absolute maximum data size is (2^31 - 1) bytes.
+Starting with version 5.2, the header value can include the length of the header in addition to the payload.
+Set the `inclusive` property to enable that mechanism (it must be set to the same for producers and consumers).
 
 The `ByteArrayRawSerializer`^*^, converts a byte array to a stream of bytes and adds no additional message demarcation data.
 With this serializer (and deserializer), the end of a message is indicated by the client closing the socket in an orderly fashion.
