@@ -30,19 +30,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(org.springframework.test.context.junit4.SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class FileLockingWithMultipleSourcesIntegrationTests {
 
 	private static File workdir;
 
 	@BeforeClass
-	public static void setupWorkDirectory() throws Exception {
+	public static void setupWorkDirectory() {
 		workdir = new File(new File(System.getProperty("java.io.tmpdir")),
 				FileLockingWithMultipleSourcesIntegrationTests.class.getSimpleName());
 		workdir.mkdir();

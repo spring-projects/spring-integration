@@ -17,6 +17,7 @@
 package org.springframework.integration.file;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -61,23 +62,25 @@ public class AutoCreateDirectoryTests {
 	}
 
 	@Test
-	public void autoCreateForInboundEnabledByDefault() throws Exception {
+	public void autoCreateForInboundEnabledByDefault() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.afterPropertiesSet();
 		source.start();
 		assertThat(new File(INBOUND_PATH).exists()).isTrue();
+		source.stop();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void autoCreateForInboundDisabled() throws Exception {
+	@Test
+	public void autoCreateForInboundDisabled() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
 		source.setDirectory(new File(INBOUND_PATH));
 		source.setAutoCreateDirectory(false);
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.afterPropertiesSet();
-		source.start();
+		assertThatIllegalArgumentException()
+				.isThrownBy(source::start);
 	}
 
 	@Test
