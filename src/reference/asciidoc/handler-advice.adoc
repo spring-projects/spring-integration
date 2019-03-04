@@ -49,11 +49,12 @@ For chains that produce a reply, every child element can be advised.
 [[advice-classes]]
 ==== Provided Advice Classes
 
-In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides three standard advice classes:
+In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides these out-of-the-box advice implementations:
 
 * `RequestHandlerRetryAdvice` (described in <<retry-advice>>)
 * `RequestHandlerCircuitBreakerAdvice` (described in <<circuit-breaker-advice>>)
 * `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
+* `RateLimiterRequestHandlerAdvice` (described in <<rate-limiter-advice>>)
 
 [[retry-advice]]
 ===== Retry Advice
@@ -460,6 +461,37 @@ public class EerhaApplication {
         return f -> f.handle(System.out::println);
     }
 
+}
+----
+====
+
+[[rate-limiter-advice]]
+===== Rate Limiter Advice
+
+The Rate Limiter advice (`RateLimiterRequestHandlerAdvice`) allows to ensure that an endpoint does not get overloaded with requests.
+When the rate limit is breached the request will go in a blocked state.
+
+A typical use case for this advice might be an external service provider not allowing more than `n` number of request per minute.
+
+The `RateLimiterRequestHandlerAdvice` implementation is fully based on the https://github.com/resilience4j/resilience4j#ratelimiter[Resilience4j] project and requires either `RateLimiter` or `RateLimiterConfig` injections.
+Can also be configured with defaults and/or custom name.
+
+The following example configures a rate limiter advice with one request per 1 second:
+====
+[source, java]
+----
+@Bean
+public RateLimiterRequestHandlerAdvice rateLimiterRequestHandlerAdvice() {
+    return new RateLimiterRequestHandlerAdvice(RateLimiterConfig.custom()
+            .limitRefreshPeriod(Duration.ofSeconds(1))
+            .limitForPeriod(1)
+            .build());
+}
+
+@ServiceActivator(inputChannel = "requestChannel", outputChannel = "resultChannel",
+		adviceChain = "rateLimiterRequestHandlerAdvice")
+public String handleRequest(String payload) {
+    ...
 }
 ----
 ====
