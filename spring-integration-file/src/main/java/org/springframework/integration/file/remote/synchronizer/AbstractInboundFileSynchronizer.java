@@ -215,9 +215,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 
-	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
-		this.remoteDirectoryExpression = remoteDirectoryExpression;
+	protected final void doSetRemoteDirectoryExpression(Expression expression) {
+		Assert.notNull(expression, "'remoteDirectoryExpression' must not be null");
+		this.remoteDirectoryExpression = expression;
 		evaluateRemoteDirectory();
 	}
 
@@ -229,8 +229,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		doSetFilter(filter);
 	}
 
-	protected final void doSetFilter(@Nullable FileListFilter<F> filter) {
-		this.filter = filter;
+	protected final void doSetFilter(@Nullable FileListFilter<F> filterToSet) {
+		this.filter = filterToSet;
 	}
 
 	/**
@@ -339,6 +339,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					}
 					else {
 						file = null;
+						copied--;
 					}
 				}
 				try {
@@ -373,8 +374,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			filteredFiles = Arrays.asList(files);
 		}
 		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
-			if (!filteringOneByOne && haveFilter) {
-				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+			if (!filteringOneByOne) {
+				if (haveFilter) {
+					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+				}
 				filteredFiles = filteredFiles.stream()
 						.limit(maxFetchSize)
 						.collect(Collectors.toList());

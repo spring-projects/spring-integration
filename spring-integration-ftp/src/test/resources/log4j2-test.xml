@@ -8,7 +8,7 @@
 	<Loggers>
 		<Logger name="org.springframework" level="warn"/>
 		<Logger name="org.springframework.integration" level="warn"/>
-		<Logger name="org.springframework.integration.file" level="warn"/>
+		<Logger name="org.springframework.integration.file" level="trace"/>
 		<Logger name="org.springframework.integration.ftp" level="warn"/>
 		<Logger name="org.apache.ftpserver" level="error"/>
 		<Root level="warn">

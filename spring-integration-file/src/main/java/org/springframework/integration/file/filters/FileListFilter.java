@@ -16,7 +16,6 @@
 
 package org.springframework.integration.file.filters;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 /**
@@ -46,16 +45,15 @@ public interface FileListFilter<F> {
 	 * @since 5.2
 	 */
 	default boolean accept(F file) {
-		@SuppressWarnings("unchecked")
-		F[] fileArray = (F[]) Array.newInstance(file.getClass(), 1);
-		fileArray[0] = file;
-		return filterFiles(fileArray).size() > 0;
+		throw new UnsupportedOperationException(
+				"Filters that return true in supportsSingleFileFiltering() must implement this method");
 	}
 
 	/**
 	 * Indicates that this filter supports filtering a single file.
 	 * Default false.
 	 * @return true to allow external calls to {@link #accept(Object)}.
+	 * @since 5.2
 	 */
 	default boolean supportsSingleFileFiltering() {
 		return false;

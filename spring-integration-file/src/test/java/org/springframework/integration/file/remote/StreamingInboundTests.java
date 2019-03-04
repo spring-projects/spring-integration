@@ -35,6 +35,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -45,6 +47,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
@@ -65,13 +68,33 @@ public class StreamingInboundTests {
 
 	private final StreamTransformer transformer = new StreamTransformer();
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testAllData() throws Exception {
+	public void testAllDataNoFilter() throws IOException {
+		testAllData(null, true);
+	}
+
+	@Test
+	public void testAllDataSingleCapableFilter() throws IOException {
+		testAllData(null, false);
+	}
+
+	@Test
+	public void testAllDataBulkOnlyFilter() throws IOException {
+		testAllData(fs -> Stream.of(fs).collect(Collectors.toList()), false);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void testAllData(FileListFilter<String> filter, boolean nullFilter) throws IOException {
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
 		streamer.setBeanFactory(mock(BeanFactory.class));
 		streamer.setRemoteDirectory("/foo");
+		if (filter != null) {
+			streamer.setFilter(filter);
+		}
+		if (nullFilter) {
+			streamer.setFilter(null);
+		}
 		streamer.afterPropertiesSet();
 		streamer.start();
 		Message<byte[]> received = (Message<byte[]>) this.transformer.transform(streamer.receive());
@@ -225,6 +248,11 @@ public class StreamingInboundTests {
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
 
 		ConcurrentHashMap<String, String> metadataMap = new ConcurrentHashMap<>();
+
+		protected Streamer(RemoteFileTemplate<String> template) {
+			super(template, null);
+			doSetFilter(null);
+		}
 
 		protected Streamer(RemoteFileTemplate<String> template, Comparator<String> comparator) {
 			super(template, comparator);

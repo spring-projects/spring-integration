@@ -187,10 +187,16 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		AbstractFileInfo<F> file = poll();
 		while (file != null) {
 			if (this.filter != null && this.filter.supportsSingleFileFiltering()
-					&& !this.filter.accept(file.getFileInfo())) {
-				file = poll();
+						&& !this.filter.accept(file.getFileInfo())) {
+
+					if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
+						file = poll();
+					}
+					else {
+						file = null;
+					}
 			}
-			else {
+			if (file != null) {
 				try {
 					String remotePath = remotePath(file);
 					Session<?> session = this.remoteFileTemplate.getSession();

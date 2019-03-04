@@ -27,12 +27,15 @@ import java.io.OutputStream;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.HeadDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
@@ -113,7 +116,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	}
 
 	@Test
-	public void testMaxFetchSizeSource() throws Exception {
+	public void testMaxFetchSizeSource() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
@@ -130,7 +133,62 @@ public class AbstractRemoteFileSynchronizerTests {
 	}
 
 	@Test
-	public void testExclusiveScanner() throws Exception {
+	public void testDefaultFilter() {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
+		source.afterPropertiesSet();
+		source.start();
+		source.receive();
+		assertThat(count.get()).isEqualTo(1);
+		source.receive();
+		assertThat(count.get()).isEqualTo(2);
+		source.receive();
+		assertThat(count.get()).isEqualTo(3);
+		source.receive();
+		assertThat(count.get()).isEqualTo(3);
+	}
+
+	@Test
+	public void testNoFilter() {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
+		sync.setFilter(null);
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
+		source.afterPropertiesSet();
+		source.start();
+		source.receive();
+		assertThat(count.get()).isEqualTo(1);
+		source.receive();
+		assertThat(count.get()).isEqualTo(2);
+		source.receive();
+		assertThat(count.get()).isEqualTo(3);
+		source.receive();
+		assertThat(count.get()).isEqualTo(4);
+	}
+
+	@Test
+	public void testBulkOnlyFilter() {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
+		ChainFileListFilter<String> cflf = new ChainFileListFilter<>();
+		cflf.addFilter(new AcceptOnceFileListFilter<>());
+		cflf.addFilter(fs -> Stream.of(fs).collect(Collectors.toList()));
+		sync.setFilter(cflf);
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
+		source.afterPropertiesSet();
+		source.start();
+		source.receive();
+		assertThat(count.get()).isEqualTo(1);
+		source.receive();
+		assertThat(count.get()).isEqualTo(2);
+		source.receive();
+		assertThat(count.get()).isEqualTo(3);
+		source.receive();
+		assertThat(count.get()).isEqualTo(3);
+	}
+
+	@Test
+	public void testExclusiveScanner() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
 		source.setScanner(new HeadDirectoryScanner(1));
@@ -141,7 +199,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	}
 
 	@Test
-	public void testExclusiveWatchService() throws Exception {
+	public void testExclusiveWatchService() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
 		source.setUseWatchService(true);
@@ -152,7 +210,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	}
 
 	@Test(expected = IllegalStateException.class)
-	public void testScannerAndWatchServiceConflict() throws Exception {
+	public void testScannerAndWatchServiceConflict() {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
 		source.setUseWatchService(true);
@@ -205,7 +263,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 			@Override
 			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile,
-					File localDirectory, Session<String> session) throws IOException {
+					File localDirectory, Session<String> session) {
 				count.incrementAndGet();
 				return true;
 			}
@@ -228,40 +286,44 @@ public class AbstractRemoteFileSynchronizerTests {
 
 	private class StringSession implements Session<String> {
 
+		StringSession() {
+			super();
+		}
+
 		@Override
-		public boolean remove(String path) throws IOException {
+		public boolean remove(String path) {
 			return true;
 		}
 
 		@Override
-		public String[] list(String path) throws IOException {
+		public String[] list(String path) {
 			return new String[] { "foo", "bar", "baz" };
 		}
 
 		@Override
-		public void read(String source, OutputStream outputStream) throws IOException {
+		public void read(String source, OutputStream outputStream) {
 		}
 
 		@Override
-		public void write(InputStream inputStream, String destination) throws IOException {
+		public void write(InputStream inputStream, String destination) {
 		}
 
 		@Override
-		public void append(InputStream inputStream, String destination) throws IOException {
+		public void append(InputStream inputStream, String destination) {
 		}
 
 		@Override
-		public boolean mkdir(String directory) throws IOException {
+		public boolean mkdir(String directory) {
 			return true;
 		}
 
 		@Override
-		public boolean rmdir(String directory) throws IOException {
+		public boolean rmdir(String directory) {
 			return true;
 		}
 
 		@Override
-		public void rename(String pathFrom, String pathTo) throws IOException {
+		public void rename(String pathFrom, String pathTo) {
 		}
 
 		@Override
@@ -274,22 +336,22 @@ public class AbstractRemoteFileSynchronizerTests {
 		}
 
 		@Override
-		public boolean exists(String path) throws IOException {
+		public boolean exists(String path) {
 			return true;
 		}
 
 		@Override
-		public String[] listNames(String path) throws IOException {
+		public String[] listNames(String path) {
 			return new String[0];
 		}
 
 		@Override
-		public InputStream readRaw(String source) throws IOException {
+		public InputStream readRaw(String source) {
 			return null;
 		}
 
 		@Override
-		public boolean finalizeRaw() throws IOException {
+		public boolean finalizeRaw() {
 			return true;
 		}
 
