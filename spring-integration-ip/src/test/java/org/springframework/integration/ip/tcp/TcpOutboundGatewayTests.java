@@ -312,7 +312,7 @@ public class TcpOutboundGatewayTests {
 		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = buildCF(port);
 		ccf.start();
-		testGoodNetGWTimeoutGuts(port, ccf, serverSocket);
+		testGoodNetGWTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -323,7 +323,7 @@ public class TcpOutboundGatewayTests {
 		AbstractClientConnectionFactory ccf = buildCF(port);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
 		cccf.start();
-		testGoodNetGWTimeoutGuts(port, cccf, serverSocket);
+		testGoodNetGWTimeoutGuts(cccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -342,8 +342,9 @@ public class TcpOutboundGatewayTests {
 	 * own response, not that for the first.
 	 * @throws Exception
 	 */
-	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
+	private void testGoodNetGWTimeoutGuts(AbstractClientConnectionFactory ccf,
 			final ServerSocket server) throws InterruptedException {
+
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*
@@ -372,11 +373,13 @@ public class TcpOutboundGatewayTests {
 							oos.writeObject(request.replace("Test", "Reply"));
 							logger.debug("Replied to " + request);
 							lastReceived.set(request);
-							serverLatch.countDown();
 						}
 						catch (IOException e1) {
-							logger.debug("error on write " + e1.getClass().getSimpleName());
+							logger.debug("error on write " + e1.getMessage());
 							socket.close();
+						}
+						finally {
+							serverLatch.countDown();
 						}
 					}
 				}
@@ -398,7 +401,7 @@ public class TcpOutboundGatewayTests {
 		Expression remoteTimeoutExpression = Mockito.mock(Expression.class);
 
 		when(remoteTimeoutExpression.getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class),
-				Mockito.eq(Long.class))).thenReturn(50L, 10000L);
+				Mockito.eq(Long.class))).thenReturn(50L, 60000L);
 
 		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
 
@@ -626,7 +629,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketCloseGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketCloseGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -640,7 +643,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketCloseGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketCloseGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -655,7 +658,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSingleUse(false);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
 		cccf.start();
-		testGWPropagatesSocketCloseGuts(port, cccf, serverSocket);
+		testGWPropagatesSocketCloseGuts(cccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -671,12 +674,13 @@ public class TcpOutboundGatewayTests {
 		FailoverClientConnectionFactory focf = new FailoverClientConnectionFactory(
 				Collections.singletonList(ccf));
 		focf.start();
-		testGWPropagatesSocketCloseGuts(port, focf, serverSocket);
+		testGWPropagatesSocketCloseGuts(focf, serverSocket);
 		serverSocket.close();
 	}
 
-	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf,
+	private void testGWPropagatesSocketCloseGuts(AbstractClientConnectionFactory ccf,
 			final ServerSocket server) throws Exception {
+
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<String> lastReceived = new AtomicReference<>();
@@ -699,6 +703,7 @@ public class TcpOutboundGatewayTests {
 							serverLatch.countDown();
 						}
 						catch (IOException e1) {
+							logger.debug("error on write " + e1.getMessage());
 							socket1.close();
 						}
 					}
@@ -713,7 +718,7 @@ public class TcpOutboundGatewayTests {
 				try {
 					socket2.close();
 				}
-				catch (IOException e3) {
+				catch (@SuppressWarnings("unused") IOException e3) {
 				}
 			}
 		});
@@ -754,7 +759,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -768,7 +773,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -782,7 +787,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
@@ -796,12 +801,13 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		testGWPropagatesSocketTimeoutGuts(ccf, serverSocket);
 		serverSocket.close();
 	}
 
-	private void testGWPropagatesSocketTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
+	private void testGWPropagatesSocketTimeoutGuts(AbstractClientConnectionFactory ccf,
 			final ServerSocket server) throws Exception {
+
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 
@@ -822,7 +828,7 @@ public class TcpOutboundGatewayTests {
 				try {
 					socket.close();
 				}
-				catch (IOException e2) {
+				catch (@SuppressWarnings("unused") IOException e2) {
 				}
 			}
 		});
@@ -879,7 +885,7 @@ public class TcpOutboundGatewayTests {
 				try {
 					socket.close();
 				}
-				catch (IOException e2) {
+				catch (@SuppressWarnings("unused") IOException e2) {
 				}
 			}
 		});
