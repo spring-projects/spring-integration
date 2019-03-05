@@ -24,6 +24,7 @@ import java.util.List;
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Gary Russell
  *
  * @since 1.0.0
  */
