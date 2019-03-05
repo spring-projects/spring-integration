@@ -28,7 +28,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -148,7 +147,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	/**
 	 * Subclasses can override to perform initialization - called from
-	 * {@link InitializingBean#afterPropertiesSet()}.
+	 * {@link org.springframework.beans.factory.InitializingBean#afterPropertiesSet()}.
 	 */
 	protected void doInit() {
 	}

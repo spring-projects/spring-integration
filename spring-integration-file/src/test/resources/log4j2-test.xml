@@ -6,8 +6,8 @@
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.springframework.integration" level="trace"/>
-		<Logger name="org.springframework.integration.file" level="trace"/>
+		<Logger name="org.springframework.integration" level="warn"/>
+		<Logger name="org.springframework.integration.file" level="warn"/>
 		<Root level="warn">
 			<AppenderRef ref="STDOUT" />
 		</Root>
