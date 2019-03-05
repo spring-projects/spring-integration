@@ -39,10 +39,12 @@ public interface FileListFilter<F> {
 	List<F> filterFiles(F[] files);
 
 	/**
-	 * Filter a single file.
+	 * Filter a single file; only called externally if {@link #supportsSingleFileFiltering()}
+	 * returns true.
 	 * @param file the file.
 	 * @return true if the file passes the filter, false to filter.
 	 * @since 5.2
+	 * @see #supportsSingleFileFiltering()
 	 */
 	default boolean accept(F file) {
 		throw new UnsupportedOperationException(
@@ -51,9 +53,11 @@ public interface FileListFilter<F> {
 
 	/**
 	 * Indicates that this filter supports filtering a single file.
+	 * Filters that return true <b>must</b> override {@link #accept(Object)}.
 	 * Default false.
 	 * @return true to allow external calls to {@link #accept(Object)}.
 	 * @since 5.2
+	 * @see #accept(Object)
 	 */
 	default boolean supportsSingleFileFiltering() {
 		return false;
