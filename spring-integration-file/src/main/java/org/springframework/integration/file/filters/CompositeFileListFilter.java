@@ -63,7 +63,7 @@ public class CompositeFileListFilter<F>
 
 	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		this.fileFilters = new LinkedHashSet<>(fileFilters);
-		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter::supportsSingleFileFiltering);
+		this.allSupportAccept = fileFilters.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
 	}
 
 
@@ -86,8 +86,9 @@ public class CompositeFileListFilter<F>
 	 * @return this CompositeFileFilter instance with the added filters
 	 * @see #addFilters(Collection)
 	 */
-	@SuppressWarnings("unchecked")
-	public CompositeFileListFilter<F> addFilters(FileListFilter<F>... filters) {
+	@SafeVarargs
+	@SuppressWarnings("varargs")
+	public final CompositeFileListFilter<F> addFilters(FileListFilter<F>... filters) {
 		List<FileListFilter<F>> asList = Arrays.asList(filters);
 		return addFilters(asList);
 	}
@@ -115,7 +116,7 @@ public class CompositeFileListFilter<F>
 			}
 		}
 		this.fileFilters.addAll(filtersToAdd);
-		this.allSupportAccept &= filtersToAdd.stream().allMatch(FileListFilter::supportsSingleFileFiltering);
+		this.allSupportAccept &= filtersToAdd.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
 		return this;
 	}
 
