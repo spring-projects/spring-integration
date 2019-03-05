@@ -112,8 +112,9 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	@Override
 	public List<File> filterFiles(File[] files) {
 		List<File> list = new ArrayList<>();
+		long now = System.currentTimeMillis() / ONE_SECOND;
 		for (File file : files) {
-			if (file.lastModified() / ONE_SECOND + this.age <= System.currentTimeMillis() / ONE_SECOND) {
+			if (fileIsAged(file, now)) {
 				list.add(file);
 			}
 			else if (this.discardCallback != null) {
@@ -125,13 +126,17 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 
 	@Override
 	public boolean accept(File file) {
-		if (file.lastModified() / ONE_SECOND + this.age <= System.currentTimeMillis() / ONE_SECOND) {
+		if (fileIsAged(file, System.currentTimeMillis() / ONE_SECOND)) {
 			return true;
 		}
 		else if (this.discardCallback != null) {
 			this.discardCallback.accept(file);
 		}
 		return false;
+	}
+
+	private boolean fileIsAged(File file, long now) {
+		return file.lastModified() / ONE_SECOND + this.age <= now;
 	}
 
 	@Override

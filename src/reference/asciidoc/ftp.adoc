@@ -344,6 +344,8 @@ Unless your application removes files after processing, the adapter will re-proc
 
 Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not let this new file be processed.
 
+For more information about this filter, and how it is used, see <<remote-persistent-flf>>.
+
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
 This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see <<metadata-store>>) and detects changes to the local file modified time.
@@ -622,6 +624,8 @@ By default, this filter is also applied with the filename pattern (or regex).
 If you need to allow duplicates, you can use `AcceptAllFileListFilter`.
 Any other use cases can be handled by `CompositeFileListFilter` (or `ChainFileListFilter`).
 The Java configuration (<<ftp-streaming-java,later in the document>>) shows one technique to remove the remote file after processing to avoid duplicates.
+
+For more information about the `FtpPersistentAcceptOnceFileListFilter`, and how it is used, see <<remote-persistent-flf>>.
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.

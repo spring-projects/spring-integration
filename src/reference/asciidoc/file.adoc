@@ -461,7 +461,7 @@ public class FileReadingJavaApplication {
                   .transform(Files.toStringTransformer())
                   .channel("processFileChannel")
                   .get();
-        }
+    }
 
 }
 ----
@@ -482,15 +482,15 @@ Examples of such events include the following:
 ====
 [source,bash]
 ----
-[message=tail: cannot open `/tmp/somefile' for reading:
+[message=tail: cannot open '/tmp/somefile' for reading:
                No such file or directory, file=/tmp/somefile]
 
-[message=tail: `/tmp/somefile' has become accessible, file=/tmp/somefile]
+[message=tail: '/tmp/somefile' has become accessible, file=/tmp/somefile]
 
-[message=tail: `/tmp/somefile' has become inaccessible:
+[message=tail: '/tmp/somefile' has become inaccessible:
                No such file or directory, file=/tmp/somefile]
 
-[message=tail: `/tmp/somefile' has appeared;
+[message=tail: '/tmp/somefile' has appeared;
                following end of new file, file=/tmp/somefile]
 ----
 ====
@@ -1114,3 +1114,33 @@ public class FileSplitterApplication {
 }
 ----
 ====
+
+[[remote-persistent-flf]]
+=== Remote Persistent File List Filters
+
+Inbound and streaming inbound remote file channel adapters (`FTP`, `SFTP`, and other technologies) are configured with correponding implementations of `AbstractPersistentFileListFilter` by default, configured with an in-memory `MetadataStore`.
+To run in a cluster, these can be replaced with filters using a shared `MetadataStore` (see <<metadata-store>> for more information).
+These filters are used to prevent fetching the same file multiple times (unless it's modified time changes).
+Starting with version 5.2, a file is added to the filter immediately before the file is fetched (and reversed if the fetch fails).
+
+IMPORTANT: In the event of a catestrophic failure (such as power loss), it is possible that the file currently being fetched will remain in the filter and won't be re-fetched when restarting the application.
+In this case you would need to manually remove this file from the `MetadataStore`.
+
+In previous versions, the files were filtered before any were fetched, meaning that several files could be in this state after a catestrophic failure.
+
+In order to facilitate this new behavior, two new methods have been added to `FileListFilter`.
+
+====
+[source, java]
+----
+boolean accept(F file);
+
+boolean supportsSingleFileFiltering();
+----
+====
+
+If a filter returns `true` in `supportsSingleFileFiltering`, it **must** implement `accept()`.
+
+If a remote filter does not support single file filtering (such as the `AbstractMarkerFilePresentFileListFilter`), the adapters revert to the previous behavior.
+
+If multiple filters are in used (using a `CompositeFileListFilter` or `ChainFileListFilter`), then **all** of the delegate filters must support single file filtering in order for the composite filter to support it.

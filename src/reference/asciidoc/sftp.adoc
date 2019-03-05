@@ -371,7 +371,9 @@ Once the files have been retrieved, an additional filter is applied to the files
 By default, this is an`AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
 Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restart.
 
-Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
+Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
+
+For more information about this filter, and how it is used, see <<remote-persistent-flf>>.
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
@@ -621,6 +623,8 @@ By default, this filter is also applied together with the filename pattern (or r
 If you need to allow duplicates, you can use the `AcceptAllFileListFilter`.
 You can handle any other use cases by using `CompositeFileListFilter` (or `ChainFileListFilter`).
 The Java configuration <<sftp-streaming-java-config,shown later>> shows one technique to remove the remote file after processing, avoiding duplicates.
+
+For more information about the `SftpPersistentAcceptOnceFileListFilter`, and how it is used, see <<remote-persistent-flf>>.
 
 You can use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.

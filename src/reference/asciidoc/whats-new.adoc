@@ -10,7 +10,13 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.2-general]]
 === General Changes
 
-[[5.2-tcp]]
+[[x5.2-file]]
+==== File Changes
+
+Some improvements to filtering remote files have been made.
+See <<remote-persistent-flf>> for more information.
+
+[[x5.2-tcp]]
 ==== TCP Changes
 
 The length header used by the `ByteArrayLengthHeaderSerializer` can now include the length of the header in addition to the payload.
