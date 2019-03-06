@@ -232,9 +232,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message)
-			throws Exception { // NOSONAR
-
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		try {
 			Object result = callback.execute();
 			if (this.onSuccessExpression != null) {
@@ -242,7 +240,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			}
 			return result;
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			Exception actualException = unwrapExceptionIfNecessary(e);
 			if (this.onFailureExpression != null) {
 				Object evalResult = evaluateFailureExpression(message, actualException);
@@ -251,13 +249,18 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 				}
 			}
 			if (!this.trapException) {
-				throw actualException;
+				if (e instanceof ThrowableHolderException) { // NOSONAR
+					throw (ThrowableHolderException) e;
+				}
+				else {
+					throw new ThrowableHolderException(actualException); // NOSONAR lost stack trace
+				}
 			}
 			return null;
 		}
 	}
 
-	private void evaluateSuccessExpression(Message<?> message) throws Exception { // NOSONAR
+	private void evaluateSuccessExpression(Message<?> message) {
 		Object evalResult;
 		try {
 			evalResult = this.onSuccessExpression.getValue(prepareEvaluationContextToUse(null), message);
@@ -274,7 +277,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			this.messagingTemplate.send(this.successChannel, resultMessage);
 		}
 		if (evalResult instanceof Exception && this.propagateOnSuccessEvaluationFailures) {
-			throw (Exception) evalResult;
+			throw new ThrowableHolderException((Exception) evalResult);
 		}
 	}
 

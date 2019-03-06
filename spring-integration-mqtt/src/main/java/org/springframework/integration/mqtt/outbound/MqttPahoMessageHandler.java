@@ -31,6 +31,7 @@ import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -189,17 +190,22 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
-	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
+	protected void publish(String topic, Object mqttMessage, Message<?> message) {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		IMqttDeliveryToken token = checkConnection()
-				.publish(topic, (MqttMessage) mqttMessage);
-		if (!this.async) {
-			token.waitForCompletion(this.completionTimeout);
+		try {
+			IMqttDeliveryToken token = checkConnection()
+					.publish(topic, (MqttMessage) mqttMessage);
+			if (!this.async) {
+				token.waitForCompletion(this.completionTimeout);
+			}
+			else if (this.asyncEvents && this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(
+						new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
+								getClientInstance()));
+			}
 		}
-		else if (this.asyncEvents && this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(
-					new MqttMessageSentEvent(this, message, topic, token.getMessageId(), getClientId(),
-							getClientInstance()));
+		catch (MqttException e) {
+			throw new MessageHandlingException(message, "Failed to publish to MQTT", e);
 		}
 	}
 

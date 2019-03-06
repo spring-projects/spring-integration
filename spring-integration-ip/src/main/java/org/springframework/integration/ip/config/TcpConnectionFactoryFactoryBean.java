@@ -19,7 +19,6 @@ package org.springframework.integration.ip.config;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,7 +57,7 @@ import org.springframework.util.Assert;
  * @since 2.0.5
  */
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory>
-		implements Lifecycle, BeanNameAware, BeanFactoryAware, ApplicationEventPublisherAware {
+		implements Lifecycle, BeanNameAware, ApplicationEventPublisherAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -151,7 +150,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	@Override
-	protected AbstractConnectionFactory createInstance() throws Exception {
+	protected AbstractConnectionFactory createInstance() {
 		if (!this.mapperSet) {
 			this.mapper.setBeanFactory(this.beanFactory);
 		}

@@ -318,12 +318,11 @@ public class IdempotentReceiverIntegrationTests {
 		}
 
 		@Bean
-		public Advice fooAdvice(final AtomicInteger adviceCalled) {
+		public Advice fooAdvice(@SuppressWarnings("unused") final AtomicInteger adviceCalled) {
 			return new AbstractRequestHandlerAdvice() {
 
 				@Override
-				protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message)
-						throws Exception {
+				protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 					adviceCalled.incrementAndGet();
 					return callback.execute();
 				}

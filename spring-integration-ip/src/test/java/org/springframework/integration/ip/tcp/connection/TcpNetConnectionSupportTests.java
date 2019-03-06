@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,13 @@ public class TcpNetConnectionSupportTests {
 		server.setTcpNetConnectionSupport(new DefaultTcpNetConnectionSupport() {
 
 			@Override
-			public TcpNetConnection createNewConnection(Socket socket, boolean server, boolean lookupHost,
-					ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName)
-					throws Exception {
+			public TcpNetConnection createNewConnection(Socket socket, boolean isServer, boolean lookupHost,
+					ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+
 				if (firstTime.getAndSet(false)) {
 					throw new RuntimeException("intended");
 				}
-				return super.createNewConnection(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
+				return super.createNewConnection(socket, isServer, lookupHost, applicationEventPublisher, connectionFactoryName);
 			}
 
 		});

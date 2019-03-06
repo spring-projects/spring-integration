@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationC
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (getApplicationContext() != null) {
 			this.beanResolver = new BeanFactoryResolver(getApplicationContext());
 		}
@@ -87,7 +87,7 @@ public class IntegrationEvaluationContextFactoryBean extends AbstractEvaluationC
 	}
 
 	@Override
-	public StandardEvaluationContext getObject() throws Exception {
+	public StandardEvaluationContext getObject() {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		if (this.typeLocator != null) {
 			evaluationContext.setTypeLocator(this.typeLocator);

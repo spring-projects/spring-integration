@@ -229,7 +229,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	protected abstract Object doReceive();
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.receiveCounter != null) {
 			this.receiveCounter.remove();
 		}

@@ -182,7 +182,7 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.beanName == null) {
 			logger.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
 					"Consider specifying the 'beanName' property on this ConsumerEndpointFactoryBean.");
@@ -248,7 +248,7 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	@Override
-	public AbstractEndpoint getObject() throws Exception {
+	public AbstractEndpoint getObject() {
 		if (!this.initialized) {
 			this.initializeEndpoint();
 		}
@@ -263,8 +263,7 @@ public class ConsumerEndpointFactoryBean
 		return this.endpoint.getClass();
 	}
 
-	@SuppressWarnings("unchecked")
-	private void initializeEndpoint() throws Exception {
+	private void initializeEndpoint() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
@@ -381,7 +380,7 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.endpoint != null) {
 			this.endpoint.destroy();
 		}

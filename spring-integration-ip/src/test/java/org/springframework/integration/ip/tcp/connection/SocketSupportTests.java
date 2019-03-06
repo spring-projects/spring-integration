@@ -17,18 +17,15 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
 
 import org.junit.Test;
@@ -51,6 +47,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -366,13 +363,8 @@ public class SocketSupportTests {
 	@Test
 	public void testNetClientAndServerSSLDifferentContexts() throws Exception {
 		testNetClientAndServerSSLDifferentContexts(false);
-		try {
-			testNetClientAndServerSSLDifferentContexts(true);
-			fail("expected Exception");
-		}
-		catch (SSLException | SocketException e) {
-			// NOSONAR
-		}
+		assertThatExceptionOfType(MessagingException.class)
+			.isThrownBy(() -> testNetClientAndServerSSLDifferentContexts(true));
 	}
 
 	private void testNetClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {
@@ -478,19 +470,10 @@ public class SocketSupportTests {
 	@Test
 	public void testNioClientAndServerSSLDifferentContexts() throws Exception {
 		testNioClientAndServerSSLDifferentContexts(false);
-		try {
-			testNioClientAndServerSSLDifferentContexts(true);
-			fail("expected Exception");
-		}
-		catch (IOException e) {
-			if (!(e instanceof ClosedChannelException)) {
-				assertThat(e.getMessage())
-						.satisfiesAnyOf(
-								s -> assertThat(s).contains("Socket closed during SSL Handshake"),
-								s -> assertThat(s).contains("Broken pipe"),
-								s -> assertThat(s).contains("Connection reset by peer"));
-			}
-		}
+		assertThatExceptionOfType(MessagingException.class)
+			.isThrownBy(() -> testNioClientAndServerSSLDifferentContexts(true))
+			.withMessageMatching(".*(Socket closed during SSL Handshake|Broken pipe"
+					+ "|Connection reset by peer|AsynchronousCloseException).*");
 	}
 
 	private void testNioClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {

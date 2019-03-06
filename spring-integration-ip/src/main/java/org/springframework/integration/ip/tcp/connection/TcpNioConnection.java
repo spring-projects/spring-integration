@@ -20,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
@@ -56,6 +57,10 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpNioConnection extends TcpConnectionSupport {
+
+	private static final String UNUSED = "unused";
+
+	private static final int SIXTY = 60;
 
 	private static final long DEFAULT_PIPE_TIMEOUT = 60000;
 
@@ -123,12 +128,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		try {
 			this.channelInputStream.close();
 		}
-		catch (IOException e) {
+		catch (@SuppressWarnings(UNUSED) IOException e) {
 		}
 		try {
 			this.socketChannel.close();
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception e) {
 		}
 		super.close();
 	}
@@ -140,24 +145,25 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void send(Message<?> message) throws Exception {
+	public void send(Message<?> message) {
 		synchronized (this.socketChannel) {
-			if (this.bufferedOutputStream == null) {
-				int writeBufferSize = this.socketChannel.socket().getSendBufferSize();
-				this.bufferedOutputStream = new BufferedOutputStream(getChannelOutputStream(),
-						writeBufferSize > 0 ? writeBufferSize : 8192);
-			}
-			Object object = getMapper().fromMessage(message);
-			Assert.state(object != null, "Mapper mapped the message to 'null'.");
-			this.lastSend = System.currentTimeMillis();
 			try {
+				if (this.bufferedOutputStream == null) {
+					int writeBufferSize = this.socketChannel.socket().getSendBufferSize();
+					this.bufferedOutputStream = new BufferedOutputStream(getChannelOutputStream(),
+							writeBufferSize > 0 ? writeBufferSize : 8192);
+				}
+				Object object = getMapper().fromMessage(message);
+				Assert.state(object != null, "Mapper mapped the message to 'null'.");
+				this.lastSend = System.currentTimeMillis();
 				((Serializer<Object>) getSerializer()).serialize(object, this.bufferedOutputStream);
 				this.bufferedOutputStream.flush();
 			}
 			catch (Exception e) {
-				publishConnectionExceptionEvent(new MessagingException(message, "Failed TCP serialization", e));
+				MessagingException mex = new MessagingException(message, "Send Failed", e);
+				publishConnectionExceptionEvent(mex);
 				closeConnection(true);
-				throw e;
+				throw mex;
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug(getConnectionId() + " Message sent " + message);
@@ -166,9 +172,14 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	@Override
-	public Object getPayload() throws Exception {
-		return getDeserializer()
-				.deserialize(inputStream());
+	public Object getPayload() {
+		try {
+			return getDeserializer()
+					.deserialize(inputStream());
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@Override
@@ -240,7 +251,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 							try {
 								this.taskExecutor.execute2(this);
 							}
-							catch (RejectedExecutionException e) {
+							catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
 								this.executionControl.decrementAndGet();
 								if (logger.isInfoEnabled()) {
 									logger.info(getConnectionId()
@@ -288,40 +299,35 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				// Final check in case new data came in and the
 				// timing was such that we were the last assembler and
 				// a new one wasn't run
-				try {
-					if (dataAvailable()) {
-						synchronized (this.executionControl) {
-							if (this.executionControl.incrementAndGet() <= 1) {
-								// only continue if we don't already have another assembler running
-								this.executionControl.set(1);
-								moreDataAvailable = true;
+				if (dataAvailable()) {
+					synchronized (this.executionControl) {
+						if (this.executionControl.incrementAndGet() <= 1) {
+							// only continue if we don't already have another assembler running
+							this.executionControl.set(1);
+							moreDataAvailable = true;
 
-							}
-							else {
-								this.executionControl.decrementAndGet();
-							}
 						}
-					}
-					if (moreDataAvailable) {
-						if (logger.isTraceEnabled()) {
-							logger.trace(getConnectionId() + " Nio message assembler continuing...");
-						}
-					}
-					else {
-						if (logger.isTraceEnabled()) {
-							logger.trace(getConnectionId() + " Nio message assembler exiting... avail: "
-									+ this.channelInputStream.available());
+						else {
+							this.executionControl.decrementAndGet();
 						}
 					}
 				}
-				catch (IOException e) {
-					logger.error("Exception when checking for assembler", e);
+				if (moreDataAvailable) {
+					if (logger.isTraceEnabled()) {
+						logger.trace(getConnectionId() + " Nio message assembler continuing...");
+					}
+				}
+				else {
+					if (logger.isTraceEnabled()) {
+						logger.trace(getConnectionId() + " Nio message assembler exiting... avail: "
+								+ this.channelInputStream.available());
+					}
 				}
 			}
 		}
 	}
 
-	private boolean dataAvailable() throws IOException {
+	private boolean dataAvailable() {
 		if (logger.isTraceEnabled()) {
 			logger.trace(getConnectionId() + " checking data avail: " + this.channelInputStream.available() +
 					" pending: " + (this.writingToPipe));
@@ -343,7 +349,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		if (this.channelInputStream.available() <= 0) {
 			try {
-				if (this.writingLatch.await(60, TimeUnit.SECONDS)) {
+				if (this.writingLatch.await(SIXTY, TimeUnit.SECONDS)) {
 					if (this.channelInputStream.available() <= 0) {
 						return null;
 					}
@@ -352,7 +358,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					throw new IOException("Timed out waiting for IO");
 				}
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new IOException("Interrupted waiting for IO");
 			}
@@ -451,13 +457,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 	}
 
-	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
-		Assert.notNull(rawBuffer, "rawBuffer cannot be null");
+	protected void sendToPipe(ByteBuffer rawBufferToSend) throws IOException {
+		Assert.notNull(rawBufferToSend, "rawBuffer cannot be null");
 		if (logger.isTraceEnabled()) {
-			logger.trace(getConnectionId() + " Sending " + rawBuffer.limit() + " to pipe");
+			logger.trace(getConnectionId() + " Sending " + rawBufferToSend.limit() + " to pipe");
 		}
-		this.channelInputStream.write(rawBuffer);
-		rawBuffer.clear();
+		this.channelInputStream.write(rawBufferToSend);
+		rawBufferToSend.clear();
 	}
 
 	private void checkForAssembler() {
@@ -496,7 +502,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		try {
 			doRead();
 		}
-		catch (ClosedChannelException cce) {
+		catch (@SuppressWarnings(UNUSED) ClosedChannelException cce) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(getConnectionId() + " Channel is closed");
 			}
@@ -593,12 +599,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() {
 			doClose();
 		}
 
 		@Override
-		public void flush() throws IOException {
+		public void flush() {
 		}
 
 		@Override
@@ -767,7 +773,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			try {
 				this.buffers.offer(EOF, TcpNioConnection.this.pipeTimeout, TimeUnit.SECONDS);
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 		}

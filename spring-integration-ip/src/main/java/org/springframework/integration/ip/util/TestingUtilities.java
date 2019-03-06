@@ -139,10 +139,12 @@ public final class TestingUtilities {
 	 * of connections.
 	 * @param factory The factory.
 	 * @param n The required number of connections.
-	 * @throws Exception IllegalStateException if the count does not match.
+	 * @throws InterruptedException if interrupted.
+	 * @throws IllegalStateException if the count does not match.
 	 */
 	public static void waitUntilFactoryHasThisNumberOfConnections(AbstractConnectionFactory factory, int n)
-			throws Exception {
+			throws InterruptedException {
+
 		int timer = 0;
 		while (timer < 10000) {
 			if (factory.getOpenConnectionIds().size() == n) {

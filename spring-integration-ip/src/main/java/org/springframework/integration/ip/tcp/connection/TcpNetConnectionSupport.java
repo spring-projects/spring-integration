@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,10 @@ public interface TcpNetConnectionSupport {
 	 * @param connectionFactoryName the name of the connection factory creating this connection; used
 	 * during event publishing, may be null, in which case "unknown" will be used.
 	 * @return the TcpNetConnection
-	 * @throws Exception Any exception.
 	 */
 	TcpNetConnection createNewConnection(Socket socket,
 			boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName) throws Exception;
+			String connectionFactoryName);
 
 }

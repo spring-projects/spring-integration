@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
@@ -82,7 +83,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
-			SSLEngine sslEngine) throws Exception {
+			SSLEngine sslEngine) {
 
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.sslEngine = sslEngine;
@@ -252,14 +253,17 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	/**
 	 * Initializes the SSLEngine and sets up the encryption/decryption buffers.
-	 *
-	 * @throws IOException Any IOException.
 	 */
-	public void init() throws IOException {
+	public void init() {
 		if (this.decoded == null) {
 			this.decoded = allocateEncryptionBuffer(2048);
 			this.encoded = allocateEncryptionBuffer(2048);
-			initilizeEngine();
+			try {
+				initilizeEngine();
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 	}
 

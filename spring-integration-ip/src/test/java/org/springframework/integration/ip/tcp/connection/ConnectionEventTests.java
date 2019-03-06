@@ -27,6 +27,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -258,13 +259,7 @@ public class ConnectionEventTests {
 	}
 
 	private void testServerExceptionGuts(AbstractServerConnectionFactory factory) throws Exception {
-		ServerSocket ss = null;
-		try {
-			ss = ServerSocketFactory.getDefault().createServerSocket(0);
-		}
-		catch (Exception e) {
-			fail("Failed to get a server socket");
-		}
+		ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(0);
 		factory.setPort(ss.getLocalPort());
 		final AtomicReference<TcpConnectionServerExceptionEvent> theEvent =
 				new AtomicReference<TcpConnectionServerExceptionEvent>();
@@ -315,8 +310,8 @@ public class ConnectionEventTests {
 			}
 
 			@Override
-			protected TcpConnectionSupport buildNewConnection() throws Exception {
-				throw new UnknownHostException("Mocking for test ");
+			protected TcpConnectionSupport buildNewConnection() {
+				throw new UncheckedIOException(new UnknownHostException("Mocking for test "));
 			}
 
 		};
@@ -340,7 +335,7 @@ public class ConnectionEventTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertThat(e).isInstanceOf(UnknownHostException.class);
+			assertThat(e.getCause()).isInstanceOf(UnknownHostException.class);
 			TcpConnectionFailedEvent event = (TcpConnectionFailedEvent) failEvent.get();
 			assertThat(event.getCause()).isSameAs(e);
 		}

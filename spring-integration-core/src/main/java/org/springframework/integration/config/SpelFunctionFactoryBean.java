@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		this.method = BeanUtils.resolveSignature(this.functionMethodSignature, this.functionClass);
 
 		if (this.method == null) {
@@ -74,7 +74,7 @@ public class SpelFunctionFactoryBean implements FactoryBean<Method>, Initializin
 	}
 
 	@Override
-	public Method getObject() throws Exception {
+	public Method getObject() {
 		return this.method;
 	}
 

@@ -281,7 +281,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.successTimer != null) {
 			this.successTimer.remove();
 		}

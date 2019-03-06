@@ -17,7 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -73,6 +74,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.PoolItemNotAvailableException;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -363,13 +365,8 @@ public class CachingClientConnectionFactoryTests {
 	private void doTestCloseOnSendError(TcpConnection conn1, TcpConnection conn2,
 			CachingClientConnectionFactory cccf) throws Exception {
 		TcpConnection cached1 = cccf.getConnection();
-		try {
-			cached1.send(new GenericMessage<String>("foo"));
-			fail("Expected IOException");
-		}
-		catch (IOException e) {
-			assertThat(e.getMessage()).isEqualTo("Foo");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> cached1.send(new GenericMessage<String>("foo")));
 		// Before INT-3163 this failed with a timeout - connection not returned to pool after failure on send()
 		TcpConnection cached2 = cccf.getConnection();
 		assertThat(cached1.getConnectionId().contains(conn1.getConnectionId())).isTrue();
@@ -550,7 +547,7 @@ public class CachingClientConnectionFactoryTests {
 		when(factory2.getConnection()).thenReturn(mockConn2);
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
-		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail"))).when(mockConn1).send(Mockito.any(Message.class));
 		doAnswer(invocation -> null).when(mockConn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();

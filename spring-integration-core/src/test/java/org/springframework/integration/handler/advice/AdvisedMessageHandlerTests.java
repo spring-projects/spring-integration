@@ -146,7 +146,7 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				compName.set(((AbstractReplyProducingMessageHandler.RequestHandler) target).getAdvisedHandler()
 						.getComponentName());
 				return callback.execute();
@@ -734,7 +734,7 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				outerCounter.incrementAndGet();
 				return callback.execute();
 			}
@@ -814,14 +814,18 @@ public class AdvisedMessageHandlerTests {
 		AbstractRequestHandlerAdvice advice = new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				Object result;
 				try {
 					result = callback.execute();
 				}
 				catch (Exception e) {
-					// should not be unwrapped because the cause is a Throwable
-					throw this.unwrapExceptionIfNecessary(e);
+					if (e instanceof ThrowableHolderException) {
+						throw (ThrowableHolderException) e;
+					}
+					else {
+						throw new ThrowableHolderException(e);
+					}
 				}
 				return result;
 			}
@@ -882,7 +886,7 @@ public class AdvisedMessageHandlerTests {
 		Advice advice = new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				called.set(true);
 				return callback.execute();
 			}
@@ -938,7 +942,7 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				Object result = callback.execute();
 				discardedWithinAdvice.set(discardChannel.receive(0));
 				return result;
@@ -963,7 +967,7 @@ public class AdvisedMessageHandlerTests {
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
-			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 				Object result = callback.execute();
 				discardedWithinAdvice.set(discardChannel.receive(0));
 				adviceCalled.set(true);
@@ -1015,9 +1019,8 @@ public class AdvisedMessageHandlerTests {
 
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
 		retryableExceptions.put(MyException.class, retryForMyException);
-		retryableExceptions.put(MessagingException.class, true);
 
-		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions));
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions, true));
 
 		advice.setRetryTemplate(retryTemplate);
 

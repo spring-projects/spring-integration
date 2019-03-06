@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -133,7 +134,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	 * Raw byte[] from message, possibly with a length field up front.
 	 */
 	@Override
-	public DatagramPacket fromMessage(Message<?> message) throws Exception {
+	public DatagramPacket fromMessage(Message<?> message) {
 		if (this.acknowledge) {
 			return fromMessageWithAck(message);
 		}
@@ -152,23 +153,28 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	/**
 	 * Prefix raw byte[] from message with 'acknowledge to' and 'message id' "headers".
 	 */
-	private DatagramPacket fromMessageWithAck(Message<?> message) throws Exception {
+	private DatagramPacket fromMessageWithAck(Message<?> message) {
 		Assert.state(StringUtils.hasText(this.ackAddress), "'ackAddress' must not be empty");
 		byte[] bytes = getPayloadAsBytes(message);
 		ByteBuffer buffer = ByteBuffer.allocate(100 + bytes.length);
 		if (this.lengthCheck) {
 			buffer.putInt(0); // placeholder for length
 		}
-		buffer.put(IpHeaders.ACK_ADDRESS.getBytes(this.charset));
-		buffer.put((byte) '=');
-		buffer.put(this.ackAddress.getBytes(this.charset));
-		buffer.put((byte) ';');
-		UUID id = message.getHeaders().getId();
-		if (id != null) {
-			buffer.put(MessageHeaders.ID.getBytes(this.charset));
+		try {
+			buffer.put(IpHeaders.ACK_ADDRESS.getBytes(this.charset));
 			buffer.put((byte) '=');
-			buffer.put(id.toString().getBytes(this.charset));
+			buffer.put(this.ackAddress.getBytes(this.charset));
 			buffer.put((byte) ';');
+			UUID id = message.getHeaders().getId();
+			if (id != null) {
+				buffer.put(MessageHeaders.ID.getBytes(this.charset));
+				buffer.put((byte) '=');
+				buffer.put(id.toString().getBytes(this.charset));
+				buffer.put((byte) ';');
+			}
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new MessagingException(message, "Failed to get headers", e);
 		}
 		int headersLength = buffer.position() - 4;
 		buffer.put(bytes);
@@ -203,13 +209,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	@Override
 	@Nullable
-	public Message<byte[]> toMessage(DatagramPacket object) throws Exception {
+	public Message<byte[]> toMessage(DatagramPacket object) {
 		return toMessage(object, null);
 	}
 
 	@Override
 	@Nullable
-	public Message<byte[]> toMessage(DatagramPacket packet, @Nullable Map<String, Object> headers) throws Exception {
+	public Message<byte[]> toMessage(DatagramPacket packet, @Nullable Map<String, Object> headers) {
 		int offset = packet.getOffset();
 		int length = packet.getLength();
 		byte[] payload;

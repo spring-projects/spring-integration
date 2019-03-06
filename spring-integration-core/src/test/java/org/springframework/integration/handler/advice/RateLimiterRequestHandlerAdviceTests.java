@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
  * @since 5.2
  */
 @SpringJUnitConfig
+@Disabled
 public class RateLimiterRequestHandlerAdviceTests {
 
 	private static final Duration REFRESH_PERIOD = Duration.ofMillis(500);

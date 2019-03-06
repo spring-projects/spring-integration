@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
@@ -63,43 +64,48 @@ public class TcpNioClientConnectionFactory extends
 	}
 
 	@Override
-	protected void checkActive() throws IOException {
+	protected void checkActive() {
 		super.checkActive();
 		int n = 0;
 		while (this.selector == null) {
 			try {
 				Thread.sleep(100);
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings("unused") InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 			if (n++ > 600) {
-				throw new IOException("Factory failed to start");
+				throw new UncheckedIOException(new IOException("Factory failed to start"));
 			}
 		}
 	}
 
 	@Override
-	protected TcpConnectionSupport buildNewConnection() throws Exception {
-		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(getHost(), getPort()));
-		setSocketAttributes(socketChannel.socket());
-		TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
-				socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), getComponentName());
-		connection.setUsingDirectBuffers(this.usingDirectBuffers);
-		connection.setTaskExecutor(this.getTaskExecutor());
-		if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-			((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+	protected TcpConnectionSupport buildNewConnection() {
+		try {
+			SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(getHost(), getPort()));
+			setSocketAttributes(socketChannel.socket());
+			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
+					socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), getComponentName());
+			connection.setUsingDirectBuffers(this.usingDirectBuffers);
+			connection.setTaskExecutor(this.getTaskExecutor());
+			if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+				((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+			}
+			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
+			initializeConnection(wrappedConnection, socketChannel.socket());
+			socketChannel.configureBlocking(false);
+			if (this.getSoTimeout() > 0) {
+				connection.setLastRead(System.currentTimeMillis());
+			}
+			this.channelMap.put(socketChannel, connection);
+			this.newChannels.add(socketChannel);
+			this.selector.wakeup();
+			return wrappedConnection;
 		}
-		TcpConnectionSupport wrappedConnection = wrapConnection(connection);
-		initializeConnection(wrappedConnection, socketChannel.socket());
-		socketChannel.configureBlocking(false);
-		if (this.getSoTimeout() > 0) {
-			connection.setLastRead(System.currentTimeMillis());
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
-		this.channelMap.put(socketChannel, connection);
-		this.newChannels.add(socketChannel);
-		this.selector.wakeup();
-		return wrappedConnection;
 	}
 
 	/**
@@ -164,7 +170,7 @@ public class TcpNioClientConnectionFactory extends
 					}
 					selectionCount = this.selector.select(timeout);
 				}
-				catch (CancelledKeyException cke) {
+				catch (@SuppressWarnings("unused") CancelledKeyException cke) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("CancelledKeyException during Selector.select()");
 					}
@@ -173,7 +179,7 @@ public class TcpNioClientConnectionFactory extends
 					try {
 						newChannel.register(this.selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
 					}
-					catch (ClosedChannelException cce) {
+					catch (@SuppressWarnings("unused") ClosedChannelException cce) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Channel closed before registering with selector for reading");
 						}

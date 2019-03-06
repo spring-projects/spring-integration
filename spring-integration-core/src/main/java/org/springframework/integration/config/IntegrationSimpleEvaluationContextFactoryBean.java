@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,12 +68,12 @@ public class IntegrationSimpleEvaluationContextFactoryBean extends AbstractEvalu
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		initialize(IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME);
 	}
 
 	@Override
-	public SimpleEvaluationContext getObject() throws Exception {
+	public SimpleEvaluationContext getObject() {
 		Collection<PropertyAccessor> accessors = getPropertyAccessors().values();
 		PropertyAccessor[] accessorArray = accessors.toArray(new PropertyAccessor[accessors.size() + 2]);
 		accessorArray[accessors.size()] = new MapAccessor();

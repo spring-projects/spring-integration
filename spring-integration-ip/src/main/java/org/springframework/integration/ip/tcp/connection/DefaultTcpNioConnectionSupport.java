@@ -38,7 +38,7 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
 		if (isPushbackCapable()) {
 			return new PushBackTcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher,
 					connectionFactoryName, getPushbackBufferSize());
@@ -61,7 +61,7 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 		PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 				ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
-				int bufferSize) throws Exception {
+				int bufferSize) {
 
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 			this.pushbackBufferSize = bufferSize;

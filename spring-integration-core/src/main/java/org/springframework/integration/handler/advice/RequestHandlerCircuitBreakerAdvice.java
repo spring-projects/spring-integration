@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		AdvisedMetadata metadata = this.metadataMap.get(target);
 		if (metadata == null) {
 			this.metadataMap.putIfAbsent(target, new AdvisedMetadata());
@@ -72,7 +72,12 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		catch (Exception e) {
 			metadata.getFailures().incrementAndGet();
 			metadata.setLastFailure(System.currentTimeMillis());
-			throw this.unwrapExceptionIfNecessary(e);
+			if (e instanceof ThrowableHolderException) { // NOSONAR
+				throw (ThrowableHolderException) e;
+			}
+			else {
+				throw new ThrowableHolderException(e);
+			}
 		}
 	}
 

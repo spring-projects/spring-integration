@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -27,6 +28,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -74,6 +76,8 @@ import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
@@ -485,7 +489,8 @@ public class TcpOutboundGatewayTests {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
-		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(mockConn1).send(Mockito.any(Message.class));
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
@@ -567,7 +572,8 @@ public class TcpOutboundGatewayTests {
 		TcpConnectionSupport mockConn1 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		when(factory1.isSingleUse()).thenReturn(true);
-		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(mockConn1).send(Mockito.any(Message.class));
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
 
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
@@ -727,13 +733,10 @@ public class TcpOutboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		gateway.start();
-		try {
-			gateway.handleMessage(MessageBuilder.withPayload("Test").build());
-			fail("expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getCause()).isInstanceOf(EOFException.class);
-		}
+		Throwable thrown = catchThrowable(() -> gateway.handleMessage(MessageBuilder.withPayload("Test").build()));
+		assertThat(thrown).isInstanceOf(MessageHandlingException.class);
+		assertThat(thrown.getCause()).isInstanceOf(MessagingException.class);
+		assertThat(thrown.getCause().getCause()).isInstanceOf(EOFException.class);
 		assertThat(TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size()).isEqualTo(0);
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply).isNull();
@@ -837,13 +840,10 @@ public class TcpOutboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		gateway.start();
-		try {
-			gateway.handleMessage(MessageBuilder.withPayload("Test").build());
-			fail("expected failure");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getCause()).isInstanceOf(SocketTimeoutException.class);
-		}
+		Throwable thrown = catchThrowable(() -> gateway.handleMessage(MessageBuilder.withPayload("Test").build()));
+		assertThat(thrown).isInstanceOf(MessageHandlingException.class);
+		assertThat(thrown.getCause()).isInstanceOf(MessagingException.class);
+		assertThat(thrown.getCause().getCause()).isInstanceOf(SocketTimeoutException.class);
 		assertThat(TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size()).isEqualTo(0);
 		Message<?> reply = replyChannel.receive(0);
 		assertThat(reply).isNull();

@@ -161,7 +161,7 @@ public class IdempotentReceiverTests {
 		private int adviceCalled;
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled++;
 			return callback.execute();
 		}

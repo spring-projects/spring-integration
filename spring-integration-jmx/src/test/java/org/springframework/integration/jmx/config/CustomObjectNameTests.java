@@ -119,7 +119,7 @@ public class CustomObjectNameTests {
 	public static class HandlerWithCustomObjectName extends AbstractMessageHandler {
 
 		@Override
-		public void handleMessageInternal(Message<?> message) throws Exception {
+		public void handleMessageInternal(Message<?> message) {
 		}
 
 	}
@@ -153,7 +153,7 @@ public class CustomObjectNameTests {
 	public static class HandlerWithStandardObjectName extends AbstractMessageHandler {
 
 		@Override
-		protected void handleMessageInternal(Message<?> message) throws Exception {
+		protected void handleMessageInternal(Message<?> message) {
 		}
 
 	}

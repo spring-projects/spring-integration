@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -80,6 +81,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				}
 			}
 			catch (IOException e) {
+				logger.error("Error getting port", e);
 			}
 		}
 		return port;
@@ -93,6 +95,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				return this.serverChannel.getLocalAddress();
 			}
 			catch (IOException e) {
+				logger.error("Error getting local address", e);
 			}
 		}
 		return null;
@@ -161,10 +164,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * schedules a call to doRead which reads all available data. When the read
 	 * is complete, the socket is again registered for read interest.
 	 * @param server the ServerSocketChannel to select
-	 * @param selector the Selector multiplexor
+	 * @param selectorToSelect the Selector multiplexor
 	 * @throws IOException
 	 */
-	private void doSelect(ServerSocketChannel server, final Selector selector) throws IOException {
+	private void doSelect(ServerSocketChannel server, final Selector selectorToSelect) throws IOException {
 		while (isActive()) {
 			int soTimeout = getSoTimeout();
 			int selectionCount = 0;
@@ -176,10 +179,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				if (logger.isTraceEnabled()) {
 					logger.trace("Delayed reads: " + getDelayedReads().size() + " timeout " + timeout);
 				}
-				selectionCount = selector.select(timeout);
-				processNioSelections(selectionCount, selector, server, this.channelMap);
+				selectionCount = selectorToSelect.select(timeout);
+				processNioSelections(selectionCount, selectorToSelect, server, this.channelMap);
 			}
-			catch (CancelledKeyException cke) {
+			catch (@SuppressWarnings("unused") CancelledKeyException cke) {
 				logger.debug("CancelledKeyException during Selector.select()");
 			}
 			catch (ClosedSelectorException cse) {
@@ -193,47 +196,51 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	/**
-	 * @param selector The selector.
+	 * @param selectorForNewSocket The selector.
 	 * @param server The server socket channel.
 	 * @param now The current time.
-	 * @throws IOException Any IOException.
 	 */
 	@Override
-	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
+	protected void doAccept(final Selector selectorForNewSocket, ServerSocketChannel server, long now) {
 		logger.debug("New accept");
-		SocketChannel channel = server.accept();
-		if (isShuttingDown()) {
-			if (logger.isInfoEnabled()) {
-				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort()
-						+ " rejected; the server is in the process of shutting down.");
-			}
-			channel.close();
-		}
-		else {
-			try {
-				channel.configureBlocking(false);
-				Socket socket = channel.socket();
-				setSocketAttributes(socket);
-				TcpNioConnection connection = createTcpNioConnection(channel);
-				if (connection == null) {
-					return;
+		try {
+			SocketChannel channel = server.accept();
+			if (isShuttingDown()) {
+				if (logger.isInfoEnabled()) {
+					logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
+							+ ":" + channel.socket().getPort()
+							+ " rejected; the server is in the process of shutting down.");
 				}
-				connection.setTaskExecutor(getTaskExecutor());
-				connection.setLastRead(now);
-				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
-				}
-				this.channelMap.put(channel, connection);
-				channel.register(selector, SelectionKey.OP_READ, connection);
-				connection.publishConnectionOpenEvent();
-			}
-			catch (Exception e) {
-				logger.error("Exception accepting new connection from "
-						+ channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort(), e);
 				channel.close();
 			}
+			else {
+				try {
+					channel.configureBlocking(false);
+					Socket socket = channel.socket();
+					setSocketAttributes(socket);
+					TcpNioConnection connection = createTcpNioConnection(channel);
+					if (connection == null) {
+						return;
+					}
+					connection.setTaskExecutor(getTaskExecutor());
+					connection.setLastRead(now);
+					if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+						((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+					}
+					this.channelMap.put(channel, connection);
+					channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
+					connection.publishConnectionOpenEvent();
+				}
+				catch (IOException e) {
+					logger.error("Exception accepting new connection from "
+							+ channel.socket().getInetAddress().getHostAddress()
+							+ ":" + channel.socket().getPort(), e);
+					channel.close();
+				}
+			}
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 	}
 

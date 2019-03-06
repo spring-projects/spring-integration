@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,15 +42,20 @@ import org.springframework.util.Assert;
 public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		implements RetryListener {
 
-	private volatile RetryTemplate retryTemplate = new RetryTemplate();
+	private RetryTemplate retryTemplate = new RetryTemplate();
 
-	private volatile RecoveryCallback<Object> recoveryCallback;
+	private RecoveryCallback<Object> recoveryCallback;
 
 	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	// Stateless unless a state generator is provided
 	private volatile RetryStateGenerator retryStateGenerator = message -> null;
 
+	/**
+	 * Set the retry template. Cause traversal should be enabled in the retry policy
+	 * because user exceptions may be wrapped in a {@link MessagingException}.
+	 * @param retryTemplate the retry template.
+	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
 		Assert.notNull(retryTemplate, "'retryTemplate' cannot be null");
 		this.retryTemplate = retryTemplate;
@@ -72,8 +77,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 	}
 
 	@Override
-	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message)
-			throws Exception {
+	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) {
 		RetryState retryState = null;
 		retryState = this.retryStateGenerator.determineRetryState(message);
 		messageHolder.set(message);
@@ -87,8 +91,11 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 			}
 			throw e;
 		}
+		catch (ThrowableHolderException e) { // NOSONAR catch and rethrow
+			throw e;
+		}
 		catch (Exception e) {
-			throw new MessagingException(message, "Failed to invoke handler", unwrapExceptionIfNecessary(e));
+			throw new ThrowableHolderException(e);
 		}
 		finally {
 			messageHolder.remove();

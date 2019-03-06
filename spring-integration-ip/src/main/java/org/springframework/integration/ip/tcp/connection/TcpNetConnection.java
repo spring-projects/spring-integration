@@ -20,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -85,7 +86,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		try {
 			this.socket.close();
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings("unused") Exception e) {
 		}
 		super.close();
 	}
@@ -97,23 +98,24 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized void send(Message<?> message) throws Exception {
-		if (this.socketOutputStream == null) {
-			int writeBufferSize = this.socket.getSendBufferSize();
-			this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
-					writeBufferSize > 0 ? writeBufferSize : 8192);
-		}
-		Object object = getMapper().fromMessage(message);
-		Assert.state(object != null, "Mapper mapped the message to 'null'.");
-		this.lastSend = System.currentTimeMillis();
+	public synchronized void send(Message<?> message) {
 		try {
+			if (this.socketOutputStream == null) {
+				int writeBufferSize = this.socket.getSendBufferSize();
+				this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
+						writeBufferSize > 0 ? writeBufferSize : 8192);
+			}
+			Object object = getMapper().fromMessage(message);
+			Assert.state(object != null, "Mapper mapped the message to 'null'.");
+			this.lastSend = System.currentTimeMillis();
 			((Serializer<Object>) getSerializer()).serialize(object, this.socketOutputStream);
 			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {
-			publishConnectionExceptionEvent(new MessagingException(message, "Failed TCP serialization", e));
+			MessagingException mex = new MessagingException(message, "Send Failed", e);
+			publishConnectionExceptionEvent(mex);
 			closeConnection(true);
-			throw e;
+			throw mex;
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug(getConnectionId() + " Message sent " + message);
@@ -121,9 +123,14 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	@Override
-	public Object getPayload() throws Exception {
-		return getDeserializer()
-				.deserialize(inputStream());
+	public Object getPayload() {
+		try {
+			return getDeserializer()
+					.deserialize(inputStream());
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@Override
@@ -137,7 +144,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		try {
 			return inputStream();
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings("unused") Exception e) {
 			return null;
 		}
 	}
@@ -198,7 +205,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					}
 					listener.onMessage(message);
 				}
-				catch (NoListenerException nle) { // could also be thrown by an interceptor
+				catch (@SuppressWarnings("unused") NoListenerException nle) { // could also be thrown by an interceptor
 					if (logger.isWarnEnabled()) {
 						logger.warn("Unexpected message - no endpoint registered with connection interceptor: "
 								+ getConnectionId()
@@ -213,12 +220,33 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		}
 	}
 
-	protected boolean handleReadException(Exception e) {
+	protected boolean handleReadException(Exception exception) {
+		Exception e = exception instanceof UncheckedIOException ? (Exception) exception.getCause() : exception;
+		if (checkTimeout(e)) {
+			boolean noReadErrorOnClose = isNoReadErrorOnClose();
+			closeConnection(true);
+			if (!(e instanceof SoftEndOfStreamException)) {
+				if (e instanceof SocketTimeoutException) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Closed socket after timeout:" + getConnectionId());
+					}
+				}
+				else {
+					logOtherExceptions(e, noReadErrorOnClose);
+				}
+				sendExceptionToListener(e);
+			}
+			return true;
+		}
+		return true;
+	}
+
+	/*
+	 * For client connections, we have to wait for 2 timeouts if the last
+	 * send was within the current timeout.
+	 */
+	private boolean checkTimeout(Exception e) {
 		boolean doClose = true;
-		/*
-		 * For client connections, we have to wait for 2 timeouts if the last
-		 * send was within the current timeout.
-		 */
 		if (!isServer() && e instanceof SocketTimeoutException) {
 			long now = System.currentTimeMillis();
 			try {
@@ -234,43 +262,32 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 				logger.error("Error accessing soTimeout", e1);
 			}
 		}
-		if (doClose) {
-			boolean noReadErrorOnClose = isNoReadErrorOnClose();
-			closeConnection(true);
-			if (!(e instanceof SoftEndOfStreamException)) {
-				if (e instanceof SocketTimeoutException) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Closed socket after timeout:" + getConnectionId());
-					}
-				}
-				else {
-					if (noReadErrorOnClose) {
-						if (logger.isTraceEnabled()) {
-							logger.trace("Read exception " +
-									getConnectionId(), e);
-						}
-						else if (logger.isDebugEnabled()) {
-							logger.debug("Read exception " +
-									getConnectionId() + " " +
-									e.getClass().getSimpleName() +
-									":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
-						}
-					}
-					else if (logger.isTraceEnabled()) {
-						logger.error("Read exception " +
-								getConnectionId(), e);
-					}
-					else {
-						logger.error("Read exception " +
-								getConnectionId() + " " +
-								e.getClass().getSimpleName() +
-								":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
-					}
-				}
-				sendExceptionToListener(e);
+		return doClose;
+	}
+
+	private void logOtherExceptions(Exception e, boolean noReadErrorOnClose) {
+		if (noReadErrorOnClose) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Read exception " +
+						getConnectionId(), e);
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("Read exception " +
+						getConnectionId() + " " +
+						e.getClass().getSimpleName() +
+						":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 			}
 		}
-		return doClose;
+		else if (logger.isTraceEnabled()) {
+			logger.error("Read exception " +
+					getConnectionId(), e);
+		}
+		else {
+			logger.error("Read exception " +
+					getConnectionId() + " " +
+					e.getClass().getSimpleName() +
+					":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public Object getPayload() throws Exception {
+	public Object getPayload() {
 		return this.theConnection.getPayload();
 	}
 
@@ -165,7 +165,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	}
 
 	@Override
-	public void send(Message<?> message) throws Exception {
+	public void send(Message<?> message) {
 		this.theConnection.send(message);
 	}
 

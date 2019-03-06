@@ -55,6 +55,7 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -431,7 +432,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws InterruptedException {
+	protected void handleMessageInternal(Message<?> message) {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Assert.state(correlationKey != null,
 				"Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
@@ -444,7 +445,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 
 		boolean noOutput = true;
-		lock.lockInterruptibly();
+		try {
+			lock.lockInterruptibly();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessageHandlingException(message, "Interrupted getting lock", e);
+		}
 		try {
 			noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);
 		}

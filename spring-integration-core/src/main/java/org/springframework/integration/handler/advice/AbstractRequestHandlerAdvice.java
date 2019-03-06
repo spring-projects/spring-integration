@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,12 @@ import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 
 /**
  * Base class for {@link MessageHandler} advice classes. Subclasses should provide an
@@ -41,8 +40,6 @@ import org.springframework.messaging.MessageHandler;
  */
 public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport
 		implements MethodInterceptor {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
@@ -70,12 +67,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 				return doInvoke(new ExecutionCallback() {
 
 					@Override
-					public Object execute() throws Exception {
+					public Object execute() {
 						try {
 							return invocation.proceed();
-						}
-						catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
-							throw e;
 						}
 						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
 							throw new ThrowableHolderException(e);
@@ -83,7 +77,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 					}
 
 					@Override
-					public Object cloneAndExecute() throws Exception {
+					public Object cloneAndExecute() {
 						try {
 							/*
 				 			* If we don't copy the invocation carefully it won't keep a reference to the other
@@ -99,7 +93,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 							}
 						}
 						catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
-							throw e;
+							throw new MessagingException(message, "Failed to handle", e);
 						}
 						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
 							throw new ThrowableHolderException(e);
@@ -122,9 +116,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	 * @param target   The target handler.
 	 * @param message  The message that will be sent to the handler.
 	 * @return the result after invoking the {@link MessageHandler}.
-	 * @throws Exception Any Exception.
 	 */
-	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
+	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message);
 
 	/**
 	 * Unwrap the cause of a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}.
@@ -165,9 +158,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 * Call this for a normal invocation.proceed().
 		 *
 		 * @return The result of the execution.
-		 * @throws Exception Any Exception.
 		 */
-		Object execute() throws Exception;
+		Object execute();
 
 		/**
 		 * Call this when it is necessary to clone the invocation before
@@ -175,14 +167,13 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 * multiple times - for example in a retry advice.
 		 *
 		 * @return The result of the execution.
-		 * @throws Exception Any Exception.
 		 */
-		Object cloneAndExecute() throws Exception;
+		Object cloneAndExecute();
 
 	}
 
 	@SuppressWarnings("serial")
-	private static final class ThrowableHolderException extends RuntimeException {
+	protected static final class ThrowableHolderException extends RuntimeException {
 
 		ThrowableHolderException(Throwable cause) {
 			super(cause);

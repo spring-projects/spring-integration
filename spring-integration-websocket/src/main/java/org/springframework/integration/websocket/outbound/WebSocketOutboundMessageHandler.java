@@ -27,6 +27,7 @@ import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
@@ -136,7 +137,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception { // NOSONAR
+	protected void handleMessageInternal(Message<?> message) {
 		String sessionId = null;
 		if (!this.client) {
 			sessionId = this.subProtocolHandlerRegistry.resolveSessionId(message);
@@ -165,6 +166,9 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 			catch (Exception secondException) {
 				logger.error("Exception terminating session id '" + sessionId + "'", secondException);
 			}
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message, "Failed to handle", e);
 		}
 	}
 

@@ -327,6 +327,8 @@ When `true`, it traverses exception causes until it finds a match or runs out of
 To use this classifier for retry, use a `SimpleRetryPolicy` created with the constructor that takes the max attempts, the `Map` of `Exception` objects, and the `traverseCauses` boolean.
 Then you can inject this policy into the `RetryTemplate`.
 
+IMPORTANT: `traverseCauses` is required in this case because user exceptions may be wrapped in a `MessagingException`.
+
 [[circuit-breaker-advice]]
 ===== Circuit Breaker Advice
 

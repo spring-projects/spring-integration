@@ -17,7 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -25,6 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -100,7 +101,8 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
-		doThrow(new IOException("fail")).when(conn1).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(conn1).send(Mockito.any(Message.class));
 		doAnswer(invocation -> null).when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
@@ -109,7 +111,7 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn2).send(message);
 	}
 
-	@Test(expected = IOException.class)
+	@Test(expected = UncheckedIOException.class)
 	public void testFailoverAllDead() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
@@ -122,8 +124,10 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
-		doThrow(new IOException("fail")).when(conn1).send(Mockito.any(Message.class));
-		doThrow(new IOException("fail")).when(conn2).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(conn1).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
@@ -148,11 +152,12 @@ public class FailoverClientConnectionFactoryTests {
 		doAnswer(invocation -> {
 			if (!failedOnce.get()) {
 				failedOnce.set(true);
-				throw new IOException("fail");
+				throw new UncheckedIOException(new IOException("fail"));
 			}
 			return null;
 		}).when(conn1).send(Mockito.any(Message.class));
-		doThrow(new IOException("fail")).when(conn2).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
@@ -161,15 +166,15 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn1, times(2)).send(message);
 	}
 
-	@Test(expected = IOException.class)
+	@Test(expected = UncheckedIOException.class)
 	public void testFailoverConnectNone() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		when(factory1.getConnection()).thenThrow(new IOException("fail"));
-		when(factory2.getConnection()).thenThrow(new IOException("fail"));
+		when(factory1.getConnection()).thenThrow(new UncheckedIOException(new IOException("fail")));
+		when(factory2.getConnection()).thenThrow(new UncheckedIOException(new IOException("fail")));
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -187,8 +192,11 @@ public class FailoverClientConnectionFactoryTests {
 		factories.add(factory2);
 		TcpConnectionSupport conn1 = makeMockConnection();
 		doAnswer(invocation -> null).when(conn1).send(Mockito.any(Message.class));
-		when(factory1.getConnection()).thenThrow(new IOException("fail")).thenReturn(conn1);
-		when(factory2.getConnection()).thenThrow(new IOException("fail"));
+		when(factory1.getConnection())
+			.thenThrow(new UncheckedIOException(new IOException("fail")))
+			.thenReturn(conn1);
+		when(factory2.getConnection())
+			.thenThrow(new UncheckedIOException(new IOException("fail")));
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -214,20 +222,17 @@ public class FailoverClientConnectionFactoryTests {
 		final AtomicInteger failCount = new AtomicInteger();
 		doAnswer(invocation -> {
 			if (failCount.incrementAndGet() < 3) {
-				throw new IOException("fail");
+				throw new UncheckedIOException(new IOException("fail"));
 			}
 			return null;
 		}).when(conn1).send(Mockito.any(Message.class));
-		doThrow(new IOException("fail")).when(conn2).send(Mockito.any(Message.class));
+		doThrow(new UncheckedIOException(new IOException("fail")))
+			.when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
-		try {
-			failoverFactory.getConnection().send(message);
-			fail("ExpectedFailure");
-		}
-		catch (IOException e) {
-		}
+		assertThatExceptionOfType(UncheckedIOException.class)
+			.isThrownBy(() -> failoverFactory.getConnection().send(message));
 		failoverFactory.getConnection().send(message);
 		Mockito.verify(conn2).send(message);
 		Mockito.verify(conn1, times(3)).send(message);

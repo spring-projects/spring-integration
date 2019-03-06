@@ -34,7 +34,7 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 
 	@Override
 	public TcpNetConnection createNewConnection(Socket socket, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
 		if (isPushbackCapable()) {
 			return new PushBackTcpNetConnection(socket, server, lookupHost, applicationEventPublisher,
 					connectionFactoryName, getPushbackBufferSize());

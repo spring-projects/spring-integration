@@ -146,7 +146,7 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testToMessageWithBadContentType() throws Exception {
+	public void testToMessageWithBadContentType() {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setAddContentTypeHeader(true);
 		try {
@@ -169,7 +169,7 @@ public class TcpMessageMapperTests {
 			}
 
 			@Override
-			public void send(Message<?> message) throws Exception {
+			public void send(Message<?> message) {
 			}
 
 			@Override
@@ -183,7 +183,7 @@ public class TcpMessageMapperTests {
 			}
 
 			@Override
-			public Object getPayload() throws Exception {
+			public Object getPayload() {
 				return TEST_PAYLOAD.getBytes();
 			}
 
@@ -252,7 +252,7 @@ public class TcpMessageMapperTests {
 			}
 
 			@Override
-			public void send(Message<?> message) throws Exception {
+			public void send(Message<?> message) {
 			}
 
 			@Override
@@ -266,7 +266,7 @@ public class TcpMessageMapperTests {
 			}
 
 			@Override
-			public Object getPayload() throws Exception {
+			public Object getPayload() {
 				return TEST_PAYLOAD.getBytes();
 			}
 
