@@ -18,7 +18,6 @@ package org.springframework.integration.handler.advice;
 
 import java.time.Duration;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -43,8 +42,6 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 	public static final String DEFAULT_NAME = "RateLimiterRequestHandlerAdvice";
 
 	private final RateLimiter rateLimiter;
-
-	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Construct an instance based on default rate limiter options
