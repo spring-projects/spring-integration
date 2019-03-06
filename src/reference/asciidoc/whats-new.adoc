@@ -7,6 +7,12 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.2-new-components]]
 === New Components
 
+[[x5.2-rateLimitAdvice]]
+=== Rate Limit Advice Support
+
+The `RateLimiterRequestHandlerAdvice` is now available for limiting requests rate on handlers.
+See <<rate-limiter-advice>> for more information.
+
 [[x5.2-general]]
 === General Changes
 
