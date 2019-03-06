@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.MessageHandlingRunnable;
@@ -47,25 +48,26 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 1.0.2
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
 
-	private final MessageHandler dispatchHandler = message -> doDispatch(message);
+	private final MessageHandler dispatchHandler = this::doDispatch;
 
 	private final Executor executor;
 
-	private volatile boolean failover = true;
+	private boolean failover = true;
 
-	private volatile LoadBalancingStrategy loadBalancingStrategy;
+	private LoadBalancingStrategy loadBalancingStrategy;
 
-	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
+	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
 	public UnicastingDispatcher() {
 		this.executor = null;
 	}
 
-	public UnicastingDispatcher(Executor executor) {
+	public UnicastingDispatcher(@Nullable Executor executor) {
 		this.executor = executor;
 	}
 
@@ -74,7 +76,6 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * Specify whether this dispatcher should failover when a single
 	 * {@link MessageHandler} throws an Exception. The default value is
 	 * <code>true</code>.
-	 *
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
@@ -83,10 +84,9 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Provide a {@link LoadBalancingStrategy} for this dispatcher.
-	 *
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 */
-	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
+	public void setLoadBalancingStrategy(@Nullable LoadBalancingStrategy loadBalancingStrategy) {
 		this.loadBalancingStrategy = loadBalancingStrategy;
 	}
 
@@ -137,18 +137,24 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		if (!handlerIterator.hasNext()) {
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
-		List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
+		List<RuntimeException> exceptions = new ArrayList<>();
 		while (!success && handlerIterator.hasNext()) {
 			MessageHandler handler = handlerIterator.next();
 			try {
 				handler.handleMessage(message);
 				success = true; // we have a winner.
 			}
-			catch (Exception e) {
-				RuntimeException runtimeException = IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
-						() -> "Dispatcher failed to deliver Message", e);
+			catch (Exception ex) {
+				RuntimeException runtimeException =
+						IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
+								() -> "Dispatcher failed to deliver Message", ex);
 				exceptions.add(runtimeException);
-				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
+				boolean isLast = !handlerIterator.hasNext();
+				if (!isLast && this.failover && this.logger.isInfoEnabled()) {
+					this.logger.info("An exception thrown from the '" + handler + "' for the '" + message + "'. " +
+							"Will be in a failover for the next subscriber.", ex);
+				}
+				handleExceptions(exceptions, message, isLast);
 			}
 		}
 		return success;
@@ -176,10 +182,10 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 */
 	private void handleExceptions(List<RuntimeException> allExceptions, Message<?> message, boolean isLast) {
 		if (isLast || !this.failover) {
-			if (allExceptions != null && allExceptions.size() == 1) {
+			if (allExceptions.size() == 1) {
 				throw allExceptions.get(0);
 			}
-			throw new AggregateMessageDeliveryException(message, //NOSONAR - false positive
+			throw new AggregateMessageDeliveryException(message,
 					"All attempts to deliver Message to MessageHandlers failed.", allExceptions);
 		}
 	}
