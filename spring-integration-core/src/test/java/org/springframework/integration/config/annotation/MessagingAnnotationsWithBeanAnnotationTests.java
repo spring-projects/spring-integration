@@ -68,6 +68,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -81,6 +82,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
+import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
@@ -243,6 +246,11 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	public static class ContextConfiguration {
 
 		private static final ExpressionParser PARSER = new SpelExpressionParser();
+
+		@Bean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)
+		public MessageHandlerMethodFactory messageHandlerMethodFactory() {
+			return new DefaultMessageHandlerMethodFactory();
+		}
 
 		@Bean
 		public AtomicInteger counter() {

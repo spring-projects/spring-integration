@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -170,7 +169,7 @@ public class AggregatorParserTests {
 		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethods");
-		assertNull(handlerMethods);
+		assertNotNull(handlerMethods);
 		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethod");
@@ -250,7 +249,7 @@ public class AggregatorParserTests {
 		MessagingMethodInvokerHelper<Long> methodInvokerHelper =
 				TestUtils.getPropertyValue(releaseStrategy, "adapter.delegate", MessagingMethodInvokerHelper.class);
 		Object handlerMethods = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethods");
-		assertNull(handlerMethods);
+		assertNotNull(handlerMethods);
 		Object handlerMethod = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
@@ -261,7 +260,7 @@ public class AggregatorParserTests {
 		Assert.assertNull(reply);
 		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
-		Assert.assertNotNull(reply);
+		assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
 	}
 
@@ -275,7 +274,7 @@ public class AggregatorParserTests {
 		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
 				.getPropertyValue("adapter")).getPropertyValue("delegate"));
 		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
-		assertNull(handlerMethods);
+		assertNotNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
@@ -286,7 +285,7 @@ public class AggregatorParserTests {
 		Assert.assertNull(reply);
 		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
-		Assert.assertNotNull(reply);
+		assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
 	}
 
