@@ -50,7 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class GemfireOutboundChannelAdapterParserTests {
 
-	private GemfireOutboundChannelAdapterParser underTest = new GemfireOutboundChannelAdapterParser();
+	private final GemfireOutboundChannelAdapterParser underTest = new GemfireOutboundChannelAdapterParser();
 
 	private static final CountDownLatch adviceCalled = new CountDownLatch(1);
 
@@ -89,7 +89,7 @@ public class GemfireOutboundChannelAdapterParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled.countDown();
 			return null;
 		}

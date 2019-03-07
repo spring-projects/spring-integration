@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2018 the original author or authors.
+ * Copyright 2001-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
@@ -138,26 +139,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		TcpConnection connection = null;
 		String connectionId = null;
 		try {
-			if (!this.isSingleUse) {
-				logger.debug("trying semaphore");
-				if (!this.semaphore.tryAcquire(this.requestTimeout, TimeUnit.MILLISECONDS)) {
-					throw new MessageTimeoutException(requestMessage, "Timed out waiting for connection");
-				}
-				haveSemaphore = true;
-				if (logger.isDebugEnabled()) {
-					logger.debug("got semaphore");
-				}
-			}
+			haveSemaphore = acquireSemaphoreIfNeeded(requestMessage);
 			connection = this.connectionFactory.getConnection();
-			Long remoteTimeout = this.remoteTimeoutExpression.getValue(this.evaluationContext, requestMessage,
-					Long.class);
-			if (remoteTimeout == null) {
-				remoteTimeout = DEFAULT_REMOTE_TIMEOUT;
-				if (logger.isWarnEnabled()) {
-					logger.warn("remoteTimeoutExpression evaluated to null; falling back to default for message "
-							+ requestMessage);
-				}
-			}
+			Long remoteTimeout = getRemoteTimeout(requestMessage);
 			AsyncReply reply = new AsyncReply(remoteTimeout);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
@@ -165,42 +149,83 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				logger.debug("Added pending reply " + connectionId);
 			}
 			connection.send(requestMessage);
-			Message<?> replyMessage = reply.getReply();
-			if (replyMessage == null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Remote Timeout on " + connectionId);
-				}
-				// The connection is dirty - force it closed.
-				this.connectionFactory.forceClose(connection);
-				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("Response " + replyMessage);
-			}
-			return replyMessage;
+			return getReply(requestMessage, connection, connectionId, reply);
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			logger.error("Tcp Gateway exception", e);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
 			throw new MessagingException("Failed to send or receive", e);
 		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessageHandlingException(requestMessage, "Interrupted", e);
+		}
 		finally {
-			if (connectionId != null) {
-				this.pendingReplies.remove(connectionId);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Removed pending reply " + connectionId);
-				}
-				if (this.isSingleUse) {
-					connection.close();
-				}
+			cleanUp(haveSemaphore, connection, connectionId);
+		}
+	}
+
+	private boolean acquireSemaphoreIfNeeded(Message<?> requestMessage) throws InterruptedException {
+		if (!this.isSingleUse) {
+			logger.debug("trying semaphore");
+			if (!this.semaphore.tryAcquire(this.requestTimeout, TimeUnit.MILLISECONDS)) {
+				throw new MessageTimeoutException(requestMessage, "Timed out waiting for connection");
 			}
-			if (haveSemaphore) {
-				this.semaphore.release();
-				if (logger.isDebugEnabled()) {
-					logger.debug("released semaphore");
-				}
+			if (logger.isDebugEnabled()) {
+				logger.debug("got semaphore");
+			}
+			return true;
+		}
+		return false;
+	}
+
+	private Long getRemoteTimeout(Message<?> requestMessage) {
+		Long remoteTimeout = this.remoteTimeoutExpression.getValue(this.evaluationContext, requestMessage,
+				Long.class);
+		if (remoteTimeout == null) {
+			remoteTimeout = DEFAULT_REMOTE_TIMEOUT;
+			if (logger.isWarnEnabled()) {
+				logger.warn("remoteTimeoutExpression evaluated to null; falling back to default for message "
+						+ requestMessage);
+			}
+		}
+		return remoteTimeout;
+	}
+
+	private Message<?> getReply(Message<?> requestMessage, TcpConnection connection, String connectionId,
+			AsyncReply reply) {
+
+		Message<?> replyMessage = reply.getReply();
+		if (replyMessage == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Remote Timeout on " + connectionId);
+			}
+			// The connection is dirty - force it closed.
+			this.connectionFactory.forceClose(connection);
+			throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Response " + replyMessage);
+		}
+		return replyMessage;
+	}
+
+	private void cleanUp(boolean haveSemaphore, TcpConnection connection, String connectionId) {
+		if (connectionId != null) {
+			this.pendingReplies.remove(connectionId);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Removed pending reply " + connectionId);
+			}
+			if (this.isSingleUse) {
+				connection.close();
+			}
+		}
+		if (haveSemaphore) {
+			this.semaphore.release();
+			if (logger.isDebugEnabled()) {
+				logger.debug("released semaphore");
 			}
 		}
 	}
@@ -334,13 +359,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * @return The return message or null if we time out
 		 * @throws Exception
 		 */
-		public Message<?> getReply() throws Exception {
+		public Message<?> getReply() {
 			try {
 				if (!this.latch.await(this.remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
 				}
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings("unused") InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 			boolean waitForMessageAfterError = true;
@@ -351,17 +376,29 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					 * before the reply, on a different thread.
 					 */
 					logger.debug("second chance");
-					this.secondChanceLatch.await(TcpOutboundGateway.this.secondChanceDelay, TimeUnit.SECONDS); // NOSONAR
+					try {
+						this.secondChanceLatch.await(TcpOutboundGateway.this.secondChanceDelay, TimeUnit.SECONDS); // NOSONAR
+					}
+					catch (@SuppressWarnings("unused") InterruptedException e) {
+						Thread.currentThread().interrupt();
+						doThrowErrorMessagePayload();
+					}
 					waitForMessageAfterError = false;
 				}
-				else if (this.reply.getPayload() instanceof MessagingException) {
-					throw (MessagingException) this.reply.getPayload();
-				}
 				else {
-					throw new MessagingException("Exception while awaiting reply", (Throwable) this.reply.getPayload());
+					doThrowErrorMessagePayload();
 				}
 			}
 			return this.reply;
+		}
+
+		private void doThrowErrorMessagePayload() {
+			if (this.reply.getPayload() instanceof MessagingException) {
+				throw (MessagingException) this.reply.getPayload();
+			}
+			else {
+				throw new MessagingException("Exception while awaiting reply", (Throwable) this.reply.getPayload());
+			}
 		}
 
 		/**

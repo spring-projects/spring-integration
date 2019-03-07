@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -272,12 +272,12 @@ public class IntegrationManagementConfigurer
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+	public Object postProcessAfterInitialization(Object bean, String name) throws BeansException {
 		if (this.singletonsInstantiated) {
 			if (bean instanceof IntegrationManagement) {
 				((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
 			}
-			return doConfigureMetrics(bean, beanName);
+			return doConfigureMetrics(bean, name);
 		}
 		return bean;
 	}

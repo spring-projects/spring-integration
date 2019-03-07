@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,56 +84,73 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, getComponentName() + "#" + this.getComponentType() + " must be initialized");
-		Object payload = message.getPayload();
-		org.jivesoftware.smack.packet.Message xmppMessage = null;
-		if (payload instanceof org.jivesoftware.smack.packet.Message) {
-			xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
-		}
-		else {
-			String to = message.getHeaders().get(XmppHeaders.TO, String.class);
-			Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
-			xmppMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from(to));
-
-			if (payload instanceof ExtensionElement) {
-				xmppMessage.addExtension((ExtensionElement) payload);
-			}
-			else if (payload instanceof String) {
-				if (this.extensionProvider != null) {
-					String data = (String) payload;
-					if (!XML_PATTERN.matcher(data.trim()).matches()) {
-						// Since XMPP Extension parsers deal only with XML content,
-						// add an arbitrary tag that is removed by the extension parser,
-						// if the target content isn't XML.
-						data = "<root>" + data + "</root>";
-					}
-					XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(data));
-					xmlPullParser.next();
-					ExtensionElement extension = this.extensionProvider.parse(xmlPullParser);
-					xmppMessage.addExtension(extension);
-				}
-				else {
-					xmppMessage.setBody((String) payload);
-				}
+		try {
+			Object payload = message.getPayload();
+			org.jivesoftware.smack.packet.Message xmppMessage = null;
+			if (payload instanceof org.jivesoftware.smack.packet.Message) {
+				xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
 			}
 			else {
-				throw new MessageHandlingException(message,
-						"Only payloads of type java.lang.String, org.jivesoftware.smack.packet.Message " +
-								"or org.jivesoftware.smack.packet.ExtensionElement " +
-								"are supported. Received [" + payload.getClass().getName() +
-								"]. Consider adding a Transformer prior to this adapter.");
+				String to = message.getHeaders().get(XmppHeaders.TO, String.class);
+				Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
+				xmppMessage = buildXmppMessage(message, payload, to);
+			}
+
+			if (this.headerMapper != null) {
+				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
+			}
+
+			if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
+				((AbstractXMPPConnection) this.xmppConnection).connect();
+			}
+			this.xmppConnection.sendStanza(xmppMessage);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessageHandlingException(message, "Interrupted", e);
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message, "Failed to handle", e);
+		}
+	}
+
+	private org.jivesoftware.smack.packet.Message buildXmppMessage(Message<?> message, Object payload, String to)
+			throws Exception { // NOSONAR Smack throws it
+
+		org.jivesoftware.smack.packet.Message xmppMessage;
+		xmppMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from(to));
+
+		if (payload instanceof ExtensionElement) {
+			xmppMessage.addExtension((ExtensionElement) payload);
+		}
+		else if (payload instanceof String) {
+			if (this.extensionProvider != null) {
+				String data = (String) payload;
+				if (!XML_PATTERN.matcher(data.trim()).matches()) {
+					// Since XMPP Extension parsers deal only with XML content,
+					// add an arbitrary tag that is removed by the extension parser,
+					// if the target content isn't XML.
+					data = "<root>" + data + "</root>";
+				}
+				XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(data));
+				xmlPullParser.next();
+				ExtensionElement extension = this.extensionProvider.parse(xmlPullParser);
+				xmppMessage.addExtension(extension);
+			}
+			else {
+				xmppMessage.setBody((String) payload);
 			}
 		}
-
-		if (this.headerMapper != null) {
-			this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
+		else {
+			throw new MessageHandlingException(message,
+					"Only payloads of type java.lang.String, org.jivesoftware.smack.packet.Message " +
+							"or org.jivesoftware.smack.packet.ExtensionElement " +
+							"are supported. Received [" + payload.getClass().getName() +
+							"]. Consider adding a Transformer prior to this adapter.");
 		}
-
-		if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
-			((AbstractXMPPConnection) this.xmppConnection).connect();
-		}
-		this.xmppConnection.sendStanza(xmppMessage);
+		return xmppMessage;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
-import java.net.SocketException;
 
 import org.springframework.util.Assert;
 
@@ -45,16 +45,21 @@ public class TcpNetClientConnectionFactory extends
 	}
 
 	@Override
-	protected TcpConnectionSupport buildNewConnection() throws IOException, SocketException, Exception {
-		Socket socket = createSocket(this.getHost(), this.getPort());
-		setSocketAttributes(socket);
-		TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
-				getApplicationEventPublisher(), getComponentName());
-		connection = wrapConnection(connection);
-		initializeConnection(connection, socket);
-		this.getTaskExecutor().execute(connection);
-		this.harvestClosedConnections();
-		return connection;
+	protected TcpConnectionSupport buildNewConnection() {
+		try {
+			Socket socket = createSocket(this.getHost(), this.getPort());
+			setSocketAttributes(socket);
+			TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
+					getApplicationEventPublisher(), getComponentName());
+			connection = wrapConnection(connection);
+			initializeConnection(connection, socket);
+			this.getTaskExecutor().execute(connection);
+			this.harvestClosedConnections();
+			return connection;
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	/**

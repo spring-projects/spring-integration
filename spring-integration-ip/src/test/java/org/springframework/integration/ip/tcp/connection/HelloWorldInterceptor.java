@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,6 @@ package org.springframework.integration.ip.tcp.connection;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -33,8 +30,6 @@ import org.springframework.messaging.MessagingException;
  *
  */
 public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
-
-	Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile boolean negotiated;
 
@@ -109,14 +104,19 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	}
 
 	@Override
-	public void send(Message<?> message) throws Exception {
+	public void send(Message<?> message) {
 		this.pendingSend = true;
 		try {
 			if (!this.negotiated) {
 				if (!this.isServer()) {
 					logger.debug(this.toString() + " Sending " + hello);
 					super.send(MessageBuilder.withPayload(hello).build());
-					this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);
+					try {
+						this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);
+					}
+					catch (@SuppressWarnings("unused") InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 					if (!this.negotiated) {
 						throw new MessagingException("Negotiation error");
 					}

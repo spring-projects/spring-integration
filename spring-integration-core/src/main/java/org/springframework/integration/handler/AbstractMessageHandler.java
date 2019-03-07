@@ -96,8 +96,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
-		this.metricsCaptor = metricsCaptor;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
+		this.metricsCaptor = metricsCaptorToRegister;
 	}
 
 	@Override
@@ -222,7 +222,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	}
 
-	protected abstract void handleMessageInternal(Message<?> message) throws Exception;
+	protected abstract void handleMessageInternal(Message<?> message);
 
 	@Override
 	public void reset() {

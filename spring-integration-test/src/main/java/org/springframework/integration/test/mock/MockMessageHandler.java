@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	@SuppressWarnings("unchecked")
 	protected MockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
 		if (messageArgumentCaptor != null) {
-			this.capturingMatcher = (CapturingMatcher<Message<?>>) TestUtils.getPropertyValue(messageArgumentCaptor,
+			this.capturingMatcher = TestUtils.getPropertyValue(messageArgumentCaptor,
 					"capturingMatcher", CapturingMatcher.class);
 		}
 		else {
@@ -103,7 +103,7 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		if (this.capturingMatcher != null) {
 			this.capturingMatcher.captureFrom(message);
 		}

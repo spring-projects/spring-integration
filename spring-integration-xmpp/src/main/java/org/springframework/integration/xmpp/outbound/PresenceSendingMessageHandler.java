@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -48,15 +49,24 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		Assert.state(this.initialized, this.getComponentName() + " must be initialized");
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Presence,
 				"Payload must be of type 'org.jivesoftware.smack.packet.Presence', was: " + payload.getClass().getName());
-		if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
-			((AbstractXMPPConnection) this.xmppConnection).connect();
+		try {
+			if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
+				((AbstractXMPPConnection) this.xmppConnection).connect();
+			}
+			this.xmppConnection.sendStanza((Presence) payload);
 		}
-		this.xmppConnection.sendStanza((Presence) payload);
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessageHandlingException(message, "Interrupted", e);
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message, "Failed to handle", e);
+		}
 	}
 
 }

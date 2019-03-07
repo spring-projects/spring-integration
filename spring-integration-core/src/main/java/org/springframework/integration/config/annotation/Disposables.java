@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,17 +36,19 @@ class Disposables implements DisposableBean {
 
 	private final List<DisposableBean> disposables = new ArrayList<>();
 
-	public void add(DisposableBean... disposables) {
-		this.disposables.addAll(Arrays.asList(disposables));
+	@SafeVarargs
+	@SuppressWarnings("varargs")
+	public final void add(DisposableBean... disposablesToAdd) {
+		this.disposables.addAll(Arrays.asList(disposablesToAdd));
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		this.disposables.forEach(d -> {
 			try {
 				d.destroy();
 			}
-			catch (Exception e) {
+			catch (@SuppressWarnings("unused") Exception e) {
 				// NOSONAR
 			}
 		});

@@ -63,14 +63,15 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
+	 * @throws InterruptedException if interrupted.
 	 */
 	@Override
-	public TcpConnectionSupport getConnection() throws Exception {
-		this.checkActive();
+	public TcpConnectionSupport getConnection() throws InterruptedException {
+		checkActive();
 		return obtainConnection();
 	}
 
-	protected TcpConnectionSupport obtainConnection() throws Exception {
+	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		if (!this.isSingleUse()) {
 			TcpConnectionSupport connection = obtainSharedConnection();
 			if (connection != null) {
@@ -92,11 +93,10 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		finally {
 			this.theConnectionLock.readLock().unlock();
 		}
-
 		return null;
 	}
 
-	protected final TcpConnectionSupport obtainNewConnection() throws Exception {
+	protected final TcpConnectionSupport obtainNewConnection() throws InterruptedException {
 		boolean singleUse = this.isSingleUse();
 		if (!singleUse) {
 			this.theConnectionLock.writeLock().lockInterruptibly();
@@ -115,14 +115,14 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 				logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
 			}
 
-			connection = this.buildNewConnection();
+			connection = buildNewConnection();
 			if (!singleUse) {
 				this.setTheConnection(connection);
 			}
 			connection.publishConnectionOpenEvent();
 			return connection;
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new TcpConnectionFailedEvent(this, e));
@@ -136,7 +136,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		}
 	}
 
-	protected TcpConnectionSupport buildNewConnection() throws Exception {
+	protected TcpConnectionSupport buildNewConnection() {
 		throw new UnsupportedOperationException("Factories that don't override this class' obtainConnection() must implement this method");
 	}
 

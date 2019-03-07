@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Collection,
 				"This Argument Resolver support only messages with payload as Collection<Message<?>>");

@@ -217,7 +217,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		}
 	}
 
-	protected DatagramPacket receive() throws Exception {
+	protected DatagramPacket receive() throws IOException {
 		final byte[] buffer = new byte[this.getReceiveBufferSize()];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		getSocket().receive(packet);

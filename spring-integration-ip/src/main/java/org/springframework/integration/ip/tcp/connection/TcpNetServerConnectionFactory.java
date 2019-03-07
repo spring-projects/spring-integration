@@ -135,7 +135,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						socket = this.serverSocket.accept();
 					}
 				}
-				catch (SocketTimeoutException ste) {
+				catch (@SuppressWarnings("unused") SocketTimeoutException ste) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Timed out on accept; continuing");
 					}
@@ -164,20 +164,20 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						harvestClosedConnections();
 						connection.publishConnectionOpenEvent();
 					}
-					catch (Exception e) {
+					catch (RuntimeException e) {
 						this.logger.error("Failed to create and configure a TcpConnection for the new socket: "
 								+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort(), e);
 						try {
 							socket.close();
 						}
-						catch (IOException e1) {
+						catch (@SuppressWarnings("unused") IOException e1) {
 							// empty
 						}
 					}
 				}
 			}
 		}
-		catch (Exception e) {
+		catch (IOException e) { // NOSONAR flow control via exceptions
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.info("Server Socket closed");
@@ -224,7 +224,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			this.serverSocket.close();
 		}
-		catch (IOException e) {
+		catch (@SuppressWarnings("unused") IOException e) {
 		}
 		this.serverSocket = null;
 		super.stop();

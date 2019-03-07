@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -278,7 +279,7 @@ public class UnicastSendingMessageHandler extends
 								+ this.ackTimeout + " millis");
 					}
 				}
-				catch (InterruptedException e) {
+				catch (@SuppressWarnings("unused") InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 			}
@@ -312,7 +313,7 @@ public class UnicastSendingMessageHandler extends
 					try {
 						this.ackLatch.await(10000, TimeUnit.MILLISECONDS);
 					}
-					catch (InterruptedException e) {
+					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
 				}
@@ -320,7 +321,7 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	protected void convertAndSend(Message<?> message) throws Exception {
+	protected void convertAndSend(Message<?> message) throws IOException, URISyntaxException {
 		DatagramSocket datagramSocket;
 		if (this.socketExpression != null) {
 			datagramSocket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);

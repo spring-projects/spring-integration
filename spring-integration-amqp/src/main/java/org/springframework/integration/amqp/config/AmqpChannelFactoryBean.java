@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.RabbitAccessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
@@ -35,8 +36,6 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
@@ -46,15 +45,13 @@ import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * If point-to-point, we send to the default exchange with the routing key
@@ -71,7 +68,7 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel>
-		implements SmartLifecycle, DisposableBean, BeanNameAware {
+		implements SmartLifecycle, BeanNameAware {
 
 	private volatile AbstractAmqpChannel channel;
 
@@ -355,32 +352,26 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	@Override
-	protected AbstractAmqpChannel createInstance() throws Exception {
+	protected AbstractAmqpChannel createInstance() {
 		if (this.messageDriven) {
 			AbstractMessageListenerContainer container = this.createContainer();
-			if (this.amqpTemplate instanceof InitializingBean) {
-				((InitializingBean) this.amqpTemplate).afterPropertiesSet();
+			if (this.amqpTemplate instanceof RabbitAccessor) {
+				((RabbitAccessor) this.amqpTemplate).afterPropertiesSet();
 			}
 			if (this.isPubSub) {
 				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
 						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
-				if (this.exchange != null) {
-					pubsub.setExchange(this.exchange);
-				}
-				if (this.maxSubscribers != null) {
-					pubsub.setMaxSubscribers(this.maxSubscribers);
-				}
+				JavaUtils.INSTANCE
+					.acceptIfNotNull(this.exchange, pubsub::setExchange)
+					.acceptIfNotNull(this.maxSubscribers, pubsub::setMaxSubscribers);
 				this.channel = pubsub;
 			}
 			else {
 				PointToPointSubscribableAmqpChannel p2p = new PointToPointSubscribableAmqpChannel(
 						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
-				if (StringUtils.hasText(this.queueName)) {
-					p2p.setQueueName(this.queueName);
-				}
-				if (this.maxSubscribers != null) {
-					p2p.setMaxSubscribers(this.maxSubscribers);
-				}
+				JavaUtils.INSTANCE
+					.acceptIfHasText(this.queueName, p2p::setQueueName)
+					.acceptIfNotNull(this.maxSubscribers, p2p::setMaxSubscribers);
 				this.channel = p2p;
 			}
 		}
@@ -388,45 +379,31 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			Assert.isTrue(!this.isPubSub, "An AMQP 'publish-subscribe-channel' must be message-driven.");
 			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate,
 					this.outboundHeaderMapper, this.inboundHeaderMapper);
-			if (this.amqpAdmin != null) {
-				pollable.setAmqpAdmin(this.amqpAdmin);
-			}
-			if (StringUtils.hasText(this.queueName)) {
-				pollable.setQueueName(this.queueName);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.amqpAdmin, pollable::setAmqpAdmin)
+				.acceptIfHasText(this.queueName, pollable::setQueueName);
 			this.channel = pollable;
 		}
-		if (!CollectionUtils.isEmpty(this.interceptors)) {
-			this.channel.setInterceptors(this.interceptors);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotEmpty(this.interceptors, this.channel::setInterceptors);
 		this.channel.setBeanName(this.beanName);
-		if (getBeanFactory() != null) {
-			this.channel.setBeanFactory(getBeanFactory()); // NOSONAR never null
-		}
-		if (this.defaultDeliveryMode != null) {
-			this.channel.setDefaultDeliveryMode(this.defaultDeliveryMode);
-		}
-		if (this.extractPayload != null) {
-			this.channel.setExtractPayload(this.extractPayload);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(getBeanFactory(), this.channel::setBeanFactory)
+			.acceptIfNotNull(this.defaultDeliveryMode, this.channel::setDefaultDeliveryMode)
+			.acceptIfNotNull(this.extractPayload, this.channel::setExtractPayload);
 		this.channel.setHeadersMappedLast(this.headersLast);
 		this.channel.afterPropertiesSet();
 		return this.channel;
 	}
 
-	private AbstractMessageListenerContainer createContainer() throws Exception {
+	private AbstractMessageListenerContainer createContainer() {
 		AbstractMessageListenerContainer container;
 		if (this.consumersPerQueue == null) {
 			SimpleMessageListenerContainer smlc = new SimpleMessageListenerContainer();
-			if (this.concurrentConsumers != null) {
-				smlc.setConcurrentConsumers(this.concurrentConsumers);
-			}
-			if (this.receiveTimeout != null) {
-				smlc.setReceiveTimeout(this.receiveTimeout);
-			}
-			if (this.txSize != null) {
-				smlc.setTxSize(this.txSize);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers)
+				.acceptIfNotNull(this.receiveTimeout, smlc::setReceiveTimeout)
+				.acceptIfNotNull(this.txSize, smlc::setTxSize);
 			container = smlc;
 		}
 		else {
@@ -434,48 +411,25 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			dmlc.setConsumersPerQueue(this.consumersPerQueue);
 			container = dmlc;
 		}
-		if (this.acknowledgeMode != null) {
-			container.setAcknowledgeMode(this.acknowledgeMode);
-		}
-		if (!ObjectUtils.isEmpty(this.adviceChain)) {
-			container.setAdviceChain(this.adviceChain);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.acknowledgeMode, container::setAcknowledgeMode)
+			.acceptIfNotEmpty(this.adviceChain, container::setAdviceChain);
 		container.setAutoStartup(this.autoStartup);
 		container.setChannelTransacted(this.channelTransacted);
 		container.setConnectionFactory(this.connectionFactory);
-		if (this.errorHandler != null) {
-			container.setErrorHandler(this.errorHandler);
-		}
-		if (this.exposeListenerChannel != null) {
-			container.setExposeListenerChannel(this.exposeListenerChannel);
-		}
-		if (this.messagePropertiesConverter != null) {
-			container.setMessagePropertiesConverter(this.messagePropertiesConverter);
-		}
-		if (this.phase != null) {
-			container.setPhase(this.phase);
-		}
-		if (this.prefetchCount != null) {
-			container.setPrefetchCount(this.prefetchCount);
-		}
-		if (this.recoveryInterval != null) {
-			container.setRecoveryInterval(this.recoveryInterval);
-		}
-		if (this.shutdownTimeout != null) {
-			container.setShutdownTimeout(this.shutdownTimeout);
-		}
-		if (this.taskExecutor != null) {
-			container.setTaskExecutor(this.taskExecutor);
-		}
-		if (this.transactionAttribute != null) {
-			container.setTransactionAttribute(this.transactionAttribute);
-		}
-		if (this.transactionManager != null) {
-			container.setTransactionManager(this.transactionManager);
-		}
-		if (this.missingQueuesFatal != null) {
-			container.setMissingQueuesFatal(this.missingQueuesFatal);
-		}
+
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
+			.acceptIfNotNull(this.exposeListenerChannel, container::setExposeListenerChannel)
+			.acceptIfNotNull(this.messagePropertiesConverter, container::setMessagePropertiesConverter)
+			.acceptIfNotNull(this.phase, container::setPhase)
+			.acceptIfNotNull(this.prefetchCount, container::setPrefetchCount)
+			.acceptIfNotNull(this.recoveryInterval, container::setRecoveryInterval)
+			.acceptIfNotNull(this.shutdownTimeout, container::setShutdownTimeout)
+			.acceptIfNotNull(this.taskExecutor, container::setTaskExecutor)
+			.acceptIfNotNull(this.transactionAttribute, container::setTransactionAttribute)
+			.acceptIfNotNull(this.transactionManager, container::setTransactionManager)
+			.acceptIfNotNull(this.missingQueuesFatal, container::setMissingQueuesFatal);
 		return container;
 	}
 
@@ -524,7 +478,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	@Override
-	protected void destroyInstance(AbstractAmqpChannel instance) throws Exception {
+	protected void destroyInstance(AbstractAmqpChannel instance) {
 		this.channel.destroy();
 	}
 

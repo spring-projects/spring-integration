@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public TcpConnectionSupport getConnection() throws Exception {
+	public TcpConnectionSupport getConnection() throws InterruptedException {
 		TcpThreadConnection connection = this.connections.get();
 		if (connection == null || !connection.isOpen()) {
 			TcpConnectionSupport delegate = this.connectionFactory.getConnection();
@@ -380,7 +380,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public void send(Message<?> message) throws Exception {
+		public void send(Message<?> message) {
 			this.connection.send(message);
 		}
 
@@ -390,7 +390,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		}
 
 		@Override
-		public Object getPayload() throws Exception {
+		public Object getPayload() {
 			return this.connection.getPayload();
 		}
 

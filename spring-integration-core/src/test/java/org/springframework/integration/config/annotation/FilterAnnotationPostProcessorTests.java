@@ -273,7 +273,7 @@ public class FilterAnnotationPostProcessorTests {
 	public static class TestAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			return callback.execute();
 		}
 

@@ -102,7 +102,7 @@ public class UdpChannelAdapterTests {
 			}
 
 			@Override
-			protected DatagramPacket receive() throws Exception {
+			protected DatagramPacket receive() throws IOException {
 				if (stopping.get()) {
 					return new DatagramPacket(new byte[0], 0);
 				}

@@ -196,6 +196,7 @@ public class GroovyControlBusTests {
 
 		private volatile boolean executed;
 
+		@Override
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}
@@ -206,33 +207,41 @@ public class GroovyControlBusTests {
 
 		private final Map<String, Object> fakeRequest = new HashMap<>();
 
+		@Override
 		public Object getAttribute(String name, int scope) {
 			return fakeRequest.get(name);
 		}
 
+		@Override
 		public void setAttribute(String name, Object value, int scope) {
 			fakeRequest.put(name, value);
 		}
 
+		@Override
 		public void removeAttribute(String name, int scope) {
 		}
 
+		@Override
 		public String[] getAttributeNames(int scope) {
 			return null;
 		}
 
+		@Override
 		public void registerDestructionCallback(String name, Runnable callback, int scope) {
 
 		}
 
+		@Override
 		public Object resolveReference(String key) {
 			return null;
 		}
 
+		@Override
 		public String getSessionId() {
 			return null;
 		}
 
+		@Override
 		public Object getSessionMutex() {
 			return null;
 		}
@@ -242,7 +251,7 @@ public class GroovyControlBusTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled++;
 			return callback.execute();
 		}

@@ -395,7 +395,7 @@ public class MessagingAnnotationPostProcessorTests {
 	public static class ServiceActivatorAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			return callback.execute() + " advised";
 		}
 

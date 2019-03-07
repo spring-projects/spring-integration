@@ -204,7 +204,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	}
 
 	@Override
-	protected FileTailingMessageProducerSupport createInstance() throws Exception {
+	protected FileTailingMessageProducerSupport createInstance() {
 		FileTailingMessageProducerSupport adapter;
 		if (this.delay == null && this.end == null && this.reopen == null) {
 			adapter = new OSDelegatingFileTailingMessageProducer();

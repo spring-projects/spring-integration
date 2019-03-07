@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	}
 
 	@Override
-	protected TcpConnectionSupport obtainConnection() throws Exception {
+	protected TcpConnectionSupport obtainConnection() throws InterruptedException {
 		TcpConnectionSupport connection = this.getTheConnection();
 		if (connection != null && connection.isOpen()) {
 			((FailoverTcpConnection) connection).incrementEpoch();
@@ -146,7 +146,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 */
 	private final class FailoverTcpConnection extends TcpConnectionSupport implements TcpListener {
 
-		private final List<AbstractClientConnectionFactory> factories;
+		private final List<AbstractClientConnectionFactory> connectionFactories;
 
 		private final String connectionId;
 
@@ -160,8 +160,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		private final AtomicLong epoch = new AtomicLong();
 
-		private FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws Exception {
-			this.factories = factories;
+		private FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws InterruptedException {
+			this.connectionFactories = factories;
 			this.factoryIterator = factories.iterator();
 			findAConnection();
 			this.connectionId = UUID.randomUUID().toString();
@@ -177,14 +177,14 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * This allows for the condition where the current connection is closed,
 		 * the current factory can serve up a new connection, but all other
 		 * factories are down.
-		 * @throws Exception if an exception occurs
+		 * @throws InterruptedException if interrupted.
 		 */
-		private synchronized void findAConnection() throws Exception {
+		private synchronized void findAConnection() throws InterruptedException {
 			boolean success = false;
 			AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
 			AbstractClientConnectionFactory nextFactory = null;
 			if (!this.factoryIterator.hasNext()) {
-				this.factoryIterator = this.factories.iterator();
+				this.factoryIterator = this.connectionFactories.iterator();
 			}
 			boolean retried = false;
 			while (!success) {
@@ -198,7 +198,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					this.currentFactory = nextFactory;
 					success = this.delegate.isOpen();
 				}
-				catch (Exception e) {
+				catch (RuntimeException e) {
 					if (logger.isDebugEnabled()) {
 						logger.debug(nextFactory + " failed with "
 								+ e.toString()
@@ -213,7 +213,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 							this.open = false;
 							throw e;
 						}
-						this.factoryIterator = this.factories.iterator();
+						this.factoryIterator = this.connectionFactories.iterator();
 						retried = true;
 					}
 				}
@@ -237,7 +237,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * If send fails on a connection from every factory, we give up.
 		 */
 		@Override
-		public synchronized void send(Message<?> message) throws Exception {
+		public synchronized void send(Message<?> message) {
 			boolean success = false;
 			AbstractClientConnectionFactory lastFactoryToTry = this.currentFactory;
 			AbstractClientConnectionFactory lastFactoryTried = null;
@@ -248,7 +248,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					this.delegate.send(message);
 					success = true;
 				}
-				catch (Exception e) {
+				catch (RuntimeException e) {
 					if (retried && lastFactoryTried == lastFactoryToTry) {
 						logger.error("All connection factories exhausted", e);
 						this.open = false;
@@ -259,7 +259,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 						logger.debug("Send to " + this.delegate.getConnectionId() + " failed; attempting failover", e);
 					}
 					this.delegate.close();
-					findAConnection();
+					try {
+						findAConnection();
+					}
+					catch (@SuppressWarnings("unused") InterruptedException e1) {
+						Thread.currentThread().interrupt();
+					}
 					if (logger.isDebugEnabled()) {
 						logger.debug("Failing over to " + this.delegate.getConnectionId());
 					}
@@ -268,7 +273,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public Object getPayload() throws Exception {
+		public Object getPayload() {
 			return this.delegate.getPayload();
 		}
 

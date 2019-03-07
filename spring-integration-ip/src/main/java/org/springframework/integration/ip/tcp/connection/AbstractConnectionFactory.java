@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -61,6 +62,8 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		implements ConnectionFactory, ApplicationEventPublisherAware {
+
+	private static final String UNUSED = "unused";
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -351,24 +354,24 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	/**
 	 * Registers a TcpListener to receive messages after
 	 * the payload has been converted from the input data.
-	 * @param listener the TcpListener.
+	 * @param listenerToRegister the TcpListener.
 	 */
-	public void registerListener(TcpListener listener) {
+	public void registerListener(TcpListener listenerToRegister) {
 		Assert.isNull(this.listener, this.getClass().getName() +
 				" may only be used by one inbound adapter");
-		this.listener = listener;
+		this.listener = listenerToRegister;
 	}
 
 	/**
 	 * Registers a TcpSender; for server sockets, used to
 	 * provide connection information so a sender can be used
 	 * to reply to incoming messages.
-	 * @param sender The sender
+	 * @param senderToRegister The sender
 	 */
-	public void registerSender(TcpSender sender) {
+	public void registerSender(TcpSender senderToRegister) {
 		Assert.isNull(this.sender, this.getClass().getName() +
 				" may only be used by one outbound adapter");
-		this.sender = sender;
+		this.sender = senderToRegister;
 	}
 
 	/**
@@ -557,7 +560,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						}
 					}
 				}
-				catch (InterruptedException e) {
+				catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 					executorService.shutdownNow();
 					Thread.currentThread().interrupt();
 				}
@@ -572,7 +575,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected TcpConnectionSupport wrapConnection(TcpConnectionSupport connectionArg) throws Exception {
+	protected TcpConnectionSupport wrapConnection(TcpConnectionSupport connectionArg) {
 		TcpConnectionSupport connection = connectionArg;
 		try {
 			if (this.interceptorFactoryChain == null) {
@@ -611,12 +614,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
 	 * @param selector The selector.
 	 * @param server The server socket channel.
-	 * @param connections Map of connections.
-	 * @throws IOException Any IOException.
+	 * @param connectionMap Map of connections.
 	 */
 	protected void processNioSelections(int selectionCount, final Selector selector,
 			@Nullable ServerSocketChannel server,
-			Map<SocketChannel, TcpNioConnection> connections) throws IOException {
+			Map<SocketChannel, TcpNioConnection> connectionMap) {
 
 		final long now = System.currentTimeMillis();
 		rescheduleDelayedReads(selector, now);
@@ -624,7 +626,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				now >= this.nextCheckForClosedNioConnections ||
 				selectionCount == 0) {
 			this.nextCheckForClosedNioConnections = now + this.nioHarvestInterval;
-			Iterator<Entry<SocketChannel, TcpNioConnection>> it = connections.entrySet().iterator();
+			Iterator<Entry<SocketChannel, TcpNioConnection>> it = connectionMap.entrySet().iterator();
 			while (it.hasNext()) {
 				SocketChannel channel = it.next().getKey();
 				if (!channel.isOpen()) {
@@ -632,7 +634,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					it.remove();
 				}
 				else if (this.soTimeout > 0) {
-					TcpNioConnection connection = connections.get(channel);
+					TcpNioConnection connection = connectionMap.get(channel);
 					if (now - connection.getLastRead() >= this.soTimeout) {
 						/*
 						 * For client connections, we have to wait for 2 timeouts if the last
@@ -650,7 +652,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 							if (logger.isWarnEnabled()) {
 								logger.warn("Timing out TcpNioConnection " + connection.getConnectionId());
 							}
-							SocketTimeoutException exception = new SocketTimeoutException("Timing out connection");
+							Exception exception = new SocketTimeoutException("Timing out connection");
 							connection.publishConnectionExceptionEvent(exception);
 							connection.timeout();
 							connection.sendExceptionToListener(exception);
@@ -689,7 +691,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 								try {
 									connection.readPacket();
 								}
-								catch (RejectedExecutionException e1) {
+								catch (@SuppressWarnings(UNUSED) RejectedExecutionException e1) {
 									delayRead(selector, now, key);
 									delayed = true;
 								}
@@ -715,7 +717,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 								}
 							});
 						}
-						catch (RejectedExecutionException e) {
+						catch (@SuppressWarnings(UNUSED) RejectedExecutionException e) {
 							delayRead(selector, now, key);
 						}
 					}
@@ -731,7 +733,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						logger.error("Unexpected key: " + key);
 					}
 				}
-				catch (CancelledKeyException e) {
+				catch (@SuppressWarnings(UNUSED) CancelledKeyException e) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Selection key " + key + " cancelled");
 					}
@@ -787,7 +789,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				}
 			}
 		}
-		catch (InterruptedException e) {
+		catch (@SuppressWarnings(UNUSED) InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 		finally {
@@ -801,9 +803,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param selector The selector.
 	 * @param server The server socket channel.
 	 * @param now The current time.
-	 * @throws IOException Any IOException.
 	 */
-	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
+	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) {
 		throw new UnsupportedOperationException("Nio server factory must override this method");
 	}
 
@@ -874,9 +875,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.active = active;
 	}
 
-	protected void checkActive() throws IOException {
+	protected void checkActive() {
 		if (!this.isActive()) {
-			throw new IOException(this + " connection factory has not been started");
+			throw new UncheckedIOException(new IOException(this + " connection factory has not been started"));
 		}
 	}
 

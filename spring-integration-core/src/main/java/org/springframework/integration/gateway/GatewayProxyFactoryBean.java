@@ -421,7 +421,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
-	public Object getObject() throws Exception {
+	public Object getObject() {
 		if (this.serviceProxy == null) {
 			this.onInit();
 			Assert.notNull(this.serviceProxy, "failed to initialize proxy");
@@ -436,7 +436,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	@Override
 	@Nullable
-	public Object invoke(final MethodInvocation invocation) throws Throwable {
+	public Object invoke(final MethodInvocation invocation) throws Throwable { // NOSONAR
 		final Class<?> returnType = invocation.getMethod().getReturnType();
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
 			Invoker invoker = new Invoker(invocation);
@@ -479,7 +479,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Nullable
-	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) throws Exception {
+	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}

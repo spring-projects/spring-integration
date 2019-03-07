@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean {
+
+	private static final String UNUSED = "unused";
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -486,7 +488,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.beanFactory != null) {
 			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 		}
@@ -763,7 +765,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setDate(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
 					target.setDate(this.getFirstDate((String) value, DATE));
 				}
 			}
@@ -794,7 +796,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setExpires(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
 					target.setExpires(this.getFirstDate((String) value, EXPIRES));
 				}
 			}
@@ -815,7 +817,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setIfModifiedSince(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
 					target.setIfModifiedSince(this.getFirstDate((String) value, IF_MODIFIED_SINCE));
 				}
 			}
@@ -838,7 +840,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					ifUnmodifiedSinceValue = this.formatDate(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
 					long longValue = this.getFirstDate((String) value, IF_UNMODIFIED_SINCE);
 					ifUnmodifiedSinceValue = this.formatDate(longValue);
 				}
@@ -888,7 +890,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setLastModified(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
 					target.setLastModified(this.getFirstDate((String) value, LAST_MODIFIED));
 				}
 			}
@@ -1078,7 +1080,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 						.toInstant()
 						.toEpochMilli();
 			}
-			catch (DateTimeParseException ex) {
+			catch (@SuppressWarnings(UNUSED) DateTimeParseException ex) {
 				// ignore
 			}
 		}

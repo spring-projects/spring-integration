@@ -112,14 +112,14 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 
 				this.roleController.addLifecycleToRole(this.role, this);
 			}
-			catch (NoSuchBeanDefinitionException e) {
+			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
 					this.logger.trace("No LifecycleRoleController in the context");
 				}
 		}
 	}
 
 	@Override
-	public void destroy() throws Exception { // NOSONAR TODO: remove throws in 5.2
+	public void destroy() {
 		if (this.roleController != null) {
 			this.roleController.removeLifecycle(this);
 		}

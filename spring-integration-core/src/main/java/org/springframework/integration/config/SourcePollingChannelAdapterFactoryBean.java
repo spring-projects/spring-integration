@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
 		}
@@ -256,7 +256,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (this.adapter != null) {
 			this.adapter.destroy();
 		}

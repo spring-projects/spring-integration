@@ -261,7 +261,7 @@ subprojects { subproject ->
 	}
 
 	test {
-		maxHeapSize = "1024m"
+		maxHeapSize = "1536m"
 		jacoco {
 			append = false
 			destinationFile = file("$buildDir/jacoco.exec")

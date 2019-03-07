@@ -83,6 +83,7 @@ import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
@@ -143,8 +144,8 @@ public class TcpNioConnectionTests {
 			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
 		}
-		catch (Exception e) {
-			assertThat(e instanceof SocketTimeoutException)
+		catch (MessagingException e) {
+			assertThat(e.getCause() instanceof SocketTimeoutException)
 					.as("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
 							":" + e.getMessage()).isTrue();
 		}

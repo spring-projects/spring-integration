@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 		return this.functions;
 	}
 
-	protected void initialize(String beanName) throws Exception {
+	protected void initialize(String beanName) {
 		if (this.applicationContext != null) {
 			ConversionService conversionService = IntegrationUtils.getConversionService(getApplicationContext());
 			if (conversionService != null) {
@@ -115,7 +115,7 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 					}
 				}
 			}
-			catch (NoSuchBeanDefinitionException e) {
+			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
 				// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
 			}
 

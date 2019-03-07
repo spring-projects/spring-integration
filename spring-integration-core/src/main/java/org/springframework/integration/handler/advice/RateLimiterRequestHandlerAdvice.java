@@ -119,7 +119,7 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 	}
 
 	/**
-	 * Get a {@link RateLimiter} which is configured for this advice.
+	 * Get the {@link RateLimiter} which is configured for this advice.
 	 * @return the {@link RateLimiter} for this advice.
 	 */
 	public RateLimiter getRateLimiter() {

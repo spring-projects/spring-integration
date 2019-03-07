@@ -75,7 +75,7 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 	 */
 	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
 
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
 		postProcessSSLEngine(sslEngine);
@@ -120,7 +120,8 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 
 		PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, SSLEngine sslEngine,
-				int bufferSize) throws Exception {
+				int bufferSize) {
+
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName, sslEngine);
 			this.pushbackBufferSize = bufferSize;
 			this.connectionId = "pushback:" + super.getConnectionId();

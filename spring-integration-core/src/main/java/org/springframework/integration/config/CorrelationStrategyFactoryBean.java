@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationSt
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.target instanceof CorrelationStrategy && !StringUtils.hasText(this.methodName)) {
 			this.strategy = (CorrelationStrategy) this.target;
 			return;
@@ -75,14 +75,17 @@ public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationSt
 		}
 	}
 
-	public CorrelationStrategy getObject() throws Exception {
+	@Override
+	public CorrelationStrategy getObject() {
 		return this.strategy;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		return CorrelationStrategy.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}

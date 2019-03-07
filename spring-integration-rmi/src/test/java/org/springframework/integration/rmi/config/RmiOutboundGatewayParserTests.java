@@ -98,7 +98,7 @@ public class RmiOutboundGatewayParserTests {
 	}
 
 	@AfterClass
-	public static void destroyInboundGateway() throws Exception {
+	public static void destroyInboundGateway() {
 		rmiInboundGateway.destroy();
 	}
 
@@ -142,7 +142,7 @@ public class RmiOutboundGatewayParserTests {
 		int adviceCalled;
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled++;
 			return callback.execute();
 		}

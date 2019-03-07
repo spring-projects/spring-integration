@@ -279,7 +279,7 @@ public class ServiceActivatorParserTests {
 	public static class BarAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			callback.execute();
 			return "bar";
 		}

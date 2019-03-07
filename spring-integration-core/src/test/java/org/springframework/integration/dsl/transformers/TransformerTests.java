@@ -375,9 +375,7 @@ public class TransformerTests {
 			return new AbstractRequestHandlerAdvice() {
 
 				@Override
-				protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message)
-						throws Exception {
-
+				protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 					adviceChannel().send(message);
 					return callback.execute();
 				}
