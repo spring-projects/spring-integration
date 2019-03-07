@@ -29,6 +29,6 @@ import org.springframework.messaging.Message;
 public interface OutboundMessageMapper<T> {
 
 	@Nullable
-	T fromMessage(Message<?> message) throws Exception; // NOSONAR
+	T fromMessage(Message<?> message);
 
 }

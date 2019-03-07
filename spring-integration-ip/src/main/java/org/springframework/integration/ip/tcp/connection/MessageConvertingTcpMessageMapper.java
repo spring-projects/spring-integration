@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	}
 
 	@Override
-	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) throws Exception {
+	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) {
 		Object data = connection.getPayload();
 		if (data != null) {
 
@@ -70,7 +70,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	}
 
 	@Override
-	public Object fromMessage(Message<?> message) throws Exception {
+	public Object fromMessage(Message<?> message) {
 		return this.messageConverter.fromMessage(message, Object.class);
 	}
 

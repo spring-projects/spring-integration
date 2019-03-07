@@ -89,7 +89,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * method cannot discriminate.
 	 */
 	@Override
-	public TcpConnection getConnection() throws Exception {
+	public TcpConnection getConnection() {
 		throw new UnsupportedOperationException("Getting a connection from a server factory is not supported");
 	}
 

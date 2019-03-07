@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -394,7 +395,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 	}
 
-	private com.jcraft.jsch.Session initJschSession() throws Exception {
+	private com.jcraft.jsch.Session initJschSession() throws JSchException, IOException {
 		if (this.port <= 0) {
 			this.port = 22;
 		}

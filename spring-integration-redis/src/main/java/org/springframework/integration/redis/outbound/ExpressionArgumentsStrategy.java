@@ -74,7 +74,7 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}

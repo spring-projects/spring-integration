@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.json;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Type;
@@ -57,17 +58,17 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjec
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Class<T> valueType) throws Exception {
-		return this.fromJson(json, this.constructType(valueType));
+	public <T> T fromJson(Object json, Class<T> valueType) throws IOException {
+		return fromJson(json, this.constructType(valueType));
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception {
-		J javaType = this.extractJavaType(javaTypes);
+	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException {
+		J javaType = extractJavaType(javaTypes);
 		return this.fromJson(json, javaType);
 	}
 
-	protected J createJavaType(Map<String, Object> javaTypes, String javaTypeKey) throws Exception {
+	protected J createJavaType(Map<String, Object> javaTypes, String javaTypeKey) {
 		Object classValue = javaTypes.get(javaTypeKey);
 		if (classValue == null) {
 			throw new IllegalArgumentException("Could not resolve '" + javaTypeKey + "' in 'javaTypes'.");
@@ -78,16 +79,21 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjec
 				aClass = (Class<?>) classValue;
 			}
 			else {
-				aClass = ClassUtils.forName(classValue.toString(), this.classLoader);
+				try {
+					aClass = ClassUtils.forName(classValue.toString(), this.classLoader);
+				}
+				catch (ClassNotFoundException | LinkageError e) {
+					throw new IllegalStateException(e);
+				}
 			}
 
 			return this.constructType(aClass);
 		}
 	}
 
-	protected abstract <T> T fromJson(Object json, J type) throws Exception;
+	protected abstract <T> T fromJson(Object json, J type) throws IOException;
 
-	protected abstract J extractJavaType(Map<String, Object> javaTypes) throws Exception;
+	protected abstract J extractJavaType(Map<String, Object> javaTypes);
 
 	protected abstract J constructType(Type type);
 

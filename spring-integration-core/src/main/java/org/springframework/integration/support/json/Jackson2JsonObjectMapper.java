@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.json;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
@@ -32,6 +33,7 @@ import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -82,17 +84,17 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	public String toJson(Object value) throws Exception {
+	public String toJson(Object value) throws JsonProcessingException {
 		return this.objectMapper.writeValueAsString(value);
 	}
 
 	@Override
-	public void toJson(Object value, Writer writer) throws Exception {
+	public void toJson(Object value, Writer writer) throws IOException {
 		this.objectMapper.writeValue(writer, value);
 	}
 
 	@Override
-	public JsonNode toJsonNode(Object json) throws Exception {
+	public JsonNode toJsonNode(Object json) throws IOException {
 		try {
 			if (json instanceof String) {
 				return this.objectMapper.readTree((String) json);
@@ -124,7 +126,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	protected <T> T fromJson(Object json, JavaType type) throws Exception {
+	protected <T> T fromJson(Object json, JavaType type) throws IOException {
 		if (json instanceof String) {
 			return this.objectMapper.readValue((String) json, type);
 		}
@@ -150,13 +152,13 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	public <T> T fromJson(JsonParser parser, Type valueType) throws Exception {
+	public <T> T fromJson(JsonParser parser, Type valueType) throws IOException {
 		return this.objectMapper.readValue(parser, constructType(valueType));
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked" })
-	protected JavaType extractJavaType(Map<String, Object> javaTypes) throws Exception {
+	protected JavaType extractJavaType(Map<String, Object> javaTypes) {
 		JavaType classType = this.createJavaType(javaTypes, JsonHeaders.TYPE_ID);
 		if (!classType.isContainerType() || classType.isArrayType()) {
 			return classType;
@@ -169,7 +171,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 							contentClassType);
 		}
 
-		JavaType keyClassType = this.createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
+		JavaType keyClassType = createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
 		return this.objectMapper.getTypeFactory()
 				.constructMapType((Class<? extends Map<?, ?>>) classType.getRawClass(), keyClassType, contentClassType);
 	}
@@ -186,7 +188,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
 		}
-		catch (ClassNotFoundException ex) {
+		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
 			// jackson-datatype-jdk7 not available
 		}
 
@@ -195,7 +197,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
 		}
-		catch (ClassNotFoundException ex) {
+		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
 			// jackson-datatype-jdk8 not available
 		}
 
@@ -204,7 +206,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
 		}
-		catch (ClassNotFoundException ex) {
+		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
 			// jackson-datatype-jsr310 not available
 		}
 
@@ -215,7 +217,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 						ClassUtils.forName("com.fasterxml.jackson.datatype.joda.JodaModule", getClassLoader());
 				this.objectMapper.registerModule(BeanUtils.instantiateClass(jodaModule));
 			}
-			catch (ClassNotFoundException ex) {
+			catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
 				// jackson-datatype-joda not available
 			}
 		}
@@ -227,7 +229,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 						ClassUtils.forName("com.fasterxml.jackson.module.kotlin.KotlinModule", getClassLoader());
 				this.objectMapper.registerModule(BeanUtils.instantiateClass(kotlinModule));
 			}
-			catch (ClassNotFoundException ex) {
+			catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
 				//jackson-module-kotlin not available
 			}
 		}

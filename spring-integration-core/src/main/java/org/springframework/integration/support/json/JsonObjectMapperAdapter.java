@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -34,31 +35,31 @@ import org.springframework.integration.mapping.support.JsonHeaders;
 public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<N, P> {
 
 	@Override
-	public String toJson(Object value) throws Exception {
+	public String toJson(Object value) throws IOException {
 		return null;
 	}
 
 	@Override
-	public void toJson(Object value, Writer writer) throws Exception {
+	public void toJson(Object value, Writer writer) throws IOException {
 	}
 
 	@Override
-	public N toJsonNode(Object value) throws Exception {
+	public N toJsonNode(Object value) throws IOException {
 		return null;
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Class<T> valueType) throws Exception {
+	public <T> T fromJson(Object json, Class<T> valueType) throws IOException {
 		return null;
 	}
 
 	@Override
-	public <T> T fromJson(P parser, Type valueType) throws Exception {
+	public <T> T fromJson(P parser, Type valueType) throws IOException {
 		return null;
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception {
+	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException {
 		return null;
 	}
 

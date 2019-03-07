@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,15 +69,15 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 	}
 
 	@Override
-	public Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
-			@Nullable Map<String, Object> headers) throws Exception {
+	public Message<?> doInParser(JsonInboundMessageMapper messageMapperToUse, String jsonMessage,
+			@Nullable Map<String, Object> headers) {
 
 		if (this.messageMapper == null) {
-			this.messageMapper = messageMapper;
+			this.messageMapper = messageMapperToUse;
 		}
 		P parser = this.createJsonParser(jsonMessage);
 
-		if (messageMapper.isMapToPayload()) {
+		if (messageMapperToUse.isMapToPayload()) {
 			Object payload = readPayload(parser, jsonMessage);
 			return getMessageBuilderFactory()
 					.withPayload(payload)
@@ -89,7 +89,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		}
 	}
 
-	protected Object readPayload(P parser, String jsonMessage) throws Exception {
+	protected Object readPayload(P parser, String jsonMessage) {
 		try {
 			return this.objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
 		}
@@ -99,7 +99,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		}
 	}
 
-	protected Object readHeader(P parser, String headerName, String jsonMessage) throws Exception {
+	protected Object readHeader(P parser, String headerName, String jsonMessage) {
 		Class<?> headerType = this.messageMapper.getHeaderTypes().getOrDefault(headerName, Object.class);
 		try {
 			return this.objectMapper.fromJson(parser, (Type) headerType);
@@ -111,8 +111,8 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 	}
 
 	protected abstract Message<?> parseWithHeaders(P parser, String jsonMessage,
-			@Nullable Map<String, Object> headers) throws Exception;
+			@Nullable Map<String, Object> headers);
 
-	protected abstract P createJsonParser(String jsonMessage) throws Exception;
+	protected abstract P createJsonParser(String jsonMessage);
 
 }

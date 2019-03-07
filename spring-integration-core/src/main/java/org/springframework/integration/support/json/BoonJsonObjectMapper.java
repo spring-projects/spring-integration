@@ -18,6 +18,7 @@ package org.springframework.integration.support.json;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedReader;
 import java.io.PipedWriter;
@@ -80,7 +81,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 	}
 
 	@Override
-	public String toJson(Object value) throws Exception {
+	public String toJson(Object value) {
 		return this.objectMapper.writeValueAsString(value);
 	}
 
@@ -91,7 +92,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> toJsonNode(final Object value) throws Exception {
+	public Map<String, Object> toJsonNode(final Object value) throws IOException {
 		PipedReader in = new PipedReader();
 		final PipedWriter out = new PipedWriter(in);
 		Executors.newSingleThreadExecutor().execute(() -> toJson(value, out));
@@ -99,7 +100,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 	}
 
 	@Override
-	public <T> T fromJson(Object json, Class<T> type) throws Exception {
+	public <T> T fromJson(Object json, Class<T> type) {
 		if (json instanceof String) {
 			return this.objectMapper.readValue((String) json, type);
 		}
@@ -126,14 +127,14 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception {
+	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException {
 		JsonParserAndMapper parser = this.objectMapper.parser();
 
-		Class<?> classType = this.createJavaType(javaTypes, JsonHeaders.TYPE_ID);
+		Class<?> classType = createJavaType(javaTypes, JsonHeaders.TYPE_ID);
 
-		Class<?> contentClassType = this.createJavaType(javaTypes, JsonHeaders.CONTENT_TYPE_ID);
+		Class<?> contentClassType = createJavaType(javaTypes, JsonHeaders.CONTENT_TYPE_ID);
 
-		Class<?> keyClassType = this.createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
+		Class<?> keyClassType = createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
 
 		if (keyClassType != null) {
 			logger.warn("Boon doesn't support the Map 'key' conversion. Will be returned raw Map<String, Object>");
@@ -190,13 +191,18 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 		return (T) fromJson(json, classType);
 	}
 
-	protected Class<?> createJavaType(Map<String, Object> javaTypes, String javaTypeKey) throws Exception {
+	protected Class<?> createJavaType(Map<String, Object> javaTypes, String javaTypeKey) {
 		Object classValue = javaTypes.get(javaTypeKey);
 		if (classValue instanceof Class<?>) {
 			return (Class<?>) classValue;
 		}
 		else if (classValue != null) {
-			return ClassUtils.forName(classValue.toString(), this.classLoader);
+			try {
+				return ClassUtils.forName(classValue.toString(), this.classLoader);
+			}
+			catch (ClassNotFoundException | LinkageError e) {
+				throw new IllegalStateException(e);
+			}
 		}
 		else {
 			return null;
@@ -204,7 +210,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 	}
 
 	@Override
-	public <T> T fromJson(Object parser, Type valueType) throws Exception {
+	public <T> T fromJson(Object parser, Type valueType) {
 		throw new UnsupportedOperationException("Boon doesn't support JSON reader parser abstraction");
 	}
 

@@ -66,8 +66,8 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 		this.mapToPayload = mapToPayload;
 	}
 
-	protected abstract Object readPayload(P parser, String jsonMessage) throws Exception;
+	protected abstract Object readPayload(P parser, String jsonMessage);
 
-	protected abstract Map<String, Object> readHeaders(P parser, String jsonMessage) throws Exception;
+	protected abstract Map<String, Object> readHeaders(P parser, String jsonMessage);
 
 }

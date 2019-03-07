@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.support.json;
 
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -49,42 +51,52 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 	}
 
 	@Override
-	protected JsonParser createJsonParser(String jsonMessage) throws Exception {
-		return new JsonFactory().createParser(jsonMessage);
+	protected JsonParser createJsonParser(String jsonMessage) {
+		try {
+			return new JsonFactory().createParser(jsonMessage);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@Override
 	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage,
-			@Nullable Map<String, Object> headersToAdd) throws Exception {
+			@Nullable Map<String, Object> headersToAdd) {
 
-		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
-		Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);
-		Map<String, Object> headers = null;
-		Object payload = null;
-		while (JsonToken.END_OBJECT != parser.nextToken()) {
-			Assert.isTrue(JsonToken.FIELD_NAME == parser.getCurrentToken(), error);
-			boolean isHeadersToken = "headers".equals(parser.getCurrentName());
-			boolean isPayloadToken = "payload".equals(parser.getCurrentName());
-			Assert.isTrue(isHeadersToken || isPayloadToken, error);
-			if (isHeadersToken) {
-				Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
-				headers = readHeaders(parser, jsonMessage);
+		try {
+			String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
+			Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);
+			Map<String, Object> headers = null;
+			Object payload = null;
+			while (JsonToken.END_OBJECT != parser.nextToken()) {
+				Assert.isTrue(JsonToken.FIELD_NAME == parser.getCurrentToken(), error);
+				boolean isHeadersToken = "headers".equals(parser.getCurrentName());
+				boolean isPayloadToken = "payload".equals(parser.getCurrentName());
+				Assert.isTrue(isHeadersToken || isPayloadToken, error);
+				if (isHeadersToken) {
+					Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
+					headers = readHeaders(parser, jsonMessage);
+				}
+				else if (isPayloadToken) {
+					parser.nextToken();
+					payload = this.readPayload(parser, jsonMessage);
+				}
 			}
-			else if (isPayloadToken) {
-				parser.nextToken();
-				payload = this.readPayload(parser, jsonMessage);
-			}
+			Assert.notNull(headers, error);
+
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.copyHeadersIfAbsent(headersToAdd)
+					.build();
 		}
-		Assert.notNull(headers, error);
-
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.copyHeaders(headers)
-				.copyHeadersIfAbsent(headersToAdd)
-				.build();
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
-	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {
+	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws IOException {
 		Map<String, Object> headers = new LinkedHashMap<>();
 		while (JsonToken.END_OBJECT != parser.nextToken()) {
 			String headerName = parser.getCurrentName();

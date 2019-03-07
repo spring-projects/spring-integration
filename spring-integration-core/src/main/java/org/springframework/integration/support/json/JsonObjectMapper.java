@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -32,17 +33,17 @@ import java.util.Map;
  */
 public interface JsonObjectMapper<N, P> {
 
-	String toJson(Object value) throws Exception;
+	String toJson(Object value) throws IOException;
 
-	void toJson(Object value, Writer writer) throws Exception;
+	void toJson(Object value, Writer writer) throws IOException;
 
-	N toJsonNode(Object value) throws Exception;
+	N toJsonNode(Object value) throws IOException;
 
-	<T> T fromJson(Object json, Class<T> valueType) throws Exception;
+	<T> T fromJson(Object json, Class<T> valueType) throws IOException;
 
-	<T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception;
+	<T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException;
 
-	<T> T fromJson(P parser, Type valueType) throws Exception;
+	<T> T fromJson(P parser, Type valueType) throws IOException;
 
 	void populateJavaTypes(Map<String, Object> map, Object object);
 }

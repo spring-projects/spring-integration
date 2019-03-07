@@ -473,7 +473,7 @@ public class SocketSupportTests {
 		assertThatExceptionOfType(MessagingException.class)
 			.isThrownBy(() -> testNioClientAndServerSSLDifferentContexts(true))
 			.withMessageMatching(".*(Socket closed during SSL Handshake|Broken pipe"
-					+ "|Connection reset by peer|AsynchronousCloseException).*");
+					+ "|Connection reset by peer|AsynchronousCloseException|ClosedChannelException).*");
 	}
 
 	private void testNioClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {
