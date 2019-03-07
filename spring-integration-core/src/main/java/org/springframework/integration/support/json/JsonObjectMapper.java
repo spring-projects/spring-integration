@@ -37,13 +37,13 @@ public interface JsonObjectMapper<N, P> {
 
 	void toJson(Object value, Writer writer) throws IOException;
 
-	N toJsonNode(Object value) throws Exception;
+	N toJsonNode(Object value) throws IOException;
 
 	<T> T fromJson(Object json, Class<T> valueType) throws IOException;
 
 	<T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException;
 
-	<T> T fromJson(P parser, Type valueType) throws Exception;
+	<T> T fromJson(P parser, Type valueType) throws IOException;
 
 	void populateJavaTypes(Map<String, Object> map, Object object);
 }
