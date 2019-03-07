@@ -116,7 +116,9 @@ public class CompositeFileListFilter<F>
 			}
 		}
 		this.fileFilters.addAll(filtersToAdd);
-		this.allSupportAccept &= filtersToAdd.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
+		if (this.allSupportAccept) {
+			this.allSupportAccept = filtersToAdd.stream().allMatch(FileListFilter<F>::supportsSingleFileFiltering);
+		}
 		return this;
 	}
 

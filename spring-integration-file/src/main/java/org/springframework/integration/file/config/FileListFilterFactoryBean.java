@@ -28,6 +28,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
+import org.springframework.lang.NonNull;
 
 /**
  * @author Mark Fisher
@@ -91,6 +92,7 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	}
 
 	@Override
+	@NonNull
 	public FileListFilter<File> getObject() {
 		if (this.result == null) {
 			synchronized (this.monitor) {

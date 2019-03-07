@@ -334,7 +334,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 			for (F file : filteredFiles) {
 				if (filteringOneByOne) {
-					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter.accept(file)) {
+					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter.accept(file)) { // NOSONAR never null
 						accepted++;
 					}
 					else {
@@ -342,27 +342,34 @@ public abstract class AbstractInboundFileSynchronizer<F>
 						copied--;
 					}
 				}
-				try {
-					if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
-							localDirectory, session)) {
-						copied--;
-					}
-				}
-				catch (RuntimeException | IOException e1) {
-					if (filteringOneByOne) {
-						resetFilterIfNecessary(file);
-					}
-					else {
-						rollbackFromFileToListEnd(filteredFiles, file);
-					}
-					throw e1;
-				}
+				copied = copyIfNotNull(localDirectory, session, filteringOneByOne, filteredFiles, copied, file);
 			}
 			return copied;
 		}
 		else {
 			return 0;
 		}
+	}
+
+	private int copyIfNotNull(File localDirectory, Session<F> session, boolean filteringOneByOne, List<F> filteredFiles,
+			int copied, F file) throws IOException {
+
+		try {
+			if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
+					localDirectory, session)) {
+				copied--;
+			}
+		}
+		catch (RuntimeException | IOException e1) {
+			if (filteringOneByOne) {
+				resetFilterIfNecessary(file);
+			}
+			else {
+				rollbackFromFileToListEnd(filteredFiles, file);
+			}
+			throw e1;
+		}
+		return copied;
 	}
 
 	private List<F> applyFilter(F[] files, boolean haveFilter, boolean filteringOneByOne, int maxFetchSize) {
@@ -373,15 +380,13 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		else {
 			filteredFiles = Arrays.asList(files);
 		}
-		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
-			if (!filteringOneByOne) {
-				if (haveFilter) {
-					rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-				}
-				filteredFiles = filteredFiles.stream()
-						.limit(maxFetchSize)
-						.collect(Collectors.toList());
+		if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize && !filteringOneByOne) {
+			if (haveFilter) {
+				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
 			}
+			filteredFiles = filteredFiles.stream()
+					.limit(maxFetchSize)
+					.collect(Collectors.toList());
 		}
 		return filteredFiles;
 	}

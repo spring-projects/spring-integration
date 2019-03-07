@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +66,7 @@ public class RateLimiterRequestHandlerAdviceTests {
 		this.requestChannel.send(testMessage);
 
 		assertThatExceptionOfType(MessagingException.class)
-				.isThrownBy(() -> this.requestChannel.send(testMessage))
+				.isThrownBy(() -> IntStream.range(0, 10).forEach(i -> this.requestChannel.send(testMessage)))
 				.withCauseInstanceOf(RequestNotPermitted.class)
 				.withMessageContaining("Rate limit exceeded for: ");
 

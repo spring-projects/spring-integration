@@ -34,6 +34,7 @@ import io.vavr.control.Try;
  * <a href="https://github.com/resilience4j/resilience4j#ratelimiter">Resilience4j</a>.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.2
  */
@@ -126,7 +127,7 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		CheckedFunction0<Object> restrictedCall =
 				RateLimiter.decorateCheckedSupplier(this.rateLimiter, callback::execute);
 		try {
