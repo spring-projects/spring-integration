@@ -159,7 +159,7 @@ public class AggregatorParserTests {
 		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethods");
-		assertThat(handlerMethods).isNull();
+		assertThat(handlerMethods).isNotNull();
 		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethod");
@@ -244,7 +244,7 @@ public class AggregatorParserTests {
 		MessagingMethodInvokerHelper methodInvokerHelper =
 				TestUtils.getPropertyValue(releaseStrategy, "adapter.delegate", MessagingMethodInvokerHelper.class);
 		Object handlerMethods = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethods");
-		assertThat(handlerMethods).isNull();
+		assertThat(handlerMethods).isNotNull();
 		Object handlerMethod = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethod");
 		assertThat(handlerMethod.toString().contains("checkCompleteness")).isTrue();
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
@@ -269,7 +269,7 @@ public class AggregatorParserTests {
 		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
 				.getPropertyValue("adapter")).getPropertyValue("delegate"));
 		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
-		assertThat(handlerMethods).isNull();
+		assertThat(handlerMethods).isNotNull();
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertThat(handlerMethod.toString().contains("checkCompleteness")).isTrue();
 		input.send(createMessage(1L, "correlationId", 4, 0, null));
