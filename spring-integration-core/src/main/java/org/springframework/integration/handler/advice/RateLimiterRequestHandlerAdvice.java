@@ -117,6 +117,14 @@ public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvic
 		return this.rateLimiter.getMetrics();
 	}
 
+	/**
+	 * Get a {@link RateLimiter} which is configured for this advice.
+	 * @return the {@link RateLimiter} for this advice.
+	 */
+	public RateLimiter getRateLimiter() {
+		return this.rateLimiter;
+	}
+
 	@Override
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 		CheckedFunction0<Object> restrictedCall =

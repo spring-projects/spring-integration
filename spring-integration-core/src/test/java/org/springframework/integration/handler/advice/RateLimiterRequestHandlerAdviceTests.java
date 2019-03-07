@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,11 +48,16 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 @SpringJUnitConfig
 public class RateLimiterRequestHandlerAdviceTests {
 
+	private static final Duration REFRESH_PERIOD = Duration.ofMillis(500);
+
 	@Autowired
 	private MessageChannel requestChannel;
 
 	@Autowired
 	private PollableChannel resultChannel;
+
+	@Autowired
+	private RateLimiterRequestHandlerAdvice rateLimiterRequestHandlerAdvice;
 
 	@Test
 	void testRateLimiter() throws InterruptedException {
@@ -63,7 +69,11 @@ public class RateLimiterRequestHandlerAdviceTests {
 				.withCauseInstanceOf(RequestNotPermitted.class)
 				.withMessageContaining("Rate limit exceeded for: ");
 
-		Thread.sleep(200);
+		long howLongToWait =
+				this.rateLimiterRequestHandlerAdvice.getRateLimiter()
+						.reservePermission(Duration.ofSeconds(10));
+
+		TimeUnit.NANOSECONDS.sleep(howLongToWait + REFRESH_PERIOD.toNanos());
 
 		this.requestChannel.send(testMessage);
 
@@ -77,11 +87,12 @@ public class RateLimiterRequestHandlerAdviceTests {
 
 		@Bean
 		public RateLimiterRequestHandlerAdvice rateLimiterRequestHandlerAdvice() {
-			return new RateLimiterRequestHandlerAdvice(RateLimiterConfig.custom()
-					.timeoutDuration(Duration.ofMillis(100))
-					.limitRefreshPeriod(Duration.ofMillis(500))
-					.limitForPeriod(1)
-					.build());
+			return new RateLimiterRequestHandlerAdvice(
+					RateLimiterConfig.custom()
+							.timeoutDuration(Duration.ofMillis(100))
+							.limitRefreshPeriod(REFRESH_PERIOD)
+							.limitForPeriod(1)
+							.build());
 		}
 
 		@Bean
