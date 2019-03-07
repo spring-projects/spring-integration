@@ -24,6 +24,7 @@ import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.function.Supplier;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -223,7 +224,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	protected boolean handleReadException(Exception exception) {
 		Exception e = exception instanceof UncheckedIOException ? (Exception) exception.getCause() : exception;
 		if (checkTimeout(e)) {
-			boolean noReadErrorOnClose = isNoReadErrorOnClose();
+			boolean readErrorOnClose = !isNoReadErrorOnClose();
 			closeConnection(true);
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException) {
@@ -232,13 +233,13 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					}
 				}
 				else {
-					logOtherExceptions(e, noReadErrorOnClose);
+					logOtherExceptions(e, readErrorOnClose);
 				}
 				sendExceptionToListener(e);
 			}
 			return true;
 		}
-		return true;
+		return false;
 	}
 
 	/*
@@ -265,28 +266,22 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		return doClose;
 	}
 
-	private void logOtherExceptions(Exception e, boolean noReadErrorOnClose) {
-		if (noReadErrorOnClose) {
+	private void logOtherExceptions(Exception e, boolean readErrorOnClose) {
+		if (this.logger.isErrorEnabled()) {
+			String messagePrefix = "Read exception " + getConnectionId();
+			Supplier<String> summaryMessageSupplier = () -> messagePrefix + " " + e.getClass().getSimpleName() + ":"
+					+ (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage();
 			if (logger.isTraceEnabled()) {
-				logger.trace("Read exception " +
-						getConnectionId(), e);
+				logger.trace(messagePrefix, e);
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("Read exception " +
-						getConnectionId() + " " +
-						e.getClass().getSimpleName() +
-						":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
+			else if (readErrorOnClose) {
+				logger.error(summaryMessageSupplier.get());
 			}
-		}
-		else if (logger.isTraceEnabled()) {
-			logger.error("Read exception " +
-					getConnectionId(), e);
-		}
-		else {
-			logger.error("Read exception " +
-					getConnectionId() + " " +
-					e.getClass().getSimpleName() +
-					":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug(summaryMessageSupplier.get());
+				}
+			}
 		}
 	}
 

@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,6 +64,7 @@ public class TcpNetConnectionTests {
 		connection.setDeserializer(new ByteArrayStxEtxSerializer());
 		final AtomicReference<Object> log = new AtomicReference<Object>();
 		Log logger = mock(Log.class);
+		given(logger.isErrorEnabled()).willReturn(true);
 		doAnswer(invocation -> {
 			log.set(invocation.getArguments()[0]);
 			return null;

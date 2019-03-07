@@ -171,7 +171,7 @@ public class ConnectionTimeoutTests {
 		connection.send(MessageBuilder.withPayload("foo").build());
 		Thread.sleep(1400);
 		assertThat(connection.isOpen()).isTrue();
-		assertThat(clientCloseLatch.await(2000, TimeUnit.SECONDS)).isTrue();
+		assertThat(clientCloseLatch.await(5, TimeUnit.SECONDS)).isTrue();
 		assertThat(reply.get()).isNull();
 		assertThat(connection.isOpen()).isFalse();
 		server.stop();
