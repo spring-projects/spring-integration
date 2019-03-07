@@ -54,25 +54,25 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private final CuratorFramework client;
 
-	private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<MetadataStoreListener>();
+	private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<>();
 
 	/**
 	 * An internal map storing local updates, ensuring that they have precedence if the cache contains stale data.
 	 * As changes are propagated back from Zookeeper to the cache, entries are removed.
 	 */
-	private final ConcurrentMap<String, LocalChildData> updateMap = new ConcurrentHashMap<String, LocalChildData>();
+	private final ConcurrentMap<String, LocalChildData> updateMap = new ConcurrentHashMap<>();
 
-	private volatile String root = "/SpringIntegration-MetadataStore";
+	private String root = "/SpringIntegration-MetadataStore";
 
-	private volatile String encoding = "UTF-8";
+	private String encoding = "UTF-8";
 
-	private volatile PathChildrenCache cache;
+	private PathChildrenCache cache;
+
+	private boolean autoStartup = true;
+
+	private int phase = Integer.MAX_VALUE;
 
 	private volatile boolean running = false;
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase = Integer.MAX_VALUE;
 
 	public ZookeeperMetadataStore(CuratorFramework client) {
 		Assert.notNull(client, "Client cannot be null");
@@ -81,7 +81,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	/**
 	 * Encoding to use when storing data in ZooKeeper
-	 *
 	 * @param encoding encoding as text
 	 */
 	public void setEncoding(String encoding) {
@@ -91,7 +90,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	/**
 	 * Root node - store entries are children of this node.
-	 *
 	 * @param root encoding as text
 	 */
 	public void setRoot(String root) {
@@ -124,14 +122,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			}
 			catch (@SuppressWarnings(UNUSED) KeeperException.NodeExistsException e) {
 				// so the data actually exists, we can read it
-				try {
-					byte[] bytes = this.client.getData().forPath(getPath(key));
-					return IntegrationUtils.bytesToString(bytes, this.encoding);
-				}
-				catch (Exception exceptionDuringGet) {
-					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':",
-							exceptionDuringGet);
-				}
+				return get(key);
 			}
 			catch (Exception e) {
 				throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", e);
