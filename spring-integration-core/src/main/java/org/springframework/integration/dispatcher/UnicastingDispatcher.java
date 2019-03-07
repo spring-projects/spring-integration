@@ -177,13 +177,13 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	}
 
 	private void logExceptionBeforeFailOver(Exception ex, MessageHandler handler, Message<?> message) {
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("An exception was thrown by '" + handler + "' while handling '" + message + "': " +
-					ex.getMessage() + ". Failing over to the next subscriber.");
-		}
-		else if (this.logger.isDebugEnabled()) {
+		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("An exception was thrown by '" + handler + "' while handling '" + message +
 					"'. Failing over to the next subscriber.", ex);
+		}
+		else if (this.logger.isInfoEnabled()) {
+			this.logger.info("An exception was thrown by '" + handler + "' while handling '" + message + "': " +
+					ex.getMessage() + ". Failing over to the next subscriber.");
 		}
 	}
 
