@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.syslog;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -61,13 +62,18 @@ public class RFC5424MessageConverter extends DefaultMessageConverter {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Message<?> fromSyslog(Message<?> message) throws Exception {
+	public Message<?> fromSyslog(Message<?> message) {
 		boolean isMap = message.getPayload() instanceof Map;
 		Map<String, ?> map;
 		Object originalContent;
 		if (!isMap) {
 			Assert.isInstanceOf(byte[].class, message.getPayload(), "Only byte[] and Map payloads are supported");
-			map = this.parser.parse(new String(((byte[]) message.getPayload()), this.charset), 0, false);
+			try {
+				map = this.parser.parse(new String(((byte[]) message.getPayload()), this.charset), 0, false);
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new IllegalStateException(e);
+			}
 			originalContent = message.getPayload();
 		}
 		else {

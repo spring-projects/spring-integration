@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.transformer;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.integration.codec.Codec;
 import org.springframework.util.Assert;
@@ -37,8 +40,13 @@ public class EncodingPayloadTransformer<T> extends AbstractPayloadTransformer<T,
 	}
 
 	@Override
-	protected byte[] transformPayload(T payload) throws Exception {
-		return this.codec.encode(payload);
+	protected byte[] transformPayload(T payload) {
+		try {
+			return this.codec.encode(payload);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 }

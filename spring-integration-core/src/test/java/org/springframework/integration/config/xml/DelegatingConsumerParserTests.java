@@ -294,7 +294,7 @@ public class DelegatingConsumerParserTests {
 	public static class MyTransformer extends AbstractTransformer {
 
 		@Override
-		protected Object doTransform(Message<?> message) throws Exception {
+		protected Object doTransform(Message<?> message) {
 			return message;
 		}
 

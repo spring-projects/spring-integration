@@ -60,7 +60,7 @@ import org.springframework.xml.transform.StringSource;
  */
 public class XsltPayloadTransformerTests {
 
-	private XsltPayloadTransformer transformer;
+	private XsltPayloadTransformer testTransformer;
 
 	private final String docAsString =
 			"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
@@ -72,16 +72,16 @@ public class XsltPayloadTransformerTests {
 
 	@Before
 	public void setUp() throws Exception {
-		this.transformer = new XsltPayloadTransformer(getXslTemplates());
-		this.transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
-		this.transformer.setAlwaysUseResultFactory(false);
-		this.transformer.afterPropertiesSet();
+		this.testTransformer = new XsltPayloadTransformer(getXslTemplates());
+		this.testTransformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		this.testTransformer.setAlwaysUseResultFactory(false);
+		this.testTransformer.afterPropertiesSet();
 	}
 
 	@Test
 	public void testDocumentAsPayload() throws Exception {
 		Message<?> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
-		Object transformed = this.transformer.doTransform(message);
+		Object transformed = this.testTransformer.doTransform(message);
 		assertThat(transformed)
 				.as("Wrong return type for document payload")
 				.isInstanceOf(Document.class);
@@ -92,7 +92,7 @@ public class XsltPayloadTransformerTests {
 	@Test
 	public void testSourceAsPayload() throws Exception {
 		GenericMessage<?> message = new GenericMessage<>(new StringSource(this.docAsString));
-		Object transformed = transformer.doTransform(message);
+		Object transformed = testTransformer.doTransform(message);
 
 		assertThat(transformed)
 				.as("Wrong return type for document payload")
@@ -105,8 +105,8 @@ public class XsltPayloadTransformerTests {
 	}
 
 	@Test
-	public void testStringAsPayload() throws Exception {
-		Object transformed = this.transformer.doTransform(new GenericMessage<>(this.docAsString));
+	public void testStringAsPayload() {
+		Object transformed = this.testTransformer.doTransform(new GenericMessage<>(this.docAsString));
 
 		assertThat(transformed)
 				.as("Wrong return type for document payload")
@@ -120,8 +120,8 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testStringAsPayloadUseResultFactoryTrue() throws Exception {
-		this.transformer.setAlwaysUseResultFactory(true);
-		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
+		this.testTransformer.setAlwaysUseResultFactory(true);
+		Object transformed = testTransformer.doTransform(new GenericMessage<>(this.docAsString));
 
 		assertThat(transformed)
 				.as("Wrong return type for useFactories true")
@@ -171,18 +171,19 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testNonXmlString() {
-		assertThatExceptionOfType(TransformerException.class)
-				.isThrownBy(() -> this.transformer.doTransform(new GenericMessage<>("test")));
+		assertThatExceptionOfType(IllegalStateException.class)
+				.isThrownBy(() -> this.testTransformer.doTransform(new GenericMessage<>("test")))
+				.withCauseInstanceOf(TransformerException.class);
 	}
 
 	@Test
 	public void testUnsupportedPayloadType() {
 		assertThatExceptionOfType(MessagingException.class)
-				.isThrownBy(() -> this.transformer.doTransform(new GenericMessage<>(12)));
+				.isThrownBy(() -> this.testTransformer.doTransform(new GenericMessage<>(12)));
 	}
 
 	@Test
-	public void testXsltWithImports() throws Exception {
+	public void testXsltWithImports() {
 		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
 		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
@@ -271,6 +272,7 @@ public class XsltPayloadTransformerTests {
 			this.objectToReturn = objectToReturn;
 		}
 
+		@Override
 		public Object transformResult(Result result) {
 			return objectToReturn;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.transformer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
@@ -55,16 +57,21 @@ public class StreamTransformer extends AbstractTransformer {
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) throws Exception {
-		Assert.isTrue(message.getPayload() instanceof InputStream, "payload must be an InputStream");
-		InputStream stream = (InputStream) message.getPayload();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		FileCopyUtils.copy(stream, baos);
-		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
-		if (closeableResource != null) {
-			closeableResource.close();
+	protected Object doTransform(Message<?> message) {
+		try {
+			Assert.isTrue(message.getPayload() instanceof InputStream, "payload must be an InputStream");
+			InputStream stream = (InputStream) message.getPayload();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			FileCopyUtils.copy(stream, baos);
+			Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
+			if (closeableResource != null) {
+				closeableResource.close();
+			}
+			return this.charset == null ? baos.toByteArray() : baos.toString(this.charset);
 		}
-		return this.charset == null ? baos.toByteArray() : baos.toString(this.charset);
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 }

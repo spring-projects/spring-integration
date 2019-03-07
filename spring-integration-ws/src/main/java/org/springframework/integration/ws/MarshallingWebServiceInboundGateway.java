@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.ws;
+
+import java.io.IOException;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -94,7 +96,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	}
 
 	@Override
-	protected void doInvoke(MessageContext messageContext) throws Exception {
+	protected void doInvoke(MessageContext messageContext) throws IOException {
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
 		Object requestObject = MarshallingUtils.unmarshal(this.unmarshaller, request);

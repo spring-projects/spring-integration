@@ -56,6 +56,10 @@ import org.springframework.util.Assert;
  */
 public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
+	private static final int DEFAULT_CACHE_SIZE = 10;
+
+	private static final float LOAD_FACTOR = 0.75f;
+
 	private final DataSource dataSource;
 
 	private Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<>(0);
@@ -64,7 +68,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private BeanFactory beanFactory;
 
-	private int jdbcCallOperationsCacheSize = 10;
+	private int jdbcCallOperationsCacheSize = DEFAULT_CACHE_SIZE;
 
 	private Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
 
@@ -185,7 +189,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	private Map<String, SimpleJdbcCallOperations> buildJdbcCallOperationsMap() {
-		return new LinkedHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize + 1, 0.75f,
+		return new LinkedHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize + 1, LOAD_FACTOR,
 				true) {
 
 			private static final long serialVersionUID = 3801124242820219131L;

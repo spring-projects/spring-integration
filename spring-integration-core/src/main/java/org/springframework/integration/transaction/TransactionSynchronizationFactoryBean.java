@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 	}
 
 	@Override
-	public DefaultTransactionSynchronizationFactory getObject() throws Exception {
+	public DefaultTransactionSynchronizationFactory getObject() {
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
 		}

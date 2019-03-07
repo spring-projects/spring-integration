@@ -21,6 +21,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.jxmpp.util.XmppStringUtils;
 
 import org.springframework.beans.factory.BeanInitializationException;
@@ -134,7 +135,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	}
 
 	@Override
-	protected XMPPConnection createInstance() throws Exception {
+	protected XMPPConnection createInstance() throws XmppStringprepException {
 		XMPPTCPConnectionConfiguration connectionConfig = this.connectionConfiguration;
 		if (connectionConfig == null) {
 			XMPPTCPConnectionConfiguration.Builder builder =

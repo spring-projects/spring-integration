@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([a-zA-Z0-9]{0,32})(.*)", Pattern.DOTALL);
 
 	@Override
-	protected Map<String, ?> transformPayload(Object payload) throws Exception {
+	protected Map<String, ?> transformPayload(Object payload) {
 		boolean isByteArray = payload instanceof byte[];
 		boolean isString = payload instanceof String;
 		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
@@ -80,7 +80,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 		try {
 			payload = new String(payloadBytes, "UTF-8");
 		}
-		catch (UnsupportedEncodingException e) {
+		catch (@SuppressWarnings("unused") UnsupportedEncodingException e) {
 			payload = new String(payloadBytes);
 		}
 		return transform(payload);
@@ -120,7 +120,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 					}
 					map.put(TIMESTAMP, calendar.getTime());
 				}
-				catch (Exception e) {
+				catch (@SuppressWarnings("unused") Exception e) {
 					/*
 					 * If we can't parse the timestamp, return it as an
 					 * unmodified String. (Postel's law).

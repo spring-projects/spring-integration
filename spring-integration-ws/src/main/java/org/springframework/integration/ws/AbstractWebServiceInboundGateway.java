@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ws;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +60,8 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		return this.headerMapper;
 	}
 
-	public void invoke(MessageContext messageContext) throws Exception {
+	@Override
+	public void invoke(MessageContext messageContext) throws Exception { // NOSONAR - external interface
 		if (!isRunning()) {
 			throw new ServiceUnavailableException("503 Service Unavailable");
 		}
@@ -116,6 +118,6 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		return this.activeCount.get();
 	}
 
-	protected abstract void doInvoke(MessageContext messageContext) throws Exception; // NOSONAR any exception
+	protected abstract void doInvoke(MessageContext messageContext) throws IOException;
 
 }

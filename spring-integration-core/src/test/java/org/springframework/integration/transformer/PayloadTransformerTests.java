@@ -61,9 +61,9 @@ public class PayloadTransformerTests {
 		}
 
 		@Override
-		public Integer transformPayload(String s) throws Exception {
+		public Integer transformPayload(String s) {
 			if (s.equals("bad")) {
-				throw new Exception("bad input!");
+				throw new IllegalStateException("bad input!");
 			}
 			return s.length();
 		}

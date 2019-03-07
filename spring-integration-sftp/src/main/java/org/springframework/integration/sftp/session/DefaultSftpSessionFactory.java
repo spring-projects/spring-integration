@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -415,40 +416,25 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			}
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
-		if (this.sessionConfig != null) {
-			jschSession.setConfig(this.sessionConfig);
-		}
-		String pw = this.userInfoWrapper.getPassword();
-		if (StringUtils.hasText(pw)) {
-			jschSession.setPassword(pw);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.sessionConfig, jschSession::setConfig)
+			.acceptIfHasText(this.userInfoWrapper.getPassword(), jschSession::setPassword);
 		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
-			if (this.proxy != null) {
-				jschSession.setProxy(this.proxy);
-			}
-			if (this.socketFactory != null) {
-				jschSession.setSocketFactory(this.socketFactory);
-			}
 			if (this.timeout != null) {
 				jschSession.setTimeout(this.timeout);
-			}
-			if (StringUtils.hasText(this.clientVersion)) {
-				jschSession.setClientVersion(this.clientVersion);
-			}
-			if (StringUtils.hasText(this.hostKeyAlias)) {
-				jschSession.setHostKeyAlias(this.hostKeyAlias);
 			}
 			if (this.serverAliveInterval != null) {
 				jschSession.setServerAliveInterval(this.serverAliveInterval);
 			}
-			if (this.serverAliveCountMax != null) {
-				jschSession.setServerAliveCountMax(this.serverAliveCountMax);
-			}
-			if (this.enableDaemonThread != null) {
-				jschSession.setDaemonThread(this.enableDaemonThread);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.proxy, jschSession::setProxy)
+				.acceptIfNotNull(this.socketFactory, jschSession::setSocketFactory)
+				.acceptIfHasText(this.clientVersion, jschSession::setClientVersion)
+				.acceptIfHasText(this.hostKeyAlias, jschSession::setHostKeyAlias)
+				.acceptIfNotNull(this.serverAliveCountMax, jschSession::setServerAliveCountMax)
+				.acceptIfNotNull(this.enableDaemonThread, jschSession::setDaemonThread);
 		}
 		catch (Exception e) {
 			throw new BeanCreationException("Attempt to set additional properties of " +

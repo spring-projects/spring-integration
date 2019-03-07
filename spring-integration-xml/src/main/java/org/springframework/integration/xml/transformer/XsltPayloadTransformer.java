@@ -250,7 +250,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		try {
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file,jar:file");
 		}
-		catch (IllegalArgumentException ex) {
+		catch (@SuppressWarnings("unused") IllegalArgumentException ex) {
 			if (logger.isInfoEnabled()) {
 				logger.info("The '" + XMLConstants.ACCESS_EXTERNAL_STYLESHEET + "' property is not supported by "
 						+ transformerFactory.getClass().getCanonicalName());
@@ -260,33 +260,38 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) throws Exception {
-		Transformer transformer = buildTransformer(message);
-		Object payload;
-		if (this.alwaysUseSourceFactory) {
-			payload = this.sourceFactory.createSource(message.getPayload());
+	protected Object doTransform(Message<?> message) {
+		try {
+			Transformer transformer = buildTransformer(message);
+			Object payload;
+			if (this.alwaysUseSourceFactory) {
+				payload = this.sourceFactory.createSource(message.getPayload());
+			}
+			else {
+				payload = message.getPayload();
+			}
+			Object transformedPayload = null;
+			if (this.alwaysUseResultFactory) {
+				transformedPayload = transformUsingResultFactory(payload, transformer);
+			}
+			else if (payload instanceof String) {
+				transformedPayload = transformString((String) payload, transformer);
+			}
+			else if (payload instanceof Document) {
+				transformedPayload = transformDocument((Document) payload, transformer);
+			}
+			else if (payload instanceof Source) {
+				transformedPayload = transformSource((Source) payload, payload, transformer);
+			}
+			else {
+				// fall back to trying factories
+				transformedPayload = transformUsingResultFactory(payload, transformer);
+			}
+			return transformedPayload;
 		}
-		else {
-			payload = message.getPayload();
+		catch (TransformerException e) {
+			throw new IllegalStateException(e);
 		}
-		Object transformedPayload = null;
-		if (this.alwaysUseResultFactory) {
-			transformedPayload = transformUsingResultFactory(payload, transformer);
-		}
-		else if (payload instanceof String) {
-			transformedPayload = transformString((String) payload, transformer);
-		}
-		else if (payload instanceof Document) {
-			transformedPayload = transformDocument((Document) payload, transformer);
-		}
-		else if (payload instanceof Source) {
-			transformedPayload = transformSource((Source) payload, payload, transformer);
-		}
-		else {
-			// fall back to trying factories
-			transformedPayload = transformUsingResultFactory(payload, transformer);
-		}
-		return transformedPayload;
 	}
 
 	private Object transformUsingResultFactory(Object payload, Transformer transformer) throws TransformerException {

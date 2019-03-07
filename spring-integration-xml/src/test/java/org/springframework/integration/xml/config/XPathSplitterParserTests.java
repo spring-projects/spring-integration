@@ -61,7 +61,7 @@ public class XPathSplitterParserTests {
 	public void testXpathSplitterConfig() {
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class)).isFalse();
-		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "iterator", Boolean.class)).isFalse();
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "returnIterator", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties")).isSameAs(this.outputProperties);
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter,
 				"xpathExpression.xpathExpression.xpath.m_patternString",

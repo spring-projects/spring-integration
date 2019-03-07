@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 	}
 
 	@Override
-	protected void doInvoke(MessageContext messageContext) throws Exception {
+	protected void doInvoke(MessageContext messageContext) {
 
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
@@ -85,7 +85,12 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 							"The actual type was [" + replyPayload.getClass().getName() + "]");
 				}
 				WebServiceMessage response = messageContext.getResponse();
-				this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
+				try {
+					this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
+				}
+				catch (TransformerException e) {
+					throw new IllegalStateException(e);
+				}
 
 				toSoapHeaders(response, replyMessage);
 			}

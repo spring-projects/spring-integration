@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,7 +247,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	protected class LeaderListener extends LeaderSelectorListenerAdapter {
 
 		@Override
-		public void takeLeadership(CuratorFramework framework) throws Exception {
+		public void takeLeadership(CuratorFramework framework) {
 			try {
 				LeaderInitiator.this.candidate.onGranted(LeaderInitiator.this.context);
 				if (LeaderInitiator.this.leaderEventPublisher != null) {
@@ -265,7 +265,7 @@ public class LeaderInitiator implements SmartLifecycle {
 				// candidate is no longer leader
 				Thread.sleep(Long.MAX_VALUE);
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings("unused") InterruptedException e) {
 				// InterruptedException, like any other runtime exception,
 				// is handled by the finally block below. No need to
 				// reset the interrupt flag as the interrupt is handled.

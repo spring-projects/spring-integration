@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 	}
 
 	@Override
-	public Message<?> fromSyslog(Message<?> message) throws Exception {
+	public Message<?> fromSyslog(Message<?> message) {
 		Map<String, ?> map = this.transformer.doTransform(message);
 		Map<String, Object> out = new HashMap<String, Object>();
 		for (Entry<String, ?> entry : map.entrySet()) {

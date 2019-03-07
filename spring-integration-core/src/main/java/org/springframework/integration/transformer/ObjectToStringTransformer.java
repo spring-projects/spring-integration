@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.transformer;
+
+import java.io.UnsupportedEncodingException;
 
 import org.springframework.util.Assert;
 
@@ -52,9 +54,14 @@ public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object
 	}
 
 	@Override
-	protected String transformPayload(Object payload) throws Exception {
+	protected String transformPayload(Object payload) {
 		if (payload instanceof byte[]) {
-			return new String((byte[]) payload, this.charset);
+			try {
+				return new String((byte[]) payload, this.charset);
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 		else if (payload instanceof char[]) {
 			return new String((char[]) payload);

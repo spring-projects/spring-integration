@@ -352,12 +352,13 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	private int copyIfNotNull(File localDirectory, Session<F> session, boolean filteringOneByOne, List<F> filteredFiles,
-			int copied, F file) throws IOException {
+			int copied, @Nullable F file) throws IOException {
 
+		boolean renamedFailed = false;
 		try {
 			if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
 					localDirectory, session)) {
-				copied--;
+				renamedFailed = false;
 			}
 		}
 		catch (RuntimeException | IOException e1) {
@@ -369,7 +370,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			}
 			throw e1;
 		}
-		return copied;
+		return renamedFailed ? copied - 1 : copied;
 	}
 
 	private List<F> applyFilter(F[] files, boolean haveFilter, boolean filteringOneByOne, int maxFetchSize) {
@@ -483,14 +484,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile))) {
 			session.read(remoteFilePath, outputStream);
 		}
+		catch (RuntimeException e) { // NOSONAR catch and throw
+			throw e;
+		}
 		catch (Exception e) {
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			}
-			else {
-				throw new MessagingException("Failure occurred while copying '" + remoteFilePath
-						+ "' from the remote to the local directory", e);
-			}
+			throw new MessagingException("Failure occurred while copying '" + remoteFilePath
+					+ "' from the remote to the local directory", e);
 		}
 
 		renamed = tempFile.renameTo(localFile);
