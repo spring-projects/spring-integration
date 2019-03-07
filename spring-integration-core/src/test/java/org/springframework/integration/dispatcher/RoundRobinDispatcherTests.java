@@ -154,7 +154,7 @@ public class RoundRobinDispatcherTests {
 
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(this.dispatcher);
 		Log log = (Log) spy(directFieldAccessor.getPropertyType("logger"));
-		given(log.isInfoEnabled()).willReturn(true);
+		given(log.isDebugEnabled()).willReturn(true);
 		directFieldAccessor.setPropertyValue("logger", log);
 
 		this.dispatcher.dispatch(this.message);
@@ -162,7 +162,7 @@ public class RoundRobinDispatcherTests {
 		verify(this.handler).handleMessage(this.message);
 		verify(this.differentHandler).handleMessage(this.message);
 
-		verify(log).info(startsWith("An exception thrown from the"), eq(testException));
+		verify(log).debug(startsWith("An exception was thrown by '"), eq(testException));
 	}
 
 }

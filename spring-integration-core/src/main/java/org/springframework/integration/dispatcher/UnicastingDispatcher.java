@@ -19,6 +19,7 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.MessageDispatchingException;
@@ -133,11 +134,11 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 			return true;
 		}
 		boolean success = false;
-		Iterator<MessageHandler> handlerIterator = this.getHandlerIterator(message);
+		Iterator<MessageHandler> handlerIterator = getHandlerIterator(message);
 		if (!handlerIterator.hasNext()) {
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
-		List<RuntimeException> exceptions = new ArrayList<>();
+		List<RuntimeException> exceptions = null;
 		while (!success && handlerIterator.hasNext()) {
 			MessageHandler handler = handlerIterator.next();
 			try {
@@ -148,11 +149,13 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 				RuntimeException runtimeException =
 						IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
 								() -> "Dispatcher failed to deliver Message", ex);
+				if (exceptions == null) {
+					exceptions = new ArrayList<>();
+				}
 				exceptions.add(runtimeException);
 				boolean isLast = !handlerIterator.hasNext();
-				if (!isLast && this.failover && this.logger.isInfoEnabled()) {
-					this.logger.info("An exception thrown from the '" + handler + "' for the '" + message + "'. " +
-							"Will be in a failover for the next subscriber.", ex);
+				if (!isLast && this.failover) {
+					logExceptionBeforeFailOver(ex, handler, message);
 				}
 				handleExceptions(exceptions, message, isLast);
 			}
@@ -166,10 +169,22 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * it simply returns the Iterator for the existing handler List.
 	 */
 	private Iterator<MessageHandler> getHandlerIterator(Message<?> message) {
+		Set<MessageHandler> handlers = getHandlers();
 		if (this.loadBalancingStrategy != null) {
-			return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
+			return this.loadBalancingStrategy.getHandlerIterator(message, handlers);
 		}
-		return this.getHandlers().iterator();
+		return handlers.iterator();
+	}
+
+	private void logExceptionBeforeFailOver(Exception ex, MessageHandler handler, Message<?> message) {
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info("An exception was thrown by '" + handler + "' while handling '" + message + "': " +
+					ex.getMessage() + ". Failing over to the next subscriber.");
+		}
+		else if (this.logger.isDebugEnabled()) {
+			this.logger.debug("An exception was thrown by '" + handler + "' while handling '" + message +
+					"'. Failing over to the next subscriber.", ex);
+		}
 	}
 
 	/**
