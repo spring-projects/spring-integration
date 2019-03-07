@@ -271,6 +271,54 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		this.jsonObjectMapper = mapper;
 	}
 
+	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
+			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
+
+		this.annotationType = annotationType;
+		this.methodName = methodName;
+		this.canProcessMessageList = canProcessMessageList;
+		Assert.notNull(targetObject, "targetObject must not be null");
+		if (expectedType != null) {
+			this.expectedType = TypeDescriptor.valueOf(expectedType);
+		}
+		else {
+			this.expectedType = null;
+		}
+		this.targetObject = targetObject;
+		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget =
+				findHandlerMethodsForTarget(annotationType, methodName, expectedType != null);
+		Map<Class<?>, HandlerMethod> methods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
+		Map<Class<?>, HandlerMethod> messageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
+		if ((methods.size() == 1 && messageMethods.isEmpty()) ||
+				(messageMethods.size() == 1 && methods.isEmpty())) {
+			if (methods.size() == 1) {
+				this.handlerMethod = methods.values().iterator().next();
+			}
+			else {
+				this.handlerMethod = messageMethods.values().iterator().next();
+			}
+		}
+		else {
+			this.handlerMethod = null;
+		}
+
+		this.handlerMethods = methods;
+		this.handlerMessageMethods = messageMethods;
+		//TODO Consider to use global option to determine a precedence of methods
+		this.handlerMethodsList.add(this.handlerMethods);
+		this.handlerMethodsList.add(this.handlerMessageMethods);
+
+		setDisplayString(targetObject, methodName);
+		JsonObjectMapper<?, ?> mapper;
+		try {
+			mapper = JsonObjectMapperProvider.newInstance();
+		}
+		catch (IllegalStateException e) {
+			mapper = null;
+		}
+		this.jsonObjectMapper = mapper;
+	}
+
 	/**
 	 * A {@code boolean} flag to use SpEL Expression evaluation or {@link InvocableHandlerMethod}
 	 * for target method invocation.
@@ -344,54 +392,6 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	/*
 	 * Private constructors for internal use
 	 */
-
-	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
-			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
-
-		this.annotationType = annotationType;
-		this.methodName = methodName;
-		this.canProcessMessageList = canProcessMessageList;
-		Assert.notNull(targetObject, "targetObject must not be null");
-		if (expectedType != null) {
-			this.expectedType = TypeDescriptor.valueOf(expectedType);
-		}
-		else {
-			this.expectedType = null;
-		}
-		this.targetObject = targetObject;
-		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget =
-				findHandlerMethodsForTarget(annotationType, methodName, expectedType != null);
-		Map<Class<?>, HandlerMethod> methods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
-		Map<Class<?>, HandlerMethod> messageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
-		if ((methods.size() == 1 && messageMethods.isEmpty()) ||
-				(messageMethods.size() == 1 && methods.isEmpty())) {
-			if (methods.size() == 1) {
-				this.handlerMethod = methods.values().iterator().next();
-			}
-			else {
-				this.handlerMethod = messageMethods.values().iterator().next();
-			}
-		}
-		else {
-			this.handlerMethod = null;
-		}
-
-		this.handlerMethods = methods;
-		this.handlerMessageMethods = messageMethods;
-		//TODO Consider to use global option to determine a precedence of methods
-		this.handlerMethodsList.add(this.handlerMethods);
-		this.handlerMethodsList.add(this.handlerMessageMethods);
-
-		setDisplayString(targetObject, methodName);
-		JsonObjectMapper<?, ?> mapper;
-		try {
-			mapper = JsonObjectMapperProvider.newInstance();
-		}
-		catch (IllegalStateException e) {
-			mapper = null;
-		}
-		this.jsonObjectMapper = mapper;
-	}
 
 	private boolean isProvidedMessageHandlerFactoryBean() {
 		BeanFactory beanFactory = getBeanFactory();
