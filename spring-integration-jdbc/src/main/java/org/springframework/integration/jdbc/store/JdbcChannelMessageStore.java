@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,10 +391,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
 	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
 	 * of polled messages. Please see the Oracle {@link ChannelMessageStoreQueryProvider} for more details.
-	 * @throws Exception Any Exception.
 	 */
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Assert.state(this.jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 		Assert.notNull(this.channelMessageStoreQueryProvider, "A channelMessageStoreQueryProvider must be provided.");
 
@@ -428,7 +427,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
 		}
-		catch (DuplicateKeyException e) {
+		catch (@SuppressWarnings("unused") DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
 				String messageId = getKey(message.getHeaders().getId());
 				logger.debug("The Message with id [" + messageId + "] already exists.\nIgnoring INSERT...");

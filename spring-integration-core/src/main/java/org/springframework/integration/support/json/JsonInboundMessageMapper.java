@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,26 +65,26 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 	}
 
 	@Override
-	public Message<?> toMessage(String jsonMessage, @Nullable Map<String, Object> headers) throws Exception {
+	public Message<?> toMessage(String jsonMessage, @Nullable Map<String, Object> headers) {
 		return this.messageParser.doInParser(this, jsonMessage, headers);
 	}
 
 	@Override
-	protected Map<String, Object> readHeaders(JsonMessageParser<?> parser, String jsonMessage) throws Exception {
+	protected Map<String, Object> readHeaders(JsonMessageParser<?> parser, String jsonMessage) {
 		//No-op
 		return null;
 	}
 
 	@Override
-	protected Object readPayload(JsonMessageParser<?> parser, String jsonMessage) throws Exception {
+	protected Object readPayload(JsonMessageParser<?> parser, String jsonMessage) {
 		//No-op
 		return null;
 	}
 
-	public interface JsonMessageParser<P> {
+	public interface JsonMessageParser<P> { // NOSONAR unused P
 
 		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
-				@Nullable Map<String, Object> headers) throws Exception;
+				@Nullable Map<String, Object> headers);
 
 	}
 

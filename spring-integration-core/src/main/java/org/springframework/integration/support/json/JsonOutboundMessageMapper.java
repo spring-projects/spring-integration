@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.support.json;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.messaging.Message;
@@ -53,8 +56,13 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 	}
 
 	@Override
-	public String fromMessage(Message<?> message) throws Exception {
-		return this.jsonObjectMapper.toJson(this.shouldExtractPayload ? message.getPayload() : message);
+	public String fromMessage(Message<?> message) {
+		try {
+			return this.jsonObjectMapper.toJson(this.shouldExtractPayload ? message.getPayload() : message);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 }

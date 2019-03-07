@@ -253,7 +253,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public void onMessage(final Message message, final Channel channel) throws Exception {
+		public void onMessage(final Message message, final Channel channel) {
 			if (AmqpInboundGateway.this.retryTemplate == null) {
 				try {
 					org.springframework.messaging.Message<Object> converted = convert(message, channel);

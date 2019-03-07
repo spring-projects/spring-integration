@@ -339,10 +339,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * Blocks until a complete message has been assembled.
 	 * Synchronized to avoid concurrency.
 	 * @return The Message or null if no data is available.
-	 * @throws IOException
+	 * @throws IOException an IO exception
 	 */
 	@Nullable
-	private synchronized Message<?> convert() throws Exception {
+	private synchronized Message<?> convert() throws IOException {
 		if (logger.isTraceEnabled()) {
 			logger.trace(getConnectionId() + " checking data avail (convert): " + this.channelInputStream.available() +
 					" pending: " + (this.writingToPipe));
@@ -369,13 +369,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		catch (Exception e) {
 			closeConnection(true);
-			if (e instanceof SocketTimeoutException) {
+			if (e instanceof SocketTimeoutException) { // NOSONAR instanceof
 				if (logger.isDebugEnabled()) {
 					logger.debug("Closing socket after timeout " + getConnectionId());
 				}
 			}
 			else {
-				if (!(e instanceof SoftEndOfStreamException)) {
+				if (!(e instanceof SoftEndOfStreamException)) { // NOSONAR instanceof
 					throw e;
 				}
 			}
@@ -409,7 +409,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 	}
 
-	private void doRead() throws Exception {
+	private void doRead() throws IOException {
 		if (this.rawBuffer == null) {
 			this.rawBuffer = allocate(this.maxMessageSize);
 		}
@@ -447,7 +447,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		catch (RejectedExecutionException e) {
 			throw e;
 		}
-		catch (Exception e) {
+		catch (IOException e) {
 			publishConnectionExceptionEvent(e);
 			throw e;
 		}

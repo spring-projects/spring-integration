@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.json;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -154,9 +156,8 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		return Arrays.asList(this.headerPatterns);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public byte[] fromMessage(Message<?> message) throws Exception {
+	public byte[] fromMessage(Message<?> message) {
 		Map<String, Object> headersToEncode =
 				this.allHeaders
 						? message.getHeaders()
@@ -179,7 +180,12 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 				messageToEncode = new MutableMessage<>(message.getPayload(), headersToEncode);
 			}
 
-			return this.objectMapper.writeValueAsBytes(messageToEncode);
+			try {
+				return this.objectMapper.writeValueAsBytes(messageToEncode);
+			}
+			catch (JsonProcessingException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 	}
 
@@ -197,14 +203,19 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 				: PatternMatchUtils.smartMatchIgnoreCase(header, this.headerPatterns));
 	}
 
-	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) throws Exception {
-		byte[] headers = this.objectMapper.writeValueAsBytes(headersToEncode);
-		ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
-		buffer.putInt(headers.length);
-		buffer.put(headers);
-		buffer.putInt(payload.length);
-		buffer.put(payload);
-		return buffer.array();
+	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) {
+		try {
+			byte[] headers = this.objectMapper.writeValueAsBytes(headersToEncode);
+			ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
+			buffer.putInt(headers.length);
+			buffer.put(headers);
+			buffer.putInt(payload.length);
+			buffer.put(payload);
+			return buffer.array();
+		}
+		catch (JsonProcessingException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@Override
@@ -213,7 +224,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		try {
 			message = decodeNativeFormat(bytes, headers);
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings("unused") Exception e) {
 			// empty
 		}
 		if (message == null) {

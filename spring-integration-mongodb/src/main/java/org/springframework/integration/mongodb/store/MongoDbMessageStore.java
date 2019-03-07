@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.applicationContext != null) {
 			this.converter.setApplicationContext(this.applicationContext);
 		}
@@ -353,7 +353,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
 
-		@SuppressWarnings("rawtypes")
 		Iterable<String> groupIds = this.template.getCollection(this.collectionName)
 				.distinct(GROUP_ID_KEY, query.getQueryObject(), String.class);
 

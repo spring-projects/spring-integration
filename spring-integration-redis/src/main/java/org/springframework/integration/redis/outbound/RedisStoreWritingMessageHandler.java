@@ -321,7 +321,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void writeToZset(RedisZSet<Object> zset, final Message<?> message) throws Exception {
+	private void writeToZset(RedisZSet<Object> zset, final Message<?> message) {
 		final Object payload = message.getPayload();
 		final BoundZSetOperations<String, Object> ops =
 				(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());

@@ -19,7 +19,6 @@ package org.springframework.integration.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.context.NamedComponent;
@@ -39,7 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class RmiInboundGateway extends MessagingGatewaySupport
-		implements RequestReplyExchanger, InitializingBean {
+		implements RequestReplyExchanger {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframework.integration.rmiGateway.";
 

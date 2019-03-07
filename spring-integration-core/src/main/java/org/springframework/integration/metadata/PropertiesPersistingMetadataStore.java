@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		File baseDir = new File(this.baseDirectory);
 		baseDir.mkdirs();
 		this.file = new File(baseDir, this.fileName);
@@ -195,7 +195,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		flush();
 	}
 
@@ -205,7 +205,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		flush();
 	}
 
@@ -254,7 +254,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 					inputStream.close();
 				}
 			}
-			catch (Exception e2) {
+			catch (@SuppressWarnings("unused") Exception e2) {
 				// non fatal
 				this.logger.warn("Failed to close InputStream for: " + this.file.getAbsolutePath());
 			}

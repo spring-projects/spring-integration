@@ -26,13 +26,13 @@ import javax.jms.Session;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.DynamicJmsTemplate;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel>
-		implements SmartLifecycle, DisposableBean, BeanNameAware {
+		implements SmartLifecycle, BeanNameAware {
 
 	private volatile AbstractJmsChannel channel;
 
@@ -372,7 +372,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	}
 
 	@Override
-	protected AbstractJmsChannel createInstance() throws Exception {
+	protected AbstractJmsChannel createInstance() {
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
 			this.listenerContainer = createContainer();
@@ -384,9 +384,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			Assert.isTrue(!Boolean.TRUE.equals(this.pubSubDomain),
 					"A JMS Topic-backed 'publish-subscribe-channel' must be message-driven.");
 			PollableJmsChannel pollableJmschannel = new PollableJmsChannel(this.jmsTemplate);
-			if (this.messageSelector != null) {
-				pollableJmschannel.setMessageSelector(this.messageSelector);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.messageSelector, pollableJmschannel::setMessageSelector);
 			this.channel = pollableJmschannel;
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
@@ -394,9 +393,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		}
 		this.channel.setBeanName(this.beanName);
 		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.channel.setBeanFactory(beanFactory);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(beanFactory, this.channel::setBeanFactory);
 		this.channel.afterPropertiesSet();
 		return this.channel;
 	}
@@ -404,45 +402,39 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private void initializeJmsTemplate() {
 		Assert.isTrue(this.destination != null ^ this.destinationName != null,
 				"Exactly one of destination or destinationName is required.");
-		if (this.destination != null) {
-			this.jmsTemplate.setDefaultDestination(this.destination);
-		}
-		if (this.destinationName != null) {
-			this.jmsTemplate.setDefaultDestinationName(this.destinationName);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.destination, this.jmsTemplate::setDefaultDestination)
+			.acceptIfNotNull(this.destinationName, this.jmsTemplate::setDefaultDestinationName);
 	}
 
-	private AbstractMessageListenerContainer createContainer() throws Exception {
+	private AbstractMessageListenerContainer createContainer() {
 		if (this.containerType == null) {
 			this.containerType = DefaultMessageListenerContainer.class;
 		}
-		AbstractMessageListenerContainer container = this.containerType.newInstance();
+		AbstractMessageListenerContainer container;
+		try {
+			container = this.containerType.newInstance();
+		}
+		catch (InstantiationException | IllegalAccessException e) {
+			throw new IllegalStateException(e);
+		}
 		container.setAcceptMessagesWhileStopping(this.acceptMessagesWhileStopping);
 		container.setAutoStartup(this.autoStartup);
 		container.setClientId(this.clientId);
 		container.setConnectionFactory(this.connectionFactory);
-		if (this.destination != null) {
-			container.setDestination(this.destination);
-		}
-		if (this.destinationName != null) {
-			container.setDestinationName(this.destinationName);
-		}
-		if (this.destinationResolver != null) {
-			container.setDestinationResolver(this.destinationResolver);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.destination, container::setDestination)
+			.acceptIfNotNull(this.destinationName, container::setDestinationName)
+			.acceptIfNotNull(this.destinationResolver, container::setDestinationResolver);
 		container.setDurableSubscriptionName(this.durableSubscriptionName);
 		container.setErrorHandler(this.errorHandler);
 		container.setExceptionListener(this.exceptionListener);
-		if (this.exposeListenerSession != null) {
-			container.setExposeListenerSession(this.exposeListenerSession);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.exposeListenerSession, container::setExposeListenerSession);
 		container.setMessageSelector(this.messageSelector);
-		if (this.phase != null) {
-			container.setPhase(this.phase);
-		}
-		if (this.pubSubDomain != null) {
-			container.setPubSubDomain(this.pubSubDomain);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.phase, container::setPhase)
+			.acceptIfNotNull(this.pubSubDomain, container::setPubSubDomain);
 		container.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
@@ -452,59 +444,29 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
-			if (this.cacheLevelName != null) {
-				dmlc.setCacheLevelName(this.cacheLevelName);
-			}
-
-			if (this.cacheLevel != null) {
-				dmlc.setCacheLevel(this.cacheLevel);
-			}
-
-			if (StringUtils.hasText(this.concurrency)) {
-				dmlc.setConcurrency(this.concurrency);
-			}
-
-			if (this.concurrentConsumers != null) {
-				dmlc.setConcurrentConsumers(this.concurrentConsumers);
-			}
-
-			if (this.maxConcurrentConsumers != null) {
-				dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
-			}
-
-			if (this.idleTaskExecutionLimit != null) {
-				dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
-			}
-
-			if (this.maxMessagesPerTask != null) {
-				dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.cacheLevelName, dmlc::setCacheLevelName)
+				.acceptIfNotNull(this.cacheLevel, dmlc::setCacheLevel)
+				.acceptIfHasText(this.concurrency, dmlc::setConcurrency)
+				.acceptIfNotNull(this.concurrentConsumers, dmlc::setConcurrentConsumers)
+				.acceptIfNotNull(this.maxConcurrentConsumers, dmlc::setMaxConcurrentConsumers)
+				.acceptIfNotNull(this.idleTaskExecutionLimit, dmlc::setIdleTaskExecutionLimit)
+				.acceptIfNotNull(this.maxMessagesPerTask, dmlc::setMaxMessagesPerTask);
 			dmlc.setPubSubNoLocal(this.pubSubNoLocal);
-			if (this.receiveTimeout != null) {
-				dmlc.setReceiveTimeout(this.receiveTimeout);
-			}
-			if (this.recoveryInterval != null) {
-				dmlc.setRecoveryInterval(this.recoveryInterval);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.receiveTimeout, dmlc::setReceiveTimeout)
+				.acceptIfNotNull(this.recoveryInterval, dmlc::setRecoveryInterval);
 			dmlc.setTaskExecutor(this.taskExecutor);
 			dmlc.setTransactionManager(this.transactionManager);
-			if (this.transactionName != null) {
-				dmlc.setTransactionName(this.transactionName);
-			}
-			if (this.transactionTimeout != null) {
-				dmlc.setTransactionTimeout(this.transactionTimeout);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.transactionName, dmlc::setTransactionName)
+				.acceptIfNotNull(this.transactionTimeout, dmlc::setTransactionTimeout);
 		}
 		else if (container instanceof SimpleMessageListenerContainer) {
 			SimpleMessageListenerContainer smlc = (SimpleMessageListenerContainer) container;
-			if (StringUtils.hasText(this.concurrency)) {
-				smlc.setConcurrency(this.concurrency);
-			}
-
-			if (this.concurrentConsumers != null) {
-				smlc.setConcurrentConsumers(this.concurrentConsumers);
-			}
-
+			JavaUtils.INSTANCE
+				.acceptIfHasText(this.concurrency, smlc::setConcurrency)
+				.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers);
 			smlc.setPubSubNoLocal(this.pubSubNoLocal);
 			smlc.setTaskExecutor(this.taskExecutor);
 		}
@@ -556,7 +518,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	}
 
 	@Override
-	protected void destroyInstance(AbstractJmsChannel instance) throws Exception {
+	protected void destroyInstance(AbstractJmsChannel instance) {
 		if (instance instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).destroy();
 		}
