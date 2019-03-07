@@ -175,7 +175,7 @@ However, since version 3.0, you can provide your own implementation of the `Load
 Note that the `load-balancer` and `load-balancer-ref` attributes are mutually exclusive.
 
 The load-balancing also works in conjunction with a boolean `failover` property.
-If the "`failover`" value is true (the default), the dispatcher falls back to any subsequent handlers (as necessary) when preceding handlers throw exceptions.
+If the `failover` value is true (the default), the dispatcher falls back to any subsequent handlers (as necessary) when preceding handlers throw exceptions.
 The order is determined by an optional order value defined on the handlers themselves or, if no such value exists, the order in which the handlers subscribed.
 
 If a certain situation requires that the dispatcher always try to invoke the first handler and then fall back in the same fixed order sequence every time an error occurs, no load-balancing strategy should be provided.
@@ -186,6 +186,8 @@ When using the namespace support, the `order` attribute on any endpoint determin
 
 NOTE: Keep in mind that load-balancing and `failover` apply only when a channel has more than one subscribed message handler.
 When using the namespace support, this means that more than one endpoint shares the same channel reference defined in the `input-channel` attribute.
+
+Starting with version 5.2, when `failover` is true, a failure of the current handler together with the failed message is logged under `debug` or `info` if configured respectively.
 
 [[executor-channel]]
 ===== `ExecutorChannel`

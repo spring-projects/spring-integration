@@ -17,14 +17,19 @@
 package org.springframework.integration.dispatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -41,6 +47,7 @@ import org.springframework.messaging.MessagingException;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RoundRobinDispatcherTests {
@@ -63,44 +70,44 @@ public class RoundRobinDispatcherTests {
 
 
 	@Test
-	public void dispatchMessageWithSingleHandler() throws Exception {
-		dispatcher.addHandler(handler);
-		dispatcher.dispatch(message);
+	public void dispatchMessageWithSingleHandler() {
+		this.dispatcher.addHandler(this.handler);
+		this.dispatcher.dispatch(this.message);
+		verify(this.handler).handleMessage(this.message);
 	}
 
 	@Test
-	public void differentHandlerInvokedOnSecondMessage() throws Exception {
-		dispatcher.addHandler(handler);
-		dispatcher.addHandler(differentHandler);
-		dispatcher.dispatch(message);
-		dispatcher.dispatch(message);
-		verify(handler).handleMessage(message);
-		verify(differentHandler).handleMessage(message);
+	public void differentHandlerInvokedOnSecondMessage() {
+		this.dispatcher.addHandler(this.handler);
+		this.dispatcher.addHandler(this.differentHandler);
+		this.dispatcher.dispatch(this.message);
+		this.dispatcher.dispatch(this.message);
+		verify(this.handler).handleMessage(this.message);
+		verify(this.differentHandler).handleMessage(this.message);
 	}
 
 	@Test
-	public void multipleCyclesThroughHandlers() throws Exception {
-		dispatcher.addHandler(handler);
-		dispatcher.addHandler(differentHandler);
+	public void multipleCyclesThroughHandlers() {
+		this.dispatcher.addHandler(this.handler);
+		this.dispatcher.addHandler(this.differentHandler);
 		for (int i = 0; i < 7; i++) {
-			dispatcher.dispatch(message);
+			this.dispatcher.dispatch(this.message);
 		}
-		verify(handler, times(4)).handleMessage(message);
-		verify(differentHandler, times(3)).handleMessage(message);
+		verify(this.handler, times(4)).handleMessage(this.message);
+		verify(this.differentHandler, times(3)).handleMessage(this.message);
 	}
 
 	@Test
-	public void currentHandlerIndexOverFlow() throws Exception {
-		dispatcher.addHandler(handler);
-		dispatcher.addHandler(differentHandler);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
-		((AtomicInteger) accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE - 5);
+	public void currentHandlerIndexOverFlow() {
+		this.dispatcher.addHandler(this.handler);
+		this.dispatcher.addHandler(this.differentHandler);
+		TestUtils.getPropertyValue(this.dispatcher, "loadBalancingStrategy.currentHandlerIndex", AtomicInteger.class)
+				.set(Integer.MAX_VALUE - 5);
 		for (int i = 0; i < 40; i++) {
-			dispatcher.dispatch(message);
+			this.dispatcher.dispatch(this.message);
 		}
-		verify(handler, atLeast(18)).handleMessage(message);
-		verify(differentHandler, atLeast(18)).handleMessage(message);
+		verify(this.handler, atLeast(18)).handleMessage(this.message);
+		verify(this.differentHandler, atLeast(18)).handleMessage(this.message);
 	}
 
 	/**
@@ -109,16 +116,14 @@ public class RoundRobinDispatcherTests {
 	 */
 	@Test
 	public void testExceptionEnhancement() {
-		dispatcher.addHandler(handler);
-		doThrow(new MessagingException("Mock Exception")).
-			when(handler).handleMessage(message);
-		try {
-			dispatcher.dispatch(message);
-			fail("Expected Exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getFailedMessage()).isEqualTo(message);
-		}
+		this.dispatcher.addHandler(this.handler);
+		doThrow(new MessagingException("Mock Exception"))
+				.when(this.handler)
+				.handleMessage(this.message);
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.dispatcher.dispatch(this.message))
+				.satisfies(ex -> assertThat(ex.getFailedMessage()).isEqualTo(this.message));
 	}
 
 	/**
@@ -127,16 +132,37 @@ public class RoundRobinDispatcherTests {
 	 */
 	@Test
 	public void testNoExceptionEnhancement() {
-		dispatcher.addHandler(handler);
+		this.dispatcher.addHandler(this.handler);
 		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
-		doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception")).
-			when(handler).handleMessage(message);
-		try {
-			dispatcher.dispatch(message);
-			fail("Expected Exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getFailedMessage()).isEqualTo(dontReplaceThisMessage);
-		}
+		doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception"))
+				.when(this.handler)
+				.handleMessage(this.message);
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.dispatcher.dispatch(this.message))
+				.satisfies(ex -> assertThat(ex.getFailedMessage()).isEqualTo(dontReplaceThisMessage));
 	}
+
+	@Test
+	public void testFailOverAndLogging() {
+		RuntimeException testException = new RuntimeException("intentional");
+		doThrow(testException)
+				.when(this.handler)
+				.handleMessage(this.message);
+		this.dispatcher.addHandler(this.handler);
+		this.dispatcher.addHandler(this.differentHandler);
+
+		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(this.dispatcher);
+		Log log = (Log) spy(directFieldAccessor.getPropertyType("logger"));
+		given(log.isDebugEnabled()).willReturn(true);
+		directFieldAccessor.setPropertyValue("logger", log);
+
+		this.dispatcher.dispatch(this.message);
+
+		verify(this.handler).handleMessage(this.message);
+		verify(this.differentHandler).handleMessage(this.message);
+
+		verify(log).debug(startsWith("An exception was thrown by '"), eq(testException));
+	}
+
 }
