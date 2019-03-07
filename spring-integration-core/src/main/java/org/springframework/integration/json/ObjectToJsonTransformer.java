@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.json;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.util.Map;
 
 import org.springframework.integration.support.json.JsonObjectMapper;
@@ -111,7 +113,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) throws Exception {
+	protected Object doTransform(Message<?> message) {
 		Object payload = buildJsonPayload(message.getPayload());
 
 		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
@@ -137,23 +139,28 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 				.build();
 	}
 
-	private Object buildJsonPayload(Object payload) throws Exception {
-		switch (this.resultType) {
+	private Object buildJsonPayload(Object payload) {
+		try {
+			switch (this.resultType) {
 
-			case STRING:
-				return this.jsonObjectMapper.toJson(payload);
+				case STRING:
+					return this.jsonObjectMapper.toJson(payload);
 
-			case NODE:
-				return this.jsonObjectMapper.toJsonNode(payload);
+				case NODE:
+					return this.jsonObjectMapper.toJsonNode(payload);
 
-			case BYTES:
-				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-					this.jsonObjectMapper.toJson(payload, new OutputStreamWriter(baos));
-					return baos.toByteArray();
-				}
+				case BYTES:
+					try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+						this.jsonObjectMapper.toJson(payload, new OutputStreamWriter(baos));
+						return baos.toByteArray();
+					}
 
-			default:
-				throw new IllegalArgumentException("Unsupported ResultType provided: " + this.resultType);
+				default:
+					throw new IllegalArgumentException("Unsupported ResultType provided: " + this.resultType);
+			}
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 	}
 

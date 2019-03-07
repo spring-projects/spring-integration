@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.transformer;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -79,10 +82,15 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 	}
 
 	@Override
-	protected T doTransform(Message<?> message) throws Exception {
+	protected T doTransform(Message<?> message) {
 		Assert.isTrue(message.getPayload() instanceof byte[], "Message payload must be byte[]");
 		byte[] bytes = (byte[]) message.getPayload();
-		return this.codec.decode(bytes, this.type != null ? this.type : type(message));
+		try {
+			return this.codec.decode(bytes, this.type != null ? this.type : type(message));
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@SuppressWarnings("unchecked")

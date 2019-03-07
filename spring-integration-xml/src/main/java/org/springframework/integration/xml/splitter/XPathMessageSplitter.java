@@ -86,7 +86,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private Properties outputProperties;
 
-	private boolean iterator = true;
+	private boolean returnIterator = true;
 
 	public XPathMessageSplitter(String expression) {
 		this(expression, new HashMap<>());
@@ -182,7 +182,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	 * @since 4.2
 	 */
 	public void setIterator(boolean iterator) {
-		this.iterator = iterator;
+		this.returnIterator = iterator;
 	}
 
 	/**
@@ -200,9 +200,9 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	@Override
 	protected void doInit() {
 		super.doInit();
-		if (this.iterator && this.jaxpExpression == null) {
+		if (this.returnIterator && this.jaxpExpression == null) {
 			logger.info("The 'iterator' option isn't available for an external XPathExpression. Will be ignored");
-			this.iterator = false;
+			this.returnIterator = false;
 		}
 	}
 
@@ -246,7 +246,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object splitDocument(Document document) throws Exception {
+	private Object splitDocument(Document document) throws ParserConfigurationException, TransformerException {
 		Object nodes = splitNode(document);
 		final Transformer transformer;
 		synchronized (this.transformerFactory) {
@@ -282,7 +282,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	private Object splitNode(Node node) throws ParserConfigurationException {
-		if (this.iterator) {
+		if (this.returnIterator) {
 			try {
 				NodeList nodeList = (NodeList) this.jaxpExpression.evaluate(node, XPathConstants.NODESET);
 				return new NodeListIterator(nodeList);

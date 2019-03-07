@@ -65,6 +65,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
+	private static final String UNUSED = "unused";
+
 	private final ObjectMapper objectMapper;
 
 	public Jackson2JsonObjectMapper() {
@@ -188,7 +190,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
 		}
-		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
+		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
 			// jackson-datatype-jdk7 not available
 		}
 
@@ -197,7 +199,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
 		}
-		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
+		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
 			// jackson-datatype-jdk8 not available
 		}
 
@@ -206,7 +208,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 					ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", getClassLoader());
 			this.objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
 		}
-		catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
+		catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
 			// jackson-datatype-jsr310 not available
 		}
 
@@ -217,7 +219,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 						ClassUtils.forName("com.fasterxml.jackson.datatype.joda.JodaModule", getClassLoader());
 				this.objectMapper.registerModule(BeanUtils.instantiateClass(jodaModule));
 			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
+			catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
 				// jackson-datatype-joda not available
 			}
 		}
@@ -229,7 +231,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 						ClassUtils.forName("com.fasterxml.jackson.module.kotlin.KotlinModule", getClassLoader());
 				this.objectMapper.registerModule(BeanUtils.instantiateClass(kotlinModule));
 			}
-			catch (@SuppressWarnings("unused") ClassNotFoundException ex) {
+			catch (@SuppressWarnings(UNUSED) ClassNotFoundException ex) {
 				//jackson-module-kotlin not available
 			}
 		}

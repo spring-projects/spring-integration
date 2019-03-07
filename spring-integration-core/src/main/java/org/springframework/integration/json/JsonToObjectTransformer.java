@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.integration.json;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -79,16 +82,21 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) throws Exception {
-		if (this.targetClass != null) {
-			return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);
+	protected Object doTransform(Message<?> message) {
+		try {
+			if (this.targetClass != null) {
+				return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);
+			}
+			else {
+				Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
+				AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(result)
+						.copyHeaders(message.getHeaders())
+						.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
+				return messageBuilder.build();
+			}
 		}
-		else {
-			Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(result)
-					.copyHeaders(message.getHeaders())
-					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
-			return messageBuilder.build();
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 	}
 

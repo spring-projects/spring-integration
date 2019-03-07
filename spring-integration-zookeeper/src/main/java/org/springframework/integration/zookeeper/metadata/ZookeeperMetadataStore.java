@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ import org.springframework.util.Assert;
  * @since 4.2
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
+
+	private static final String UNUSED = "unused";
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -120,14 +122,15 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				createNode(key, value);
 				return null;
 			}
-			catch (KeeperException.NodeExistsException e) {
+			catch (@SuppressWarnings(UNUSED) KeeperException.NodeExistsException e) {
 				// so the data actually exists, we can read it
 				try {
 					byte[] bytes = this.client.getData().forPath(getPath(key));
 					return IntegrationUtils.bytesToString(bytes, this.encoding);
 				}
 				catch (Exception exceptionDuringGet) {
-					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':", e);
+					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':",
+							exceptionDuringGet);
 				}
 			}
 			catch (Exception e) {
@@ -150,16 +153,16 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				}
 				return true;
 			}
-			catch (KeeperException.NoNodeException e) {
+			catch (@SuppressWarnings(UNUSED) KeeperException.NoNodeException e) {
 				// ignore, the node doesn't exist there's nothing to replace
 				return false;
 			}
-			catch (KeeperException.BadVersionException e) {
+			catch (@SuppressWarnings(UNUSED) KeeperException.BadVersionException e) {
 				// ignore
 				return false;
 			}
 			catch (Exception e) {
-				throw new ZookeeperMetadataStoreException("Cannot replace value");
+				throw new ZookeeperMetadataStoreException("Cannot replace value", e);
 			}
 		}
 	}
@@ -186,7 +189,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 					try {
 						createNode(key, value);
 					}
-					catch (KeeperException.NodeExistsException e) {
+					catch (@SuppressWarnings(UNUSED) KeeperException.NodeExistsException e) {
 						updateNode(key, value, -1);
 					}
 				}
@@ -240,7 +243,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
 				return IntegrationUtils.bytesToString(bytes, this.encoding);
 			}
-			catch (KeeperException.NoNodeException e) {
+			catch (@SuppressWarnings(UNUSED) KeeperException.NoNodeException e) {
 				// ignore - the node doesn't exist
 				return null;
 			}
@@ -250,13 +253,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		}
 	}
 
-	private void updateNode(String key, String value, int version) throws Exception {
+	private void updateNode(String key, String value, int version) throws Exception { // NOSONAR external lib throws
 		Stat stat = this.client.setData().withVersion(version).forPath(getPath(key),
 				IntegrationUtils.stringToBytes(value, this.encoding));
 		this.updateMap.put(key, new LocalChildData(value, stat.getVersion()));
 	}
 
-	private void createNode(String key, String value) throws Exception {
+	private void createNode(String key, String value) throws Exception { // NOSONAR external lib throws
 		this.client.create().forPath(getPath(key), IntegrationUtils.stringToBytes(value, this.encoding));
 		this.updateMap.put(key, new LocalChildData(value, 0));
 	}
@@ -359,7 +362,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		}
 
 		@Override
-		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+		public void childEvent(CuratorFramework framework, PathChildrenCacheEvent event) {
 			synchronized (ZookeeperMetadataStore.this.updateMap) {
 				String eventPath = event.getData().getPath();
 				String eventKey = getKey(eventPath);

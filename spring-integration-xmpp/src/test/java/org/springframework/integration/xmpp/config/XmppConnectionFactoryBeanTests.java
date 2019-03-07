@@ -58,7 +58,7 @@ public class XmppConnectionFactoryBeanTests {
 				new XmppConnectionFactoryBean() {
 
 					@Override
-					protected XMPPConnection createInstance() throws Exception {
+					protected XMPPConnection createInstance() {
 						return mock(XMPPTCPConnection.class);
 					}
 
@@ -78,7 +78,7 @@ public class XmppConnectionFactoryBeanTests {
 				new XmppConnectionFactoryBean() {
 
 					@Override
-					protected XMPPConnection createInstance() throws Exception {
+					protected XMPPConnection createInstance() {
 						return mock(XMPPTCPConnection.class);
 					}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.zookeeper.lock;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -157,7 +156,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (!this.mutexTaskExecutorExplicitlySet) {
 			((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
 		}
@@ -266,7 +265,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 			try {
 				return tryLock(1, TimeUnit.SECONDS);
 			}
-			catch (InterruptedException e) {
+			catch (@SuppressWarnings("unused") InterruptedException e) {
 				Thread.currentThread().interrupt();
 				return false;
 			}
@@ -278,13 +277,13 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 			try {
 				long startTime = System.currentTimeMillis();
 
-				future = this.mutexTaskExecutor.submit(new Callable<Boolean>() {
-
-					@Override
-					public Boolean call() throws Exception {
+				future = this.mutexTaskExecutor.submit(() -> {
+					try {
 						return ZkLock.this.client.checkExists().forPath("/") != null;
 					}
-
+					catch (Exception e) {
+						throw new IllegalStateException(e);
+					}
 				});
 
 				long waitTime = unit.toMillis(time);
@@ -300,9 +299,15 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
 				}
 			}
-			catch (TimeoutException e) {
-				future.cancel(true);
+			catch (@SuppressWarnings("unused") TimeoutException e) {
+				if (future != null) {
+					future.cancel(true);
+				}
 				return false;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw e;
 			}
 			catch (Exception e) {
 				throw new MessagingException("Failed to acquire mutex at " + this.path, e);

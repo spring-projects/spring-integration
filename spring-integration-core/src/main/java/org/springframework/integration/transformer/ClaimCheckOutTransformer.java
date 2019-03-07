@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 	}
 
 	@Override
-	protected Object doTransform(Message<?> message) throws Exception {
+	protected Object doTransform(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");
 		UUID id = (UUID) message.getPayload();

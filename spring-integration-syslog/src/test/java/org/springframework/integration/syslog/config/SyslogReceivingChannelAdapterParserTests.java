@@ -215,7 +215,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 	public static class PassThruConverter implements MessageConverter {
 
 		@Override
-		public Message<?> fromSyslog(Message<?> syslog) throws Exception {
+		public Message<?> fromSyslog(Message<?> syslog) {
 			return syslog;
 		}
 

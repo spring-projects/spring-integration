@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,8 +95,14 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected Map<String, Object> transformPayload(Object payload) throws Exception {
-		Map<String, Object> result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
+	protected Map<String, Object> transformPayload(Object payload) {
+		Map<String, Object> result;
+		try {
+			result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 		if (this.shouldFlattenKeys) {
 			result = this.flattenMap(result);
 		}
