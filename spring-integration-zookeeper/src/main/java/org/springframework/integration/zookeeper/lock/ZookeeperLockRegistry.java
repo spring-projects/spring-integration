@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -301,8 +301,14 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 				}
 			}
 			catch (TimeoutException e) {
-				future.cancel(true);
+				if (future != null) {
+					future.cancel(true);
+				}
 				return false;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw e;
 			}
 			catch (Exception e) {
 				throw new MessagingException("Failed to acquire mutex at " + this.path, e);
