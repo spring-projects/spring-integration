@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import io.lettuce.core.SocketOptions;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Marc Philipp
  */
 public final class RedisAvailableRule implements MethodRule {
 
@@ -69,21 +70,23 @@ public final class RedisAvailableRule implements MethodRule {
 
 
 	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
-		RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
-		if (redisAvailable != null) {
-			if (connectionFactory != null) {
-				try {
-					connectionFactory.getConnection();
-				}
-				catch (Exception e) {
-					Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e, false);
-
+		return new Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
+				if (redisAvailable != null) {
+					if (connectionFactory != null) {
+						try {
+							connectionFactory.getConnection();
+							base.evaluate();
+						}
+						catch (Exception e) {
+							Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e, false);
+						}
+					}
 				}
 			}
-		}
-
-		return base;
+		};
 	}
 
 }
-
