@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,13 +122,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			}
 			catch (KeeperException.NodeExistsException e) {
 				// so the data actually exists, we can read it
-				try {
-					byte[] bytes = this.client.getData().forPath(getPath(key));
-					return IntegrationUtils.bytesToString(bytes, this.encoding);
-				}
-				catch (Exception exceptionDuringGet) {
-					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':", e);
-				}
+				return get(key);
 			}
 			catch (Exception e) {
 				throw new ZookeeperMetadataStoreException("Error while trying to set '" + key + "':", e);
