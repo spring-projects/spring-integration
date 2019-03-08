@@ -880,7 +880,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private boolean isMethodEligible(Method methodToProcess) {
-		return !(methodToProcess.isBridge() || // NOSONAR bollean complexity
+		return !(methodToProcess.isBridge() || // NOSONAR boolean complexity
 				isMethodDefinedOnObjectClass(methodToProcess) ||
 				methodToProcess.getDeclaringClass().equals(Proxy.class) ||
 				(this.requiresReply && void.class.equals(methodToProcess.getReturnType())) ||
@@ -986,8 +986,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			}
 			Method theMethod = targetMethod.get();
 			if (theMethod != null) {
-				theMethod = org.springframework.util.ClassUtils
-						.getMostSpecificMethod(theMethod, this.targetObject.getClass());
+				theMethod = ClassUtils.getMostSpecificMethod(theMethod, this.targetObject.getClass());
 				HandlerMethod theHandlerMethod = createHandlerMethod(theMethod);
 				Class<?> targetParameterType = theHandlerMethod.getTargetParameterType();
 				if (theHandlerMethod.isMessageMethod()) {
@@ -1064,8 +1063,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 				}
 			}
 		}
-		else if (org.springframework.util.ClassUtils.isCglibProxyClass(targetClass)
-				|| targetClass.getSimpleName().contains("$MockitoMock$")) {
+		else if (ClassUtils.isCglibProxyClass(targetClass) || targetClass.getSimpleName().contains("$MockitoMock$")) {
 			Class<?> superClass = targetObject.getClass().getSuperclass();
 			if (!Object.class.equals(superClass)) {
 				targetClass = superClass;
