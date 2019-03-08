@@ -53,7 +53,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 	@Override
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		super.setUp();
 		this.metadataStore = new ZookeeperMetadataStore(client);
 		this.metadataStore.start();
@@ -83,7 +83,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 
 	@Test
-	public void testGetValueFromMetadataStore() throws Exception {
+	public void testGetValueFromMetadataStore() {
 		String testKey = "ZookeeperMetadataStoreTests-GetValue";
 		metadataStore.put(testKey, "Hello Zookeeper");
 		String retrievedValue = metadataStore.get(testKey);
@@ -194,7 +194,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testRemoveFromMetadataStore() throws Exception {
+	public void testRemoveFromMetadataStore() {
 		String testKey = "ZookeeperMetadataStoreTests-Remove";
 		String testValue = "Integration";
 		metadataStore.put(testKey, testValue);
@@ -203,12 +203,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testListenerInvokedOnLocalChanges() throws Exception {
+	public void testListenerInvokedOnLocalChanges() {
 		String testKey = "ZookeeperMetadataStoreTests";
 
 		// register listeners
-		final List<List<String>> notifiedChanges = new ArrayList<List<String>>();
-		final Map<String, CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
+		final List<List<String>> notifiedChanges = new ArrayList<>();
+		final Map<String, CyclicBarrier> barriers = new HashMap<>();
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
@@ -275,15 +275,16 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testListenerInvokedOnRemoteChanges() throws Exception {
+	public void testListenerInvokedOnRemoteChanges() {
 		String testKey = "ZookeeperMetadataStoreTests";
 
 		CuratorFramework otherClient = createNewClient();
 		ZookeeperMetadataStore otherMetadataStore = new ZookeeperMetadataStore(otherClient);
+		otherMetadataStore.start();
 
 		// register listeners
-		final List<List<String>> notifiedChanges = new ArrayList<List<String>>();
-		final Map<String, CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
+		final List<List<String>> notifiedChanges = new ArrayList<>();
+		final Map<String, CyclicBarrier> barriers = new HashMap<>();
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
@@ -346,7 +347,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 	}
 
 	@Test
-	public void testAddRemoveListener() throws Exception {
+	public void testAddRemoveListener() {
 		MetadataStoreListener mockListener = Mockito.mock(MetadataStoreListener.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(metadataStore);
 

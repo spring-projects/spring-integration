@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import org.junit.BeforeClass;
 /**
  * @author Marius Bogoevici
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -52,7 +54,7 @@ public class ZookeeperTestSupport {
 	}
 
 	@AfterClass
-	public static void tearDownClass() throws Exception {
+	public static void tearDownClass() {
 		try {
 			testingServer.stop();
 		}
@@ -63,7 +65,7 @@ public class ZookeeperTestSupport {
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		client = createNewClient();
 	}
 
@@ -72,7 +74,7 @@ public class ZookeeperTestSupport {
 		CloseableUtils.closeQuietly(this.client);
 	}
 
-	protected static CuratorFramework createNewClient() throws InterruptedException {
+	protected static CuratorFramework createNewClient() {
 		CuratorFramework client = CuratorFrameworkFactory.newClient(testingServer.getConnectString(),
 				new BoundedExponentialBackoffRetry(100, 1000, 3));
 		client.start();
