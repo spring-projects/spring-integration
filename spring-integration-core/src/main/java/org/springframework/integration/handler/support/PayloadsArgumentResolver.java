@@ -82,7 +82,7 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 					.map(Message::getPayload)
 					.collect(Collectors.toList());
 
-			return getEvaluationContext()
+			return getEvaluationContext(false)
 					.getTypeConverter()
 					.convertValue(payloads,
 							TypeDescriptor.forObject(payloads),

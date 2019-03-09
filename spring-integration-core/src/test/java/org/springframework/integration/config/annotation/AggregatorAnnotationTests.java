@@ -107,8 +107,7 @@ public class AggregatorAnnotationTests {
 		Object handlerMethod = processorAccessor.getPropertyValue("handlerMethod");
 		assertThat(handlerMethod).isNotNull();
 		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethod);
-		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue(
-				"invocableHandlerMethod.method");
+		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
 		assertThat(completionCheckerMethod.getName()).isEqualTo("correlate");
 		context.close();
 	}

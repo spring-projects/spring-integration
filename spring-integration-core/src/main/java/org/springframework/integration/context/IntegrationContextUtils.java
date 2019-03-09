@@ -101,13 +101,11 @@ public abstract class IntegrationContextUtils {
 	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME =
 			"integrationArgumentResolverMessageConverter";
 
-	public static final String ARGUMENT_RESOLVERS_BEAN_NAME = "integrationArgumentResolvers";
-
-	public static final String LIST_ARGUMENT_RESOLVERS_BEAN_NAME = "integrationListArgumentResolvers";
-
 	public static final String DISPOSABLES_BEAN_NAME = "integrationDisposableAutoCreatedBeans";
 
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
+
+	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
