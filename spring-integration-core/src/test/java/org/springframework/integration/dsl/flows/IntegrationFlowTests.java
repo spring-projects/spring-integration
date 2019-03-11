@@ -33,6 +33,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
@@ -52,6 +53,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -491,6 +493,26 @@ public class IntegrationFlowTests {
 				this.flow2WithPrototypeHandlerConsumer.getHandler());
 	}
 
+	@Autowired
+	@Qualifier("globalErrorChannelResolutionFunction")
+	private Consumer<String> globalErrorChannelResolutionGateway;
+
+	@Autowired
+	SubscribableChannel errorChannel;
+
+	@Test
+	public void testGlobalErrorChannelResolutionFlow() throws InterruptedException {
+		CountDownLatch errorMessageLatch = new CountDownLatch(1);
+		MessageHandler errorMessageHandler = m -> errorMessageLatch.countDown();
+		this.errorChannel.subscribe(errorMessageHandler);
+
+		this.globalErrorChannelResolutionGateway.accept("foo");
+
+		assertThat(errorMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		this.errorChannel.unsubscribe(errorMessageHandler);
+	}
+
 	@MessagingGateway
 	public interface ControlBusGateway {
 
@@ -880,6 +902,16 @@ public class IntegrationFlowTests {
 		public IntegrationFlow flow2WithPrototypeHandler(
 				@Qualifier("myHandler") AbstractReplyProducingMessageHandler handler) {
 			return f -> f.handle(handler, e -> e.id("flow2WithPrototypeHandlerConsumer"));
+		}
+
+		@Bean
+		public IntegrationFlow globalErrorChannelResolutionFlow(@Qualifier("taskScheduler") TaskExecutor taskExecutor) {
+			return IntegrationFlows.from(Consumer.class, "globalErrorChannelResolutionFunction")
+					.channel(c -> c.executor(taskExecutor))
+					.handle((GenericHandler<?>) (p, h) -> {
+						throw new RuntimeException("intentional");
+					})
+					.get();
 		}
 
 	}
