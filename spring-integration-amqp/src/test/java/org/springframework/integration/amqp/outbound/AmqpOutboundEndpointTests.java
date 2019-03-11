@@ -17,12 +17,22 @@
 package org.springframework.integration.amqp.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -31,15 +41,21 @@ import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.utils.test.TestUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.amqp.support.NackedAmqpMessageException;
 import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -133,7 +149,7 @@ public class AmqpOutboundEndpointTests {
 	}
 
 	@Test
-	public void adapterWithPublisherConfirms() throws Exception {
+	public void adapterWithPublisherConfirms() {
 		Message<?> message = MessageBuilder.withPayload("hello")
 				.setHeader("amqp_confirmCorrelationData", "foo")
 				.build();
@@ -142,6 +158,42 @@ public class AmqpOutboundEndpointTests {
 		assertThat(ack).isNotNull();
 		assertThat(ack.getPayload()).isEqualTo("foo");
 		assertThat(ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM)).isEqualTo(Boolean.TRUE);
+	}
+
+	@Test
+	public void syncConfirmTimeout() {
+		Message<?> message = new GenericMessage<>("foo");
+		RabbitTemplate template = spy(RabbitTemplate.class);
+		willDoNothing().given(template).send(isNull(), isNull(), any(), any());
+		List<CorrelationData> correlationList = new ArrayList<>();
+		willReturn(correlationList).given(template).getUnconfirmed(100L);
+		ArgumentCaptor<CorrelationData> correlationCaptor = ArgumentCaptor.forClass(CorrelationData.class);
+		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
+		PollableChannel nacks = new QueueChannel();
+		endpoint.setConfirmNackChannel(nacks);
+		endpoint.setConfirmCorrelationExpressionString("headers.id");
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
+		endpoint.setTaskScheduler(sched);
+		endpoint.setConfirmTimeout(100);
+		sched.afterPropertiesSet();
+		endpoint.setTaskScheduler(sched);
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+		endpoint.handleMessage(message);
+		verify(template).send(isNull(), isNull(), any(), correlationCaptor.capture());
+		CorrelationData correlation = correlationCaptor.getValue();
+		correlationList.add(correlation);
+		assertThat(TestUtils.getPropertyValue(correlation, "message", Message.class)).isSameAs(message);
+		Message<?> nack = nacks.receive(10_000);
+		assertThat(nack).isNotNull();
+		assertThat(nack.getPayload()).isInstanceOf(NackedAmqpMessageException.class);
+		assertThat(((NackedAmqpMessageException) nack.getPayload()).getFailedMessage()).isSameAs(message);
+		assertThat(((NackedAmqpMessageException) nack.getPayload()).getCorrelationData())
+			.isSameAs(message.getHeaders().getId());
+		assertThat(((NackedAmqpMessageException) nack.getPayload()).getNackReason()).isEqualTo("Confirm timed out");
+		endpoint.stop();
+		sched.destroy();
 	}
 
 	@Test
@@ -162,7 +214,7 @@ public class AmqpOutboundEndpointTests {
 	}
 
 	@Test
-	public void adapterWithReturnsAndErrorMessageStrategy() throws Exception {
+	public void adapterWithReturnsAndErrorMessageStrategy() {
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		this.returnRequestChannel.send(message);
 		Message<?> returned = returnChannel.receive(10000);

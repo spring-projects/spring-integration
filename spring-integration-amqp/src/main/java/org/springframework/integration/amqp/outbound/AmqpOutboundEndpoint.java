@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,13 +42,19 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	private final AmqpTemplate amqpTemplate;
 
-	private volatile boolean expectReply;
+	private final RabbitTemplate rabbitTemplate;
+
+	private boolean expectReply;
 
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
 		if (amqpTemplate instanceof RabbitTemplate) {
 			setConnectionFactory(((RabbitTemplate) amqpTemplate).getConnectionFactory());
+			this.rabbitTemplate = (RabbitTemplate) amqpTemplate;
+		}
+		else {
+			this.rabbitTemplate = null;
 		}
 	}
 
@@ -62,17 +68,23 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		return this.expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
 	}
 
+
+	@Override
+	protected RabbitTemplate getRabbitTemplate() {
+		return this.rabbitTemplate;
+	}
+
 	@Override
 	protected void endpointInit() {
 		if (getConfirmCorrelationExpression() != null) {
-			Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
+			Assert.notNull(this.rabbitTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
-			((RabbitTemplate) this.amqpTemplate).setConfirmCallback(this);
+			this.rabbitTemplate.setConfirmCallback(this);
 		}
 		if (getReturnChannel() != null) {
-			Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
+			Assert.notNull(this.rabbitTemplate,
 					"RabbitTemplate implementation is required for publisher confirms");
-			((RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
+			this.rabbitTemplate.setReturnCallback(this);
 		}
 	}
 
@@ -99,12 +111,12 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	private void send(String exchangeName, String routingKey,
 			final Message<?> requestMessage, CorrelationData correlationData) {
-		if (this.amqpTemplate instanceof RabbitTemplate) {
-			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		if (this.rabbitTemplate != null) {
+			MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
 					getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 			addDelayProperty(requestMessage, amqpMessage);
-			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
+			this.rabbitTemplate.send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
 		else {
 			this.amqpTemplate.convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
@@ -118,14 +130,15 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	private AbstractIntegrationMessageBuilder<?> sendAndReceive(String exchangeName, String routingKey,
 			Message<?> requestMessage, CorrelationData correlationData) {
-		Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
+
+		Assert.state(this.rabbitTemplate != null,
 				"RabbitTemplate implementation is required for publisher confirms");
-		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
 				getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 		addDelayProperty(requestMessage, amqpMessage);
 		org.springframework.amqp.core.Message amqpReplyMessage =
-				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey, amqpMessage,
+				this.rabbitTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage,
 						correlationData);
 
 		if (amqpReplyMessage == null) {
@@ -142,8 +155,9 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 	@Override
 	public void returnedMessage(org.springframework.amqp.core.Message message, int replyCode, String replyText,
 			String exchange, String routingKey) {
-		// safe to cast; we asserted we have a RabbitTemplate in doInit()
-		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+
+		// no need for null check; we asserted we have a RabbitTemplate in doInit()
+		MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 		Message<?> returned = buildReturnedMessage(message, replyCode, replyText, exchange,
 				routingKey, converter);
 		getReturnChannel().send(returned);

@@ -544,6 +544,14 @@ property set to TRUE.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="confirm-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+			Generate a negative acknowledgment (nack) if a publisher confirm is not received within this time
+			in milliseconds. Default none (nacks will not be generated).
+							]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="error-message-strategy" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

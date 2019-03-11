@@ -16,14 +16,18 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
@@ -40,6 +44,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -100,7 +105,11 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
+	private Duration confirmTimeout;
+
 	private volatile boolean running;
+
+	private volatile ScheduledFuture<?> confirmChecker;
 
 	/**
 	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.
@@ -311,6 +320,18 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
+	/**
+	 * Set a timeout after which a nack will be synthesized if no publisher confirm has
+	 * been received within that time. Missing confirms will be checked every 50% of this
+	 * value so the synthesized nack will be sent between 1x and 1.5x this timeout.
+	 * @param confirmTimeout the approximate timeout.
+	 * @since 5.2
+	 * @see #setConfirmNackChannel(MessageChannel)
+	 */
+	public void setConfirmTimeout(long confirmTimeout) {
+		this.confirmTimeout = Duration.ofMillis(confirmTimeout);
+	}
+
 	protected final synchronized void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
@@ -381,6 +402,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.headersMappedLast;
 	}
 
+	protected Duration getConfirmTimeout() {
+		return this.confirmTimeout;
+	}
+
 	@Override
 	protected final void doInit() {
 		Assert.state(this.exchangeNameExpression == null || this.exchangeName == null,
@@ -411,7 +436,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 		else {
 			NullChannel nullChannel = extractTypeIfPossible(this.confirmAckChannel, NullChannel.class);
-			Assert.state((this.confirmAckChannel == null || nullChannel != null) && this.confirmAckChannelName == null,
+			Assert.state(
+					(this.confirmAckChannel == null || nullChannel != null) && this.confirmAckChannelName == null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmAckChannel'");
 			nullChannel = extractTypeIfPossible(this.confirmNackChannel, NullChannel.class);
 			Assert.state(
@@ -450,9 +476,24 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				}
 			}
 			doStart();
+			if (this.confirmTimeout != null && getConfirmNackChannel() != null && getRabbitTemplate() != null) {
+				this.confirmChecker = getTaskScheduler()
+						.scheduleAtFixedRate(checkUnconfirmed(), this.confirmTimeout.dividedBy(2L));
+			}
 			this.running = true;
 		}
 	}
+
+	private Runnable checkUnconfirmed() {
+		return () -> {
+			Collection<CorrelationData> unconfirmed =
+					getRabbitTemplate().getUnconfirmed(getConfirmTimeout().toMillis());
+			unconfirmed.forEach(correlation -> handleConfirm(correlation, false, "Confirm timed out"));
+		};
+	}
+
+	@Nullable
+	protected abstract RabbitTemplate getRabbitTemplate();
 
 	@Override
 	public synchronized void stop() {
@@ -460,6 +501,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			doStop();
 		}
 		this.running = false;
+		if (this.confirmChecker != null) {
+			this.confirmChecker.cancel(false);
+			this.confirmChecker = null;
+		}
 	}
 
 	protected void doStart() {
@@ -526,7 +571,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	protected Message<?> buildReturnedMessage(org.springframework.amqp.core.Message message,
-			int replyCode, String replyText, String exchange, String routingKey, MessageConverter converter) {
+			int replyCode, String replyText, String exchange, String returnedRoutingKey, MessageConverter converter) {
 		Object returnedObject = converter.fromMessage(message);
 		AbstractIntegrationMessageBuilder<?> builder = (returnedObject instanceof Message)
 				? this.getMessageBuilderFactory().fromMessage((Message<?>) returnedObject)
@@ -537,12 +582,12 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 					.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
 					.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
 					.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
-					.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
+					.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, returnedRoutingKey);
 		}
 		Message<?> returnedMessage = builder.build();
 		if (this.errorMessageStrategy != null) {
 			returnedMessage = this.errorMessageStrategy.buildErrorMessage(new ReturnedAmqpMessageException(
-					returnedMessage, message, replyCode, replyText, exchange, routingKey), null);
+					returnedMessage, message, replyCode, replyText, exchange, returnedRoutingKey), null);
 		}
 		return returnedMessage;
 	}
