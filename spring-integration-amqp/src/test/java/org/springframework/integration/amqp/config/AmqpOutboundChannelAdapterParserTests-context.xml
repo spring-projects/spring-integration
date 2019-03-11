@@ -54,11 +54,28 @@
 								   confirm-ack-channel="ackChannel"
 								   error-message-strategy="ems"/>
 
+	<rabbit:template id="amqpTemplateConfirms2" connection-factory="connectionFactory"/>
+
+	<amqp:outbound-channel-adapter id="withPublisherConfirms2" channel="pcRequestChannel"
+								   exchange-name="outboundchanneladapter.test.1"
+								   mapped-request-headers="foo*"
+								   auto-startup="false"
+								   amqp-template="amqpTemplateConfirms2"
+								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
+								   confirm-ack-channel="ackChannel"
+								   confirm-nack-channel="nackChannel"
+								   confirm-timeout="2000"
+								   error-message-strategy="ems"/>
+
 	<bean id="ems" class="org.springframework.integration.support.DefaultErrorMessageStrategy" />
 
 	<int:channel id="pcRequestChannel"/>
 
 	<int:channel id="ackChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="nackChannel">
 		<int:queue/>
 	</int:channel>
 

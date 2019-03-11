@@ -109,9 +109,9 @@ public class AmqpOutboundGatewayParserTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isTrue();
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
@@ -172,9 +172,9 @@ public class AmqpOutboundGatewayParserTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
 		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -221,9 +221,9 @@ public class AmqpOutboundGatewayParserTests {
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {
@@ -270,9 +270,9 @@ public class AmqpOutboundGatewayParserTests {
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {

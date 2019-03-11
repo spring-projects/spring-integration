@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -125,9 +126,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 				.getExpressionString()).isEqualTo("42");
 		assertThat(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class)).isFalse();
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 		final AtomicBoolean shouldBePersistent = new AtomicBoolean();
 
@@ -179,6 +180,19 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
 	}
 
+	@Test
+	public void parseWithPublisherConfirms2() {
+		Object eventDrivenConsumer = context.getBean("withPublisherConfirms2");
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
+				AmqpOutboundEndpoint.class);
+		MessageChannel nackChannel = context.getBean("nackChannel", MessageChannel.class);
+		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
+		assertThat(TestUtils.getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
+		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nackChannel);
+		assertThat(TestUtils.getPropertyValue(endpoint, "confirmTimeout")).isEqualTo(Duration.ofMillis(2000));
+		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
+	}
+
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void amqpOutboundChannelAdapterWithinChain() {
@@ -189,9 +203,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
 		assertThat(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode")).isNull();
 
-		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "rabbitTemplate");
 		amqpTemplateField.setAccessible(true);
-		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "rabbitTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(invocation -> {

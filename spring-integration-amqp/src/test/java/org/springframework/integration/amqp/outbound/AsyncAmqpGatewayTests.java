@@ -106,7 +106,7 @@ public class AsyncAmqpGatewayTests {
 					try {
 						waitForAckBeforeReplying.await(10, TimeUnit.SECONDS);
 					}
-					catch (InterruptedException e) {
+					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
 					return foo.toUpperCase();
