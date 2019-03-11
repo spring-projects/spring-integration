@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a
@@ -43,12 +44,12 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 	private static final int DEFAULT_SEND_TIMEOUT = 1000;
 
-	private static final ErrorMessageStrategy DEFAULT_ERROR_MESSAGE_STRATEGY = (t, a) -> {
-		if (t instanceof MessagingExceptionWrapper) {
-			return new ErrorMessage(t.getCause(), ((MessagingExceptionWrapper) t).getFailedMessage());
+	private static final ErrorMessageStrategy DEFAULT_ERROR_MESSAGE_STRATEGY = (ex, attrs) -> {
+		if (ex instanceof MessagingExceptionWrapper) {
+			return new ErrorMessage(ex.getCause(), ((MessagingExceptionWrapper) ex).getFailedMessage());
 		}
 		else {
-			return new ErrorMessage(t);
+			return new ErrorMessage(ex);
 		}
 	};
 
@@ -87,65 +88,68 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 	}
 
 	@Override
-	public final void handleError(Throwable t) {
-		MessageChannel errorChannel = resolveErrorChannel(t);
+	public final void handleError(Throwable ex) {
+		MessageChannel errorChannel = resolveErrorChannel(ex);
 		boolean sent = false;
 		if (errorChannel != null) {
 			try {
-				getMessagingTemplate().send(errorChannel, getErrorMessageStrategy().buildErrorMessage(t, null));
+				getMessagingTemplate().send(errorChannel, getErrorMessageStrategy().buildErrorMessage(ex, null));
 				sent = true;
 			}
-			catch (Throwable errorDeliveryError) { //NOSONAR
-				// message will be logged only
-				if (this.logger.isWarnEnabled()) {
-					this.logger.warn("Error message was not delivered.", errorDeliveryError);
-				}
-				if (errorDeliveryError instanceof Error) {
-					throw ((Error) errorDeliveryError);
-				}
+			catch (Throwable errorDeliveryError) {
+				handleDeliveryError(errorDeliveryError);
 			}
 		}
 		if (!sent && this.logger.isErrorEnabled()) {
-			Message<?> failedMessage = (t instanceof MessagingException) ?
-					((MessagingException) t).getFailedMessage() : null;
-			if (failedMessage != null) {
-				this.logger.error("failure occurred in messaging task with message: " + failedMessage, t);
-			}
-			else {
-				this.logger.error("failure occurred in messaging task", t);
-			}
+			Message<?> failedMessage =
+					ex instanceof MessagingException
+							? ((MessagingException) ex).getFailedMessage()
+							: null;
+
+			this.logger.error("failure occurred in messaging task" +
+					(failedMessage != null ? " with message: " + failedMessage : ""), ex);
+		}
+	}
+
+	private void handleDeliveryError(Throwable errorDeliveryError) {
+		// message will be logged only
+		if (this.logger.isWarnEnabled()) {
+			this.logger.warn("Error message was not delivered.", errorDeliveryError);
+		}
+		if (errorDeliveryError instanceof Error) {
+			throw ((Error) errorDeliveryError);
 		}
 	}
 
 	@Nullable
 	private MessageChannel resolveErrorChannel(Throwable t) {
+		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();
 		Throwable actualThrowable = t;
 		if (t instanceof MessagingExceptionWrapper) {
 			actualThrowable = t.getCause();
 		}
-		Message<?> failedMessage = (actualThrowable instanceof MessagingException) ?
-				((MessagingException) actualThrowable).getFailedMessage() : null;
-		if (getDefaultErrorChannel() == null && getChannelResolver() != null) {
-			setChannel(getChannelResolver().resolveDestination(// NOSONAR not null
-					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
+		Message<?> failedMessage =
+				actualThrowable instanceof MessagingException
+						? ((MessagingException) actualThrowable).getFailedMessage()
+						: null;
+		if (getDefaultErrorChannel() == null && channelResolver != null) {
+			setChannel(channelResolver.resolveDestination(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME));
 		}
 
-		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
-			return getDefaultErrorChannel();
+		if (failedMessage != null && failedMessage.getHeaders().getErrorChannel() != null) {
+			Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
+			if (errorChannelHeader instanceof MessageChannel) {
+				return (MessageChannel) errorChannelHeader;
+			}
+			Assert.isInstanceOf(String.class, errorChannelHeader, () ->
+					"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
+							errorChannelHeader.getClass() + "]");
+			if (channelResolver != null && StringUtils.hasText((String) errorChannelHeader)) {
+				return channelResolver.resolveDestination((String) errorChannelHeader);
+			}
 		}
-		Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
-		if (errorChannelHeader instanceof MessageChannel) {
-			return (MessageChannel) errorChannelHeader;
-		}
-		Assert.isInstanceOf(String.class, errorChannelHeader, () ->
-				"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
-						errorChannelHeader.getClass() + "]"); // NOSONAR never null here
-		if (getChannelResolver() != null) {
-			return getChannelResolver().resolveDestination((String) errorChannelHeader); // NOSONAR not null
-		}
-		else {
-			return null;
-		}
+
+		return getDefaultErrorChannel();
 	}
 
 }

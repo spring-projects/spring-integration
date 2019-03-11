@@ -16,9 +16,10 @@
 
 package org.springframework.integration.gateway;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -28,6 +29,8 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.util.JavaUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -48,6 +51,7 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 	public AnnotationGatewayProxyFactoryBean(Class<?> serviceInterface) {
 		super(serviceInterface);
+
 		AnnotationAttributes annotationAttributes =
 				AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
 						MessagingGateway.class.getName(), false, true);
@@ -68,14 +72,37 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 	protected void onInit() {
 		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
 
-		String defaultPayloadExpression =
-				beanFactory.resolveEmbeddedValue(
-						this.gatewayAttributes.getString("defaultPayloadExpression"));
+		populateGatewayMethodMetadata();
+
+		JavaUtils.INSTANCE
+				.acceptIfHasText(resolveAttribute("defaultRequestChannel"), this::setDefaultRequestChannelName)
+				.acceptIfHasText(resolveAttribute("defaultReplyChannel"), this::setDefaultReplyChannelName)
+				.acceptIfHasText(resolveAttribute("errorChannel"), this::setErrorChannelName)
+				.acceptIfHasText(resolveAttribute("defaultRequestTimeout"),
+						value -> setDefaultRequestTimeout(Long.parseLong(value)))
+				.acceptIfHasText(resolveAttribute("defaultReplyTimeout"),
+						value -> setDefaultReplyTimeout(Long.parseLong(value)));
+
+		String asyncExecutor = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("asyncExecutor"));
+		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
+			setAsyncExecutor(null);
+		}
+		else if (StringUtils.hasText(asyncExecutor)) {
+			setAsyncExecutor(beanFactory.getBean(asyncExecutor, Executor.class));
+		}
+
+		super.onInit();
+	}
+
+	private void populateGatewayMethodMetadata() {
+		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
+
+		String defaultPayloadExpression = resolveAttribute("defaultPayloadExpression");
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object>[] defaultHeaders = (Map<String, Object>[]) this.gatewayAttributes.get("defaultHeaders");
 
-		String mapper = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("mapper"));
+		String mapper = resolveAttribute("mapper");
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
@@ -86,31 +113,9 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		Assert.state(!hasMapper || !hasDefaultHeaders,
 				"'defaultHeaders' are not allowed when a 'mapper' is provided");
 
-
-		String defaultRequestChannel =
-				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultRequestChannel"));
-		if (StringUtils.hasText(defaultRequestChannel)) {
-			setDefaultRequestChannelName(defaultRequestChannel);
-		}
-
-		String defaultReplyChannel =
-				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultReplyChannel"));
-		if (StringUtils.hasText(defaultReplyChannel)) {
-			setDefaultReplyChannelName(defaultReplyChannel);
-		}
-
-		String errorChannel = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("errorChannel"));
-		if (StringUtils.hasText(errorChannel)) {
-			setErrorChannelName(errorChannel);
-		}
-
-		String asyncExecutor = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("asyncExecutor"));
-		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
-			setAsyncExecutor(null);
-		}
-		else if (StringUtils.hasText(asyncExecutor)) {
-			setAsyncExecutor(beanFactory.getBean(asyncExecutor, Executor.class));
-		}
+		JavaUtils.INSTANCE
+				.acceptIfHasText(mapper,
+						value -> setMapper(beanFactory.getBean(value, MethodArgsMessageMapper.class)));
 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata();
@@ -119,46 +124,34 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 				gatewayMethodMetadata.setPayloadExpression(defaultPayloadExpression);
 			}
 
-			Map<String, Expression> headerExpressions = new HashMap<>();
-			for (Map<String, Object> header : defaultHeaders) {
-				String headerValue = beanFactory.resolveEmbeddedValue((String) header.get("value"));
-				boolean hasValue = StringUtils.hasText(headerValue);
+			Map<String, Expression> headerExpressions = Arrays.stream(defaultHeaders)
+					.collect(Collectors.toMap(
+							header -> beanFactory.resolveEmbeddedValue((String) header.get("name")),
+							header -> {
+								String headerValue = beanFactory.resolveEmbeddedValue((String) header.get("value"));
+								boolean hasValue = StringUtils.hasText(headerValue);
 
-				String headerExpression = beanFactory.resolveEmbeddedValue((String) header.get("expression"));
+								String headerExpression =
+										beanFactory.resolveEmbeddedValue((String) header.get("expression"));
 
-				Assert.state(!(hasValue == StringUtils.hasText(headerExpression)),
-						"exactly one of 'value' or 'expression' is required on a gateway's header.");
+								Assert.state(!(hasValue == StringUtils.hasText(headerExpression)),
+										"exactly one of 'value' or 'expression' is required on a gateway's header.");
 
-				Expression expression = hasValue ?
-						new LiteralExpression(headerValue) :
-						EXPRESSION_PARSER.parseExpression(headerExpression);
-
-				String headerName = beanFactory.resolveEmbeddedValue((String) header.get("name"));
-				headerExpressions.put(headerName, expression);
-			}
+								return hasValue ?
+										new LiteralExpression(headerValue) :
+										EXPRESSION_PARSER.parseExpression(headerExpression);
+							}));
 
 			gatewayMethodMetadata.setHeaderExpressions(headerExpressions);
 
 			setGlobalMethodMetadata(gatewayMethodMetadata);
 		}
+	}
 
-		if (StringUtils.hasText(mapper)) {
-			setMapper(beanFactory.getBean(mapper, MethodArgsMessageMapper.class));
-		}
-
-		String defaultRequestTimeout =
-				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultRequestTimeout"));
-		if (StringUtils.hasText(defaultRequestTimeout)) {
-			setDefaultRequestTimeout(Long.parseLong(defaultRequestTimeout));
-		}
-
-		String defaultReplyTimeout =
-				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultReplyTimeout"));
-		if (StringUtils.hasText(defaultReplyTimeout)) {
-			setDefaultReplyTimeout(Long.parseLong(defaultReplyTimeout));
-		}
-
-		super.onInit();
+	@Nullable
+	private String resolveAttribute(String attributeName) {
+		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) getBeanFactory();
+		return beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString(attributeName));
 	}
 
 }
