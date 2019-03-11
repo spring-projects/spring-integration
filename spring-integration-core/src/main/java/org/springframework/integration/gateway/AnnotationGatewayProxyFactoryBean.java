@@ -100,7 +100,9 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		}
 
 		String errorChannel = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("errorChannel"));
-		setErrorChannelName(errorChannel);
+		if (StringUtils.hasText(errorChannel)) {
+			setErrorChannelName(errorChannel);
+		}
 
 		String asyncExecutor = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("asyncExecutor"));
 		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
@@ -146,11 +148,15 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 		String defaultRequestTimeout =
 				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultRequestTimeout"));
-		setDefaultRequestTimeout(Long.parseLong(defaultRequestTimeout));
+		if (StringUtils.hasText(defaultRequestTimeout)) {
+			setDefaultRequestTimeout(Long.parseLong(defaultRequestTimeout));
+		}
 
 		String defaultReplyTimeout =
 				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultReplyTimeout"));
-		setDefaultReplyTimeout(Long.parseLong(defaultReplyTimeout));
+		if (StringUtils.hasText(defaultReplyTimeout)) {
+			setDefaultReplyTimeout(Long.parseLong(defaultReplyTimeout));
+		}
 
 		super.onInit();
 	}
