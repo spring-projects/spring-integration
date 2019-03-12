@@ -414,7 +414,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void prepareEvaluationContext() {
-		StandardEvaluationContext context = getEvaluationContext(false);
+		StandardEvaluationContext context = getEvaluationContext();
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
 		if (this.method != null) {
 			context.registerMethodFilter(targetType, new FixedMethodFilter(this.method));
@@ -477,7 +477,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		}
 
 		if (result != null && this.expectedType != null) {
-			return getEvaluationContext(false)
+			return getEvaluationContext()
 					.getTypeConverter()
 					.convertValue(result, TypeDescriptor.forObject(result), this.expectedType);
 		}
@@ -487,15 +487,15 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private synchronized void initialize() {
-		BeanFactory beanFactory = getBeanFactory();
 		if (isProvidedMessageHandlerFactoryBean()) {
 			LOGGER.info("Overriding default instance of MessageHandlerMethodFactory with provided one.");
 			this.messageHandlerMethodFactory =
-					beanFactory.getBean(
-							this.canProcessMessageList
-									? IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME
-									: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
-							MessageHandlerMethodFactory.class);
+					getBeanFactory()
+							.getBean(
+									this.canProcessMessageList
+											? IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME
+											: IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
+									MessageHandlerMethodFactory.class);
 		}
 		else {
 			configureLocalMessageHandlerFactory();
@@ -538,16 +538,36 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private void configureLocalMessageHandlerFactory() {
+		BeanFactory beanFactory = getBeanFactory();
+
 		MessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
-		customArgumentResolvers.add(new PayloadExpressionArgumentResolver());
+		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
+		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
+
+		customArgumentResolvers.add(payloadExpressionArgumentResolver);
 		customArgumentResolvers.add(new NullAwarePayloadArgumentResolver(messageConverter));
-		customArgumentResolvers.add(new PayloadsArgumentResolver());
+		customArgumentResolvers.add(payloadsArgumentResolver);
+
+		CollectionArgumentResolver collectionArgumentResolver = null;
+
 		if (this.canProcessMessageList) {
-			customArgumentResolvers.add(new CollectionArgumentResolver(true));
+			collectionArgumentResolver = new CollectionArgumentResolver(true);
+			customArgumentResolvers.add(collectionArgumentResolver);
 		}
-		customArgumentResolvers.add(new MapArgumentResolver());
+
+		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
+		customArgumentResolvers.add(mapArgumentResolver);
+
+		if (beanFactory != null) {
+			payloadExpressionArgumentResolver.setBeanFactory(beanFactory);
+			payloadsArgumentResolver.setBeanFactory(beanFactory);
+			mapArgumentResolver.setBeanFactory(beanFactory);
+			if (collectionArgumentResolver != null) {
+				collectionArgumentResolver.setBeanFactory(beanFactory);
+			}
+		}
 
 		DefaultMessageHandlerMethodFactory localHandlerMethodFactory =
 				(DefaultMessageHandlerMethodFactory) this.messageHandlerMethodFactory;
