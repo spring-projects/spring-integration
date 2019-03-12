@@ -96,8 +96,11 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 				getMessagingTemplate().send(errorChannel, getErrorMessageStrategy().buildErrorMessage(ex, null));
 				sent = true;
 			}
-			catch (Throwable errorDeliveryError) {
-				handleDeliveryError(errorDeliveryError);
+			catch (Exception errorDeliveryError) {
+				// message will be logged only
+				if (this.logger.isWarnEnabled()) {
+					this.logger.warn("Error message was not delivered.", errorDeliveryError);
+				}
 			}
 		}
 		if (!sent && this.logger.isErrorEnabled()) {
@@ -108,16 +111,6 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 			this.logger.error("failure occurred in messaging task" +
 					(failedMessage != null ? " with message: " + failedMessage : ""), ex);
-		}
-	}
-
-	private void handleDeliveryError(Throwable errorDeliveryError) {
-		// message will be logged only
-		if (this.logger.isWarnEnabled()) {
-			this.logger.warn("Error message was not delivered.", errorDeliveryError);
-		}
-		if (errorDeliveryError instanceof Error) {
-			throw ((Error) errorDeliveryError);
 		}
 	}
 
