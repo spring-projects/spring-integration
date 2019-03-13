@@ -44,10 +44,11 @@ import org.springframework.web.HttpRequestHandler;
  * (e.g. 200 OK).
  * <p>
  * The default supported request methods are GET and POST, but the list of values can be configured with the
- * {@link RequestMapping#methods} property. The payload generated from a GET request (or HEAD or OPTIONS if supported) will
- * be a {@link org.springframework.util.MultiValueMap} containing the parameter values. For a request containing a body
- * (e.g. a POST), the type
- * of the payload is determined by the {@link #setRequestPayloadTypeClass(Class)} request payload type}.
+ * {@link RequestMapping#getMethods()} property.
+ * The payload generated from a GET request (or HEAD or OPTIONS if supported) will
+ * be a {@link org.springframework.util.MultiValueMap} containing the parameter values.
+ * For a request containing a body (e.g. a POST), the type of the payload is determined
+ * by the {@link #setRequestPayloadTypeClass(Class)} request payload type}.
  * <p>
  * If the HTTP request is a multipart and a "multipartResolver" bean has been defined in the context, then it will be
  * converted by the

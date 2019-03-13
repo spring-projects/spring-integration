@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,23 +66,23 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	protected final AtomicInteger activeCount = new AtomicInteger();
 
-	private volatile ResolvableType requestPayloadType = null;
+	private ResolvableType requestPayloadType = null;
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
+	private HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
-	private volatile boolean extractReplyPayload = true;
+	private boolean extractReplyPayload = true;
 
-	private volatile Expression statusCodeExpression;
+	private Expression statusCodeExpression;
 
-	private volatile EvaluationContext evaluationContext;
+	private EvaluationContext evaluationContext;
 
-	private volatile RequestMapping requestMapping = new RequestMapping();
+	private RequestMapping requestMapping = new RequestMapping();
 
-	private volatile Expression payloadExpression;
+	private Expression payloadExpression;
 
-	private volatile Map<String, Expression> headerExpressions;
+	private Map<String, Expression> headerExpressions;
 
-	private volatile CrossOrigin crossOrigin;
+	private CrossOrigin crossOrigin;
 
 	public BaseHttpInboundEndpoint(boolean expectReply) {
 		super(expectReply);
@@ -279,8 +279,13 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	protected HttpStatus evaluateHttpStatus(HttpEntity<?> httpEntity) {
-		Object value = this.statusCodeExpression.getValue(this.evaluationContext, httpEntity);
-		return buildHttpStatus(value);
+		if (this.statusCodeExpression != null) {
+			Object value = this.statusCodeExpression.getValue(this.evaluationContext, httpEntity);
+			return buildHttpStatus(value);
+		}
+		else {
+			return HttpStatus.INTERNAL_SERVER_ERROR;
+		}
 	}
 
 	protected HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
@@ -328,8 +333,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 * @return true or false if HTTP request can contain the body
 	 */
 	protected boolean isReadable(HttpRequest request) {
-		HttpMethod method = request.getMethod();
-		return method == null ? false : !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, method));
+		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
 	}
 
 }

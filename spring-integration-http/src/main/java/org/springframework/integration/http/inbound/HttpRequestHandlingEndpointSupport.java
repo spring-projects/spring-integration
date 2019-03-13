@@ -17,6 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -93,7 +95,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * In a request-reply scenario, the reply Message's payload will be extracted prior
  * to generating a response by default.
  * To have the entire serialized Message available for the response, switch the
- * {@link #extractReplyPayload} value to {@code false}.
+ * {@code extractReplyPayload} value to {@code false}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -146,27 +148,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		stringHttpMessageConverter.setWriteAcceptCharset(false);
 		this.defaultMessageConverters.add(stringHttpMessageConverter);
 		this.defaultMessageConverters.add(new ResourceHttpMessageConverter());
-		SourceHttpMessageConverter<Source> sourceConverter = new SourceHttpMessageConverter<Source>();
+		SourceHttpMessageConverter<Source> sourceConverter = new SourceHttpMessageConverter<>();
 		this.defaultMessageConverters.add(sourceConverter);
 		if (jaxb2Present) {
 			this.defaultMessageConverters.add(new Jaxb2RootElementHttpMessageConverter());
-			if (logger.isDebugEnabled()) {
-				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'defaultMessageConverters'.");
-			}
+			logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
 		if (JacksonPresent.isJackson2Present()) {
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
-			if (logger.isDebugEnabled()) {
-				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
-			}
+			logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
 		if (romeToolsPresent) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
-			if (logger.isDebugEnabled()) {
-				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'defaultMessageConverters'.");
-				logger.debug("'RssChannelHttpMessageConverter' was added to the 'defaultMessageConverters'.");
-			}
+			logger.debug("'AtomFeedHttpMessageConverter' was added to the 'defaultMessageConverters'.");
+			logger.debug("'RssChannelHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
 	}
 
@@ -176,8 +172,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * @param messageConverters The message converters.
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
+		Assert.notNull(messageConverters, "'messageConverters' must not be null");
 		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
-		List<HttpMessageConverter<?>> localConverters = new ArrayList<HttpMessageConverter<?>>(messageConverters);
+		List<HttpMessageConverter<?>> localConverters = new ArrayList<>(messageConverters);
 		if (this.mergeWithDefaultConverters) {
 			localConverters.addAll(this.defaultMessageConverters);
 			this.convertersMerged = true;
@@ -266,14 +263,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 		this.activeCount.incrementAndGet();
 		try {
-			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
+			StandardEvaluationContext evaluationContext = createEvaluationContext();
 			evaluationContext.setRootObject(httpEntity);
 
 			evaluationContext.setVariable("requestAttributes", RequestContextHolder.currentRequestAttributes());
 
-			MultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
+			MultiValueMap<String, String> requestParams = convertParameterMap(servletRequest.getParameterMap());
 			evaluationContext.setVariable("requestParams", requestParams);
-
 			evaluationContext.setVariable("requestHeaders", new ServletServerHttpRequest(servletRequest).getHeaders());
 
 			Cookie[] requestCookies = servletRequest.getCookies();
@@ -335,12 +331,16 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			AbstractIntegrationMessageBuilder<?> messageBuilder = null;
 
 			if (payload instanceof Message<?>) {
-				messageBuilder = this.getMessageBuilderFactory().fromMessage((Message<?>) payload)
-						.copyHeadersIfAbsent(headers);
+				messageBuilder =
+						getMessageBuilderFactory()
+								.fromMessage((Message<?>) payload)
+								.copyHeadersIfAbsent(headers);
 			}
 			else {
 				Assert.state(payload != null, "payload cannot be null");
-				messageBuilder = this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers);
+				messageBuilder = getMessageBuilderFactory()
+						.withPayload(payload)
+						.copyHeaders(headers);
 			}
 
 			HttpMethod method = httpEntity.getMethod();
@@ -359,30 +359,24 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			Message<?> reply = null;
 			if (this.expectReply) {
 				try {
-					reply = this.sendAndReceiveMessage(message);
+					reply = sendAndReceiveMessage(message);
 				}
 				catch (MessageTimeoutException e) {
-					if (getStatusCodeExpression() != null) {
-						reply = getMessageBuilderFactory().withPayload(e.getMessage())
-								.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-										evaluateHttpStatus(httpEntity))
-								.build();
-					}
-					else {
-						reply = getMessageBuilderFactory().withPayload(e.getMessage())
-								.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-										HttpStatus.INTERNAL_SERVER_ERROR)
-								.build();
-					}
+					reply =
+							getMessageBuilderFactory()
+									.withPayload(e.getMessage())
+									.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+											evaluateHttpStatus(httpEntity))
+									.build();
 				}
 			}
 			else {
-				this.send(message);
+				send(message);
 			}
 			return reply;
 		}
 		finally {
-			this.postProcessRequest(servletRequest);
+			postProcessRequest(servletRequest);
 			this.activeCount.decrementAndGet();
 		}
 	}
@@ -391,7 +385,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		if (logger.isDebugEnabled()) {
 			logger.debug("Endpoint is stopped; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
 		}
-		return this.getMessageBuilderFactory().withPayload("Endpoint is stopped")
+		return getMessageBuilderFactory()
+				.withPayload("Endpoint is stopped")
 				.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
 				.build();
 	}
@@ -401,7 +396,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * sets up the {@link ServletServerHttpResponse}.
 	 * @param response     The ServletServerHttpResponse.
 	 * @param replyMessage The reply message.
-	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the message.
+	 * @return The message payload (if {@code extractReplyPayload}) otherwise the message.
 	 */
 	protected final Object setupResponseAndConvertReply(ServletServerHttpResponse response, Message<?> replyMessage) {
 		getHeaderMapper().fromHeaders(replyMessage.getHeaders(), response.getHeaders());
@@ -461,7 +456,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
 	 */
 	private MultiValueMap<String, String> convertParameterMap(Map<String, String[]> parameterMap) {
-		MultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
+		MultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<>(parameterMap.size());
 		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
 			String[] values = entry.getValue();
 			for (String value : values) {
@@ -487,29 +482,37 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
 		}
 		ResolvableType requestPayloadType = getRequestPayloadType();
-		Class<?> expectedType;
 		if (requestPayloadType == null) {
-			expectedType = "text".equals(contentType.getType()) ? String.class : byte[].class;
-		}
-		else {
-			expectedType = requestPayloadType.resolve();
+			requestPayloadType =
+					ResolvableType.forClass(
+							"text".equals(contentType.getType())
+									? String.class
+									: byte[].class);
 		}
 
-		/*
-		 *  TODO: resolve() can return null, which is not valid for canRead().
-		 *  Perhaps we should coerce to String/byte[] instead of attempting
-		 *  to convert. However this might be a breaking change - 5.2?
-		 *  Hence NOSONAR below.
-		 */
+		Type targetType = requestPayloadType.getType();
+		Class<?> targetClass = requestPayloadType.toClass();
+
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
-			if (converter.canRead(expectedType, contentType)) {
-				return converter.read((Class) expectedType, request);
+			GenericHttpMessageConverter<?> genericConverter =
+					converter instanceof GenericHttpMessageConverter
+							? (GenericHttpMessageConverter<?>) converter
+							: null;
+			if (genericConverter != null
+					? genericConverter.canRead(targetType, null, contentType) :
+					(converter.canRead(targetClass, contentType))) {
+
+				if (genericConverter != null) {
+					return genericConverter.read(targetType, null, request);
+				}
+				else {
+					return converter.read((Class) targetClass, request);
+				}
 			}
 		}
-		throw new MessagingException(// NOSONAR might be null; see comment above.
+		throw new MessagingException(
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
-						+ expectedType != null ? expectedType.getName() : "null"
-						+ "] and content type [" + contentType + "]");
+						+ requestPayloadType + "] and content type [" + contentType + "]");
 	}
 
 }
