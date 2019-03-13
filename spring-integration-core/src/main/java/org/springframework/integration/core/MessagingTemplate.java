@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
@@ -57,12 +56,12 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	}
 
 	/**
-	 * Overridden to set the destination resolver to a {@link BeanFactoryChannelResolver}.
+	 * Overridden to set the destination resolver to a {@code integrationChannelResolver} bean.
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory; //NOSONAR - non-sync is ok here
-		super.setDestinationResolver(new BeanFactoryChannelResolver(beanFactory));
+		setDestinationResolver(IntegrationContextUtils.getChannelResolver(beanFactory));
 	}
 
 	@Override

@@ -37,7 +37,6 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
@@ -228,7 +227,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
 		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
+			this.channelResolver = IntegrationContextUtils.getChannelResolver(this.beanFactory);
 		}
 		return this.channelResolver;
 	}

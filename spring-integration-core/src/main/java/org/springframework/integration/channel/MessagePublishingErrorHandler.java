@@ -64,7 +64,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 	}
 
 
-	public void setDefaultErrorChannel(MessageChannel defaultErrorChannel) {
+	public void setDefaultErrorChannel(@Nullable MessageChannel defaultErrorChannel) {
 		setChannel(defaultErrorChannel);
 	}
 

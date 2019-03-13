@@ -23,8 +23,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -179,14 +179,12 @@ public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterc
 	}
 
 	private MessageChannel getChannel() {
-		if (this.channelName != null) {
-			synchronized (this) {
-				if (this.channelName != null) {
-					this.channel = new BeanFactoryChannelResolver(this.beanFactory)
-							.resolveDestination(this.channelName);
-					this.channelName = null;
-				}
-			}
+		String channelNameToUse = this.channelName;
+		if (channelNameToUse != null) {
+			this.channel =
+					IntegrationContextUtils.getChannelResolver(this.beanFactory)
+							.resolveDestination(channelNameToUse);
+			this.channelName = null;
 		}
 		return this.channel;
 	}

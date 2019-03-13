@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -59,29 +60,31 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile PublisherMetadataSource metadataSource;
-
-	private volatile DestinationResolver<MessageChannel> channelResolver;
-
-	private volatile BeanFactory beanFactory;
-
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private final PublisherMetadataSource metadataSource;
 
-	private volatile boolean messageBuilderFactorySet;
+	private DestinationResolver<MessageChannel> channelResolver;
 
-	private volatile String defaultChannelName;
+	private BeanFactory beanFactory;
+
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private boolean messageBuilderFactorySet;
+
+	private String defaultChannelName;
 
 	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
 		Assert.notNull(metadataSource, "metadataSource must not be null");
 		this.metadataSource = metadataSource;
 	}
 
-
+	/**
+	 * @param metadataSource the {@link PublisherMetadataSource} to use.
+	 * @deprecated since 5.2 in favor constructor argument.
+	 */
+	@Deprecated
 	public void setPublisherMetadataSource(PublisherMetadataSource metadataSource) {
-		Assert.notNull(metadataSource, "metadataSource must not be null");
-		this.metadataSource = metadataSource;
 	}
 
 	/**
@@ -100,6 +103,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
+		if (this.channelResolver == null) {
+			this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
+		}
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -191,7 +197,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	}
 
 	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
-
 		Map<String, Expression> headerExpressionMap = this.metadataSource.getExpressionsForHeaders(method);
 		if (headerExpressionMap != null) {
 			return ExpressionEvalMap.from(headerExpressionMap)

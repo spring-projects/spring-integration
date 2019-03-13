@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -152,8 +151,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 					+ this.getComponentType());
 		}
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && this.getBeanFactory() != null) {
-			MessagePublishingErrorHandler errorHandler =
-					new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
+			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+			errorHandler.setBeanFactory(getBeanFactory());
 			errorHandler.setDefaultErrorChannel(getErrorChannel());
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}

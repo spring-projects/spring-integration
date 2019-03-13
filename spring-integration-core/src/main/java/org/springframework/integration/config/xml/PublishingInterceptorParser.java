@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,13 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aop.MessagePublishingInterceptor;
 import org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -53,36 +52,31 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				MessagePublishingInterceptor.class);
 		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class);
-		Map<String, Map<?, ?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
+		Map<String, Map<?, ?>> mappings = this
+				.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
 		if (mappings.get("headers") != null) {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
 
-		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				BeanFactoryChannelResolver.class);
-
 		if (mappings.get("channels") != null) {
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
 		}
-		String chResolverName =
-				BeanDefinitionReaderUtils.registerWithGeneratedName(chResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		String defaultChannel = StringUtils.hasText(element.getAttribute("default-channel")) ?
 				element.getAttribute("default-channel") : IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
 		rootBuilder.addConstructorArgValue(spelSourceBuilder.getBeanDefinition());
-		rootBuilder.addPropertyReference("channelResolver", chResolverName);
 		rootBuilder.addPropertyValue("defaultChannelName", defaultChannel);
 		return rootBuilder.getBeanDefinition();
 	}
 
 	private Map<String, Map<?, ?>> getMappings(Element element, String defaultChannel, ParserContext parserContext) {
 		List<Element> mappings = DomUtils.getChildElementsByTagName(element, "method");
-		Map<String, Map<?, ?>> interceptorMappings = new HashMap<String, Map<?, ?>>();
-		Map<String, String> payloadExpressionMap = new HashMap<String, String>();
-		Map<String, Map<String, String>> headersExpressionMap = new HashMap<String, Map<String, String>>();
-		Map<String, String> channelMap = new HashMap<String, String>();
-		ManagedMap<String, Object> resolvableChannelMap = new ManagedMap<String, Object>();
-		if (mappings != null && mappings.size() > 0) {
+		Map<String, Map<?, ?>> interceptorMappings = new HashMap<>();
+		Map<String, String> payloadExpressionMap = new HashMap<>();
+		Map<String, Map<String, String>> headersExpressionMap = new HashMap<>();
+		Map<String, String> channelMap = new HashMap<>();
+		ManagedMap<String, Object> resolvableChannelMap = new ManagedMap<>();
+		if (!CollectionUtils.isEmpty(mappings)) {
 			for (Element mapping : mappings) {
 				// set payloadMap
 				String methodPattern = StringUtils.hasText(mapping.getAttribute("pattern")) ?
@@ -93,12 +87,13 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 
 				// set headersMap
 				List<Element> headerElements = DomUtils.getChildElementsByTagName(mapping, "header");
-				Map<String, String> headerExpressions = new HashMap<String, String>();
+				Map<String, String> headerExpressions = new HashMap<>();
 				for (Element headerElement : headerElements) {
 					String name = headerElement.getAttribute("name");
 					if (!StringUtils.hasText(name)) {
-						parserContext.getReaderContext().error("the 'name' attribute is required on the <header> element",
-								parserContext.extractSource(headerElement));
+						parserContext.getReaderContext()
+								.error("the 'name' attribute is required on the <header> element",
+										parserContext.extractSource(headerElement));
 						continue;
 					}
 					String value = headerElement.getAttribute("value");
@@ -106,8 +101,9 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 					boolean hasValue = StringUtils.hasText(value);
 					boolean hasExpression = StringUtils.hasText(expression);
 					if (hasValue == hasExpression) {
-						parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on the <header> element",
-								parserContext.extractSource(headerElement));
+						parserContext.getReaderContext()
+								.error("exactly one of 'value' or 'expression' is required on the <header> element",
+										parserContext.extractSource(headerElement));
 						continue;
 					}
 					if (hasValue) {

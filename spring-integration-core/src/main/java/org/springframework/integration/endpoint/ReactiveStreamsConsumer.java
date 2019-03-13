@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,10 @@ import org.reactivestreams.Subscription;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -124,8 +123,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	protected void onInit() {
 		super.onInit();
 		if (this.errorHandler == null) {
-			Assert.notNull(getBeanFactory(), "BeanFactory is required");
-			this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
+			this.errorHandler = IntegrationContextUtils.getErrorHandler(getBeanFactory());
 		}
 	}
 
