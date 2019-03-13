@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 
@@ -122,8 +123,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			registerGlobalChannelInterceptorProcessor();
 			registerDefaultDatatypeChannelMessageConverter();
 			registerArgumentResolverMessageConverter();
-			registerArgumentResolvers();
-			registerListCapableArgumentResolvers();
+			registerMessageHandlerMethodFactory();
+			registerListMessageHandlerMethodFactory();
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. " +
@@ -479,32 +480,32 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		}
 	}
 
-	/**
-	 * Register the default
-	 * {@link org.springframework.integration.handler.support.HandlerMethodArgumentResolversHolder} for handler
-	 * method invocation.
-	 */
-	private void registerArgumentResolvers() {
-		if (!this.beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVERS_BEAN_NAME)) {
-			this.registry.registerBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVERS_BEAN_NAME,
-					internalArgumentResolversBuilder(false));
+	private void registerMessageHandlerMethodFactory() {
+		if (!this.beanFactory.containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
+			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
+					createMessageHandlerMethodFactoryBeanDefinition(false);
+			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
+					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
 	}
 
-	/**
-	 * Register the default
-	 * {@link org.springframework.integration.handler.support.HandlerMethodArgumentResolversHolder} for handler
-	 * method invocation for lists.
-	 */
-	private void registerListCapableArgumentResolvers() {
-		if (!this.beanFactory.containsBean(IntegrationContextUtils.LIST_ARGUMENT_RESOLVERS_BEAN_NAME)) {
-			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_ARGUMENT_RESOLVERS_BEAN_NAME,
-					internalArgumentResolversBuilder(true));
+	private void registerListMessageHandlerMethodFactory() {
+		if (!this.beanFactory.containsBean(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
+			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
+					createMessageHandlerMethodFactoryBeanDefinition(true);
+			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME,
+					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	private BeanDefinition internalArgumentResolversBuilder(boolean listCapable) {
+	private BeanDefinitionBuilder createMessageHandlerMethodFactoryBeanDefinition(boolean listCapable) {
+		return BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageHandlerMethodFactory.class)
+				.addPropertyReference("messageConverter",
+						IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
+				.addPropertyValue("customArgumentResolvers", buildArgumentResolvers(listCapable));
+	}
+
+	private ManagedList<BeanDefinition> buildArgumentResolvers(boolean listCapable) {
 		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
 		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
 		BeanDefinitionBuilder builder =
@@ -513,7 +514,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		// TODO Validator ?
 		resolvers.add(builder.getBeanDefinition());
 		resolvers.add(new RootBeanDefinition(PayloadsArgumentResolver.class));
-		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
 
 		if (listCapable) {
 			resolvers.add(
@@ -522,10 +522,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 							.getBeanDefinition());
 		}
 
-		return BeanDefinitionBuilder.genericBeanDefinition(
-				org.springframework.integration.handler.support.HandlerMethodArgumentResolversHolder.class)
-				.addConstructorArgValue(resolvers)
-				.getBeanDefinition();
+		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
+		return resolvers;
 	}
 
 }

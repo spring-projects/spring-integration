@@ -61,7 +61,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 		}
 		if (methodFilter != null) {
 			MethodResolver methodResolver = new ExpressionCommandMethodResolver(methodFilter);
-			getEvaluationContext(false).setMethodResolvers(Collections.singletonList(methodResolver));
+			getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
 		}
 	}
 
