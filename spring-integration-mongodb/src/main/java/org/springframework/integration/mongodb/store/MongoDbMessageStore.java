@@ -71,6 +71,7 @@ import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
@@ -103,21 +104,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public static final String SEQUENCE_NAME = "messagesSequence";
 
 	private static final String DEFAULT_COLLECTION_NAME = "messages";
-
-	/**
-	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
-	 * optimization for the put method.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String SAVED_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".SAVED";
-
-	/**
-	 * The name of the message header that stores a timestamp for the time the message was inserted.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String CREATED_DATE_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private static final String GROUP_ID_KEY = "_groupId";
 
@@ -160,7 +146,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param collectionName The collection name.
 	 */
-	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
+	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, @Nullable String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
@@ -198,15 +184,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		IndexOperations indexOperations = this.template.indexOps(this.collectionName);
 
-		indexOperations.ensureIndex(new Index(GROUP_ID_KEY, Sort.Direction.ASC)
-				.on(GROUP_UPDATE_TIMESTAMP_KEY, Sort.Direction.DESC)
-				.on(SEQUENCE, Sort.Direction.DESC));
+		indexOperations.ensureIndex(
+				new Index(GROUP_ID_KEY, Sort.Direction.ASC)
+						.on(GROUP_UPDATE_TIMESTAMP_KEY, Sort.Direction.DESC)
+						.on(SEQUENCE, Sort.Direction.DESC));
 	}
 
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		this.addMessageDocument(new MessageWrapper(message));
+		addMessageDocument(new MessageWrapper(message));
 		return message;
 	}
 
@@ -454,7 +441,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private static Query whereGroupIdOrder(Object groupId) {
-		return whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
+		return whereGroupIdIs(groupId).with(Sort.by(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
@@ -462,7 +449,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private void updateGroup(Object groupId, Update update) {
-		Query query = whereGroupIdIs(groupId).with(new Sort(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
+		Query query = whereGroupIdIs(groupId).with(Sort.by(Sort.Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		this.template.updateFirst(query, update, this.collectionName);
 	}
 
