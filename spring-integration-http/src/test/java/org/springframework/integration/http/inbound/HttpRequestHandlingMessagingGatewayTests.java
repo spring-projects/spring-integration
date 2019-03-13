@@ -34,6 +34,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -59,6 +61,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.SerializationUtils;
 import org.springframework.web.multipart.MultipartResolver;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
@@ -270,8 +274,51 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		assertThat(message.getPayload().getClass()).isEqualTo(TestBean.class);
 		TestBean result = (TestBean) message.getPayload();
 		assertThat(result.name).isEqualTo("T. Bean");
-		assertThat(result.age).isEqualTo(84);
+		assertThat(result.age).isEqualTo(42);
 	}
+
+	@Test
+	public void testJsonRequestBody() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		ParameterizedTypeReference<List<TestBean>> parameterizedTypeReference =
+				new ParameterizedTypeReference<List<TestBean>>() {
+
+				};
+		gateway.setRequestPayloadType(ResolvableType.forType(parameterizedTypeReference));
+		gateway.setRequestChannel(channel);
+		gateway.afterPropertiesSet();
+		gateway.start();
+
+		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
+
+		request.setContentType("application/json");
+		TestBean testBean = new TestBean();
+		testBean.setName("T. Bean");
+		testBean.setAge(42);
+		request.setContent(new ObjectMapper().writeValueAsBytes(new TestBean[] { testBean }));
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		byte[] bytes = response.getContentAsByteArray();
+		assertThat(bytes).isNotNull();
+		Message<?> message = channel.receive(0);
+
+		assertThat(message).isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSize(1)
+				.element(0)
+				.isInstanceOf(TestBean.class)
+				.satisfies((actual) -> {
+					TestBean bean = (TestBean) actual;
+					assertThat(bean).extracting(TestBean::getName).isEqualTo("T. Bean");
+					assertThat(bean).extracting(TestBean::getAge).isEqualTo(42);
+				});
+
+	}
+
 
 	@Test
 	public void INT2680DuplicateContentTypeHeader() throws Exception {
@@ -492,7 +539,15 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		}
 
 		public void setAge(int age) {
-			this.age = age * 2;
+			this.age = age;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getAge() {
+			return age;
 		}
 
 	}
