@@ -230,6 +230,7 @@ public abstract class IntegrationContextUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static DestinationResolver<MessageChannel> getChannelResolver(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		if (!beanFactory.containsBean(CHANNEL_RESOLVER_BEAN_NAME)) {
 			return new BeanFactoryChannelResolver(beanFactory);
 		}
@@ -247,6 +248,7 @@ public abstract class IntegrationContextUtils {
 	 * @since 5.2
 	 */
 	public static ErrorHandler getErrorHandler(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		if (!beanFactory.containsBean(MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
 			return new MessagePublishingErrorHandler(getChannelResolver(beanFactory));
 		}
