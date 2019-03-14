@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 import javax.management.DynamicMBean;
@@ -176,7 +177,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	/**
 	 * Static properties that will be added to all object names.
-	 *
 	 * @param objectNameStaticProperties the objectNameStaticProperties to set
 	 */
 	public void setObjectNameStaticProperties(Map<String, String> objectNameStaticProperties) {
@@ -186,7 +186,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	/**
 	 * The JMX domain to use for MBeans registered. Defaults to <code>spring.application</code> (which is useful in
 	 * SpringSource HQ).
-	 *
 	 * @param domain the domain name to set
 	 */
 	public void setDefaultDomain(String domain) {
@@ -446,7 +445,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	/**
 	 * Copy of private method in super class. Needed so we can avoid using the bean factory to extract the bean again,
 	 * and risk it being a proxy (which it almost certainly is by now).
-	 *
 	 * @param bean the bean instance to register
 	 * @param beanKey the bean name or human readable version if auto-generated
 	 * @return the JMX object name of the MBean that was registered
@@ -504,7 +502,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	/**
 	 * Shutdown active components.
-	 *
 	 * @param howLong The time to wait in total for all activities to complete
 	 * in milliseconds.
 	 */
@@ -557,8 +554,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	 */
 	@ManagedOperation
 	public void stopMessageSources() {
-		for (Entry<String, MessageSourceMetrics> entry : this.allSourcesByName.entrySet()) {
-			MessageSourceMetrics sourceMetrics = entry.getValue();
+		for (MessageSourceMetrics sourceMetrics : this.allSourcesByName.values()) {
 			if (sourceMetrics instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Stopping message source " + sourceMetrics);
@@ -592,8 +588,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@ManagedOperation
 	public void stopActiveChannels() {
 		// Stop any "active" channels (JMS etc).
-		for (Entry<String, MessageChannelMetrics> entry : this.allChannelsByName.entrySet()) {
-			MessageChannelMetrics metrics = entry.getValue();
+		for (MessageChannelMetrics metrics : this.allChannelsByName.values()) {
 			MessageChannel channel = (MessageChannel) metrics;
 			if (channel instanceof Lifecycle) {
 				if (logger.isInfoEnabled()) {
@@ -608,8 +603,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		logger.debug("Initiating stop OrderlyShutdownCapable components");
 		Map<String, OrderlyShutdownCapable> components = this.applicationContext
 				.getBeansOfType(OrderlyShutdownCapable.class);
-		for (Entry<String, OrderlyShutdownCapable> componentEntry : components.entrySet()) {
-			OrderlyShutdownCapable component = componentEntry.getValue();
+		for (OrderlyShutdownCapable component : components.values()) {
 			int n = component.beforeShutdown();
 			if (logger.isInfoEnabled()) {
 				logger.info("Initiated stop for component " + component + "; it reported " + n + " active messages");
@@ -622,8 +616,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		logger.debug("Finalizing stop OrderlyShutdownCapable components");
 		Map<String, OrderlyShutdownCapable> components = this.applicationContext
 				.getBeansOfType(OrderlyShutdownCapable.class);
-		for (Entry<String, OrderlyShutdownCapable> componentEntry : components.entrySet()) {
-			OrderlyShutdownCapable component = componentEntry.getValue();
+		for (OrderlyShutdownCapable component : components.values()) {
 			int n = component.afterShutdown();
 			if (logger.isInfoEnabled()) {
 				logger.info("Finalized stop for component " + component + "; it reported " + n + " active messages");
@@ -668,13 +661,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
 	public int getQueuedMessageCount() {
-		int count = 0;
-		for (MessageChannelMetrics monitor : this.channels) {
-			if (monitor instanceof QueueChannel) {
-				count += ((QueueChannel) monitor).getQueueSize();
-			}
-		}
-		return count;
+		return this.channels.stream()
+				.filter(QueueChannel.class::isInstance)
+				.map(QueueChannel.class::cast)
+				.mapToInt(QueueChannel::getQueueSize)
+				.sum();
 	}
 
 	@ManagedAttribute
@@ -779,7 +770,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	private void registerHandler(MessageHandlerMetrics handler) {
 		MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
 		String name = monitor.getManagedName();
-		if (matches(this.componentNamePatterns, name)) {
+		if (!this.objectNames.containsKey(handler) && matches(this.componentNamePatterns, name)) {
 			String beanKey = getHandlerBeanKey(monitor);
 			if (logger.isInfoEnabled()) {
 				logger.info("Registering MessageHandler " + name);
@@ -797,7 +788,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		MessageSourceMetrics monitor = enhanceSourceMonitor(source);
 		String name = monitor.getManagedName();
 		this.allSourcesByName.put(name, monitor);
-		if (matches(this.componentNamePatterns, name)) {
+		if (!this.objectNames.containsKey(source) && matches(this.componentNamePatterns, name)) {
 			String beanKey = getSourceBeanKey(monitor);
 			if (logger.isInfoEnabled()) {
 				logger.info("Registering MessageSource " + name);
@@ -917,17 +908,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (this.objectNameStaticProperties.isEmpty()) {
 			return "";
 		}
-		StringBuilder builder = new StringBuilder();
 
-		for (Entry<Object, Object> entry : this.objectNameStaticProperties.entrySet()) {
-			builder.append("," + entry.getKey() + "=" + entry.getValue());
-		}
-		return builder.toString();
+		return ',' + this.objectNameStaticProperties.entrySet()
+				.stream()
+				.map((entry) -> entry.getKey() + "=" + entry.getValue())
+				.collect(Collectors.joining(","));
 	}
 
 	private MessageHandlerMetrics enhanceHandlerMonitor(MessageHandlerMetrics monitor) {
-		MessageHandlerMetrics result = monitor;
-
 		if (monitor.getManagedName() != null && monitor.getManagedType() != null) {
 			return monitor;
 		}
@@ -956,11 +944,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				endpoint = null;
 			}
 		}
-		if (name != null && name.startsWith('_' + SI_PACKAGE)) {
-			name = getInternalComponentName(name);
-			source = "internal";
+		return buildMessageHandlerMetrics(monitor, name, endpointName, source, endpoint);
+	}
+
+	private MessageHandlerMetrics buildMessageHandlerMetrics(MessageHandlerMetrics monitor,
+			String name, String endpointName, String source, IntegrationConsumer endpoint) {
+
+		MessageHandlerMetrics result = monitor;
+		String managedType = source;
+		String managedName = name;
+
+		if (managedName != null && managedName.startsWith('_' + SI_PACKAGE)) {
+			managedName = getInternalComponentName(managedName);
+			managedType = "internal";
 		}
-		if (name != null && name.startsWith(SI_PACKAGE)) {
+		if (managedName != null && name.startsWith(SI_PACKAGE)) {
 			MessageChannel inputChannel = endpoint.getInputChannel();
 			if (inputChannel != null) {
 				if (!this.anonymousHandlerCounters.containsKey(inputChannel)) {
@@ -976,8 +974,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				if (total > 1) {
 					suffix = "#" + total;
 				}
-				name = inputChannel + suffix;
-				source = "anonymous";
+				managedName = inputChannel + suffix;
+				managedType = "anonymous";
 			}
 		}
 
@@ -985,25 +983,23 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			result = wrapMessageHandlerInLifecycleMetrics(monitor, (Lifecycle) endpoint);
 		}
 
-		if (name == null) {
+		if (managedName == null) {
 			if (monitor instanceof NamedComponent) {
-				name = ((NamedComponent) monitor).getComponentName();
+				managedName = ((NamedComponent) monitor).getComponentName();
 			}
-			if (name == null) {
-				name = monitor.toString();
+			if (managedName == null) {
+				managedName = monitor.toString();
 			}
-			source = "handler";
+			managedType = "handler";
 		}
 
 		if (endpointName != null) {
 			this.endpointsByMonitor.put(monitor, endpointName);
 		}
 
-		result.setManagedType(source);
-		result.setManagedName(name);
-
+		result.setManagedType(managedType);
+		result.setManagedName(managedName);
 		return result;
-
 	}
 
 	/**
@@ -1038,8 +1034,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	private MessageSourceMetrics enhanceSourceMonitor(MessageSourceMetrics monitor) {
-		MessageSourceMetrics result = monitor;
-
 		if (monitor.getManagedName() != null) {
 			return monitor;
 		}
@@ -1082,6 +1076,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			name = getInternalComponentName(name);
 			source = "internal";
 		}
+		return buildMessageSourceMetricsIfAny(monitor, name, endpointName, source, endpoint);
+	}
+
+	private MessageSourceMetrics buildMessageSourceMetricsIfAny(MessageSourceMetrics monitor, String name,
+			String endpointName, String source, Object endpoint) {
+
+		MessageSourceMetrics result = monitor;
 		if (name != null && name.startsWith(SI_PACKAGE)) {
 			Object target = endpoint;
 			if (endpoint instanceof Advised) {
@@ -1122,21 +1123,20 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		}
 
 		if (endpoint instanceof Lifecycle) {
-			result = wrapMessageSourceInLifecycleMetrics(monitor, endpoint);
+			result = wrapMessageSourceInLifecycleMetrics(result, endpoint);
 		}
 
 		if (name == null) {
-			name = monitor.toString();
+			name = result.toString();
 			source = "source";
 		}
 
 		if (endpointName != null) {
-			this.endpointsByMonitor.put(monitor, endpointName);
+			this.endpointsByMonitor.put(result, endpointName);
 		}
 
-		monitor.setManagedType(source);
-		monitor.setManagedName(name);
-
+		result.setManagedType(source);
+		result.setManagedName(name);
 		return result;
 	}
 
