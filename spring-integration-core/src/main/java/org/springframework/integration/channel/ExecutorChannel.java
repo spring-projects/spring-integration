@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -103,8 +103,7 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 				+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 		super.onInit();
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
-			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryChannelResolver(this.getBeanFactory()));
+			ErrorHandler errorHandler = IntegrationContextUtils.getErrorHandler(getBeanFactory());
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(this.executor);

@@ -33,8 +33,8 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessagingExceptionWrapper;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.PassThroughTransactionSynchronizationFactory;
@@ -105,7 +105,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.taskExecutor = (taskExecutor != null ? taskExecutor : new SyncTaskExecutor());
 		this.syncExecutor = this.taskExecutor instanceof SyncTaskExecutor
 				|| (this.taskExecutor instanceof ErrorHandlingTaskExecutor
-						&& ((ErrorHandlingTaskExecutor) this.taskExecutor).isSyncExecutor());
+				&& ((ErrorHandlingTaskExecutor) this.taskExecutor).isSyncExecutor());
 	}
 
 	protected Executor getTaskExecutor() {
@@ -196,9 +196,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (this.taskExecutor != null) {
 				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 					if (this.errorHandler == null) {
-						Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
-						this.errorHandler = new MessagePublishingErrorHandler(
-								new BeanFactoryChannelResolver(getBeanFactory()));
+						this.errorHandler = IntegrationContextUtils.getErrorHandler(getBeanFactory());
 						this.errorHandlerIsDefault = true;
 					}
 					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
@@ -316,9 +314,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 												.take(this.maxMessagesPerPoll)
 												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
 												.doOnComplete(() ->
-														triggerContext.update(triggerContext.lastScheduledExecutionTime(),
-																triggerContext.lastActualExecutionTime(),
-																new Date())
+														triggerContext
+																.update(triggerContext.lastScheduledExecutionTime(),
+																		triggerContext.lastActualExecutionTime(),
+																		new Date())
 												)), 1)
 				.repeat(this::isRunning)
 				.doOnSubscribe(subscription -> this.subscription = subscription);

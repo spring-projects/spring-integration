@@ -23,11 +23,15 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * Utility methods for accessing common integration components from the BeanFactory.
@@ -44,9 +48,9 @@ public abstract class IntegrationContextUtils {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
-	public static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
-
 	public static final String NULL_CHANNEL_BEAN_NAME = "nullChannel";
+
+	public static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
 
 	public static final String METADATA_STORE_BEAN_NAME = "metadataStore";
 
@@ -106,6 +110,10 @@ public abstract class IntegrationContextUtils {
 	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	public static final String LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationListMessageHandlerMethodFactory";
+
+	public static final String CHANNEL_RESOLVER_BEAN_NAME = "integrationChannelResolver";
+
+	public static final String MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME = "integrationMessagePublishingErrorHandler";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
@@ -210,6 +218,41 @@ public abstract class IntegrationContextUtils {
 			properties.putAll(IntegrationProperties.defaults());
 		}
 		return properties;
+	}
+
+	/**
+	 * Obtain a {@link DestinationResolver} registered with the
+	 * {@value #CHANNEL_RESOLVER_BEAN_NAME} bean name.
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return the instance of {@link DestinationResolver} bean whose name is
+	 * {@value #CHANNEL_RESOLVER_BEAN_NAME}.
+	 * @since 5.2
+	 */
+	@SuppressWarnings("unchecked")
+	public static DestinationResolver<MessageChannel> getChannelResolver(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
+		if (!beanFactory.containsBean(CHANNEL_RESOLVER_BEAN_NAME)) {
+			return new BeanFactoryChannelResolver(beanFactory);
+		}
+		return beanFactory.getBean(CHANNEL_RESOLVER_BEAN_NAME, DestinationResolver.class);
+	}
+
+	/**
+	 * Obtain an {@link ErrorHandler} registered with the
+	 * {@value #MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME} bean name.
+	 * By default resolves to the {@link org.springframework.integration.channel.MessagePublishingErrorHandler}
+	 * with the {@value #CHANNEL_RESOLVER_BEAN_NAME} {@link DestinationResolver} bean.
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return the instance of {@link ErrorHandler} bean whose name is
+	 * {@value #MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME}.
+	 * @since 5.2
+	 */
+	public static ErrorHandler getErrorHandler(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
+		if (!beanFactory.containsBean(MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
+			return new MessagePublishingErrorHandler(getChannelResolver(beanFactory));
+		}
+		return beanFactory.getBean(MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME, ErrorHandler.class);
 	}
 
 }

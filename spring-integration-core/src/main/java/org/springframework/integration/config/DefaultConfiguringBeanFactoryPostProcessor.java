@@ -63,6 +63,7 @@ import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
@@ -110,6 +111,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			this.beanFactory = beanFactory;
 			this.registry = (BeanDefinitionRegistry) beanFactory;
 
+			registerBeanFactoryChannelResolver();
+			registerMessagePublishingErrorHandler();
 			registerNullChannel();
 			registerErrorChannel();
 			registerIntegrationEvaluationContext();
@@ -142,6 +145,21 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			StringBuffer propertiesBuffer = writer.getBuffer()
 					.delete(0, "-- listing properties --".length());
 			logger.debug("\nSpring Integration global properties:\n" + propertiesBuffer);
+		}
+	}
+
+	private void registerBeanFactoryChannelResolver() {
+		if (!this.beanFactory.containsBeanDefinition(IntegrationContextUtils.CHANNEL_RESOLVER_BEAN_NAME)) {
+			this.registry.registerBeanDefinition(IntegrationContextUtils.CHANNEL_RESOLVER_BEAN_NAME,
+					new RootBeanDefinition(BeanFactoryChannelResolver.class));
+		}
+	}
+
+	private void registerMessagePublishingErrorHandler() {
+		if (!this.beanFactory.containsBeanDefinition(
+				IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
+			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME,
+					new RootBeanDefinition(MessagePublishingErrorHandler.class));
 		}
 	}
 
@@ -282,7 +300,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 							.getExpressionFor(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE))
 					.addPropertyValue("threadNamePrefix", "task-scheduler-")
 					.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy())
-					.addPropertyValue("errorHandler", new RootBeanDefinition(MessagePublishingErrorHandler.class))
+					.addPropertyReference("errorHandler",
+							IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
 					.getBeanDefinition();
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);

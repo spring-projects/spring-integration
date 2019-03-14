@@ -55,11 +55,11 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -384,12 +384,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (this.channelResolver == null && beanFactory != null) {
-				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+				this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
 			}
-			Class<?> proxyInterface = this.determineServiceInterface();
+			Class<?> proxyInterface = determineServiceInterface();
 			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(proxyInterface);
 			for (Method method : methods) {
-				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
+				MethodInvocationGateway gateway = createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(proxyInterface, this)
@@ -451,7 +451,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			else if (Future.class.isAssignableFrom(returnType)) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
+					logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return " +
+							"type; "
 							+ "running on calling thread; the downstream flow must return the required Future: "
 							+ returnType.getSimpleName());
 				}

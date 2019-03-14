@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -97,7 +96,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+			this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
 		}
 	}
 
@@ -183,8 +182,8 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		else if (!(lastThrowable instanceof MessagingException)) {
 			Message<?> message = (Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY);
 			lastThrowable = message == null
-				? new MessagingException(lastThrowable.getMessage(), lastThrowable)
-				: new MessagingException(message, lastThrowable.getMessage(), lastThrowable);
+					? new MessagingException(lastThrowable.getMessage(), lastThrowable)
+					: new MessagingException(message, lastThrowable.getMessage(), lastThrowable);
 		}
 		return lastThrowable;
 	}

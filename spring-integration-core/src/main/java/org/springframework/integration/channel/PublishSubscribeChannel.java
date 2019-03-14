@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -130,21 +131,23 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	@Override
 	public final void onInit() {
 		super.onInit();
+		BeanFactory beanFactory = this.getBeanFactory();
+		BroadcastingDispatcher dispatcherToUse = getDispatcher();
 		if (this.executor != null) {
-			Assert.state(getDispatcher().getHandlerCount() == 0,
+			Assert.state(dispatcherToUse.getHandlerCount() == 0,
 					"When providing an Executor, you cannot subscribe() until the channel "
 							+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
-					this.errorHandler = new MessagePublishingErrorHandler(
-							new BeanFactoryChannelResolver(this.getBeanFactory()));
+					this.errorHandler = IntegrationContextUtils.getErrorHandler(beanFactory);
 				}
 				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}
-			this.dispatcher = new BroadcastingDispatcher(this.executor);
-			getDispatcher().setIgnoreFailures(this.ignoreFailures);
-			getDispatcher().setApplySequence(this.applySequence);
-			getDispatcher().setMinSubscribers(this.minSubscribers);
+			dispatcherToUse = new BroadcastingDispatcher(this.executor);
+			dispatcherToUse.setIgnoreFailures(this.ignoreFailures);
+			dispatcherToUse.setApplySequence(this.applySequence);
+			dispatcherToUse.setMinSubscribers(this.minSubscribers);
+			this.dispatcher = dispatcherToUse;
 		}
 		else if (this.errorHandler != null) {
 			if (this.logger.isWarnEnabled()) {
@@ -157,11 +160,11 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 		if (this.maxSubscribers == null) {
 			Integer maxSubscribers =
 					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
-			this.setMaxSubscribers(maxSubscribers);
+			setMaxSubscribers(maxSubscribers);
 		}
-		getDispatcher().setBeanFactory(this.getBeanFactory());
+		dispatcherToUse.setBeanFactory(beanFactory);
 
-		getDispatcher().setMessageHandlingTaskDecorator(task -> {
+		dispatcherToUse.setMessageHandlingTaskDecorator(task -> {
 			if (PublishSubscribeChannel.this.executorInterceptorsSize > 0) {
 				return new MessageHandlingTask(task);
 			}

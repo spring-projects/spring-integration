@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -30,9 +31,9 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -169,13 +170,14 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'expectMessage == true'.");
 		}
 		if (this.taskExecutor == null) {
-			String beanName = this.getComponentName();
+			String beanName = getComponentName();
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-")
-					+ this.getComponentType());
+					+ getComponentType());
 		}
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && this.getBeanFactory() != null) {
+		BeanFactory beanFactory = getBeanFactory();
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
 			MessagePublishingErrorHandler errorHandler =
-					new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(this.getBeanFactory()));
+					new MessagePublishingErrorHandler(IntegrationContextUtils.getChannelResolver(beanFactory));
 			errorHandler.setDefaultErrorChannel(this.errorChannel);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
