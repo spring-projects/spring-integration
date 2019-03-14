@@ -537,7 +537,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 		throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
-				"' expected one of the following datataypes [" +
+				"' expected one of the following data types [" +
 				StringUtils.arrayToCommaDelimitedString(this.datatypes) +
 				"], but received [" + message.getPayload().getClass() + "]");
 	}
