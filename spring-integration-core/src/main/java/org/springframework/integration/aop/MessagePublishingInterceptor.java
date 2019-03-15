@@ -104,7 +104,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
 		if (this.channelResolver == null) {
-			this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
+			this.channelResolver = IntegrationContextUtils.getChannelResolver(this.beanFactory);
 		}
 	}
 
@@ -123,7 +123,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		final StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
-		String[] argumentNames = this.resolveArgumentNames(method);
+		String[] argumentNames = resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
 			Map<Object, Object> argumentMap = new HashMap<>();
@@ -180,16 +180,12 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 				this.messagingTemplate.send(channel, message);
 			}
 			else {
-				if (this.defaultChannelName != null) {
-					synchronized (this) {
-						if (this.defaultChannelName != null && this.messagingTemplate.getDefaultDestination() == null) {
-							Assert.state(this.channelResolver != null,
-									"ChannelResolver is required to resolve channel names.");
-							this.messagingTemplate.setDefaultChannel(
-									this.channelResolver.resolveDestination(this.defaultChannelName));
-						}
-						this.defaultChannelName = null;
-					}
+				String channelNameToUse = this.defaultChannelName;
+				if (channelNameToUse != null && this.messagingTemplate.getDefaultDestination() == null) {
+					Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
+					this.messagingTemplate.setDefaultChannel(
+							this.channelResolver.resolveDestination(channelNameToUse));
+					this.defaultChannelName = null;
 				}
 				this.messagingTemplate.send(message);
 			}
