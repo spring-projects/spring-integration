@@ -19,8 +19,7 @@ package org.springframework.integration.aop;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 
@@ -52,21 +51,22 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
-	private final Set<Class<? extends Annotation>> publisherAnnotationTypes;
-
 	private final MessagePublishingInterceptor interceptor;
 
-	@SuppressWarnings("unchecked")
-	public PublisherAnnotationAdvisor(Class<? extends Annotation>... publisherAnnotationTypes) {
-		this.publisherAnnotationTypes = new HashSet<>(Arrays.asList(publisherAnnotationTypes));
-		PublisherMetadataSource metadataSource =
-				new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);
-		this.interceptor = new MessagePublishingInterceptor(metadataSource);
-	}
+	private final Pointcut pointcut;
 
-	@SuppressWarnings("unchecked")
 	public PublisherAnnotationAdvisor() {
 		this(Publisher.class);
+	}
+
+	@SuppressWarnings("varargs")
+	@SafeVarargs
+	public PublisherAnnotationAdvisor(Class<? extends Annotation>... publisherAnnotationTypes) {
+		PublisherMetadataSource metadataSource =
+				new MethodAnnotationPublisherMetadataSource(
+						Arrays.stream(publisherAnnotationTypes).collect(Collectors.toSet()));
+		this.interceptor = new MessagePublishingInterceptor(metadataSource);
+		this.pointcut = buildPointcut(publisherAnnotationTypes);
 	}
 
 
@@ -91,12 +91,12 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 	@Override
 	public Pointcut getPointcut() {
-		return this.buildPointcut();
+		return this.pointcut;
 	}
 
-	private Pointcut buildPointcut() {
+	private static Pointcut buildPointcut(Class<? extends Annotation>[] publisherAnnotationTypes) {
 		ComposablePointcut result = null;
-		for (Class<? extends Annotation> publisherAnnotationType : this.publisherAnnotationTypes) {
+		for (Class<? extends Annotation> publisherAnnotationType : publisherAnnotationTypes) {
 			Pointcut cpc = new MetaAnnotationMatchingPointcut(publisherAnnotationType, true);
 			Pointcut mpc = new MetaAnnotationMatchingPointcut(null, publisherAnnotationType);
 			if (result == null) {
@@ -187,8 +187,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 
 		@Override
-		@SuppressWarnings("rawtypes")
-		public boolean matches(Method method, Class targetClass) {
+		public boolean matches(Method method, Class<?> targetClass) {
 			if (AnnotationUtils.getAnnotation(method, this.annotationType) != null) {
 				return true;
 			}

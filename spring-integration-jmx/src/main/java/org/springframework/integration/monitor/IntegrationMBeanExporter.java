@@ -944,11 +944,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				endpoint = null;
 			}
 		}
-		return buildMessageHandlerMetrics(monitor, name, endpointName, source, endpoint);
+
+		MessageHandlerMetrics messageHandlerMetrics = buildMessageHandlerMetrics(monitor, name, source, endpoint);
+		if (endpointName != null) {
+			this.endpointsByMonitor.put(messageHandlerMetrics, endpointName);
+		}
+		return messageHandlerMetrics;
 	}
 
 	private MessageHandlerMetrics buildMessageHandlerMetrics(MessageHandlerMetrics monitor,
-			String name, String endpointName, String source, IntegrationConsumer endpoint) {
+			String name, String source, IntegrationConsumer endpoint) {
 
 		MessageHandlerMetrics result = monitor;
 		String managedType = source;
@@ -961,20 +966,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (managedName != null && name.startsWith(SI_PACKAGE)) {
 			MessageChannel inputChannel = endpoint.getInputChannel();
 			if (inputChannel != null) {
-				if (!this.anonymousHandlerCounters.containsKey(inputChannel)) {
-					this.anonymousHandlerCounters.put(inputChannel, new AtomicLong());
-				}
-				AtomicLong count = this.anonymousHandlerCounters.get(inputChannel);
-				long total = count.incrementAndGet();
-				String suffix = "";
-				/*
-				 * Short hack to makes sure object names are unique if more than one endpoint has the same input
-				 * channel
-				 */
-				if (total > 1) {
-					suffix = "#" + total;
-				}
-				managedName = inputChannel + suffix;
+				managedName = buildAnonymousManagedName(this.anonymousHandlerCounters, inputChannel);
 				managedType = "anonymous";
 			}
 		}
@@ -993,13 +985,19 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			managedType = "handler";
 		}
 
-		if (endpointName != null) {
-			this.endpointsByMonitor.put(monitor, endpointName);
-		}
-
 		result.setManagedType(managedType);
 		result.setManagedName(managedName);
 		return result;
+	}
+
+	private String buildAnonymousManagedName(Map<Object, AtomicLong> anonymousCache, MessageChannel messageChannel) {
+		AtomicLong count = anonymousCache.computeIfAbsent(messageChannel, (key) -> new AtomicLong());
+		long total = count.incrementAndGet();
+		/*
+		 * Short hack to makes sure object names are unique if more than one endpoint has the same input
+		 * channel
+		 */
+		return messageChannel + (total > 1 ? "#" + total : "");
 	}
 
 	/**
@@ -1076,14 +1074,22 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			name = getInternalComponentName(name);
 			source = "internal";
 		}
-		return buildMessageSourceMetricsIfAny(monitor, name, endpointName, source, endpoint);
+
+		MessageSourceMetrics messageSourceMetrics = buildMessageSourceMetricsIfAny(monitor, name, source, endpoint);
+		if (endpointName != null) {
+			this.endpointsByMonitor.put(messageSourceMetrics, endpointName);
+		}
+		return messageSourceMetrics;
 	}
 
 	private MessageSourceMetrics buildMessageSourceMetricsIfAny(MessageSourceMetrics monitor, String name,
-			String endpointName, String source, Object endpoint) {
+			String source, Object endpoint) {
 
 		MessageSourceMetrics result = monitor;
-		if (name != null && name.startsWith(SI_PACKAGE)) {
+		String managedType = source;
+		String managedName = name;
+
+		if (managedName != null && managedName.startsWith(SI_PACKAGE)) {
 			Object target = endpoint;
 			if (endpoint instanceof Advised) {
 				TargetSource targetSource = ((Advised) endpoint).getTargetSource();
@@ -1091,11 +1097,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 					target = targetSource.getTarget();
 				}
 				catch (Exception e) {
-					logger.error("Could not get handler from bean = " + name);
+					logger.error("Could not get handler from bean = " + managedName);
 				}
 			}
 
-			Object outputChannel = null;
+			MessageChannel outputChannel = null;
 			if (target instanceof MessagingGatewaySupport) {
 				outputChannel = ((MessagingGatewaySupport) target).getRequestChannel();
 			}
@@ -1104,21 +1110,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 
 			if (outputChannel != null) {
-				if (!this.anonymousSourceCounters.containsKey(outputChannel)) {
-					this.anonymousSourceCounters.put(outputChannel, new AtomicLong());
-				}
-				AtomicLong count = this.anonymousSourceCounters.get(outputChannel);
-				long total = count.incrementAndGet();
-				String suffix = "";
-				/*
-				 * Short hack to makes sure object names are unique if more than one endpoint has the same input
-				 * channel
-				 */
-				if (total > 1) {
-					suffix = "#" + total;
-				}
-				name = outputChannel + suffix;
-				source = "anonymous";
+				managedName = buildAnonymousManagedName(this.anonymousSourceCounters, outputChannel);
+				managedType = "anonymous";
 			}
 		}
 
@@ -1126,17 +1119,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			result = wrapMessageSourceInLifecycleMetrics(result, endpoint);
 		}
 
-		if (name == null) {
-			name = result.toString();
-			source = "source";
+		if (managedName == null) {
+			managedName = result.toString();
+			managedType = "source";
 		}
 
-		if (endpointName != null) {
-			this.endpointsByMonitor.put(result, endpointName);
-		}
-
-		result.setManagedType(source);
-		result.setManagedName(name);
+		result.setManagedType(managedType);
+		result.setManagedName(managedName);
 		return result;
 	}
 
