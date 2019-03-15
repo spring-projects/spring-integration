@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ import org.springframework.web.servlet.mvc.Controller;
  * <p>
  * This endpoint will have request/reply behavior by default. That can be overridden by passing <code>false</code> to
  * the constructor. In the request/reply case, the core map will be passed to the view, and it will contain either the
- * reply Message or payload depending on the value of {@link #extractReplyPayload} (true by default, meaning just the
- * payload). The corresponding key in the map is determined by the {@link #replyKey} property (with a default of
- * "reply").
+ * reply Message or payload depending on the value of {@link #setExtractReplyPayload(boolean)}
+ * (true by default, meaning just the payload).
+ * The corresponding key in the map is determined by the {@link #replyKey} property (with a default of "reply").
  *
  * @author Mark Fisher
  * @author Gary Russell
@@ -72,15 +72,15 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 */
 	public static final String DEFAULT_ERRORS_KEY = "errors";
 
-	private volatile Expression viewExpression;
+	private Expression viewExpression;
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
-	private volatile String replyKey = DEFAULT_REPLY_KEY;
+	private String replyKey = DEFAULT_REPLY_KEY;
 
-	private volatile String errorsKey = DEFAULT_ERRORS_KEY;
+	private String errorsKey = DEFAULT_ERRORS_KEY;
 
-	private volatile String errorCode = DEFAULT_ERROR_CODE;
+	private String errorCode = DEFAULT_ERROR_CODE;
 
 	public HttpRequestHandlingController() {
 		this(true);
@@ -157,7 +157,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 
 			RequestEntity<Object> httpEntity = prepareRequestEntity(request);
 
-			Message<?> replyMessage = doHandleRequest(servletRequest, httpEntity, servletResponse);
+			Message<?> replyMessage = doHandleRequest(servletRequest, httpEntity);
 			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 			if (replyMessage != null) {
 				Object reply = setupResponseAndConvertReply(response, replyMessage);

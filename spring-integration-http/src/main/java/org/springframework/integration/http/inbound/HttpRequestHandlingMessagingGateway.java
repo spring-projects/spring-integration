@@ -39,7 +39,7 @@ import org.springframework.web.HttpRequestHandler;
 /**
  * Inbound Messaging Gateway that handles HTTP Requests. May be configured as a bean in the Application Context and
  * delegated to from a simple HttpRequestHandlerServlet in <code>web.xml</code> where the servlet and bean both have the
- * same name. If the {@link #expectReply} property is set to true, a response can generated from a reply Message.
+ * same name. If the {@link #isExpectReply()} property is set to true, a response can generated from a reply Message.
  * Otherwise, the gateway will play the role of a unidirectional Channel Adapter with a simple status-based response
  * (e.g. 200 OK).
  * <p>
@@ -109,14 +109,15 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		RequestEntity<Object> httpEntity = prepareRequestEntity(request);
 
 		try {
-			responseMessage = doHandleRequest(servletRequest, httpEntity, servletResponse);
+			responseMessage = doHandleRequest(servletRequest, httpEntity);
 			if (responseMessage != null) {
 				responseContent = setupResponseAndConvertReply(response, responseMessage);
 			}
 		}
-		catch (Exception e) {
-			responseContent = handleExceptionInternal(e);
+		catch (Exception ex) {
+			responseContent = handleExceptionInternal(ex);
 		}
+
 		if (responseContent != null) {
 
 			if (responseContent instanceof HttpStatus) {
@@ -131,11 +132,10 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 					HttpHeaders outputHeaders = response.getHeaders();
 					HttpHeaders entityHeaders = responseEntity.getHeaders();
 
-					if (!entityHeaders.isEmpty()) {
-						entityHeaders.entrySet().stream()
-								.filter(entry -> !outputHeaders.containsKey(entry.getKey()))
-								.forEach(entry -> outputHeaders.put(entry.getKey(), entry.getValue()));
-					}
+					entityHeaders.entrySet()
+							.stream()
+							.filter(entry -> !outputHeaders.containsKey(entry.getKey()))
+							.forEach(entry -> outputHeaders.put(entry.getKey(), entry.getValue()));
 				}
 
 				if (responseContent != null) {
@@ -151,24 +151,23 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		}
 	}
 
-	private Object handleExceptionInternal(Exception e) throws IOException {
+	private Object handleExceptionInternal(Exception ex) throws IOException {
 		if (this.convertExceptions && isExpectReply()) {
-			return e;
+			return ex;
 		}
 		else {
-			if (e instanceof IOException) {
-				throw (IOException) e;
+			if (ex instanceof IOException) {
+				throw (IOException) ex;
 			}
-			else if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
+			else if (ex instanceof RuntimeException) {
+				throw (RuntimeException) ex;
 			}
 			else {
-				throw new MessagingException("error occurred handling HTTP request", e);
+				throw new MessagingException("error occurred handling HTTP request", ex);
 			}
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypesArg)
 			throws IOException {
 
@@ -176,10 +175,12 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		if (CollectionUtils.isEmpty(acceptTypes)) {
 			acceptTypes = Collections.singletonList(MediaType.ALL);
 		}
-		for (HttpMessageConverter converter : getMessageConverters()) {
+		for (HttpMessageConverter<?> converter : getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
 				if (converter.canWrite(content.getClass(), acceptType)) {
-					converter.write(content, acceptType, response);
+					@SuppressWarnings("unchecked")
+					HttpMessageConverter<Object> converterToUse = (HttpMessageConverter<Object>) converter;
+					converterToUse.write(content, acceptType, response);
 					return;
 				}
 			}

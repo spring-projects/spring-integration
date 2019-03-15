@@ -19,14 +19,14 @@ package org.springframework.integration.http.inbound;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -53,11 +53,14 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.MessageTimeoutException;
+import org.springframework.integration.expression.ExpressionEvalMap;
+import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -109,13 +112,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<>();
 
-	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
-	private volatile boolean convertersMerged;
+	private boolean convertersMerged;
 
-	private volatile boolean mergeWithDefaultConverters = false;
+	private boolean mergeWithDefaultConverters = false;
 
-	private volatile MultipartResolver multipartResolver;
+	private MultipartResolver multipartResolver;
 
 	/**
 	 * Construct a gateway that will wait for the {@link #setReplyTimeout(long)
@@ -150,7 +153,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		this.defaultMessageConverters.add(new ResourceHttpMessageConverter());
 		SourceHttpMessageConverter<Source> sourceConverter = new SourceHttpMessageConverter<>();
 		this.defaultMessageConverters.add(sourceConverter);
-		if (jaxb2Present) {
+		if (JAXB_PRESENT) {
 			this.defaultMessageConverters.add(new Jaxb2RootElementHttpMessageConverter());
 			logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
@@ -158,7 +161,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
 			logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
 		}
-		if (romeToolsPresent) {
+		if (ROME_TOOLS_PRESENT) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
 			logger.debug("'AtomFeedHttpMessageConverter' was added to the 'defaultMessageConverters'.");
@@ -244,63 +247,24 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 * @param servletRequest The servlet request.
 	 * @param httpEntity the request entity to use.
-	 * @param servletResponse The servlet response.
 	 * @return The response Message.
 	 */
-	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity,
-			HttpServletResponse servletResponse) {
+	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity) {
 		if (isRunning()) {
-			return actualDoHandleRequest(servletRequest, httpEntity, servletResponse);
+			return actualDoHandleRequest(servletRequest, httpEntity);
 		}
 		else {
 			return createServiceUnavailableResponse();
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity,
-			HttpServletResponse servletResponse) {
-
+	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity) {
 		this.activeCount.incrementAndGet();
 		try {
-			StandardEvaluationContext evaluationContext = createEvaluationContext();
-			evaluationContext.setRootObject(httpEntity);
-
-			evaluationContext.setVariable("requestAttributes", RequestContextHolder.currentRequestAttributes());
-
 			MultiValueMap<String, String> requestParams = convertParameterMap(servletRequest.getParameterMap());
-			evaluationContext.setVariable("requestParams", requestParams);
-			evaluationContext.setVariable("requestHeaders", new ServletServerHttpRequest(servletRequest).getHeaders());
 
-			Cookie[] requestCookies = servletRequest.getCookies();
-			if (!ObjectUtils.isEmpty(requestCookies)) {
-				Map<String, Cookie> cookies = new HashMap<>(requestCookies.length);
-				for (Cookie requestCookie : requestCookies) {
-					cookies.put(requestCookie.getName(), requestCookie);
-				}
-				evaluationContext.setVariable("cookies", cookies);
-			}
-
-			Map<String, String> pathVariables =
-					(Map<String, String>) servletRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
-			if (!CollectionUtils.isEmpty(pathVariables)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Mapped path variables: " + pathVariables);
-				}
-				evaluationContext.setVariable("pathVariables", pathVariables);
-			}
-
-			Map<String, MultiValueMap<String, String>> matrixVariables =
-					(Map<String, MultiValueMap<String, String>>) servletRequest
-							.getAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
-
-			if (!CollectionUtils.isEmpty(matrixVariables)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Mapped matrix variables: " + matrixVariables);
-				}
-				evaluationContext.setVariable("matrixVariables", matrixVariables);
-			}
+			StandardEvaluationContext evaluationContext =
+					prepareEvaluationContext(servletRequest, httpEntity, requestParams);
 
 			Map<String, Object> headers = getHeaderMapper().toHeaders(httpEntity.getHeaders());
 			Object payload = null;
@@ -308,15 +272,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				// create payload based on SpEL
 				payload = getPayloadExpression().getValue(evaluationContext);
 			}
+
 			if (!CollectionUtils.isEmpty(getHeaderExpressions())) {
-				for (Entry<String, Expression> entry : getHeaderExpressions().entrySet()) {
-					String headerName = entry.getKey();
-					Expression headerExpression = entry.getValue();
-					Object headerValue = headerExpression.getValue(evaluationContext);
-					if (headerValue != null) {
-						headers.put(headerName, headerValue);
-					}
-				}
+				headers.putAll(
+						ExpressionEvalMap.from(getHeaderExpressions())
+								.usingEvaluationContext(evaluationContext)
+								.build());
 			}
 
 			if (payload == null) {
@@ -328,36 +289,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				}
 			}
 
-			AbstractIntegrationMessageBuilder<?> messageBuilder = null;
-
-			if (payload instanceof Message<?>) {
-				messageBuilder =
-						getMessageBuilderFactory()
-								.fromMessage((Message<?>) payload)
-								.copyHeadersIfAbsent(headers);
-			}
-			else {
-				Assert.state(payload != null, "payload cannot be null");
-				messageBuilder = getMessageBuilderFactory()
-						.withPayload(payload)
-						.copyHeaders(headers);
-			}
-
-			HttpMethod method = httpEntity.getMethod();
-			if (method != null) {
-				messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-						method.toString());
-			}
-
-			Message<?> message = messageBuilder
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
-							httpEntity.getUrl().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
-							servletRequest.getUserPrincipal())
-					.build();
+			Message<?> message = prepareRequestMessage(servletRequest, httpEntity, headers, payload);
 
 			Message<?> reply = null;
-			if (this.expectReply) {
+			if (isExpectReply()) {
 				try {
 					reply = sendAndReceiveMessage(message);
 				}
@@ -365,8 +300,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 					reply =
 							getMessageBuilderFactory()
 									.withPayload(e.getMessage())
-									.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-											evaluateHttpStatus(httpEntity))
+									.setHeader(HttpHeaders.STATUS_CODE, evaluateHttpStatus(httpEntity))
 									.build();
 				}
 			}
@@ -381,13 +315,82 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		}
 	}
 
+	private Message<?> prepareRequestMessage(HttpServletRequest servletRequest, RequestEntity<?> httpEntity,
+			Map<String, Object> headers, Object payload) {
+
+		AbstractIntegrationMessageBuilder<?> messageBuilder;
+
+		if (payload instanceof Message<?>) {
+			messageBuilder =
+					getMessageBuilderFactory()
+							.fromMessage((Message<?>) payload)
+							.copyHeadersIfAbsent(headers);
+		}
+		else {
+			Assert.state(payload != null, "payload cannot be null");
+			messageBuilder = getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers);
+		}
+
+		HttpMethod method = httpEntity.getMethod();
+		if (method != null) {
+			messageBuilder.setHeader(HttpHeaders.REQUEST_METHOD, method.toString());
+		}
+
+		return messageBuilder
+				.setHeader(HttpHeaders.REQUEST_URL, httpEntity.getUrl().toString())
+				.setHeader(HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+				.build();
+	}
+
+	private StandardEvaluationContext prepareEvaluationContext(HttpServletRequest servletRequest,
+			RequestEntity<?> httpEntity, MultiValueMap<String, String> requestParams) {
+
+		StandardEvaluationContext evaluationContext = createEvaluationContext();
+		evaluationContext.setRootObject(httpEntity);
+
+		evaluationContext.setVariable("requestAttributes", RequestContextHolder.currentRequestAttributes());
+
+		evaluationContext.setVariable("requestParams", requestParams);
+		evaluationContext.setVariable("requestHeaders", new ServletServerHttpRequest(servletRequest).getHeaders());
+
+		Cookie[] requestCookies = servletRequest.getCookies();
+		if (!ObjectUtils.isEmpty(requestCookies)) {
+			Map<String, Cookie> cookies =
+					Arrays.stream(requestCookies)
+							.collect(Collectors.toMap(Cookie::getName, Function.identity()));
+			evaluationContext.setVariable("cookies", cookies);
+		}
+
+		Map<?, ?> pathVariables =
+				(Map<?, ?>) servletRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+
+		if (!CollectionUtils.isEmpty(pathVariables)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Mapped path variables: " + pathVariables);
+			}
+			evaluationContext.setVariable("pathVariables", pathVariables);
+		}
+
+		Map<?, ?> matrixVariables = (Map<?, ?>) servletRequest.getAttribute(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
+
+		if (!CollectionUtils.isEmpty(matrixVariables)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Mapped matrix variables: " + matrixVariables);
+			}
+			evaluationContext.setVariable("matrixVariables", matrixVariables);
+		}
+		return evaluationContext;
+	}
+
 	private Message<?> createServiceUnavailableResponse() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Endpoint is stopped; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
 		}
 		return getMessageBuilderFactory()
 				.withPayload("Endpoint is stopped")
-				.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
+				.setHeader(HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
 				.build();
 	}
 
@@ -399,8 +402,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * @return The message payload (if {@code extractReplyPayload}) otherwise the message.
 	 */
 	protected final Object setupResponseAndConvertReply(ServletServerHttpResponse response, Message<?> replyMessage) {
-		getHeaderMapper().fromHeaders(replyMessage.getHeaders(), response.getHeaders());
-		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(replyMessage.getHeaders());
+		MessageHeaders replyMessageHeaders = replyMessage.getHeaders();
+		getHeaderMapper().fromHeaders(replyMessageHeaders, response.getHeaders());
+		HttpStatus httpStatus = resolveHttpStatusFromHeaders(replyMessageHeaders);
 		if (httpStatus != null) {
 			response.setStatusCode(httpStatus);
 		}
@@ -499,8 +503,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 							? (GenericHttpMessageConverter<?>) converter
 							: null;
 			if (genericConverter != null
-					? genericConverter.canRead(targetType, null, contentType) :
-					(converter.canRead(targetClass, contentType))) {
+					? genericConverter.canRead(targetType, null, contentType)
+					: (converter.canRead(targetClass, contentType))) {
 
 				if (genericConverter != null) {
 					return genericConverter.read(targetType, null, request);

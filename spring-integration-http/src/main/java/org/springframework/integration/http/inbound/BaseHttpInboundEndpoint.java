@@ -51,20 +51,20 @@ import org.springframework.util.CollectionUtils;
  */
 public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
-	protected static final boolean jaxb2Present = // NOSONAR lower case static
+	protected static final boolean JAXB_PRESENT =
 			ClassUtils.isPresent("javax.xml.bind.Binder",
 					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final boolean romeToolsPresent = // NOSONAR lower case static
+	protected static final boolean ROME_TOOLS_PRESENT =
 			ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
 					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final List<HttpMethod> nonReadableBodyHttpMethods = // NOSONAR lower case static
+	protected static final List<HttpMethod> NON_READABLE_BODY_HTTP_METHODS =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
-	protected final boolean expectReply;
+	protected final AtomicInteger activeCount = new AtomicInteger(); // NOSONAR
 
-	protected final AtomicInteger activeCount = new AtomicInteger();
+	private final boolean expectReply;
 
 	private ResolvableType requestPayloadType = null;
 
@@ -269,11 +269,11 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	private void validateSupportedMethods() {
 		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods,
+				&& CollectionUtils.containsAny(NON_READABLE_BODY_HTTP_METHODS,
 				Arrays.asList(getRequestMapping().getMethods()))) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
-						"of the specified HTTP methods '" + nonReadableBodyHttpMethods + "'");
+						"of the specified HTTP methods '" + NON_READABLE_BODY_HTTP_METHODS + "'");
 			}
 		}
 	}
@@ -333,7 +333,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 * @return true or false if HTTP request can contain the body
 	 */
 	protected boolean isReadable(HttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
+		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, request.getMethod()));
 	}
 
 }
