@@ -28,7 +28,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;

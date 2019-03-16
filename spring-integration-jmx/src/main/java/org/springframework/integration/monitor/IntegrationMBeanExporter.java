@@ -1036,32 +1036,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			return monitor;
 		}
 
-		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
-		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
-
-		String name = null;
 		String endpointName = null;
 		String source = "endpoint";
 		Object endpoint = null;
 
+		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 		for (String beanName : names) {
 			endpoint = this.applicationContext.getBean(beanName);
-			Object field = null;
+			Object target = null;
 			if (monitor instanceof MessagingGatewaySupport && endpoint.equals(monitor)) {
-				field = monitor;
+				target = monitor;
 			}
-			else {
-				try {
-					field = extractTarget(getField(endpoint, "source"));
-				}
-				catch (Exception e) {
-					logger.trace("Could not get source from bean = " + beanName);
-					endpoint = null;
-				}
+			else if (endpoint instanceof SourcePollingChannelAdapter) {
+				target = ((SourcePollingChannelAdapter) endpoint).getMessageSource();
 			}
-
-			if (monitor.equals(field)) {
-				name = beanName;
+			if (monitor.equals(target)) {
 				endpointName = beanName;
 				break;
 			}
@@ -1070,12 +1059,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (endpointName == null) {
 			endpoint = null;
 		}
-		if (name != null && name.startsWith('_' + SI_PACKAGE)) {
-			name = getInternalComponentName(name);
+		if (endpointName != null && endpointName.startsWith('_' + SI_PACKAGE)) {
+			endpointName = getInternalComponentName(endpointName);
 			source = "internal";
 		}
 
-		MessageSourceMetrics messageSourceMetrics = buildMessageSourceMetricsIfAny(monitor, name, source, endpoint);
+		MessageSourceMetrics messageSourceMetrics =
+				buildMessageSourceMetricsIfAny(monitor, endpointName, source, endpoint);
 		if (endpointName != null) {
 			this.endpointsByMonitor.put(messageSourceMetrics, endpointName);
 		}
