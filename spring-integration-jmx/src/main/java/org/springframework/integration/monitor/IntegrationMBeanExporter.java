@@ -1145,18 +1145,4 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		return result;
 	}
 
-	private Object getField(Object target, String name) {
-		Assert.notNull(target, "Target object must not be null");
-		Field field = ReflectionUtils.findField(target.getClass(), name);
-		if (field == null) {
-			throw new IllegalArgumentException("Could not find field [" + name + "] on target [" + target + "]");
-		}
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Getting field [" + name + "] from target [" + target + "]");
-		}
-		ReflectionUtils.makeAccessible(field);
-		return ReflectionUtils.getField(field, target);
-	}
-
 }
