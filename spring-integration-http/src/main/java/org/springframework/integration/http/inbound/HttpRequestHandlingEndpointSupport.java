@@ -32,7 +32,6 @@ import javax.xml.transform.Source;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.core.ResolvableType;
-import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -124,9 +123,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * Construct a gateway that will wait for the {@link #setReplyTimeout(long)
 	 * replyTimeout} for a reply; if the timeout is exceeded a '500 Internal Server Error'
 	 * status code is returned. This can be modified using the
-	 * {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * {@link #setStatusCodeExpression statusCodeExpression}.
 	 * @see #setReplyTimeout(long)
-	 * @see #setStatusCodeExpression(Expression)
+	 * @see #setStatusCodeExpression
 	 */
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -136,12 +135,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * Construct a gateway. If 'expectReply' is true it will wait for the
 	 * {@link #setReplyTimeout(long) replyTimeout} for a reply; if the timeout is exceeded
 	 * a '500 Internal Server Error' status code is returned. This can be modified using
-	 * the {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * the {@link #setStatusCodeExpression statusCodeExpression}.
 	 * If 'false', a 200 OK status will be returned; this can also be modified using
-	 * {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * {@link #setStatusCodeExpression statusCodeExpression}.
 	 * @param expectReply true if a reply is expected from the downstream flow.
 	 * @see #setReplyTimeout(long)
-	 * @see #setStatusCodeExpression(Expression)
+	 * @see #setStatusCodeExpression
 	 */
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		super(expectReply);
@@ -472,7 +471,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 	protected RequestEntity<Object> prepareRequestEntity(ServletServerHttpRequest request) throws IOException {
 		Object requestBody = null;
-		if (isReadable(request)) {
+		if (isReadable(request.getMethod())) {
 			requestBody = extractRequestBody(request);
 		}
 

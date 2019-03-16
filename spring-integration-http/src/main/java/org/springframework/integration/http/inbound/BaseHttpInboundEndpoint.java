@@ -268,13 +268,12 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	private void validateSupportedMethods() {
-		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(NON_READABLE_BODY_HTTP_METHODS,
-				Arrays.asList(getRequestMapping().getMethods()))) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
-						"of the specified HTTP methods '" + NON_READABLE_BODY_HTTP_METHODS + "'");
-			}
+		if (this.requestPayloadType != null && logger.isWarnEnabled() &&
+				CollectionUtils.containsAny(NON_READABLE_BODY_HTTP_METHODS,
+						Arrays.asList(getRequestMapping().getMethods()))) {
+
+			logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
+					"of the specified HTTP methods '" + NON_READABLE_BODY_HTTP_METHODS + "'");
 		}
 	}
 
@@ -329,11 +328,11 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	/**
 	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request).
-	 * @param request the HTTP request to check the method
+	 * @param httpMethod the HTTP method to check
 	 * @return true or false if HTTP request can contain the body
 	 */
-	protected boolean isReadable(HttpRequest request) {
-		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, request.getMethod()));
+	protected boolean isReadable(HttpMethod httpMethod) {
+		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, httpMethod));
 	}
 
 }

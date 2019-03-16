@@ -167,7 +167,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private Mono<?> extractRequestBody(ServerWebExchange exchange) {
-		if (isReadable(exchange.getRequest())) {
+		if (isReadable(exchange.getRequest().getMethod())) {
 			return extractReadableRequestBody(exchange);
 		}
 		else {
