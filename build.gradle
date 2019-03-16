@@ -5,7 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
@@ -27,23 +27,23 @@ allprojects {
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT') || project.hasProperty('platformVersion')) {
-			maven { url 'http://repo.spring.io/libs-snapshot' }
+			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
-		maven { url 'http://repo.spring.io/libs-milestone' }
-		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'https://repo.spring.io/libs-milestone' }
+		maven { url 'https://repo.spring.io/plugins-release' }
 		mavenCentral()
 	}
 
 	ext.javadocLinks = [
-		'http://docs.oracle.com/javase/7/docs/api/',
-		'http://docs.oracle.com/javaee/6/api/',
-		'http://docs.spring.io/spring/docs/current/javadoc-api/',
-		'http://docs.spring.io/spring-amqp/docs/latest-ga/api/',
-		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
-		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
-		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
-		'http://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
-		'http://docs.spring.io/spring-ws/sites/2.0/apidocs/'
+		'https://docs.oracle.com/javase/7/docs/api/',
+		'https://docs.oracle.com/javaee/6/api/',
+		'https://docs.spring.io/spring/docs/current/javadoc-api/',
+		'https://docs.spring.io/spring-amqp/docs/latest-ga/api/',
+		'https://docs.spring.io/spring-data-gemfire/docs/current/api/',
+		'https://docs.spring.io/spring-data/data-mongo/docs/current/api/',
+		'https://docs.spring.io/spring-data/data-redis/docs/current/api/',
+		'https://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
+		'https://docs.spring.io/spring-ws/sites/2.0/apidocs/'
 	] as String[]
 
 }
@@ -135,8 +135,8 @@ subprojects { subproject ->
 		}
 	}
 
-	// See http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
-	// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
+	// See https://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
+	// and https://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
 	configurations {
 		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
 	}
@@ -868,5 +868,5 @@ task dist(dependsOn: assemble) {
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
 	gradleVersion = '1.12'
-	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+	distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
