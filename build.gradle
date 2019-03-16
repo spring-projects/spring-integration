@@ -39,15 +39,15 @@ allprojects {
 	}
 
 	ext.javadocLinks = [
-		'http://docs.oracle.com/javase/7/docs/api/',
-		'http://docs.oracle.com/javaee/6/api/',
-		'http://docs.spring.io/spring/docs/current/javadoc-api/',
-		'http://docs.spring.io/spring-amqp/docs/current/api/',
-		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
-		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
-		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
-		'http://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
-		'http://docs.spring.io/spring-ws/sites/2.0/apidocs/'
+		'https://docs.oracle.com/javase/7/docs/api/',
+		'https://docs.oracle.com/javaee/6/api/',
+		'https://docs.spring.io/spring/docs/current/javadoc-api/',
+		'https://docs.spring.io/spring-amqp/docs/current/api/',
+		'https://docs.spring.io/spring-data-gemfire/docs/current/api/',
+		'https://docs.spring.io/spring-data/data-mongo/docs/current/api/',
+		'https://docs.spring.io/spring-data/data-redis/docs/current/api/',
+		'https://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
+		'https://docs.spring.io/spring-ws/sites/2.0/apidocs/'
 	] as String[]
 
 }
