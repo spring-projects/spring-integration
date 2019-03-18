@@ -28,7 +28,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -51,20 +50,20 @@ import org.springframework.util.CollectionUtils;
  */
 public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
-	protected static final boolean jaxb2Present = // NOSONAR lower case static
+	protected static final boolean JAXB_PRESENT =
 			ClassUtils.isPresent("javax.xml.bind.Binder",
 					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final boolean romeToolsPresent = // NOSONAR lower case static
+	protected static final boolean ROME_TOOLS_PRESENT =
 			ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
 					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final List<HttpMethod> nonReadableBodyHttpMethods = // NOSONAR lower case static
+	protected static final List<HttpMethod> NON_READABLE_BODY_HTTP_METHODS =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
-	protected final boolean expectReply;
+	protected final AtomicInteger activeCount = new AtomicInteger(); // NOSONAR
 
-	protected final AtomicInteger activeCount = new AtomicInteger();
+	private final boolean expectReply;
 
 	private ResolvableType requestPayloadType = null;
 
@@ -268,13 +267,12 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	private void validateSupportedMethods() {
-		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods,
-				Arrays.asList(getRequestMapping().getMethods()))) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
-						"of the specified HTTP methods '" + nonReadableBodyHttpMethods + "'");
-			}
+		if (this.requestPayloadType != null && logger.isWarnEnabled() &&
+				CollectionUtils.containsAny(NON_READABLE_BODY_HTTP_METHODS,
+						Arrays.asList(getRequestMapping().getMethods()))) {
+
+			logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
+					"of the specified HTTP methods '" + NON_READABLE_BODY_HTTP_METHODS + "'");
 		}
 	}
 
@@ -329,11 +327,11 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	/**
 	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request).
-	 * @param request the HTTP request to check the method
+	 * @param httpMethod the HTTP method to check
 	 * @return true or false if HTTP request can contain the body
 	 */
-	protected boolean isReadable(HttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
+	protected boolean isReadable(HttpMethod httpMethod) {
+		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, httpMethod));
 	}
 
 }

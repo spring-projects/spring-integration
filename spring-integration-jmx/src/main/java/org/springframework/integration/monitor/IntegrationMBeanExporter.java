@@ -16,7 +16,6 @@
 
 package org.springframework.integration.monitor;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,6 +77,7 @@ import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -114,7 +114,7 @@ import org.springframework.util.StringValueResolver;
  * @author Artem Bilan
  * @author Meherzad Lahewala
  */
-@org.springframework.jmx.export.annotation.ManagedResource
+@ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
 		EmbeddedValueResolverAware, DestructionAwareBeanPostProcessor {
 
@@ -1036,32 +1036,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			return monitor;
 		}
 
-		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
-		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
-
-		String name = null;
 		String endpointName = null;
 		String source = "endpoint";
 		Object endpoint = null;
 
+		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 		for (String beanName : names) {
 			endpoint = this.applicationContext.getBean(beanName);
-			Object field = null;
+			Object target = null;
 			if (monitor instanceof MessagingGatewaySupport && endpoint.equals(monitor)) {
-				field = monitor;
+				target = monitor;
 			}
-			else {
-				try {
-					field = extractTarget(getField(endpoint, "source"));
-				}
-				catch (Exception e) {
-					logger.trace("Could not get source from bean = " + beanName);
-					endpoint = null;
-				}
+			else if (endpoint instanceof SourcePollingChannelAdapter) {
+				target = ((SourcePollingChannelAdapter) endpoint).getMessageSource();
 			}
-
-			if (monitor.equals(field)) {
-				name = beanName;
+			if (monitor.equals(target)) {
 				endpointName = beanName;
 				break;
 			}
@@ -1070,12 +1059,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (endpointName == null) {
 			endpoint = null;
 		}
-		if (name != null && name.startsWith('_' + SI_PACKAGE)) {
-			name = getInternalComponentName(name);
+		if (endpointName != null && endpointName.startsWith('_' + SI_PACKAGE)) {
+			endpointName = getInternalComponentName(endpointName);
 			source = "internal";
 		}
 
-		MessageSourceMetrics messageSourceMetrics = buildMessageSourceMetricsIfAny(monitor, name, source, endpoint);
+		MessageSourceMetrics messageSourceMetrics =
+				buildMessageSourceMetricsIfAny(monitor, endpointName, source, endpoint);
 		if (endpointName != null) {
 			this.endpointsByMonitor.put(messageSourceMetrics, endpointName);
 		}
@@ -1153,20 +1143,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 		}
 		return result;
-	}
-
-	private Object getField(Object target, String name) {
-		Assert.notNull(target, "Target object must not be null");
-		Field field = ReflectionUtils.findField(target.getClass(), name);
-		if (field == null) {
-			throw new IllegalArgumentException("Could not find field [" + name + "] on target [" + target + "]");
-		}
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Getting field [" + name + "] from target [" + target + "]");
-		}
-		ReflectionUtils.makeAccessible(field);
-		return ReflectionUtils.getField(field, target);
 	}
 
 }

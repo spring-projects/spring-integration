@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,6 +46,7 @@ import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -80,8 +80,6 @@ import reactor.util.function.Tuple2;
 public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements WebHandler {
 
 	private static final MediaType MEDIA_TYPE_APPLICATION_ALL = new MediaType("application");
-
-	private static final String UNCHECKED = "unchecked";
 
 	private static final List<HttpMethod> SAFE_METHODS = Arrays.asList(HttpMethod.GET, HttpMethod.HEAD);
 
@@ -155,7 +153,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 								exchange.getRequest().getMethod(), exchange.getRequest().getURI()))
 				.flatMap(entity -> buildMessage(entity, exchange))
 				.flatMap(requestTuple -> {
-					if (this.expectReply) {
+					if (isExpectReply()) {
 						return sendAndReceiveMessageReactive(requestTuple.getT1())
 								.flatMap(replyMessage -> populateResponse(exchange, replyMessage));
 					}
@@ -169,7 +167,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private Mono<?> extractRequestBody(ServerWebExchange exchange) {
-		if (isReadable(exchange.getRequest())) {
+		if (isReadable(exchange.getRequest().getMethod())) {
 			return extractReadableRequestBody(exchange);
 		}
 		else {
@@ -242,7 +240,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 	}
 
-	@SuppressWarnings(UNCHECKED)
 	private Mono<Tuple2<Message<Object>, RequestEntity<?>>> buildMessage(RequestEntity<?> httpEntity,
 			ServerWebExchange exchange) {
 
@@ -260,19 +257,31 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 		Map<String, Object> headers = getHeaderMapper().toHeaders(request.getHeaders());
 		if (!CollectionUtils.isEmpty(getHeaderExpressions())) {
-			for (Map.Entry<String, Expression> entry : getHeaderExpressions().entrySet()) {
-				String headerName = entry.getKey();
-				Expression headerExpression = entry.getValue();
-				Object headerValue = headerExpression.getValue(evaluationContext);
-				if (headerValue != null) {
-					headers.put(headerName, headerValue);
-				}
-			}
+			headers.putAll(
+					ExpressionEvalMap.from(getHeaderExpressions())
+							.usingEvaluationContext(evaluationContext)
+							.build());
 		}
 
 		if (payload == null) {
 			payload = requestParams;
 		}
+
+		AbstractIntegrationMessageBuilder<Object> messageBuilder =
+				prepareRequestMessageBuilder(request, payload, headers);
+
+		return exchange.getPrincipal()
+				.map(principal ->
+						messageBuilder
+								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
+				.defaultIfEmpty(messageBuilder)
+				.map(AbstractIntegrationMessageBuilder::build)
+				.zipWith(Mono.just(httpEntity));
+	}
+
+	@SuppressWarnings("unchecked")
+	private AbstractIntegrationMessageBuilder<Object> prepareRequestMessageBuilder(ServerHttpRequest request,
+			Object payload, Map<String, Object> headers) {
 
 		AbstractIntegrationMessageBuilder<Object> messageBuilder;
 
@@ -296,17 +305,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
 					httpMethod.toString());
 		}
-
-		return exchange.getPrincipal()
-				.map(principal ->
-						messageBuilder
-								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
-				.defaultIfEmpty(messageBuilder)
-				.map(AbstractIntegrationMessageBuilder::build)
-				.zipWith(Mono.just(httpEntity));
+		return messageBuilder;
 	}
 
-	@SuppressWarnings(UNCHECKED)
 	private EvaluationContext buildEvaluationContext(RequestEntity<?> httpEntity, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders requestHeaders = request.getHeaders();
@@ -322,16 +323,13 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			evaluationContext.setVariable("cookies", request.getCookies());
 		}
 
-		Map<String, String> pathVariables =
-				(Map<String, String>) exchangeAttributes.get(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+		Map<?, ?> pathVariables = (Map<?, ?>) exchangeAttributes.get(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 
 		if (!CollectionUtils.isEmpty(pathVariables)) {
 			evaluationContext.setVariable("pathVariables", pathVariables);
 		}
 
-		Map<String, MultiValueMap<String, String>> matrixVariables =
-				(Map<String, MultiValueMap<String, String>>) exchangeAttributes
-						.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
+		Map<?, ?> matrixVariables = (Map<?, ?>) exchangeAttributes.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
 
 		if (!CollectionUtils.isEmpty(matrixVariables)) {
 			evaluationContext.setVariable("matrixVariables", matrixVariables);
@@ -396,7 +394,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 	}
 
-	@SuppressWarnings(UNCHECKED)
+	@SuppressWarnings("unchecked")
 	private Mono<Void> writeResponseBody(ServerWebExchange exchange, Object body) {
 		ResolvableType bodyType = ResolvableType.forInstance(body);
 		ReactiveAdapter adapter = this.adapterRegistry.getAdapter(bodyType.resolve(), body);

@@ -82,7 +82,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
-		Object result = gateway.doHandleRequest(request, httpEntity, response);
+		Object result = gateway.doHandleRequest(request, httpEntity);
 		assertThat(result).isInstanceOf(Message.class);
 		assertThat(((Message<?>) result).getPayload()).isEqualTo("hello");
 
@@ -96,8 +96,6 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 			replyChannel.send(message);
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
-
 		request.setMethod("POST");
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
@@ -127,7 +125,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
-		Object result = gateway.doHandleRequest(request, httpEntity, response);
+		Object result = gateway.doHandleRequest(request, httpEntity);
 		assertThat(result).isInstanceOf(Message.class);
 		assertThat(((Message<?>) result).getPayload()).isEqualTo("bill");
 	}
@@ -173,12 +171,12 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
 
-		Object result = gateway.doHandleRequest(request, httpEntity, response);
+		Object result = gateway.doHandleRequest(request, httpEntity);
 		assertThat(result).isInstanceOf(Message.class);
 		assertThat(((Map<String, Object>) ((Message<?>) result).getPayload()).get("f")).isEqualTo("bill");
 	}
 
-	private static RequestEntity<Object> prepareRequestEntity(Object body, ServletServerHttpRequest request) throws IOException {
+	private static RequestEntity<Object> prepareRequestEntity(Object body, ServletServerHttpRequest request) {
 		return new RequestEntity<>(body, request.getHeaders(), request.getMethod(), request.getURI());
 	}
 
