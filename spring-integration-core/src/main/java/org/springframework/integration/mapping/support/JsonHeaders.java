@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,14 @@ public final class JsonHeaders {
 
 	public static final String KEY_TYPE_ID = PREFIX + "__KeyTypeId__";
 
+	/**
+	 * The header to represent a {@link org.springframework.core.ResolvableType}
+	 * for the target deserialized object.
+	 * @since 5.2
+	 */
+	public static final String RESOLVABLE_TYPE = PREFIX + "_resolvableType";
+
 	public static final Collection<String> HEADERS =
-			Collections.unmodifiableList(Arrays.asList(TYPE_ID, CONTENT_TYPE_ID, KEY_TYPE_ID));
+			Collections.unmodifiableList(Arrays.asList(TYPE_ID, CONTENT_TYPE_ID, KEY_TYPE_ID, RESOLVABLE_TYPE));
 
 }

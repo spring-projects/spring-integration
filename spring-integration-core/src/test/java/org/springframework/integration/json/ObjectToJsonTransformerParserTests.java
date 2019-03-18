@@ -33,7 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
-import org.springframework.integration.support.json.JsonObjectMapperAdapter;
+import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -174,7 +174,7 @@ public class ObjectToJsonTransformerParserTests {
 		assertThat(expression.getValue(evaluationContext, payload, Boolean.class)).isTrue();
 	}
 
-	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object, Object> {
+	static class CustomJsonObjectMapper implements JsonObjectMapper<Object, Object> {
 
 		@Override
 		public String toJson(Object value) {

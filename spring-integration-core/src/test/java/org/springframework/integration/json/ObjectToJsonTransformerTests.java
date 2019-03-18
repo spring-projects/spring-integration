@@ -183,11 +183,11 @@ public class ObjectToJsonTransformerTests {
 		List<String> list = Collections.singletonList(null);
 		Message<?> out = transformer.transform(new GenericMessage<>(list));
 		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString()).contains("SingletonList");
-		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID)).isEqualTo(Object.class);
+		assertThat(out.getHeaders()).doesNotContainKey(JsonHeaders.CONTENT_TYPE_ID);
 		Map<String, String> map = Collections.singletonMap("foo", null);
 		out = transformer.transform(new GenericMessage<>(map));
 		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString()).contains("SingletonMap");
-		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID)).isEqualTo(Object.class);
+		assertThat(out.getHeaders()).doesNotContainKey(JsonHeaders.CONTENT_TYPE_ID);
 		assertThat(out.getHeaders().get(JsonHeaders.KEY_TYPE_ID)).isEqualTo(String.class);
 	}
 

@@ -23,11 +23,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapper;
-import org.springframework.integration.support.json.JsonObjectMapperAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -104,12 +104,18 @@ public class JsonToObjectTransformerParserTests {
 		assertThat(result.getJson()).isEqualTo(jsonString);
 	}
 
-	@SuppressWarnings("rawtypes")
-	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter {
+	static class CustomJsonObjectMapper implements JsonObjectMapper<Object, Object> {
 
 		@Override
-		public Object fromJson(Object json, Class valueType) {
-			return new TestJsonContainer((String) json);
+		@SuppressWarnings("unchecked")
+		public <T> T fromJson(Object json, Class<T> valueType) {
+			return (T) new TestJsonContainer((String) json);
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public <T> T fromJson(Object json, ResolvableType valueType) {
+			return (T) new TestJsonContainer((String) json);
 		}
 
 	}

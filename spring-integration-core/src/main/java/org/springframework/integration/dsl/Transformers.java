@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -161,21 +162,45 @@ public abstract class Transformers {
 	}
 
 	public static JsonToObjectTransformer fromJson() {
-		return fromJson(null, null);
+		return fromJson((Class<?>) null, null);
 	}
 
 	public static JsonToObjectTransformer fromJson(@Nullable Class<?> targetClass) {
 		return fromJson(targetClass, null);
 	}
 
+	/**
+	 * Construct a {@link JsonToObjectTransformer} based on the provided {@link ResolvableType}.
+	 * @param targetType the {@link ResolvableType} top use.
+	 * @return the {@link JsonToObjectTransformer} instance.
+	 * @since 5.2
+	 */
+	public static JsonToObjectTransformer fromJson(ResolvableType targetType) {
+		return fromJson(targetType, null);
+	}
+
 	public static JsonToObjectTransformer fromJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
-		return fromJson(null, jsonObjectMapper);
+		return fromJson((Class<?>) null, jsonObjectMapper);
 	}
 
 	public static JsonToObjectTransformer fromJson(@Nullable Class<?> targetClass,
 			@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
 
 		return new JsonToObjectTransformer(targetClass, jsonObjectMapper);
+	}
+
+	/**
+	 * Construct a {@link JsonToObjectTransformer} based on the provided {@link ResolvableType}
+	 * and {@link JsonObjectMapper}.
+	 * @param targetType the {@link ResolvableType} top use.
+	 * @param jsonObjectMapper the {@link JsonObjectMapper} top use.
+	 * @return the {@link JsonToObjectTransformer} instance.
+	 * @since 5.2
+	 */
+	public static JsonToObjectTransformer fromJson(ResolvableType targetType,
+			@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
+
+		return new JsonToObjectTransformer(targetType, jsonObjectMapper);
 	}
 
 	public static PayloadSerializingTransformer serializer() {
