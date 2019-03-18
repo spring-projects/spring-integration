@@ -136,7 +136,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 			return getMessageBuilderFactory()
 					.withPayload(result)
 					.copyHeaders(headers)
-					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]))
+					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[0]))
 					.build();
 		}
 		else {
