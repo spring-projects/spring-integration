@@ -16,6 +16,9 @@ See <<rate-limiter-advice>> for more information.
 [[x5.2-general]]
 === General Changes
 
+The `JsonToObjectTransformer` now supports generics for the target object to deserialize into.
+See <<json-transformers>> for more information.
+
 [[x5.2-amqp]]
 ==== AMQP Changes
 

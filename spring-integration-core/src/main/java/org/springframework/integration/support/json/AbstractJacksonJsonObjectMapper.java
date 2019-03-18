@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -40,11 +41,10 @@ import org.springframework.util.ClassUtils;
  *
  * @since 3.0
  */
-public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjectMapperAdapter<N, P>
-		implements BeanClassLoaderAware {
+public abstract class AbstractJacksonJsonObjectMapper<N, P, J> implements JsonObjectMapper<N, P>, BeanClassLoaderAware {
 
 	protected static final Collection<Class<?>> supportedJsonTypes =
-			Arrays.<Class<?>>asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
+			Arrays.asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
@@ -59,13 +59,18 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjec
 
 	@Override
 	public <T> T fromJson(Object json, Class<T> valueType) throws IOException {
-		return fromJson(json, this.constructType(valueType));
+		return fromJson(json, constructType(valueType));
+	}
+
+	@Override
+	public <T> T fromJson(Object json, ResolvableType valueType) throws IOException {
+		return fromJson(json, constructType(valueType.getType()));
 	}
 
 	@Override
 	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws IOException {
 		J javaType = extractJavaType(javaTypes);
-		return this.fromJson(json, javaType);
+		return fromJson(json, javaType);
 	}
 
 	protected J createJavaType(Map<String, Object> javaTypes, String javaTypeKey) {

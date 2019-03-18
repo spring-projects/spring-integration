@@ -52,13 +52,12 @@ import org.springframework.util.ClassUtils;
  * @deprecated since 5.2. Will be removed in the next version.
  */
 @Deprecated
-public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Object>, Object>
-		implements BeanClassLoaderAware {
+public class BoonJsonObjectMapper implements JsonObjectMapper<Map<String, Object>, Object>, BeanClassLoaderAware {
 
 	private static final Log logger = LogFactory.getLog(BoonJsonObjectMapper.class);
 
 	private static final Collection<Class<?>> supportedJsonTypes =
-			Arrays.<Class<?>>asList(String.class, byte[].class, byte[].class, File.class, InputStream.class, Reader.class);
+			Arrays.asList(String.class, byte[].class, byte[].class, File.class, InputStream.class, Reader.class);
 
 
 	private final ObjectMapper objectMapper;

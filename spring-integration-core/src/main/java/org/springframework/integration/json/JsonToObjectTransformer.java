@@ -20,12 +20,16 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.mapping.support.JsonHeaders;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.AbstractTransformer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Transformer implementation that converts a JSON string payload into an instance of the
@@ -42,35 +46,60 @@ import org.springframework.messaging.Message;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @see JsonObjectMapper
  * @see org.springframework.integration.support.json.JsonObjectMapperProvider
+ *
  * @since 2.0
  */
 public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
-	private final Class<?> targetClass;
+	private final ResolvableType targetType;
 
 	private final JsonObjectMapper<?, ?> jsonObjectMapper;
+
+	private ClassLoader classLoader;
 
 	public JsonToObjectTransformer() {
 		this((Class<?>) null);
 	}
 
-	public JsonToObjectTransformer(Class<?> targetClass) {
-		this(targetClass, null);
+	public JsonToObjectTransformer(@Nullable Class<?> targetClass) {
+		this(ResolvableType.forClass(targetClass));
 	}
 
-	public JsonToObjectTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
-		this(null, jsonObjectMapper);
+	/**
+	 * Construct an instance based on the provided {@link ResolvableType}.
+	 * @param targetType the {@link ResolvableType} to use.
+	 * @since 5.2
+	 */
+	public JsonToObjectTransformer(ResolvableType targetType) {
+		this(targetType, null);
 	}
 
-	public JsonToObjectTransformer(Class<?> targetClass, JsonObjectMapper<?, ?> jsonObjectMapper) {
-		this.targetClass = targetClass;
+	public JsonToObjectTransformer(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
+		this((Class<?>) null, jsonObjectMapper);
+	}
+
+	public JsonToObjectTransformer(@Nullable Class<?> targetClass, @Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
+		this(ResolvableType.forClass(targetClass), jsonObjectMapper);
+	}
+
+	/**
+	 * Construct an instance based on the provided {@link ResolvableType} and {@link JsonObjectMapper}.
+	 * @param targetType the {@link ResolvableType} to use.
+	 * @param jsonObjectMapper  the {@link JsonObjectMapper} to use.
+	 * @since 5.2
+	 */
+	public JsonToObjectTransformer(ResolvableType targetType, @Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
+		Assert.notNull(targetType, "'targetType' must not be null");
+		this.targetType = targetType;
 		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JsonObjectMapperProvider.newInstance();
 	}
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
 		if (this.jsonObjectMapper instanceof BeanClassLoaderAware) {
 			((BeanClassLoaderAware) this.jsonObjectMapper).setBeanClassLoader(classLoader);
 		}
@@ -83,20 +112,71 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 	@Override
 	protected Object doTransform(Message<?> message) {
+		MessageHeaders headers = message.getHeaders();
+		boolean removeHeaders = false;
+		ResolvableType valueType = obtainResolvableTypeFromHeadersIfAny(headers);
+
+		if (valueType != null) {
+			removeHeaders = true;
+		}
+		else {
+			valueType = this.targetType;
+		}
+
+		Object result;
 		try {
-			if (this.targetClass != null) {
-				return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);
-			}
-			else {
-				Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
-				AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(result)
-						.copyHeaders(message.getHeaders())
-						.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
-				return messageBuilder.build();
-			}
+			result = this.jsonObjectMapper.fromJson(message.getPayload(), valueType);
+
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
+		}
+
+		if (removeHeaders) {
+			return getMessageBuilderFactory()
+					.withPayload(result)
+					.copyHeaders(headers)
+					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]))
+					.build();
+		}
+		else {
+			return result;
+		}
+	}
+
+
+	private ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers) {
+		ResolvableType valueType = null;
+		if (headers.containsKey(JsonHeaders.TYPE_ID) || headers.containsKey(JsonHeaders.RESOLVABLE_TYPE)) {
+			valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.class);
+			if (valueType == null) {
+				Class<?> targetClass = getClassForValue(headers.get(JsonHeaders.TYPE_ID));
+				Class<?> contentClass = null;
+				Class<?> keyClass = null;
+				if (headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)) {
+					contentClass = getClassForValue(headers.get(JsonHeaders.CONTENT_TYPE_ID));
+				}
+				if (headers.containsKey(JsonHeaders.KEY_TYPE_ID)) {
+					keyClass = getClassForValue(headers.get(JsonHeaders.KEY_TYPE_ID));
+				}
+
+				valueType = JsonObjectMapper.buildResolvableType(targetClass, contentClass, keyClass);
+			}
+		}
+		return valueType;
+	}
+
+	private Class<?> getClassForValue(Object classValue) {
+		if (classValue instanceof Class<?>) {
+			return (Class<?>) classValue;
+		}
+		else {
+			try {
+				return ClassUtils.forName(classValue.toString(), this.classLoader);
+			}
+			catch (ClassNotFoundException | LinkageError e) {
+				throw new IllegalStateException(e);
+			}
 		}
 	}
 
