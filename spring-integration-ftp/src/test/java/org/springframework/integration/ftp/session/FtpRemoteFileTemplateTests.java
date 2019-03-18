@@ -42,7 +42,10 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,7 +66,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 	private SessionFactory<FTPFile> sessionFactory;
 
 	@Test
-	public void testINT3412AppendStatRmdir() throws IOException {
+	public void testINT3412AppendStatRmdir() {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setBeanFactory(mock(BeanFactory.class));
@@ -96,7 +99,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 			assertEquals(0, files.length);
 			assertTrue(session.rmdir("foo/"));
 		});
-		assertFalse(template.getSession().exists("foo"));
+		assertFalse(template.exists("foo"));
 	}
 
 	@Test
@@ -122,6 +125,27 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		assertTrue(file.renameTo(newFile));
 		file.delete();
 		newFile.delete();
+	}
+
+	@Test
+	public void testConnectionClosedAfterExists() throws Exception {
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(this.sessionFactory);
+		template.setRemoteDirectoryExpression(new LiteralExpression("/"));
+		template.setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST_AND_DIRS);
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		File file = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
+		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		fileOutputStream.write("foo".getBytes());
+		fileOutputStream.close();
+		template.send(new GenericMessage<>(file), FileExistsMode.IGNORE);
+		File newFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
+		assertTrue(file.renameTo(newFile));
+		file.delete();
+		newFile.delete();
+
+		SimplePool<?> pool = TestUtils.getPropertyValue(this.sessionFactory, "pool", SimplePool.class);
+		assertEquals(0, pool.getActiveCount());
 	}
 
 	@Configuration
