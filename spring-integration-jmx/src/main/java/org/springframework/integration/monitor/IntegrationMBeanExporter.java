@@ -16,7 +16,6 @@
 
 package org.springframework.integration.monitor;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,6 +77,7 @@ import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -114,7 +114,7 @@ import org.springframework.util.StringValueResolver;
  * @author Artem Bilan
  * @author Meherzad Lahewala
  */
-@org.springframework.jmx.export.annotation.ManagedResource
+@ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
 		EmbeddedValueResolverAware, DestructionAwareBeanPostProcessor {
 
