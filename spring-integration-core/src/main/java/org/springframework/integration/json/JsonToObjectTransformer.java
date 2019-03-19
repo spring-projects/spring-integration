@@ -146,23 +146,24 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 
 	private ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers) {
-		ResolvableType valueType = null;
-		if (headers.containsKey(JsonHeaders.TYPE_ID) || headers.containsKey(JsonHeaders.RESOLVABLE_TYPE)) {
-			valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.class);
-			if (valueType == null) {
-				Class<?> targetClass = getClassForValue(headers.get(JsonHeaders.TYPE_ID));
-				Class<?> contentClass = null;
-				Class<?> keyClass = null;
-				if (headers.containsKey(JsonHeaders.CONTENT_TYPE_ID)) {
-					contentClass = getClassForValue(headers.get(JsonHeaders.CONTENT_TYPE_ID));
-				}
-				if (headers.containsKey(JsonHeaders.KEY_TYPE_ID)) {
-					keyClass = getClassForValue(headers.get(JsonHeaders.KEY_TYPE_ID));
-				}
-
-				valueType = JsonObjectMapper.buildResolvableType(targetClass, contentClass, keyClass);
+		ResolvableType valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.class);
+		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
+		if (valueType == null && typeIdHeader != null) {
+			Class<?> targetClass = getClassForValue(typeIdHeader);
+			Class<?> contentClass = null;
+			Class<?> keyClass = null;
+			Object contentTypeHeader = headers.get(JsonHeaders.CONTENT_TYPE_ID);
+			if (contentTypeHeader != null) {
+				contentClass = getClassForValue(contentTypeHeader);
 			}
+			Object keyTypeHeader = headers.get(JsonHeaders.KEY_TYPE_ID);
+			if (keyTypeHeader != null) {
+				keyClass = getClassForValue(keyTypeHeader);
+			}
+
+			valueType = JsonObjectMapper.buildResolvableType(targetClass, contentClass, keyClass);
 		}
+
 		return valueType;
 	}
 

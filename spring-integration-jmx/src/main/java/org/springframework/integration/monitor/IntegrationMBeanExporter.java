@@ -1038,26 +1038,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 		String endpointName = null;
 		String source = "endpoint";
-		Object endpoint = null;
+		AbstractEndpoint endpoint = getEndpointForMonitor(monitor);
 
-		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
-		for (String beanName : names) {
-			endpoint = this.applicationContext.getBean(beanName);
-			Object target = null;
-			if (monitor instanceof MessagingGatewaySupport && endpoint.equals(monitor)) {
-				target = monitor;
-			}
-			else if (endpoint instanceof SourcePollingChannelAdapter) {
-				target = ((SourcePollingChannelAdapter) endpoint).getMessageSource();
-			}
-			if (monitor.equals(target)) {
-				endpointName = beanName;
-				break;
-			}
-		}
-
-		if (endpointName == null) {
-			endpoint = null;
+		if (endpoint != null) {
+			endpointName = endpoint.getBeanName();
 		}
 		if (endpointName != null && endpointName.startsWith('_' + SI_PACKAGE)) {
 			endpointName = getInternalComponentName(endpointName);
@@ -1070,6 +1054,22 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			this.endpointsByMonitor.put(messageSourceMetrics, endpointName);
 		}
 		return messageSourceMetrics;
+	}
+
+	private AbstractEndpoint getEndpointForMonitor(MessageSourceMetrics monitor) {
+		for (AbstractEndpoint endpoint : this.applicationContext.getBeansOfType(AbstractEndpoint.class).values()) {
+			Object target = null;
+			if (monitor instanceof MessagingGatewaySupport && endpoint.equals(monitor)) {
+				target = monitor;
+			}
+			else if (endpoint instanceof SourcePollingChannelAdapter) {
+				target = ((SourcePollingChannelAdapter) endpoint).getMessageSource();
+			}
+			if (monitor.equals(target)) {
+				return endpoint;
+			}
+		}
+		return null;
 	}
 
 	private MessageSourceMetrics buildMessageSourceMetricsIfAny(MessageSourceMetrics monitor, String name,

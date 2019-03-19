@@ -120,11 +120,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		headers.putAll(message.getHeaders());
 
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
-			if (this.contentTypeExplicitlySet) {
-				// override, unless empty
-				if (StringUtils.hasLength(this.contentType)) {
-					headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
-				}
+			// override, unless empty
+			if (this.contentTypeExplicitlySet && StringUtils.hasLength(this.contentType)) {
+				headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 			}
 		}
 		else if (StringUtils.hasLength(this.contentType)) {
