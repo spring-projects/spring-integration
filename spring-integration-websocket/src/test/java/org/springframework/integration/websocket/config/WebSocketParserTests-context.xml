@@ -20,7 +20,7 @@
 									handshake-handler="handshakeHandler"
 									handshake-interceptors="handshakeInterceptor"
 									decorator-factories="decoratorFactory"
-									allowed-origins="http://www.foo.com/">
+									allowed-origins="https://foo.com">
 		<int-websocket:sockjs client-library-url="https://foo.sock.js"
 							  disconnect-delay="4000"
 							  heartbeat-time="30000"

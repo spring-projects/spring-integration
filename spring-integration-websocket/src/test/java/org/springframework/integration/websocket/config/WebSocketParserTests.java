@@ -159,7 +159,7 @@ public class WebSocketParserTests {
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit")).isEqualTo(100);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit")).isEqualTo(100000);
 		assertThat(TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class))
-				.isEqualTo(new String[] { "http://foo.com" });
+				.isEqualTo(new String[] { "https://foo.com" });
 
 		WebSocketHandlerDecoratorFactory[] decoratorFactories =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "decoratorFactories",

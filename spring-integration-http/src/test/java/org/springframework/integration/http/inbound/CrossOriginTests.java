@@ -36,6 +36,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,7 +53,7 @@ public class CrossOriginTests {
 	public void setUp() {
 		this.request = new MockHttpServletRequest();
 		this.request.setMethod("GET");
-		this.request.addHeader(HttpHeaders.ORIGIN, "http://domain.com/");
+		this.request.addHeader(HttpHeaders.ORIGIN, "https://domain.com/");
 	}
 
 	@Test
@@ -102,7 +103,7 @@ public class CrossOriginTests {
 		assertThat(config).isNotNull();
 		assertThat(config.getAllowedMethods().toArray()).isEqualTo(new String[] { "DELETE" });
 		assertThat(config.getAllowedOrigins().toArray())
-				.isEqualTo(new String[] { "http://site1.com", "http://site2.com" });
+				.isEqualTo(new String[] { "https://site1.com", "https://site2.com" });
 		assertThat(config.getAllowedHeaders().toArray()).isEqualTo(new String[] { "header1", "header2" });
 		assertThat(config.getExposedHeaders().toArray()).isEqualTo(new String[] { "header3", "header4" });
 		assertThat(config.getMaxAge()).isEqualTo(new Long(123));
@@ -161,7 +162,7 @@ public class CrossOriginTests {
 	@Test
 	public void testOptionsHeaderHandling() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/default");
-		request.addHeader(HttpHeaders.ORIGIN, "http://domain2.com");
+		request.addHeader(HttpHeaders.ORIGIN, "https://domain2.com");
 		HandlerExecutionChain handler = this.handlerMapping.getHandler(request);
 		assertThat(handler).isNotNull();
 		Object handlerMethod = handler.getHandler();

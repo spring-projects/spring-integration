@@ -142,7 +142,7 @@ subprojects { subproject ->
 		springSecurityVersion = '5.2.0.BUILD-SNAPSHOT'
 		springRetryVersion = '1.2.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.BUILD-SNAPSHOT'
-		springWsVersion = '3.0.6.RELEASE'
+		springWsVersion = '3.0.7.RELEASE'
 		tomcatVersion = "9.0.16"
 		xstreamVersion = '1.4.11.1'
 	}
@@ -301,7 +301,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = "8.17"
+		toolVersion = "8.18"
 	}
 
 	artifacts {
