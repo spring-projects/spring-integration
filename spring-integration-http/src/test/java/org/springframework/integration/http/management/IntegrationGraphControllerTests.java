@@ -59,6 +59,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.3
  */
 @RunWith(SpringRunner.class)
@@ -80,7 +81,7 @@ public class IntegrationGraphControllerTests {
 	@Test
 	public void testIntegrationGraphGet() throws Exception {
 		this.mockMvc.perform(get("/testIntegration")
-				.header(HttpHeaders.ORIGIN, "http://foo.bar.com")
+				.header(HttpHeaders.ORIGIN, "https://foo.bar.com")
 				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -108,7 +109,7 @@ public class IntegrationGraphControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setRequestURI("/foo");
-		request.addHeader(HttpHeaders.ORIGIN, "http://foo.bar.com");
+		request.addHeader(HttpHeaders.ORIGIN, "https://foo.bar.com");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		HandlerExecutionChain executionChain = handlerMapping.getHandler(request);
@@ -156,7 +157,7 @@ public class IntegrationGraphControllerTests {
 	@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
 			countsEnabled = "!*",
 			defaultLoggingEnabled = "false")
-	@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins = "http://foo.bar.com")
+	@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins = "https://foo.bar.com")
 	public static class ContextConfiguration {
 
 	}

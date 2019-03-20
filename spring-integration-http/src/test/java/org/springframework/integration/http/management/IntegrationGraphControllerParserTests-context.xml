@@ -5,16 +5,16 @@
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:mvc="http://www.springframework.org/schema/mvc"
 		xsi:schemaLocation="http://www.springframework.org/schema/integration/http
-		http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		https://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+		https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<mvc:annotation-driven />
 
 	<mvc:cors>
 		<mvc:mapping path="/foo"
-					 allowed-origins="http://foo.bar.com"
+					 allowed-origins="https://foo.bar.com"
 					 allowed-methods="GET" />
 	</mvc:cors>
 
