@@ -4,11 +4,11 @@
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:si="http://www.springframework.org/schema/integration"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/webflux
-			http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd">
+			https://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd">
 
 	<si:channel id="requests"/>
 
