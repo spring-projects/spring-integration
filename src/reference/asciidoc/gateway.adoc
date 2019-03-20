@@ -514,7 +514,6 @@ In this scenario, it is expected that the downstream flow will return a `Complet
 
 In the following scenario, the caller thread returns immediately with a `CompletableFuture<Invoice>`, which is completed when the downstream flow replies to the gateway (with an `Invoice` object).
 
-====
 [source, java]
 ----
 
