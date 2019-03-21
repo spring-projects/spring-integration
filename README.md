@@ -1,4 +1,4 @@
-Spring Integration [<img src="https://build.spring.io/plugins/servlet/buildStatusImage/INT-MASTER">](https://build.spring.io/browse/INT-MASTER) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+Spring Integration [<img src="https://build.spring.io/plugins/servlet/wittified/build-status/INT-MASTER">](https://build.spring.io/browse/INT-MASTER) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
 
 # Checking out and Building
@@ -53,4 +53,4 @@ To generate IDEA metadata (.iml and .ipr files), do the following:
 # Resources
 
 For more information, please visit the Spring Integration website at:
-[http://projects.spring.io/spring-integration](http://projects.spring.io/spring-integration/)
+[https://projects.spring.io/spring-integration](https://projects.spring.io/spring-integration/)

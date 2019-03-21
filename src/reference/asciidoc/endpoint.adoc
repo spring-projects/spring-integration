@@ -11,7 +11,7 @@ Some of these are also capable of sending reply messages.
 Sending messages is quite straightforward.
 As shown earlier in <<channel>>, you can send a message to a message channel.
 However, receiving is a bit more complicated.
-The main reason is that there are two types of consumers: http://www.eaipatterns.com/PollingConsumer.html[polling consumers] and http://www.eaipatterns.com/EventDrivenConsumer.html[event-driven consumers].
+The main reason is that there are two types of consumers: https://www.enterpriseintegrationpatterns.com/PollingConsumer.html[polling consumers] and https://www.enterpriseintegrationpatterns.com/EventDrivenConsumer.html[event-driven consumers].
 
 Of the two, event-driven consumers are much simpler.
 Without any need to manage and schedule a separate poller thread, they are essentially listeners with a callback method.
@@ -449,8 +449,8 @@ You can now obtain a reference to the trigger bean and change the polling interv
 For an example, see the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate[Spring Integration Samples] project.
 It contains a sample called `dynamic-poller`, which uses a custom trigger and demonstrates the ability to change the polling interval at runtime.
 
-The sample provides a custom trigger that implements the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html[`org.springframework.scheduling.Trigger`] interface.
-The sample's trigger is based on Spring's http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html[`PeriodicTrigger`] implementation.
+The sample provides a custom trigger that implements the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html[`org.springframework.scheduling.Trigger`] interface.
+The sample's trigger is based on Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html[`PeriodicTrigger`] implementation.
 However, the fields of the custom trigger are not final, and the properties have explicit getters and setters, letting you dynamically change the polling period at runtime.
 
 NOTE: It is important to note, though, that because the Trigger method is `nextExecutionTime()`, any changes to a dynamic trigger do not take effect until the next poll, based on the existing configuration.
@@ -534,7 +534,7 @@ public class ContextConfiguration {
 
 [IMPORTANT]
 =====
-When configuring an application context, the Spring Framework lets you add a `conversionService` bean (see http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config[Configuring a ConversionService] chapter).
+When configuring an application context, the Spring Framework lets you add a `conversionService` bean (see https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#core-convert-Spring-config[Configuring a ConversionService] chapter).
 This service is used, when needed, to perform appropriate conversions during bean creation and configuration.
 
 In contrast, the `integrationConversionService` is used for runtime conversions.
@@ -628,7 +628,7 @@ One of the ways to handle this is to set the `queue-capacity` attribute of the t
 Even 0 is a reasonable value.
 You can also manage it by specifying what to do with messages that can not be queued by setting the `rejection-policy` attribute of the Task Executor (for example, to `DISCARD`).
 In other words, there are certain details you must understand when configuring `TaskExecutor`.
-See http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html["`Task Execution and Scheduling`"] in the Spring reference manual for more detail on the subject.
+See https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling["`Task Execution and Scheduling`"] in the Spring reference manual for more detail on the subject.
 
 [[endpoint-inner]]
 ==== Endpoint Inner Beans
@@ -657,7 +657,7 @@ You can instead use an inner bean definition, as the following example shows:
 
 The bean is treated like any inner bean declared and is not registered with the application context.
 If you wish to access this bean in some other manner, declare it at the top level with an `id` and use the `ref` attribute instead.
-See the http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans[Spring Documentation] for more information.
+See the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-inner-beans[Spring Documentation] for more information.
 
 [[endpoint-roles]]
 === Endpoint Roles

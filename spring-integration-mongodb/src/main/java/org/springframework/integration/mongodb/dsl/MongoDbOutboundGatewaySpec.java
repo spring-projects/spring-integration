@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.messaging.Message;
 /**
  * A {@link MessageHandlerSpec} extension for the MongoDb Outbound endpoint {@link MongoDbOutboundGateway}
  *
- * @author Xavier Padró
+ * @author Xavier Padr?
  * @author Artem Bilan
  *
  * @since 5.0
@@ -66,7 +66,7 @@ public class MongoDbOutboundGatewaySpec
 	/**
 	 * A {@code String} representation of a MongoDb {@link Query} (e.g., query("{'name' : 'Bob'}")).
 	 * Please refer to MongoDb documentation for more query samples
-	 * see <a href="http://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
+	 * see <a href="https://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
 	 * This property is mutually exclusive with 'queryExpression' property.
 	 * @param query the MongoDb {@link Query} string representation to use.
 	 * @return the spec

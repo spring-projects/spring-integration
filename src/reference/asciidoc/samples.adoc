@@ -21,11 +21,11 @@ You can find the repository at:
 https://github.com/SpringSource/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
 
 In order to check out or clone the samples, you must have a Git client installed on your system.
-There are several GUI-based products available for many platforms (such as http://eclipse.org/egit/[EGit] for the Eclipse IDE).
+There are several GUI-based products available for many platforms (such as https://eclipse.org/egit/[EGit] for the Eclipse IDE).
 A simple Google search can help you find them.
-You can also use the command line interface for <<http://git-scm.com/,Git>>.
+You can also use the command line interface for <<https://git-scm.com/,Git>>.
 
-NOTE: If you need more information on how to install or use Git, visit: http://git-scm.com/[http://git-scm.com/].
+NOTE: If you need more information on how to install or use Git, visit: https://git-scm.com/[https://git-scm.com/].
 
 To clone (check out) the Spring Integration samples repository by using the Git command line tool, issue the following command:
 
@@ -55,7 +55,7 @@ We greatly appreciate any effort toward improving the samples, including the sha
 [[samples-how-can-i-contribute]]
 ==== How Can I Contribute My Own Samples?
 
-Github is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through http://help.github.com/send-pull-requests/[pull requests] from http://help.github.com/fork-a-repo/[forks] of this repository.
+Github is for social coding: if you want to submit your own code examples to the Spring Integration Samples project, we encourage contributions through https://help.github.com/en/articles/creating-a-pull-request/[pull requests] from https://help.github.com/en/articles/fork-a-repo[forks] of this repository.
 If you want to contribute code this way, please reference, if possible, a https://jira.springframework.org/browse/INTSAMPLES[JIRA ticket] that provides some details regarding your sample.
 
 [IMPORTANT]
@@ -141,7 +141,8 @@ In this section, you can find details on samples that we believe require special
 [[samples-loan-broker]]
 ==== Loan Broker
 
-This section covers the loan broker sample application that is included in the Spring Integration samples. This sample is inspired by one of the samples featured in Gregor Hohpe and Bobby Woolf's book, http://www.eaipatterns.com[_Enterprise Integration Patterns_].
+This section covers the loan broker sample application that is included in the Spring Integration samples. 
+This sample is inspired by one of the samples featured in Gregor Hohpe and Bobby Woolf's book, https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_].
 
 The following diagram shows the entire process:
 
@@ -282,7 +283,7 @@ The following example shows how to define an aggregator:
 ====
 
 Our Loan Broker defines a 'quotesAggregator' bean with the `<aggregator>` element, which provides a default aggregation and correlation strategy.
-The default correlation strategy correlates messages based on the `correlationId` header (see http://www.enterpriseintegrationpatterns.com/patterns/messaging/CorrelationIdentifier.html[the correlation identifier pattern in the EIP book]).
+The default correlation strategy correlates messages based on the `correlationId` header (see https://www.enterpriseintegrationpatterns.com/patterns/messaging/CorrelationIdentifier.html[the correlation identifier pattern in the EIP book]).
 Note that we never provided the value for this header.
 It was automatically set earlier by the router, when it generated a separate message for each bank channel.
 
@@ -312,7 +313,8 @@ Our goal is to make is so that integrating applications does not require changes
 [[samples-cafe]]
 ==== The Cafe Sample
 
-This section covers the cafe sample application that is included in the Spring Integration samples. This sample is inspired by another sample featured in Gregor Hohpe's http://www.eaipatterns.com/ramblings.html[Ramblings].
+This section covers the cafe sample application that is included in the Spring Integration samples. 
+This sample is inspired by another sample featured in Gregor Hohpe's https://www.enterpriseintegrationpatterns.com/ramblings.html[Ramblings].
 
 The domain is that of a cafe, and  the following diagram depicts the basic flow:
 
@@ -336,11 +338,11 @@ The following listing shows the XML configuration:
  xmlns:beans="http://www.springframework.org/schema/beans"
  xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
  xsi:schemaLocation="http://www.springframework.org/schema/beans
-  http://www.springframework.org/schema/beans/spring-beans.xsd
+  https://www.springframework.org/schema/beans/spring-beans.xsd
   http://www.springframework.org/schema/integration
-  http://www.springframework.org/schema/integration/spring-integration.xsd
+  https://www.springframework.org/schema/integration/spring-integration.xsd
   http://www.springframework.org/schema/integration/stream
-  http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+  https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
     <int:gateway id="cafe" service-interface="o.s.i.samples.cafe.Cafe"/>
 

@@ -27,7 +27,7 @@ Business components are further isolated from the infrastructure, and developers
 
 As an extension of the Spring programming model, Spring Integration provides a wide variety of configuration options, including annotations, XML with namespace support, XML with generic "`bean`" elements, and direct usage of the underlying API.
 That API is based upon well defined strategy interfaces and non-invasive, delegating adapters.
-Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well known patterns described in http://www.eaipatterns.com[_Enterprise Integration Patterns_], by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
+Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well known patterns described in https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_], by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
 Developers who have read that book should be immediately comfortable with the Spring Integration concepts and terminology.
 
 [[overview-goalsandprinciples]]
@@ -118,7 +118,7 @@ This is similar to the role of a controller in the MVC paradigm.
 Just as a controller handles HTTP requests, the message endpoint handles messages.
 Just as controllers are mapped to URL patterns, message endpoints are mapped to message channels.
 The goal is the same in both cases: isolate application code from the infrastructure.
-These concepts and all of the patterns that follow are discussed at length in the http://www.eaipatterns.com[_Enterprise Integration Patterns_] book.
+These concepts and all of the patterns that follow are discussed at length in the https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] book.
 Here, we provide only a high-level description of the main endpoint types supported by Spring Integration and the roles associated with those types.
 The chapters that follow elaborate and provide sample code as well as configuration examples.
 
@@ -397,7 +397,7 @@ The first time a Spring Integration namespace element is encountered, the framew
 
 IMPORTANT: Version 4.0 introduced the `@EnableIntegration` annotation, to allow the
 registration of Spring Integration infrastructure beans (see the
-http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[Javadoc]).
+https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[Javadoc]).
 This annotation is required when only Java configuration is used -- for example with Spring Boot or Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
 
 The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components
@@ -747,4 +747,4 @@ public void bar(String bar) { ... }
 ====
 
 If the `compilerMode` property is omitted, the `spring.expression.compiler.mode` system property determines the compiler mode.
-See http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-spel-compilation[SpEL compilation] for more information about compiled SpEL.
+See https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/core.html#expressions-spel-compilation[SpEL compilation] for more information about compiled SpEL.

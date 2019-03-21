@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package org.springframework.integration.jdbc.store.channel;
  * property is <code>1</code>.
  * <p>
  * Fore more details, please see:
- * http://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
+ * https://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
  *
  * @author Gunnar Hillert
  * @author Artem Bilan

@@ -71,11 +71,11 @@ public class DefaultSoapHeaderMapperTests {
 		SoapHeader soapHeader = mock(SoapHeader.class);
 		@SuppressWarnings("unchecked")
 		Iterator<QName> attrIterator = mock(Iterator.class);
-		QName attribute = new QName("http://x", "attr", "x");
+		QName attribute = new QName("https://x", "attr", "x");
 		@SuppressWarnings("unchecked")
 		Iterator<SoapHeaderElement> elementIterator = mock(Iterator.class);
 		SoapHeaderElement soapHeaderElement = mock(SoapHeaderElement.class);
-		QName element = new QName("http://x", "elem", "x");
+		QName element = new QName("https://x", "elem", "x");
 
 		when(soapMessage.getSoapHeader()).thenReturn(soapHeader);
 		when(soapHeader.getAllAttributes()).thenReturn(attrIterator);

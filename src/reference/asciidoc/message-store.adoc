@@ -1,11 +1,11 @@
 [[message-store]]
 === Message Store
 
-The http://www.eaipatterns.com[_Enterprise Integration Patterns_] (EIP) book identifies several patterns that have the ability to buffer messages.
+The https://www.enterpriseintegrationpatterns.com/[_Enterprise Integration Patterns_] (EIP) book identifies several patterns that have the ability to buffer messages.
 For example, an aggregator buffers messages until they can be released, and a `QueueChannel` buffers messages until consumers explicitly receive those messages from that channel.
 Because of the failures that can occur at any point within your message flow, EIP components that buffer messages also introduce a point where messages could be lost.
 
-To mitigate the risk of losing messages, EIP defines the http://eaipatterns.com/MessageStore.html[message store] pattern, which lets EIP components store messages, typically in some type of persistent store (such as an RDBMS).
+To mitigate the risk of losing messages, EIP defines the https://www.enterpriseintegrationpatterns.com/MessageStore.html[message store] pattern, which lets EIP components store messages, typically in some type of persistent store (such as an RDBMS).
 
 Spring Integration provides support for the message store pattern by:
 
@@ -137,6 +137,7 @@ use a custom `release-strategy` similar to the following:
 It produces results similar to the following for 1000 simple messages:
 
 ====
+[source]
 ----
 ...
 StopWatch 'Lazy-Load Performance': running time (millis) = 38918

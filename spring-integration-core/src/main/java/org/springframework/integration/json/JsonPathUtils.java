@@ -27,7 +27,7 @@ import com.jayway.jsonpath.Predicate;
 
 /**
  * Utility class to {@link #evaluate} a jsonPath on the provided object.
- * Delegates evaluation to <a href="http://code.google.com/p/json-path">JsonPath</a>.
+ * Delegates evaluation to <a href="https://github.com/json-path/JsonPath">JsonPath</a>.
  * Note {@link #evaluate} is used as {@code #jsonPath()} SpEL function.
  *
  * @author Artem Bilan

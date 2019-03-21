@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link org.aopalliance.intercept.MethodInterceptor} implementation for the
- * <a href="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
+ * <a href="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
  * E.I. Pattern.
  * <p>
  * This {@link org.aopalliance.intercept.MethodInterceptor} works like a
@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  *
  * @since 4.1
+ *
  * @see org.springframework.integration.selector.MetadataStoreSelector
  * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
  */

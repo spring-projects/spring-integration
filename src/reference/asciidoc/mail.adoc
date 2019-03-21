@@ -95,7 +95,6 @@ Normally, when the `IMAPMessage.getContent()` method is called, certain headers 
 ====
 
 ====
----
 [source]
 ----
 To: thing1@things.com
@@ -206,9 +205,9 @@ To use it, configure the following schema locations:
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration/mail
-    http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
+    https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 ----
 ====
 

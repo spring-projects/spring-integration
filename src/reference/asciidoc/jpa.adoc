@@ -136,7 +136,7 @@ You must provide this attribute, the `entity-manager-factory` attribute, or the 
 NOTE: Usually, your Spring application context defines only a JPA entity manager factory, and the `EntityManager` is injected by using the `@PersistenceContext` annotation.
 This approach does not apply for the Spring Integration JPA components.
 Usually, injecting the JPA entity manager factory is best, but, when you want to inject an `EntityManager` explicitly, you have to define a `SharedEntityManagerBean`.
-For more information, see the relevant http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html[Javadoc].
+For more information, see the relevant https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html[Javadoc].
 +
 The following example shows how to explicitly include an entity manager factory:
 +
@@ -497,7 +497,7 @@ The default value is `MERGE`.
 
 These four attributes of the `outbound-channel-adapter` configure it to accept entities over the input channel and process them to `PERSIST`, `MERGE`, or `DELETE` the entities from the underlying data source.
 
-NOTE: As of Spring Integration 3.0, payloads to `PERSIST` or `MERGE` can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+NOTE: As of Spring Integration 3.0, payloads to `PERSIST` or `MERGE` can also be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 Null values returned by the iterator are ignored.
 
@@ -716,7 +716,7 @@ Relevant only if you use an entity for JPA operations.
 Ignored if you provide JPA QL, a named query, or a native query.
 It defaults to `MERGE`.
 Optional.
-As of Spring Integration 3.0, payloads to persist or merge can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+As of Spring Integration 3.0, payloads to persist or merge can also be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged by using the underlying `EntityManager`.
 Null values returned by the iterator are ignored.
 <13> Set this value to `true` if you want to flush the persistence context immediately after persist, merge, or delete operations and do not want to rely on the `flushMode` of the `EntityManager`.
@@ -1172,7 +1172,7 @@ JSR 317: Java™ Persistence 2.0 states in chapter 4.10, "`Bulk Update and Delet
 "`A delete operation only applies to entities of the specified class and its subclasses.
 It does not cascade to related entities.`"
 
-For more information, see http://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
+For more information, see https://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
 ====
 
 [[outboundGatewaySamples]]

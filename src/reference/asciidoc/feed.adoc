@@ -34,7 +34,7 @@ To configure the 'feed' namespace, include the following elements within the hea
 ----
 xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
-	http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"
+	https://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"
 ----
 ====
 
@@ -50,7 +50,7 @@ The following example shows a possible configuration:
 ----
 <int-feed:inbound-channel-adapter id="feedAdapter"
         channel="feedChannel"
-        url="http://feeds.bbci.co.uk/news/rss.xml">
+        url="https://feeds.bbci.co.uk/news/rss.xml">
     <int:poller fixed-rate="10000" max-messages-per-poll="100" />
 </int-feed:inbound-channel-adapter>
 ----

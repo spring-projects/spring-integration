@@ -4,7 +4,7 @@
 Starting with version 4.1, Spring Integration has WebSocket support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's `web-socket` module.
 Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as  `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
-For more information, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
+For more information, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
 You need to include this dependency into your project:
 
@@ -150,11 +150,11 @@ To include it in your configuration, use the following namespace declaration in 
   xmlns:int-websocket="http://www.springframework.org/schema/integration/websocket"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/websocket
-    http://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
+    https://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
     ...
 </beans>
 ----
@@ -246,7 +246,7 @@ Defaults to `DefaultHandshakeHandler`.
 <5> List of one or more factories (`WebSocketHandlerDecoratorFactory`) that decorate the handler used to process WebSocket messages.
 This may be useful for some advanced use cases (for example, to allow Spring Security to forcibly close
 the WebSocket session when the corresponding HTTP session expires).
-See the http://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project] for more information.
+See the https://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project] for more information.
 <6> See the same option on the <<websocket-client-container-attributes,`<int-websocket:client-container>`>>.
 <7> See the same option on the <<websocket-client-container-attributes,`<int-websocket:client-container>`>>.
 <8> The allowed origin header values.

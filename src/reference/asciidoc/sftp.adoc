@@ -37,7 +37,7 @@ To include the SFTP namespace in your xml configuration, include the following a
 ----
 xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
-    http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
+    https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ----
 ====
 
@@ -88,12 +88,12 @@ See <<sftp-jsch-logging>>.
 
 Now all you need to do is inject this SFTP session factory into your adapters.
 
-NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
+NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
 
 [[sftp-session-factory-properties]]
 ==== Configuration Properties
 
-The following list describes all the properties that are exposed by the http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
+The following list describes all the properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
 
 `isSharedSession` (constructor argument)::When `true`, a single connection is used, and `JSch Channels` are multiplexed.
 It defaults to `false`.
@@ -103,7 +103,7 @@ It's default depends on the underlying JSch version but it will look like:_SSH-2
 
 `enableDaemonThread`::If `true`, all threads are daemon threads.
 If set to `false`, normal non-daemon threads are used instead.
-This property is set on the underlying http://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
+This property is set on the underlying https://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
 There, this property defaults to `false`.
 
 `host`::The URL of the host to which you want to connect.
@@ -123,7 +123,7 @@ The password is obtained from that object.
 If not specified, this value defaults to `22`.
 If specified, this properties must be a positive number.
 
-`privateKey`::Lets you set a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
+`privateKey`::Lets you set a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
 If the `privateKey` is not provided, then the `password` property is required.
 
 `privateKeyPassphrase`::The password for the private key.
@@ -131,7 +131,7 @@ If you set `userInfo`, `privateKeyPassphrase` is not allowed .
 The passphrase is obtained from that object.
 Optional.
 
-`proxy`::Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
+`proxy`::Allows for specifying a JSch-based https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
 If set, the proxy object is used to create the connection to the remote host through the proxy.
 See <<sftp-proxy-factory-bean>> for a convenient way to configure the proxy.
 
@@ -142,7 +142,7 @@ If not set, this property defaults to `1`.
 
 `sessionConfig`::By using `Properties`, you can set additional configuration setting on the underlying JSch Session.
 
-`socketFactory`:Lets you pass in a http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
+`socketFactory`::Lets you pass in a https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
 The socket factory is used to create a socket to the target host.
 When a proxy is used, the socket factory is passed to the proxy.
 By default, plain TCP sockets are used.
@@ -283,7 +283,7 @@ Spring Integration version 3.0 provides a new abstraction over the `SftpSession`
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
 In addition, we provide an `execute` method to let the caller run multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
-For more information, see the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`] There is a subclass for SFTP: https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/SftpRemoteFileTemplate.html[`SftpRemoteFileTemplate`].
+For more information, see the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`] There is a subclass for SFTP: https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/SftpRemoteFileTemplate.html[`SftpRemoteFileTemplate`].
 
 We added additional methods in version 4.1, including `getClientInstance()`.
 It provides access to the underlying `ChannelSftp`, which enables access to low-level APIs.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,13 +34,13 @@ public class TestXmlApplicationContextHelper {
 			+ "xmlns:context='http://www.springframework.org/schema/context' "
 			+ "xsi:schemaLocation="
 			+ "'http://www.springframework.org/schema/beans "
-			+ "http://www.springframework.org/schema/beans/spring-beans.xsd "
+			+ "https://www.springframework.org/schema/beans/spring-beans.xsd "
 			+ "http://www.springframework.org/schema/integration "
-			+ "http://www.springframework.org/schema/integration/spring-integration.xsd "
+			+ "https://www.springframework.org/schema/integration/spring-integration.xsd "
 			+ "http://www.springframework.org/schema/integration/xml "
-			+ "http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd "
-			+ "http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd " +
-			"http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd' >" +
+			+ "https://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd "
+			+ "http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd " +
+			"http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd' >" +
 			"<context:annotation-config/>";
 
 	private static final String footer = "</beans>";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  * {@link StoredProcOutboundGateway}. As functions are typically used to look up
  * values, only, the Stored Procedure message handler purposefully does not support
  * SQL function calls. If you believe there are valid use-cases for that, please file a
- * feature request at http://jira.springsource.org.
+ * feature request at https://jira.springsource.org.
  *
  * @author Gunnar Hillert
  * @since 2.1

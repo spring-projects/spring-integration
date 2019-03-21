@@ -4,7 +4,7 @@
 Spring Integration version 4.2 introduced STOMP (Simple Text Orientated Messaging Protocol) client support.
 It is based on the architecture, infrastructure, and API from the Spring Framework's messaging module, stomp package.
 Spring Integration uses many of Spring STOMP components (such as `StompSession` and `StompClientSupport`).
-For more information, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
+For more information, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#websocket-stomp-client[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
 
 You need to include this dependency into your project:
 
@@ -69,6 +69,7 @@ The STOMP protocol provides headers as part of its frame.
 The entire structure of the STOMP frame has the following format:
 
 ====
+[source]
 ----
 ....
 COMMAND
@@ -195,11 +196,11 @@ To include it in your configuration, provide the following namespace declaration
   xmlns:int-stomp="http://www.springframework.org/schema/integration/stomp"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/stomp
-    http://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
+    https://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
     ...
 </beans>
 ----
