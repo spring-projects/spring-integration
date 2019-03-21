@@ -24,10 +24,10 @@ compile "org.springframework.integration:spring-integration-gemfire:{project-ver
 ====
 
 GemFire is a distributed data management platform that provides a key-value data grid along with advanced distributed system features, such as event processing, continuous querying, and remote function execution.
-This guide assumes some familiarity with the commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source http://geode.apache.org[Apache Geode].
+This guide assumes some familiarity with the commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source https://geode.apache.org[Apache Geode].
 
 Spring integration provides support for GemFire by implementing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and message and metadata stores and `GemfireLockRegistry` implementations.
-Spring integration leverages the http://projects.spring.io/spring-data-gemfire[Spring Data for Pivotal GemFire] project, providing a thin wrapper over its components.
+Spring integration leverages the https://projects.spring.io/spring-data-gemfire[Spring Data for Pivotal GemFire] project, providing a thin wrapper over its components.
 
 Starting with version 5.1, the Spring Integration GemFire module uses the https://github.com/spring-projects/spring-data-geode[Spring Data for Apache Geode] transitive dependency by default.
 To switch to the commercial Pivotal GemFire-based Spring Data for Pivotal GemFire, exclude `spring-data-geode` from dependencies and add `spring-data-gemfire`, as the following Maven snippet shows:
@@ -60,7 +60,7 @@ To configure the 'int-gfe' namespace, include the following elements within the 
 ----
 xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
-	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"
+	https://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"
 ----
 ====
 
@@ -114,7 +114,7 @@ The continuous query acts as an event source that fires whenever its result set 
 
 NOTE: GemFire queries are written in OQL and are scoped to the entire cache (not just one region).
 Additionally, continuous queries require a remote (that is, running in a separate process or remote host) cache server.
-See the http://gemfire82.docs.pivotal.io/docs-gemfire/gemfire_nativeclient/continuous-querying/continuous-querying.html[GemFire documentation] for more information on implementing continuous queries.
+See the https://gemfire82.docs.pivotal.io/docs-gemfire/gemfire_nativeclient/continuous-querying/continuous-querying.html[GemFire documentation] for more information on implementing continuous queries.
 
 The following configuration creates a GemFire client cache (recall that a remote cache server is required for this implementation and its address is configured as a child element of the pool), a client region, and a `ContinuousQueryListenerContainer` that uses Spring Data:
 
@@ -188,9 +188,9 @@ This adapter also supports the `order` attribute, which may be useful if it is b
 [[gemfire-message-store]]
 === Gemfire Message Store
 
-As described in EIP, a http://www.eaipatterns.com/MessageStore.html[message store] lets you persist messages.
+As described in EIP, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[message store] lets you persist messages.
 This can be useful when dealing with components that have a capability to buffer messages (`QueueChannel`, `Aggregator`, `Resequencer`, and others) if reliability is a concern.
-In Spring Integration, the `MessageStore` strategy interface also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
+In Spring Integration, the `MessageStore` strategy interface also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
 
 Spring Integration's Gemfire module provides `GemfireMessageStore`, which is an implementation of both the the `MessageStore` strategy (mainly used by the `QueueChannel` and `ClaimCheck` patterns) and the `MessageGroupStore` strategy (mainly used by the `Aggregator` and `Resequencer` patterns).
 

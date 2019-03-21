@@ -1,7 +1,7 @@
 [[xmpp]]
 == XMPP Support
 
-Spring Integration provides channel adapters for http://www.xmpp.org[XMPP].
+Spring Integration provides channel adapters for https://www.xmpp.org[XMPP].
 XMPP stands for "`Extensible Messaging and Presence Protocol`".
 
 XMPP describes a way for multiple agents to communicate with each other in a distributed system.
@@ -11,7 +11,7 @@ Within that network, actors may address each other directly and broadcast status
 
 XMPP provides the messaging fabric that underlies some of the biggest instant messaging networks in the world, including Google Talk (GTalk, which is also available from within GMail) and Facebook Chat.
 Many good open-source XMPP servers are available.
-Two popular implementations are http://www.igniterealtime.org/projects/openfire/[Openfire] and http://www.ejabberd.im[ejabberd].
+Two popular implementations are https://www.igniterealtime.org/projects/openfire/[Openfire] and https://www.ejabberd.im[ejabberd].
 
 Spring integration provides support for XMPP by providing XMPP adapters, which support sending and receiving both XMPP chat messages and presence changes from other entries in a client's roster.
 
@@ -43,7 +43,7 @@ To configure the XMPP namespace, include the following elements in the headers o
 ----
 xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
-	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
+	https://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
 ----
 ====
 
@@ -80,7 +80,7 @@ This functionality is not always available for the target XMPP servers.
 For example, Google Cloud Messaging (GCM) and Firebase Cloud Messaging (FCM) fully disable it.
 To switch off the roster listener for subscriptions, you can configure it with an empty string when using XML configuration (`subscription-mode=""`) or with `XmppConnectionFactoryBean.setSubscriptionMode(null)` when using Java Configuration.
 Doing so disables the roster at the login phase as well.
-See http://download.igniterealtime.org/smack/docs/latest/javadoc/org/jivesoftware/smack/roster/Roster.html#setRosterLoadedAtLogin-boolean-[`Roster.setRosterLoadedAtLogin(boolean)`] for more information.
+See https://download.igniterealtime.org/smack/docs/latest/javadoc/org/jivesoftware/smack/roster/Roster.html#setRosterLoadedAtLogin-boolean-[`Roster.setRosterLoadedAtLogin(boolean)`] for more information.
 
 [[xmpp-messages]]
 === XMPP Messages
@@ -267,7 +267,7 @@ In that case, the bean with named `xmppConnection` is located and injected into 
 [[xmpp-advanced]]
 === Advanced Configuration
 
-Spring Integration's XMPP support is based on the Smack 4.0 API (http://www.igniterealtime.org/projects/smack/), which allows more complex configuration of the XMPP Connection object.
+Spring Integration's XMPP support is based on the Smack 4.0 API (https://www.igniterealtime.org/projects/smack/), which allows more complex configuration of the XMPP Connection object.
 
 As <<xmpp-connection,stated earlier>>, the `xmpp-connection` namespace support is designed to simplify basic connection configuration and supports only a few common configuration attributes.
 However, the `org.jivesoftware.smack.ConnectionConfiguration` object defines about 20 attributes, and adding namespace support for all of them offers no real value.
@@ -323,14 +323,14 @@ public class CustomConnectionConfiguration {
 ----
 ====
 
-For more information on using Java for application context configuration, see the following section in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-java[Spring Reference Manual].
+For more information on using Java for application context configuration, see the following section in the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-java[Spring Reference Manual].
 
 [[xmpp-message-headers]]
 === XMPP Message Headers
 
 The Spring Integration XMPP Adapters automatically map standard XMPP properties.
 By default, these properties are copied to and from Spring Integration `MessageHeaders` by using
-http://docs.spring.io/spring-integration/api/org/springframework/integration/xmpp/support/DefaultXmppHeaderMapper.html[`DefaultXmppHeaderMapper`].
+https://docs.spring.io/spring-integration/api/org/springframework/integration/xmpp/support/DefaultXmppHeaderMapper.html[`DefaultXmppHeaderMapper`].
 
 Any user-defined headers are not copied to or from an XMPP Message, unless explicitly specified by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultXmppHeaderMapper`.
 
@@ -373,11 +373,11 @@ However, you may need to do more than the basics.
 For example, you might need to include formatting (bold, italic, and so on) in a message, which is not defined in the core XMPP specification.
 Well, you can make up a way to do that, but, unless everyone else does it the same way you do, no other software can interpret it (they ignore namespaces they cannot understand).
 
-To solve that problem, the XMPP Standards Foundation (XSF) publishes a series of extra documents, known as http://xmpp.org/extensions/xep-0001.html[XMPP Enhancement Proposals] (XEPs).
+To solve that problem, the XMPP Standards Foundation (XSF) publishes a series of extra documents, known as https://xmpp.org/extensions/xep-0001.html[XMPP Enhancement Proposals] (XEPs).
 In general, each XEP describes a particular activity (from message formatting to file transfers, multi-user chats, and many more).
 They also provide a standard format for everyone to use for that activity.
 
-The Smack API provides many XEP implementations with its `extensions` and `experimental` http://www.igniterealtime.org/builds/smack/docs/latest/documentation/extensions/index.html[projects].
+The Smack API provides many XEP implementations with its `extensions` and `experimental` https://www.igniterealtime.org/builds/smack/docs/latest/documentation/extensions/index.html[projects].
 Starting with Spring Integration version 4.3, you can use any XEP with the existing XMPP channel adapters.
 
 To be able to process XEPs or any other custom XMPP extensions, you must provide the Smack's `ProviderManager` pre-configuration.
@@ -415,13 +415,13 @@ The `mycustom.providers` file might be as follows:
 
 <iqProvider>
     <elementName>query</elementName>
-    <namespace>http://jabber.org/protocol/disco#items</namespace>
+    <namespace>https://jabber.org/protocol/disco#items</namespace>
     <className>org.jivesoftware.smackx.provider.DiscoverItemsProvider</className>
 </iqProvider>
 
 <extensionProvider>
     <elementName>subscription</elementName>
-    <namespace>http://jabber.org/protocol/pubsub</namespace>
+    <namespace>https://jabber.org/protocol/pubsub</namespace>
     <className>org.jivesoftware.smackx.pubsub.provider.SubscriptionProvider</className>
 </extensionProvider>
 </smackProviders>

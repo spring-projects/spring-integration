@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link org.aopalliance.intercept.MethodInterceptor} implementation for the
- * <a href="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
+ * <a href="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
  * E.I. Pattern.
  * <p>
  * This {@link org.aopalliance.intercept.MethodInterceptor} works like a

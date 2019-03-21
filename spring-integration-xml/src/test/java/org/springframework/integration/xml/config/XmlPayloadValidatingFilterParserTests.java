@@ -63,8 +63,8 @@ public class XmlPayloadValidatingFilterParserTests {
 	static {
 		DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
 		try {
-			DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-			DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+			DOCUMENT_BUILDER_FACTORY.setFeature("https://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+			DOCUMENT_BUILDER_FACTORY.setFeature("https://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 		}
 		catch (ParserConfigurationException e) {
 			throw new RuntimeException(e);

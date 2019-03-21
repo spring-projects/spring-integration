@@ -68,7 +68,7 @@ public class WebServiceHeaderEnricherTests {
 		template.setDefaultDestination(expressionInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
-		assertThat(headers.get(WebServiceHeaders.SOAP_ACTION)).isEqualTo("http://foo");
+		assertThat(headers.get(WebServiceHeaders.SOAP_ACTION)).isEqualTo("https://foo");
 	}
 
 }

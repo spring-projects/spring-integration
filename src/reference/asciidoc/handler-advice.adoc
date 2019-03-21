@@ -71,7 +71,7 @@ Stateful retry is the case where the retry state is managed within the advice bu
 An example for stateful retry is when we want the message originator (for example,JMS) to be responsible for resubmitting, rather than performing it on the current thread.
 Stateful retry needs some mechanism to detect a retried submission.
 
-For more information on `spring-retry`, see https://docs.spring.io/spring-integration/api/[the project's Javadoc] and the reference documentation for http://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
+For more information on `spring-retry`, see https://docs.spring.io/spring-integration/api/[the project's Javadoc] and the reference documentation for https://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
 
 WARNING: The default back off behavior is to not back off.
 Retries are attempted immediately.
@@ -562,7 +562,7 @@ This method must be used in cases where the invocation might be called multiple 
 This is required because the Spring AOP `org.springframework.aop.framework.ReflectiveMethodInvocation` object maintains state by keeping track of which advice in a chain was last invoked.
 This state must be reset for each call.
 
-For more information, see the http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] Javadoc.
+For more information, see the https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] Javadoc.
 =====
 
 [[other-advice]]
@@ -605,7 +605,7 @@ Consider the following configuration:
 In the preceding example, the `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`.
 However, `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()`.
 Therefore, it is invoked *before* the `<tx:advice>`.
-To retain the order, you should follow the standard http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use an endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
+To retain the order, you should follow the standard https://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use an endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
 Note that, in that case, the entire downstream flow is within the transaction scope.
 
 In the case of a `MessageHandler` that does not return a response, the advice chain order is retained.
@@ -775,7 +775,7 @@ String componentName = handler.getComponentName();
 [[idempotent-receiver]]
 ==== Idempotent Receiver Enterprise Integration Pattern
 
-Starting with version 4.1, Spring Integration provides an implementation of the http://www.eaipatterns.com/IdempotentReceiver.html[Idempotent Receiver] Enterprise Integration Pattern.
+Starting with version 4.1, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html[Idempotent Receiver] Enterprise Integration Pattern.
 It is a functional pattern and the whole idempotency logic should be implemented in the application.
 However, to simplify the decision-making, the `IdempotentReceiverInterceptor` component is provided.
 This is an AOP `Advice` that is applied to the `MessageHandler.handleMessage()` method and that can `filter` a request message or mark it as a `duplicate`, according to its configuration.

@@ -12,10 +12,10 @@ Testing support is presented by two modules:
 `spring-integration-test` aims to help with integration testing and provides a comprehensive high-level API to mock integration components and verify the behavior of individual components, including whole integration flows or only parts of them.
 
 A thorough treatment of testing in the enterprise is beyond the scope of this reference manual.
-See the http://www.enterpriseintegrationpatterns.com/docs/TestDrivenEAI.pdf["`Test-Driven Development in Enterprise Integration Projects`"] paper, by Gregor Hohpe and Wendy Istvanick, for a source of ideas and principles for testing your target integration solution.
+See the https://www.enterpriseintegrationpatterns.com/docs/TestDrivenEAI.pdf["`Test-Driven Development in Enterprise Integration Projects`"] paper, by Gregor Hohpe and Wendy Istvanick, for a source of ideas and principles for testing your target integration solution.
 
 The Spring Integration Test Framework and test utilities are fully based on existing JUnit, Hamcrest, and Mockito libraries.
-The application context interaction is based on the http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/htmlsingle/#testing[Spring test framework].
+The application context interaction is based on the https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/htmlsingle/#testing[Spring test framework].
 See the documentation for those projects for further information.
 
 Thanks to the canonical implementation of the EIP in Spring Integration Framework and its first-class citizens (such as `MessageChannel`, `Endpoint` and `MessageHandler`), abstractions, and loose coupling principles, you can implement integration solutions of any complexity.

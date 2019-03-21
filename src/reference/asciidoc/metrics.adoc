@@ -2,7 +2,7 @@
 === Metrics and Management
 
 This section describes how to capture metrics for Spring Integration.
-In recent versions, we have relied more on Micrometer (see http://micrometer.io), and we plan to use Micrometer even more in future releases.
+In recent versions, we have relied more on Micrometer (see https://micrometer.io), and we plan to use Micrometer even more in future releases.
 
 [[configuring-metrics-capture]]
 ==== Configuring Metrics Capture

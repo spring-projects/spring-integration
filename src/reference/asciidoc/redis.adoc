@@ -1,8 +1,8 @@
 [[redis]]
 == Redis Support
 
-Spring Integration 2.1 introduced support for http://redis.io/[Redis]: "`an open source advanced key-value store`".
-This support comes in the form of a Redis-based `MessageStore` as well as publish-subscribe messaging adapters that are supported by Redis through its http://redis.io/topics/pubsub[`PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE`] commands.
+Spring Integration 2.1 introduced support for https://redis.io/[Redis]: "`an open source advanced key-value store`".
+This support comes in the form of a Redis-based `MessageStore` as well as publish-subscribe messaging adapters that are supported by Redis through its https://redis.io/topics/pubsub[`PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE`] commands.
 
 You need to include this dependency into your project:
 
@@ -26,7 +26,7 @@ compile "org.springframework.integration:spring-integration-redis:{project-versi
 
 You also need to include Redis client dependency, e.g. Lettuce.
 
-To download, install, and run Redis, see the http://redis.io/download[Redis documentation].
+To download, install, and run Redis, see the https://redis.io/download[Redis documentation].
 
 [[redis-connection]]
 === Connecting to Redis
@@ -176,7 +176,7 @@ Inbound adapters can subscribe to multiple topic names, hence the comma-separate
 
 Since version 3.0, the inbound adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
 This attribute contains a comma-separated set of Redis topic patterns.
-For more information regarding Redis publish-subscribe, see http://redis.io/topics/pubsub[Redis Pub/Sub].
+For more information regarding Redis publish-subscribe, see https://redis.io/topics/pubsub[Redis Pub/Sub].
 
 Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis messages.
 The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be set to an empty string, which results in a `null` value for the `RedisSerializer` property.
@@ -341,9 +341,9 @@ Handling these events with an `<int-event:inbound-channel-adapter/>` can be usef
 [[redis-message-store]]
 === Redis Message Store
 
-As described in the _Enterprise Integration Patterns_ (EIP) book, a http://www.eaipatterns.com/MessageStore.html[message store] lets you persist messages.
+As described in the _Enterprise Integration Patterns_ (EIP) book, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[message store] lets you persist messages.
 This can be useful when dealing with components that have a capability to buffer messages (aggregator, resequencer, and others) when reliability is a concern.
-In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
+In Spring Integration, the `MessageStore` strategy also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
 
 Spring Integration's Redis module provides the `RedisMessageStore`.
 The following example shows how to use it with a aggregator:
@@ -421,7 +421,7 @@ They can be used only for situations such as backing a `QueueChannel`.
 [[redis-metadata-store]]
 === Redis Metadata Store
 
-Spring Integration 3.0 introduced a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see <<metadata-store>>) implementation.
+Spring Integration 3.0 introduced a new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see <<metadata-store>>) implementation.
 You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
@@ -444,8 +444,8 @@ The following example shows how to declare such a bean:
 ----
 ====
 
-The `RedisMetadataStore` is backed by http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`].
-Interaction with it uses http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
+The `RedisMetadataStore` is backed by https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`].
+Interaction with it uses https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
 In the case of the `MetadataStore`, this `key` plays the role of a region, which is useful in a distributed environment, when several applications use the same Redis server.
 By default, this `key` has a value of `MetaData`.
 
@@ -668,7 +668,7 @@ The `Message` payload should have a name of `redisCounter`, which may be provide
 The `RedisConnection#execute` method has a generic `Object` as its return type.
 Real result depends on command type.
 For example, `MGET` returns a `List<byte[]>`.
-For more information about commands, their arguments and result type, see http://redis.io/commands[Redis Specification].
+For more information about commands, their arguments and result type, see https://redis.io/commands[Redis Specification].
 
 [[redis-queue-outbound-gateway]]
 === Redis Queue Outbound Gateway
