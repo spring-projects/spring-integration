@@ -201,38 +201,44 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
 		logger.debug("New accept");
-		SocketChannel channel = server.accept();
-		if (isShuttingDown()) {
-			if (logger.isInfoEnabled()) {
-				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort()
-						+ " rejected; the server is in the process of shutting down.");
-			}
-			channel.close();
-		}
-		else {
-			try {
-				channel.configureBlocking(false);
-				Socket socket = channel.socket();
-				setSocketAttributes(socket);
-				TcpNioConnection connection = createTcpNioConnection(channel);
-				if (connection == null) {
-					return;
+		// when many new connections arrive, we should
+		// accept connections in a for loop until no new connection is ready
+		for(;;){
+			SocketChannel channel = server.accept();
+			if(channel == null)
+				return;
+			if (isShuttingDown()) {
+				if (logger.isInfoEnabled()) {
+					logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
+							+ ":" + channel.socket().getPort()
+							+ " rejected; the server is in the process of shutting down.");
 				}
-				connection.setTaskExecutor(getTaskExecutor());
-				connection.setLastRead(now);
-				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
-				}
-				this.channelMap.put(channel, connection);
-				channel.register(selector, SelectionKey.OP_READ, connection);
-				connection.publishConnectionOpenEvent();
-			}
-			catch (Exception e) {
-				logger.error("Exception accepting new connection from "
-						+ channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort(), e);
 				channel.close();
+			}
+			else {
+				try {
+					channel.configureBlocking(false);
+					Socket socket = channel.socket();
+					setSocketAttributes(socket);
+					TcpNioConnection connection = createTcpNioConnection(channel);
+					if (connection == null) {
+						return;
+					}
+					connection.setTaskExecutor(getTaskExecutor());
+					connection.setLastRead(now);
+					if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+						((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+					}
+					this.channelMap.put(channel, connection);
+					channel.register(selector, SelectionKey.OP_READ, connection);
+					connection.publishConnectionOpenEvent();
+				}
+				catch (Exception e) {
+					logger.error("Exception accepting new connection from "
+							+ channel.socket().getInetAddress().getHostAddress()
+							+ ":" + channel.socket().getPort(), e);
+					channel.close();
+				}
 			}
 		}
 	}
