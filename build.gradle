@@ -238,7 +238,7 @@ subprojects { subproject ->
 								def years = "$beginningYear-$now"
 								def sourceCode = file.text
 								sourceCode = sourceCode.replaceFirst(/20\d\d(-20\d\d)?/, years)
-								file.write(sourceCode)
+								file.text = sourceCode
 								println "Copyright updated for file: $file"
 							}
 							break

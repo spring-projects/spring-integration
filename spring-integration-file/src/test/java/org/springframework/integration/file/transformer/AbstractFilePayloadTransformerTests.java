@@ -38,7 +38,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n????";
+	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
 	T transformer;
 
@@ -48,7 +48,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 
 
 	@Before
-	public void setUpCommonTestdata() throws Exception {
+	public void setUpCommonTestData() throws Exception {
 		sourceFile = File.createTempFile("anyFile", ".txt");
 		sourceFile.deleteOnExit();
 		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
@@ -57,7 +57,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 	}
 
 	@After
-	public void tearDownCommonTestdata() {
+	public void tearDownCommonTestData() {
 		if (sourceFile.exists()) {
 			sourceFile.delete();
 		}

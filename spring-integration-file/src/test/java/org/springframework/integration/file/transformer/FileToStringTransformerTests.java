@@ -52,7 +52,7 @@ public class FileToStringTransformerTests extends
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload())
 				.isInstanceOf(String.class)
-				.isEqualTo(SAMPLE_CONTENT);
+				.isNotEqualTo(SAMPLE_CONTENT);
 	}
 
 }
