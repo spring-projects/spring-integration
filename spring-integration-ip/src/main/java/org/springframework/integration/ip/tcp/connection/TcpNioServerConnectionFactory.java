@@ -203,10 +203,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		logger.debug("New accept");
 		// when many new connections arrive, we should
 		// accept connections in a for loop until no new connection is ready
-		for(;;){
+		for (;;) {
 			SocketChannel channel = server.accept();
-			if(channel == null)
+			if(channel == null) {
 				return;
+			}
 			if (isShuttingDown()) {
 				if (logger.isInfoEnabled()) {
 					logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
