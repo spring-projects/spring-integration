@@ -42,7 +42,7 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n????";
+	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
 	T transformer;
 
