@@ -46,7 +46,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 	public RouterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		super(beanFactory);
-		this.messageHandlerAttributes.addAll(Arrays.<String>asList("defaultOutputChannel", "applySequence",
+		this.messageHandlerAttributes.addAll(Arrays.asList("defaultOutputChannel", "applySequence",
 				"ignoreSendFailures", "resolutionRequired", "channelMappings", "prefix", "suffix"));
 	}
 
@@ -54,12 +54,13 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		AbstractMessageRouter router;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			router = this.extractTypeIfPossible(target, AbstractMessageRouter.class);
+			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			router = extractTypeIfPossible(target, AbstractMessageRouter.class);
 			if (router == null) {
 				if (target instanceof MessageHandler) {
-					Assert.isTrue(this.routerAttributesProvided(annotations), "'defaultOutputChannel', 'applySequence', " +
-							"'ignoreSendFailures', 'resolutionRequired', 'channelMappings', 'prefix' and 'suffix' " +
+					Assert.isTrue(routerAttributesProvided(annotations),
+							"'defaultOutputChannel', 'applySequence', 'ignoreSendFailures', 'resolutionRequired', " +
+									"'channelMappings', 'prefix' and 'suffix' " +
 							"can be applied to 'AbstractMessageRouter' implementations, but target handler is: " +
 							target.getClass());
 					return (MessageHandler) target;
@@ -84,26 +85,23 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
 		if (StringUtils.hasText(applySequence)) {
-			router.setApplySequence(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(applySequence)));
+			router.setApplySequence(resolveAttributeToBoolean(applySequence));
 		}
 
 		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
 				String.class);
 		if (StringUtils.hasText(ignoreSendFailures)) {
-			router.setIgnoreSendFailures(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(ignoreSendFailures)));
+			router.setIgnoreSendFailures(resolveAttributeToBoolean(ignoreSendFailures));
 		}
 
-		if (this.routerAttributesProvided(annotations)) {
+		if (routerAttributesProvided(annotations)) {
 
 			MethodInvokingRouter methodInvokingRouter = (MethodInvokingRouter) router;
 
 			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
 					String.class);
 			if (StringUtils.hasText(resolutionRequired)) {
-				String resolutionRequiredValue = this.beanFactory.resolveEmbeddedValue(resolutionRequired);
-				if (StringUtils.hasText(resolutionRequiredValue)) {
-					methodInvokingRouter.setResolutionRequired(Boolean.parseBoolean(resolutionRequiredValue));
-				}
+				methodInvokingRouter.setResolutionRequired(resolveAttributeToBoolean(resolutionRequired));
 			}
 
 			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);

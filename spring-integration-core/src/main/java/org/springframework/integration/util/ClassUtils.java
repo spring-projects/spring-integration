@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.util.ReflectionUtils;
 
@@ -39,6 +40,12 @@ public abstract class ClassUtils {
 			ReflectionUtils.findMethod(Function.class, "apply", (Class<?>[]) null);
 
 	/**
+	 * The {@link Supplier#get()} method object.
+	 */
+	public static final Method SUPPLIER_GET_METHOD =
+			ReflectionUtils.findMethod(Supplier.class, "get", (Class<?>[]) null);
+
+	/**
 	 * The {@code org.springframework.integration.core.GenericSelector#accept(Object)} method object.
 	 */
 	public static final Method SELECTOR_ACCEPT_METHOD;
@@ -52,6 +59,21 @@ public abstract class ClassUtils {
 	 * The {@code org.springframework.integration.handler.GenericHandler#handle(Object, Map)} method object.
 	 */
 	public static final Method HANDLER_HANDLE_METHOD;
+
+	/**
+	 * The {@code kotlin.jvm.functions.Function0} class object.
+	 */
+	public static final Class<?> KOTLIN_FUNCTION_0_CLASS;
+
+	/**
+	 * The {@code kotlin.jvm.functions.Function0#invoke} method object.
+	 */
+	public static final Method KOTLIN_FUNCTION_0_INVOKE_METHOD;
+
+	/**
+	 * The {@code kotlin.jvm.functions.Function1} class object.
+	 */
+	public static final Class<?> KOTLIN_FUNCTION_1_CLASS;
 
 	static {
 		Class<?> genericSelectorClass = null;
@@ -93,25 +115,35 @@ public abstract class ClassUtils {
 		}
 
 		HANDLER_HANDLE_METHOD = ReflectionUtils.findMethod(genericHandlerClass, "handle", (Class<?>[]) null);
-	}
 
+		Class<?> kotlinClass = null;
+		Method kotlinMethod = null;
+		try {
+			kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function0",
+					org.springframework.util.ClassUtils.getDefaultClassLoader());
 
-	/**
-	 * Map with primitive wrapper type as key and corresponding primitive
-	 * type as value, for example: Integer.class -> int.class.
-	 */
-	private static final Map<Class<?>, Class<?>> primitiveWrapperTypeMap = new HashMap<>(8);
+			kotlinMethod = ReflectionUtils.findMethod(kotlinClass, "invoke", (Class<?>[]) null);
+		}
+		catch (ClassNotFoundException e) {
+			//Ignore: assume no Kotlin in classpath
+		}
+		finally {
+			KOTLIN_FUNCTION_0_CLASS = kotlinClass;
+			KOTLIN_FUNCTION_0_INVOKE_METHOD = kotlinMethod;
+		}
 
-
-	static {
-		primitiveWrapperTypeMap.put(Boolean.class, boolean.class);
-		primitiveWrapperTypeMap.put(Byte.class, byte.class);
-		primitiveWrapperTypeMap.put(Character.class, char.class);
-		primitiveWrapperTypeMap.put(Double.class, double.class);
-		primitiveWrapperTypeMap.put(Float.class, float.class);
-		primitiveWrapperTypeMap.put(Integer.class, int.class);
-		primitiveWrapperTypeMap.put(Long.class, long.class);
-		primitiveWrapperTypeMap.put(Short.class, short.class);
+		kotlinClass = null;
+		kotlinMethod = null;
+		try {
+			kotlinClass = org.springframework.util.ClassUtils.forName("kotlin.jvm.functions.Function1",
+					org.springframework.util.ClassUtils.getDefaultClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			//Ignore: assume no Kotlin in classpath
+		}
+		finally {
+			KOTLIN_FUNCTION_1_CLASS = kotlinClass;
+		}
 	}
 
 	public static Class<?> findClosestMatch(Class<?> type, Set<Class<?>> candidates, boolean failOnTie) {
@@ -162,9 +194,40 @@ public abstract class ClassUtils {
 	 * returning the corresponding primitive type instead.
 	 * @param clazz the wrapper class to check
 	 * @return the corresponding primitive if the clazz is a wrapper, otherwise null
+	 * @deprecated since 5.2 in favor of {@link org.springframework.util.ClassUtils#resolvePrimitiveIfNecessary(Class)}
 	 */
+	@Deprecated
 	public static Class<?> resolvePrimitiveType(Class<?> clazz) {
-		return primitiveWrapperTypeMap.get(clazz);
+		return org.springframework.util.ClassUtils.resolvePrimitiveIfNecessary(clazz);
 	}
 
+	/**
+	 * Check if class is Java lambda.
+	 * @param aClass the {@link Class} to check.
+	 * @return true if class is a Java lambda.
+	 * @since 5.2
+	 */
+	public static boolean isLambda(Class<?> aClass) {
+		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
+	}
+
+	/**
+	 * Check if class is {@code kotlin.jvm.functions.Function0}.
+	 * @param aClass the {@link Class} to check.
+	 * @return true if class is a {@code kotlin.jvm.functions.Function0} implementation.
+	 * @since 5.2
+	 */
+	public static boolean isKotlinFaction0(Class<?> aClass) {
+		return KOTLIN_FUNCTION_0_CLASS != null && KOTLIN_FUNCTION_0_CLASS.isAssignableFrom(aClass);
+	}
+
+	/**
+	 * Check if class is {@code kotlin.jvm.functions.Function1}.
+	 * @param aClass the {@link Class} to check.
+	 * @return true if class is a {@code kotlin.jvm.functions.Function1} implementation.
+	 * @since 5.2
+	 */
+	public static boolean isKotlinFaction1(Class<?> aClass) {
+		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
+	}
 }

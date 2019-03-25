@@ -20,7 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.MethodIntrospector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -63,26 +64,21 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 	public LambdaMessageProcessor(Object target, Class<?> payloadType) {
 		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
-		final AtomicReference<Method> methodValue = new AtomicReference<>();
-		ReflectionUtils.doWithMethods(target.getClass(),
-				methodValue::set,
-				methodCandidate -> {
-					boolean isCandidate = !methodCandidate.isBridge()
-							&& !methodCandidate.isDefault()
-							&& methodCandidate.getDeclaringClass() != Object.class
-							&& Modifier.isPublic(methodCandidate.getModifiers())
-							&& !Modifier.isStatic(methodCandidate.getModifiers());
-					if (isCandidate) {
-						Assert.isNull(methodValue.get(), "LambdaMessageProcessor is applicable for inline or lambda " +
-								"classes with single method - functional interface implementations.");
-					}
-					return isCandidate;
-				});
 
-		Assert.notNull(methodValue.get(), "LambdaMessageProcessor is applicable for inline or lambda " +
-				"classes with single method - functional interface implementations.");
+		Set<Method> methods =
+				MethodIntrospector.selectMethods(target.getClass(),
+						(ReflectionUtils.MethodFilter) methodCandidate ->
+								methodCandidate.getDeclaringClass() != Object.class &&
+										!methodCandidate.getDeclaringClass().getName()
+												.equals("kotlin.jvm.internal.Lambda") &&
+										!methodCandidate.isDefault() &&
+										!Modifier.isStatic(methodCandidate.getModifiers()));
 
-		this.method = methodValue.get();
+		Assert.state(methods.size() == 1,
+				"LambdaMessageProcessor is applicable for inline or lambda " +
+						"classes with single method - functional interface implementations.");
+
+		this.method = methods.iterator().next();
 		this.method.setAccessible(true);
 		this.parameterTypes = this.method.getParameterTypes();
 		this.payloadType = payloadType;

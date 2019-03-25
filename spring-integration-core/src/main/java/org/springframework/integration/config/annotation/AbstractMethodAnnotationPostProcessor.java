@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
@@ -61,10 +64,13 @@ import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.LambdaMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
@@ -77,7 +83,6 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -440,7 +445,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		String name = MessagingAnnotationUtils.endpointIdValue(method);
 		if (!StringUtils.hasText(name)) {
 			String baseName = originalBeanName + "." + method.getName() + "."
-					+ ClassUtils.getShortNameAsProperty(this.annotationType);
+					+ org.springframework.util.ClassUtils.getShortNameAsProperty(this.annotationType);
 			name = baseName;
 			int count = 1;
 			while (this.beanFactory.containsBean(name)) {
@@ -510,9 +515,26 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
+	protected boolean resolveAttributeToBoolean(String requiresReply) {
+		return Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply));
+	}
+
+	@Nullable
+	protected MessageProcessor<?> buildLambdaMessageProcessorForBeanMethod(Method method, Object target) {
+		if ((target instanceof Function || target instanceof Consumer) && ClassUtils.isLambda(target.getClass())
+				|| ClassUtils.isKotlinFaction1(target.getClass())) {
+
+			ResolvableType methodReturnType = ResolvableType.forMethodReturnType(method);
+			Class<?> expectedPayloadType = methodReturnType.getGeneric(0).toClass();
+			return new LambdaMessageProcessor(target, expectedPayloadType);
+		}
+		else {
+			return null;
+		}
+	}
+
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
-	 *
 	 * @param bean The bean.
 	 * @param method The method.
 	 * @param annotations The messaging annotation (or meta-annotation hierarchy) on the method.

@@ -686,7 +686,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
 		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
-				(isLambda(genericTransformer)
+				(ClassUtils.isLambda(genericTransformer.getClass())
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, payloadType))
 						: new MethodInvokingTransformer(genericTransformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 		return addComponent(transformer)
@@ -887,7 +887,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<FilterEndpointSpec> endpointConfigurer) {
 		Assert.notNull(genericSelector, "'genericSelector' must not be null");
 		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
-				(isLambda(genericSelector)
+				(ClassUtils.isLambda(genericSelector.getClass())
 						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, payloadType))
 						: new MethodInvokingSelector(genericSelector, ClassUtils.SELECTOR_ACCEPT_METHOD));
 		return this.register(new FilterEndpointSpec(new MessageFilter(selector)), endpointConfigurer);
@@ -1092,7 +1092,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
 		ServiceActivatingHandler serviceActivatingHandler;
-		if (isLambda(handler)) {
+		if (ClassUtils.isLambda(handler.getClass())) {
 			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
 		}
 		else {
@@ -1607,9 +1607,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 
-		MethodInvokingSplitter split = isLambda(splitter)
-				? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, payloadType))
-				: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
+		MethodInvokingSplitter split =
+				ClassUtils.isLambda(splitter.getClass())
+						? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, payloadType))
+						: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
 		return split(split, endpointConfigurer);
 	}
 
@@ -2014,14 +2015,16 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 
-		MethodInvokingRouter methodInvokingRouter = isLambda(router)
-				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
-				: new MethodInvokingRouter(router, ClassUtils.FUNCTION_APPLY_METHOD);
+		MethodInvokingRouter methodInvokingRouter =
+				ClassUtils.isLambda(router.getClass())
+						? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
+						: new MethodInvokingRouter(router, ClassUtils.FUNCTION_APPLY_METHOD);
 		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 
 	/**
-	 * Populate the {@link MethodInvokingRouter} for the {@link org.springframework.integration.handler.MessageProcessor}
+	 * Populate the {@link MethodInvokingRouter} for the
+	 * {@link org.springframework.integration.handler.MessageProcessor}
 	 * from the provided {@link MessageProcessorSpec} with default options.
 	 * <pre class="code">
 	 * {@code
@@ -2036,7 +2039,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MethodInvokingRouter} for the {@link org.springframework.integration.handler.MessageProcessor}
+	 * Populate the {@link MethodInvokingRouter} for the
+	 * {@link org.springframework.integration.handler.MessageProcessor}
 	 * from the provided {@link MessageProcessorSpec} with default options.
 	 * <pre class="code">
 	 * {@code
@@ -3118,7 +3122,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		if (this.integrationFlow == null) {
 			if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
 				throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel
-						+ ") is a prototype for 'FixedSubscriberChannel' which can't be created without 'MessageHandler' "
+						+ ") is a prototype for 'FixedSubscriberChannel' which can't be created without " +
+						"'MessageHandler' "
 						+ "constructor argument. That means that '.fixedSubscriberChannel()' can't be the last "
 						+ "EIP-method in the 'IntegrationFlow' definition.");
 			}
@@ -3149,11 +3154,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);
 		}
 		return this.integrationFlow;
-	}
-
-	private static boolean isLambda(Object o) {
-		Class<?> aClass = o.getClass();
-		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
 	}
 
 	private static Object extractProxyTarget(Object target) {

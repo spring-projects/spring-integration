@@ -45,7 +45,7 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 	public FilterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		super(beanFactory);
-		this.messageHandlerAttributes.addAll(Arrays.<String>asList("discardChannel", "throwExceptionOnRejection",
+		this.messageHandlerAttributes.addAll(Arrays.asList("discardChannel", "throwExceptionOnRejection",
 				"adviceChain", "discardWithinAdvice"));
 	}
 
@@ -54,11 +54,11 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		MessageSelector selector;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			if (target instanceof MessageSelector) {
 				selector = (MessageSelector) target;
 			}
-			else if (this.extractTypeIfPossible(target, MessageFilter.class) != null) {
+			else if (extractTypeIfPossible(target, MessageFilter.class) != null) {
 				checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 				return (MessageHandler) target;
 			}
@@ -74,31 +74,25 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 		MessageFilter filter = new MessageFilter(selector);
 
-		String discardWithinAdvice = MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice",
-				String.class);
+		String discardWithinAdvice =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "discardWithinAdvice", String.class);
 		if (StringUtils.hasText(discardWithinAdvice)) {
-			discardWithinAdvice = this.beanFactory.resolveEmbeddedValue(discardWithinAdvice);
-			if (StringUtils.hasText(discardWithinAdvice)) {
-				filter.setDiscardWithinAdvice(Boolean.parseBoolean(discardWithinAdvice));
-			}
+			filter.setDiscardWithinAdvice(resolveAttributeToBoolean(discardWithinAdvice));
 		}
 
-
-		String throwExceptionOnRejection = MessagingAnnotationUtils.resolveAttribute(annotations,
-				"throwExceptionOnRejection", String.class);
+		String throwExceptionOnRejection =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "throwExceptionOnRejection", String.class);
 		if (StringUtils.hasText(throwExceptionOnRejection)) {
-			String throwExceptionOnRejectionValue = this.beanFactory.resolveEmbeddedValue(throwExceptionOnRejection);
-			if (StringUtils.hasText(throwExceptionOnRejectionValue)) {
-				filter.setThrowExceptionOnRejection(Boolean.parseBoolean(throwExceptionOnRejectionValue));
-			}
+			filter.setThrowExceptionOnRejection(resolveAttributeToBoolean(throwExceptionOnRejection));
 		}
 
-		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
+		String discardChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
 		if (StringUtils.hasText(discardChannelName)) {
 			filter.setDiscardChannelName(discardChannelName);
 		}
 
-		this.setOutputChannelIfPresent(annotations, filter);
+		setOutputChannelIfPresent(annotations, filter);
 		return filter;
 	}
 
