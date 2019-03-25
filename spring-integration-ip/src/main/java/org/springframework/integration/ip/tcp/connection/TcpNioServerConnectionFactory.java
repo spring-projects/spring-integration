@@ -205,7 +205,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		// accept connections in a for loop until no new connection is ready
 		for (;;) {
 			SocketChannel channel = server.accept();
-			if(channel == null) {
+			if (channel == null) {
 				return;
 			}
 			if (isShuttingDown()) {
