@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -35,6 +36,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
@@ -85,7 +87,8 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  * @since 0.5
  */
-public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler {
+public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMessageHandler
+		implements Lifecycle {
 
 	private static final long DEFAULT_SEND_TIMEOUT = 10000;
 
@@ -96,6 +99,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private final boolean isGateway;
 
 	private final boolean transactional;
+
+	private final AtomicBoolean running = new AtomicBoolean();
 
 	private EvaluationContext evaluationContext;
 
@@ -329,6 +334,23 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+	}
+
+	@Override
+	public void start() {
+		this.running.set(true);
+	}
+
+	@Override
+	public void stop() {
+		if (this.running.compareAndSet(true, false)) {
+			this.kafkaTemplate.flush();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running.get();
 	}
 
 	@SuppressWarnings("unchecked")

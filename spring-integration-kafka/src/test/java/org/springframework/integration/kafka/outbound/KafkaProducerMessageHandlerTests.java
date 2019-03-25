@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -414,11 +414,16 @@ public class KafkaProducerMessageHandlerTests {
 		KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
 		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
 		handler.handleMessage(new GenericMessage<>("foo"));
+		handler.stop();
 		InOrder inOrder = inOrder(producer);
 		inOrder.verify(producer).beginTransaction();
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).flush();
 	}
 
 }
