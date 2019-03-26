@@ -3,12 +3,12 @@
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jdbc
-			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+			https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<outbound-channel-adapter query="insert into foos (id, status, name) values (:headers[$foo_id], 0, :payload)"
 		channel="target" data-source="dataSource"/>

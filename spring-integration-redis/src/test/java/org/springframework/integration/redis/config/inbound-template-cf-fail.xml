@@ -4,10 +4,10 @@
 	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
+		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<util:constant id="redisConnectionFactory"
 				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
