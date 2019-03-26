@@ -100,7 +100,7 @@
 			<para><emphasis role="bold">Further Information</emphasis></para>
 			<para>
 				For more information on <code>spring-retry</code>, refer to the project's javadocs, as well as the
-				reference documentation for <ulink url="http://static.springsource.org/spring-batch/reference/html/retry.html">
+				reference documentation for <ulink url="https://docs.spring.io/spring-batch/reference/html/retry.html">
 				Spring Batch</ulink>, where <code>spring-retry</code> originated.
 			</para>
 			<caution>
@@ -519,7 +519,7 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			</para>
 			<para>
 				For more information, see the
-				<ulink url="http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
+				<ulink url="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
 				ReflectiveMethodInvocation</ulink> JavaDocs.
 			</para>
 		</note>

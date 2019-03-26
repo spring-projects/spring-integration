@@ -48,7 +48,7 @@
     a generic mapper that just returns a <classname>Map</classname> for each
     row in the query result. Optionally, this can be changed by adding a reference to
     a <classname>RowMapper</classname> instance (see the
-    <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html">Spring
+    <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html">Spring
     JDBC</ulink> documentation for more detailed information about row mapping).
 	</para>
 	<note>
@@ -180,7 +180,7 @@
 			the <emphasis>JDBC Inbound Channel Adapter</emphasis>. Its default value
 			is <emphasis>1</emphasis>, which means that the <emphasis>JDBC
 			Inbound Channel Adapter's</emphasis>
-			<emphasis><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()">receive()</ulink></emphasis>
+			<emphasis><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()">receive()</ulink></emphasis>
 			method is executed exactly once for each poll interval.
 		</para>
 		<para>
@@ -408,7 +408,7 @@
 			For more information, please see:
 			</para>
 			<para>
-				<ulink url="http://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html"/>
+				<ulink url="https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html"/>
 			</para>
 			<para>
 				Also important, please ensure that you use an up-to-date version
@@ -463,7 +463,7 @@
 				<listitem><ulink url=
 					"https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/"
 					>5 subtle ways you’re using MySQL as a queue, and why it’ll bite you</ulink>.</listitem>
-				<listitem><ulink url="http://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html"
+				<listitem><ulink url="https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html"
 					>The Database As Queue Anti-Pattern</ulink>.</listitem>
 			</itemizedlist>
 		</important>
@@ -479,7 +479,7 @@
 			you are planning on polling the channel and consequently the message
 			store transactionally with multiple threads, you should ensure that
 			you use a relational database that supports
-			<ulink url="http://en.wikipedia.org/wiki/Multiversion_concurrency_control">Multiversion Concurrency Control</ulink> (MVCC).
+			<ulink url="https://en.wikipedia.org/wiki/Multiversion_concurrency_control">Multiversion Concurrency Control</ulink> (MVCC).
 			Otherwise, locking may be an issue and the performance, when using multiple
 			threads, may not materialize as expected. For example Apache Derby is
 			problematic in that regard.
@@ -576,7 +576,7 @@
 		package: there is a create and a drop script example for a range of common
       database platforms. A common way to use these scripts is to reference
       them in a <ulink
-      url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource">Spring
+      url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource">Spring
       JDBC data source initializer</ulink>. Note that the scripts are provided
       as samples or specifications of the the required table and column names.
       You may find that you need to enhance them for production use (e.g. with
@@ -610,7 +610,7 @@
             In certain situations plain JDBC support is not sufficient. Maybe you
             deal with legacy relational database schemas or you have
             complex data processing needs, but ultimately you have to use
-            <ulink url="http://en.wikipedia.org/wiki/Stored_procedure">Stored Procedures</ulink>
+            <ulink url="https://en.wikipedia.org/wiki/Stored_procedure">Stored Procedures</ulink>
             or Stored Functions. Since Spring Integration 2.1, we provide
             three components in order to execute Stored Procedures or
             Stored Functions:
@@ -627,7 +627,7 @@
                 In order to enable calls to <emphasis>Stored Procedures</emphasis>
                 and <emphasis>Stored Functions</emphasis>, the Stored Procedure
                 components use the <ulink
-                url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>org.springframework.jdbc.core.simple.SimpleJdbcCall</classname></ulink>
+                url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>org.springframework.jdbc.core.simple.SimpleJdbcCall</classname></ulink>
                 class. Consequently, the following databases are fully supported
                 for executing Stored Procedures:</para>
             <itemizedlist>
@@ -658,7 +658,7 @@
                 Stored Procedures or Functions.</para>
             <para>
                 As a matter of fact, some of the provided integration tests use
-                the <ulink url="http://www.h2database.com/">H2 database</ulink>.
+                the <ulink url="https://www.h2database.com/">H2 database</ulink>.
                 Nevertheless, it is very important to thoroughly test those usage scenarios.
             </para>
         </note>
@@ -707,7 +707,7 @@
             <para><emphasis role="bold">ignore-column-meta-data</emphasis></para>
             <para>
                 For fully supported databases, the underlying
-                <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>SimpleJdbcCall</classname></ulink>
+                <ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>SimpleJdbcCall</classname></ulink>
                 class can automatically retrieve the parameter information
                 for the to be invoked Stored Procedure or Function
                 from the JDBC Meta-data.
@@ -756,7 +756,7 @@
 				Defines the maximum number of cached
 				<interfacename>SimpleJdbcCallOperations</interfacename> instances.
 				Basically, for each Stored Procedure Name a new
-				<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html"><interfacename>SimpleJdbcCallOperations</interfacename></ulink>
+				<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html"><interfacename>SimpleJdbcCallOperations</interfacename></ulink>
 				instance is created that in return is being cached.
 			</para>
 			<note>
@@ -968,7 +968,7 @@
                     <callout arearefs="sp-parameter-definition-xml06-co" id="sp-parameter-definition-xml06">
                         <para>
                             The reference to a custom value handler for complex types. An implementation of
-							<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html"
+							<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html"
 									>SqlReturnType</ulink>.
                             This attribute is mutually exclusive with the <emphasis>scale</emphasis> attribute
                             and is applicable for OUT(INOUT)-parameters only.
@@ -1251,7 +1251,7 @@
         <section id="sp-examples">
             <title>Examples</title>
             <para>
-                In the following two examples we call <ulink url="http://db.apache.org/derby/">Apache Derby</ulink>
+                In the following two examples we call <ulink url="https://db.apache.org/derby/">Apache Derby</ulink>
                 Stored Procedures. The first procedure will call a Stored Procedure that
                 returns a <classname>ResultSet</classname>, and using a <interfacename>RowMapper</interfacename>
                 the data is converted into a domain object, which then becomes the

@@ -68,7 +68,7 @@
 				Spring Integration infrastructure beans to be configured using Spring Boot's
 				<code>@EnableAutoConfiguration</code>.
 				For more information see
-				<ulink url="http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
+				<ulink url="https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>

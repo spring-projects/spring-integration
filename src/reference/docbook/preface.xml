@@ -5,8 +5,8 @@
 		<title>Requirements</title>
 		<para>
 			This section details the compatible
-			<ulink url="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java</ulink>
-			and <ulink url="http://www.springsource.org/spring-framework">Spring Framework</ulink>
+			<ulink url="https://www.oracle.com/technetwork/java/javase/downloads/index.html">Java</ulink>
+			and <ulink url="https://www.springsource.org/spring-framework">Spring Framework</ulink>
 			versions.
 		</para>
 		<section id="supported-java-versions">
@@ -61,13 +61,13 @@
   xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
   xsi:schemaLocation="
    http://www.springframework.org/schema/beans
-   http://www.springframework.org/schema/beans/spring-beans.xsd
+   https://www.springframework.org/schema/beans/spring-beans.xsd
    http://www.springframework.org/schema/integration
-   http://www.springframework.org/schema/integration/spring-integration.xsd
+   https://www.springframework.org/schema/integration/spring-integration.xsd
    http://www.springframework.org/schema/integration/twitter
-   http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd
+   https://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd
    http://www.springframework.org/schema/integration/stream
-   http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+   https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 …
 </beans>]]></programlisting>
 		</para>

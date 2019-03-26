@@ -655,7 +655,7 @@
                 Documentation at:
             </para>
             <para>
-                <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html"/>
+                <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html"/>
             </para>
         </note>
         <para>
@@ -698,10 +698,10 @@
 		</para>
 		<itemizedlist>
 			<listitem>
-				<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection">Collection Projection</ulink>
+				<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection">Collection Projection</ulink>
 			</listitem>
 			<listitem>
-				<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-selection">Collection Selection</ulink>
+				<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-selection">Collection Selection</ulink>
 			</listitem>
 		</itemizedlist>
         </section>
@@ -773,7 +773,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             change the configuration of the router (change routes) and bring it back up. This is obviously not the solution.
         </para>
         <para>
-            The <ulink url="http://www.eaipatterns.com/DynamicRouter.html">Dynamic Router</ulink>
+            The <ulink url="https://www.enterpriseintegrationpatterns.com/DynamicRouter.html">Dynamic Router</ulink>
             pattern describes the mechanisms by which one can change/configure routers dynamically without
             bringing down the system or individual routers. 
         </para>
@@ -921,7 +921,7 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
         <section id="dynamic-routers-control-bus">
             <title>Manage Router Mappings using the Control Bus</title>
             <para>
-                One way to manage the router mappings is through the <ulink url="http://www.eaipatterns.com/ControlBus.html">Control Bus</ulink>
+                One way to manage the router mappings is through the <ulink url="https://www.enterpriseintegrationpatterns.com/ControlBus.html">Control Bus</ulink>
                 pattern which exposes a Control Channel where you can send
                 control messages to manage and monitor Spring Integration components, including routers.
             </para>

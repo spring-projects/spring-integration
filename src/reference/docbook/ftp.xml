@@ -27,7 +27,7 @@
     	To use the <emphasis>FTP</emphasis> namespace, add the following to the header of your XML file:
     	<programlisting language="xml"><![CDATA[xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
-	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
+	https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 ]]></programlisting>
     </para>
   </section>
@@ -99,7 +99,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	<para>
   	<note>
   	A more practical way to provide values for <emphasis>FTP/FTPS Session Factories</emphasis> is by using Spring's property
-  	placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
+  	placeholder support (See: https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
   	</note>
   </para>
 
@@ -109,7 +109,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 
   <para>
   <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which,
-  since <emphasis>Spring Integration 2.0</emphasis>, is <ulink url="http://commons.apache.org/net/">Apache Commons Net</ulink>.
+  since <emphasis>Spring Integration 2.0</emphasis>, is <ulink url="https://commons.apache.org/net/">Apache Commons Net</ulink>.
   This spares you from the low level configuration details
   of the <classname>org.apache.commons.net.ftp.FTPClient</classname>. Several common properties are exposed on the
   session factory (since <emphasis>version 4.0</emphasis>, this now includes <code>connectTimeout</code>,
@@ -351,7 +351,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
   	<para>
   	<important>
   	Defining certain values (e.g., remote-directory) might be platform/ftp server dependent. For example as it
-  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&amp;posted=1#post333478 on some
+  	was reported on this forum https://forum.spring.io/showthread.php?p=333478&amp;posted=1#post333478 on some
   	platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/"
   	instead of remote-directory="/foo/bar")
   	</important>

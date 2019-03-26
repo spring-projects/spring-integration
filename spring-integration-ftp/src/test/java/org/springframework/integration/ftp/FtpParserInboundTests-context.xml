@@ -5,10 +5,10 @@
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xmlns:ftps="http://www.springframework.org/schema/integration/ftps"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	    http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps.xsd
-        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
-       http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/integration/ftps https://www.springframework.org/schema/integration/ftp/spring-integration-ftps.xsd
+        http://www.springframework.org/schema/integration  https://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/ftp https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
