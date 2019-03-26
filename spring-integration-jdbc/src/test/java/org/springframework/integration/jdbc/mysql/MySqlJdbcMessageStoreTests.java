@@ -77,7 +77,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * This tests requires at least MySql 5.6.4 as it uses the fractional second support
  * in that version. For more information, please see:
  *
- * http://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html
+ * https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html
  *
  * Also, please make sure you are using the respective DDL scripts:
  *
