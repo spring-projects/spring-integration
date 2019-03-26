@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+			https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<file:outbound-channel-adapter id="adapter" directory="file:${java.io.tmpdir}" auto-startup="false"/>
 
