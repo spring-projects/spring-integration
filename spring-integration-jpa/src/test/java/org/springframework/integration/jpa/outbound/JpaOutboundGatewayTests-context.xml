@@ -6,12 +6,12 @@
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:sd-jpa="http://www.springframework.org/schema/data/jpa"
 	   xsi:schemaLocation=
-			   "http://www.springframework.org/schema/beans          http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/integration     http://www.springframework.org/schema/integration/spring-integration.xsd
-	http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
-	http://www.springframework.org/schema/data/jpa        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
-	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-	http://www.springframework.org/schema/data/jpa   http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+			   "http://www.springframework.org/schema/beans          https://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/integration     https://www.springframework.org/schema/integration/spring-integration.xsd
+	http://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
+	http://www.springframework.org/schema/data/jpa        https://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+	http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
+	http://www.springframework.org/schema/data/jpa   https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
 	<sd-jpa:repositories base-package="org.springframework.integration.jpa.outbound"/>
 

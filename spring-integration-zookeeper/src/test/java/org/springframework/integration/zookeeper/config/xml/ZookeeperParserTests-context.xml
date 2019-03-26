@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-zk="http://www.springframework.org/schema/integration/zookeeper"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/zookeeper http://www.springframework.org/schema/integration/zookeeper/spring-integration-zookeeper.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/zookeeper https://www.springframework.org/schema/integration/zookeeper/spring-integration-zookeeper.xsd">
 
 	<bean class="org.springframework.integration.zookeeper.config.xml.ZookeeperParserTests$Config" />
 

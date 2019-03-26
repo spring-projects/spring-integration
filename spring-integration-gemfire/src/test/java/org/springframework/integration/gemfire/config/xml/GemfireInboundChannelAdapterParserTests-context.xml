@@ -3,9 +3,9 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
-		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+		https://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
 		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd">
+		https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="region" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="com.gemstone.gemfire.cache.Region"/>
