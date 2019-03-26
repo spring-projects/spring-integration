@@ -5,14 +5,14 @@
 
 When Message Endpoints (Channel Adapters) are connected to channels and instantiated, they produce one of the following 2 instances:
 
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/EventDrivenConsumer.html[EventDrivenConsumer]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/endpoint/EventDrivenConsumer.html[EventDrivenConsumer]
 
 
 
 The actual implementation depends on which type of channel these Endpoints are connected to.
-A channel adapter connected to a channel that implements the http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/SubscribableChannel.html[org.springframework.messaging.SubscribableChannel] interface will produce an instance of `EventDrivenConsumer`.
-On the other hand, a channel adapter connected to a channel that implements the  http://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/PollableChannel.html[org.springframework.messaging.PollableChannel] interface (e.g. a QueueChannel) will produce an instance of `PollingConsumer`.
+A channel adapter connected to a channel that implements the https://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/SubscribableChannel.html[org.springframework.messaging.SubscribableChannel] interface will produce an instance of `EventDrivenConsumer`.
+On the other hand, a channel adapter connected to a channel that implements the  https://docs.spring.io/spring/docs/current/javadoc-api/index.html?org/springframework/messaging/PollableChannel.html[org.springframework.messaging.PollableChannel] interface (e.g. a QueueChannel) will produce an instance of `PollingConsumer`.
 
 Polling Consumers allow Spring Integration components to actively poll for Messages, rather than to process Messages in an event-driven manner.
 
@@ -20,7 +20,7 @@ They represent a critical cross cutting concern in many messaging scenarios.
 In Spring Integration, Polling Consumers are based on the pattern with the same name, which is described in the book "Enterprise Integration Patterns" by Gregor Hohpe and Bobby Woolf.
 You can find a description of the pattern on the book's website at:
 
-http://www.enterpriseintegrationpatterns.com/PollingConsumer.html[http://www.enterpriseintegrationpatterns.com/PollingConsumer.html]
+https://www.enterpriseintegrationpatterns.com/PollingConsumer.html[https://www.enterpriseintegrationpatterns.com/PollingConsumer.html]
 
 ==== Pollable Message Source
 
@@ -29,8 +29,8 @@ When Inbound Channel Adapters are being used, these adapters are often wrapped b
 For example, when retrieving messages from a remote FTP Server location, the adapter described in <<ftp-inbound>> is configured with a _poller_ to retrieve messages periodically.
 So, when components are configured with Pollers, the resulting instances are of one of the following types:
 
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/SourcePollingChannelAdapter.html[SourcePollingChannelAdapter]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[PollingConsumer]
+* https://docs.spring.io/spring-integration/api/org/springframework/integration/endpoint/SourcePollingChannelAdapter.html[SourcePollingChannelAdapter]
 
 
 

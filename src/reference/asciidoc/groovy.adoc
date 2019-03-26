@@ -2,7 +2,7 @@
 === Groovy support
 
 In Spring Integration 2.0 we added Groovy support allowing you to use the Groovy scripting language to provide the logic for various integration components similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation and other integration concerns.
-For more information about Groovy please refer to the Groovy documentation which you can find on the http://www.groovy-lang.org/[project website].
+For more information about Groovy please refer to the Groovy documentation which you can find on the https://groovy-lang.org/[project website].
 
 [[groovy-config]]
 ==== Groovy configuration
@@ -66,8 +66,8 @@ _Groovy Script Compiler Customization_
 The `@CompileStatic` hint is the most popular Groovy compiler customization option,
 which can be used on the class or method level.
 See more information in the Groovy
-http://docs.groovy-lang.org/latest/html/documentation/index.html#_static_compilation[Reference Manual] and,
-specifically, http://docs.groovy-lang.org/latest/html/documentation/index.html#compilestatic-annotation[@CompileStatic].
+https://groovy-lang.org/metaprogramming.html#section-typechecked[Reference Manual] and,
+specifically, https://groovy-lang.org/metaprogramming.html#xform-CompileStatic[@CompileStatic].
 To utilize this feature for short scripts (in integration scenarios), we are forced to change a simple script like this
 (a `<filter>` script):
 
@@ -108,7 +108,7 @@ Where we can access the `headers` and `payload` (or any other) variables only th
 In addition, the `compiler-configuration` bean reference has been introduced.
 With this attribute, you can provide any other required Groovy compiler customizations, e.g. `ImportCustomizer`.
 For more information about this feature, please, refer to the Groovy Documentation:
-http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
+https://melix.github.io/blog/2011/05/12/customizing_groovy_compilation_process.html[Advanced compiler configuration].
 
 NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`
 and overrides the `compileStatic` option.
@@ -121,7 +121,7 @@ and reloadable scripts can be statically compiled, too.
 [[groovy-control-bus]]
 ==== Control Bus
 
-As described in (http://www.eaipatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
+As described in (https://www.enterpriseintegrationpatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
 In Spring Integration we build upon the adapters described above so that it's possible to send Messages as a means of invoking exposed operations.
 One option for those operations is Groovy scripts.
 [source,xml]

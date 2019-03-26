@@ -12,7 +12,7 @@ Since _version 4.0_, a search outbound gateway is provided to perform dynamic se
 Twitter is a social networking and micro-blogging service that enables its users to send and read messages known as tweets.
 Tweets are text-based posts of up to 140 characters displayed on the author's profile page and delivered to the author's subscribers who are known as followers.
 
-IMPORTANT: Versions of Spring Integration prior to 2.1 were dependent upon the http://twitter4j.org[Twitter4J API], but with the release of http://projects.spring.io/spring-social[Spring Social 1.0 GA], Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
+IMPORTANT: Versions of Spring Integration prior to 2.1 were dependent upon the https://github.com/Twitter4J/Twitter4J[Twitter4J API], but with the release of https://projects.spring.io/spring-social[Spring Social 1.0 GA], Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
 All Twitter endpoints require the configuration of a `TwitterTemplate` because even search operations require an authenticated template.
 
 Spring Integration provides a convenient namespace configuration to define Twitter artifacts.
@@ -21,20 +21,20 @@ You can enable it by adding the following within your XML header.
 ----
 xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
-http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd"
+https://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd"
 ----
 
 [[twitter-oauth]]
 === Twitter OAuth Configuration
 
 For authenticated operations, Twitter uses OAuth - an authentication protocol that allows users to approve an application to act on their behalf without sharing their password.
-More information can be found at http://oauth.net[http://oauth.net] or in this article http://hueniverse.com/oauth[http://hueniverse.com/oauth] from Hueniverse.
-Please also see http://dev.twitter.com/pages/oauth_faq[OAuth FAQ] for more information about OAuth and Twitter.
+More information can be found at https://oauth.net[https://oauth.net] or in this article https://hueniverse.com/oauth[https://hueniverse.com/oauth] from Hueniverse.
+Please also see https://dev.twitter.com/pages/oauth_faq[OAuth FAQ] for more information about OAuth and Twitter.
 
 In order to use OAuth authentication/authorization with Twitter you must create a new Application on the Twitter Developers site.
 Follow the directions below to create a new application and obtain consumer keys and an access token:
 
-* Go to http://dev.twitter.com[http://dev.twitter.com]
+* Go to https://dev.twitter.com[https://dev.twitter.com]
 
 * Click on the `Register an app` link and fill out all required fields on the form provided; set `Application Type` to `Client` and depending on the nature of your application select `Default Access Type` as _Read & Write_ or _Read-only_ and Submit the form.
 If everything is successful you'll be presented with the `Consumer Key` and `Consumer Secret`.
@@ -94,7 +94,7 @@ Then, you can configure a `property-placeholder` to point to the above property 
 === Twitter Inbound Adapters
 
 Twitter inbound adapters allow you to receive Twitter Messages.
-There are several types of http://support.twitter.com/articles/119138-types-of-tweets-and-where-they-appear[twitter messages, or tweets]
+There are several types of https://support.twitter.com/articles/119138-types-of-tweets-and-where-they-appear[twitter messages, or tweets]
 
 _Spring Integration version 2.0 and above_ provides support for receiving tweets as _Timeline Updates_, _Direct Messages_, _Mention Messages_ as well as Search Results.
 
@@ -215,7 +215,7 @@ This adapter allows you to send regular status updates by simply sending a Messa
 
  The only extra configuration that is required for this adapter is the `twitter-template` reference.
 
-Starting with _version 4.0_ the `<int-twitter:outbound-channel-adapter>` supports a `tweet-data-expression` to populate the `TweetData` argument (http://projects.spring.io/spring-social-twitter/[Spring Social Twitter]) using the message as the root object of the expression evaluation context.
+Starting with _version 4.0_ the `<int-twitter:outbound-channel-adapter>` supports a `tweet-data-expression` to populate the `TweetData` argument (https://projects.spring.io/spring-social-twitter/[Spring Social Twitter]) using the message as the root object of the expression evaluation context.
 The result can be a `String`, which will be used for the `TweetData` message; a `Tweet` object, the `text` of which will be used for the `TweetData` message; or an entire `TweetData` object.
 For convenience, the `TweetData` can be built from the expression directly without needing a fully qualified class name:
 [source,xml]
@@ -287,7 +287,7 @@ The reply message payload is a collection of `Tweet` objects.
 If the search returns no results, the payload is an empty collection.
 You can limit the number of tweets and you can page through a larger set of tweets by making multiple calls.
 To facilitate this, search reply messages contain a header `twitter_searchMetadata` with its value being a `SearchMetadata` object.
-For more information on the `Tweet`, `SearchParameters` and `SearchMetadata` classes, refer to the http://projects.spring.io/spring-social-twitter/[Spring Social Twitter] documentation.
+For more information on the `Tweet`, `SearchParameters` and `SearchMetadata` classes, refer to the https://projects.spring.io/spring-social-twitter/[Spring Social Twitter] documentation.
 
 *Configuring the Outbound Gateway*
 
@@ -311,7 +311,7 @@ For more information on the `Tweet`, `SearchParameters` and `SearchMetadata` cla
 
 <3> A SpEL expression that evaluates to argument(s) for the search.
 Default: *"payload"* - in which case the payload can be a `String` (e.g "#springintegration") and the gateway limits the query to 20 tweets, or the payload can be a `SearchParameters` object. +
-The expression can also be specified as a http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-inline-lists[SpEL List].
+The expression can also be specified as a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-inline-lists[SpEL List].
 The first element (String) is the query, the remaining elements (Numbers) are `pageSize, sinceId, maxId` respectively - refer to the Spring Social Twitter documentation for more information about these parameters.
 When specifying a `SearchParameters` object directly in the SpEL expression, you do not have to fully qualify the class name.
 Some examples: +

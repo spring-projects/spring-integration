@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * {@code MetadataStore} associated with the {@code key}.
  * <p>
  * This {@link MessageSelector} is useful for an
- * <a href="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
+ * <a href="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
  * implementation.
  * <p>
  * It can be used in a {@link org.springframework.integration.filter.MessageFilter}

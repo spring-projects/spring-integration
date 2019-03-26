@@ -143,9 +143,9 @@ To use it, configure the following schema locations.
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration/mail
-    http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
+    https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 ----
 
 To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:

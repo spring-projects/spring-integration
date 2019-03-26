@@ -9,7 +9,7 @@ It is based on architecture, infrastructure and API from the Spring Framework's 
 Therefore, many of Spring WebSocket's components (e.g.
 `SubProtocolHandler` or `WebSocketClient`) and configuration options (e.g.
 `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
-For more information, please, refer to the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
+For more information, please, refer to the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
 NOTE: Since the Spring Framework WebSocket infrastructure is based on the _Spring Messaging_ foundation and provides a basic Messaging framework based on the same `MessageChannel` s, `MessageHandler` s that Spring Integration uses, and some POJO-method annotation mappings, Spring Integration can be directly involved in a WebSocket flow, even without WebSocket adapters.
 For this purpose you can simply configure a Spring Integration `@MessagingGateway` with appropriate annotations:
@@ -117,11 +117,11 @@ To include it in your configuration, simply provide the following namespace decl
   xmlns:int-websocket="http://www.springframework.org/schema/integration/websocket"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/websocket
-    http://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
+    https://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
     ...
 </beans>
 ----
@@ -232,7 +232,7 @@ Default to `DefaultHandshakeHandler`.
 used to process WebSocket messages.
 This may be useful for some advanced use cases, for example to allow Spring Security to forcibly close
 the WebSocket session when the corresponding HTTP session expires.
-See http://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project]
+See https://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project]
 for more information.
 
 <6> See the same option on the `<int-websocket:client-container>`.

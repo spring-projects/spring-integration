@@ -97,7 +97,7 @@ If you inadvertently reference the same message handler from multiple beans, you
 
 _Service Activators and the Spring Expression Language (SpEL)_
 
-Since Spring Integration 2.0, Service Activators can also benefit from SpEL (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
+Since Spring Integration 2.0, Service Activators can also benefit from SpEL (https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
 
 For example, you may now invoke any bean method without pointing to the bean via a `ref` attribute or including it as an inner bean definition.
 For example:

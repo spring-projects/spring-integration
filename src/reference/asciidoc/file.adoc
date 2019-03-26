@@ -151,11 +151,11 @@ To do this use the following template.
   xmlns:int="http://www.springframework.org/schema/integration"
   xmlns:int-file="http://www.springframework.org/schema/integration/file"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/file
-    http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+    https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 </beans>
 ----
 
@@ -477,7 +477,7 @@ IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes, forces the use 
 [[file-writing]]
 === Writing files
 
-To write messages to the file system you can use a http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[FileWritingMessageHandler].
+To write messages to the file system you can use a https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[FileWritingMessageHandler].
 This class can deal with the following payload types:
 
 * _File_,
@@ -496,8 +496,8 @@ Starting with _version 4.3_, you can specify the buffer size to use when writing
 ==== Generating File Names
 
 In its simplest form, the `FileWritingMessageHandler` only requires a destination directory for writing the files.
-The name of the file to be written is determined by the handler's http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[FileNameGenerator].
-The http://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a Message header whose key matches the constant defined as http://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[FileHeaders.FILENAME].
+The name of the file to be written is determined by the handler's https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[FileNameGenerator].
+The https://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a Message header whose key matches the constant defined as https://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[FileHeaders.FILENAME].
 
 Alternatively, you can specify an expression to be evaluated against the Message in order to generate a file name, e.g. _headers['myCustomHeader'] + '.foo'_.
 The expression must evaluate to a `String`.
@@ -604,7 +604,7 @@ See <<file-flushing>> for more information.
 
 _FAIL_
 
-If the target file exists, a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[MessageHandlingException] is thrown.
+If the target file exists, a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[MessageHandlingException] is thrown.
 
 _IGNORE_
 
@@ -701,7 +701,7 @@ Generally, when using the _File Outbound Gateway_, the result file is returned a
 
 This also applies when specifying the _IGNORE_ mode.
 In that case the pre-existing destination file is returned.
-If the payload of the request message was a file, you still have access to that original file through the Message Header http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
+If the payload of the request message was a file, you still have access to that original file through the Message Header https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
 
 NOTE: The 'outbound-gateway' works well in cases where you want to first move a file and then send it through a processing pipeline.
 In such cases, you may connect the file namespace's `inbound-channel-adapter` element to the `outbound-gateway` and then connect that gateway's `reply-channel` to the beginning of the pipeline.

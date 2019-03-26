@@ -1,7 +1,7 @@
 <rss version="2.0">
 <channel>
 <title>Spring Integration</title>
-<link>http://www.springsource.org/spring-integration</link>
+<link>https://www.springsource.org/spring-integration</link>
 <description>
 Spring Integration is a really cool framework
 </description>
@@ -11,16 +11,16 @@ All Rights Reserved.</copyright>
 <lastBuildDate>Tue, 12 Apr 2010 18:21:32 EST</lastBuildDate>
 <ttl>240</ttl>
 <image>
-<url>http://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
+<url>https://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
 <title>Spring Integration</title>
-<link>http://www.springsource.org/spring-integration</link>
+<link>https://www.springsource.org/spring-integration</link>
 </image>
 
 <item>
 <title>
 Spring Integration adapters
 </title>
-<link>http://www.springsource.org/extensions/se-sia</link>
+<link>https://www.springsource.org/extensions/se-sia</link>
 <description>
 Spring Integration adapters are realy cool
 </description>
@@ -31,7 +31,7 @@ Spring Integration adapters are realy cool
 <title>
 Spring Integration download
 </title>
-<link>http://www.springsource.com/products/spring-community-download</link>
+<link>https://www.springsource.com/products/spring-community-download</link>
 <description>
 Download Spring Integration
 </description>
@@ -42,7 +42,7 @@ Download Spring Integration
 <title>
 Check out Spring Integration forums
 </title>
-<link>http://forum.springsource.org/forumdisplay.php?f=42</link>
+<link>https://forum.spring.io/forumdisplay.php?f=42</link>
 <description>
 Spring Integration forums are awesome
 </description>

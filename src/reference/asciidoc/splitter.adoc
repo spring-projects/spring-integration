@@ -10,7 +10,7 @@ Very often, they are upstream producers in a pipeline that includes an Aggregato
 ==== Programming model
 
 The API for performing splitting consists of one base class, `AbstractMessageSplitter`, which is a `MessageHandler` implementation, encapsulating features which are common to splitters, such as filling in the appropriate message headers `CORRELATION_ID`, `SEQUENCE_SIZE`, and `SEQUENCE_NUMBER` on the messages that are produced.
-This enables tracking down the messages and the results of their processing (in a typical scenario, these headers would be copied over to the messages that are produced by the various transforming endpoints), and use them, for example, in a http://www.eaipatterns.com/DistributionAggregate.html[Composed Message Processor] scenario.
+This enables tracking down the messages and the results of their processing (in a typical scenario, these headers would be copied over to the messages that are produced by the various transforming endpoints), and use them, for example, in a https://www.enterpriseintegrationpatterns.com/DistributionAggregate.html[Composed Message Processor] scenario.
 
 An excerpt from `AbstractMessageSplitter` can be seen below:
 

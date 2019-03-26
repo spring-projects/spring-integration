@@ -37,7 +37,7 @@ For more information see <<spel-property-accessors>>.
 [[x3.0-redis-new-components]]
 ===== Redis: New Components
 
-A new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html[MetadataStore] implementation has been added.
+A new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html[MetadataStore] implementation has been added.
 The `RedisMetadataStore` can be used to maintain state of a `MetadataStore` across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
@@ -351,7 +351,7 @@ For more information see <<transformer>>.
 [[x3.0-jpa-changes]]
 ===== JPA Support Changes
 
-Payloads to _persist_ or _merge_ can now be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+Payloads to _persist_ or _merge_ can now be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
 
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 _NULL_ values returned by the iterator are ignored.

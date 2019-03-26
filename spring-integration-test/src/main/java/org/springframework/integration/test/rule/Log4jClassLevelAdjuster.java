@@ -88,8 +88,7 @@ public class Log4jClassLevelAdjuster extends TestWatcher {
 					logger.debug("++++++++++++++++++++++++++++ "
 							+ "Restoring log level setting for: " + Arrays.asList(classes) + " and "
 							+ Arrays.asList(categories) + " for test " + description.getDisplayName());
-					// raw Class type used to avoid http://bugs.sun.com/view_bug.do?bug_id=6682380
-					for (@SuppressWarnings("rawtypes") Class cls : classes) {
+					for (Class<?> cls : classes) {
 						LogManager.getLogger(cls).setLevel(oldLevels.get(cls));
 					}
 					for (String category : categories) {

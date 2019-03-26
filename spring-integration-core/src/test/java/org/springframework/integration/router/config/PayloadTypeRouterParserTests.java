@@ -84,9 +84,9 @@ public class PayloadTypeRouterParserTests {
 	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
 		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
 		"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-		"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
+		"		https://www.springframework.org/schema/beans/spring-beans.xsd" +
 		"		http://www.springframework.org/schema/integration" +
-		"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
+		"		https://www.springframework.org/schema/integration/spring-integration.xsd\">" +
 		"   <channel id=\"routingChannel\" />" +
 		"   <payload-type-router input-channel=\"routingChannel\">" +
 		"	   <mapping type=\"FAKE_TYPE\" channel=\"channel1\" />" +
@@ -98,9 +98,9 @@ public class PayloadTypeRouterParserTests {
 	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
 		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
 		"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-		"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
+		"		https://www.springframework.org/schema/beans/spring-beans.xsd" +
 		"		http://www.springframework.org/schema/integration" +
-		"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
+		"		https://www.springframework.org/schema/integration/spring-integration.xsd\">" +
 		"   <channel id=\"routingChannel\" />" +
 		"   <payload-type-router input-channel=\"routingChannel\"/>" +
 	    "</beans:beans>";

@@ -9,12 +9,12 @@ There is also an outbound Channel Adapter which uses the `JmsTemplate` to conver
 
 As you can see from above by using `JmsTemplate` and `MessageListener` container Spring Integration relies on Spring's JMS support.
 This is important to understand since most of the attributes exposed on these adapters will configure the underlying Spring's `JmsTemplate` and/or `MessageListener` container.
-For more details about `JmsTemplate` and `MessageListener` container please refer to http://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation].
+For more details about `JmsTemplate` and `MessageListener` container please refer to https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation].
 
 Whereas the JMS Channel Adapters are intended for unidirectional Messaging (send-only or receive-only), Spring Integration also provides inbound and outbound JMS Gateways for request/reply operations.
 The inbound gateway relies on one of Spring's `MessageListener` container implementations for Message-driven reception that is also capable of sending a return value to the `reply-to` Destination as provided by the received Message.
 The outbound Gateway sends a JMS Message to a `request-destination` (or `request-destination-name` or `request-destination-expression`) and then receives a reply Message.
-The `reply-destination` reference (or `reply-destination-name` or `reply-destination-expression`) can be configured explicitly or else the outbound gateway will use a JMS http://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html[TemporaryQueue].
+The `reply-destination` reference (or `reply-destination-name` or `reply-destination-expression`) can be configured explicitly or else the outbound gateway will use a JMS https://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html[TemporaryQueue].
 
 Prior to _Spring Integration 2.2_, if necessary, a `TemporaryQueue` was created (and removed) for each request/reply.
 Beginning with _Spring Integration 2.2_, the outbound gateway can be configured to use a `MessageListener` container to receive replies instead of directly using a new (or cached) `Consumer` to receive the reply for each request.
@@ -273,14 +273,14 @@ Note that, in this situation, a new consumer is used for each request, and consu
 In the above example, a reply listener with default attributes is used.
 The listener is very lightweight and it is anticipated that, in most cases, only a single consumer will be needed.
 However, attributes such as _concurrent-consumers_, _max-concurrent-consumers_ etc., can be added.
-Refer to the schema for a complete list of supported attributes, together with the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
+Refer to the schema for a complete list of supported attributes, together with the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
 
 *Idle Reply Listeners*
 
 Starting with _version 4.2_, the reply listener can be started as needed (and stopped after an idle time) instead
 of running for the duration of the gateway's lifecycle.
 This might be useful if you have many gateways in the application context where they are mostly idle.
-One such situation is a context with many (inactive) partitioned http://projects.spring.io/spring-batch/[Spring Batch]
+One such situation is a context with many (inactive) partitioned https://projects.spring.io/spring-batch/[Spring Batch]
 jobs using Spring Integration and JMS for partition distribution.
 If all the reply listeners were active, the JMS broker would have an active consumer for each gateway.
 By enabling the idle timeout, each consumer would exist only while the corresponding batch job is running (and
@@ -680,7 +680,7 @@ Use `subscription` to name the subscription.
 [[jms-selectors]]
 === Using JMS Message Selectors
 
-With JMS message selectors you can filter http://docs.oracle.com/javaee/6/api/javax/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
+With JMS message selectors you can filter https://docs.oracle.com/javaee/6/api/javax/jms/Message.html[JMS Messages] based on JMS headers as well as JMS properties.
 For example, if you want to listen to messages whose custom JMS header property _fooHeaderProperty_ equals _bar_, you can specify the following expression:
 
 [source,xml]
@@ -688,7 +688,7 @@ For example, if you want to listen to messages whose custom JMS header property 
 fooHeaderProperty = 'bar'
 ----
 
-Message selector expressions are a subset of the http://en.wikipedia.org/wiki/SQL-92[SQL-92] conditional expression syntax, and are defined as part of the _http://download.oracle.com/otn-pub/jcp/7195-jms-1.1-fr-spec-oth-JSpec/jms-1_1-fr-spec.pdf[Java Message Service]_ specification (Version 1.1 April 12, 2002).
+Message selector expressions are a subset of the https://en.wikipedia.org/wiki/SQL-92[SQL-92] conditional expression syntax, and are defined as part of the _http://download.oracle.com/otn-pub/jcp/7195-jms-1.1-fr-spec-oth-JSpec/jms-1_1-fr-spec.pdf[Java Message Service]_ specification (Version 1.1 April 12, 2002).
 Specifically, please see chapter "3.8 Message Selection".
 It contains a detailed explanation of the expressions syntax.
 
