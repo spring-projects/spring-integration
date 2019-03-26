@@ -588,7 +588,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
     <para>
     Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with
-    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">SpEL</ulink>
+    <ulink url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">SpEL</ulink>
     which is recommended if the logic behind such <emphasis>release strategy</emphasis> is relatively simple.
     Let's say you have a legacy component that was designed to receive an array of objects. We know that the default release
     strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract
@@ -611,7 +611,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     expression="#this.![payload].toArray()"/>]]></programlisting>
 	<para>
 	In the above configuration we are using a <ulink
-	url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression
+	url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression
 	to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus
 	achieving the same result as the java code above.
     </para>
@@ -747,7 +747,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 }]]></programlisting>
 
     For more information please refer to the
-    <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">JavaDoc</ulink>.
+    <ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">JavaDoc</ulink>.
     </para>
 
     <para>The <interfacename>MessageGroupStore</interfacename> accumulates state

@@ -13,7 +13,7 @@
   As you can see from above by using <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container Spring Integration relies on Spring's JMS support.
   This is important to understand since most of the attributes exposed on these adapters will configure the underlying Spring's <classname>JmsTemplate</classname> and/or
   <classname>MessageListener</classname> container. For more details about <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container please refer to
-  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>.
+  <ulink url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>.
   </para>
   <para>
     Whereas the JMS Channel Adapters are intended for unidirectional Messaging (send-only or receive-only), Spring
@@ -25,7 +25,7 @@
     and then receives a reply Message. The <code>reply-destination</code>
     reference (or <code>reply-destination-name</code> or <code>reply-destination-expression</code>) can be configured
     explicitly or else the outbound gateway will use a
-    JMS <ulink url="http://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html">TemporaryQueue</ulink>.
+    JMS <ulink url="https://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html">TemporaryQueue</ulink>.
   </para>
   <para>
     Prior to <emphasis>Spring Integration 2.2</emphasis>, if necessary, a <interfacename>TemporaryQueue</interfacename>
@@ -287,7 +287,7 @@
       be needed. However, attributes such as <emphasis>concurrent-consumers</emphasis>,
       <emphasis>max-concurrent-consumers</emphasis> etc., can be added. Refer to the
       schema for a complete list of supported attributes, together with the
-      <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>
+      <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>
       for their meanings.
     </para>
     <section>
@@ -639,7 +639,7 @@
   <section id="jms-selectors">
 	<title>Using JMS Message Selectors</title>
 	<para>
-		With JMS message selectors you can filter <ulink url="http://docs.oracle.com/javaee/6/api/javax/jms/Message.html">JMS Messages</ulink>
+		With JMS message selectors you can filter <ulink url="https://docs.oracle.com/javaee/6/api/javax/jms/Message.html">JMS Messages</ulink>
 		based on JMS headers as well as JMS properties. For example,
 		if you want to listen to messages whose custom JMS header
 		property <emphasis>fooHeaderProperty</emphasis> equals
@@ -647,9 +647,9 @@
 	</para>
 	<programlisting language="xml"><![CDATA[fooHeaderProperty = 'bar']]></programlisting>
 	<para>
-		Message selector expressions are a subset of the <ulink url="http://en.wikipedia.org/wiki/SQL-92">SQL-92</ulink>
+		Message selector expressions are a subset of the <ulink url="https://en.wikipedia.org/wiki/SQL-92">SQL-92</ulink>
 		conditional expression syntax, and are defined as part of the
-		<emphasis><ulink url="http://download.oracle.com/otn-pub/jcp/7195-jms-1.1-fr-spec-oth-JSpec/jms-1_1-fr-spec.pdf">Java Message Service</ulink></emphasis>
+		<emphasis><ulink url="https://download.oracle.com/otn-pub/jcp/7195-jms-1.1-fr-spec-oth-JSpec/jms-1_1-fr-spec.pdf">Java Message Service</ulink></emphasis>
 		specification (Version 1.1  April 12, 2002). Specifically, please see
 		chapter "3.8 Message Selection". It contains a detailed explanation of the
 		expressions syntax.
@@ -687,7 +687,7 @@
 		and <emphasis>Outbound Channel Adapters</emphasis>, and the other provides
 		<emphasis>Inbound</emphasis> and <emphasis>Outbound Gateways</emphasis>.
 		They are configured to run with an embedded
-		<emphasis><ulink url="http://activemq.apache.org/">ActiveMQ</ulink></emphasis>
+		<emphasis><ulink url="https://activemq.apache.org/">ActiveMQ</ulink></emphasis>
 		process, but the samples'
 		<emphasis><ulink url="https://github.com/SpringSource/spring-integration-samples/blob/master/basic/jms/src/main/resources/META-INF/spring/integration/common.xml">common.xml</ulink></emphasis>
 		<emphasis>Spring Application Context</emphasis> file can easily be modified

@@ -4,11 +4,11 @@
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:mongo="http://www.springframework.org/schema/data/mongo"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-                  http://www.springframework.org/schema/beans/spring-beans.xsd
+                  https://www.springframework.org/schema/beans/spring-beans.xsd
                   http://www.springframework.org/schema/integration
-                  http://www.springframework.org/schema/integration/spring-integration.xsd
+                  https://www.springframework.org/schema/integration/spring-integration.xsd
                   http://www.springframework.org/schema/data/mongo
-                  http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+                  https://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
 
 	<mongo:db-factory dbname="test"/>
 

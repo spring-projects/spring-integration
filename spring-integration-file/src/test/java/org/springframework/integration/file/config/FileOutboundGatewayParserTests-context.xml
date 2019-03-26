@@ -5,13 +5,13 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context.xsd
+			https://www.springframework.org/schema/context/spring-context.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+			https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<int-file:outbound-gateway id="ordered"
 		request-channel="someChannel" reply-timeout="777" directory="${java.io.tmpdir}"
