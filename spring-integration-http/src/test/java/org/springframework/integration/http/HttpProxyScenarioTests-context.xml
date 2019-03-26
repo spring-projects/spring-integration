@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans
-	xmlns="http://www.springframework.org/schema/integration/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+	xmlns="https://www.springframework.org/schema/integration/http"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="https://www.springframework.org/schema/beans"
+	xmlns:int="https://www.springframework.org/schema/integration"
+	xmlns:util="https://www.springframework.org/schema/util"
+	xsi:schemaLocation="https://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/integration/http https://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		https://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<inbound-gateway path="/test" request-channel="testChannel"
 					 payload-expression="T(org.springframework.web.context.request.RequestContextHolder).requestAttributes.request.queryString"/>
@@ -16,7 +16,7 @@
 	<int:publish-subscribe-channel id="testChannel"/>
 
 	<outbound-gateway id="proxyGateway" request-channel="testChannel"
-					  url-expression="'http://testServer/test?' + payload"/>
+					  url-expression="'https://testServer/test?' + payload"/>
 
 	<int:bridge input-channel="testChannel" output-channel="checkHeadersChannel"/>
 
@@ -39,6 +39,6 @@
 
 	<outbound-gateway id="proxyGatewaymp" request-channel="testChannelmp"
 					  http-method="POST"
-					  url="http://testServer/testmp"/>
+					  url="https://testServer/testmp"/>
 
 </beans:beans>

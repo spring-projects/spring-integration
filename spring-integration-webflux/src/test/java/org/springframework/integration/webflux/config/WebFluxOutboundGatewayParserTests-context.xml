@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration/webflux"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:beans="http://www.springframework.org/schema/beans"
-			 xmlns:si="http://www.springframework.org/schema/integration"
-			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/webflux
-			http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd">
+<beans:beans xmlns="https://www.springframework.org/schema/integration/webflux"
+			 xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="https://www.springframework.org/schema/beans"
+			 xmlns:si="https://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="https://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/webflux
+			https://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd">
 
 	<si:channel id="requests"/>
 
@@ -19,11 +19,11 @@
 		<si:queue/>
 	</si:channel>
 
-	<outbound-gateway id="reactiveMinimalConfig" url="http://localhost/test1" request-channel="requests"
+	<outbound-gateway id="reactiveMinimalConfig" url="https://localhost/test1" request-channel="requests"
 					  web-client="webClient"/>
 
 	<outbound-gateway id="reactiveFullConfig"
-					  url="http://localhost/test2"
+					  url="https://localhost/test2"
 					  http-method="PUT"
 					  request-channel="requests"
 					  reply-timeout="1234"

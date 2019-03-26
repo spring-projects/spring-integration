@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns:int-http="http://www.springframework.org/schema/integration/http"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:beans="http://www.springframework.org/schema/beans"
-			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration/http
-			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+<beans:beans xmlns:int-http="https://www.springframework.org/schema/integration/http"
+			 xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="https://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="https://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/integration/http
+			https://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
 	<int-http:inbound-channel-adapter path="/no" supported-methods="GET" channel="nullChannel"/>
 
@@ -31,7 +31,7 @@
 	</int-http:inbound-channel-adapter>
 
 	<int-http:inbound-channel-adapter path="/customized" supported-methods="GET,POST" channel="nullChannel">
-		<int-http:cross-origin origin="http://site1.com,http://site2.com"
+		<int-http:cross-origin origin="https://site1.com,http://site2.com"
 							   allowed-headers="header1, header2"
 							   exposed-headers="header3, header4"
 							   method="DELETE"
