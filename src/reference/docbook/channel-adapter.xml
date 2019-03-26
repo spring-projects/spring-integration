@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="channel-adapter"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="channel-adapter"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Channel Adapter</title>
   <para>
     A Channel Adapter is a Message Endpoint that enables connecting a single sender or receiver to a Message Channel.

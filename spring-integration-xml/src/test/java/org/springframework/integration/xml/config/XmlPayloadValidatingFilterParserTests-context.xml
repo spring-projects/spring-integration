@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+<beans xmlns="https://www.springframework.org/schema/beans"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="https://www.springframework.org/schema/integration"
+	xmlns:int-xml="https://www.springframework.org/schema/integration/xml"
+	xsi:schemaLocation="https://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/integration/xml https://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
 	<int-xml:validating-filter id="filterA" 
 							   input-channel="inputChannelA"
@@ -28,7 +28,7 @@
 							   
 	<bean id="xmlValidator" class="org.springframework.xml.validation.XmlValidatorFactory" factory-method="createValidator">
 		<constructor-arg value="classpath:org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
-		<constructor-arg value="http://www.w3.org/2001/XMLSchema"/>
+		<constructor-arg value="https://www.w3.org/2001/XMLSchema"/>
 	</bean>
 							   
 	<int:channel id="validOutputChannel">

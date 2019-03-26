@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="spel"
-	xmlns:xlink="http://www.w3.org/1999/xlink">
+<appendix xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="spel"
+	xmlns:xlink="https://www.w3.org/1999/xlink">
 	<title>Spring Expression Language (SpEL)</title>
 
 	<section id="spel-intro">
 		<title>Introduction</title>
 		<para>
 			Many Spring Integration components can be configured using expressions. These expressions
-			are written in the <ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html">
+			are written in the <ulink url="https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html">
 			Spring Expression Language</ulink>.
 		</para>
 		<para>
@@ -109,7 +109,7 @@
 		<para>
 			Namespace support is provided for easy addition of SpEL custom functions.
 			You can specify <code>&lt;spel-function/&gt;</code> components to provide
-			<ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions"
+			<ulink url="https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions"
 			>custom SpEL functions</ulink> to the <interfacename>EvaluationContext</interfacename> used throughout the framework.
 			Instead of configuring the factory bean above, simply add one or more of these components
 			and the framework will automatically add them to the default <emphasis>integrationEvaluationContext</emphasis>
@@ -167,7 +167,7 @@
 				<listitem>
 					<emphasis role="bold">#jsonPath</emphasis> - to evaluate a 'jsonPath' on some provided object. This function
 					invokes <code>JsonPathUtils.evaluate(...)</code>. This static method delegates to the
-					<ulink url="http://code.google.com/p/json-path">Jayway JsonPath library</ulink>. The following shows
+					<ulink url="https://code.google.com/p/json-path">Jayway JsonPath library</ulink>. The following shows
 					some usage examples:
 					<programlisting language="xml"><![CDATA[<transformer expression="#jsonPath(payload, '$.store.book[0].author')"/>
 
@@ -204,7 +204,7 @@
 		<title>PropertyAccessors</title>
 		<para>
 			Namespace support is provided for the easy addition of SpEL custom
-			<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html"
+			<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html"
 			><interfacename>PropertyAccessor</interfacename></ulink>
 			implementations. You can specify the <code>&lt;spel-property-accessors/&gt;</code> component to provide a list of
 			custom <interfacename>PropertyAccessor</interfacename>s to the <interfacename>EvaluationContext</interfacename>

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="redis"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="redis"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
 
   <title>Redis Support</title>
 
   <para>
-    Since version 2.1 Spring Integration introduces support for <ulink url="http://redis.io/">Redis</ulink>:
+    Since version 2.1 Spring Integration introduces support for <ulink url="https://redis.io/">Redis</ulink>:
     <emphasis>"an open source advanced key-value store". </emphasis>
     This support comes in the form of a Redis-based MessageStore as well as Publish-Subscribe Messaging adapters that
-    are supported by Redis via its <ulink url="http://redis.io/topics/pubsub">PUBLISH, SUBSCRIBE and UNSUBSCRIBE</ulink> commands.
+    are supported by Redis via its <ulink url="https://redis.io/topics/pubsub">PUBLISH, SUBSCRIBE and UNSUBSCRIBE</ulink> commands.
   </para>
 
   <section id="redis-intro">
     <title>Introduction</title>
     <para>
-      To download, install and run Redis please refer to the <ulink url="http://redis.io/download">Redis documentation</ulink>.
+      To download, install and run Redis please refer to the <ulink url="https://redis.io/download">Redis documentation</ulink>.
     </para>
   </section>
 
@@ -25,7 +25,7 @@
     <ulink url="https://github.com/SpringSource/spring-data-redis">Spring Data Redis</ulink>, which provides typical Spring constructs:
     <classname>ConnectionFactory</classname> and <classname>Template</classname>. Those abstractions
     simplify integration with several Redis-client Java APIs. Currently Spring-Data-Redis supports
-    <ulink url="https://github.com/xetorthio/jedis">jedis</ulink>, <ulink url="http://code.google.com/p/jredis/">jredis</ulink> and <ulink url="https://github.com/e-mzungu/rjc">rjc</ulink></para>
+    <ulink url="https://github.com/xetorthio/jedis">jedis</ulink>, <ulink url="https://code.google.com/p/jredis/">jredis</ulink> and <ulink url="https://github.com/e-mzungu/rjc">rjc</ulink></para>
 
     <para><emphasis>RedisConnectionFactory</emphasis> </para>
 
@@ -68,7 +68,7 @@ jcf.afterPropertiesSet();]]></programlisting>
     As with other template classes in Spring (e.g., <classname>JdbcTemplate</classname>, <classname>JmsTemplate</classname>)
     <classname>RedisTemplate</classname> is a helper class that simplifies Redis data access code.
     For more information about <classname>RedisTemplate</classname> and its variations (e.g., <classname>StringRedisTemplate</classname>)
-    please refer to the <ulink url="http://static.springsource.org/spring-data/data-redis/docs/current/reference/">Spring-Data-Redis documentation</ulink>
+    please refer to the <ulink url="https://docs.spring.io/spring-data/data-redis/docs/current/reference/">Spring-Data-Redis documentation</ulink>
     </para>
 
     <para>The code below shows how to create an instance of <classname>RedisTemplate</classname>:</para>
@@ -157,7 +157,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       <para>
         Since <emphasis>Spring Integration 3.0</emphasis>, the Inbound Adapter, in addition to the existing <code>topics</code> attribute,
         now has the <code>topic-patterns</code> attribute. This attribute contains a comma-delimited set of Redis topic patterns.
-        For more information regarding Redis publish/subscribe, see <ulink url="http://redis.io/topics/pubsub">Redis Pub/Sub</ulink>.
+        For more information regarding Redis publish/subscribe, see <ulink url="https://redis.io/topics/pubsub">Redis Pub/Sub</ulink>.
       </para>
       <para>
          Inbound adapters can use a <classname>RedisSerializer</classname> to deserialize the body of Redis Messages.
@@ -382,11 +382,11 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     <title>Redis Message Store</title>
 
 	<para>
-    As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> allows you to persist Messages.
+    As described in EIP, a <ulink url="https://www.enterpriseintegrationpatterns.com/MessageStore.html">Message Store</ulink> allows you to persist Messages.
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
     In Spring Integration, the MessageStore strategy also provides the foundation for the
-	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
+	<ulink url="https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
 	</para>
 
 	<para>
@@ -424,7 +424,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 		<title>Redis Metadata Store</title>
 		<para>
 			As of <emphasis>Spring Integration 3.0</emphasis> a new Redis-based
-			<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html">MetadataStore</ulink></interfacename>
+			<interfacename><ulink url="https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html">MetadataStore</ulink></interfacename>
 			(<xref linkend="metadata-store"/>) implementation is available. The <classname>RedisMetadataStore</classname> can
 			be used to maintain state of a <interfacename>MetadataStore</interfacename>
 			across application restarts. This new <interfacename>MetadataStore</interfacename>
@@ -449,9 +449,9 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 </bean>]]></programlisting>
 		<para>
 			The <classname>RedisMetadataStore</classname> is backed by
-			<ulink url="http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html"
+			<ulink url="https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html"
 			><classname>RedisProperties</classname></ulink> and interaction with it uses
-			<ulink url="http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html"
+			<ulink url="https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html"
 			><classname>BoundHashOperations</classname></ulink>, which, in turn, requires a <code>key</code> for the entire
 			<classname>Properties</classname> store. In the case of the <interfacename>MetadataStore</interfacename>, this
 			<code>key</code> plays the role of a <emphasis>region</emphasis>, which is useful in distributed environment,

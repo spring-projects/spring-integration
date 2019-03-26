@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans
-	xmlns="http://www.springframework.org/schema/integration/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns="https://www.springframework.org/schema/integration/http"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="https://www.springframework.org/schema/beans"
+	xmlns:si="https://www.springframework.org/schema/integration"
+	xsi:schemaLocation="https://www.springframework.org/schema/integration/http https://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		https://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<si:chain input-channel="httpOutboundChannelAdapterWithinChain">
-		<outbound-channel-adapter url="http://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"/>
+		<outbound-channel-adapter url="https://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"/>
 	</si:chain>
 
 	<beans:bean id="restTemplate" class="org.mockito.Mockito" factory-method="spy">
@@ -19,7 +19,7 @@
 	</beans:bean>
 
 	<si:chain input-channel="httpOutboundGatewayWithinChain" output-channel="replyChannel">
-		<outbound-gateway url="http://localhost:51235/%2f/testApps?param={param}"
+		<outbound-gateway url="https://localhost:51235/%2f/testApps?param={param}"
 						  rest-template="restTemplate"
 						  encode-uri="false"
 						  expected-response-type="java.lang.String">

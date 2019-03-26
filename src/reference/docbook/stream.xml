@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="stream"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="stream"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Stream Support</title>
 
   <section id="stream-intro">
@@ -62,13 +62,13 @@
   <para>
     To reduce the configuration needed for stream related channel adapters there is a namespace defined. The following schema locations are needed to use it.
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:beans="http://www.springframework.org/schema/beans"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-      http://www.springframework.org/schema/beans/spring-beans.xsd
-      http://www.springframework.org/schema/integration/stream
-      http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">]]></programlisting>
+<beans:beans xmlns:int-stream="https://www.springframework.org/schema/integration/stream"
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="https://www.springframework.org/schema/beans"
+  xsi:schemaLocation="https://www.springframework.org/schema/beans
+      https://www.springframework.org/schema/beans/spring-beans.xsd
+      https://www.springframework.org/schema/integration/stream
+      https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">]]></programlisting>
   </para>
     <para>
     To configure the inbound channel adapter the following code snippet shows the different configuration options that are supported.

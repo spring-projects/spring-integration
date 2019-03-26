@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="service-activator"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="service-activator"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Service Activator</title>
 
   <section id="service-activator-introduction">
@@ -75,7 +75,7 @@
 
     <para>
     Since Spring Integration 2.0, Service Activators can also benefit from SpEL
-    (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
+    (https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
 	</para>
 	<para>
 	For example, you may now invoke any bean method without pointing to the bean via a <code>ref</code> attribute or including it as an

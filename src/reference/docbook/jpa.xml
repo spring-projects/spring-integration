@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="jpa"
-	xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="jpa"
+	xmlns:xlink="https://www.w3.org/1999/xlink">
 	<title>JPA Support</title>
 	<para>
 		Spring Integration's JPA (Java Persistence API) module provides components
@@ -256,7 +256,7 @@
 				case you want to inject an EntityManager explicitly, you have to define
 				a <classname>SharedEntityManagerBean</classname>. For more information,
 				please see the relevant
-				<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html">JavaDoc</ulink>.
+				<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/orm/jpa/support/SharedEntityManagerBean.html">JavaDoc</ulink>.
 			</note>
 			<programlisting language="xml"><![CDATA[<bean id="entityManager"
       class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
@@ -672,7 +672,7 @@
 						As of <emphasis>Spring Integration 3.0</emphasis>,
 						payloads to <emphasis>persist</emphasis> or
 						<emphasis>merge</emphasis> can also be of type
-						<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+						<interfacename><ulink url="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
 						In that case, each object returned by the
 						<interfacename>Iterable</interfacename> is treated as
 						an entity and persisted or merged using the underlying
@@ -952,7 +952,7 @@ public class Student {
 						As of <emphasis role="bold">Spring Integration 3.0</emphasis>,
 						payloads to <emphasis>persist</emphasis> or
 						<emphasis>merge</emphasis> can also be of type
-						<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+						<interfacename><ulink url="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
 						In that case, each object returned by the
 						<interfacename>Iterable</interfacename> is treated as
 						an entity and persisted or merged using the underlying
@@ -1294,7 +1294,7 @@ public class Student {
 				</para>
 				<para>
 					For more information please see
-					<ulink url="http://jcp.org/en/jsr/detail?id=317">JSR 317: Java™ Persistence 2.0</ulink>
+					<ulink url="https://jcp.org/en/jsr/detail?id=317">JSR 317: Java™ Persistence 2.0</ulink>
 				</para>
 			</important>
 		</section>

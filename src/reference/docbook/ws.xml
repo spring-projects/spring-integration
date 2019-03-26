@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="ws"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="ws"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Web Services Support</title>
 
   <section id="webservices-outbound">
     <title>Outbound Web Service Gateways</title>
     <para>
       To invoke a Web Service upon sending a message to a channel, there are two options - both of which build
-      upon the <ulink url="http://static.springsource.org/spring-ws/site/">Spring Web Services</ulink>
+      upon the <ulink url="https://docs.spring.io/spring-ws/site/">Spring Web Services</ulink>
       project: <classname>SimpleWebServiceOutboundGateway</classname> and
       <classname>MarshallingWebServiceOutboundGateway</classname>. The former will accept either a
       <classname>String</classname> or <interfacename>javax.xml.transform.Source</interfacename> as the message
@@ -23,15 +23,15 @@
       will configure a fixed URI DestinationProvider implementation. If you do need dynamic resolution of the
       URI at runtime, however, then the DestinationProvider can provide such behavior as looking up the URI from
       a registry. See the Spring Web Services
-      <ulink url="http://static.springsource.org/spring-ws/site/apidocs/org/springframework/ws/client/support/destination/DestinationProvider.html">DestinationProvider</ulink>
+      <ulink url="https://docs.spring.io/spring-ws/site/apidocs/org/springframework/ws/client/support/destination/DestinationProvider.html">DestinationProvider</ulink>
       JavaDoc for more information about this strategy.
     </note>
     </para>
     <para>
       For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering
-      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/client.html">client access</ulink>
+      <ulink url="https://docs.spring.io/spring-ws/site/reference/html/client.html">client access</ulink>
       as well as the chapter covering
-      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink>.
+      <ulink url="https://docs.spring.io/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink>.
     </para>
   </section>
 
@@ -59,9 +59,9 @@ as per standard Spring Web Services configuration.
     </para>
     <para>
       For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering
-      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/server.html">creating a Web Service</ulink>.
+      <ulink url="https://docs.spring.io/spring-ws/site/reference/html/server.html">creating a Web Service</ulink>.
       The chapter covering
-      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink> is also applicable again.
+      <ulink url="https://docs.spring.io/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink> is also applicable again.
     </para>
   </section>
   <section id="webservices-namespace">
@@ -70,7 +70,7 @@ as per standard Spring Web Services configuration.
       To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
       <programlisting language="xml"><![CDATA[<int-ws:outbound-gateway id="simpleGateway"
                      request-channel="inputChannel"
-                     uri="http://example.org"/>]]></programlisting>
+                     uri="https://example.org"/>]]></programlisting>
       <note>
       Notice that this example does not provide a 'reply-channel'. If the Web Service were to
       return a non-empty response, the Message containing that response would be sent to the
@@ -97,7 +97,7 @@ as per standard Spring Web Services configuration.
       To use Spring OXM Marshallers and/or Unmarshallers, provide bean references. For outbound:
       <programlisting language="xml"><![CDATA[<int-ws:outbound-gateway id="marshallingGateway"
                      request-channel="requestChannel"
-                     uri="http://example.org"
+                     uri="https://example.org"
                      marshaller="someMarshaller"
                      unmarshaller="someUnmarshaller"/>]]></programlisting>
       And for inbound:
@@ -134,11 +134,11 @@ as per standard Spring Web Services configuration.
     <title>Outbound URI Configuration</title>
     <para>
       For all URI-schemes supported by Spring Web Services
-     (<ulink url="http://static.springsource.org/spring-ws/site/reference/html/client.html#client-transports">URIs and Transports</ulink>)
+     (<ulink url="https://docs.spring.io/spring-ws/site/reference/html/client.html#client-transports">URIs and Transports</ulink>)
      <code>&lt;uri-variable/&gt;</code> substitution is provided:
     </para>
     <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input"
-        uri="http://springsource.org/{foo}-{bar}">
+        uri="https://springsource.org/{foo}-{bar}">
     <ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
     <ws:uri-variable name="bar" expression="headers.x"/>
 </ws:outbound-gateway>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
-	xmlns:xi="http://www.w3.org/2001/XInclude"
-	xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
+	xmlns:xi="https://www.w3.org/2001/XInclude"
+	xmlns:xlink="https://www.w3.org/1999/xlink">
 	<title>What's new in Spring Integration 3.0?</title>
 	<para>
 		This chapter provides an overview of the new features and improvements
@@ -56,7 +56,7 @@
 			<title>Redis: New Components</title>
 			<para>
 				A new Redis-based
-				<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
+				<interfacename><ulink url="https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
 				implementation has been added. The <classname>RedisMetadataStore</classname> can
 				be used to maintain state of a <interfacename>MetadataStore</interfacename>
 				across application restarts. This new <interfacename>MetadataStore</interfacename>
@@ -575,7 +575,7 @@
 			<para>
 				Payloads to <emphasis>persist</emphasis> or
 				<emphasis>merge</emphasis> can now be of type
-				<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html"
+				<interfacename><ulink url="https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html"
 						>java.lang.Iterable</ulink></interfacename>.
 			</para>
 			<para>

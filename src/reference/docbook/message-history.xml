@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-history"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="message-history"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Message History</title>
   <para>
     The key benefit of a messaging architecture is loose coupling where participating components do not maintain any awareness about one another. This fact

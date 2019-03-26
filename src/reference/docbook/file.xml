@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="files"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="files"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>File Support</title>
 
   <section id="file-intro">
@@ -77,16 +77,16 @@
       The configuration can be simplified using the file specific namespace. To do
       this use the following template.
       <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:int="http://www.springframework.org/schema/integration"
-  xmlns:int-file="http://www.springframework.org/schema/integration/file"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
-    http://www.springframework.org/schema/integration/file
-    http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+<beans xmlns="https://www.springframework.org/schema/beans"
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="https://www.springframework.org/schema/integration"
+  xmlns:int-file="https://www.springframework.org/schema/integration/file"
+  xsi:schemaLocation="https://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/file
+    https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 </beans>]]></programlisting>
     </para>
         <para>
@@ -249,7 +249,7 @@
 		<title>Writing files</title>
 		<para>
 			To write messages to the file system you can use a
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink></classname>.
+			<classname><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink></classname>.
 			This class can deal with <emphasis>File</emphasis>,
 			<emphasis>String</emphasis>, or <emphasis>byte array</emphasis>
 			payloads.
@@ -270,10 +270,10 @@
 				In its simplest form, the <classname>FileWritingMessageHandler</classname>
 				only requires a destination directory for writing the files. The
 				name of the file to be written is determined by the handler's
-				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
-				The <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
+				<classname><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
+				The <ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
 				looks for a Message header whose key matches the constant defined
-				as <code><ulink url="http://static.springsource.org/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME">FileHeaders.FILENAME</ulink></code>.
+				as <code><ulink url="https://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME">FileHeaders.FILENAME</ulink></code>.
 			</para>
 			<para>
 				Alternatively, you can specify an expression
@@ -439,7 +439,7 @@
 			<para><emphasis>FAIL</emphasis></para>
 			<para>
 				If the target file exists, a
-				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/MessageHandlingException.html">MessageHandlingException</ulink>
+				<ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/MessageHandlingException.html">MessageHandlingException</ulink>
 				is thrown.
 			</para>
 			<para><emphasis>IGNORE</emphasis></para>
@@ -497,7 +497,7 @@
 				mode. In that case the pre-existing destination file is returned.
 				If the payload of the request message was a file, you still have
 				access to that original file through the Message Header
-				<emphasis><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileHeaders.html">FileHeaders.ORIGINAL_FILE</ulink></emphasis>.
+				<emphasis><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html">FileHeaders.ORIGINAL_FILE</ulink></emphasis>.
 			</para>
 			<note>
 				The 'outbound-gateway' works well in cases where you want to first move a file and then send it

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="mongodb"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="mongodb"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
 
   <title>MongoDb Support</title>
 
   <para>
-    As of version 2.1 Spring Integration introduces support for <ulink url="http://www.mongodb.org/">MongoDB</ulink>:
+    As of version 2.1 Spring Integration introduces support for <ulink url="https://www.mongodb.org/">MongoDB</ulink>:
     a <emphasis>"high-performance, open source, document-oriented database"</emphasis>.
     This support comes in the form of a MongoDB-based MessageStore.
   </para>
@@ -13,7 +13,7 @@
   <section id="mongodb-intro">
     <title>Introduction</title>
     <para>
-      To download, install, and run MongoDB please refer to the <ulink url="http://www.mongodb.org/downloads">MongoDB documentation</ulink>.
+      To download, install, and run MongoDB please refer to the <ulink url="https://www.mongodb.org/downloads">MongoDB documentation</ulink>.
     </para>
   </section>
 
@@ -21,7 +21,7 @@
     <title>Connecting to MongoDb</title>
 
     <para>To begin interacting with MongoDB you first need to connect to it. Spring Integration builds on the support provided by another
-    Spring project, <ulink url="http://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink>, which provides a factory
+    Spring project, <ulink url="https://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink>, which provides a factory
     class called <classname>MongoDbFactory</classname> that simplifies integration with the MongoDB Client API.</para>
 
     <para><emphasis>MongoDbFactory</emphasis> </para>
@@ -71,7 +71,7 @@
     2) a String specifying the name of the database. If you need to configure properties such as <code>host</code>, <code>port</code>, etc,
     you can pass those using one of the constructors provided by the underlying <classname>Mongo</classname> class.
     For more information on how to configure MongoDB, please refer to the
-<ulink url="http://static.springsource.org/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference.
+<ulink url="https://docs.spring.io/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference.
     </para>
   </section>
 
@@ -79,11 +79,11 @@
     <title>MongoDB Message Store</title>
 
     <para>
-    As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink>  allows you to persist Messages.
+    As described in EIP, a <ulink url="https://www.enterpriseintegrationpatterns.com/MessageStore.html">Message Store</ulink>  allows you to persist Messages.
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
     In Spring Integration, the MessageStore strategy also provides the foundation for the
-    <ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
+    <ulink url="https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
     </para>
 
     <para>
@@ -164,7 +164,7 @@
     <itemizedlist>
       <listitem>
         <para><code>query</code> or <code>query-expression</code> - a
-        JSON query (see <ulink url="http://www.mongodb.org/display/DOCS/Querying">MongoDb Querying</ulink>) </para>
+        JSON query (see <ulink url="https://www.mongodb.org/display/DOCS/Querying">MongoDb Querying</ulink>) </para>
       </listitem>
       <listitem>
         <para><code>entity-class</code> - the type of the payload object; if not supplied, a
