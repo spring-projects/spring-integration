@@ -5,13 +5,13 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns="http://www.springframework.org/schema/beans"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/websocket
-			http://www.springframework.org/schema/websocket/spring-websocket.xsd
+			https://www.springframework.org/schema/websocket/spring-websocket.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/websocket
-			http://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
+			https://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd">
 
 	<int-websocket:server-container id="serverWebSocketContainer"
 									path="/ws"
@@ -20,7 +20,7 @@
 									handshake-handler="handshakeHandler"
 									handshake-interceptors="handshakeInterceptor"
 									decorator-factories="decoratorFactory"
-									allowed-origins="http://foo.com">
+									allowed-origins="http://www.foo.com/">
 		<int-websocket:sockjs client-library-url="https://foo.sock.js"
 							  disconnect-delay="4000"
 							  heartbeat-time="30000"

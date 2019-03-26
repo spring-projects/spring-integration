@@ -4,9 +4,9 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:si="http://www.springframework.org/schema/integration"
-		xsi:schemaLocation="http://www.springframework.org/schema/integration/webflux http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		xsi:schemaLocation="http://www.springframework.org/schema/integration/webflux https://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<si:channel id="requests"/>
 
