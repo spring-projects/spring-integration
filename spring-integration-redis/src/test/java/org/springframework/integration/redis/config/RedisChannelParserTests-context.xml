@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+<beans xmlns="https://www.springframework.org/schema/beans"
+	   xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-redis="https://www.springframework.org/schema/integration/redis"
+	   xsi:schemaLocation="https://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic.parser"
 										 serializer="redisSerializer"/>

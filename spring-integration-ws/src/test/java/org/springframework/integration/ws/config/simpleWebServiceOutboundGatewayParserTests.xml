@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:ws="http://www.springframework.org/schema/integration/ws"
-	xmlns:util='http://www.springframework.org/schema/util'
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/ws
-			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
-			http://www.springframework.org/schema/util
-			http://www.springframework.org/schema/util/spring-util.xsd">
+<beans xmlns="https://www.springframework.org/schema/beans"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="https://www.springframework.org/schema/integration"
+	xmlns:ws="https://www.springframework.org/schema/integration/ws"
+	xmlns:util='https://www.springframework.org/schema/util'
+	xsi:schemaLocation="https://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/ws
+			https://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
+			https://www.springframework.org/schema/util
+			https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:channel id="inputChannel"/>
 
@@ -25,7 +25,7 @@
 
 	<ws:outbound-gateway id="gatewayWithReplyChannel"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     reply-channel="outputChannel"
 	                     reply-timeout="777"
 	                     mapped-request-headers="testRequest"
@@ -33,69 +33,69 @@
 
 	<ws:outbound-gateway id="gatewayWithIgnoreEmptyResponsesFalseAndRequiresReplyTrue"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     ignore-empty-responses="false"
                          requires-reply="true"/>
 
 	<ws:outbound-gateway id="gatewayWithDefaultSourceExtractor"
 		                 request-channel="inputChannel"
-	                     uri="http://example.org"/>
+	                     uri="https://example.org"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomSourceExtractor"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     source-extractor="sourceExtractor"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomRequestCallback"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     request-callback="requestCallback"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomMessageFactory"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     message-factory="messageFactory"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomSourceExtractorAndMessageFactory"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     source-extractor="sourceExtractor"
 	                     message-factory="messageFactory"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomFaultMessageResolver"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     fault-message-resolver="faultMessageResolver"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomMessageSender"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     message-sender="messageSender"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomMessageSenderList"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     message-senders="messageSenders"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomInterceptor"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     interceptor="interceptor"/>
 
 	<ws:outbound-gateway id="gatewayWithCustomInterceptorList"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     interceptors="interceptors"/>
 
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
-	                     uri="http://example.org">
+	                     uri="https://example.org">
     	<si:poller fixed-delay="5000"/>
 	</ws:outbound-gateway>
 
 	<ws:outbound-gateway id="gatewayWithOrderAndAutoStartupFalse"
 	                     request-channel="inputChannel"
-	                     uri="http://example.org"
+	                     uri="https://example.org"
 	                     order="99"
 	                     auto-startup="false"/>
 
