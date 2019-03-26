@@ -165,7 +165,7 @@ public class WebSocketParserTests {
 		assertSame(this.handshakeInterceptor, interceptors[0]);
 		assertEquals(100, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit"));
 		assertEquals(100000, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit"));
-		assertArrayEquals(new String[] {"http://foo.com"},
+		assertArrayEquals(new String[] {"https://example.com"},
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class));
 
 		WebSocketHandlerDecoratorFactory[] decoratorFactories =
