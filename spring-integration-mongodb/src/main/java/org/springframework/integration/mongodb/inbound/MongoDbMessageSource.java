@@ -82,7 +82,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	/**
 	 * Creates an instance with the provided {@link MongoDbFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string
-	 * (see http://www.mongodb.org/display/DOCS/Querying).
+	 * (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
 	 * @param mongoDbFactory
@@ -99,7 +99,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	/**
 	 * Creates an instance with the provided {@link MongoOperations} and SpEL expression
 	 * which should resolve to a Mongo 'query' string
-	 * (see http://www.mongodb.org/display/DOCS/Querying).
+	 * (see https://www.mongodb.org/display/DOCS/Querying).
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *

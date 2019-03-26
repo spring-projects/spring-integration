@@ -1,7 +1,7 @@
 <rss version="2.0">
 <channel>
 <title>Spring Integration</title>
-<link>http://www.springsource.org/spring-integration</link>
+<link>https://www.springsource.org/spring-integration</link>
 <description>
 Spring Integration is a really cool framework
 </description>
@@ -11,9 +11,9 @@ All Rights Reserved.</copyright>
 <lastBuildDate>Tue, 12 Apr 2010 18:21:32 EST</lastBuildDate>
 <ttl>240</ttl>
 <image>
-<url>http://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
+<url>https://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
 <title>Spring Integration</title>
-<link>http://www.springsource.org/spring-integration</link>
+<link>https://www.springsource.org/spring-integration</link>
 </image>
 
 </channel>

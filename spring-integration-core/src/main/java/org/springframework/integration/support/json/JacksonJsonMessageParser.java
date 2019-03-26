@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * {@link JsonInboundMessageMapper.JsonMessageParser} implementation that parses JSON messages
  * and builds a {@link Message} with the specified payload type from provided {@link JsonInboundMessageMapper}.
- * Uses Jackson JSON-processor (@link http://jackson.codehaus.org).
+ * Uses Jackson JSON-processor (@link https://jackson.codehaus.org).
  *
  * @author Artem Bilan
  * @since 3.0

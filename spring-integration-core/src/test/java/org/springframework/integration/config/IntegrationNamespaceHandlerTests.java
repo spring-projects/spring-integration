@@ -58,7 +58,7 @@ public class IntegrationNamespaceHandlerTests {
 
 		Element element = Mockito.mock(Element.class);
 		Mockito.when(element.getAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation"))
-				.thenReturn("http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd");
+				.thenReturn("http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd");
 		Document document = Mockito.mock(Document.class);
 		Mockito.when(element.getOwnerDocument()).thenReturn(document);
 		Mockito.when(document.getDocumentElement()).thenReturn(element);

@@ -123,7 +123,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	 * A timeout of zero can be used to block indefinitely. If not set explicitly
 	 * the timeout value will default to {@code 1000}
 	 * <p/>
-	 * See also: http://redis.io/commands/brpop
+	 * See also: https://redis.io/commands/brpop
 	 *
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
@@ -263,7 +263,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	/**
 	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
-	 * is returned. See also http://redis.io/commands/llen
+	 * is returned. See also https://redis.io/commands/llen
 	 *
 	 * @return Size of the queue. Never negative.
 	 */

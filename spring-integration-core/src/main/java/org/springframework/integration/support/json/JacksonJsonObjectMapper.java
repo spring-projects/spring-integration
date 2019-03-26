@@ -33,7 +33,7 @@ import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
 
 /**
- * Jackson JSON-processor (@link http://jackson.codehaus.org) {@linkplain JsonObjectMapper} implementation.
+ * Jackson JSON-processor (@link https://jackson.codehaus.org) {@linkplain JsonObjectMapper} implementation.
  * Delegates <code>toJson</code> and <code>fromJson</code>
  * to the {@linkplain org.codehaus.jackson.map.ObjectMapper}
  *
