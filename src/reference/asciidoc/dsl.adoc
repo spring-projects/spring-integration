@@ -57,7 +57,7 @@ In some sense, Spring Integration's support for the Spring Expression Language (
 === DSL Basics
 
 The `org.springframework.integration.dsl` package contains the `IntegrationFlowBuilder` API mentioned above and a bunch of `IntegrationComponentSpec` implementations which are builders too and provide the fluent API to configure concrete endpoints.
-The `IntegrationFlowBuilder` infrastructure provides common http://www.eaipatterns.com[EIP] for message based applications, such as channels, endpoints, pollers and channel interceptors.
+The `IntegrationFlowBuilder` infrastructure provides common https://www.enterpriseintegrationpatterns.com/[EIP] for message based applications, such as channels, endpoints, pollers and channel interceptors.
 
 Endpoints are expressed as verbs in the DSL to improve readability.
 The following list includes the common DSL method names and the associated EIP endpoint:

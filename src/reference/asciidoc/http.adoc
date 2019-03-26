@@ -12,9 +12,9 @@ Also see <<webflux>>.
 === Http Inbound Components
 
 To receive messages over HTTP, you need to use an _HTTP Inbound Channel Adapter_ or _Gateway_.
-To support the _HTTP Inbound Adapters_, they need to be deployed within a servlet container such as http://tomcat.apache.org/[Apache Tomcat] or http://www.eclipse.org/jetty/[Jetty].
+To support the _HTTP Inbound Adapters_, they need to be deployed within a servlet container such as https://tomcat.apache.org/[Apache Tomcat] or https://www.eclipse.org/jetty/[Jetty].
 The easiest way to do this is to use Spring's
-http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[HttpRequestHandlerServlet],
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[HttpRequestHandlerServlet],
  by providing the following servlet definition in the _web.xml_ file:
 
 [source,xml]
@@ -27,13 +27,13 @@ http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/co
 
 Notice that the servlet name matches the bean name.
 For more information on using the `HttpRequestHandlerServlet`, see chapter
-http://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring],
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring],
 which is part of the Spring Framework Reference documentation.
 
 If you are running within a Spring MVC application, then the aforementioned explicit servlet definition is not necessary.
 In that case, the bean name for your gateway can be matched against the URL path just like a Spring MVC Controller bean.
 For more information, please see the chapter
-http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html[Web MVC framework], which is part of the Spring Framework Reference documentation.
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html[Web MVC framework], which is part of the Spring Framework Reference documentation.
 
 TIP: For a sample application and the corresponding configuration, please see the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples] repository.
 It contains the https://github.com/spring-projects/spring-integration-samples/tree/master/basic/http[Http Sample] application demonstrating Spring Integration's HTTP support.
@@ -67,7 +67,7 @@ NOTE: The HTTP inbound Endpoint will locate a `MultipartResolver` in the context
 If it does in fact locate that bean, then the support for MultipartFiles will be enabled on the inbound request mapper.
 Otherwise, it will fail when trying to map a multipart-file request to a Spring Integration Message.
 For more on Spring's support for `MultipartResolver`, refer to the
-http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
 
 [NOTE]
 ====
@@ -176,7 +176,7 @@ If _transfer-cookies_ is false, any _Set-Cookie_ header received will remain as 
 HTTP is a request/response protocol.
 However the response may not have a body, just headers.
 In this case, the `HttpRequestExecutingMessageHandler` produces a reply `Message` with the payload being an `org.springframework.http.ResponseEntity`, regardless of any provided `expected-response-type`.
-According to the http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html[HTTP RFC Status Code Definitions], there are many statuses which identify that a response MUST NOT contain a message-body (e.g.
+According to the https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html[HTTP RFC Status Code Definitions], there are many statuses which identify that a response MUST NOT contain a message-body (e.g.
 204 No Content).
 There are also cases where calls to the same URL might, or might not, return a response body; for example, the first request to an HTTP resource returns content, but the second does not (e.g.
 304 Not Modified).
@@ -209,11 +209,11 @@ To include it in your configuration, simply provide the following namespace decl
   xmlns:int-http="http://www.springframework.org/schema/integration/http"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/http
-    http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+    https://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
     ...
 </beans>
 ----
@@ -241,14 +241,14 @@ To process requests that do expect a response, use an _inbound-gateway_:
 [[http-request-mapping]]
 ==== Request Mapping Support
 
-NOTE: _Spring Integration 3.0_ is improving the REST support by introducing the http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[IntegrationRequestMappingHandlerMapping].
+NOTE: _Spring Integration 3.0_ is improving the REST support by introducing the https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[IntegrationRequestMappingHandlerMapping].
 The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
 
-The parsing of the _HTTP Inbound Gateway_ or the _HTTP Inbound Channel Adapter_ registers an `integrationRequestMappingHandlerMapping` bean of type http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[IntegrationRequestMappingHandlerMapping], in case there is none registered, yet.
-This particular implementation of the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html[`HandlerMapping`] delegates its logic to the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html[`RequestMappingInfoHandlerMapping`].
-The implementation provides similar functionality as the one provided by the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html[`org.springframework.web.bind.annotation.RequestMapping`] annotation in Spring MVC.
+The parsing of the _HTTP Inbound Gateway_ or the _HTTP Inbound Channel Adapter_ registers an `integrationRequestMappingHandlerMapping` bean of type https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html[IntegrationRequestMappingHandlerMapping], in case there is none registered, yet.
+This particular implementation of the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html[`HandlerMapping`] delegates its logic to the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html[`RequestMappingInfoHandlerMapping`].
+The implementation provides similar functionality as the one provided by the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html[`org.springframework.web.bind.annotation.RequestMapping`] annotation in Spring MVC.
 
-NOTE: For more information, please see http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping[Mapping Requests With `@RequestMapping`].
+NOTE: For more information, please see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping[Mapping Requests With `@RequestMapping`].
 
 For this purpose, _Spring Integration 3.0_ introduces the `<request-mapping>` sub-element.
 This optional sub-element can be added to the `<http:inbound-channel-adapter>` and the `<http:inbound-gateway>`.
@@ -270,7 +270,7 @@ It works in conjunction with the `path` and `supported-methods` attributes:
 </inbound-gateway>
 ----
 
-Based on this configuration, the namespace parser creates an instance of the `IntegrationRequestMappingHandlerMapping` (if none exists, yet), a `HttpRequestHandlingController` bean and associated with it an instance of http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html[`RequestMapping`], which in turn, is converted to the Spring MVC http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html[`RequestMappingInfo`].
+Based on this configuration, the namespace parser creates an instance of the `IntegrationRequestMappingHandlerMapping` (if none exists, yet), a `HttpRequestHandlingController` bean and associated with it an instance of https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html[`RequestMapping`], which in turn, is converted to the Spring MVC https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html[`RequestMappingInfo`].
 
 The `<request-mapping>` sub-element provides the following attributes:
 
@@ -305,7 +305,7 @@ This allows you to get the `Message` into the flow as early as possibly, e.g.:
 <int:service-activator input-channel="in2" ref="service" method="delete"/>
 ----
 
-For more information regarding _Handler Mappings_, please see: http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping[Handler Mappings].
+For more information regarding _Handler Mappings_, please see: https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping[Handler Mappings].
 
 [[http-cors]]
 ==== Cross-Origin Resource Sharing (CORS) Support
@@ -412,7 +412,7 @@ Using the _payload-expression_ attribute, the URI template variable _{firstName}
 </int-http:inbound-channel-adapter>
 ----
 
-For more information about _URI template variables_, please see the Spring Reference Manual: http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping-uri-templates[uri template patterns].
+For more information about _URI template variables_, please see the Spring Reference Manual: https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping-uri-templates[uri template patterns].
 
 
 
@@ -424,7 +424,7 @@ The entire list of available expression variables:
 
 * _#requestParams_ - the `MultiValueMap` from the `ServletRequest` `parameterMap`.
 * _#pathVariables_ - the `Map` from URI Template placeholders and their values;
-* _#matrixVariables_ - the `Map` of `MultiValueMap` according to http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-matrix-variables[Spring MVC Specification].
+* _#matrixVariables_ - the `Map` of `MultiValueMap` according to https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-matrix-variables[Spring MVC Specification].
 Note, _#matrixVariables_ require Spring MVC 3.2 or higher;
 * _#requestAttributes_ - the `org.springframework.web.context.request.RequestAttributes` associated with the current Request;
 * _#requestHeaders_ - the `org.springframework.http.HttpHeaders` object from the current Request;
@@ -535,7 +535,7 @@ This sub-element is available for the _Http Outbound Gateway_ and the _Http Outb
 [source,xml]
 ----
 <int-http:outbound-gateway id="trafficGateway"
-    url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
+    url="https://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
     request-channel="trafficChannel"
     http-method="GET"
     expected-response-type="java.lang.String">
@@ -554,7 +554,7 @@ This attribute is mutually exclusive with the `<uri-variable/>` sub-element:
 [source,xml]
 ----
 <int-http:outbound-gateway
-     url="http://foo.host/{foo}/bars/{bar}"
+     url="https://foo.host/{foo}/bars/{bar}"
      request-channel="trafficChannel"
      http-method="GET"
      uri-variables-expression="@uriVariablesBean.populate(payload)"
@@ -634,7 +634,7 @@ List<NameValuePair> nameValuePairs =
 
 ==== Controlling URI Encoding
 
-By default, the URL string is encoded (see http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
+By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
 In some scenarios with a non-standard URI (e.g.
 the RabbitMQ Rest API) it is undesirable to perform the encoding.
 The `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` provide an `encode-uri` attribute.
@@ -739,14 +739,14 @@ image::images/http-outbound-gateway.png[align="center"]
 
 You may want to configure the HTTP related timeout behavior, when making active HTTP requests using the _HTTP Outbound Gateway_ or the _HTTP Outbound Channel Adapter_.
 In those instances, these two components use Spring's
-http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[RestTemplate] support to execute HTTP requests.
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[RestTemplate] support to execute HTTP requests.
 
-In order to configure timeouts for the _HTTP Outbound Gateway_ and the _HTTP Outbound Channel Adapter_, you can either reference a `RestTemplate` bean directly, using the _rest-template_ attribute, or you can provide a reference to a http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[ClientHttpRequestFactory] bean using the _request-factory_ attribute.
+In order to configure timeouts for the _HTTP Outbound Gateway_ and the _HTTP Outbound Channel Adapter_, you can either reference a `RestTemplate` bean directly, using the _rest-template_ attribute, or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[ClientHttpRequestFactory] bean using the _request-factory_ attribute.
 Spring provides the following implementations of the `ClientHttpRequestFactory` interface:
 
-http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[SimpleClientHttpRequestFactory] - Uses standard J2SE facilities for making HTTP Requests
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[SimpleClientHttpRequestFactory] - Uses standard J2SE facilities for making HTTP Requests
 
-http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html[HttpComponentsClientHttpRequestFactory] - Uses http://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] (Since Spring 3.1)
+https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html[HttpComponentsClientHttpRequestFactory] - Uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] (Since Spring 3.1)
 
 If you don't explicitly configure the _request-factory_ or _rest-template_ attribute respectively, then a default RestTemplate which uses a `SimpleClientHttpRequestFactory` will be instantiated.
 
@@ -760,7 +760,7 @@ Some non-standard implementation of this method may ignore the specified timeout
 To see the connect timeout set, please call getConnectTimeout().
 
 Please test your timeouts if you have specific needs.
-Consider using the `HttpComponentsClientHttpRequestFactory` which, in turn, uses http://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] instead.
+Consider using the `HttpComponentsClientHttpRequestFactory` which, in turn, uses https://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] instead.
 =====
 
 IMPORTANT: When using the _Apache HttpComponents HttpClient_ with a Pooling Connection Manager, be aware that, by default, the connection manager will create no more than 2 concurrent connections per given route and no more than 20 connections in total.
@@ -771,7 +771,7 @@ Here is an example of how to configure an _HTTP Outbound Gateway_ using a `Simpl
 
 [source,xml]
 ----
-<int-http:outbound-gateway url="http://www.google.com/ig/api?weather={city}"
+<int-http:outbound-gateway url="https://www.google.com/ig/api?weather={city}"
                            http-method="GET"
                            expected-response-type="java.lang.String"
                            request-factory="requestFactory"
@@ -835,7 +835,7 @@ And for HTTPS:
 
 
 
-For more information please refer to this document: http://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
+For more information please refer to this document: https://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
 
 _Spring's SimpleClientHttpRequestFactory_
 
@@ -865,7 +865,7 @@ If for any reason, you need more explicit control over the proxy configuration, 
 
 Spring Integration provides support for Http Header mapping for both HTTP Request and HTTP Responses.
 
-By default all standard Http Headers as defined here http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without further configuration.
+By default all standard Http Headers as defined here https://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without further configuration.
 However if you do need further customization you may provide additional configuration via convenient namespace support.
 You can provide a comma-separated list of header names, and you can also include simple patterns with the '*' character acting as a wildcard.
 If you do provide such values, it will override the default behavior.

@@ -1,13 +1,13 @@
 [[redis]]
 == Redis Support
 
-Since version 2.1 Spring Integration introduces support for http://redis.io/[Redis]: _"an open source advanced key-value store".
-_ This support comes in the form of a Redis-based MessageStore as well as Publish-Subscribe Messaging adapters that are supported by Redis via its http://redis.io/topics/pubsub[PUBLISH, SUBSCRIBE and UNSUBSCRIBE] commands.
+Since version 2.1 Spring Integration introduces support for https://redis.io/[Redis]: _"an open source advanced key-value store".
+_ This support comes in the form of a Redis-based MessageStore as well as Publish-Subscribe Messaging adapters that are supported by Redis via its https://redis.io/topics/pubsub[PUBLISH, SUBSCRIBE and UNSUBSCRIBE] commands.
 
 [[redis-intro]]
 === Introduction
 
-To download, install and run Redis please refer to the http://redis.io/download[Redis documentation].
+To download, install and run Redis please refer to the https://redis.io/download[Redis documentation].
 
 [[redis-connection]]
 === Connecting to Redis
@@ -15,7 +15,7 @@ To download, install and run Redis please refer to the http://redis.io/download[
 To begin interacting with Redis you first need to connect to it.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
 Those abstractions simplify integration with several Redis-client Java APIs.
-Currently Spring-Data-Redis supportshttps://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[rjc]
+Currently Spring-Data-Redis supportshttps://github.com/xetorthio/jedis[jedis], https://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[rjc]
 
 _RedisConnectionFactory_
 
@@ -57,7 +57,7 @@ Once an instance of RedisConnectionFactory is created, you can create an instanc
 _RedisTemplate_
 
 As with other template classes in Spring (e.g., `JdbcTemplate`, `JmsTemplate`) `RedisTemplate` is a helper class that simplifies Redis data access code.
-For more information about `RedisTemplate` and its variations (e.g., `StringRedisTemplate`) please refer to the http://static.springsource.org/spring-data/data-redis/docs/current/reference/[Spring-Data-Redis documentation]
+For more information about `RedisTemplate` and its variations (e.g., `StringRedisTemplate`) please refer to the https://docs.spring.io/spring-data/data-redis/docs/current/reference/[Spring-Data-Redis documentation]
 
 The code below shows how to create an instance of `RedisTemplate`:
 
@@ -134,7 +134,7 @@ Inbound adapters can subscribe to multiple topic names hence the comma-delimited
 
 Since _version 3.0_, the Inbound Adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
 This attribute contains a comma-delimited set of Redis topic patterns.
-For more information regarding Redis publish/subscribe, see http://redis.io/topics/pubsub[Redis Pub/Sub].
+For more information regarding Redis publish/subscribe, see https://redis.io/topics/pubsub[Redis Pub/Sub].
 
 Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis Messages.
 The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be set to an empty string, which results in a `null` value for the `RedisSerializer` property.
@@ -321,9 +321,9 @@ Handling these events using an `<int-event:inbound-channel-adapter/>` can be use
 [[redis-message-store]]
 === Redis Message Store
 
-As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
+As described in EIP, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the MessageStore strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+In Spring Integration, the MessageStore strategy also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
 Spring Integration's Redis module provides the `RedisMessageStore`.
 
@@ -392,7 +392,7 @@ IMPORTANT: These stores implement only `BasicMessageGroupStore` and do not imple
 [[redis-metadata-store]]
 === Redis Metadata Store
 
-As of _Spring Integration 3.0_ a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[MetadataStore] (<<metadata-store>>) implementation is available.
+As of _Spring Integration 3.0_ a new Redis-based https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[MetadataStore] (<<metadata-store>>) implementation is available.
 The `RedisMetadataStore` can be used to maintain state of a `MetadataStore` across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
@@ -414,7 +414,7 @@ The _Twitter Inbound Channel Adapter_ and the _Feed Inbound Channel Adapter_ wil
 </bean>
 ----
 
-The `RedisMetadataStore` is backed by http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`] and interaction with it uses http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
+The `RedisMetadataStore` is backed by https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`] and interaction with it uses https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
 In the case of the `MetadataStore`, this `key` plays the role of a _region_, which is useful in distributed environment, when several applications use the same Redis server.
 By default this `key` has the value `MetaData`.
 

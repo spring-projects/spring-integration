@@ -18,88 +18,88 @@ Changes in version 2.1.0 Milestone 3 (Oct 26, 2011)
 https://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10121&version=12640
 
 Changes in version 2.1.0 Milestone 2 (Oct 12, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=12200
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=12200
 
 Changes in version 2.1.0 Milestone 1 (Sept 2, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11668
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11668
 
 Changes in version 2.0.5 (July 18, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=12104
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=12104
 
 Changes in version 2.0.4 (May 18, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11828
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11828
 
 Changes in version 2.0.3 (Feb 09, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11815
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11815
 
 Changes in version 2.0.2 (Feb 08, 2011)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11787
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11787
 
 Changes in version 2.0.1 (Dec 17, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11696
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11696
 
 Changes in version 2.0.0 GA (Nov 22, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11537
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11537
 
 Changes in version 2.0.0 Release Candidate 2 (Nov 13, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11749
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11749
 
 Changes in version 2.0.0 Release Candidate 1 (Oct 28, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11656
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11656
 
 Changes in version 2.0.0 Milestone 7 (Sept 03, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11311
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11311
 
 Changes in version 2.0.0 Milestone 6 (July 28, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11536
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11536
 
 Changes in version 2.0.0 Milestone 5 (June 25, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11446
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11446
 
 Changes in version 2.0.0 Milestone 4 (May 8, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11389
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11389
 
 Changes in version 2.0.0 Milestone 3 (Mar 12, 2010)
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11307
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11307
 
 Changes in version 2.0.0 Milestone 2 (Dec 24, 2009)
 ---------------------------------------------------
-http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11306
+https://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11306
 
 Changes in version 2.0.0 Milestone 1 (Oct 12, 2009)
 ---------------------------------------------------
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11178
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11178
 
 Changes in version 1.0.3 (Jul 18, 2009)
 ---------------------------------------
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11209
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11209
 
 Changes in version 1.0.2 (Mar 31, 2009)
 ---------------------------------------
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11153
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11153
 
 Changes in version 1.0.1 (Dec 17, 2008)
 ---------------------------------------
 For changes in this release, see:
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11146
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11146
 
 
 Changes in version 1.0.0 (Nov 26, 2008)
 ---------------------------------------
 For changes in this release, see:
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=10791
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=10791
 
 
 Changes in version 1.0.0.RC2 (Nov 14, 2008)
 -------------------------------------------
 For changes in this release, see:
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11102
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11102
 
 
 Changes in version 1.0.0.RC1 (Nov 03, 2008)
 -------------------------------------------
 For changes in this release, see:
-http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11101
+https://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11101
 
 *** GENERAL ***
 

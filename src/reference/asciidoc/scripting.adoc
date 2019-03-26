@@ -1,16 +1,16 @@
 [[scripting]]
 === Scripting support
 
-With Spring Integration 2.1 we've added support for the http://jcp.org/aboutJava/communityprocess/pr/jsr223/[JSR223 Scripting for Java specification], introduced in Java version 6.
+With Spring Integration 2.1 we've added support for the https://jcp.org/aboutJava/communityprocess/pr/jsr223/[JSR223 Scripting for Java specification], introduced in Java version 6.
 This allows you to use scripts written in any supported language including Ruby/JRuby, Javascript and Groovy to provide the logic for various integration components similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
-For more information about JSR223 please refer to the http://java.sun.com/developer/technicalArticles/J2SE/Desktop/scripting/[documentation]
+For more information about JSR223 please refer to the https://java.sun.com/developer/technicalArticles/J2SE/Desktop/scripting/[documentation]
 
 IMPORTANT: Note that this feature requires Java 6 or higher.
 Sun developed a JSR223 reference implementation which works with Java 5 but it is not officially supported and we have not tested it with Spring Integration.
 
 In order to use a JVM scripting language, a JSR223 implementation for that language must be included in your class path.
 Java 6 natively supports Javascript.
-The http://www.groovy-lang.org/[Groovy] and http://jruby.org/[JRuby] projects provide JSR233 support in their standard distribution.
+The http://www.groovy-lang.org/[Groovy] and https://www.jruby.org[JRuby] projects provide JSR233 support in their standard distribution.
 Other language implementations may be available or under development.
 Please refer to the appropriate project website for more information.
 
