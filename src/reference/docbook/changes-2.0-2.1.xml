@@ -8,10 +8,10 @@
 		    <title>JSR-223 Scripting Support</title>
 		    <para>
 		        In Spring Integration 2.0, support for
-		        <ulink url="http://groovy.codehaus.org/">Groovy</ulink> was added. With
+		        <ulink url="https://groovy.codehaus.org/">Groovy</ulink> was added. With
 		        Spring Integration 2.1 we expanded support for additional languages
 		        substantially by implementing support for
-		        <ulink url="http://www.jcp.org/en/jsr/detail?id=223">JSR-223</ulink>
+		        <ulink url="https://www.jcp.org/en/jsr/detail?id=223">JSR-223</ulink>
 		        (Scripting for the Java™ Platform). Now you have the
 		        ability to use any scripting language that supports JSR-223 including:
 		    </para>
@@ -29,15 +29,15 @@
 		    <title>GemFire Support</title>
 		    <para>
 		        Spring Integration provides support for
-		        <ulink url="http://www.vmware.com/products/application-platform/vfabric-gemfire/overview.html">GemFire</ulink> by providing
+		        <ulink url="https://www.vmware.com/products/application-platform/vfabric-gemfire/overview.html">GemFire</ulink> by providing
 		        inbound adapters for entry and continuous query events, an outbound
 		        adapter to write entries to the cache, and
-		        <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageStore.html">
+		        <ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageStore.html">
 		            <interfacename>MessageStore</interfacename></ulink> and
-		        <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">
+		        <ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">
 		            <interfacename>MessageGroupStore</interfacename></ulink>
 		        implementations. Spring integration leverages
-		        the <ulink url="http://www.springsource.org/spring-gemfire"><emphasis>Spring Gemfire</emphasis></ulink> project, providing a thin wrapper over its
+		        the <ulink url="https://www.springsource.org/spring-gemfire"><emphasis>Spring Gemfire</emphasis></ulink> project, providing a thin wrapper over its
 		        components.
 		    </para>
             <para>
@@ -49,7 +49,7 @@
 		    <para>
 		        Spring Integration 2.1 adds several Channel Adapters for receiving and
 		        sending messages using the
-		        <ulink url="http://www.amqp.org/"><emphasis>Advanced Message Queuing Protocol</emphasis></ulink> (AMQP).
+		        <ulink url="https://www.amqp.org/"><emphasis>Advanced Message Queuing Protocol</emphasis></ulink> (AMQP).
 		        Furthermore, Spring Integration also provides a point-to-point
 		        Message Channel, as well as a publish/subscribe Message Channel
 		        that are backed by AMQP Exchanges and Queues.
@@ -62,7 +62,7 @@
 		    <title>MongoDB Support</title>
 		    <para>
 		        As of version 2.1 Spring Integration provides support for
-		        <ulink url="http://www.mongodb.org/">MongoDB</ulink>
+		        <ulink url="https://www.mongodb.org/">MongoDB</ulink>
 		        by providing a MongoDB-based MessageStore.
 		    </para>
 		    <para>
@@ -73,7 +73,7 @@
             <title>Redis Support</title>
             <para>
                 As of version 2.1 Spring Integration supports
-                <ulink url="http://redis.io/">Redis</ulink>, an advanced key-value
+                <ulink url="https://redis.io/">Redis</ulink>, an advanced key-value
                 store, by providing a Redis-based MessageStore as well as
                 Publish-Subscribe Messaging adapters.
             </para>
@@ -100,7 +100,7 @@
 		       Stored Procedure support by adding several new components, including
 		       inbound/outbound channel adapters and an Outbound Gateway. The Stored
 		       Procedure support leverages Spring's
-		       <ulink url="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>SimpleJdbcCall</classname></ulink>
+		       <ulink url="https://docs.spring.io/spring/docs/3.0.x/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html"><classname>SimpleJdbcCall</classname></ulink>
 		       class and consequently supports stored procedures for:
 		    </para>
 		    <itemizedlist>
@@ -145,7 +145,7 @@
 		    <para>
 				Since Spring Integration 2.1, the Payload Enricher is provided. A
 				Payload Enricher defines an endpoint that typically passes a
-				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/Message.html"><interfacename>Message</interfacename></ulink>
+				<ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/Message.html"><interfacename>Message</interfacename></ulink>
 				to the exposed request channel and then expects a reply message.
 				The reply message then becomes the root object for evaluation of
 				expressions to enrich the target payload.
@@ -249,9 +249,9 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xmlns:int="http://www.springframework.org/schema/integration"
    xsi:schemaLocation="http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration.xsd
+           https://www.springframework.org/schema/integration/spring-integration.xsd
            http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans.xsd">
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
 ...
 </beans>]]></programlisting>
 
@@ -264,9 +264,9 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xmlns:int="http://www.springframework.org/schema/integration"
    xsi:schemaLocation="http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+           https://www.springframework.org/schema/integration/spring-integration-2.2.xsd
            http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans.xsd">
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
 ...
 </beans>]]></programlisting>
 
@@ -283,10 +283,10 @@
         <section id="2.1-move-to-github">
             <title>Source Code now hosted on Github</title>
 	        <para>
-	            Since version 2.0, the Spring Integration project uses <ulink url="http://git-scm.com/">Git</ulink> for
+	            Since version 2.0, the Spring Integration project uses <ulink url="https://git-scm.com/">Git</ulink> for
 	            version control. In order to increase community visibility even
 	            further, the project was moved from SpringSource hosted Git
-	            repositories to <ulink url="http://www.github.com/">Github</ulink>.
+	            repositories to <ulink url="https://www.github.com/">Github</ulink>.
 	            The Spring Integration Git repository is located at:
 	            <ulink url="https://github.com/SpringSource/spring-integration/"/>
 	        </para>
@@ -303,7 +303,7 @@
             <para>
                 In an effort to provide better source code visibility and consequently
                 to monitor the quality of Spring Integration's source code, an instance
-                of <ulink url="http://www.sonarsource.org/">Sonar</ulink> was setup
+                of <ulink url="https://www.sonarqube.org/">Sonar</ulink> was setup
                 and metrics are gathered nightly and made avaiblable at:
             </para>
             <para><ulink url="https://sonar.springsource.org/"/></para>

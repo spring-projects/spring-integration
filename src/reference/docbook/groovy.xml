@@ -13,7 +13,7 @@
   (SpEL) is supported for routing, transformation and other integration
   concerns. For more information about Groovy please refer to the Groovy
   documentation which you can find
-  on the <ulink url="http://groovy.codehaus.org">project website</ulink></para>
+  on the <ulink url="https://groovy.codehaus.org">project website</ulink></para>
 
   <section id="groovy-config">
     <title>Groovy configuration</title>
@@ -83,7 +83,7 @@
     <title>Control Bus</title>
 
     <para>As described in (<ulink
-    url="http://www.eaipatterns.com/ControlBus.html">EIP</ulink>), the idea
+    url="https://www.enterpriseintegrationpatterns.com/ControlBus.html">EIP</ulink>), the idea
     behind the Control Bus is that the same messaging system can be used for
     monitoring and managing the components within the framework as is used for
     "application-level" messaging. In Spring Integration we build upon the
