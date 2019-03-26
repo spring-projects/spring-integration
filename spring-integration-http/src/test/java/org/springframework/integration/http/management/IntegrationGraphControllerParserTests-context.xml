@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans
-		xmlns="http://www.springframework.org/schema/integration/http"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:mvc="http://www.springframework.org/schema/mvc"
-		xsi:schemaLocation="http://www.springframework.org/schema/integration/http
-		http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
-		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+		xmlns="https://www.springframework.org/schema/integration/http"
+		xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+		xmlns:beans="https://www.springframework.org/schema/beans"
+		xmlns:mvc="https://www.springframework.org/schema/mvc"
+		xsi:schemaLocation="https://www.springframework.org/schema/integration/http
+		https://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		https://www.springframework.org/schema/beans
+		https://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<mvc:annotation-driven />
 
 	<mvc:cors>
 		<mvc:mapping path="/foo"
-					 allowed-origins="http://foo.bar.com"
+					 allowed-origins="https://foo.bar.com"
 					 allowed-methods="GET" />
 	</mvc:cors>
 

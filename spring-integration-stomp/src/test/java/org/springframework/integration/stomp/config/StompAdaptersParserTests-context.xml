@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<beans xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:int-stomp="http://www.springframework.org/schema/integration/stomp"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns="http://www.springframework.org/schema/beans"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/stomp
-			http://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
+<beans xmlns:int="https://www.springframework.org/schema/integration"
+	   xmlns:int-stomp="https://www.springframework.org/schema/integration/stomp"
+	   xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="https://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="https://www.springframework.org/schema/beans
+			https://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/integration
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			https://www.springframework.org/schema/integration/stomp
+			https://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
 
 	<bean id="stompSessionManager" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.stomp.StompSessionManager"/>
