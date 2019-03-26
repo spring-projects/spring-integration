@@ -38,7 +38,7 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 	public static final String SCHEMA_W3C_XML = "http://www.w3.org/2001/XMLSchema";
 
 	/** Constant that defines a RELAX NG Schema. */
-	public static final String SCHEMA_RELAX_NG = "http://relaxng.org/ns/structure/1.0";
+	public static final String SCHEMA_RELAX_NG = "https://relaxng.org/ns/structure/1.0";
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {

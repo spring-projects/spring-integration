@@ -48,9 +48,9 @@ public class InnerPollerParserTests {
 				"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
 				"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
 				"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd" +
-				"			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-				"			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd\">" +
+				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
+				"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
+				"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
 				"" +
 				"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
 				"" +
@@ -84,9 +84,9 @@ public class InnerPollerParserTests {
 				"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
 				"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
 				"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd" +
-				"			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-				"			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd\">" +
+				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
+				"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
+				"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
 				"" +
 				"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
 				"" +
@@ -120,9 +120,9 @@ public class InnerPollerParserTests {
 				"		xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" +
 				"		xmlns:int=\"http://www.springframework.org/schema/integration\"" +
 				"		xmlns:int-jdbc=\"http://www.springframework.org/schema/integration/jdbc\"" +
-				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd" +
-				"			http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
-				"			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd\">" +
+				"		xsi:schemaLocation=\"http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd" +
+				"			http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd" +
+				"			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd\">" +
 				"" +
 				"	<int:poller id=\"outer\" fixed-rate=\"5000\"/>" +
 				"" +

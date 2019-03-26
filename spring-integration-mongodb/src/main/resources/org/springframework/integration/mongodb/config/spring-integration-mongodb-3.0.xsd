@@ -8,7 +8,7 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
+		schemaLocation="https://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -35,7 +35,7 @@
 								String representation of MongoDb Query (e.g.,
 								query="{'name' : 'Bob'}").
 								Please refer to MongoDb documentation for more query samples
-								http://www.mongodb.org/display/DOCS/Querying
+								https://www.mongodb.org/display/DOCS/Querying
 								This attribute is
 								mutually exclusive with 'query-expression' attribute.
 							</xsd:documentation>
