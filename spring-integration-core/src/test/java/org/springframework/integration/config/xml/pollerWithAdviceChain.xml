@@ -4,10 +4,10 @@
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:tx="http://www.springframework.org/schema/tx"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+			https://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<beans:bean id="transactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
 
