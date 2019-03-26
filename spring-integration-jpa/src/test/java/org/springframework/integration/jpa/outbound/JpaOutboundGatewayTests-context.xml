@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jpa="http://www.springframework.org/schema/integration/jpa"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-		xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:int="http://www.springframework.org/schema/integration"
+<beans xmlns="https://www.springframework.org/schema/beans"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jpa="https://www.springframework.org/schema/integration/jpa"
+	xmlns:task="https://www.springframework.org/schema/task"
+	xmlns:jdbc="https://www.springframework.org/schema/jdbc"
+		xmlns:util="https://www.springframework.org/schema/util"
+	xmlns:int="https://www.springframework.org/schema/integration"
 	xsi:schemaLocation=
-	"http://www.springframework.org/schema/beans          http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/integration     http://www.springframework.org/schema/integration/spring-integration.xsd
-	http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
-	http://www.springframework.org/schema/jdbc            http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-	http://www.springframework.org/schema/data/jpa        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
-	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-	http://www.springframework.org/schema/task            http://www.springframework.org/schema/task/spring-task.xsd">
+	"https://www.springframework.org/schema/beans          https://www.springframework.org/schema/beans/spring-beans.xsd
+	https://www.springframework.org/schema/integration     https://www.springframework.org/schema/integration/spring-integration.xsd
+	https://www.springframework.org/schema/integration/jpa https://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
+	https://www.springframework.org/schema/jdbc            https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	https://www.springframework.org/schema/data/jpa        https://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+	https://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
+	https://www.springframework.org/schema/task            https://www.springframework.org/schema/task/spring-task.xsd">
 
 	<import resource="BaseJpaPollingChannelAdapterTests-context.xml"/>
 

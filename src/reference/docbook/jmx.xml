@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section version="5.0" xml:id="jmx" xmlns="http://docbook.org/ns/docbook"
-	xmlns:xlink="http://www.w3.org/1999/xlink"
-	xmlns:ns5="http://www.w3.org/1999/xhtml"
-	xmlns:ns4="http://www.w3.org/1998/Math/MathML"
-	xmlns:ns3="http://www.w3.org/2000/svg"
-	xmlns:ns="http://docbook.org/ns/docbook">
+<section version="5.0" xml:id="jmx" xmlns="https://docbook.org/ns/docbook"
+	xmlns:xlink="https://www.w3.org/1999/xlink"
+	xmlns:ns5="https://www.w3.org/1999/xhtml"
+	xmlns:ns4="https://www.w3.org/1998/Math/MathML"
+	xmlns:ns3="https://www.w3.org/2000/svg"
+	xmlns:ns="https://docbook.org/ns/docbook">
 	<title id="jmx.title">JMX Support</title>
 
 	<para>
@@ -393,7 +393,7 @@ public class ContextConfiguration {
 			</para>
 			<para>
 				Also, since <emphasis>Spring Integration 3.0</emphasis>, you can use a custom
-				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html"
+				<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html"
 				>ObjectNamingStrategy</ulink>
 				using the <code>object-naming-strategy</code> attribute. This permits greater control over the naming of the
 				MBeans. For example, to group all Integration MBeans under
@@ -420,7 +420,7 @@ public class ContextConfiguration {
 			</para>
 			<note>
 				The default naming strategy is a
-				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html"
+				<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html"
 				>MetadataNamingStrategy</ulink>. The exporter propagates the <code>default-domain</code> to that object to allow it
 				to generate a fallback object name if parsing of the bean key fails. If your custom naming strategy is a
 				<classname>MetadataNamingStrategy</classname> (or subclass), the exporter will <emphasis role="bold">not</emphasis>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-store"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="message-store"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Message Store</title>
   <para>
    Enterprise Integration Patterns (EIP) identifies several patterns that have the capability to buffer messages. For example,
@@ -11,7 +11,7 @@
   </para>
 
   <para>
-  To mitigate the risk of losing Messages, EIP defines the <ulink url="http://eaipatterns.com/MessageStore.html">Message Store</ulink> pattern which allows
+  To mitigate the risk of losing Messages, EIP defines the <ulink url="https://www.enterpriseintegrationpatterns.com/MessageStore.html">Message Store</ulink> pattern which allows
   EIP components to store <emphasis>Messages</emphasis> typically in some type of persistent store (e.g. RDBMS).
   </para>
 

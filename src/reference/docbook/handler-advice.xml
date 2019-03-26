@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section version="5.0" xml:id="message-handler-advice-chain" xmlns="http://docbook.org/ns/docbook"
-         xmlns:xlink="http://www.w3.org/1999/xlink"
-         xmlns:ns5="http://www.w3.org/1999/xhtml"
-         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
-         xmlns:ns3="http://www.w3.org/2000/svg"
-         xmlns:ns="http://docbook.org/ns/docbook">
+<section version="5.0" xml:id="message-handler-advice-chain" xmlns="https://docbook.org/ns/docbook"
+         xmlns:xlink="https://www.w3.org/1999/xlink"
+         xmlns:ns5="https://www.w3.org/1999/xhtml"
+         xmlns:ns4="https://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="https://www.w3.org/2000/svg"
+         xmlns:ns="https://docbook.org/ns/docbook">
 	<title>Adding Behavior to Endpoints</title>
 
 	<para>
@@ -31,7 +31,7 @@
 		by the addition of the &lt;request-handler-advice-chain /&gt; element to many endpoints. For example:
 	</para>
 	<para><programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="withAdvice"
-    url-expression="'http://localhost/test1'"
+    url-expression="'https://localhost/test1'"
     request-channel="requests"
     reply-channel="nextChannel">
     <int:request-handler-advice-chain>
@@ -100,7 +100,7 @@
 			<para><emphasis role="bold">Further Information</emphasis></para>
 			<para>
 				For more information on <code>spring-retry</code>, refer to the project's javadocs, as well as the
-				reference documentation for <ulink url="http://static.springsource.org/spring-batch/reference/html/retry.html">
+				reference documentation for <ulink url="https://docs.spring.io/spring-batch/reference/html/retry.html">
 				Spring Batch</ulink>, where <code>spring-retry</code> originated.
 			</para>
 			<caution>
@@ -519,7 +519,7 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			</para>
 			<para>
 				For more information, see the
-				<ulink url="http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
+				<ulink url="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
 				ReflectiveMethodInvocation</ulink> JavaDocs.
 			</para>
 		</note>

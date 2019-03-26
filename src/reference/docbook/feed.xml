@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="feed"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="feed"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Feed Adapter</title>
   <para>
     Spring Integration provides support for Syndication via Feed Adapters
@@ -16,9 +16,9 @@
     namespace-based configuration for it.
 	To configure the 'feed' namespace, include the following elements within the headers of your XML configuration file:
 
-	<programlisting language="xml"><![CDATA[xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
-	http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"]]></programlisting>
+	<programlisting language="xml"><![CDATA[xmlns:int-feed="https://www.springframework.org/schema/integration/feed"
+xsi:schemaLocation="https://www.springframework.org/schema/integration/feed
+	https://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"]]></programlisting>
 
     </para>
   </section>
@@ -30,7 +30,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 
   	<programlisting language="xml"><![CDATA[<int-feed:inbound-channel-adapter id="feedAdapter"
 		channel="feedChannel"
-		url="http://feeds.bbci.co.uk/news/rss.xml">
+		url="https://feeds.bbci.co.uk/news/rss.xml">
 	<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 </int-feed:inbound-channel-adapter>]]></programlisting>
 

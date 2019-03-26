@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="migration-2.1-2.2"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="migration-2.1-2.2"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
     <title>Changes between 2.1 and 2.2</title>
 	<section id="2.2-new-components">
 		<title>New Components</title>

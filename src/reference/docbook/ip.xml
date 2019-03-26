@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="ip"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="ip"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>TCP and UDP Support</title>
   <para>
     Spring Integration provides Channel Adapters for receiving and sending messages over internet protocols. Both UDP

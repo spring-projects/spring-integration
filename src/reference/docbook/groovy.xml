@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section version="5.0" xml:id="groovy" xmlns="http://docbook.org/ns/docbook"
-         xmlns:xlink="http://www.w3.org/1999/xlink"
-         xmlns:ns5="http://www.w3.org/1999/xhtml"
-         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
-         xmlns:ns3="http://www.w3.org/2000/svg"
-         xmlns:ns="http://docbook.org/ns/docbook">
+<section version="5.0" xml:id="groovy" xmlns="https://docbook.org/ns/docbook"
+         xmlns:xlink="https://www.w3.org/1999/xlink"
+         xmlns:ns5="https://www.w3.org/1999/xhtml"
+         xmlns:ns4="https://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="https://www.w3.org/2000/svg"
+         xmlns:ns="https://docbook.org/ns/docbook">
   <title>Groovy support</title>
 
   <para>In Spring Integration 2.0 we added Groovy support allowing you to
@@ -13,7 +13,7 @@
   (SpEL) is supported for routing, transformation and other integration
   concerns. For more information about Groovy please refer to the Groovy
   documentation which you can find
-  on the <ulink url="http://groovy.codehaus.org">project website</ulink></para>
+  on the <ulink url="https://groovy.codehaus.org">project website</ulink></para>
 
   <section id="groovy-config">
     <title>Groovy configuration</title>
@@ -83,7 +83,7 @@
     <title>Control Bus</title>
 
     <para>As described in (<ulink
-    url="http://www.eaipatterns.com/ControlBus.html">EIP</ulink>), the idea
+    url="https://www.enterpriseintegrationpatterns.com/ControlBus.html">EIP</ulink>), the idea
     behind the Control Bus is that the same messaging system can be used for
     monitoring and managing the components within the framework as is used for
     "application-level" messaging. In Spring Integration we build upon the

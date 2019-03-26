@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="twitter"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="twitter"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
 
   <title>Twitter Support</title>
   <para>
@@ -19,8 +19,8 @@
     </para>
     <para>
 		<important>
-		Versions of Spring Integration prior to 2.1 were dependent upon the <ulink url="http://twitter4j.org">Twitter4J API</ulink>,
-		but with the release of <ulink url="http://projects.spring.io/spring-social">Spring Social 1.0 GA</ulink>,
+		Versions of Spring Integration prior to 2.1 were dependent upon the <ulink url="http://twitter4j.org/ja/index.html">Twitter4J API</ulink>,
+		but with the release of <ulink url="https://projects.spring.io/spring-social">Spring Social 1.0 GA</ulink>,
 		Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
 		All Twitter endpoints require the configuration of a <classname>TwitterTemplate</classname> because even
 		search operations require an authenticated template.
@@ -30,9 +30,9 @@
     <para>
     Spring Integration provides a convenient namespace configuration to define Twitter artifacts. You can enable it by adding
 the following within your XML header.
-    <programlisting language="xml"><![CDATA[xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
-	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd"]]></programlisting>
+    <programlisting language="xml"><![CDATA[xmlns:int-twitter="https://www.springframework.org/schema/integration/twitter"
+xsi:schemaLocation="https://www.springframework.org/schema/integration/twitter
+	https://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd"]]></programlisting>
     </para>
   </section>
 
@@ -42,9 +42,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	<para>
 	For authenticated operations, Twitter uses OAuth
   	- an authentication protocol that allows users to approve an application to act on their behalf without
-	sharing their password. More information can be found at <ulink url="http://oauth.net">http://oauth.net</ulink> or
-	in this article <ulink url="http://hueniverse.com/oauth">http://hueniverse.com/oauth</ulink> from Hueniverse.
-	Please also see <ulink url="http://dev.twitter.com/pages/oauth_faq">OAuth FAQ</ulink> for more information about OAuth and Twitter.
+	sharing their password. More information can be found at <ulink url="https://oauth.net">https://oauth.net</ulink> or
+	in this article <ulink url="https://hueniverse.com/oauth">https://hueniverse.com/oauth</ulink> from Hueniverse.
+	Please also see <ulink url="https://dev.twitter.com/pages/oauth_faq">OAuth FAQ</ulink> for more information about OAuth and Twitter.
   	</para>
   	<para>
   	In order to use OAuth authentication/authorization with Twitter you must create a new Application on the Twitter Developers site.
@@ -53,7 +53,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	<para>
   	<itemizedlist>
           <listitem>
-            <para>Go to <ulink url="http://dev.twitter.com">http://dev.twitter.com</ulink></para>
+            <para>Go to <ulink url="https://dev.twitter.com">https://dev.twitter.com</ulink></para>
           </listitem>
           <listitem>
             <para>Click on the <code>Register an app</code> link and fill out all required fields on the form provided;
@@ -124,7 +124,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	<title>Twitter Inbound Adapters</title>
   	<para>
   	Twitter inbound adapters allow you to receive Twitter Messages. There are several types of
-	<ulink url="http://support.twitter.com/articles/119138-types-of-tweets-and-where-they-appear">twitter messages, or tweets</ulink>
+	<ulink url="https://support.twitter.com/articles/119138-types-of-tweets-and-where-they-appear">twitter messages, or tweets</ulink>
   	</para>
   	<para>
     <emphasis>Spring Integration version 2.0 and above</emphasis> provides support for receiving tweets as <emphasis>Timeline Updates</emphasis>,
@@ -256,7 +256,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 		<para>
 			Starting with <emphasis>version 4.0</emphasis> the <code>&lt;int-twitter:outbound-channel-adapter&gt;</code>
 			supports a <code>tweet-data-expression</code> to populate the <classname>TweetData</classname> argument
-			(<ulink url="http://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>) using the
+			(<ulink url="https://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>) using the
 			message as the root object of the expression evaluation context. The result can be a <classname>String</classname>,
 			which will be used for the <classname>TweetData</classname> message; a <classname>Tweet</classname> object, the
 			<code>text</code> of which will be used for the <classname>TweetData</classname> message; or an entire
@@ -327,7 +327,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 		a <classname>SearchMetadata</classname> object. For more information
 		on the <classname>Tweet</classname>, <classname>SearchParameters</classname> and
 		<classname>SearchMetadata</classname> classes, refer to the <ulink
-		url="http://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>
+		url="https://projects.spring.io/spring-social-twitter/">Spring Social Twitter</ulink>
 		documentation.
 	</para>
 	<para>
@@ -359,7 +359,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 			</para>
 			<para>
 				The expression can also be specified as a <ulink url=
-				"http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-inline-lists"
+				"https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-inline-lists"
 				>SpEL List</ulink>. The first element (String) is the query, the remaining elements (Numbers)
 				are <code>pageSize, sinceId, maxId</code> respectively - refer to the Spring Social Twitter
 				documentation for more information about these parameters.

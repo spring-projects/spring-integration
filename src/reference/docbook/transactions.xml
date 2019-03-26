@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="transactions"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<appendix xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="transactions"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Transaction Support</title>
 
   <section id="transaction-support">
@@ -205,7 +205,7 @@ public interface TransactionSynchronizationProcessor {
 }]]></programlisting>
 
         The factory is responsible for creating a
-        <ulink url="http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
+        <ulink url="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
         object. You can implement your own, or use the one provided by the framework:
         <classname>DefaultTransactionSynchronizationFactory</classname>. This implementation returns a
         <classname>TransactionSynchronization</classname> that delegates to a default implementation of

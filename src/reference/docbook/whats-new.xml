@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
-	xmlns:xi="http://www.w3.org/2001/XInclude"
-	xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
+	xmlns:xi="https://www.w3.org/2001/XInclude"
+	xmlns:xlink="https://www.w3.org/1999/xlink">
 	<title>What's new in Spring Integration 4.0?</title>
 	<para>
 		This chapter provides an overview of the new features and improvements
@@ -68,7 +68,7 @@
 				Spring Integration infrastructure beans to be configured using Spring Boot's
 				<code>@EnableAutoConfiguration</code>.
 				For more information see
-				<ulink url="http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
+				<ulink url="https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>

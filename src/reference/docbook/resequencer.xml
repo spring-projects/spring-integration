@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="resequencer"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="resequencer"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Resequencer</title>
 
   <section>
