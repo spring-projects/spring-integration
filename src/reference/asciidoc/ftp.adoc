@@ -40,7 +40,7 @@ To use the FTP namespace, add the following to the header of your XML file:
 ----
 xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
-    http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
+    https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 
 ----
 ====
@@ -110,11 +110,11 @@ NOTE: If you experience connectivity problems and would like to trace session cr
 Now you need only inject these session factories into your adapters.
 The protocol (FTP or FTPS) that an adapter uses depends on the type of session factory that has been injected into the adapter.
 
-NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
+NOTE: A more practical way to provide values for FTP or FTPS session factories is to use Spring's property placeholder support (See https://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
 
 === Advanced Configuration
 
-`DefaultFtpSessionFactory` provides an abstraction over the underlying client API, which (since Spring Integration 2.0) is http://commons.apache.org/net/[Apache Commons Net].
+`DefaultFtpSessionFactory` provides an abstraction over the underlying client API, which (since Spring Integration 2.0) is https://commons.apache.org/net/[Apache Commons Net].
 This spares you from the low-level configuration details of the `org.apache.commons.net.ftp.FTPClient`.
 Several common properties are exposed on the session factory (since version 4.0, this now includes `connectTimeout`, `defaultTimeout`, and `dataTimeout`).
 However, you sometimes need access to lower level `FTPClient` configuration to achieve more advanced configuration (such as setting the port range for active mode).
@@ -163,7 +163,7 @@ See https://scarybeastsecurity.blogspot.cz/2009/02/vsftpd-210-released.html for 
 Currently, the Apache FTPSClient does not support this feature.
 See https://issues.apache.org/jira/browse/NET-408[NET-408].
 
-The following solution, courtesy of http://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow], uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
+The following solution, courtesy of https://stackoverflow.com/questions/32398754/how-to-connect-to-ftps-server-with-data-connection-using-same-tls-session[Stack Overflow], uses reflection on the `sun.security.ssl.SSLSessionContextImpl`, so it may not work on other JVMs.
 The stack overflow answer was submitted in 2015, and the solution has been tested by the Spring Integration team recently on JDK 1.8.0_112.
 
 The following example shows how to create an FTPS session:
@@ -846,7 +846,7 @@ NOTE: By default,  if no file name generator is specified, Spring Integration us
 `DefaultFileNameGenerator` determines the file name based on the value of the `file_name` header (if it exists) in the `MessageHeaders`, or, if the payload of the Message is already a `java.io.File`, it uses the original name of that file.
 
 IMPORTANT: Defining certain values (such as `remote-directory`) might be platform- or FTP server-dependent.
-For example, as was reported on http://forum.springsource.org/showthread.php?p=333478&posted=1#post333478, on some platforms, you must add a slash to the end of the directory definition (for example, `remote-directory="/thing1/thing2/"` instead of `remote-directory="/thing1/thing2"`).
+For example, as was reported on https://forum.spring.io/showthread.php?p=333478&posted=1#post333478, on some platforms, you must add a slash to the end of the directory definition (for example, `remote-directory="/thing1/thing2/"` instead of `remote-directory="/thing1/thing2"`).
 
 Starting with version 4.1, you can specify the `mode` when transferring the file.
 By default, an existing file is overwritten.
@@ -1447,7 +1447,7 @@ The template provides methods to send, retrieve (as an `InputStream`), remove, a
 In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
 For more information, see the
-http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`].
+https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`].
 There is a subclass for FTP: `FtpRemoteFileTemplate`.
 
 Version 4.1 added added additional methods, including `getClientInstance()`, which provides access to the underlying `FTPClient` and thus gives you access to low-level APIs.

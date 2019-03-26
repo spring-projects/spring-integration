@@ -6,7 +6,7 @@ Moreover, it is critical for distributed systems, such as those built on Enterpr
 Messaging independence and loose coupling let target systems communicate with each other with any type of data in the message's `payload`.
 We can either trust all those messages or secure our service against "`infecting`" messages.
 
-Spring Integration, together with http://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to secure message channels, as well as other part of the integration solution.
+Spring Integration, together with https://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to secure message channels, as well as other part of the integration solution.
 
 You need to include this dependency into your project:
 
@@ -52,13 +52,13 @@ The following example shows how to configure a bean that includes security and h
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:security="http://www.springframework.org/schema/security"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-      http://www.springframework.org/schema/beans/spring-beans.xsd
+      https://www.springframework.org/schema/beans/spring-beans.xsd
       http://www.springframework.org/schema/security
-      http://www.springframework.org/schema/security/spring-security.xsd
+      https://www.springframework.org/schema/security/spring-security.xsd
       http://www.springframework.org/schema/integration
-      http://www.springframework.org/schema/integration/spring-integration.xsd
+      https://www.springframework.org/schema/integration/spring-integration.xsd
       http://www.springframework.org/schema/integration/security
-      http://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
+      https://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
 
 <int-security:secured-channels>
     <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
@@ -159,7 +159,7 @@ This means that, when the thread that processes the handed-off message finishes 
 
 [NOTE]
 ====
-When working with an <<async-gateway,asynchronous gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security http://docs.spring.io/spring-security/site/docs/current/reference/html/concurrency.html[Concurrency Support], to let security context propagation be ensured over gateway invocation.
+When working with an <<async-gateway,asynchronous gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security https://docs.spring.io/spring-security/site/docs/current/reference/html/concurrency.html[Concurrency Support], to let security context propagation be ensured over gateway invocation.
 The following example shows how to do so:
 
 

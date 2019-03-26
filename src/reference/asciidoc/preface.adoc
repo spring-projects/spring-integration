@@ -10,7 +10,7 @@ This chapter includes:
 [[system-requirements]]
 == Requirements
 
-This section details the compatible http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java] and http://www.springsource.org/spring-framework[Spring Framework] versions.
+This section details the compatible https://www.oracle.com/technetwork/java/javase/downloads/index.html[Java] and https://www.springsource.org/spring-framework[Spring Framework] versions.
 
 [[supported-java-versions]]
 === Compatible Java Versions
@@ -45,13 +45,13 @@ The following example shows the `int`, `int-event`, and `int-stream` namespaces 
   xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
   xsi:schemaLocation="
    http://www.springframework.org/schema/beans
-   http://www.springframework.org/schema/beans/spring-beans.xsd
+   https://www.springframework.org/schema/beans/spring-beans.xsd
    http://www.springframework.org/schema/integration
-   http://www.springframework.org/schema/integration/spring-integration.xsd
+   https://www.springframework.org/schema/integration/spring-integration.xsd
    http://www.springframework.org/schema/integration/webflux
-   http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
+   https://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
    http://www.springframework.org/schema/integration/stream
-   http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+   https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 …
 </beans>
 ----

@@ -14,7 +14,7 @@
 
 	<mvc:cors>
 		<mvc:mapping path="/foo"
-					 allowed-origins="http://foo.bar.com"
+					 allowed-origins="https://example.com"
 					 allowed-methods="GET" />
 	</mvc:cors>
 

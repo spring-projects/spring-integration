@@ -338,7 +338,7 @@ public class WebFluxDslTests {
 		@Bean
 		public IntegrationFlow webFluxFlowWithReplyPayloadToFlux() {
 			return f -> f
-					.handle(WebFlux.outboundGateway("http://www.springsource.org/spring-integration")
+					.handle(WebFlux.outboundGateway("https://www.springsource.org/spring-integration")
 									.httpMethod(HttpMethod.GET)
 									.replyPayloadToFlux(true)
 									.expectedResponseType(String.class),
@@ -351,7 +351,7 @@ public class WebFluxDslTests {
 					.from(Http.inboundGateway("/service2")
 							.requestMapping(r -> r.params("name")))
 					.handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
-							UriComponentsBuilder.fromUriString("http://www.springsource.org/spring-integration")
+							UriComponentsBuilder.fromUriString("https://www.springsource.org/spring-integration")
 									.queryParams(m.getPayload())
 									.build()
 									.toUri())

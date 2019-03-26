@@ -37,7 +37,7 @@ To include the SFTP namespace in your xml configuration, include the following a
 ----
 xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
-    http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
+    https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ----
 ====
 
@@ -88,12 +88,12 @@ See <<sftp-jsch-logging>>.
 
 Now all you need to do is inject this SFTP session factory into your adapters.
 
-NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
+NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-placeholderconfigurer[property placeholder support].
 
 [[sftp-session-factory-properties]]
 ==== Configuration Properties
 
-The following list describes all the properties that are exposed by the http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
+The following list describes all the properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
 
 `isSharedSession` (constructor argument)::When `true`, a single connection is used, and `JSch Channels` are multiplexed.
 It defaults to `false`.
@@ -103,7 +103,7 @@ It's default depends on the underlying JSch version but it will look like:_SSH-2
 
 `enableDaemonThread`::If `true`, all threads are daemon threads.
 If set to `false`, normal non-daemon threads are used instead.
-This property is set on the underlying http://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
+This property is set on the underlying https://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
 There, this property defaults to `false`.
 
 `host`::The URL of the host to which you want to connect.
@@ -123,7 +123,7 @@ The password is obtained from that object.
 If not specified, this value defaults to `22`.
 If specified, this properties must be a positive number.
 
-`privateKey`::Lets you set a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
+`privateKey`::Lets you set a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
 If the `privateKey` is not provided, then the `password` property is required.
 
 `privateKeyPassphrase`::The password for the private key.
@@ -131,7 +131,7 @@ If you set `userInfo`, `privateKeyPassphrase` is not allowed .
 The passphrase is obtained from that object.
 Optional.
 
-`proxy`::Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
+`proxy`::Allows for specifying a JSch-based https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
 If set, the proxy object is used to create the connection to the remote host through the proxy.
 See <<sftp-proxy-factory-bean>> for a convenient way to configure the proxy.
 
@@ -142,7 +142,7 @@ If not set, this property defaults to `1`.
 
 `sessionConfig`::By using `Properties`, you can set additional configuration setting on the underlying JSch Session.
 
-`socketFactory`:Lets you pass in a http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
+`socketFactory`::Lets you pass in a https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
 The socket factory is used to create a socket to the target host.
 When a proxy is used, the socket factory is passed to the proxy.
 By default, plain TCP sockets are used.
@@ -283,7 +283,7 @@ Spring Integration version 3.0 provides a new abstraction over the `SftpSession`
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
 In addition, we provide an `execute` method to let the caller run multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
-For more information, see the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`] There is a subclass for SFTP: https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/SftpRemoteFileTemplate.html[`SftpRemoteFileTemplate`].
+For more information, see the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`] There is a subclass for SFTP: https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/SftpRemoteFileTemplate.html[`SftpRemoteFileTemplate`].
 
 We added additional methods in version 4.1, including `getClientInstance()`.
 It provides access to the underlying `ChannelSftp`, which enables access to low-level APIs.
@@ -371,7 +371,9 @@ Once the files have been retrieved, an additional filter is applied to the files
 By default, this is an`AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
 Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restart.
 
-Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
+Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
+
+For more information about this filter, and how it is used, see <<remote-persistent-flf>>.
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
@@ -621,6 +623,8 @@ By default, this filter is also applied together with the filename pattern (or r
 If you need to allow duplicates, you can use the `AcceptAllFileListFilter`.
 You can handle any other use cases by using `CompositeFileListFilter` (or `ChainFileListFilter`).
 The Java configuration <<sftp-streaming-java-config,shown later>> shows one technique to remove the remote file after processing, avoiding duplicates.
+
+For more information about the `SftpPersistentAcceptOnceFileListFilter`, and how it is used, see <<remote-persistent-flf>>.
 
 You can use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.

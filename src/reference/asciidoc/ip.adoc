@@ -241,7 +241,7 @@ connect to the socket.
 The `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`) has `destination-expression` and `socket-expression` options.
 
 You can use the `destination-expression` as a runtime alternative to the hardcoded `host`-`port` pair to determine the destination address for the outgoing datagram packet against a `requestMessage` (with the root object for the evaluation context).
-The expression must evaluate to an `URI`, a `String` in the URI style (see http://www.ietf.org/rfc/rfc2396.txt[RFC-2396]), or a `SocketAddress`.
+The expression must evaluate to an `URI`, a `String` in the URI style (see https://www.ietf.org/rfc/rfc2396.txt[RFC-2396]), or a `SocketAddress`.
 You can also use the inbound `IpHeaders.PACKET_ADDRESS` header for this expression.
 In the framework, the `DatagramPacketMessageMapper` populates this header when we receive datagrams in the `UnicastReceivingChannelAdapter` and convert them to messages.
 The header value is exactly the result of `DatagramPacket.getSocketAddress()` of the incoming datagram.

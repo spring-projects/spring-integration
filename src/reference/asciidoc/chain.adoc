@@ -4,7 +4,7 @@
 The `MessageHandlerChain` is an implementation of `MessageHandler` that can be configured as a single message endpoint while actually delegating to a chain of other handlers, such as filters, transformers, splitters, and so on.
 When several handlers need to be connected in a fixed, linear progression, this can lead to a much simpler configuration.
 For example, it is fairly common to provide a transformer before other components.
-Similarly, when you provide a filter before some other component in a chain, you essentially create a http://www.eaipatterns.com/MessageSelector.html[selective consumer].
+Similarly, when you provide a filter before some other component in a chain, you essentially create a https://www.enterpriseintegrationpatterns.com/MessageSelector.html[selective consumer].
 In either case, the chain requires only a single `input-channel` and a single `output-channel`, eliminating the need to define channels for each individual component.
 
 TIP: Spring Integration's `Filter` provides a boolean property: `throwExceptionOnRejection`.

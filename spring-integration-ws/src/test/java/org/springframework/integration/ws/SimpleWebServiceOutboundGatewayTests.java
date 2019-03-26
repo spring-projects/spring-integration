@@ -93,7 +93,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	@Test // INT-1051
 	public void soapActionAndCustomCallback() {
-		String uri = "http://www.example.org";
+		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(new TestDestinationProvider(uri));
 		final AtomicReference<String> soapActionFromCallback = new AtomicReference<String>();
 		gateway.setRequestCallback(message -> {
@@ -141,7 +141,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	@Test
 	public void testAttachments() throws Exception {
-		String uri = "http://www.example.org";
+		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
@@ -200,7 +200,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	@Test
 	public void testDomPoxMessageFactory() throws Exception {
-		String uri = "http://www.example.org";
+		String uri = "https://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 

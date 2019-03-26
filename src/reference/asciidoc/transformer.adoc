@@ -5,7 +5,7 @@ Message transformers play a very important role in enabling the loose-coupling o
 Rather than requiring every message-producing component to know what type is expected by the next consumer, you can add transformers between those components.
 Generic transformers, such as one that converts a `String` to an XML Document, are also highly reusable.
 
-For some systems, it may be best to provide a http://www.eaipatterns.com/CanonicalDataModel.html[canonical data model], but Spring Integration's general philosophy is not to require any particular format.
+For some systems, it may be best to provide a https://www.enterpriseintegrationpatterns.com/CanonicalDataModel.html[canonical data model], but Spring Integration's general philosophy is not to require any particular format.
 Rather, for maximum flexibility, Spring Integration aims to provide the simplest possible model for extension.
 As with the other endpoint types, the use of declarative configuration in XML or Java annotations enables simple POJOs to be adapted for the role of message transformers.
 The rest of this chapter describes these configuration options.
@@ -62,7 +62,7 @@ Its `requires-reply` value is `false` by default, but that can be set to `true` 
 
 ==== Transformers and Spring Expression Language (SpEL)
 
-Like routers, aggregators, and other components, as of Spring Integration 2.0, transformers can also benefit from http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[SpEL support] whenever transformation logic is relatively simple.
+Like routers, aggregators, and other components, as of Spring Integration 2.0, transformers can also benefit from https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[SpEL support] whenever transformation logic is relatively simple.
 The following example shows how to use a SpEL expression:
 
 ====
@@ -411,7 +411,7 @@ Doing so results in a message with no `content-type` header, unless such a heade
 
 Beginning with version 3.0, the `ObjectToJsonTransformer` adds headers, reflecting the source type, to the message.
 Similarly, the `JsonToObjectTransformer` can use those type headers when converting the JSON to an object.
-These headers are mapped in the AMQP adapters so that they are entirely compatible with the Spring-AMQP http://docs.spring.io/spring-amqp/api/[`JsonMessageConverter`].
+These headers are mapped in the AMQP adapters so that they are entirely compatible with the Spring-AMQP https://docs.spring.io/spring-amqp/api/[`JsonMessageConverter`].
 
 This enables the following flows to work without any special configuration:
 
