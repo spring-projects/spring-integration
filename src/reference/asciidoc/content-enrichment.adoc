@@ -5,7 +5,7 @@
 ==== Introduction
 
 At times you may have a requirement to enhance a request with more information than was provided by the target system.
-The http://www.eaipatterns.com/DataEnricher.html[Content Enricher] pattern describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
+The https://www.enterpriseintegrationpatterns.com/DataEnricher.html[Content Enricher] pattern describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
 
 The Spring Integration `Core` module includes 2 enrichers:
 
@@ -110,7 +110,7 @@ as well as point to a Groovy script:
 
 *SpEL Support*
 
-In Spring Integration 2.0 we have introduced the convenience of the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[Spring Expression Language (SpEL)] to help configure many different components.
+In Spring Integration 2.0 we have introduced the convenience of the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[Spring Expression Language (SpEL)] to help configure many different components.
 The _Header Enricher_ is one of them.
 Looking again at the POJO example above, you can see that the computation logic to determine the header value is actually pretty simple.
 A natural question would be: "is there a simpler way to accomplish this?".

@@ -89,7 +89,7 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 	/**
 	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#persist(java.lang.Object)}.
 	 *
-	 * http://openjpa.apache.org/builds/1.0.4/apache-openjpa-1.0.4/docs/manual/manual.html#ref_guide_ddl_examples
+	 * https://openjpa.apache.org/builds/1.0.4/apache-openjpa-1.0.4/docs/manual/manual.html#ref_guide_ddl_examples
 	 */
 	//@Test
 	public void testGenerateSchema() {

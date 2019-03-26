@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link MethodInterceptor} implementation for the
- * <a href="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
+ * <a href="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
  * E.I. Pattern.
  * <p>
  * This {@link MethodInterceptor} works like a {@code MessageFilter} if {@link #discardChannel}

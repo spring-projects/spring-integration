@@ -5,7 +5,7 @@ Enterprise Integration Patterns (EIP) identifies several patterns that have the 
 For example, an _Aggregator_ buffers messages until they can be released and a _QueueChannel_ buffers messages until consumers explicitly receive those messages from that channel.
 Because of the failures that can occur at any point within your message flow, EIP components that buffer messages also introduce a point where messages could be lost.
 
-To mitigate the risk of losing Messages, EIP defines the http://eaipatterns.com/MessageStore.html[Message Store] pattern which allows EIP components to store _Messages_ typically in some type of persistent store (e.g.
+To mitigate the risk of losing Messages, EIP defines the https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] pattern which allows EIP components to store _Messages_ typically in some type of persistent store (e.g.
 RDBMS).
 
 Spring Integration provides support for the _Message Store_ pattern by a) defining a `org.springframework.integration.store.MessageStore` strategy interface, b) providing several implementations of this interface, and c) exposing a `message-store` attribute on all components that have the capability to buffer messages so that you can inject any instance that implements the `MessageStore` interface.

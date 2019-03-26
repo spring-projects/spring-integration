@@ -270,11 +270,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateLocation() throws Exception {
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Location", "http://foo.com");
+		messageHeaders.put("Location", "http://www.foo.com/");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
-		assertEquals(new URI("http://foo.com").toString(), headers.getLocation().toString());
+		assertEquals(new URI("http://www.foo.com/").toString(), headers.getLocation().toString());
 	}
 
 	// Transfer Encoding tests
@@ -476,7 +476,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foobar", "abc");
 		headers.setAccept(Collections.singletonList(MediaType.TEXT_XML));
-		headers.setLocation(new URI("http://example.org"));
+		headers.setLocation(new URI("https://example.org"));
 		Map<String, ?> result = mapper.toHeaders(headers);
 		assertEquals(2, result.size());
 		assertNull(result.get("Location"));

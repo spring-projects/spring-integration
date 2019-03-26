@@ -108,7 +108,7 @@ Where we can access the `headers` and `payload` (or any other) variables only th
 In addition, the `compiler-configuration` bean reference has been introduced.
 With this attribute, you can provide any other required Groovy compiler customizations, e.g. `ImportCustomizer`.
 For more information about this feature, please, refer to the Groovy Documentation:
-http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
+https://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
 
 NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`
 and overrides the `compileStatic` option.
@@ -121,7 +121,7 @@ and reloadable scripts can be statically compiled, too.
 [[groovy-control-bus]]
 ==== Control Bus
 
-As described in (http://www.eaipatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
+As described in (https://www.enterpriseintegrationpatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
 In Spring Integration we build upon the adapters described above so that it's possible to send Messages as a means of invoking exposed operations.
 One option for those operations is Groovy scripts.
 [source,xml]

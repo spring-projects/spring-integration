@@ -8,7 +8,7 @@ Spring Integration _version 4.2_ introduced _STOMP Client_ support.
 It is based on the architecture, infrastructure and API from the Spring Framework's _messaging_ module, _stomp_ package.
 Many of Spring STOMP components (e.g. `StompSession` or `StompClientSupport`)
 are used within Spring Integration.
-For more information, please, refer to the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support]
+For more information, please, refer to the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support]
 chapter in the Spring Framework reference manual.
 
 [[stomp-overview]]
@@ -191,11 +191,11 @@ configuration file:
   xmlns:int-stomp="http://www.springframework.org/schema/integration/stomp"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/stomp
-    http://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
+    https://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
     ...
 </beans>
 ----
