@@ -23,7 +23,7 @@ Furthermore, the Spring Integration JDBC Module also provides a _<<jdbc-message-
 The main function of an inbound Channel Adapter is to execute a SQL `SELECT` query and turn the result set as a message.
 The message payload is the whole result set, expressed as a `List`, and the types of the items in the list depend on the row-mapping strategy that is used.
 The default strategy is a generic mapper that just returns a `Map` for each row in the query result.
-Optionally, this can be changed by adding a reference to a `RowMapper` instance (see the http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html[Spring JDBC] documentation for more detailed information about row mapping).
+Optionally, this can be changed by adding a reference to a `RowMapper` instance (see the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html[Spring JDBC] documentation for more detailed information about row mapping).
 
 NOTE: If you want to convert rows in the SELECT query result to individual messages you can use a downstream splitter.
 
@@ -117,7 +117,7 @@ _max-messages-per-poll_ specifies the number of times the query is executed per 
 
 Under normal circumstances, you would likely not want to set the Poller's _max-messages-per-poll_ property when using the _JDBC Inbound Channel Adapter_.
 Its default value is _1_, which means that the _JDBC
-			Inbound Channel Adapter's http://static.springsource.org/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[receive()]_ method is executed exactly once for each poll interval.
+			Inbound Channel Adapter's https://docs.spring.io/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[receive()]_ method is executed exactly once for each poll interval.
 
 Setting the _max-messages-per-poll_ attribute to a larger value means that the query is executed that many times back to back.
 For more information regarding the _max-messages-per-poll_ attribute, please see <<channel-adapter-namespace-inbound>>.
@@ -335,7 +335,7 @@ Therefore, starting with _Spring Integration 3.0_, we provide an additional set 
 * schema-drop-mysql-5_6_4.sql
 * schema-mysql-5_6_4.sql
 
-For more information, please see: http://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html[Fractional Seconds in Time Values].
+For more information, please see: https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html[Fractional Seconds in Time Values].
 
 Also important, please ensure that you use an up-to-date version of the JDBC driver for MySQL (Connector/J), e.g.
 version_5.1.24_ or higher.
@@ -373,7 +373,7 @@ For further reference please see the following resources:
 
 
 * https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/[5 subtle ways you’re using MySQL as a queue, and why it’ll bite you].
-* http://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
+* https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
 =====
 
 *Concurrent Polling*
@@ -462,7 +462,7 @@ To configure that scenario, simply extend one message store bean from the other:
 
 Spring Integration ships with some sample scripts that can be used to initialize a database.
 In the spring-integration-jdbc JAR file you will find scripts in the `org.springframework.integration.jdbc` and in the `org.springframework.integration.jdbc.store.channel` package: there is a create and a drop script example for a range of common database platforms.
-A common way to use these scripts is to reference them in a http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
+A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
 Note that the scripts are provided as samples or specifications of the the required table and column names.
 You may find that you need to enhance them for production use (e.g.
 with index declarations).
@@ -480,7 +480,7 @@ To avoid this, the message store _region_ can be used to keep data separate for 
 === Stored Procedures
 
 In certain situations plain JDBC support is not sufficient.
-Maybe you deal with legacy relational database schemas or you have complex data processing needs, but ultimately you have to use http://en.wikipedia.org/wiki/Stored_procedure[Stored Procedures] or Stored Functions.
+Maybe you deal with legacy relational database schemas or you have complex data processing needs, but ultimately you have to use https://en.wikipedia.org/wiki/Stored_procedure[Stored Procedures] or Stored Functions.
 Since Spring Integration 2.1, we provide three components in order to execute Stored Procedures or Stored Functions:
 
 * Stored Procedures Inbound Channel Adapter
@@ -492,7 +492,7 @@ Since Spring Integration 2.1, we provide three components in order to execute St
 [[sp-supported-databases]]
 ==== Supported Databases
 
-In order to enable calls to _Stored Procedures_ and _Stored Functions_, the Stored Procedure components use the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
+In order to enable calls to _Stored Procedures_ and _Stored Functions_, the Stored Procedure components use the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
 Consequently, the following databases are fully supported for executing Stored Procedures:
 
 * Apache Derby
@@ -517,7 +517,7 @@ If you want to execute Stored Functions instead, the following databases are ful
 =====
 Even though your particular database may not be fully supported, chances are, that you can use the Stored Procedure Spring Integration components quite successfully anyway, provided your RDBMS supports Stored Procedures or Functions.
 
-As a matter of fact, some of the provided integration tests use the http://www.h2database.com/[H2 database].
+As a matter of fact, some of the provided integration tests use the https://www.h2database.com/[H2 database].
 Nevertheless, it is very important to thoroughly test those usage scenarios.
 =====
 
@@ -548,7 +548,7 @@ _Optional_.
 
 *ignore-column-meta-data*
 
-For fully supported databases, the underlying http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class can automatically retrieve the parameter information for the to be invoked Stored Procedure or Function from the JDBC Meta-data.
+For fully supported databases, the underlying https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class can automatically retrieve the parameter information for the to be invoked Stored Procedure or Function from the JDBC Meta-data.
 
 However, if the used database does not support meta data lookups or if you like to provide customized parameter definitions, this flag can be set to `true`.
 It defaults to `false`.
@@ -717,7 +717,7 @@ _Optional_.
 
 
 <6> The reference to a custom value handler for complex types.
-An implementation of http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[SqlReturnType].
+An implementation of https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[SqlReturnType].
 This attribute is mutually exclusive with the _scale_ attribute and is applicable for OUT(INOUT)-parameters only._Optional_.
 
 *poller*
@@ -893,7 +893,7 @@ _Optional_.
 [[sp-examples]]
 ==== Examples
 
-In the following two examples we call http://db.apache.org/derby/[Apache Derby] Stored Procedures.
+In the following two examples we call https://db.apache.org/derby/[Apache Derby] Stored Procedures.
 The first procedure will call a Stored Procedure that returns a `ResultSet`, and using a `RowMapper` the data is converted into a domain object, which then becomes the Spring Integration message payload.
 
 In the second sample we call a Stored Procedure that uses Output Parameters instead, in order to return data.

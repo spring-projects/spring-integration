@@ -1061,8 +1061,8 @@ In the above configuration, if the Message includes a header with the name 'chan
 You may also find _Collection Projection_ and _Collection Selection_ expressions useful to select multiple channels.
 For further information, please see:
 
-* http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection[Collection Projection]
-* http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-selection[Collection Selection]
+* https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection[Collection Projection]
+* https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-selection[Collection Selection]
 
 
 
@@ -1122,7 +1122,7 @@ Or you may want to introduce more granularity to your message flow by adding ano
 Unfortunately with static router configuration to accomplish this, you would have to bring down your entire application, change the configuration of the router (change routes) and bring it back up.
 This is obviously not the solution.
 
-The http://www.eaipatterns.com/DynamicRouter.html[Dynamic Router] pattern describes the mechanisms by which one can change/configure routers dynamically without bringing down the system or individual routers. 
+The https://www.enterpriseintegrationpatterns.com/DynamicRouter.html[Dynamic Router] pattern describes the mechanisms by which one can change/configure routers dynamically without bringing down the system or individual routers. 
 
 Before we get into the specifics of how this is accomplished in Spring Integration, let's quickly summarize the typical flow of the router, which consists of 3 simple steps:
 
@@ -1216,7 +1216,7 @@ It also means that you could expose these same configuration options via JMX (se
 [[dynamic-routers-control-bus]]
 ===== Manage Router Mappings using the Control Bus
 
-One way to manage the router mappings is through the http://www.eaipatterns.com/ControlBus.html[Control Bus] pattern which exposes a Control Channel where you can send control messages to manage and monitor Spring Integration components, including routers.
+One way to manage the router mappings is through the https://www.enterpriseintegrationpatterns.com/ControlBus.html[Control Bus] pattern which exposes a Control Channel where you can send control messages to manage and monitor Spring Integration components, including routers.
 
 NOTE: For more information about the Control Bus, please see chapter _<<control-bus>>_.
 
@@ -1258,7 +1258,7 @@ NOTE: For more information about Spring Integration's JMX support, please see ch
 [[routing-slip]]
 ===== Routing Slip
 
-Starting with _version 4.1_, Spring Integration provides an implementation of the http://www.eaipatterns.com/RoutingTable.html[Routing Slip] Enterprise Integration Pattern.
+Starting with _version 4.1_, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/RoutingTable.html[Routing Slip] Enterprise Integration Pattern.
 It is implemented as a `routingSlip` message header which is used to determine the next channel in `AbstractMessageProducingHandler` s, when an `outputChannel` isn't specified for the endpoint.
 This pattern is useful in complex, dynamic, cases when it can become difficult to configure multiple routers to determine message flow.
 When a message arrives at an endpoint that has no `output-channel`, the `routingSlip` is consulted to determine the next channel to which the message will be sent.
@@ -1342,7 +1342,7 @@ The `routingSlipIndex` remains unchanged.
 [[process-manager]]
 ===== Process Manager Enterprise Integration Pattern
 
-The EIP also defines the http://www.eaipatterns.com/ProcessManager.html[Process Manager] pattern.
+The EIP also defines the https://www.enterpriseintegrationpatterns.com/ProcessManager.html[Process Manager] pattern.
 This pattern can now easily be implemented using custom _Process Manager_ logic encapsulated in a `RoutingSlipRouteStrategy` within the routing slip.
 In addition to a bean name, the `RoutingSlipRouteStrategy` can return any `MessageChannel` object; and there is no requirement that this `MessageChannel` instance is a bean in the application context.
 This way, we can provide powerful dynamic routing logic, when there is no prediction which channel should be used; a `MessageChannel` can be created within the `RoutingSlipRouteStrategy` and returned.

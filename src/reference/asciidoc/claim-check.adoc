@@ -10,7 +10,7 @@ However there are times when we want to hide data temporarily.
 For example, in a distributed system we may receive a Message with a very large payload.
 Some intermittent message processing steps may not need access to this payload and some may only need to access certain headers, so carrying the large Message payload through each processing step may cause performance degradation, may produce a security risk, and may make debugging more difficult.
 
-The http://www.eaipatterns.com/StoreInLibrary.html[Claim Check] pattern describes a mechanism that allows you to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is located.
+The https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[Claim Check] pattern describes a mechanism that allows you to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is located.
 You can pass that pointer around as a payload of a new Message thereby allowing any component within the message flow to get the actual data as soon as it needs it.
 This approach is very similar to the Certified Mail process where you'll get a Claim Check in your mailbox and would have to go to the Post Office to claim your actual package.
 Of course it's also the same idea as baggage-claim on a flight or in a hotel.

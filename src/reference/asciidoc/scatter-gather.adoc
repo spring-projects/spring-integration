@@ -4,7 +4,7 @@
 [[scatter-gather-introduction]]
 ==== Introduction
 
-Starting with _version 4.1_, Spring Integration provides an implementation of the http://www.eaipatterns.com/BroadcastAggregate.html[Scatter-Gather] Enterprise Integration Pattern.
+Starting with _version 4.1_, Spring Integration provides an implementation of the https://www.enterpriseintegrationpatterns.com/BroadcastAggregate.html[Scatter-Gather] Enterprise Integration Pattern.
 It is a compound endpoint, where the goal is to send a message to the recipients and aggregate the results.
 Quoting the EIP Book, it is a component for scenarios like_best quote_, when we need to request information from several suppliers and decide which one provides us with the best term for the requested item.
 

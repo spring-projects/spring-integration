@@ -568,7 +568,7 @@ NOTE: Wherever it makes sense, the release strategy method, correlation strategy
 
 _Aggregators and Spring Expression Language (SpEL)_
 
-Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
+Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
 Let's say you have a legacy component that was designed to receive an array of objects.
 We know that the default release strategy will assemble all aggregated messages in the List.
 So now we have two problems.
@@ -594,7 +594,7 @@ However, with SpEL such a requirement could actually be handled relatively easil
     expression="#this.![payload].toArray()"/>
 ----
 
-In the above configuration we are using a http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113[Collection Projection] expression to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus achieving the same result as the java code above.
+In the above configuration we are using a https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113[Collection Projection] expression to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus achieving the same result as the java code above.
 
 The same expression-based approach can be applied when dealing with custom _Release_ and _Correlation_ strategies.
 
@@ -754,7 +754,7 @@ public interface MessageGroupStore {
 }
 ----
 
-For more information please refer to the http://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[JavaDoc].
+For more information please refer to the https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[JavaDoc].
 
 The `MessageGroupStore` accumulates state information in `MessageGroups` while waiting for a release strategy to be triggered, and that event might not ever happen.
 So to prevent stale messages from lingering, and for volatile stores to provide a hook for cleaning up when the application shuts down, the `MessageGroupStore` allows the user to register callbacks to apply to its `MessageGroups` when they expire.

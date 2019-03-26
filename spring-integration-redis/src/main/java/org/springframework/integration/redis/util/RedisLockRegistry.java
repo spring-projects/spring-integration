@@ -408,7 +408,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 						/*
 						Perform Redis command 'SET resource-name anystring NX EX max-lock-time' directly.
-						As it is recommended by Redis: http://redis.io/commands/set.
+						As it is recommended by Redis: https://redis.io/commands/set.
 						This command isn't supported directly by RedisTemplate.
 						*/
 						long expireAfter = TimeoutUtils.toSeconds(RedisLockRegistry.this.expireAfter,

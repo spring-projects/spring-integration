@@ -1,7 +1,7 @@
 [[xmpp]]
 == XMPP Support
 
-Spring Integration provides Channel Adapters for http://www.xmpp.org[XMPP].
+Spring Integration provides Channel Adapters for https://www.xmpp.org[XMPP].
 
 [[xmpp-intro]]
 === Introduction
@@ -14,7 +14,7 @@ Within that network, actors may address each other directly, as well as broadcas
 
 XMPP provides the messaging fabric that underlies some of the biggest Instant Messaging networks in the world, including Google Talk (GTalk) - which is also available from within GMail - and Facebook Chat.
 There are many good open-source XMPP servers available.
-Two popular implementations are http://www.igniterealtime.org/projects/openfire/[_Openfire_] and http://www.ejabberd.im[_ejabberd_]
+Two popular implementations are https://www.igniterealtime.org/projects/openfire/[_Openfire_] and https://www.ejabberd.im[_ejabberd_]
 
 Spring integration provides support for XMPP via XMPP adapters which support sending and receiving both XMPP chat messages and presence changes from other entries in your roster.
 As with other adapters, the XMPP adapters come with support for a convenient namespace-based configuration.
@@ -23,7 +23,7 @@ To configure the XMPP namespace, include the following elements in the headers o
 ----
 xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
-	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
+	https://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
 ----
 
 [[xmpp-connection]]
@@ -125,7 +125,7 @@ If you would like to receive notification, or notify others, of state changes, y
 
 Spring Integration provides an _Inbound Presence Message Channel Adapter_ which supports receiving Presence events from other users in the system who happen to be on your Roster.
 To do this, the adapter "logs in" as a user on your behalf, registers a `RosterListener` and forwards received Presence update events as Messages to the channel identified by the `channel` attribute.
-The payload of the Message will be a `org.jivesoftware.smack.packet.Presence` object (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html).
+The payload of the Message will be a `org.jivesoftware.smack.packet.Presence` object (see https://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html).
 
 Configuration support for the XMPP _Inbound Presence Message Channel Adapter_ is provided via the `presence-inbound-channel-adapter` element.
 
@@ -143,7 +143,7 @@ It will register a `RosterListener` when started and will unregister that `Roste
 ==== Outbound Presence Message Channel Adapter
 
 Spring Integration also supports sending Presence events to be seen by other users in the network who happen to have you on their Roster.
-When you send a Message to the _Outbound Presence Message Channel Adapter_ it extracts the payload, which is expected to be of type `org.jivesoftware.smack.packet.Presence` (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to the XMPP Connection, thus advertising your presence events to the rest of the network.
+When you send a Message to the _Outbound Presence Message Channel Adapter_ it extracts the payload, which is expected to be of type `org.jivesoftware.smack.packet.Presence` (see https://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to the XMPP Connection, thus advertising your presence events to the rest of the network.
 
 Configuration support for the XMPP _Outbound Presence Message Channel Adapter_ is provided via the `presence-outbound-channel-adapter` element.
 
@@ -171,7 +171,7 @@ In that case, the bean with the name _xmppConnection_ will be located and inject
 [[xmpp-advanced]]
 === Advanced Configuration
 
-Since Spring Integration XMPP support is based on the Smack 4.0 API (http://www.igniterealtime.org/projects/smack/), it is important to know a few details related to more complex configuration of the XMPP Connection object.
+Since Spring Integration XMPP support is based on the Smack 4.0 API (https://www.igniterealtime.org/projects/smack/), it is important to know a few details related to more complex configuration of the XMPP Connection object.
 
 As stated earlier the `xmpp-connection` namespace support is designed to simplify basic connection configuration and only supports a few common configuration attributes.
 However, the `org.jivesoftware.smack.ConnectionConfiguration` object defines about 20 attributes, and there is no real value of adding namespace support for all of them.
@@ -218,4 +218,4 @@ public class CustomConnectionConfiguration {
 }
 ----
 
-For more information on the JavaConfig style of Application Context configuration, refer to the following section in the Spring Reference Manual: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
+For more information on the JavaConfig style of Application Context configuration, refer to the following section in the Spring Reference Manual: https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java

@@ -12,7 +12,7 @@ with any type of data in the message's `payload`.
 We can either trust all those messages or _secure_ our service against "infecting" messages.
 
 Spring Integration together with
-http://projects.spring.io/spring-security/[Spring Security] provide a simple and comprehensive way to
+https://projects.spring.io/spring-security/[Spring Security] provide a simple and comprehensive way to
 secure message channels, as well as other part of the integration solution.
 
 [[securing-channels]]
@@ -36,13 +36,13 @@ The pattern is a `java.util.regexp.Pattern`.
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:security="http://www.springframework.org/schema/security"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-      http://www.springframework.org/schema/beans/spring-beans.xsd
+      https://www.springframework.org/schema/beans/spring-beans.xsd
       http://www.springframework.org/schema/security
-      http://www.springframework.org/schema/security/spring-security.xsd
+      https://www.springframework.org/schema/security/spring-security.xsd
       http://www.springframework.org/schema/integration
-      http://www.springframework.org/schema/integration/spring-integration.xsd
+      https://www.springframework.org/schema/integration/spring-integration.xsd
       http://www.springframework.org/schema/integration/security
-      http://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
+      https://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
 
 <int-security:secured-channels>
     <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>

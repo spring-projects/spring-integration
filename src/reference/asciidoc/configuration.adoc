@@ -16,7 +16,7 @@ Direct usage of the API is of course always an option, but we expect that most u
 === Namespace Support
 
 Spring Integration components can be configured with XML elements that map directly to the terminology and concepts of enterprise integration.
-In many cases, the element names match those of the http://www.eaipatterns.com[Enterprise Integration Patterns].
+In many cases, the element names match those of the https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns].
 
 To enable Spring Integration's core namespace support within your Spring configuration files, add the following namespace reference and schema mapping in your top-level 'beans' element:
 
@@ -27,9 +27,9 @@ To enable Spring Integration's core namespace support within your Spring configu
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        *xmlns:int="http://www.springframework.org/schema/integration"*
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans.xsd
+           https://www.springframework.org/schema/beans/spring-beans.xsd
            *http://www.springframework.org/schema/integration*
-           *http://www.springframework.org/schema/integration/spring-integration.xsd*">
+           *https://www.springframework.org/schema/integration/spring-integration.xsd*">
 ----
 
 You can choose any name after "xmlns:"; _int_ is used here for clarity, but you might prefer a shorter abbreviation.
@@ -43,9 +43,9 @@ Alternatively, you can create configuration files that use the Spring Integratio
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:beans="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans.xsd
+           https://www.springframework.org/schema/beans/spring-beans.xsd
            *http://www.springframework.org/schema/integration*
-           *http://www.springframework.org/schema/integration/spring-integration.xsd*">
+           *https://www.springframework.org/schema/integration/spring-integration.xsd*">
 ----
 
 When using this alternative, no prefix is necessary for the Spring Integration elements.
@@ -70,19 +70,19 @@ For example, the following root element shows several of these namespace declara
   xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
   xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/spring-integration.xsd
     http://www.springframework.org/schema/integration/file
-    http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+    https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
     http://www.springframework.org/schema/integration/jms
-    http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+    https://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
     http://www.springframework.org/schema/integration/mail
-    http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
+    https://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
     http://www.springframework.org/schema/integration/rmi
-    http://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
+    https://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
     http://www.springframework.org/schema/integration/ws
-    http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
+    https://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
  ...
 </beans>
 ----
@@ -102,7 +102,7 @@ This is also defined as a constant:
 IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ----
 
-By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
+By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the https://docs.spring.io/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
 That default TaskScheduler will startup automatically with a pool of 10 threads, but see <<global-properties>>.
 If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property to _false_, and/or you can provide your own pool size value.
 
@@ -124,7 +124,7 @@ Such endpoints have no poller configuration since their handlers will be invoked
 [IMPORTANT]
 =====
 When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler` as described
-http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here],
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here],
 instead of the default _taskScheduler_.
 To do that, simply define a bean with the appropriate JNDI name for your environment, for example:
 [source,xml]
@@ -317,7 +317,7 @@ This is consistent across both configuration options (namespace and annotations)
 
 TIP: The combination of output channels on endpoints and the reply channel message header enables a pipeline approach where multiple components have an output channel, and the final component simply allows the reply message to be forwarded to the reply channel as specified in the original request message.
 In other words, the final component depends on the information provided by the original sender and can dynamically support any number of clients as a result.
-This is an example of http://eaipatterns.com/ReturnAddress.html[Return Address].
+This is an example of https://www.enterpriseintegrationpatterns.com/ReturnAddress.html[Return Address].
 
 In addition to the examples shown here, these annotations also support inputChannel and outputChannel properties.
 

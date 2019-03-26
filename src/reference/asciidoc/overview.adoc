@@ -23,7 +23,7 @@ In other words, the messaging and integration concerns are handled by the framew
 
 As an extension of the Spring programming model, Spring Integration provides a wide variety of configuration options including annotations, XML with namespace support, XML with generic "bean" elements, and of course direct usage of the underlying API.
 That API is based upon well-defined strategy interfaces and non-invasive, delegating adapters.
-Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well-known http://www.eaipatterns.com[Enterprise Integration Patterns] as described in the book of the same name by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
+Spring Integration's design is inspired by the recognition of a strong affinity between common patterns within Spring and the well-known https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns] as described in the book of the same name by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004).
 Developers who have read that book should be immediately comfortable with the Spring Integration concepts and terminology.
 
 [[overview-goalsandprinciples]]
@@ -117,7 +117,7 @@ This is similar to the role of a Controller in the MVC paradigm.
 Just as a Controller handles HTTP requests, the Message Endpoint handles Messages.
 Just as Controllers are mapped to URL patterns, Message Endpoints are mapped to Message Channels.
 The goal is the same in both cases: isolate application code from the infrastructure.
-These concepts are discussed at length along with all of the patterns that follow in the http://www.eaipatterns.com[Enterprise Integration Patterns] book.
+These concepts are discussed at length along with all of the patterns that follow in the https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns] book.
 Here, we provide only a high-level description of the main endpoint types supported by Spring Integration and their roles.
 The chapters that follow will elaborate and provide sample code as well as configuration examples.
 

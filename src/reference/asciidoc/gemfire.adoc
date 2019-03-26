@@ -7,7 +7,7 @@ Spring Integration provides support for VMWare vFabric GemFire
 === Introduction
 
 VMWare vFabric GemFire (GemFire) is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and remote function execution.
-This guide assumes some familiarity with http://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire] and its http://www.vmware.com/support/developer/vfabric-gemfire/662-api/index.html[API].
+This guide assumes some familiarity with https://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire] and its https://www.vmware.com/support/developer/vfabric-gemfire/662-api/index.html[API].
 
 Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and `MessageStore` and `MessageGroupStore` implementations.
 Spring integration leverages thehttp://www.springsource.org/spring-gemfire[Spring Gemfire] project, providing a thin wrapper over its components.
@@ -17,7 +17,7 @@ To configure the 'int-gfe' namespace, include the following elements within the 
 ----
 xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
-	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"
+	https://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"
 ----
 
 [[gemfire-inbound]]
@@ -43,7 +43,7 @@ By default CREATED and UPDATED are enabled.
 Note that this adapter conforms to Spring integration conventions.
 If no `channel` attribute is provided, the channel will be created from the `id` attribute.
 This adapter also supports an `error-channel`.
-The GemFire http://www.gemstone.com/docs/current/product/docs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] is the `#root` object of the `expression` evaluation.
+The GemFire https://www.gemstone.com/docs/current/product/docs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] is the `#root` object of the `expression` evaluation.
 Example:
 [source]
 ----
@@ -62,7 +62,7 @@ The continuous query acts as an event source that will fire whenever its result 
 
 NOTE: GemFire queries are written in OQL and are scoped to the entire cache (not just one region).
 Additionally, continuous queries require a remote (i.e., running in a separate process or remote host) cache server.
-Please consult the http://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Continuous%20Querying[GemFire documentation] for more information on implementing continuous queries.
+Please consult the https://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Continuous%20Querying[GemFire documentation] for more information on implementing continuous queries.
 
 
 [source,xml]
@@ -126,7 +126,7 @@ This adapter also supports the `order` attribute which may be useful if it is bo
 [[gemfire-message-store]]
 === Gemfire Message Store
 
-As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
+As described in EIP, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_QueueChannel, Aggregator, Resequencer_, etc.) if reliability is a concern.
 In Spring Integration, the MessageStore strategy also provides the foundation for thehttp://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
@@ -165,7 +165,7 @@ If your application requires customization of the messageStore region, for examp
 ----
 
 In the above examle, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace).
-Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the http://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire product documentation] for more details).
+Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the https://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire product documentation] for more details).
 In this case, you configure a client cache, client region, and client pool and inject the region into the MessageStore.
 Here is an example:
 [source,xml]

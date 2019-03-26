@@ -455,7 +455,7 @@ The default value is _MERGE_.
 
 As we can see above these 4 attributes of the _outbound-channel-adapter_ are all we need to configure it to accept entities over the input channel and process them to _PERSIST_,_MERGE_ or _DELETE_ it from the underlying data source.
 
-NOTE: As of _Spring Integration 3.0_, payloads to _persist_ or _merge_ can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+NOTE: As of _Spring Integration 3.0_, payloads to _persist_ or _merge_ can also be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 _NULL_ values returned by the iterator are ignored.
 
@@ -678,7 +678,7 @@ Relevant only if an entity is being used for JPA operations.
 Ignored if JPA QL, named query or native query is provided.
 Defaults to _MERGE_.
 _Optional_.
-As of *Spring Integration 3.0*, payloads to _persist_ or _merge_ can also be of type `http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
+As of *Spring Integration 3.0*, payloads to _persist_ or _merge_ can also be of type `https://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html[java.lang.Iterable]`.
 In that case, each object returned by the `Iterable` is treated as an entity and persisted or merged using the underlying `EntityManager`.
 _NULL_ values returned by the iterator are ignored.
 
@@ -916,7 +916,7 @@ _JSR 317: Java™ Persistence 2.0_ states in chapter Chapter 4.10, Bulk Update a
 "A delete operation only applies to entities of the specified class and its subclasses.
 It does not cascade to related entities."
 
-For more information please see http://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
+For more information please see https://jcp.org/en/jsr/detail?id=317[JSR 317: Java™ Persistence 2.0]
 =====
 
 [[outboundGatewaySamples]]

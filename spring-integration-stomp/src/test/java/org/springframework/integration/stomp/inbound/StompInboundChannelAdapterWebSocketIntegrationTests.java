@@ -270,7 +270,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 			webSocketStompSessionManager.setAutoReceipt(true);
 			webSocketStompSessionManager.setRecoveryInterval(1000);
 			WebSocketHttpHeaders handshakeHeaders = new WebSocketHttpHeaders();
-			handshakeHeaders.setOrigin("http://foo.com");
+			handshakeHeaders.setOrigin("http://www.foo.com/");
 			webSocketStompSessionManager.setHandshakeHeaders(handshakeHeaders);
 			StompHeaders stompHeaders = new StompHeaders();
 			stompHeaders.setHeartbeat(new long[] {10000, 10000});
@@ -328,7 +328,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
 			registry.addEndpoint("/ws")
 					.setHandshakeHandler(handshakeHandler())
-					.setAllowedOrigins("http://foo.com")
+					.setAllowedOrigins("http://www.foo.com/")
 					.addInterceptors(new HandshakeInterceptor() {
 
 						@Override

@@ -20,7 +20,7 @@ To use the _FTP_ namespace, add the following to the header of your XML file:
 ----
 xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
-    http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
+    https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 
 ----
 
@@ -81,11 +81,11 @@ NOTE: If you experience connectivity problems and would like to trace Session cr
 Now all you need to do is inject these session factories into your adapters.
 Obviously the protocol (FTP or FTPS) that an adapter will use depends on the type of session factory that has been injected into the adapter.
 
-NOTE: A more practical way to provide values for _FTP/FTPS Session Factories_ is by using Spring's property placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
+NOTE: A more practical way to provide values for _FTP/FTPS Session Factories_ is by using Spring's property placeholder support (See: https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
 
 *Advanced Configuration*
 
-`DefaultFtpSessionFactory` provides an abstraction over the underlying client API which, since _Spring Integration 2.0_, is http://commons.apache.org/net/[Apache Commons Net].
+`DefaultFtpSessionFactory` provides an abstraction over the underlying client API which, since _Spring Integration 2.0_, is https://commons.apache.org/net/[Apache Commons Net].
 This spares you from the low level configuration details of the `org.apache.commons.net.ftp.FTPClient`.
 Several common properties are exposed on the session factory (since _version 4.0_, this now includes `connectTimeout`, `defaultTimeout` and `dataTimeout`).
 However there are times when access to lower level `FTPClient` configuration is necessary to achieve more advanced configuration (e.g., setting the port range for active mode etc.).
@@ -352,7 +352,7 @@ NOTE: By default Spring Integration will use `o.s.i.file.DefaultFileNameGenerato
 `DefaultFileNameGenerator` will determine the file name based on the value of the `file_name` header (if it exists) in the MessageHeaders, or if the payload of the Message is already a `java.io.File`, then it will use the original name of that file.
 
 IMPORTANT: Defining certain values (e.g., remote-directory) might be platform/ftp server dependent.
-For example as it was reported on this forum http://forum.springsource.org/showthread.php?p=333478&posted=1#post333478 on some platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/" instead of remote-directory="/foo/bar")
+For example as it was reported on this forum https://forum.spring.io/showthread.php?p=333478&posted=1#post333478 on some platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/" instead of remote-directory="/foo/bar")
 
 Starting with _version 4.1_, you can specify the `mode` when transferring the file.
 By default, an existing file will be overwritten; the modes are defined on `enum` `FileExistsMode`, having values `REPLACE` (default), `APPEND`, `IGNORE`, and `FAIL`.
@@ -644,7 +644,7 @@ The template provides methods to send, retrieve (as an `InputStream`), remove, a
 In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
 For more information, refer to the
-http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[JavaDocs for `RemoteFileTemplate`].
+https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[JavaDocs for `RemoteFileTemplate`].
 There is a subclass for FTP: `FtpRemoteFileTemplate`.
 
 Additional methods were added in _version 4.1_ including `getClientInstance()` which provides access to the underlying `FTPClient` enabling access to low-level APIs.

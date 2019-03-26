@@ -16,7 +16,7 @@ Spring Integration supports sending and receiving files over SFTP by providing t
 ----
 xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
-    http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
+    https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ----
 
 [[sftp-session-factory]]
@@ -63,12 +63,12 @@ Please also see <<sftp-jsch-logging>>.
 
 Now all you need to do is inject this _SFTP Session Factory_ into your adapters.
 
-NOTE: A more practical way to provide values for the _SFTP Session Factory_ would be via Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
+NOTE: A more practical way to provide values for the _SFTP Session Factory_ would be via Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
 
 [[sftp-session-factory-properties]]
 ==== Configuration Properties
 
-Below you will find all properties that are exposed by the http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[DefaultSftpSessionFactory].
+Below you will find all properties that are exposed by the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[DefaultSftpSessionFactory].
 
 *isSharedSession (constructor argument)*
 
@@ -116,7 +116,7 @@ If specified, this properties must be a positive number.
 
 *privateKey*
 
-Allows you to set a http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource], which represents the location of the private key used for authenticating against the remote host.
+Allows you to set a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource], which represents the location of the private key used for authenticating against the remote host.
 If the _privateKey_ is not provided, then the _password_ property is mandatory.
 
 *privateKeyPassphrase*
@@ -127,7 +127,7 @@ Optional.
 
 *proxy*
 
-Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[Proxy].
+Allows for specifying a JSch-based https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[Proxy].
 If set, then the proxy object is used to create the connection to the remote host.
 
 *serverAliveCountMax*
@@ -145,7 +145,7 @@ Using `Properties`, you can set additional configuration setting on the underlyi
 
 *socketFactory*
 
-Allows you to pass in a http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[SocketFactory].
+Allows you to pass in a https://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[SocketFactory].
 The socket factory is used to create a socket to the target host.
 When a proxy is used, the socket factory is passed to the proxy.
 By default plain TCP sockets are used.
@@ -256,7 +256,7 @@ Starting with _Spring Integration version 3.0_, a new abstraction is provided ov
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
 In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
-For more information, refer to the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[javadocs for `RemoteFileTemplate`] There is a subclass for SFTP: `SftpRemoteFileTemplate`.
+For more information, refer to the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[javadocs for `RemoteFileTemplate`] There is a subclass for SFTP: `SftpRemoteFileTemplate`.
 
 Additional methods were added in _version 4.1_ including `getClientInstance()` which provides access to the underlying `ChannelSftp` enabling access to low-level APIs.
 

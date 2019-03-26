@@ -40,7 +40,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * The {@link MessageHandler} implementation for the
- * <a href="http://www.eaipatterns.com/BroadcastAggregate.html">Scatter-Gather</a> EIP pattern.
+ * <a href="https://www.enterpriseintegrationpatterns.com/BroadcastAggregate.html">Scatter-Gather</a> EIP pattern.
  *
  * @author Artem Bilan
  * @since 4.1

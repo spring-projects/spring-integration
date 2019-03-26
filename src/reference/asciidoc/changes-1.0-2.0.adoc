@@ -20,7 +20,7 @@ There are many samples provided throughout this manual.
 [[conversion-support]]
 ===== ConversionService and Converter
 
-You can now benefit from _Conversion Service_ support provided with Spring while configuring many Spring Integration components such as http://www.eaipatterns.com/DatatypeChannel.html[Datatype Channel].
+You can now benefit from _Conversion Service_ support provided with Spring while configuring many Spring Integration components such as https://www.enterpriseintegrationpatterns.com/DatatypeChannel.html[Datatype Channel].
 See <<channel-implementations>> as well <<service-activator-introduction>>.
 Also, the SpEL support mentioned in the previous point also relies upon the ConversionService.
 Therefore, you can register Converters once, and take advantage of them anywhere you are using SpEL expressions.
@@ -45,18 +45,18 @@ See <<http-outbound>> for more details.
 [[new-eip]]
 ==== Enterprise Integration Pattern Additions
 
-Also in 2.0 we have added support for even more of the patterns described in Hohpe and Woolf's http://www.eaipatterns.com/[Enterprise Integration Patterns] book.
+Also in 2.0 we have added support for even more of the patterns described in Hohpe and Woolf's https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns] book.
 
 [[new-message-history]]
 ===== Message History
 
-We now provide support for the http://www.eaipatterns.com/MessageHistory.html[Message History] pattern allowing you to keep track of all traversed components, including the name of each channel and endpoint as well as the timestamp of that traversal.
+We now provide support for the https://www.enterpriseintegrationpatterns.com/MessageHistory.html[Message History] pattern allowing you to keep track of all traversed components, including the name of each channel and endpoint as well as the timestamp of that traversal.
 See <<message-history>> for more details.
 
 [[new-message-store]]
 ===== Message Store
 
-We now provide support for the http://www.eaipatterns.com/MessageStore.html[Message Store] pattern.
+We now provide support for the https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] pattern.
 The Message Store provides a strategy for persisting messages on behalf of any process whose scope extends beyond a single transaction, such as the Aggregator and Resequencer.
 Many sections of this document provide samples on how to use a Message Store as it affects several areas of Spring Integration.
 See <<message-store>>, <<claim-check>>, <<channel>>, <<aggregator>>, <<jdbc>>, and <<resequencer>> for more details
@@ -64,7 +64,7 @@ See <<message-store>>, <<claim-check>>, <<channel>>, <<aggregator>>, <<jdbc>>, a
 [[new-claim-check]]
 ===== Claim Check
 
-We have added an implementation of the http://www.eaipatterns.com/StoreInLibrary.html[Claim Check] pattern.
+We have added an implementation of the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[Claim Check] pattern.
 The idea behind the Claim Check pattern is that you can exchange a Message payload for a "claim ticket" and vice-versa.
 This allows you to reduce bandwidth and/or avoid potential security issues when sending Messages across channels.
 See <<claim-check>> for more details.
@@ -72,7 +72,7 @@ See <<claim-check>> for more details.
 [[new-control-bus]]
 ===== Control Bus
 
-We have provided implementations of the http://www.eaipatterns.com/ControlBus.html[Control Bus] pattern which allows you to use messaging to manage and monitor endpoints and channels.
+We have provided implementations of the https://www.enterpriseintegrationpatterns.com/ControlBus.html[Control Bus] pattern which allows you to use messaging to manage and monitor endpoints and channels.
 The implementations include both a SpEL-based approach and one that executes Groovy scripts.
 See <<control-bus>> and <<groovy-control-bus>> for more details.
 
@@ -86,7 +86,7 @@ We have added several new Channel Adapters and Messaging Gateways in Spring Inte
 
 We have added Channel Adapters for receiving and sending messages over the TCP and UDP internet protocols.
 See <<ip>> for more details.
-Also, you can checkout the following blog: http://blog.springsource.com/2010/03/29/using-udp-and-tcp-adapters-in-spring-integration-2-0-m3/[TCP/UDP support]
+Also, you can checkout the following blog: https://spring.io/blog/2010/03/29/using-udp-and-tcp-adapters-in-spring-integration-2-0-m3/[TCP/UDP support]
 
 [[new-twitter]]
 ===== Twitter Adapters
@@ -160,14 +160,14 @@ We restructured some packaging to provide the flexibility we needed for extendin
 ==== New Source Control Management and Build Infrastructure
 
 With Spring Integration 2.0 we have switched our build environment to use Git for source control.
-To access our repository simply follow this URL: http://git.springsource.org/spring-integration[http://git.springsource.org/spring-integration].
-We have also switched our build system to http://gradle.org/[Gradle].
+To access our repository simply follow this URL: https://git.springsource.org/spring-integration[https://git.springsource.org/spring-integration].
+We have also switched our build system to https://gradle.org/[Gradle].
 
 [[new-samples]]
 ==== New Spring Integration Samples
 
 With Spring Integration 2.0 we have decoupled the samples from our main release distribution.
-Please read this blog to get more info http://blog.springsource.com/2010/09/29/new-spring-integration-samples/[New Spring Integration Samples] We have also created many new samples, including samples for every new Adapter.
+Please read this blog to get more info https://spring.io/blog/2010/09/29/new-spring-integration-samples/[New Spring Integration Samples] We have also created many new samples, including samples for every new Adapter.
 
 [[new-sts]]
 ==== Spring Tool Suite Visual Editor for Spring Integration
