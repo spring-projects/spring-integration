@@ -326,7 +326,7 @@ Fall back to the `toString()` method of the object being monitored (handler or s
 
 You can append custom elements to the object name by providing a reference to a `Properties` object in the `object-name-static-properties` attribute.
 
-Also, since Spring Integration 3.0, you can use a custom http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html[`ObjectNamingStrategy`] by setting the `object-naming-strategy` attribute.
+Also, since Spring Integration 3.0, you can use a custom https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html[`ObjectNamingStrategy`] by setting the `object-naming-strategy` attribute.
 Doing so permits greater control over the naming of the MBeans, such as grouping all integration MBeans under an 'Integration' type.
 The following example shows one possible custom naming strategy implementation:
 
@@ -350,7 +350,7 @@ The `beanKey` argument is a `String` that contain the standard object name, begi
 The preceding example moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`"my.domain:type=Integration,*`.
 Doing so also groups the beans under one tree entry under the domain in such tools as VisualVM.
 
-NOTE: The default naming strategy is a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[`MetadataNamingStrategy`].
+NOTE: The default naming strategy is a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[`MetadataNamingStrategy`].
 The exporter propagates the `default-domain` to that object to let it generate a fallback object name if parsing of the bean key fails.
 If your custom naming strategy is a `MetadataNamingStrategy` (or a subclass of it), the exporter does not propagate the `default-domain`.
 You must configure it on your strategy bean.

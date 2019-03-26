@@ -124,7 +124,7 @@ It can be used to avoid Java entirely for simple filters, as the following examp
 ====
 
 The string passed as the value of the expression attribute is evaluated as a SpEL expression with the message available in the evaluation context.
-If you must include the result of an expression in the scope of the application context, you can use the `#{}` notation, as defined in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-beandef[SpEL reference documentation], as the following example shows:
+If you must include the result of an expression in the scope of the application context, you can use the `#{}` notation, as defined in the https://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-beandef[SpEL reference documentation], as the following example shows:
 
 ====
 [source,xml]

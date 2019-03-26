@@ -277,7 +277,7 @@ The reason for this is that when a `Message` is sent to a `SubscribableChannel`,
 a `PublishSubscribeChannel` sends to all of its subscribers).
 Therefore, the `preReceive(...)`, `postReceive(...)`, and `afterReceiveCompletion(...)` interceptor methods are invoked only when the interceptor is applied to a `PollableChannel`.
 
-Spring Integration also provides an implementation of the http://eaipatterns.com/WireTap.html[Wire Tap] pattern.
+Spring Integration also provides an implementation of the https://www.enterpriseintegrationpatterns.com/WireTap.html[Wire Tap] pattern.
 It is a simple interceptor that sends the `Message` to another channel without otherwise altering the existing flow.
 It can be very useful for debugging and monitoring.
 An example is shown in <<channel-wiretap>>.
@@ -405,7 +405,7 @@ Sometimes, a consumer can process only a particular type of payload, forcing you
 The first thing that comes to mind may be to use a message filter.
 However, all that message filter can do is filter out messages that are not compliant with the requirements of the consumer.
 Another way would be to use a content-based router and route messages with non-compliant data-types to specific transformers to enforce transformation and conversion to the required data type.
-This would work, but a simpler way to accomplish the same thing is to apply the http://www.eaipatterns.com/DatatypeChannel.html[Datatype Channel] pattern.
+This would work, but a simpler way to accomplish the same thing is to apply the https://www.enterpriseintegrationpatterns.com/DatatypeChannel.html[Datatype Channel] pattern.
 You can use separate datatype channels for each specific payload data type.
 
 To create a datatype channel that accepts only messages that contain a certain payload type, provide the data type's fully-qualified class name in the channel element's `datatype` attribute, as the following example shows:
@@ -426,7 +426,7 @@ Multiple types can be provided as a comma-delimited list, as the following examp
 ====
 
 So the 'numberChannel' in the preceding example accepts only messages with a data type of `java.lang.Number`.
-But what happens if the payload of the message is not of the required type? It depends on whether you have defined a bean named `integrationConversionService` that is an instance of Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
+But what happens if the payload of the message is not of the required type? It depends on whether you have defined a bean named `integrationConversionService` that is an instance of Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
 If not, then an `Exception` would be thrown immediately.
 However, if you have defined an `integrationConversionService` bean, it is used in an attempt to convert the message's payload to the acceptable type.
 

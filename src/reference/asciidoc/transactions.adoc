@@ -172,7 +172,7 @@ public interface TransactionSynchronizationProcessor {
 ----
 ====
 
-The factory is responsible for creating a http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html[`TransactionSynchronization`] object.
+The factory is responsible for creating a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html[`TransactionSynchronization`] object.
 You can implement your own or use the one provided by the framework: `DefaultTransactionSynchronizationFactory`.
 This implementation returns a `TransactionSynchronization` that delegates to a default implementation of `TransactionSynchronizationProcessor`: `ExpressionEvaluatingTransactionSynchronizationProcessor`.
 This processor supports three SpEL expressions: `beforeCommitExpression`, `afterCommitExpression`, and `afterRollbackExpression`.

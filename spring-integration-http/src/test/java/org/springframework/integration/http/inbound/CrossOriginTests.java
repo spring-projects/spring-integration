@@ -59,7 +59,7 @@ public class CrossOriginTests {
 	public void setUp() {
 		this.request = new MockHttpServletRequest();
 		this.request.setMethod("GET");
-		this.request.addHeader(HttpHeaders.ORIGIN, "http://domain.com/");
+		this.request.addHeader(HttpHeaders.ORIGIN, "https://domain.com/");
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class CrossOriginTests {
 		CorsConfiguration config = getCorsConfiguration(chain, false);
 		assertNotNull(config);
 		assertArrayEquals(new String[] { "DELETE" }, config.getAllowedMethods().toArray());
-		assertArrayEquals(new String[] { "http://site1.com", "http://site2.com" }, config.getAllowedOrigins().toArray());
+		assertArrayEquals(new String[] { "https://site1.com", "https://site2.com" }, config.getAllowedOrigins().toArray());
 		assertArrayEquals(new String[] { "header1", "header2" }, config.getAllowedHeaders().toArray());
 		assertArrayEquals(new String[] { "header3", "header4" }, config.getExposedHeaders().toArray());
 		assertEquals(new Long(123), config.getMaxAge());
@@ -167,7 +167,7 @@ public class CrossOriginTests {
 	@Test
 	public void testOptionsHeaderHandling() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/default");
-		request.addHeader(HttpHeaders.ORIGIN, "http://domain2.com");
+		request.addHeader(HttpHeaders.ORIGIN, "https://domain2.com");
 		HandlerExecutionChain handler = this.handlerMapping.getHandler(request);
 		assertNotNull(handler);
 		Object handlerMethod = handler.getHandler();

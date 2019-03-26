@@ -66,7 +66,7 @@ public class MongoDbOutboundGatewaySpec
 	/**
 	 * A {@code String} representation of a MongoDb {@link Query} (e.g., query("{'name' : 'Bob'}")).
 	 * Please refer to MongoDb documentation for more query samples
-	 * see <a href="http://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
+	 * see <a href="https://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
 	 * This property is mutually exclusive with 'queryExpression' property.
 	 * @param query the MongoDb {@link Query} string representation to use.
 	 * @return the spec

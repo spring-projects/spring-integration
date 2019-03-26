@@ -46,7 +46,7 @@ For more information, see <<messaging-gateway-annotation>>.
 ===== Spring Boot `@EnableAutoConfiguration`
 
 As well as the `@EnableIntegration` annotation mentioned earlier, we introduced a hook to allow the Spring Integration infrastructure beans to be configured with Spring Boot's `@EnableAutoConfiguration` annotation.
-For more information, see http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html["`Auto-configuration`"] in the Spring Boot Reference Guide.
+For more information, see https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html["`Auto-configuration`"] in the Spring Boot Reference Guide.
 
 [[x4.0-global-channel-interceptor]]
 ===== `@GlobalChannelInterceptor`

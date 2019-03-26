@@ -619,7 +619,7 @@ If you want to execute stored functions instead, the following databases are ful
 =====
 Even though your particular database may not be fully supported, chances are that you can use the stored procedure Spring Integration components quite successfully anyway, provided your RDBMS supports stored procedures or stored functions.
 
-As a matter of fact, some of the provided integration tests use the http://www.h2database.com/[H2 database].
+As a matter of fact, some of the provided integration tests use the https://www.h2database.com/[H2 database].
 Nevertheless, it is very important to thoroughly test those usage scenarios.
 =====
 

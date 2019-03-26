@@ -33,13 +33,13 @@ The following adapters are available:
 
 Spring Integration also provides a point-to-point message channel and a publish-subscribe message channel backed by AMQP Exchanges and Queues.
 
-To provide AMQP support, Spring Integration relies on (http://projects.spring.io/spring-amqp[Spring AMQP]), which applies core Spring concepts to the development of AMQP-based messaging solutions.
-Spring AMQP provides similar semantics to (http://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS]).
+To provide AMQP support, Spring Integration relies on (https://projects.spring.io/spring-amqp[Spring AMQP]), which applies core Spring concepts to the development of AMQP-based messaging solutions.
+Spring AMQP provides similar semantics to (https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS]).
 
 Whereas the provided AMQP Channel Adapters are intended for unidirectional messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP gateways for request-reply operations.
 
 TIP:
-You should familiarize yourself with the http://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
+You should familiarize yourself with the https://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
 It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
 
 [[amqp-inbound-channel-adapter]]
@@ -159,7 +159,7 @@ The transaction manager works in conjunction with the `channel-transacted` attri
 If there is already a transaction in progress when the framework is sending or receiving a message and the `channelTransacted` flag is `true`, the commit or rollback of the messaging transaction is deferred until the end of the current transaction.
 If the `channelTransacted` flag is `false`, no transaction semantics apply to the messaging operation (it is auto-acked).
 For further information, see
-http://docs.spring.io/spring-amqp/reference/html/%5Freference.html#%5Ftransactions[Transactions with Spring AMQP].
+https://docs.spring.io/spring-amqp/reference/html/%255Freference.html#%5Ftransactions[Transactions with Spring AMQP].
 Optional.
 <25> Tells the `SimpleMessageListenerContainer` how many messages to process in a single transaction (if the channel is transactional).
 For best results, it should be less than or equal to the value set in `prefetch-count`.
@@ -1157,12 +1157,12 @@ Note that RabbitMQ https://www.rabbitmq.com/validated-user-id.html[validates tha
 
 To configure a default user ID for outbound messages, configure it on a `RabbitTemplate` and configure the outbound adapter or gateway to use that template.
 Similarly, to set the user ID property on replies, inject an appropriately configured template into the inbound gateway.
-See the http://docs.spring.io/spring-amqp/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
+See the https://docs.spring.io/spring-amqp/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
 
 [[amqp-delay]]
 === Delayed Message Exchange
 
-Spring AMQP supports the http://docs.spring.io/spring-amqp/reference/html/_reference.html#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
+Spring AMQP supports the https://docs.spring.io/spring-amqp/reference/html/_reference.html#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
 For inbound messages, the `x-delay` header is mapped to the `AmqpHeaders.RECEIVED_DELAY` header.
 Setting the `AMQPHeaders.DELAY` header causes the corresponding `x-delay` header to be set in outbound messages.
 You can also specify the `delay` and `delayExpression` properties on outbound endpoints (`delay-expression` when using XML configuration).
@@ -1320,11 +1320,11 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 The Spring Integration AMQP Adapters automatically map all AMQP properties and headers.
 (This is a change from 4.3 - previously, only standard headers were mapped).
 By default, these properties are copied to and from Spring Integration `MessageHeaders` by using the
-http://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[`DefaultAmqpHeaderMapper`].
+https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[`DefaultAmqpHeaderMapper`].
 
 You can pass in your own implementation of AMQP-specific header mappers, as the adapters have properties to support doing so.
 
-Any user-defined headers within the AMQP http://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`] are copied to or from an AMQP message, unless explicitly negated by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultAmqpHeaderMapper`.
+Any user-defined headers within the AMQP https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[`MessageProperties`] are copied to or from an AMQP message, unless explicitly negated by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultAmqpHeaderMapper`.
 By default, for an outbound mapper, no `x-*` headers are mapped.
 See the <<header-copy-caution,caution>> that appears later in this section for why.
 
@@ -1475,11 +1475,11 @@ IMPORTANT: There must be no thread handoffs in the downstream flow (`QueueChanne
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration samples git repository at https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
 
 Currently, one sample demonstrates the basic functionality of the Spring Integration AMQP adapter by using an outbound channel adapter and an inbound channel adapter.
-As AMQP broker implementation in the sample uses http://www.rabbitmq.com/[RabbitMQ].
+As AMQP broker implementation in the sample uses https://www.rabbitmq.com/[RabbitMQ].
 
 NOTE: In order to run the example, you need a running instance of RabbitMQ.
 A local installation with just the basic defaults suffices.
-For detailed RabbitMQ installation procedures, see http://www.rabbitmq.com/install.html[http://www.rabbitmq.com/install.html]
+For detailed RabbitMQ installation procedures, see https://www.rabbitmq.com/install.html[https://www.rabbitmq.com/install.html]
 
 Once the sample application is started, enter some text on the command prompt and a message containing that entered text is dispatched to the AMQP queue.
 In return, that message is retrieved by Spring Integration and printed to the console.
