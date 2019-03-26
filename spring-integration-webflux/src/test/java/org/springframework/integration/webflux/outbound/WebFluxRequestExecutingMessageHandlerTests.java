@@ -72,7 +72,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
 				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 
@@ -102,7 +102,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
 				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 		reactiveHandler.setExpectReply(false);
@@ -131,7 +131,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
 				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 		reactiveHandler.setExpectReply(false);
@@ -161,7 +161,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel errorChannel = new QueueChannel();
 		WebFluxRequestExecutingMessageHandler messageHandler =
@@ -208,7 +208,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
 				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 
@@ -253,7 +253,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		String destinationUri = "http://www.springsource.org/spring-integration";
+		String destinationUri = "https://www.springsource.org/spring-integration";
 		WebFluxRequestExecutingMessageHandler reactiveHandler =
 				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 

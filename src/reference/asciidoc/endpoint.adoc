@@ -11,7 +11,7 @@ Some of these are also capable of sending reply Messages.
 Sending Messages is quite straightforward.
 As shown above in <<channel>>, it's easy to _send_ a Message to a Message Channel.
 However, receiving is a bit more complicated.
-The main reason is that there are two types of consumers: http://www.eaipatterns.com/PollingConsumer.html[Polling Consumers] and http://www.eaipatterns.com/EventDrivenConsumer.html[Event Driven Consumers].
+The main reason is that there are two types of consumers: https://www.enterpriseintegrationpatterns.com/PollingConsumer.html[Polling Consumers] and https://www.enterpriseintegrationpatterns.com/EventDrivenConsumer.html[Event Driven Consumers].
 
 Of the two, Event Driven Consumers are much simpler.
 Without any need to manage and schedule a separate poller thread, they are essentially just listeners with a callback method.
@@ -425,7 +425,7 @@ https://github.com/SpringSource/spring-integration-samples/tree/master/intermedi
 
 
 The sample provides a custom Trigger which implements the _http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html[org.springframework.scheduling.Trigger]_ interface.
-The sample's Trigger is based on Spring's http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html[PeriodicTrigger] implementation.
+The sample's Trigger is based on Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html[PeriodicTrigger] implementation.
 However, the fields of the custom trigger are not final and the properties have explicit getters and setters, allowing to dynamically change the polling period at runtime.
 
 NOTE: It is important to note, though, that because the Trigger method is _nextExecutionTime()_, any changes to a dynamic trigger will not take effect until the next poll, based on the existing configuration.
@@ -496,7 +496,7 @@ public class ContextConfiguration {
 
 [IMPORTANT]
 =====
-When configuring an _Application Context_, the Spring Framework allows you to add a _conversionService_ bean (see http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config[Configuring a ConversionService] chapter).
+When configuring an _Application Context_, the Spring Framework allows you to add a _conversionService_ bean (see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config[Configuring a ConversionService] chapter).
 This service is used, when needed, to perform appropriate conversions during bean creation and configuration.
 
 In contrast, the _integrationConversionService_ is used for runtime conversions.
@@ -554,7 +554,7 @@ The problem is that there are two configurations in place.
 The _Poller_ and the _TaskExecutor_, and they both have to be in tune with each other otherwise you might end up creating an artificial memory leak.
 
 Let's look at the following configuration provided by one of the users on the
-http://forum.spring.io/forum/spring-projects/integration/87155-spring-integration-poller-configuration[Spring Integration Forum]:
+https://forum.spring.io/forum/spring-projects/integration/87155-spring-integration-poller-configuration[Spring Integration Forum]:
 [source,xml]
 ----
 <int:channel id="publishChannel">
@@ -579,7 +579,7 @@ One of the ways to handle this is to set the `queue-capacity` attribute of the T
 value.
 You can also manage it by specifying what to do with messages that can not be queued by setting the `rejection-policy` attribute of the Task Executor (e.g., DISCARD).
 In other words, there are certain details you must understand with regard to configuring the TaskExecutor.
-Please refer to http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] of the Spring reference manual for more detail on the subject.
+Please refer to https://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] of the Spring reference manual for more detail on the subject.
 
 [[endpoint-inner]]
 ==== Endpoint Inner Beans
@@ -604,7 +604,7 @@ If you use an inner bean definition such as this:
 
 the bean is treated like any inner bean declared that way and is not registered with the application context.
 If you wish to access this bean in some other manner, declare it at the top level with an `id` and use the `ref` attribute instead.
-See the http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans[Spring Documentation] for more information.
+See the https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans[Spring Documentation] for more information.
 
 [[endpoint-roles]]
 === Endpoint Roles

@@ -5,7 +5,7 @@
 === Introduction
 
 Many Spring Integration components can be configured using expressions.
-These expressions are written in the http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html[Spring Expression Language].
+These expressions are written in the https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html[Spring Expression Language].
 
 In most cases, the _#root_ object is the `Message` which, of course, has two properties - `headers` and `payload` - allowing such expressions as `payload`, `payload.foo`, `headers['my.header']` etc.
 
@@ -79,7 +79,7 @@ In the following example, SpEL expressions will always use the bean factory's cl
 === SpEL Functions
 
 Namespace support is provided for easy addition of SpEL custom functions.
-You can specify `<spel-function/>` components to provide http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions[custom SpEL functions] to the `EvaluationContext` used throughout the framework.
+You can specify `<spel-function/>` components to provide https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions[custom SpEL functions] to the `EvaluationContext` used throughout the framework.
 Instead of configuring the factory bean above, simply add one or more of these components and the framework will automatically add them to the default _integrationEvaluationContext_ factory bean.
 
 For example, assuming we have a useful static method to evaluate XPath:
@@ -124,7 +124,7 @@ Spring Integration provides some standard functions, which are registered with t
 
 *#jsonPath* - to evaluate a 'jsonPath' on some provided object.
 This function invokes `JsonPathUtils.evaluate(...)`.
-This static method delegates to the http://code.google.com/p/json-path[Jayway JsonPath library].
+This static method delegates to the https://code.google.com/p/json-path[Jayway JsonPath library].
 The following shows some usage examples:
 [source,xml]
 ----
@@ -153,7 +153,7 @@ For more information regarding xml and xpath see <<xml>>.
 [[spel-property-accessors]]
 === PropertyAccessors
 
-Namespace support is provided for the easy addition of SpEL custom http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html[`PropertyAccessor`] implementations.
+Namespace support is provided for the easy addition of SpEL custom https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html[`PropertyAccessor`] implementations.
 You can specify the `<spel-property-accessors/>` component to provide a list of custom `PropertyAccessor` s to the `EvaluationContext` used throughout the framework.
 Instead of configuring the factory bean above, simply add one or more of these components, and the framework will automatically add the accessors to the default _integrationEvaluationContext_ factory bean:
 

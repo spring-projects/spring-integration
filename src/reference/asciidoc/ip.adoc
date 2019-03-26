@@ -195,7 +195,7 @@ for the `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`)
 
 The `destination-expression` can be used as a runtime alternative to the hardcoded `host`/`port` pair to determine
 the destination address for the outgoing datagram packet against a `requestMessage` as the root object for the evaluation context.
-The expression must evaluate to an `URI`, or `String` in the URI style (see http://www.ietf.org/rfc/rfc2396.txt[RFC-2396])
+The expression must evaluate to an `URI`, or `String` in the URI style (see https://www.ietf.org/rfc/rfc2396.txt[RFC-2396])
 or `SocketAddress`.
 The inbound `IpHeaders.PACKET_ADDRESS` header can be used for this expression as well.
 In the Framework, this header is populated by the `DatagramPacketMessageMapper`, when we receive datagrams in the

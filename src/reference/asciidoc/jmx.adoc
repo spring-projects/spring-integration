@@ -274,7 +274,7 @@ The _bean_ attribute in the object names for sources and handlers takes one of t
 
 Custom elements can be appended to the object name by providing a reference to a `Properties` object in the `object-name-static-properties` attribute.
 
-Also, since _Spring Integration 3.0_, you can use a custom http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html[ObjectNamingStrategy] using the `object-naming-strategy` attribute.
+Also, since _Spring Integration 3.0_, you can use a custom https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html[ObjectNamingStrategy] using the `object-naming-strategy` attribute.
 This permits greater control over the naming of the MBeans.
 For example, to group all Integration MBeans under an 'Integration' type.
 A simple custom naming strategy implementation might be:
@@ -297,7 +297,7 @@ The `beanKey` argument is a String containing the standard object name beginning
 This example simply moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`"my.domain:type=Integration,*`.
 This also groups the beans under one tree entry under the domain in tools like VisualVM.
 
-NOTE: The default naming strategy is a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[MetadataNamingStrategy].
+NOTE: The default naming strategy is a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[MetadataNamingStrategy].
 The exporter propagates the `default-domain` to that object to allow it to generate a fallback object name if parsing of the bean key fails.
 If your custom naming strategy is a `MetadataNamingStrategy` (or subclass), the exporter will *not* propagate the `default-domain`; you will need to configure it on your strategy bean.
 

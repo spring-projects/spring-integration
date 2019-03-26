@@ -1,19 +1,19 @@
 [[mongodb]]
 == MongoDb Support
 
-As of version 2.1 Spring Integration introduces support for http://www.mongodb.org/[MongoDB]: a _"high-performance, open source, document-oriented database"_.
+As of version 2.1 Spring Integration introduces support for https://www.mongodb.org/[MongoDB]: a _"high-performance, open source, document-oriented database"_.
 This support comes in the form of a MongoDB-based MessageStore.
 
 [[mongodb-intro]]
 === Introduction
 
-To download, install, and run MongoDB please refer to the http://www.mongodb.org/downloads[MongoDB documentation].
+To download, install, and run MongoDB please refer to the https://www.mongodb.org/downloads[MongoDB documentation].
 
 [[mongodb-connection]]
 === Connecting to MongoDb
 
 To begin interacting with MongoDB you first need to connect to it.
-Spring Integration builds on the support provided by another Spring project, http://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB], which provides a factory class called `MongoDbFactory` that simplifies integration with the MongoDB Client API.
+Spring Integration builds on the support provided by another Spring project, https://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB], which provides a factory class called `MongoDbFactory` that simplifies integration with the MongoDB Client API.
 
 _MongoDbFactory_
 
@@ -63,14 +63,14 @@ Or in Spring's XML configuration:
 
 As you can see `SimpleMongoDbFactory` takes two arguments: 1) a `Mongo` instance and 2) a String specifying the name of the database.
 If you need to configure properties such as `host`, `port`, etc, you can pass those using one of the constructors provided by the underlying `Mongo` class.
-For more information on how to configure MongoDB, please refer to the http://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
+For more information on how to configure MongoDB, please refer to the https://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
 
 [[mongodb-message-store]]
 === MongoDB Message Store
 
-As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
+As described in EIP, a https://www.enterpriseintegrationpatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_QueueChannel, Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+In Spring Integration, the `MessageStore` strategy also provides the foundation for the https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
 Spring Integration's MongoDB module provides the `MongoDbMessageStore` which is an implementation of both the `MessageStore` strategy (mainly used by the _ClaimCheck_ pattern) and the `MessageGroupStore` strategy (mainly used by the _Aggregator_ and _Resequencer_ patterns).
 
@@ -187,7 +187,7 @@ The _MongoDb Inbound Channel Adapter_ is a polling consumer that reads data from
 
 As you can see from the configuration above, you configure a _MongoDb Inbound Channel Adapter_ using the `inbound-channel-adapter` element, providing values for various attributes such as:
 
-* `query`: A JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDB Querying])
+* `query`: A JSON query (see https://www.mongodb.org/display/DOCS/Querying[MongoDB Querying])
 * `query-expression`: A SpEL expression that is evaluated to a JSON query string (as the `query` attribute above) or to an instance of `o.s.data.mongodb.core.query.Query`.
 Mutually exclusive with the `query` attribute.
 * `entity-class`: The type of the payload object. If not supplied, a `com.mongodb.DBObject` is returned.
@@ -319,7 +319,7 @@ The Message payload and headers can be used to specify the query, as well as col
 * `entity-class` - the fully qualified name of the entity class to be passed to `find(..)` or `findOne(..)` method in MongoTemplate.
 If this attribute is not provided the default value is `org.bson.Document`;
 * `query` or `query-expression` - specifies the MongoDb query.
-Please refer to http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+Please refer to https://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
 * `collection-callback` - reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`
 (NOTE: you can not have both collection-callback and any of the query attributes).
 
@@ -331,7 +331,7 @@ NOTE: you can not set both `mongo-template` and `mongodb-factory`.
 * `entity-class`: The fully qualified name of the entity class to be passed to the `find(..)` and `findOne(..)` methods in MongoTemplate.
 If this attribute is not provided, the default value is `org.bson.Document`.
 * `query` or `query-expression`: Specifies the MongoDB query.
-See the http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+See the https://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
 * `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
 Preferable an instance of `org.springframework.integration.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
 See its Javadocs for more information.
