@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-publishing"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<appendix xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="message-publishing"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Message Publishing</title>
   <para>
     The AOP Message Publishing feature allows you to construct and send a message as a by-product of a method invocation. For example, imagine you

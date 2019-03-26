@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="filter"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="filter"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Filter</title>
 
   <section id="filter-introduction">
@@ -97,7 +97,7 @@
       the evaluation context.
       If it is necessary to include the result of an expression in the scope of the application context you can use the
       #{} notation as defined in the
-      <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
+      <ulink url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
         SpEL reference documentation
       </ulink>.
       <programlisting language="xml"><![CDATA[<int:filter input-channel="input"

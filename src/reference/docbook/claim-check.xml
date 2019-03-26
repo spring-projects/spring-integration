@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="claim-check"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="claim-check"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Claim Check</title>
 
   <section id="claim-check-introduction">
@@ -15,7 +15,7 @@
     </para>
 
     <para>
-    The <ulink url="http://www.eaipatterns.com/StoreInLibrary.html">Claim Check</ulink> pattern describes a mechanism that allows you
+    The <ulink url="https://www.enterpriseintegrationpatterns.com/StoreInLibrary.html">Claim Check</ulink> pattern describes a mechanism that allows you
     to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is located. You can pass that
     pointer around as a payload of a new Message thereby allowing any component within the message flow to get the actual data as soon as
     it needs it. This approach is very similar to the Certified Mail process where you'll get a Claim Check in your mailbox and

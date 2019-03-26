@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="samples"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<appendix xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="samples"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Spring Integration Samples</title>
 
  <section id="samples-introduction">
@@ -36,13 +36,13 @@
        In order to check out or <emphasis>clone</emphasis> (Git parlance) the samples,
        please make sure you have a Git client installed on your system.
        There are several GUI-based products available for many platforms, e.g.
-       <ulink url="http://eclipse.org/egit/">EGit</ulink> for the Eclipse IDE.
+       <ulink url="https://eclipse.org/egit/">EGit</ulink> for the Eclipse IDE.
        A simple Google search will help you find them. Of course you can also just
-       use the command line interface for <link linkend="http://git-scm.com/">Git</link>.
+       use the command line interface for <link linkend="https://git-scm.com/">Git</link>.
     </para>
     <note>
         If you need more information on how to install and/or use Git, please visit:
-        <ulink url="http://git-scm.com/">http://git-scm.com/</ulink>.
+        <ulink url="https://git-scm.com/">https://git-scm.com/</ulink>.
     </note>
     <para>
        In order to checkout (clone in Git terms) the Spring Integration samples
@@ -72,9 +72,9 @@
 	   <para>
 	       Github is for social coding: if you want to submit your own code examples
 	       to the Spring Integration Samples project, we encourage contributions
-	       through <ulink url="http://help.github.com/send-pull-requests/"><emphasis>pull
+	       through <ulink url="https://help.github.com/send-pull-requests/"><emphasis>pull
 	       requests</emphasis></ulink> from
-	       <ulink url="http://help.github.com/fork-a-repo/"><emphasis>forks</emphasis></ulink>
+	       <ulink url="https://help.github.com/fork-a-repo/"><emphasis>forks</emphasis></ulink>
 	       of this repository. If you want to contribute code this way, please
 	       reference, if possible, a
 	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES"><emphasis>JIRA Ticket</emphasis></ulink>
@@ -219,7 +219,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         <para>
        In this section, we will review the <emphasis>Loan Broker</emphasis> sample application that is included in the
        Spring Integration samples. This sample is inspired by one of the samples featured in Gregor
-       Hohpe and Bobby Woolf's book, <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>.
+       Hohpe and Bobby Woolf's book, <ulink url="https://www.enterpriseintegrationpatterns.com/">Enterprise Integration Patterns</ulink>.
         </para>
         <para>The diagram below represents the entire process</para>
         <para>
@@ -454,7 +454,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
        In this section, we will review a <emphasis>Cafe</emphasis> sample application that is included in the
        Spring Integration samples. This sample is inspired by another sample featured in Gregor
-       Hohpe's <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
+       Hohpe's <ulink url="https://www.enterpriseintegrationpatterns.com/ramblings.html">Ramblings</ulink>.
       </para>
       <para>
         The domain is that of a Cafe, and the basic flow is depicted in the following diagram:
@@ -482,16 +482,16 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         Here is the XML configuration:
       </para>
         <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns:int="http://www.springframework.org/schema/integration"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xmlns:beans="http://www.springframework.org/schema/beans"
- xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
- xsi:schemaLocation="http://www.springframework.org/schema/beans
-  http://www.springframework.org/schema/beans/spring-beans.xsd
-  http://www.springframework.org/schema/integration
-  http://www.springframework.org/schema/integration/spring-integration.xsd
-  http://www.springframework.org/schema/integration/stream
-  http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+<beans:beans xmlns:int="https://www.springframework.org/schema/integration"
+ xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+ xmlns:beans="https://www.springframework.org/schema/beans"
+ xmlns:int-stream="https://www.springframework.org/schema/integration/stream"
+ xsi:schemaLocation="https://www.springframework.org/schema/beans
+  https://www.springframework.org/schema/beans/spring-beans.xsd
+  https://www.springframework.org/schema/integration
+  https://www.springframework.org/schema/integration/spring-integration.xsd
+  https://www.springframework.org/schema/integration/stream
+  https://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
     <int:gateway id="cafe" service-interface="o.s.i.samples.cafe.Cafe"/>
 

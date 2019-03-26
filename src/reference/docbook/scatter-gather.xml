@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="scatter-gather">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="scatter-gather">
 	<title>Scatter-Gather</title>
 
 	<section id="scatter-gather-introduction">
 		<title>Introduction</title>
 		<para>
 			Starting with <emphasis>version 4.1</emphasis>, Spring Integration provides an implementation
-			of the <ulink url="http://www.eaipatterns.com/BroadcastAggregate.html">Scatter-Gather</ulink>
+			of the <ulink url="https://www.enterpriseintegrationpatterns.com/BroadcastAggregate.html">Scatter-Gather</ulink>
 			Enterprise Integration Pattern. It is a compound endpoint, where the goal is to send a message
 			to the recipients and aggregate the results. Quoting the EIP Book, it is a component for scenarios like
 			<emphasis>best quote</emphasis>, when we need to request information from several suppliers

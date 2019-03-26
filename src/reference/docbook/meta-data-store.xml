@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="metadata-store"
-		 xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="metadata-store"
+		 xmlns:xlink="https://www.w3.org/1999/xlink">
 	<title>Metadata Store</title>
 	<para>
 		Many external systems, services or resources aren't transactional (Twitter, RSS, file system etc.)
 		and there is no any ability to mark the data as read. Or there is just need to implement the
-		Enterprise Integration Pattern <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
+		Enterprise Integration Pattern <ulink url="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
 		in some integration solutions. To achieve this goal and store some previous state of the Endpoint before the next
 		interaction with external system, or deal with the next Message, Spring Integration provides the <emphasis>Metadata Store</emphasis>
 		component being an implementation of the <interfacename>org.springframework.integration.metadata.MetadataStore</interfacename>
@@ -32,7 +32,7 @@
 	</itemizedlist>
 	<para>
 		The <classname>PropertiesPersistingMetadataStore</classname> is backed by a properties file and a
-		<interfacename><ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html">PropertiesPersister</ulink></interfacename>.
+		<interfacename><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html">PropertiesPersister</ulink></interfacename>.
 	</para>
 	<programlisting language="xml"><![CDATA[<bean id="metadataStore"
     class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>]]></programlisting>
@@ -51,7 +51,7 @@
 		<title>Idempotent Receiver and Metadata Store</title>
 		<para>
 			The <emphasis>Metadata Store</emphasis> is useful for implementing the
-			EIP <ulink url="http://eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink> pattern, when
+			EIP <ulink url="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink> pattern, when
 			there is need to <emphasis>filter</emphasis> an incoming Message if it has already been processed, and just discard
 			it or perform some other logic on discarding. The following configuration is an example of how to do this:
 		</para>

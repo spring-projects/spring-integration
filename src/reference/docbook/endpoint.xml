@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="endpoint"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="endpoint"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Message Endpoints</title>
   <para>
     The first part of this chapter covers some background theory and reveals quite a bit about the underlying API
@@ -15,8 +15,8 @@
     of these are also capable of sending reply Messages. Sending Messages is quite straightforward. As shown above in
     <xref linkend="channel"/>, it's easy to <emphasis>send</emphasis> a Message to a Message Channel. However,
     receiving is a bit more complicated. The main reason is that there are two types of consumers:
-    <ulink url="http://www.eaipatterns.com/PollingConsumer.html">Polling Consumers</ulink> and
-    <ulink url="http://www.eaipatterns.com/EventDrivenConsumer.html">Event Driven Consumers</ulink>.
+    <ulink url="https://www.enterpriseintegrationpatterns.com/PollingConsumer.html">Polling Consumers</ulink> and
+    <ulink url="https://www.enterpriseintegrationpatterns.com/EventDrivenConsumer.html">Event Driven Consumers</ulink>.
   </para>
   <para>
     Of the two, Event Driven Consumers are much simpler. Without any need to manage and schedule a separate poller
@@ -568,8 +568,8 @@ any transaction configuration essentially allowing you to enhance the behavior o
       </itemizedlist>
       <para>
          The sample provides a custom Trigger which implements the
-         <emphasis><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html">org.springframework.scheduling.Trigger</ulink></emphasis>
-         interface. The sample's Trigger is based on Spring's <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html">PeriodicTrigger</ulink>
+         <emphasis><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html">org.springframework.scheduling.Trigger</ulink></emphasis>
+         interface. The sample's Trigger is based on Spring's <ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html">PeriodicTrigger</ulink>
          implementation. However, the fields of the custom trigger are not final
          and the properties have explicit getters and setters, allowing to dynamically
          change the polling period at runtime.
@@ -651,7 +651,7 @@ public class ContextConfiguration {
          <para>
              When configuring an <emphasis>Application Context</emphasis>, the
              Spring Framework allows you to add a <emphasis>conversionService</emphasis> bean
-             (see <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config">
+             (see <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config">
              Configuring a ConversionService</ulink> chapter). This service is used, when needed,
              to perform appropriate conversions during bean creation and configuration.
          </para>
@@ -688,7 +688,7 @@ public class ContextConfiguration {
      </para>
      <para>
      Let's look at the following configuration provided by one of the users on the Spring Integration
-     forum (http://forum.springsource.org/showthread.php?t=94519):
+     forum (https://forum.spring.io/showthread.php?t=94519):
 
       <programlisting language="xml"><![CDATA[<int:service-activator input-channel="publishChannel" ref="myService">
 	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
@@ -735,7 +735,7 @@ public class ContextConfiguration {
 		the bean is treated like any inner bean declared that way and is not registered with the application context. If you wish
 		to access this bean in some other manner, declare it at the top level with an <code>id</code> and use the <code>ref</code>
 		attribute instead. See the
-		<ulink url="http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans"
+		<ulink url="https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/beans.html#beans-inner-beans"
 		>Spring Documentation</ulink> for more information.
 	</para>
   </section>

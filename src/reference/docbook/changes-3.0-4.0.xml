@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="migration-3.0-4.0"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="migration-3.0-4.0"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
     <title>Changes between 3.0 and 4.0</title>
 	<para>
 		Please be sure to also see the
@@ -61,7 +61,7 @@
 				Spring Integration infrastructure beans to be configured using Spring Boot's
 				<code>@EnableAutoConfiguration</code>.
 				For more information see
-				<ulink url="http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
+				<ulink url="https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-auto-configuration.html"
 						>Spring Boot - AutoConfigure</ulink>.
 			</para>
 		</section>

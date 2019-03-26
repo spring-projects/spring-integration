@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="xmpp"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="xmpp"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>XMPP Support</title>
   <para>
-    Spring Integration provides Channel Adapters for <ulink url="http://www.xmpp.org">XMPP</ulink>.
+    Spring Integration provides Channel Adapters for <ulink url="https://www.xmpp.org">XMPP</ulink>.
   </para>
   <section id="xmpp-intro">
     <title>Introduction</title>
@@ -18,11 +18,11 @@
       XMPP provides the messaging fabric that underlies some of the biggest Instant Messaging networks in the world,
       including Google Talk (GTalk) - which is also available from within GMail - and Facebook Chat.
       There are many good open-source XMPP servers available. Two popular implementations are
-      <ulink url="http://www.igniterealtime.org/projects/openfire/">
+      <ulink url="https://www.igniterealtime.org/projects/openfire/">
         <citetitle>Openfire</citetitle>
       </ulink>
       and
-      <ulink url="http://www.ejabberd.im">
+      <ulink url="https://www.ejabberd.im">
         <citetitle>ejabberd</citetitle>
       </ulink>
     </para>
@@ -32,9 +32,9 @@
     convenient namespace-based configuration.
     To configure the XMPP namespace, include the following elements in the headers of your XML configuration file:
 
-    <programlisting language="xml"><![CDATA[xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
-	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"]]></programlisting>
+    <programlisting language="xml"><![CDATA[xmlns:int-xmpp="https://www.springframework.org/schema/integration/xmpp"
+xsi:schemaLocation="https://www.springframework.org/schema/integration/xmpp
+	https://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"]]></programlisting>
 
     </para>
   </section>
@@ -149,7 +149,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
       events from other users in the system who happen to be on your Roster. To do this, the adapter "logs in" as a user
       on your behalf, registers a <classname>RosterListener</classname> and forwards received Presence update events as Messages to the channel
       identified by the <code>channel</code> attribute. The payload of the Message will be a <classname>org.jivesoftware.smack.packet.Presence</classname>
-	  object (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html).
+	  object (see https://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html).
     </para>
     <para>
     Configuration support for the XMPP <emphasis>Inbound Presence Message Channel Adapter</emphasis> is provided via
@@ -171,7 +171,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
       Spring Integration also supports sending Presence events to be seen by other users in the network who happen to have you on their
       Roster. When you send a Message to the <emphasis>Outbound Presence Message Channel Adapter</emphasis> it extracts the payload,
       which is expected to be of type <classname>org.jivesoftware.smack.packet.Presence</classname>
-	  (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to
+	  (see https://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to
 	  the XMPP Connection, thus advertising your presence events to the rest of the network.
       </para>
       <para>
@@ -205,7 +205,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 		<title>Advanced Configuration</title>
 
     	<para>
-    	Since Spring Integration XMPP support is based on the Smack 4.0 API (http://www.igniterealtime.org/projects/smack/), it is important
+    	Since Spring Integration XMPP support is based on the Smack 4.0 API (https://www.igniterealtime.org/projects/smack/), it is important
     	to know a few details related to more complex configuration of the XMPP Connection object.
     	</para>
     	<para>
@@ -252,7 +252,7 @@ public class CustomConnectionConfiguration {
   }
 }]]></programlisting>
 	For more information on the JavaConfig style of Application Context configuration, refer to the following section in the Spring Reference Manual:
-	http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
+	https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
     </para>
     </section>
 

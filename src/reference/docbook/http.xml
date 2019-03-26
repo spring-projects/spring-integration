@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="http"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<chapter xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="http"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>HTTP Support</title>
 
   <section id="http-intro">
@@ -17,10 +17,10 @@
 		To receive messages over HTTP, you need to use an <emphasis>HTTP Inbound
 		Channel Adapter</emphasis> or <emphasis>Gateway</emphasis>. To support
 		the <emphasis>HTTP Inbound Adapters</emphasis>, they need to be deployed
-		within a servlet container such as <ulink url="http://tomcat.apache.org/">Apache Tomcat</ulink>
-		or <ulink url="http://www.eclipse.org/jetty/">Jetty</ulink>. The easiest
+		within a servlet container such as <ulink url="https://tomcat.apache.org/">Apache Tomcat</ulink>
+		or <ulink url="https://www.eclipse.org/jetty/">Jetty</ulink>. The easiest
 		way to do this is to use Spring's
-		<classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html">HttpRequestHandlerServlet</ulink></classname>,
+		<classname><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html">HttpRequestHandlerServlet</ulink></classname>,
 		by providing the following servlet definition in the <emphasis>web.xml</emphasis> file:
 	</para>
 	<programlisting language="xml"><![CDATA[<servlet>
@@ -30,7 +30,7 @@
 	<para>
 		Notice that the servlet name matches the bean name. For more information
 		on using the <classname>HttpRequestHandlerServlet</classname>, see chapter
-		"<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/remoting.html">Remoting and web services using Spring</ulink>",
+		"<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html">Remoting and web services using Spring</ulink>",
 		which is part of the Spring Framework Reference documentation.
 	</para>
 	<para>
@@ -38,7 +38,7 @@
 		explicit servlet definition is not necessary. In that case, the bean name
 		for your gateway can be matched against the URL path just like a Spring
 		MVC Controller bean. For more information, please see the chapter
-		"<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html">Web MVC framework</ulink>",
+		"<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html">Web MVC framework</ulink>",
 		which is part of the Spring Framework Reference documentation.
 	</para>
 	<tip>
@@ -75,7 +75,7 @@
     "multipartResolver" (the same name expected by Spring's DispatcherServlet). If it does in fact locate that
     bean, then the support for MultipartFiles will be enabled on the inbound request mapper. Otherwise, it will
     fail when trying to map a multipart-file request to a Spring Integration Message. For more on Spring's
-    support for MultipartResolvers, refer to the <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
+    support for MultipartResolvers, refer to the <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
       </note>
       </para>
       <para>
@@ -116,7 +116,7 @@
 
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
-  <constructor-arg value="http://localhost:8080/example" />
+  <constructor-arg value="https://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
 
@@ -128,7 +128,7 @@
 
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
-  <constructor-arg value="http://localhost:8080/example" />
+  <constructor-arg value="https://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
   <property name="messageConverters" ref="messageConverterList" />
   <property name="requestFactory" ref="customRequestFactory" />
@@ -164,7 +164,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
          a reply <code>Message</code> with the payload being
          an <classname>org.springframework.http.ResponseEntity</classname>, regardless of any
          provided <code>expected-response-type</code>. According to the
-         <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP RFC Status Code Definitions</ulink>,
+         <ulink url="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP RFC Status Code Definitions</ulink>,
          there are many statuses which identify that a response MUST NOT contain a message-body (e.g. 204 No Content).
          There are also cases where calls to the same URL might, or might not, return a response body; for example,
          the first request to an HTTP resource returns content, but the second does not (e.g. 304 Not Modified).
@@ -200,17 +200,17 @@ By default the HTTP request will be generated using an instance of <classname>Si
     </para>
 
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:int="http://www.springframework.org/schema/integration"
-  xmlns:int-http="http://www.springframework.org/schema/integration/http"
+<beans xmlns="https://www.springframework.org/schema/beans"
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="https://www.springframework.org/schema/integration"
+  xmlns:int-http="https://www.springframework.org/schema/integration/http"
   xsi:schemaLocation="
-    http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd
-    http://www.springframework.org/schema/integration/http
-    http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+    https://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/integration
+    https://www.springframework.org/schema/integration/spring-integration.xsd
+    https://www.springframework.org/schema/integration/http
+    https://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
     ...
 </beans>]]></programlisting>
 
@@ -237,25 +237,25 @@ By default the HTTP request will be generated using an instance of <classname>Si
 	<para><emphasis>Request Mapping support</emphasis></para>
 	<note>
 		<emphasis>Spring Integration 3.0</emphasis> is improving the REST support by introducing the
-		<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+		<interfacename><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
 		>IntegrationRequestMappingHandlerMapping</ulink></interfacename>. The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
 	</note>
 	<para>
 		The parsing of the <emphasis>HTTP Inbound Gateway</emphasis> or the
 		<emphasis>HTTP Inbound Channel Adapter</emphasis> registers an <code>integrationRequestMappingHandlerMapping</code>
 		bean of type
-		<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+		<interfacename><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
 		>IntegrationRequestMappingHandlerMapping</ulink></interfacename>, in case there is none registered, yet. This particular implementation of the
-		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
+		<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
 		><interfacename>HandlerMapping</interfacename></ulink> delegates its logic to the
-		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html"
+		<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html"
 		><interfacename>RequestMappingInfoHandlerMapping</interfacename></ulink>. The implementation provides similar functionality as the one provided by the
-		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
+		<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
 		><classname>org.springframework.web.bind.annotation.RequestMapping</classname></ulink> annotation in Spring MVC.
 	</para>
 	<note>
 		For more information, please see
-		<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
+		<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
 	</note>
 	<para>
 		For this purpose, <emphasis>Spring Integration 3.0</emphasis> introduces the <code>&lt;request-mapping&gt;</code> sub-element.
@@ -277,9 +277,9 @@ By default the HTTP request will be generated using an instance of <classname>Si
 	<para>
 		Based on this configuration, the namespace parser creates an instance of the <classname>IntegrationRequestMappingHandlerMapping</classname> (if none exists, yet),
 		a <classname>HttpRequestHandlingController</classname> bean and associated with it an instance of
-		<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html"
+		<ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html"
 		><classname>RequestMapping</classname></ulink>, which in turn, is converted to the Spring MVC
-		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html"
+		<ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html"
 		><classname>RequestMappingInfo</classname></ulink>.
 	</para>
 	<para>
@@ -326,7 +326,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
 	</para>
 	<itemizedlist>
 		<listitem>
-			<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping"></ulink>
+			<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping"></ulink>
 		</listitem>
 	</itemizedlist>
 
@@ -386,7 +386,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
 
 	<itemizedlist>
 		<listitem>
-			<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping-uri-templates"></ulink>
+			<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping-uri-templates"></ulink>
 		</listitem>
 	</itemizedlist>
 
@@ -410,7 +410,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
 			<listitem>
 				<emphasis>#matrixVariables</emphasis> - the <interfacename>Map</interfacename> of <interfacename>MultiValueMap</interfacename>
 				according to
-				<ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-matrix-variables"
+				<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-matrix-variables"
 						>Spring MVC Specification</ulink>. Note, <emphasis>#matrixVariables</emphasis> require Spring MVC 3.2 or higher;
 			</listitem>
 			<listitem>
@@ -453,7 +453,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
   </important>
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
-    url="http://localhost/test"
+    url="https://localhost/test"
     http-method="POST"
     extract-request-payload="false"
     expected-response-type="java.lang.String"
@@ -490,7 +490,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
     provide any valid SpEL expression that determines the type of the response.
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
-    url="http://localhost/test"
+    url="https://localhost/test"
     http-method-expression="headers.httpMethod"
     extract-request-payload="false"
     expected-response-type-expression="payload"
@@ -503,7 +503,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
     a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
     status code, it will throw an exception. The configuration looks very similar to the gateway:
     <programlisting language="xml"><![CDATA[<int-http:outbound-channel-adapter id="example"
-    url="http://localhost/example"
+    url="https://localhost/example"
     http-method="GET"
     channel="requests"
     charset="UTF-8"
@@ -539,7 +539,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
   </para>
 
   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="trafficGateway"
-    url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
+    url="https://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
     request-channel="trafficChannel"
     http-method="GET"
     expected-response-type="java.lang.String">
@@ -564,7 +564,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
       a mechanism whereby different variable expressions can be used, based on the outbound message.
       This attribute is mutually exclusive with the <code>&lt;uri-variable/&gt;</code> sub-element:
    <programlisting language="xml"><![CDATA[<int-http:outbound-gateway
-     url="http://foo.host/{foo}/bars/{bar}"
+     url="https://foo.host/{foo}/bars/{bar}"
      request-channel="trafficChannel"
      http-method="GET"
      uri-variables-expression="@uriVariablesBean.populate(payload)"
@@ -598,7 +598,7 @@ where <code>uriVariablesBean</code> might be:
   </para>
   <para>
       By default, the URL string is encoded (see
-      <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
+      <ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
       to the URI object before sending the request. In some scenarios with a non-standard URI (e.g. the RabbitMQ Rest API) it is
       undesirable to perform the encoding. The <code>&lt;http:outbound-gateway/&gt;</code>
       and <code>&lt;http:outbound-channel-adapter/&gt;</code> provide an <code>encode-uri</code> attribute.
@@ -606,7 +606,7 @@ where <code>uriVariablesBean</code> might be:
       If you wish to partially encode some of the URL, this can be achieved using an <code>expression</code> within a
       <code>&lt;uri-variable/&gt;</code>:
   </para>
-  <programlisting language="xml"><![CDATA[<http:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+  <programlisting language="xml"><![CDATA[<http:outbound-gateway url="https://somehost/%2f/fooApps?bar={param}" encode-uri="false">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
                                              .encodeWithinQuery('Hellow World!')"/>
@@ -671,7 +671,7 @@ where <code>uriVariablesBean</code> might be:
         making active HTTP requests using the <emphasis>HTTP Oubound Gateway</emphasis>
         or the <emphasis>HTTP Outbound Channel Adapter</emphasis>. In those
         instances, these two components use Spring's
-        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html">RestTemplate</ulink></classname>
+        <classname><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html">RestTemplate</ulink></classname>
         support to execute HTTP requests.
     </para>
     <para>
@@ -680,23 +680,23 @@ where <code>uriVariablesBean</code> might be:
         <emphasis>HTTP Outbound Channel Adapter</emphasis>, you can either
         reference a <classname>RestTemplate</classname> bean directly, using the
         <emphasis>rest-template</emphasis> attribute, or you can provide a reference to a
-        <emphasis><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></emphasis>
+        <emphasis><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></emphasis>
         bean using the <emphasis>request-factory</emphasis> attribute. Spring provides
         the following implementations of the
         <interfacename>ClientHttpRequestFactory</interfacename> interface:
     </para>
 
    <para>
-        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html">SimpleClientHttpRequestFactory</ulink></classname>
+        <classname><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html">SimpleClientHttpRequestFactory</ulink></classname>
         - Uses standard J2SE facilities for making HTTP Requests
    </para>
    <para>
-       <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html">HttpComponentsClientHttpRequestFactory</ulink></classname>
-       - Uses <ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink> (Since Spring 3.1)
+       <classname><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html">HttpComponentsClientHttpRequestFactory</ulink></classname>
+       - Uses <ulink url="https://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink> (Since Spring 3.1)
    </para>
    <para>
-       <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></classname>
-       - Uses <ulink url="http://hc.apache.org/httpclient-3.x/">Jakarta Commons HttpClient</ulink> (Deprecated as of Spring 3.1)
+       <classname><ulink url="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></classname>
+       - Uses <ulink url="https://hc.apache.org/httpclient-3.x/">Jakarta Commons HttpClient</ulink> (Deprecated as of Spring 3.1)
    </para>
 
    <para>
@@ -720,7 +720,7 @@ where <code>uriVariablesBean</code> might be:
        <para>
 	       Please test your timeouts if you have specific needs. Consider using the
 	       <classname>HttpComponentsClientHttpRequestFactory</classname> which, in turn, uses
-	       <emphasis><ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink></emphasis>
+	       <emphasis><ulink url="https://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink></emphasis>
 	       instead.
        </para>
    </note>
@@ -738,7 +738,7 @@ where <code>uriVariablesBean</code> might be:
        with connect and read timeouts of 5 seconds respectively:
    </para>
 
-  <programlisting language="xml"><![CDATA[<int-http:outbound-gateway url="http://www.google.com/ig/api?weather={city}"
+  <programlisting language="xml"><![CDATA[<int-http:outbound-gateway url="https://www.google.com/ig/api?weather={city}"
                            http-method="GET"
                            expected-response-type="java.lang.String"
                            request-factory="requestFactory"
@@ -838,7 +838,7 @@ where <code>uriVariablesBean</code> might be:
         <para><emphasis>https.proxyPort</emphasis> - the port number, the default value being 80. </para>
       </listitem>
     </itemizedlist>
-    For more information please refer to this document: http://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
+    For more information please refer to this document: https://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
     </para>
 
     <para>
@@ -875,7 +875,7 @@ where <code>uriVariablesBean</code> might be:
 
   	<para>
   	By default all standard Http Headers as defined here
-  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without
+  	https://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without
   	further configuration.
   	However if you do need further customization you may provide additional configuration via convenient namespace support.
     You can provide a comma-separated list of header names, and you can also include simple patterns with the '*' character acting as a wildcard.
@@ -884,13 +884,13 @@ where <code>uriVariablesBean</code> might be:
     HTTP_RESPONSE_HEADERS. Here are some examples:
 
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
-    url="http://localhost/test2"
+    url="https://localhost/test2"
     mapped-request-headers="foo, bar"
     mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
     channel="someChannel"/>
 
 <int-http:outbound-channel-adapter id="httpAdapter"
-    url="http://localhost/test2"
+    url="https://localhost/test2"
     mapped-request-headers="foo, bar, HTTP_REQUEST_HEADERS"
     channel="someChannel"/>]]></programlisting>
 
@@ -903,7 +903,7 @@ where <code>uriVariablesBean</code> might be:
   	and inject it into the adapter via the <code>header-mapper</code> attribute.
 
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
-    url="http://localhost/test2"
+    url="https://localhost/test2"
     header-mapper="headerMapper"
     channel="someChannel"/>
 
@@ -927,7 +927,7 @@ where <code>uriVariablesBean</code> might be:
       converting it to a <classname>MultipartHttpServletRequest</classname> . This particular client will send a multipart HTTP Request
       which contains the name of the company as well as an image file with the company logo.
     <programlisting language="java"><![CDATA[RestTemplate template = new RestTemplate();
-String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
+String uri = "https://localhost:8080/multipart-http/inboundAdapter.htm";
 Resource s2logo = 
    new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
 MultiValueMap map = new LinkedMultiValueMap();

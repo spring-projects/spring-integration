@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="transformer"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section xmlns="https://docbook.org/ns/docbook" version="5.0" xml:id="transformer"
+    xmlns:xlink="https://www.w3.org/1999/xlink">
   <title>Transformer</title>
 
   <section id="transformer-introduction">
@@ -13,7 +13,7 @@
     </para>
     <para>
       For some systems, it may be best to provide a
-      <ulink url="http://www.eaipatterns.com/CanonicalDataModel.html">Canonical Data Model</ulink>, but Spring
+      <ulink url="https://www.enterpriseintegrationpatterns.com/CanonicalDataModel.html">Canonical Data Model</ulink>, but Spring
       Integration's general philosophy is not to require any particular format. Rather, for maximum flexibility, Spring
       Integration aims to provide the simplest possible model for extension. As with the other endpoint types, the use
       of declarative configuration in XML and/or Annotations enables simple POJOs to be adapted for the role of Message
@@ -80,7 +80,7 @@
 
     <para>
     Just like Routers, Aggregators and other components, as of Spring Integration 2.0 Transformers can also benefit from SpEL support
-    (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html)
+    (https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html)
     whenever transformation logic is relatively simple.
 
     <programlisting language="xml"><![CDATA[<int:transformer input-channel="inChannel"
@@ -323,7 +323,7 @@ public class Foo {
       reflecting the source type, to the message. Similarly, the <classname>JsonToObjectTransformer</classname> can
       use those type headers when converting the JSON to an object. These headers are mapped in the AMQP adapters so that
       they are entirely compatible with the Spring-AMQP
-      <ulink url="http://docs.spring.io/spring-amqp/api/">JsonMessageConverter</ulink>.
+      <ulink url="https://docs.spring.io/spring-amqp/api/">JsonMessageConverter</ulink>.
     </para>
     <para>
       This enables the following flows to work without any special configuration...
