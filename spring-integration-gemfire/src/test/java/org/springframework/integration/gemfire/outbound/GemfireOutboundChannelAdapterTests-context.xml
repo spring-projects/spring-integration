@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
-	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
-	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+<beans xmlns="https://www.springframework.org/schema/beans"
+	   xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-gfe="https://www.springframework.org/schema/integration/gemfire"
+	   xmlns:int="https://www.springframework.org/schema/integration"
+	   xmlns:gfe="https://www.springframework.org/schema/gemfire"
+	   xmlns:util="https://www.springframework.org/schema/util"
+	   xsi:schemaLocation="https://www.springframework.org/schema/integration/gemfire https://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+		https://www.springframework.org/schema/gemfire https://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		https://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<util:properties id="gemfireProperties">
 		<prop key="mcast-port">0</prop>
