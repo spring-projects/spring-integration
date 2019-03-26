@@ -97,7 +97,7 @@
       the evaluation context.
       If it is necessary to include the result of an expression in the scope of the application context you can use the
       #{} notation as defined in the
-      <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
+      <ulink url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
         SpEL reference documentation
       </ulink>.
       <programlisting language="xml"><![CDATA[<int:filter input-channel="input"

@@ -4,11 +4,11 @@
 	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
-		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+		https://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
 		http://www.springframework.org/schema/gemfire
-		http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		https://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd">
+		https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<gfe:cache id="gemfire-cache-2"/>
 	<gfe:replicated-region id="region1" cache-ref="gemfire-cache-2"/>

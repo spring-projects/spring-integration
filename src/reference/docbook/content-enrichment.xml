@@ -8,7 +8,7 @@
 	    <para>
 		    At times you may have a requirement to enhance a request with more
 		    information than was provided by the target system. The
-		    <ulink url="http://www.eaipatterns.com/DataEnricher.html">Content Enricher</ulink>
+		    <ulink url="https://www.enterpriseintegrationpatterns.com/DataEnricher.html">Content Enricher</ulink>
 		    pattern describes various scenarios as well as the component
 		    (Enricher), which allows you to address such requirements.
 	    </para>
@@ -129,7 +129,7 @@
 	    </para>
 	    <para>
 	        In Spring Integration 2.0 we have introduced the convenience of the
-	        <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">Spring Expression Language (SpEL)</ulink>
+	        <ulink url="https://docs.spring.io/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">Spring Expression Language (SpEL)</ulink>
 	        to help configure many different components. The <emphasis>Header
 	        Enricher</emphasis> is one of them.
 

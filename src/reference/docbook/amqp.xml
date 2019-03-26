@@ -24,10 +24,10 @@
 	</para>
     <para>
         In order to provide AMQP support, Spring Integration relies on Spring AMQP
-        (<ulink url="http://www.springsource.org/spring-amqp">http://www.springsource.org/spring-amqp</ulink>)
+        (<ulink url="https://www.springsource.org/spring-amqp">https://www.springsource.org/spring-amqp</ulink>)
         which "applies core Spring concepts to the development of AMQP-based
         messaging solutions". Spring AMQP provides similar semantics as Spring JMS
-        (<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html">http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html</ulink>).
+        (<ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html">https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html</ulink>).
     </para>
     <para>
         Whereas the provided AMQP Channel Adapters are intended for unidirectional
@@ -41,8 +41,8 @@
             regarding Spring's integration with AMQP in general and RabbitMQ in
             particular.</para>
         <para>You can find the documentation at:
-              <ulink url="http://static.springsource.org/spring-amqp/reference/html/">
-                  http://static.springsource.org/spring-amqp/reference/html/</ulink>
+              <ulink url="https://docs.spring.io/spring-amqp/reference/html/">
+                  https://docs.spring.io/spring-amqp/reference/html/</ulink>
         </para>
     </tip>
   </section>
@@ -266,7 +266,7 @@
                       messaging operation (it is auto-acked). For further information
                       see chapter 1.9 of the Spring AMQP reference guide:
 
-                      http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/#d0e525
+                      https://docs.spring.io/spring-amqp/docs/1.0.x/reference/html/#d0e525
                 <emphasis>Optional</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-25-co" id="amqp-inbound-channel-adapter-xml-25">
@@ -719,7 +719,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 			The Spring Integration AMPQ Adapters will map standard AMQP  properties
 			automatically. These properties will be copied by default to and from
 			Spring Integration <classname>MessageHeaders</classname> using the
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
+			<classname><ulink url="https://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
 		</para>
 		<para>
 			Of course, you can pass in your own implementation of AMQP specific header
@@ -727,7 +727,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
 		</para>
 		<para>
 			Any user-defined headers within the AMQP
-			<classname><ulink url="http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink></classname>
+			<classname><ulink url="https://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink></classname>
 			will NOT be copied to or from an AMQP Message, unless explicitly specified
 			by the <emphasis>requestHeaderNames</emphasis> and/or
 			<emphasis>replyHeaderNames</emphasis> properties of the
@@ -797,14 +797,14 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
         Currently there is one sample available that demonstrates the basic
         functionality of the Spring Integration AMQP Adapter using an Outbound Channel Adapter
         and an Inbound Channel Adapter. As AMQP Broker implementation the sample
-        uses RabbitMQ (<ulink url="http://www.rabbitmq.com/">http://www.rabbitmq.com/</ulink>).
+        uses RabbitMQ (<ulink url="https://www.rabbitmq.com/">https://www.rabbitmq.com/</ulink>).
     </para>
     <note>
         In order to run the example you will need a running instance of RabbitMQ.
         A local installation with just the basic defaults will be sufficient.
         For detailed RabbitMQ installation procedures please visit:
-        <ulink url="http://www.rabbitmq.com/install.html">
-            http://www.rabbitmq.com/install.html
+        <ulink url="https://www.rabbitmq.com/install.html">
+            https://www.rabbitmq.com/install.html
         </ulink>
     </note>
     <para>

@@ -331,7 +331,7 @@
         are only invoked when the interceptor is applied to a <interfacename>PollableChannel</interfacename>.
       </note>
       Spring Integration also provides an implementation of the
-      <ulink url="http://eaipatterns.com/WireTap.html">Wire Tap</ulink> pattern.
+      <ulink url="https://www.enterpriseintegrationpatterns.com/WireTap.html">Wire Tap</ulink> pattern.
       It is a simple interceptor that sends the Message to another channel without otherwise altering the
       existing flow. It can be very useful for debugging and monitoring. An example is shown in
       <xref linkend="channel-wiretap"/>.
@@ -458,7 +458,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     	Of course the first thing that comes to mind is Message Filter. However all that Message Filter will do is filter out Messages that are not compliant with
     	the requirements of the consumer. Another way would be to use a Content Based Router and route Messages with non-compliant data-types to specific
     	Transformers to enforce transformation/conversion to the required data-type. This of course would work, but a simpler way of accomplishing the
-        same thing is to apply the <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> pattern.
+        same thing is to apply the <ulink url="https://www.enterpriseintegrationpatterns.com/DatatypeChannel.html">Datatype Channel</ulink> pattern.
         You can use separate Datatype Channels for each specific payload data-type.
     	</para>
     	<para>
@@ -478,7 +478,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	    <para>
 	    So the 'numberChannel' above will only accept Messages with a data-type of <classname>java.lang.Number</classname>. But what happens
 	    if the payload of the Message is not of the required type? It depends on whether you have defined a bean named "integrationConversionService"
-	    that is an instance of Spring's <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>.
+	    that is an instance of Spring's <ulink url="https://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>.
 	    If not, then an Exception would be thrown immediately, but if you do have an "integrationConversionService" bean defined, it will be used
 	    in an attempt to convert the Message's payload to the acceptable type.
 	    </para>

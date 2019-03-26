@@ -37,7 +37,7 @@
       options including annotations, XML with namespace support, XML with generic "bean" elements, and of course direct
       usage of the underlying API. That API is based upon well-defined strategy interfaces and non-invasive, delegating
       adapters. Spring Integration's design is inspired by the recognition of a strong affinity between common patterns
-      within Spring and the well-known <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>
+      within Spring and the well-known <ulink url="https://www.enterpriseintegrationpatterns.com/">Enterprise Integration Patterns</ulink>
       as described in the book of the same name by Gregor Hohpe and Bobby Woolf (Addison Wesley, 2004). Developers who
       have read that book should be immediately comfortable with the Spring Integration concepts and terminology.
     </para>
@@ -180,7 +180,7 @@
       HTTP requests, the Message Endpoint handles Messages. Just as Controllers are mapped to URL patterns, Message
       Endpoints are mapped to Message Channels. The goal is the same in both cases: isolate application code from the
       infrastructure. These concepts are discussed at length along with all of the patterns that follow in the
-      <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink> book. Here, we provide only a
+      <ulink url="https://www.enterpriseintegrationpatterns.com/">Enterprise Integration Patterns</ulink> book. Here, we provide only a
       high-level description of the main endpoint types supported by Spring Integration and their roles. The chapters
       that follow will elaborate and provide sample code as well as configuration examples.
     </para>

@@ -11,7 +11,7 @@
   </para>
 
   <para>
-  To mitigate the risk of losing Messages, EIP defines the <ulink url="http://eaipatterns.com/MessageStore.html">Message Store</ulink> pattern which allows
+  To mitigate the risk of losing Messages, EIP defines the <ulink url="https://www.enterpriseintegrationpatterns.com/MessageStore.html">Message Store</ulink> pattern which allows
   EIP components to store <emphasis>Messages</emphasis> typically in some type of persistent store (e.g. RDBMS).
   </para>
 

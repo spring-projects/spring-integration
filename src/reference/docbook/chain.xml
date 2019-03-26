@@ -12,7 +12,7 @@
       This can lead to a much simpler configuration when several handlers need to be connected in a fixed, linear
       progression. For example, it is fairly common to provide a Transformer before other components. Similarly, when
       providing a <emphasis>Filter</emphasis> before some other component in a chain, you are essentially creating a
-      <ulink url="http://www.eaipatterns.com/MessageSelector.html">Selective Consumer</ulink>. In either case, the
+      <ulink url="https://www.enterpriseintegrationpatterns.com/MessageSelector.html">Selective Consumer</ulink>. In either case, the
       chain only requires a single <code>input-channel</code> and a single <code>output-channel</code> eliminating
       the need to define channels for each individual component.
       <tip>

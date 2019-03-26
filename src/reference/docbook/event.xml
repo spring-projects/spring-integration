@@ -7,7 +7,7 @@
   <para>
     Spring Integration provides support for inbound and outbound <classname>ApplicationEvents</classname>
     as defined by the underlying Spring Framework. For more information about Spring's support for events and listeners,
-    refer to the  <ulink url="http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#context-functionality-events">Spring Reference Manual</ulink>.
+    refer to the  <ulink url="https://docs.spring.io/spring/docs/2.5.x/reference/beans.html#context-functionality-events">Spring Reference Manual</ulink>.
   </para>
 
   <section id="applicationevent-inbound">

@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
+			https://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration/xml
-			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+			https://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
 	<si-xml:xpath-expression id="testExpression" expression="test"/>
 

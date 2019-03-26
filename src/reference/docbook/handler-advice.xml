@@ -100,7 +100,7 @@
 			<para><emphasis role="bold">Further Information</emphasis></para>
 			<para>
 				For more information on <code>spring-retry</code>, refer to the project's javadocs, as well as the
-				reference documentation for <ulink url="http://static.springsource.org/spring-batch/reference/html/retry.html">
+				reference documentation for <ulink url="https://docs.spring.io/spring-batch/reference/html/retry.html">
 				Spring Batch</ulink>, where <code>spring-retry</code> originated.
 			</para>
 			<caution>
@@ -519,7 +519,7 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			</para>
 			<para>
 				For more information, see the
-				<ulink url="http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
+				<ulink url="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
 				ReflectiveMethodInvocation</ulink> JavaDocs.
 			</para>
 		</note>
@@ -586,7 +586,7 @@ public class MyAdvisedFilter {
 		<title>Idempotent Receiver Enterprise Integration Pattern</title>
 		<para>
 			Starting with <emphasis>version 4.1</emphasis>, Spring Integration provides an implementation
-			of the <ulink url="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
+			of the <ulink url="https://www.enterpriseintegrationpatterns.com/IdempotentReceiver.html">Idempotent Receiver</ulink>
 			Enterprise Integration Pattern. It is a <emphasis>functional</emphasis> pattern and the whole
 			<emphasis>idempotency</emphasis> logic should be implemented in the application, however to simplify the
 			decision-making, the <classname>IdempotentReceiverInterceptor</classname> component is provided. This is
