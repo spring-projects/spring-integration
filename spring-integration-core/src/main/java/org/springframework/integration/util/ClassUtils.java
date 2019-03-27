@@ -17,8 +17,6 @@
 package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -230,4 +228,5 @@ public abstract class ClassUtils {
 	public static boolean isKotlinFaction1(Class<?> aClass) {
 		return KOTLIN_FUNCTION_1_CLASS != null && KOTLIN_FUNCTION_1_CLASS.isAssignableFrom(aClass);
 	}
+
 }

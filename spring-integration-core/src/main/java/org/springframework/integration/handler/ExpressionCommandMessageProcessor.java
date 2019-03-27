@@ -52,7 +52,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	private final MethodFilter methodFilter;
 
 	public ExpressionCommandMessageProcessor() {
-		methodFilter = null;
+		this.methodFilter = null;
 	}
 
 	public ExpressionCommandMessageProcessor(@Nullable MethodFilter methodFilter) {

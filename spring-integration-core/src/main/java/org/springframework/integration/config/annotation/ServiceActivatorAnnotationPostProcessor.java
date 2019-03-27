@@ -20,16 +20,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
