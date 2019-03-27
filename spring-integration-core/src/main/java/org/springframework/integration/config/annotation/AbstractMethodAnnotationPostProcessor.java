@@ -515,8 +515,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
-	protected boolean resolveAttributeToBoolean(String requiresReply) {
-		return Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply));
+	protected boolean resolveAttributeToBoolean(String attribute) {
+		return Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(attribute));
 	}
 
 	@Nullable
