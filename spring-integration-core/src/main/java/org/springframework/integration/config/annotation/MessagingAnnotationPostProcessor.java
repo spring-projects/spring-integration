@@ -44,6 +44,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -263,18 +265,17 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	 * @return the hierarchical list of annotations in top-bottom order.
 	 */
 	protected List<Annotation> getAnnotationChain(Method method, Class<? extends Annotation> annotationType) {
-		Annotation[] annotations = AnnotationUtils.getAnnotations(method);
 		List<Annotation> annotationChain = new LinkedList<>();
-		if (annotations != null) {
-			Set<Annotation> visited = new HashSet<>();
-			for (Annotation ann : annotations) {
-				recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
-				if (annotationChain.size() > 0) {
-					Collections.reverse(annotationChain);
-					return annotationChain;
-				}
+		Set<Annotation> visited = new HashSet<>();
+
+		for (MergedAnnotation<Annotation> mergedAnnotation : MergedAnnotations.from(method)) {
+			recursiveFindAnnotation(annotationType, mergedAnnotation.synthesize(), annotationChain, visited);
+			if (annotationChain.size() > 0) {
+				Collections.reverse(annotationChain);
+				return annotationChain;
 			}
 		}
+
 		return annotationChain;
 	}
 

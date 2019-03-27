@@ -37,10 +37,10 @@ import javax.management.modelmbean.ModelMBean;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
@@ -84,7 +84,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringValueResolver;
 
 /**
  * <p>
@@ -115,8 +114,8 @@ import org.springframework.util.StringValueResolver;
  * @author Meherzad Lahewala
  */
 @ManagedResource
-public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
-		EmbeddedValueResolverAware, DestructionAwareBeanPostProcessor {
+public class IntegrationMBeanExporter extends MBeanExporter
+		implements ApplicationContextAware, DestructionAwareBeanPostProcessor {
 
 	private static final String SI_PACKAGE = "org.springframework.integration";
 
@@ -217,8 +216,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	@Override
-	public void setEmbeddedValueResolver(StringValueResolver resolver) {
-		this.attributeSource.setValueResolver(resolver);
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+		this.attributeSource.setBeanFactory(beanFactory);
 	}
 
 	@Override
