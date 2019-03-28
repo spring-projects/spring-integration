@@ -36,3 +36,6 @@ See <<remote-persistent-flf>> for more information.
 
 The length header used by the `ByteArrayLengthHeaderSerializer` can now include the length of the header in addition to the payload.
 See <<tcp-codecs>> for more information.
+
+When using a `TcpNioServerConnectionFactory`, priority is now given to accepting new connections over reading from existing connections, but it is configurable.
+See <<note-nio>> for more information.

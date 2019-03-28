@@ -726,7 +726,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 							doAccept(selector, server, now);
 						}
 						catch (Exception e) {
-							logger.error("Exception accepting new connection", e);
+							logger.error("Exception accepting new connection(s)", e);
 						}
 					}
 					else {
