@@ -17,10 +17,13 @@
 package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -30,6 +33,13 @@ import org.springframework.util.ReflectionUtils;
  * @since 2.0
  */
 public abstract class ClassUtils {
+
+	/**
+	 * Map with primitive wrapper type as key and corresponding primitive
+	 * type as value, for example: Integer.class -> int.class.
+	 */
+	private static final Map<Class<?>, Class<?>> PRIMITIVE_WRAPPER_TYPE_MAP = new HashMap<>(8);
+
 
 	/**
 	 * The {@link Function#apply(Object)} method object.
@@ -74,6 +84,15 @@ public abstract class ClassUtils {
 	public static final Class<?> KOTLIN_FUNCTION_1_CLASS;
 
 	static {
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Boolean.class, boolean.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Byte.class, byte.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Character.class, char.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Double.class, double.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Float.class, float.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Integer.class, int.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Long.class, long.class);
+		PRIMITIVE_WRAPPER_TYPE_MAP.put(Short.class, short.class);
+
 		Class<?> genericSelectorClass = null;
 		try {
 			genericSelectorClass =
@@ -192,11 +211,10 @@ public abstract class ClassUtils {
 	 * returning the corresponding primitive type instead.
 	 * @param clazz the wrapper class to check
 	 * @return the corresponding primitive if the clazz is a wrapper, otherwise null
-	 * @deprecated since 5.2 in favor of {@link org.springframework.util.ClassUtils#resolvePrimitiveIfNecessary(Class)}
 	 */
-	@Deprecated
+	@Nullable
 	public static Class<?> resolvePrimitiveType(Class<?> clazz) {
-		return org.springframework.util.ClassUtils.resolvePrimitiveIfNecessary(clazz);
+		return PRIMITIVE_WRAPPER_TYPE_MAP.get(clazz);
 	}
 
 	/**

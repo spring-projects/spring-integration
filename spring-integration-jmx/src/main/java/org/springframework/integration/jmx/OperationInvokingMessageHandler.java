@@ -33,12 +33,12 @@ import javax.management.ObjectName;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -212,8 +212,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 			return true;
 		}
 		else {
-			Class<?> primitiveType = ClassUtils.resolvePrimitiveIfNecessary(valueClass);
-			return primitiveType.getName().equals(paramInfo.getType());
+			Class<?> primitiveType = ClassUtils.resolvePrimitiveType(valueClass);
+			return primitiveType != null && primitiveType.getName().equals(paramInfo.getType());
 		}
 	}
 
