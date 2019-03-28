@@ -31,7 +31,7 @@ allprojects {
 		}
 		maven { url 'https://repo.spring.io/libs-milestone' }
 		maven { url 'https://repo.spring.io/plugins-release' }
-		mavenCentral()
+		maven { url 'https://repo.maven.apache.org/maven2/' }
 	}
 
 	ext.javadocLinks = [
