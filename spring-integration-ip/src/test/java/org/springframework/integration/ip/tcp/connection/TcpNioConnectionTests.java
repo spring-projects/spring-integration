@@ -47,6 +47,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +80,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -510,7 +512,7 @@ public class TcpNioConnectionTests {
 		doAnswer(new Answer<Integer>() {
 
 			@Override
-			public Integer answer(InvocationOnMock invocation) throws Throwable {
+			public Integer answer(InvocationOnMock invocation) {
 				ByteBuffer buff = invocation.getArgument(0);
 				byte[] bytes = written.toByteArray();
 				buff.put(bytes);
@@ -838,6 +840,57 @@ public class TcpNioConnectionTests {
 		socket.close();
 		cf.stop();
 		assertThat(watch.getLastTaskTimeMillis(), lessThan(950L));
+	}
+
+	@Test
+	public void testMultiAccept() throws InterruptedException, IOException {
+		testMulti(true);
+	}
+
+	@Test
+	public void testNoMultiAccept() throws InterruptedException, IOException {
+		testMulti(false);
+	}
+
+	private void testMulti(boolean multiAccept) throws InterruptedException, IOException {
+		CountDownLatch serverReadyLatch = new CountDownLatch(1);
+		CountDownLatch latch = new CountDownLatch(21);
+		List<Socket> sockets = new ArrayList<>();
+		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		try {
+			List<IpIntegrationEvent> events = Collections.synchronizedList(new ArrayList<>());
+			List<Message<?>> messages = Collections.synchronizedList(new ArrayList<>());
+			server.setMultiAccept(multiAccept);
+			server.setApplicationEventPublisher(e -> {
+				if (e instanceof TcpConnectionServerListeningEvent) {
+					serverReadyLatch.countDown();
+				}
+				events.add((IpIntegrationEvent) e);
+				latch.countDown();
+			});
+			server.registerListener(m -> {
+				messages.add(m);
+				latch.countDown();
+				return false;
+			});
+			server.afterPropertiesSet();
+			server.start();
+			assertTrue(serverReadyLatch.await(10, TimeUnit.SECONDS));
+			for (int i = 0; i < 10; i++) {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", server.getPort());
+				socket.getOutputStream().write("foo\r\n".getBytes());
+				sockets.add(socket);
+			}
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
+			assertEquals(11, events.size()); // server ready + 10 opens
+			assertEquals(10, messages.size());
+		}
+		finally {
+			for (Socket socket : sockets) {
+				socket.close();
+			}
+			server.stop();
+		}
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {

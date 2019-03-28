@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -34,7 +35,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
-/**
+ /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
  * a {@link ServerSocketChannel}. Must have a {@link TcpListener} registered.
  *
@@ -44,6 +45,8 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpNioServerConnectionFactory extends AbstractServerConnectionFactory {
+
+	private boolean multiAccept = true;
 
 	private volatile ServerSocketChannel serverChannel;
 
@@ -61,6 +64,18 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 */
 	public TcpNioServerConnectionFactory(int port) {
 		super(port);
+	}
+
+	/**
+	 * Set to false to only accept one connection per iteration over the
+	 * selector keys. This might be necessary to avoid accepts overwhelming
+	 * reads of existing sockets. By default when the {@code OP_ACCEPT} operation
+	 * is ready, we will keep accepting connections in a loop until no more arrive.
+	 * @param multiAccept false to accept connections one-at-a-time.
+	 * @since 5.1.4
+	 */
+	public void setMultiAccept(boolean multiAccept) {
+		this.multiAccept = multiAccept;
 	}
 
 	@Override
@@ -193,47 +208,57 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	/**
-	 * @param selector The selector.
+	 * @param selectorForNewSocket The selector.
 	 * @param server The server socket channel.
 	 * @param now The current time.
-	 * @throws IOException Any IOException.
 	 */
 	@Override
-	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
+	protected void doAccept(final Selector selectorForNewSocket, ServerSocketChannel server, long now) {
 		logger.debug("New accept");
-		SocketChannel channel = server.accept();
-		if (isShuttingDown()) {
-			if (logger.isInfoEnabled()) {
-				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort()
-						+ " rejected; the server is in the process of shutting down.");
+		try {
+			SocketChannel channel = null;
+			do {
+				channel = server.accept();
+				if (channel != null) {
+					if (isShuttingDown()) {
+						if (logger.isInfoEnabled()) {
+							logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
+									+ ":" + channel.socket().getPort()
+									+ " rejected; the server is in the process of shutting down.");
+						}
+						channel.close();
+					}
+					else {
+						try {
+							channel.configureBlocking(false);
+							Socket socket = channel.socket();
+							setSocketAttributes(socket);
+							TcpNioConnection connection = createTcpNioConnection(channel);
+							if (connection == null) {
+								return;
+							}
+							connection.setTaskExecutor(getTaskExecutor());
+							connection.setLastRead(now);
+							if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+								((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+							}
+							this.channelMap.put(channel, connection);
+							channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
+							connection.publishConnectionOpenEvent();
+						}
+						catch (IOException e) {
+							logger.error("Exception accepting new connection from "
+									+ channel.socket().getInetAddress().getHostAddress()
+									+ ":" + channel.socket().getPort(), e);
+							channel.close();
+						}
+					}
+				}
 			}
-			channel.close();
+			while (this.multiAccept && channel != null);
 		}
-		else {
-			try {
-				channel.configureBlocking(false);
-				Socket socket = channel.socket();
-				setSocketAttributes(socket);
-				TcpNioConnection connection = createTcpNioConnection(channel);
-				if (connection == null) {
-					return;
-				}
-				connection.setTaskExecutor(getTaskExecutor());
-				connection.setLastRead(now);
-				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
-				}
-				this.channelMap.put(channel, connection);
-				channel.register(selector, SelectionKey.OP_READ, connection);
-				connection.publishConnectionOpenEvent();
-			}
-			catch (Exception e) {
-				logger.error("Exception accepting new connection from "
-						+ channel.socket().getInetAddress().getHostAddress()
-						+ ":" + channel.socket().getPort(), e);
-				channel.close();
-			}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 	}
 
@@ -241,7 +266,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
 			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(socketChannel, true,
-							isLookupHost(), getApplicationEventPublisher(), getComponentName());
+					isLookupHost(), getApplicationEventPublisher(), getComponentName());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			initializeConnection(wrappedConnection, socketChannel.socket());

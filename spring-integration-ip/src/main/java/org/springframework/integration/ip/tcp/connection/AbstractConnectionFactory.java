@@ -476,6 +476,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @see #setSslHandshakeTimeout(int)
 	 * @since 4.3.6
 	 */
+	@Nullable
 	protected Integer getSslHandshakeTimeout() {
 		return this.sslHandshakeTimeout;
 	}
@@ -724,7 +725,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 							doAccept(selector, server, now);
 						}
 						catch (Exception e) {
-							logger.error("Exception accepting new connection", e);
+							logger.error("Exception accepting new connection(s)", e);
 						}
 					}
 					else {

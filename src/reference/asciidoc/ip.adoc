@@ -971,6 +971,10 @@ Alternatively, you can insert a resequencer downstream of the inbound endpoint t
 If you set `apply-sequence` to `true` on the connection factory, messages arriving on a TCP connection have `sequenceNumber` and `correlationId` headers set.
 The resequencer uses these headers to return the messages to their proper sequence.
 
+IMPORTANT: Starting with version 5.1.4, priority is given to accepting new connections over reading from existing connections.
+This should, generally, have little impact unless you have a very high rate of new incoming connections.
+If you wish to revert to the previous behavior of giving reads priority, set the `multiAccept` property on the `TcpNioServerConnectionFactory` to `false`.
+
 ==== Pool Size
 
 The pool size attribute is no longer used.
