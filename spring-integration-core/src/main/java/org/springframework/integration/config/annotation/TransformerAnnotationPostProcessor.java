@@ -24,39 +24,47 @@ import java.util.List;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
+import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.MessageHandler;
 
 /**
- * Post-processor for Methods annotated with {@link Transformer @Transformer}.
+ * Post-processor for Methods annotated with a
+ * {@link org.springframework.integration.annotation.Transformer @Transformer}.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Transformer> {
+public class TransformerAnnotationPostProcessor
+		extends AbstractMethodAnnotationPostProcessor<org.springframework.integration.annotation.Transformer> {
 
 	public TransformerAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		super(beanFactory);
-		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "adviceChain"));
+		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "adviceChain"));
 	}
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
-		org.springframework.integration.transformer.Transformer transformer;
+		Transformer transformer;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			transformer = this.extractTypeIfPossible(target,
-					org.springframework.integration.transformer.Transformer.class);
+			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			transformer = extractTypeIfPossible(target, Transformer.class);
 			if (transformer == null) {
-				if (this.extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
+				if (extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class) != null) {
 					checkMessageHandlerAttributes(resolveTargetBeanName(method), annotations);
 					return (MessageHandler) target;
 				}
-				transformer = new MethodInvokingTransformer(target);
+				MessageProcessor<?> messageProcessor = buildLambdaMessageProcessorForBeanMethod(method, target);
+				if (messageProcessor != null) {
+					transformer = new MethodInvokingTransformer(messageProcessor);
+				}
+				else {
+					transformer = new MethodInvokingTransformer(target);
+				}
 			}
 		}
 		else {
@@ -64,7 +72,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 		}
 
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
-		this.setOutputChannelIfPresent(annotations, handler);
+		setOutputChannelIfPresent(annotations, handler);
 		return handler;
 	}
 

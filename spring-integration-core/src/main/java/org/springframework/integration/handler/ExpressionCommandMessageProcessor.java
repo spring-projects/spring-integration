@@ -48,7 +48,11 @@ import org.springframework.util.CollectionUtils;
  */
 public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
 
+	@Nullable
+	private final MethodFilter methodFilter;
+
 	public ExpressionCommandMessageProcessor() {
+		this.methodFilter = null;
 	}
 
 	public ExpressionCommandMessageProcessor(@Nullable MethodFilter methodFilter) {
@@ -56,18 +60,19 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	}
 
 	public ExpressionCommandMessageProcessor(@Nullable MethodFilter methodFilter, @Nullable BeanFactory beanFactory) {
+		this.methodFilter = methodFilter;
 		if (beanFactory != null) {
 			setBeanFactory(beanFactory);
-		}
-		if (methodFilter != null) {
-			MethodResolver methodResolver = new ExpressionCommandMethodResolver(methodFilter);
-			getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
 		}
 	}
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
+		if (this.methodFilter != null) {
+			MethodResolver methodResolver = new ExpressionCommandMethodResolver(this.methodFilter);
+			getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
+		}
 	}
 
 	/**

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.function
 
-import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
@@ -24,8 +23,10 @@ import assertk.assertions.isTrue
 import assertk.assertions.size
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.integration.annotation.EndpointId
 import org.springframework.integration.annotation.InboundChannelAdapter
 import org.springframework.integration.annotation.Poller
 import org.springframework.integration.annotation.ServiceActivator
@@ -37,6 +38,7 @@ import org.springframework.integration.dsl.IntegrationFlows
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
+import org.springframework.messaging.PollableChannel
 import org.springframework.messaging.SubscribableChannel
 import org.springframework.messaging.support.GenericMessage
 import org.springframework.messaging.support.MessageBuilder
@@ -44,9 +46,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.util.*
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.function.Supplier
 
 /**
  * @author Artem Bilan
@@ -70,7 +70,11 @@ class FunctionsTests {
 	private lateinit var counterChannel: SubscribableChannel
 
 	@Autowired
+	@Qualifier("kotlinSupplierChannelAdapter")
 	private lateinit var kotlinSupplierInboundChannelAdapter: SourcePollingChannelAdapter
+
+	@Autowired
+	private lateinit var fromSupplierQueue: PollableChannel
 
 	@Test
 	fun `invoke function via transformer`() {
@@ -111,6 +115,11 @@ class FunctionsTests {
 		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue()
 	}
 
+	@Test
+	fun `verify supplier flow`() {
+		assertThat(this.fromSupplierQueue.receive(10_000)).isNotNull()
+	}
+
 	@Configuration
 	@EnableIntegration
 	class Config {
@@ -136,10 +145,23 @@ class FunctionsTests {
 		@Bean
 		@InboundChannelAdapter(value = "counterChannel", autoStartup = "false",
 				poller = [Poller(fixedRate = "10", maxMessagesPerPoll = "1")])
+		@EndpointId("kotlinSupplierChannelAdapter")
 		fun kotlinSupplier(): () -> String {
 			return { "baz" }
 		}
 
+		@Bean
+		fun flowFromSupplier() =
+				IntegrationFlows.from<String>({ "bar" },
+						{ e ->
+							e.poller { p ->
+								p.fixedDelay(10)
+										.maxMessagesPerPoll(1)
+							}
+
+						})
+						.channel { c -> c.queue("fromSupplierQueue") }
+						.get()
 	}
 
 }

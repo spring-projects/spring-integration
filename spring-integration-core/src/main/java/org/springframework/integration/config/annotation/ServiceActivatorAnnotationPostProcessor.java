@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.util.MessagingAnnotationUtils;
@@ -63,7 +64,13 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 					return new ReplyProducingMessageHandlerWrapper((MessageHandler) target);
 				}
 				else {
-					serviceActivator = new ServiceActivatingHandler(target);
+					MessageProcessor<?> messageProcessor = buildLambdaMessageProcessorForBeanMethod(method, target);
+					if (messageProcessor != null) {
+						serviceActivator = new ServiceActivatingHandler(messageProcessor);
+					}
+					else {
+						serviceActivator = new ServiceActivatingHandler(target);
+					}
 				}
 			}
 			else {
@@ -77,15 +84,15 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
 		if (StringUtils.hasText(requiresReply)) {
-			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply)));
+			serviceActivator.setRequiresReply(resolveAttributeToBoolean(requiresReply));
 		}
 
 		String isAsync = MessagingAnnotationUtils.resolveAttribute(annotations, "async", String.class);
 		if (StringUtils.hasText(isAsync)) {
-			serviceActivator.setAsync(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(isAsync)));
+			serviceActivator.setAsync(resolveAttributeToBoolean(isAsync));
 		}
 
-		this.setOutputChannelIfPresent(annotations, serviceActivator);
+		setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
 	}
 

@@ -51,7 +51,6 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
-		processor.setBeanFactory(this.beanFactory);
 
 		MethodInvokingReleaseStrategy releaseStrategy = null;
 		Method releaseStrategyMethod = MessagingAnnotationUtils.findAnnotatedMethod(bean, ReleaseStrategy.class);
@@ -60,7 +59,8 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		}
 
 		MethodInvokingCorrelationStrategy correlationStrategy = null;
-		Method correlationStrategyMethod = MessagingAnnotationUtils.findAnnotatedMethod(bean, CorrelationStrategy.class);
+		Method correlationStrategyMethod =
+				MessagingAnnotationUtils.findAnnotatedMethod(bean, CorrelationStrategy.class);
 		if (correlationStrategyMethod != null) {
 			correlationStrategy = new MethodInvokingCorrelationStrategy(bean, correlationStrategyMethod);
 		}
@@ -68,21 +68,21 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor, new SimpleMessageStore(),
 				correlationStrategy, releaseStrategy);
 
-		String discardChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
+		String discardChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "discardChannel", String.class);
 		if (StringUtils.hasText(discardChannelName)) {
 			handler.setDiscardChannelName(discardChannelName);
 		}
-		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
+		String outputChannelName =
+				MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
 		if (StringUtils.hasText(outputChannelName)) {
 			handler.setOutputChannelName(outputChannelName);
 		}
 		String sendPartialResultsOnExpiry = MessagingAnnotationUtils.resolveAttribute(annotations,
 				"sendPartialResultsOnExpiry", String.class);
 		if (sendPartialResultsOnExpiry != null) {
-			handler.setSendPartialResultOnExpiry(
-					Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(sendPartialResultsOnExpiry)));
+			handler.setSendPartialResultOnExpiry(resolveAttributeToBoolean(sendPartialResultsOnExpiry));
 		}
-		handler.setBeanFactory(this.beanFactory);
 		return handler;
 	}
 

@@ -43,7 +43,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	public SplitterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		super(beanFactory);
-		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "applySequence", "adviceChain"));
+		this.messageHandlerAttributes.addAll(Arrays.asList("outputChannel", "applySequence", "adviceChain"));
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 		AbstractMessageSplitter splitter;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			splitter = this.extractTypeIfPossible(target, AbstractMessageSplitter.class);
 			if (splitter == null) {
 				if (target instanceof MessageHandler) {
@@ -74,10 +74,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 		}
 
 		if (StringUtils.hasText(applySequence)) {
-			String applySequenceValue = this.beanFactory.resolveEmbeddedValue(applySequence);
-			if (StringUtils.hasText(applySequenceValue)) {
-				splitter.setApplySequence(Boolean.parseBoolean(applySequenceValue));
-			}
+			splitter.setApplySequence(resolveAttributeToBoolean(applySequence));
 		}
 
 		this.setOutputChannelIfPresent(annotations, splitter);

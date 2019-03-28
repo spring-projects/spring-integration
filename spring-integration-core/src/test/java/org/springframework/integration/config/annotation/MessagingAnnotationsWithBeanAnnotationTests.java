@@ -349,8 +349,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Filter(inputChannel = "skippedChannel5")
 		@Profile("foo")
 		public MessageHandler skippedMessageHandler() {
-			return m -> {
-			};
+			return m -> { };
 		}
 
 		@Bean
@@ -384,14 +383,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "functionMessageServiceChannel")
 		public Function<Message<String>, String> messageFunctionAsService() {
-			return new Function<Message<String>, String>() { // Has to be interface for proper type inferring
-
-				@Override
-				public String apply(Message<String> m) {
-					return m.getPayload().toLowerCase();
-				}
-
-			};
+			return (message) -> message.getPayload().toLowerCase();
 		}
 
 		@Bean
@@ -408,14 +400,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
 		public Consumer<Message<?>> messageConsumerAsService() {
-			return new Consumer<Message<?>>() { // Has to be interface for proper type inferring
-
-				@Override
-				public void accept(Message<?> e) {
-					collector().add(e);
-				}
-
-			};
+			return collector()::add;
 		}
 
 	}
