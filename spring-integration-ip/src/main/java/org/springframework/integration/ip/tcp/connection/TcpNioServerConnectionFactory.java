@@ -35,12 +35,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
-/**
+ /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
  * a {@link ServerSocketChannel}. Must have a {@link TcpListener} registered.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -52,7 +53,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private volatile boolean usingDirectBuffers;
 
-	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
+	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<>();
 
 	private volatile Selector selector;
 
@@ -218,7 +219,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	protected void doAccept(final Selector selectorForNewSocket, ServerSocketChannel server, long now) {
 		logger.debug("New accept");
 		try {
-			SocketChannel channel = null;
+			SocketChannel channel;
 			do {
 				channel = server.accept();
 				if (channel != null) {
@@ -230,33 +231,12 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 						}
 						channel.close();
 					}
-					else {
-						try {
-							channel.configureBlocking(false);
-							Socket socket = channel.socket();
-							setSocketAttributes(socket);
-							TcpNioConnection connection = createTcpNioConnection(channel);
-							if (connection == null) {
-								return;
-							}
-							connection.setTaskExecutor(getTaskExecutor());
-							connection.setLastRead(now);
-							if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-								((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
-							}
-							this.channelMap.put(channel, connection);
-							channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
-							connection.publishConnectionOpenEvent();
-						}
-						catch (IOException e) {
-							logger.error("Exception accepting new connection from "
-									+ channel.socket().getInetAddress().getHostAddress()
-									+ ":" + channel.socket().getPort(), e);
-							channel.close();
-						}
+					else if (createConnectionForAcceptedChannel(selectorForNewSocket, now, channel) == null) {
+						return;
 					}
 				}
-			} while (this.multiAccept && channel != null);
+			}
+			while (this.multiAccept && channel != null);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -264,10 +244,40 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Nullable
+	private TcpNioConnection createConnectionForAcceptedChannel(Selector selectorForNewSocket, long now,
+			SocketChannel channel) throws IOException {
+
+		TcpNioConnection connection = null;
+		try {
+			channel.configureBlocking(false);
+			Socket socket = channel.socket();
+			setSocketAttributes(socket);
+			connection = createTcpNioConnection(channel);
+			if (connection != null) {
+				connection.setTaskExecutor(getTaskExecutor());
+				connection.setLastRead(now);
+				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+				}
+				this.channelMap.put(channel, connection);
+				channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);
+				connection.publishConnectionOpenEvent();
+			}
+		}
+		catch (IOException e) {
+			logger.error("Exception accepting new connection from "
+					+ channel.socket().getInetAddress().getHostAddress()
+					+ ":" + channel.socket().getPort(), e);
+			channel.close();
+		}
+		return connection;
+	}
+
+	@Nullable
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
 			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(socketChannel, true,
-							isLookupHost(), getApplicationEventPublisher(), getComponentName());
+					isLookupHost(), getApplicationEventPublisher(), getComponentName());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			initializeConnection(wrappedConnection, socketChannel.socket());

@@ -57,6 +57,8 @@ import org.springframework.util.Assert;
  * Base class for all connection factories.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -479,6 +481,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @see #setSslHandshakeTimeout(int)
 	 * @since 4.3.6
 	 */
+	@Nullable
 	protected Integer getSslHandshakeTimeout() {
 		return this.sslHandshakeTimeout;
 	}
