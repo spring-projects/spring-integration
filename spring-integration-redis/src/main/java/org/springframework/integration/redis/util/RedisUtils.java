@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.util.StringUtils;
 
 /**
  * A set of utility methods for common Redis functions.
@@ -61,8 +62,14 @@ public final class RedisUtils {
 			Properties info = redisOperations.execute(
 					(RedisCallback<Properties>) connection -> connection.serverCommands().info(SECTION));
 			if (info != null) {
-				int majorVersion = Integer.parseInt(info.getProperty(VERSION_PROPERTY).split("\\.")[0]);
-				return majorVersion >= 4;
+				String version = info.getProperty(VERSION_PROPERTY);
+				if (StringUtils.hasText(version)) {
+					int majorVersion = Integer.parseInt(version.split("\\.")[0]);
+					return majorVersion >= 4;
+				}
+				else {
+					return false;
+				}
 			}
 			else {
 				throw new IllegalStateException("The INFO command cannot be used in pipeline/transaction.");
