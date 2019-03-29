@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.EndpointId;
@@ -30,7 +30,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -42,6 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Soby Chacko
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 public final class MessagingAnnotationUtils {
@@ -77,9 +77,9 @@ public final class MessagingAnnotationUtils {
 	}
 
 	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {
-		final AtomicReference<Method> reference = new AtomicReference<Method>();
+		final AtomicReference<Method> reference = new AtomicReference<>();
 
-		ReflectionUtils.doWithMethods(getTargetClass(target),
+		ReflectionUtils.doWithMethods(AopProxyUtils.ultimateTargetClass(target),
 				method -> reference.compareAndSet(null, method),
 				method -> ReflectionUtils.USER_DECLARED_METHODS.matches(method) &&
 						AnnotatedElementUtils.isAnnotated(method, annotationType.getName()));
@@ -129,20 +129,7 @@ public final class MessagingAnnotationUtils {
 		return endpointId != null ? endpointId.value() : null;
 	}
 
-	private static Class<?> getTargetClass(Object targetObject) {
-		Class<?> targetClass = targetObject.getClass();
-		if (AopUtils.isAopProxy(targetObject)) {
-			targetClass = AopUtils.getTargetClass(targetObject);
-		}
-		else if (ClassUtils.isCglibProxyClass(targetClass)) {
-			Class<?> superClass = targetObject.getClass().getSuperclass();
-			if (!Object.class.equals(superClass)) {
-				targetClass = superClass;
-			}
-		}
-		return targetClass;
+	private MessagingAnnotationUtils() {
 	}
-
-	private MessagingAnnotationUtils() { }
 
 }

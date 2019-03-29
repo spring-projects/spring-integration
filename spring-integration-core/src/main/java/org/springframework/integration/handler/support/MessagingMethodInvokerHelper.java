@@ -41,6 +41,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanExpressionContext;
@@ -978,23 +979,20 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	}
 
 	private Class<?> getTargetClass(Object targetObject) {
-		Class<?> targetClass = targetObject.getClass();
-		if (AopUtils.isAopProxy(targetObject)) {
-			targetClass = AopUtils.getTargetClass(targetObject);
-			if (targetClass == targetObject.getClass()) {
-				try {
-					// Maybe a proxy with no target - e.g. gateway
-					Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
-					if (interfaces.length == 1) {
-						targetClass = interfaces[0];
-					}
-				}
-				catch (Exception e) {
-					LOGGER.debug("Exception trying to extract interface", e);
+		Class<?> targetClass = AopProxyUtils.ultimateTargetClass(targetObject);
+		if (targetClass == targetObject.getClass()) {
+			try {
+				// Maybe a proxy with no target - e.g. gateway
+				Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
+				if (interfaces.length == 1) {
+					targetClass = interfaces[0];
 				}
 			}
+			catch (Exception e) {
+				LOGGER.debug("Exception trying to extract interface", e);
+			}
 		}
-		else if (ClassUtils.isCglibProxyClass(targetClass) || targetClass.getSimpleName().contains("$MockitoMock$")) {
+		if (targetClass.getSimpleName().contains("$MockitoMock$")) {
 			Class<?> superClass = targetObject.getClass().getSuperclass();
 			if (!Object.class.equals(superClass)) {
 				targetClass = superClass;
