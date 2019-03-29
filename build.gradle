@@ -87,7 +87,7 @@ subprojects { subproject ->
 	}
 
 	ext {
-		activeMqVersion = '5.15.8'
+		activeMqVersion = '5.15.9'
 		apacheSshdVersion = '2.2.0'
 		aspectjVersion = '1.9.2'
 		assertjVersion = '3.12.0'
@@ -121,7 +121,7 @@ subprojects { subproject ->
 		junitPlatformVersion = '1.4.0'
 		jythonVersion = '2.7.0'
 		kryoShadedVersion = '4.0.2'
-		lettuceVersion = '5.1.4.RELEASE'
+		lettuceVersion = '5.1.6.RELEASE'
 		log4jVersion = '2.11.2'
 		micrometerVersion = '1.1.3'
 		mockitoVersion = '2.24.0'
