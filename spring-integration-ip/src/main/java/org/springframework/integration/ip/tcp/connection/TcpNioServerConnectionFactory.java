@@ -47,17 +47,17 @@ import org.springframework.util.Assert;
  */
 public class TcpNioServerConnectionFactory extends AbstractServerConnectionFactory {
 
+	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<>();
+
+	private TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
+
 	private boolean multiAccept = true;
+
+	private boolean usingDirectBuffers;
 
 	private volatile ServerSocketChannel serverChannel;
 
-	private volatile boolean usingDirectBuffers;
-
-	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<>();
-
 	private volatile Selector selector;
-
-	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -256,8 +256,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			if (connection != null) {
 				connection.setTaskExecutor(getTaskExecutor());
 				connection.setLastRead(now);
-				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+				Integer sslHandshakeTimeout = getSslHandshakeTimeout();
+				if (sslHandshakeTimeout != null && connection instanceof TcpNioSSLConnection) {
+					((TcpNioSSLConnection) connection).setHandshakeTimeout(sslHandshakeTimeout);
 				}
 				this.channelMap.put(channel, connection);
 				channel.register(selectorForNewSocket, SelectionKey.OP_READ, connection);

@@ -36,23 +36,25 @@ import org.springframework.util.Assert;
 
 /**
  * A client connection factory that creates {@link TcpNioConnection}s.
+ *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
 public class TcpNioClientConnectionFactory extends
 		AbstractClientConnectionFactory implements SchedulingAwareRunnable {
 
-	private volatile boolean usingDirectBuffers;
+	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<>();
+
+	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<>();
+
+	private boolean usingDirectBuffers;
+
+	private TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
 
 	private volatile Selector selector;
-
-	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
-
-	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
-
-	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
 
 	/**
 	 * Creates a TcpNioClientConnectionFactory for connections to the host and port.
@@ -69,12 +71,12 @@ public class TcpNioClientConnectionFactory extends
 		int n = 0;
 		while (this.selector == null) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(100); // NOSONAR magic number
 			}
 			catch (@SuppressWarnings("unused") InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-			if (n++ > 600) {
+			if (n++ > 600) { // NOSONAR magic number
 				throw new UncheckedIOException(new IOException("Factory failed to start"));
 			}
 		}
@@ -85,17 +87,19 @@ public class TcpNioClientConnectionFactory extends
 		try {
 			SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(getHost(), getPort()));
 			setSocketAttributes(socketChannel.socket());
-			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
-					socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), getComponentName());
+			TcpNioConnection connection =
+					this.tcpNioConnectionSupport.createNewConnection(socketChannel, false, isLookupHost(),
+							getApplicationEventPublisher(), getComponentName());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
-			connection.setTaskExecutor(this.getTaskExecutor());
-			if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
-				((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+			connection.setTaskExecutor(getTaskExecutor());
+			Integer sslHandshakeTimeout = getSslHandshakeTimeout();
+			if (sslHandshakeTimeout != null && connection instanceof TcpNioSSLConnection) {
+				((TcpNioSSLConnection) connection).setHandshakeTimeout(sslHandshakeTimeout);
 			}
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			initializeConnection(wrappedConnection, socketChannel.socket());
 			socketChannel.configureBlocking(false);
-			if (this.getSoTimeout() > 0) {
+			if (getSoTimeout() > 0) {
 				connection.setLastRead(System.currentTimeMillis());
 			}
 			this.channelMap.put(socketChannel, connection);
@@ -144,9 +148,9 @@ public class TcpNioClientConnectionFactory extends
 	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
-			if (!this.isActive()) {
-				this.setActive(true);
-				this.getTaskExecutor().execute(this);
+			if (!isActive()) {
+				setActive(true);
+				getTaskExecutor().execute(this);
 			}
 		}
 		super.start();
@@ -155,51 +159,51 @@ public class TcpNioClientConnectionFactory extends
 	@Override
 	public void run() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Read selector running for connections to " + this.getHost() + ":" + this.getPort());
+			logger.debug("Read selector running for connections to " + getHost() + ":" + getPort());
 		}
 		try {
 			this.selector = Selector.open();
-			while (this.isActive()) {
-				SocketChannel newChannel;
-				int soTimeout = this.getSoTimeout();
-				int selectionCount = 0;
-				try {
-					long timeout = soTimeout < 0 ? 0 : soTimeout;
-					if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
-						timeout = getReadDelay();
-					}
-					selectionCount = this.selector.select(timeout);
-				}
-				catch (@SuppressWarnings("unused") CancelledKeyException cke) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("CancelledKeyException during Selector.select()");
-					}
-				}
-				while ((newChannel = this.newChannels.poll()) != null) {
-					try {
-						newChannel.register(this.selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
-					}
-					catch (@SuppressWarnings("unused") ClosedChannelException cce) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Channel closed before registering with selector for reading");
-						}
-					}
-				}
-				processNioSelections(selectionCount, this.selector, null, this.channelMap);
+			while (isActive()) {
+				processSelectorWhileActive();
 			}
 		}
 		catch (ClosedSelectorException cse) {
-			if (this.isActive()) {
+			if (isActive()) {
 				logger.error("Selector closed", cse);
 			}
 		}
 		catch (Exception e) {
 			logger.error("Exception in read selector thread", e);
-			this.setActive(false);
+			setActive(false);
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("Read selector exiting for connections to " + this.getHost() + ":" + this.getPort());
+			logger.debug("Read selector exiting for connections to " + getHost() + ":" + getPort());
 		}
+	}
+
+	private void processSelectorWhileActive() throws IOException {
+		SocketChannel newChannel;
+		int soTimeout = getSoTimeout();
+		int selectionCount = 0;
+		try {
+			long timeout = soTimeout < 0 ? 0 : soTimeout;
+			if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
+				timeout = getReadDelay();
+			}
+			selectionCount = this.selector.select(timeout);
+		}
+		catch (@SuppressWarnings("unused") CancelledKeyException cke) {
+			logger.debug("CancelledKeyException during Selector.select()");
+		}
+		while ((newChannel = this.newChannels.poll()) != null) {
+			try {
+				newChannel.register(this.selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
+			}
+			catch (@SuppressWarnings("unused") ClosedChannelException cce) {
+				logger.debug("Channel closed before registering with selector for reading");
+			}
+		}
+		processNioSelections(selectionCount, this.selector, null, this.channelMap);
 	}
 
 	/**
