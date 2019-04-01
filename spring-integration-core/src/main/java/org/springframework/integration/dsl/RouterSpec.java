@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
@@ -188,7 +188,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 		private final MappingMessageRouterManagement router;
 
-		private final Map<Object, NamedComponent> mapping = new HashMap<>();
+		private final Map<Object, NamedComponent> mapping = new LinkedHashMap<>();
 
 		RouterMappingProvider(MappingMessageRouterManagement router) {
 			this.router = router;
