@@ -395,7 +395,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			sendFuture = gatewayFuture.getSendFuture();
 		}
 		else {
-			if (this.transactional && !TransactionSynchronizationManager.isActualTransactionActive()) {
+			if (this.transactional
+					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null) {
 				sendFuture = this.kafkaTemplate.executeInTransaction(t -> {
 					return t.send(producerRecord);
 				});

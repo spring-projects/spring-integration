@@ -20,23 +20,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.kafka.test.assertj.KafkaConditions.key;
 import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
 import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
 import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -46,14 +57,17 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -68,15 +82,18 @@ import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.kafka.support.TransactionSupport;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.kafka.transaction.KafkaTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -110,7 +127,7 @@ public class KafkaProducerMessageHandlerTests {
 	private static Consumer<Integer, String> consumer;
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUp() {
 		ConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(
 				KafkaTestUtils.consumerProps("testOut", "true", embeddedKafka));
 		consumer = cf.createConsumer();
@@ -179,7 +196,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithTimestamp() throws Exception {
+	public void testOutboundWithTimestamp() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -210,7 +227,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithTimestampExpression() throws Exception {
+	public void testOutboundWithTimestampExpression() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -249,7 +266,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithAsyncResults() throws Exception {
+	public void testOutboundWithAsyncResults() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -424,6 +441,82 @@ public class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).flush();
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testConsumeAndProduceTransaction() throws Exception {
+		Consumer mockConsumer = mock(Consumer.class);
+		final TopicPartition topicPartition = new TopicPartition("foo", 0);
+		willAnswer(i -> {
+			((ConsumerRebalanceListener) i.getArgument(1))
+					.onPartitionsAssigned(Collections.singletonList(topicPartition));
+			return null;
+		}).given(mockConsumer).subscribe(any(Collection.class), any(ConsumerRebalanceListener.class));
+		ConsumerRecords records = new ConsumerRecords(Collections.singletonMap(topicPartition,
+				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))));
+		final AtomicBoolean done = new AtomicBoolean();
+		willAnswer(i -> {
+			if (done.compareAndSet(false, true)) {
+				return records;
+			}
+			else {
+				Thread.sleep(500);
+				return null;
+			}
+		}).given(mockConsumer).poll(any(Duration.class));
+		ConsumerFactory cf = mock(ConsumerFactory.class);
+		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
+		Producer producer = mock(Producer.class);
+		final CountDownLatch closeLatch = new CountDownLatch(2);
+		willAnswer(i -> {
+			closeLatch.countDown();
+			return null;
+		}).given(producer).close();
+		ProducerFactory pf = mock(ProducerFactory.class);
+		given(pf.transactionCapable()).willReturn(true);
+		final List<String> transactionalIds = new ArrayList<>();
+		willAnswer(i -> {
+			transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
+			return producer;
+		}).given(pf).createProducer();
+		KafkaTransactionManager tm = new KafkaTransactionManager(pf);
+		PlatformTransactionManager ptm = tm;
+		ContainerProperties props = new ContainerProperties("foo");
+		props.setGroupId("group");
+		props.setTransactionManager(ptm);
+		final KafkaTemplate template = new KafkaTemplate(pf);
+		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
+		container.setBeanName("commit");
+		KafkaMessageDrivenChannelAdapter inbound = new KafkaMessageDrivenChannelAdapter<>(container);
+		DirectChannel channel = new DirectChannel();
+		inbound.setOutputChannel(channel);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setMessageKeyExpression(new LiteralExpression("bar"));
+		handler.setTopicExpression(new LiteralExpression("topic"));
+		channel.subscribe(handler);
+		inbound.afterPropertiesSet();
+		inbound.start();
+		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		InOrder inOrder = inOrder(producer);
+		inOrder.verify(producer).beginTransaction();
+		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
+				new OffsetAndMetadata(0)), "group");
+		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).close();
+		inOrder.verify(producer).beginTransaction();
+		ArgumentCaptor<ProducerRecord> captor = ArgumentCaptor.forClass(ProducerRecord.class);
+		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
+		assertThat(captor.getValue()).isEqualTo(new ProducerRecord("topic", null, "bar", "value"));
+		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
+				new OffsetAndMetadata(1)), "group");
+		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).close();
+		container.stop();
+		verify(pf, times(2)).createProducer();
+		verifyNoMoreInteractions(producer);
+		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
+		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
 	}
 
 }
