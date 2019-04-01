@@ -93,6 +93,7 @@ public class DefaultMessageConverter implements MessageConverter, BeanFactoryAwa
 			}
 		}
 		return getMessageBuilderFactory().withPayload(this.asMap ? map : message.getPayload())
+				.copyHeaders(message.getHeaders())
 				.copyHeaders(out)
 				.build();
 	}
