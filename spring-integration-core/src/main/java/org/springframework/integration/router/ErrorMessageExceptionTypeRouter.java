@@ -17,11 +17,11 @@
 package org.springframework.integration.router;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -46,7 +46,7 @@ import org.springframework.util.ClassUtils;
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
-	private volatile Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<>();
+	private volatile Map<String, Class<?>> classNameMappings = new LinkedHashMap<>();
 
 	private volatile boolean initialized;
 
@@ -60,7 +60,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	private void populateClassNameMapping(Set<String> classNames) {
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>();
+		Map<String, Class<?>> newClassNameMappings = new LinkedHashMap<>();
 		for (String className : classNames) {
 			newClassNameMappings.put(className, resolveClassFromName(className));
 		}
@@ -82,7 +82,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	public void setChannelMapping(String key, String channelName) {
 		super.setChannelMapping(key, channelName);
 		if (this.initialized) {
-			Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
+			Map<String, Class<?>> newClassNameMappings = new LinkedHashMap<>(this.classNameMappings);
 			newClassNameMappings.put(key, resolveClassFromName(key));
 			this.classNameMappings = newClassNameMappings;
 		}
@@ -92,7 +92,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
 		super.removeChannelMapping(key);
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
+		Map<String, Class<?>> newClassNameMappings = new LinkedHashMap<>(this.classNameMappings);
 		newClassNameMappings.remove(key);
 		this.classNameMappings = newClassNameMappings;
 	}

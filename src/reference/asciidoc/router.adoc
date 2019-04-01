@@ -750,13 +750,12 @@ See <<xml-xpath-routing>>.
 Spring Integration also provides a special type-based router called `ErrorMessageExceptionTypeRouter` for routing error messages (defined as messages whose `payload` is a `Throwable` instance).
 `ErrorMessageExceptionTypeRouter` is similar to the `PayloadTypeRouter`.
 In fact, they are almost identical.
-The only difference is that, while `PayloadTypeRouter` navigates the instance hierarchy of a payload instance (for example, `payload.getClass().getSuperclass()`) to find the most specific type and channel mappings,
-the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (for example, `payload.getCause()`)
-to find the most specific `Throwable` type or channel mappings and uses `mappingClass.isInstance(cause)` to match the
-`cause` to the class or any super class.
+The only difference is that, while `PayloadTypeRouter` navigates the instance hierarchy of a payload instance (for example, `payload.getClass().getSuperclass()`) to find the most specific type and channel mappings, the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (for example, `payload.getCause()`) to find the most specific `Throwable` type or channel mappings and uses `mappingClass.isInstance(cause)` to match the `cause` to the class or any super class.
 
-NOTE: Since version 4.3 the `ErrorMessageExceptionTypeRouter` loads all mapping classes during the initialization
-phase to fail-fast for a `ClassNotFoundException`.
+IMPORTANT: The channel mapping order in this case matters.
+So, if there is a requirement to get mapping for an `IllegalArgumentException`, but not a `RuntimeException`, the last one must be configured on router first.
+
+NOTE: Since version 4.3 the `ErrorMessageExceptionTypeRouter` loads all mapping classes during the initialization phase to fail-fast for a `ClassNotFoundException`.
 
 The following example shows a sample configuration for `ErrorMessageExceptionTypeRouter`:
 
