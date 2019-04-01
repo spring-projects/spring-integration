@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -44,18 +44,19 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
-	private volatile MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
+	private final FormHttpMessageConverter wrappedConverter = new AllEncompassingFormHttpMessageConverter();
 
-	private final AllEncompassingFormHttpMessageConverter wrappedConverter = new AllEncompassingFormHttpMessageConverter();
+	private MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
 
 
 	/**
 	 * Sets the character set used for writing form data.
-	 *
 	 * @param charset The charset.
 	 */
 	public void setCharset(Charset charset) {
@@ -64,11 +65,10 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 
 	/**
 	 * Specify the {@link MultipartFileReader} to use when reading {@link MultipartFile} content.
-	 *
 	 * @param multipartFileReader The multipart file reader.
 	 */
 	public void setMultipartFileReader(MultipartFileReader<?> multipartFileReader) {
-		Assert.notNull(multipartFileReader, "multipartFileReader must not be null");
+		Assert.notNull(multipartFileReader, "'multipartFileReader' must not be null");
 		this.multipartFileReader = multipartFileReader;
 	}
 
@@ -106,23 +106,22 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		}
 		Assert.state(inputMessage instanceof MultipartHttpInputMessage,
 				"A request with 'multipart/form-data' Content-Type must be a MultipartHttpInputMessage. "
-				+ "Be sure to provide a 'multipartResolver' bean in the ApplicationContext.");
-		MultipartHttpInputMessage multipartInputMessage = (MultipartHttpInputMessage) inputMessage;
-		return this.readMultipart(multipartInputMessage);
+						+ "Be sure to provide a 'multipartResolver' bean in the ApplicationContext.");
+		return readMultipart((MultipartHttpInputMessage) inputMessage);
 	}
 
 	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
-		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<String, Object>();
+		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<>();
 		Map<?, ?> parameterMap = multipartRequest.getParameterMap();
-		for (Entry<?, ?> entry : parameterMap.entrySet()) {
-			resultMap.add((String) entry.getKey(), entry.getValue());
-		}
-		for (Map.Entry<String, MultipartFile> entry : multipartRequest.getFileMap().entrySet()) {
-			MultipartFile multipartFile = entry.getValue();
-			if (multipartFile.isEmpty()) {
-				continue;
+		parameterMap.forEach((key, value) -> resultMap.add((String) key, value));
+
+		for (Map.Entry<String, List<MultipartFile>> entry : multipartRequest.getMultiFileMap().entrySet()) {
+			List<MultipartFile> multipartFiles = entry.getValue();
+			for (MultipartFile multipartFile : multipartFiles) {
+				if (!multipartFile.isEmpty()) {
+					resultMap.add(entry.getKey(), this.multipartFileReader.readMultipartFile(multipartFile));
+				}
 			}
-			resultMap.add(entry.getKey(), this.multipartFileReader.readMultipartFile(multipartFile));
 		}
 		return resultMap;
 	}
@@ -130,6 +129,7 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 	@Override
 	public void write(MultiValueMap<String, ?> map, MediaType contentType, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
+
 		this.wrappedConverter.write(map, contentType, outputMessage);
 	}
 
