@@ -101,13 +101,13 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void replaceChannelMappings(Properties channelMappings) {
 		super.replaceChannelMappings(channelMappings);
-		populateClassNameMapping(this.channelMappings.keySet());
+		populateClassNameMapping(getChannelMappings().keySet());
 	}
 
 	@Override
 	protected void onInit() {
 		super.onInit();
-		populateClassNameMapping(this.channelMappings.keySet());
+		populateClassNameMapping(getChannelMappings().keySet());
 		this.initialized = true;
 	}
 

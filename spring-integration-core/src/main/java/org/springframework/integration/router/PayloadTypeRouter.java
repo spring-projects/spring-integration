@@ -16,8 +16,8 @@
 
 package org.springframework.integration.router;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.messaging.Message;
@@ -25,12 +25,12 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * A Message Router that resolves the {@link org.springframework.messaging.MessageChannel}
- * based on the
- * {@link Message Message's} payload type.
+ * based on the {@link Message Message's} payload type.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 
@@ -47,7 +47,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	 */
 	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {
-		if (CollectionUtils.isEmpty(this.channelMappings)) {
+		if (CollectionUtils.isEmpty(getChannelMappings())) {
 			return null;
 		}
 		Class<?> type = message.getPayload().getClass();
@@ -55,15 +55,14 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 		if (isArray) {
 			type = type.getComponentType();
 		}
-		String closestMatch =  this.findClosestMatch(type, isArray);
-		return (closestMatch != null) ? Collections.<Object>singletonList(closestMatch) : null;
+		String closestMatch = findClosestMatch(type, isArray);
+		return (closestMatch != null) ? Collections.singletonList(closestMatch) : null;
 	}
-
 
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
-		List<String> matches = new ArrayList<String>();
-		for (String candidate : this.channelMappings.keySet()) {
+		List<String> matches = new LinkedList<>();
+		for (String candidate : getChannelMappings().keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
 					continue;
@@ -118,7 +117,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 			// exhausted hierarchy and found no match
 			return Integer.MAX_VALUE;
 		}
-		return this.determineTypeDifferenceWeight(candidate, type.getSuperclass(), level + 2);
+		return determineTypeDifferenceWeight(candidate, type.getSuperclass(), level + 2);
 	}
 
 }

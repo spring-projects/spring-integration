@@ -68,13 +68,13 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 					});
 
-	protected volatile Map<String, String> channelMappings = new LinkedHashMap<>();
+	private String prefix;
 
-	private volatile String prefix;
+	private String suffix;
 
-	private volatile String suffix;
+	private boolean resolutionRequired = true;
 
-	private volatile boolean resolutionRequired = true;
+	private volatile Map<String, String> channelMappings = new LinkedHashMap<>();
 
 
 	/**
@@ -227,9 +227,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			if (this.resolutionRequired) {
 				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
 			}
-		}
-		if (channel == null && this.resolutionRequired) {
-			throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'");
 		}
 		return channel;
 	}
