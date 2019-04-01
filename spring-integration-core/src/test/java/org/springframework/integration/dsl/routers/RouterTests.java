@@ -743,8 +743,8 @@ public class RouterTests {
 		public IntegrationFlow exceptionTypeRouteFlow() {
 			return f -> f
 					.routeByException(r -> r
-							.channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
 							.channelMapping(RuntimeException.class, "runtimeExceptionChannel")
+							.channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
 							.subFlowMapping(MessageHandlingException.class, sf ->
 									sf.channel("messageHandlingExceptionChannel"))
 							.defaultOutputChannel("exceptionRouterDefaultChannel"));

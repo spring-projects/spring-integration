@@ -20,14 +20,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -48,32 +46,35 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
-public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter implements MappingMessageRouterManagement {
+public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
+		implements MappingMessageRouterManagement {
 
 	private static final int DEFAULT_DYNAMIC_CHANNEL_LIMIT = 100;
 
 	private int dynamicChannelLimit = DEFAULT_DYNAMIC_CHANNEL_LIMIT;
 
 	@SuppressWarnings("serial")
-	private final Map<String, MessageChannel> dynamicChannels = Collections.<String, MessageChannel>synchronizedMap(
-			new LinkedHashMap<String, MessageChannel>(DEFAULT_DYNAMIC_CHANNEL_LIMIT, 0.75f, true) {
+	private final Map<String, MessageChannel> dynamicChannels =
+			Collections.synchronizedMap(
+					new LinkedHashMap<String, MessageChannel>(DEFAULT_DYNAMIC_CHANNEL_LIMIT, 0.75f, true) {
 
-				@Override
-				protected boolean removeEldestEntry(Entry<String, MessageChannel> eldest) {
-					return this.size() > AbstractMappingMessageRouter.this.dynamicChannelLimit;
-				}
+						@Override
+						protected boolean removeEldestEntry(Entry<String, MessageChannel> eldest) {
+							return this.size() > AbstractMappingMessageRouter.this.dynamicChannelLimit;
+						}
 
-			});
+					});
 
-	protected volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
+	private String prefix;
 
-	private volatile String prefix;
+	private String suffix;
 
-	private volatile String suffix;
+	private boolean resolutionRequired = true;
 
-	private volatile boolean resolutionRequired = true;
+	private volatile Map<String, String> channelMappings = new LinkedHashMap<>();
 
 
 	/**
@@ -86,7 +87,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@ManagedAttribute
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(channelMappings);
+		Map<String, String> newChannelMappings = new LinkedHashMap<>(channelMappings);
 		doSetChannelMappings(newChannelMappings);
 	}
 
@@ -135,7 +136,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedAttribute
 	public Map<String, String> getChannelMappings() {
-		return new HashMap<String, String>(this.channelMappings);
+		return new LinkedHashMap<>(this.channelMappings);
 	}
 
 	/**
@@ -146,7 +147,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		Map<String, String> newChannelMappings = new LinkedHashMap<>(this.channelMappings);
 		newChannelMappings.put(key, channelName);
 		this.channelMappings = newChannelMappings;
 	}
@@ -158,7 +159,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		Map<String, String> newChannelMappings = new LinkedHashMap<>(this.channelMappings);
 		newChannelMappings.remove(key);
 		this.channelMappings = newChannelMappings;
 	}
@@ -181,8 +182,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		Collection<Object> channelKeys = this.getChannelKeys(message);
+		Collection<MessageChannel> channels = new ArrayList<>();
+		Collection<Object> channelKeys = getChannelKeys(message);
 		addToCollection(channels, channelKeys, message);
 		return channels;
 	}
@@ -201,12 +202,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@ManagedOperation
 	public void replaceChannelMappings(Properties channelMappings) {
 		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
+		Map<String, String> newChannelMappings = new LinkedHashMap<>();
 		Set<String> keys = channelMappings.stringPropertyNames();
 		for (String key : keys) {
 			newChannelMappings.put(key.trim(), channelMappings.getProperty(key).trim());
 		}
-		this.doSetChannelMappings(newChannelMappings);
+		doSetChannelMappings(newChannelMappings);
 	}
 
 	private void doSetChannelMappings(Map<String, String> newChannelMappings) {
@@ -226,9 +227,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			if (this.resolutionRequired) {
 				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
 			}
-		}
-		if (channel == null && this.resolutionRequired) {
-			throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'");
 		}
 		return channel;
 	}
@@ -258,7 +256,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		MessageChannel channel = resolveChannelForName(channelName, message);
 		if (channel != null) {
 			channels.add(channel);
-			if (!mapped && !(this.dynamicChannels.get(channelName) != null)) {
+			if (!mapped && this.dynamicChannels.get(channelName) == null) {
 				this.dynamicChannels.put(channelName, channel);
 			}
 		}

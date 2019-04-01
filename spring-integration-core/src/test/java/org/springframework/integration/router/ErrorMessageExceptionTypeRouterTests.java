@@ -79,8 +79,8 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setBeanFactory(this.context);
 		router.setApplicationContext(this.context);
-		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
+		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
@@ -104,7 +104,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setBeanFactory(this.context);
 		router.setApplicationContext(this.context);
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
-		router.setChannelMapping(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
+		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
 
@@ -192,8 +192,8 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setBeanFactory(this.context);
 		router.setApplicationContext(this.context);
-		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
+		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(this.defaultChannel);
 		router.afterPropertiesSet();
