@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Locale;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,8 +47,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -61,10 +61,10 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class HttpProxyScenarioTests {
 
@@ -86,8 +86,9 @@ public class HttpProxyScenarioTests {
 
 	@Test
 	public void testHttpProxyScenario() throws Exception {
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME;
 		ZoneId GMT = ZoneId.of("GMT");
+		DateTimeFormatter dateTimeFormatter =
+				DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).withZone(GMT);
 
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.MILLISECOND, 0);
@@ -129,7 +130,7 @@ public class HttpProxyScenarioTests {
 			assertThat(httpHeaders.getFirst("If-Unmodified-Since")).isEqualTo(ifUnmodifiedSinceValue);
 			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
 
-			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Disposition", contentDispositionValue);
 			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
@@ -186,7 +187,7 @@ public class HttpProxyScenarioTests {
 			assertThat(entity.getBody()).isInstanceOf(byte[].class);
 			assertThat(new String((byte[]) entity.getBody())).isEqualTo("foo");
 
-			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Type", "text/plain");
 			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
