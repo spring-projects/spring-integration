@@ -42,6 +42,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
@@ -84,6 +85,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Message<?> message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
 	}
 
@@ -128,6 +130,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Message<?> message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -161,6 +164,7 @@ public class SyslogReceivingChannelAdapterTests {
 		assertThat(message.getHeaders().get("syslog_HOST")).isEqualTo("WEBERN");
 		assertThat(new String((byte[]) message.getPayload(), "UTF-8"))
 				.isEqualTo("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
 	}
 
@@ -210,6 +214,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload().get("syslog_HOST")).isEqualTo("loggregator");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -243,6 +248,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Message<Map<String, ?>> message = (Message<Map<String, ?>>) outputChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload().get("syslog_HOST")).isEqualTo("loggregator");
+		assertThat(message.getHeaders().get(IpHeaders.IP_ADDRESS)).isNotNull();
 		adapter.stop();
 	}
 

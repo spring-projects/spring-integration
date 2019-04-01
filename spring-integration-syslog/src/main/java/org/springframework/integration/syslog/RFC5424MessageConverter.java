@@ -85,7 +85,8 @@ public class RFC5424MessageConverter extends DefaultMessageConverter {
 		}
 
 		AbstractIntegrationMessageBuilder<Object> builder = getMessageBuilderFactory().withPayload(
-				asMap() ? map : originalContent);
+				asMap() ? map : originalContent)
+					.copyHeaders(message.getHeaders());
 		if (!asMap() && isMap) {
 			builder.copyHeaders(map);
 		}
