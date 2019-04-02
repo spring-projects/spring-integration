@@ -73,6 +73,8 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean {
 
+	private static final String UNUSED = "unused";
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	public static final String ACCEPT = "Accept";
@@ -260,6 +262,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	// Copy of 'org.springframework.http.HttpHeaders#GMT'
 	private static final ZoneId GMT = ZoneId.of("GMT");
 
+	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATTER'
+	protected static final DateTimeFormatter DATE_FORMATTER =
+			DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).withZone(GMT);
+
 	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATS'
 	protected static final DateTimeFormatter[] DATE_FORMATS = new DateTimeFormatter[] {
 			DateTimeFormatter.RFC_1123_DATE_TIME,
@@ -411,13 +417,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Override
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug(MessageFormat.format("outboundHeaderNames={0}",
-					CollectionUtils.arrayToList(this.outboundHeaderNames)));
+			this.logger.debug("outboundHeaderNames=" + Arrays.toString(this.outboundHeaderNames));
 		}
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
 			String lowerName = name.toLowerCase();
-			if (this.shouldMapOutboundHeader(lowerName)) {
+			if (shouldMapOutboundHeader(lowerName)) {
 				Object value = entry.getValue();
 				if (value != null) {
 					if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
@@ -425,13 +430,15 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 							!MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
 						// prefix the user-defined header names if not already prefixed
 
-						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
-								this.userDefinedHeaderPrefix + name;
+						name =
+								StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
+										? name
+										: this.userDefinedHeaderPrefix + name;
 					}
 					if (this.logger.isDebugEnabled()) {
 						this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
 					}
-					this.setHttpHeader(target, name, value);
+					setHttpHeader(target, name, value);
 				}
 			}
 		}
@@ -448,28 +455,28 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			this.logger.debug(MessageFormat.format("inboundHeaderNames={0}",
 					CollectionUtils.arrayToList(this.inboundHeaderNames)));
 		}
-		Map<String, Object> target = new HashMap<String, Object>();
+		Map<String, Object> target = new HashMap<>();
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
 			String lowerName = name.toLowerCase();
-			if (this.shouldMapInboundHeader(lowerName)) {
+			if (shouldMapInboundHeader(lowerName)) {
 				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName)
 						&& !HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName)) {
 					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
 							? name
 							: this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName)
-							? this.getHttpHeader(source, prefixedName)
-							: this.getHttpHeader(source, name);
+							? getHttpHeader(source, prefixedName)
+							: getHttpHeader(source, name);
 					if (value != null) {
 						if (this.logger.isDebugEnabled()) {
 							this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
 						}
-						this.setMessageHeader(target, name, value);
+						setMessageHeader(target, name, value);
 					}
 				}
 				else {
-					Object value = this.getHttpHeader(source, name);
+					Object value = getHttpHeader(source, name);
 					if (value != null) {
 						if (this.logger.isDebugEnabled()) {
 							this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
@@ -477,7 +484,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 						if (CONTENT_TYPE.equalsIgnoreCase(name)) {
 							name = MessageHeaders.CONTENT_TYPE;
 						}
-						this.setMessageHeader(target, name, value);
+						setMessageHeader(target, name, value);
 					}
 				}
 			}
@@ -509,9 +516,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			 * When using the default response header name list, suppress the
 			 * mapping of exclusions for specific headers.
 			 */
-			if (this.containsElementIgnoreCase(this.excludedInboundStandardResponseHeaderNames, headerName)) {
+			if (containsElementIgnoreCase(this.excludedInboundStandardResponseHeaderNames, headerName)) {
 				if (this.logger.isDebugEnabled()) {
-					this.logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped (excluded)", headerName));
+					this.logger
+							.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped (excluded)", headerName));
 				}
 				return false;
 			}
@@ -522,18 +530,19 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			 * When using the default request header name list, suppress the
 			 * mapping of exclusions for specific headers.
 			 */
-			if (this.containsElementIgnoreCase(this.excludedOutboundStandardRequestHeaderNames, headerName)) {
+			if (containsElementIgnoreCase(this.excludedOutboundStandardRequestHeaderNames, headerName)) {
 				if (this.logger.isDebugEnabled()) {
-					this.logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped (excluded)", headerName));
+					this.logger
+							.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped (excluded)", headerName));
 				}
 				return false;
 			}
 		}
-		return this.shouldMapHeader(headerName, outboundHeaderNamesLower);
+		return shouldMapHeader(headerName, outboundHeaderNamesLower);
 	}
 
 	protected final boolean shouldMapInboundHeader(String headerName) {
-		return this.shouldMapHeader(headerName, this.inboundHeaderNamesLower);
+		return shouldMapHeader(headerName, this.inboundHeaderNamesLower);
 	}
 
 	/**
@@ -580,7 +589,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
-					List<MediaType> acceptableMediaTypes = new ArrayList<MediaType>();
+					List<MediaType> acceptableMediaTypes = new ArrayList<>();
 					for (Object type : values) {
 						if (type instanceof MediaType) {
 							acceptableMediaTypes.add((MediaType) type);
@@ -602,7 +611,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.setAccept(Collections.singletonList((MediaType) value));
 			}
 			else if (value instanceof String[]) {
-				List<MediaType> acceptableMediaTypes = new ArrayList<MediaType>();
+				List<MediaType> acceptableMediaTypes = new ArrayList<>();
 				for (String next : (String[]) value) {
 					acceptableMediaTypes.add(MediaType.parseMediaType(next));
 				}
@@ -621,7 +630,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
-					List<Charset> acceptableCharsets = new ArrayList<Charset>();
+					List<Charset> acceptableCharsets = new ArrayList<>();
 					for (Object charset : values) {
 						if (charset instanceof Charset) {
 							acceptableCharsets.add((Charset) charset);
@@ -640,7 +649,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				}
 			}
 			else if (value instanceof Charset[] || value instanceof String[]) {
-				List<Charset> acceptableCharsets = new ArrayList<Charset>();
+				List<Charset> acceptableCharsets = new ArrayList<>();
 				Object[] values = ObjectUtils.toObjectArray(value);
 				for (Object charset : values) {
 					if (charset instanceof Charset) {
@@ -657,7 +666,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			}
 			else if (value instanceof String) {
 				String[] charsets = StringUtils.commaDelimitedListToStringArray((String) value);
-				List<Charset> acceptableCharsets = new ArrayList<Charset>();
+				List<Charset> acceptableCharsets = new ArrayList<>();
 				for (String charset : charsets) {
 					acceptableCharsets.add(Charset.forName(charset.trim()));
 				}
@@ -673,7 +682,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
-					Set<HttpMethod> allowedMethods = new HashSet<HttpMethod>();
+					Set<HttpMethod> allowedMethods = new HashSet<>();
 					for (Object method : values) {
 						if (method instanceof HttpMethod) {
 							allowedMethods.add((HttpMethod) method);
@@ -696,14 +705,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 					target.setAllow(Collections.singleton((HttpMethod) value));
 				}
 				else if (value instanceof HttpMethod[]) {
-					Set<HttpMethod> allowedMethods = new HashSet<HttpMethod>();
+					Set<HttpMethod> allowedMethods = new HashSet<>();
 					Collections.addAll(allowedMethods, (HttpMethod[]) value);
 					target.setAllow(allowedMethods);
 				}
 				else if (value instanceof String || value instanceof String[]) {
 					String[] values = (value instanceof String[]) ? (String[]) value
 							: StringUtils.commaDelimitedListToStringArray((String) value);
-					Set<HttpMethod> allowedMethods = new HashSet<HttpMethod>();
+					Set<HttpMethod> allowedMethods = new HashSet<>();
 					for (String next : values) {
 						allowedMethods.add(HttpMethod.valueOf(next.trim()));
 					}
@@ -763,8 +772,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setDate(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
-					target.setDate(this.getFirstDate((String) value, DATE));
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+					target.setDate(getFirstDate((String) value, DATE));
 				}
 			}
 			else {
@@ -794,8 +803,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setExpires(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
-					target.setExpires(this.getFirstDate((String) value, EXPIRES));
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+					target.setExpires(getFirstDate((String) value, EXPIRES));
 				}
 			}
 			else {
@@ -815,8 +824,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setIfModifiedSince(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
-					target.setIfModifiedSince(this.getFirstDate((String) value, IF_MODIFIED_SINCE));
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+					target.setIfModifiedSince(getFirstDate((String) value, IF_MODIFIED_SINCE));
 				}
 			}
 			else {
@@ -827,20 +836,20 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			}
 		}
 		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
-			String ifUnmodifiedSinceValue = null;
+			String ifUnmodifiedSinceValue;
 			if (value instanceof Date) {
-				ifUnmodifiedSinceValue = this.formatDate(((Date) value).getTime());
+				ifUnmodifiedSinceValue = formatDate(((Date) value).getTime());
 			}
 			else if (value instanceof Number) {
-				ifUnmodifiedSinceValue = this.formatDate(((Number) value).longValue());
+				ifUnmodifiedSinceValue = formatDate(((Number) value).longValue());
 			}
 			else if (value instanceof String) {
 				try {
-					ifUnmodifiedSinceValue = this.formatDate(Long.parseLong((String) value));
+					ifUnmodifiedSinceValue = formatDate(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
-					long longValue = this.getFirstDate((String) value, IF_UNMODIFIED_SINCE);
-					ifUnmodifiedSinceValue = this.formatDate(longValue);
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+					long longValue = getFirstDate((String) value, IF_UNMODIFIED_SINCE);
+					ifUnmodifiedSinceValue = formatDate(longValue);
 				}
 			}
 			else {
@@ -862,7 +871,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			else if (value instanceof Collection) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
-					List<String> ifNoneMatchList = new ArrayList<String>();
+					List<String> ifNoneMatchList = new ArrayList<>();
 					for (Object next : values) {
 						if (next instanceof String) {
 							ifNoneMatchList.add((String) next);
@@ -888,8 +897,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				try {
 					target.setLastModified(Long.parseLong((String) value));
 				}
-				catch (NumberFormatException e) {
-					target.setLastModified(this.getFirstDate((String) value, LAST_MODIFIED));
+				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+					target.setLastModified(getFirstDate((String) value, LAST_MODIFIED));
 				}
 			}
 			else {
@@ -937,12 +946,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		else if (value instanceof Iterable<?>) {
 			for (Object next : (Iterable<?>) value) {
-				String convertedValue = null;
+				String convertedValue;
 				if (next instanceof String) {
 					convertedValue = (String) next;
 				}
 				else {
-					convertedValue = this.convertToString(value);
+					convertedValue = convertToString(value);
 				}
 				if (StringUtils.hasText(convertedValue)) {
 					target.add(name, convertedValue);
@@ -955,7 +964,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			}
 		}
 		else {
-			String convertedValue = this.convertToString(value);
+			String convertedValue = convertToString(value);
 			if (StringUtils.hasText(convertedValue)) {
 				target.set(name, convertedValue);
 			}
@@ -1016,7 +1025,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
 			String unmodifiedSince = source.getFirst(IF_UNMODIFIED_SINCE);
-			return unmodifiedSince != null ? this.getFirstDate(unmodifiedSince, IF_UNMODIFIED_SINCE) : null;
+			return unmodifiedSince != null ? getFirstDate(unmodifiedSince, IF_UNMODIFIED_SINCE) : null;
 		}
 		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
 			long lastModified = source.getLastModified();
@@ -1064,6 +1073,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		if (this.conversionService != null &&
 				this.conversionService.canConvert(TypeDescriptor.forObject(value),
 						TypeDescriptor.valueOf(String.class))) {
+
 			return this.conversionService.convert(value, String.class);
 		}
 		return null;
@@ -1087,10 +1097,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				+ "' header");
 	}
 
-	protected String formatDate(long date) {
+	protected static String formatDate(long date) {
 		Instant instant = Instant.ofEpochMilli(date);
 		ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, GMT);
-		return DATE_FORMATS[0].format(zonedDateTime);
+		return DATE_FORMATTER.format(zonedDateTime);
 	}
 
 	/**
