@@ -16,23 +16,29 @@
 
 package org.springframework.integration.http.dsl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -41,10 +47,14 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.http.multipart.UploadedMultipartFile;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.mock.web.MockPart;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
@@ -64,6 +74,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * @author Artem Bilan
@@ -107,20 +120,14 @@ public class HttpDslTests {
 				get("/service")
 						.with(httpBasic("admin", "admin"))
 						.param("name", "foo"))
-				.andExpect(
-						content()
-								.string("FOO"));
+				.andExpect(content().string("FOO"));
 
 		this.mockMvc.perform(
 				get("/service")
 						.with(httpBasic("user", "user"))
 						.param("name", "name"))
-				.andExpect(
-						status()
-								.isForbidden())
-				.andExpect(
-						content()
-								.string("Error"));
+				.andExpect(status().isForbidden())
+				.andExpect(content().string("Error"));
 	}
 
 	@Test
@@ -137,21 +144,59 @@ public class HttpDslTests {
 
 		this.mockMvc.perform(
 				get("/dynamic")
-						.with(httpBasic("admin", "admin"))
+						.with(httpBasic("user", "user"))
 						.param("name", "BAR"))
-				.andExpect(
-						content()
-								.string("bar"));
+				.andExpect(content().string("bar"));
 
 		flowRegistration.destroy();
 
 		this.mockMvc.perform(
 				get("/dynamic")
-						.with(httpBasic("admin", "admin"))
+						.with(httpBasic("user", "user"))
 						.param("name", "BAZ"))
-				.andExpect(
-						status()
-								.isNotFound());
+				.andExpect(status().isNotFound());
+	}
+
+	@Autowired
+	@Qualifier("multiPartFilesChannel")
+	private PollableChannel multiPartFilesChannel;
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testMultiPartFiles() throws Exception {
+		MockPart mockPart1 = new MockPart("a1", "file1", "ABC".getBytes(StandardCharsets.UTF_8));
+		mockPart1.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		MockPart mockPart2 = new MockPart("a1", "file2", "DEF".getBytes(StandardCharsets.UTF_8));
+		mockPart2.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		this.mockMvc.perform(
+				multipart("/multiPartFiles")
+						.part(mockPart1, mockPart2)
+						.with(httpBasic("user", "user")))
+				.andExpect(status().isOk());
+
+		Message<?> result = this.multiPartFilesChannel.receive(10_000);
+
+		assertThat(result)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.satisfies((payload) ->
+						assertThat((Map<String, ?>) payload)
+								.hasSize(1)
+								.extracting((map) -> map.get("a1"))
+								.asList()
+								.hasSize(2)
+								.satisfies((list) -> {
+									assertThat(list)
+											.element(0)
+											.extracting((file) ->
+													((UploadedMultipartFile) file).getOriginalFilename())
+											.isEqualTo("file1");
+									assertThat(list)
+											.element(1)
+											.extracting((file) ->
+													((UploadedMultipartFile) file).getOriginalFilename())
+											.isEqualTo("file2");
+								}));
 	}
 
 	@Configuration
@@ -235,6 +280,19 @@ public class HttpDslTests {
 					.transform(Throwable::getCause)
 					.<HttpClientErrorException>handle((p, h) ->
 							new ResponseEntity<>(p.getResponseBodyAsString(), p.getStatusCode()));
+		}
+
+		@Bean
+		public IntegrationFlow multiPartFilesFlow() {
+			return IntegrationFlows
+					.from(Http.inboundChannelAdapter("/multiPartFiles"))
+					.channel((c) -> c.queue("multiPartFilesChannel"))
+					.get();
+		}
+
+		@Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
+		public MultipartResolver multipartResolver() {
+			return new StandardServletMultipartResolver();
 		}
 
 		@Bean
