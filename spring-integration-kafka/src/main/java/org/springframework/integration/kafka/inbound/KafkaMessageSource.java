@@ -70,6 +70,11 @@ import org.springframework.util.Assert;
  * from the subsequent offsets will be redelivered - even if they were
  * processed successfully. Applications should therefore implement
  * idempotency.
+ * <p>
+ * Starting with version 2.2.5, this source implements {@link Pausable} which
+ * allows you to pause and resume the {@link Consumer}. While the consumer is
+ * paused, you must continue to call {@link #receive()} within
+ * {@code max.poll.interval.ms}, to prevent a rebalance.
  *
  * @param <K> the key type.
  * @param <V> the value type.
@@ -300,11 +305,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.running = false;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @since 3.1.2
+	 */
 	@Override
 	public synchronized void pause() {
 		this.pausing = true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @since 3.1.2
+	 */
 	@Override
 	public synchronized void resume() {
 		this.pausing = false;
@@ -324,7 +337,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			this.consumer.resume(this.assignedPartitions);
 			this.paused = false;
 		}
-		if (this.paused && this.logger.isDebugEnabled()) {
+		if (this.paused) {
 			this.logger.debug("Consumer is paused; no records will be returned");
 		}
 		ConsumerRecord<K, V> record;
