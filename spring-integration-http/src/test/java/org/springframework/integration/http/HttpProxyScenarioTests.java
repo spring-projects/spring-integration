@@ -190,7 +190,7 @@ public class HttpProxyScenarioTests {
 			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<>(httpHeaders);
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Type", "text/plain");
-			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
+			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
 				Mockito.any(HttpEntity.class), (Class<?>) isNull());
 
