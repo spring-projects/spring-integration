@@ -76,9 +76,10 @@ public class MessageSourceTests {
 	public void testAck() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
+		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
 		willAnswer(i -> {
 			((ConsumerRebalanceListener) i.getArgument(1))
-					.onPartitionsAssigned(Collections.singletonList(topicPartition));
+					.onPartitionsAssigned(assigned);
 			return null;
 		}).given(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
 		AtomicReference<Set<TopicPartition>> paused = new AtomicReference<>(new HashSet<>());
@@ -131,6 +132,10 @@ public class MessageSourceTests {
 				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received).isNull();
+		source.pause();
+		source.receive();
+		source.resume();
+		source.receive();
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
@@ -142,6 +147,10 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).pause(assigned);
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).resume(assigned);
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();

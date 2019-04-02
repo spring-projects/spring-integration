@@ -47,6 +47,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.endpoint.Pausable;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -80,7 +81,7 @@ import org.springframework.util.Assert;
  * @since 3.0.1
  *
  */
-public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Lifecycle {
+public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Lifecycle, Pausable {
 
 	private static final long DEFAULT_POLL_TIMEOUT = 50L;
 
@@ -117,13 +118,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private Duration commitTimeout;
 
-	private volatile Consumer<K, V> consumer;
-
 	private boolean running;
 
 	private boolean assigned;
 
 	private Duration assignTimeout = this.minTimeoutProvider.get();
+
+	private volatile Consumer<K, V> consumer;
+
+	private volatile Collection<TopicPartition> assignedPartitions = new ArrayList<>();
+
+	private volatile boolean pausing;
+
+	private volatile boolean paused;
 
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, String... topics) {
 		this(consumerFactory, new KafkaAckCallbackFactory<>(), topics);
@@ -294,10 +301,31 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	@Override
+	public synchronized void pause() {
+		this.pausing = true;
+	}
+
+	@Override
+	public synchronized void resume() {
+		this.pausing = false;
+	}
+
+	@Override
 	protected synchronized Object doReceive() {
 		if (this.consumer == null) {
 			createConsumer();
 			this.running = true;
+		}
+		if (this.pausing && !this.paused && this.assignedPartitions.size() > 0) {
+			this.consumer.pause(this.assignedPartitions);
+			this.paused = true;
+		}
+		else if (this.paused && !this.pausing) {
+			this.consumer.resume(this.assignedPartitions);
+			this.paused = false;
+		}
+		if (this.paused && this.logger.isDebugEnabled()) {
+			this.logger.debug("Consumer is paused; no records will be returned");
 		}
 		ConsumerRecord<K, V> record;
 		TopicPartition topicPartition;
@@ -341,6 +369,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 				@Override
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+					KafkaMessageSource.this.assignedPartitions.clear();
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
 						KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
 					}
@@ -351,6 +380,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+					KafkaMessageSource.this.assignedPartitions = new ArrayList<>(partitions);
 					KafkaMessageSource.this.assigned = true;
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
 						KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
@@ -491,7 +521,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			}
 			else {
 				Set<KafkaAckInfo<K, V>> candidates = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
-				KafkaAckInfo<K, V> ackInfo = null;
+				KafkaAckInfo<K, V> ackInformation = null;
 				synchronized (candidates) {
 					if (candidates.iterator().next().equals(this.ackInfo)) {
 						// see if there are any pending acks for higher offsets
@@ -507,29 +537,29 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 							}
 						}
 						if (toCommit.size() > 0) {
-							ackInfo = toCommit.get(toCommit.size() - 1);
+							ackInformation = toCommit.get(toCommit.size() - 1);
 							if (this.logger.isDebugEnabled()) {
 								this.logger.debug("Committing pending offsets for " + record + " and all deferred to "
-										+ ackInfo.getRecord());
+										+ ackInformation.getRecord());
 							}
 							candidates.removeAll(toCommit);
 						}
 						else {
-							ackInfo = this.ackInfo;
+							ackInformation = this.ackInfo;
 						}
 					}
 					else { // earlier offsets present
 						this.ackInfo.setAckDeferred(true);
 					}
-					if (ackInfo != null) {
+					if (ackInformation != null) {
 						Map<TopicPartition, OffsetAndMetadata> offset =
-								Collections.singletonMap(ackInfo.getTopicPartition(),
-										new OffsetAndMetadata(ackInfo.getRecord().offset() + 1));
+								Collections.singletonMap(ackInformation.getTopicPartition(),
+										new OffsetAndMetadata(ackInformation.getRecord().offset() + 1));
 						if (this.commitTimeout == null) {
-							ackInfo.getConsumer().commitSync(offset);
+							ackInformation.getConsumer().commitSync(offset);
 						}
 						else {
-							ackInfo.getConsumer().commitSync(offset, this.commitTimeout);
+							ackInformation.getConsumer().commitSync(offset, this.commitTimeout);
 						}
 					}
 					else {
