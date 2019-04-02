@@ -371,7 +371,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			// payload is already an HttpEntity, just return it as-is
 			return (HttpEntity<?>) payload;
 		}
-		HttpHeaders httpHeaders = this.mapHeaders(message);
+		HttpHeaders httpHeaders = mapHeaders(message);
 		if (!shouldIncludeRequestBody(httpMethod)) {
 			return new HttpEntity<>(httpHeaders);
 		}
