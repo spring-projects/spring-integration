@@ -42,7 +42,6 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
@@ -86,7 +85,7 @@ import org.springframework.util.Assert;
  * @since 3.0.1
  *
  */
-public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Lifecycle, Pausable {
+public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> implements Pausable {
 
 	private static final long DEFAULT_POLL_TIMEOUT = 50L;
 
