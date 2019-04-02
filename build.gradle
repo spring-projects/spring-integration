@@ -97,7 +97,7 @@ subprojects { subproject ->
 		commonsIoVersion = '2.6'
 		commonsNetVersion = '3.6'
 		curatorVersion = '4.0.1'
-		derbyVersion = '10.15.1.3'
+		derbyVersion = '10.14.2.0'
 		eclipseLinkVersion = '2.7.4'
 		ftpServerVersion = '1.1.1'
 		googleJsr305Version = '3.0.2'
