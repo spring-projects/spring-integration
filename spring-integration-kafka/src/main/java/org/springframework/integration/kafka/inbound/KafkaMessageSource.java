@@ -70,7 +70,7 @@ import org.springframework.util.Assert;
  * processed successfully. Applications should therefore implement
  * idempotency.
  * <p>
- * Starting with version 2.2.5, this source implements {@link Pausable} which
+ * Starting with version 3.1.2, this source implements {@link Pausable} which
  * allows you to pause and resume the {@link Consumer}. While the consumer is
  * paused, you must continue to call {@link #receive()} within
  * {@code max.poll.interval.ms}, to prevent a rebalance.
