@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int-kafka:outbound-gateway
+		id="allProps"
+		error-message-strategy="ems"
+		kafka-template="template"
+		message-key-expression="'key'"
+		order="23"
+		partition-id-expression="2"
+		reply-channel="replies"
+		reply-timeout="43"
+		request-channel="requests"
+		requires-reply="false"
+		send-success-channel="successes"
+		send-failure-channel="failures"
+		send-timeout-expression="44"
+		sync="true"
+		timestamp-expression="T(System).currentTimeMillis()"
+		topic-expression="'topic'"/>
+
+	<int:channel id="requests"/>
+
+	<int:channel id="replies"/>
+
+	<int:channel id="successes"/>
+
+	<int:channel id="failures"/>
+
+	<bean id="ems" class="org.springframework.integration.kafka.config.xml.KafkaOutboundGatewayParserTests$EMS"/>
+
+	<bean id="template" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.kafka.requestreply.ReplyingKafkaTemplate"/>
+	</bean>
+
+</beans>

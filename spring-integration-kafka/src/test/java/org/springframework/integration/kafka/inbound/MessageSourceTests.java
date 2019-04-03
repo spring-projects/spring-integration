@@ -403,17 +403,18 @@ public class MessageSourceTests {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testMaxPollRecords() {
-		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()));
+		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
+				"topic");
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
-				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)));
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), "topic");
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 		try {
 			new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
 
-			}));
+			}), "topic");
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {

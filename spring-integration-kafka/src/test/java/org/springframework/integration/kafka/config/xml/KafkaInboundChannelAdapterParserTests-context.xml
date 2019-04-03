@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
+
+	<int-kafka:inbound-channel-adapter
+			id="adapter1"
+			consumer-factory="consumerFactory"
+			ack-factory="ackFactory"
+			topics="topic1"
+			channel="inbound"
+			client-id="client"
+			group-id="group"
+			message-converter="converter"
+			payload-type="#{T(java.lang.String)}"
+			raw-header="true"
+			auto-startup="false"
+			rebalance-listener="rebal">
+		<int:poller fixed-delay="5000"/>
+	</int-kafka:inbound-channel-adapter>
+
+	<int-kafka:inbound-channel-adapter
+			id="adapter2"
+			consumer-factory="consumerFactory"
+			topics="topic1, topic2"
+			group-id="group"
+			auto-startup="false"
+			channel="inbound">
+		<int:poller fixed-delay="5000"/>
+	</int-kafka:inbound-channel-adapter>
+
+	<bean id="consumerFactory" class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+		<constructor-arg>
+			<map>
+				<entry key="max.poll.records" value="1"/>
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="ackFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg
+			value="org.springframework.integration.kafka.inbound.KafkaMessageSource$KafkaAckCallbackFactory"/>
+	</bean>
+
+	<int:channel id="inbound"/>
+
+	<bean id="converter" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.kafka.support.converter.RecordMessageConverter"/>
+	</bean>
+
+	<bean id="rebal" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"/>
+	</bean>
+
+</beans>
