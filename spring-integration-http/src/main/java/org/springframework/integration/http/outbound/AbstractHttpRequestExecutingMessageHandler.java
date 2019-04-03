@@ -188,9 +188,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * be returned as a payload of the reply Message.
 	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
-	 *
 	 * @param expectedResponseType The expected type.
-	 *
 	 * Also see {@link #setExpectedResponseTypeExpression(Expression)}
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
@@ -221,7 +219,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
-	 *
 	 * @param uriVariableExpressions The URI variable expressions.
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
@@ -235,7 +232,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * Set the {@link Expression} to evaluate against the outbound message; the expression
 	 * must evaluate to a Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
-	 *
 	 * @param uriVariablesExpression The URI variables expression.
 	 */
 	public void setUriVariablesExpression(Expression uriVariablesExpression) {
@@ -246,7 +242,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * Set to true if you wish 'Set-Cookie' headers in responses to be
 	 * transferred as 'Cookie' headers in subsequent interactions for
 	 * a message.
-	 *
 	 * @param transferCookies the transferCookies to set.
 	 */
 	public void setTransferCookies(boolean transferCookies) {
@@ -343,14 +338,14 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private void doConvertSetCookie(Map<String, Object> headers) {
 		String keyName = null;
 		for (String key : headers.keySet()) {
-			if (key.equalsIgnoreCase(DefaultHttpHeaderMapper.SET_COOKIE)) {
+			if (key.equalsIgnoreCase(HttpHeaders.SET_COOKIE)) {
 				keyName = key;
 				break;
 			}
 		}
 		if (keyName != null) {
 			Object cookies = headers.remove(keyName);
-			headers.put(DefaultHttpHeaderMapper.COOKIE, cookies);
+			headers.put(HttpHeaders.COOKIE, cookies);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Converted Set-Cookie header to Cookie for: "
 						+ cookies);
@@ -562,7 +557,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				.usingEvaluationContext(evaluationContextToUse)
 				.withRoot(requestMessage)
 				.build();
-
 	}
 
 }

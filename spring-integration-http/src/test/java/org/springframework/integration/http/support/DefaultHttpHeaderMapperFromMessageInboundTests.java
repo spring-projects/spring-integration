@@ -75,7 +75,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow()).hasSize(1);
 		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
@@ -87,7 +87,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow()).hasSize(1);
 		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
@@ -99,7 +99,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertThat(headers.getAllow().size()).isEqualTo(1);
+		assertThat(headers.getAllow()).hasSize(1);
 		assertThat(headers.getAllow().iterator().next()).isEqualTo(HttpMethod.GET);
 	}
 
@@ -301,12 +301,12 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateTransferEncodingMappedFromHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] { "Transfer-Encoding" });
+		mapper.setInboundHeaderNames("Transfer-Encoding");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Transfer-Encoding", "chunked");
 
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertThat(result.size()).isEqualTo(1);
+		assertThat(result).hasSize(1);
 		assertThat(result.get("Transfer-Encoding")).isEqualTo("chunked");
 
 	}
@@ -329,23 +329,23 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamesMappedToHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "foo", "bar" });
+		mapper.setOutboundHeaderNames("foo", "bar");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foo", "abc");
 		messageHeaders.put("bar", "123");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertThat(headers.size()).isEqualTo(2);
-		assertThat(headers.get("foo").size()).isEqualTo(1);
+		assertThat(headers.get("foo")).hasSize(1);
 		assertThat(headers.getFirst("foo")).isEqualTo("abc");
-		assertThat(headers.get("bar").size()).isEqualTo(1);
+		assertThat(headers.get("bar")).hasSize(1);
 		assertThat(headers.getFirst("bar")).isEqualTo("123");
 	}
 
 	@Test
 	public void validateCustomHeaderNamePatternsMappedToHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "x*", "*z", "a*f" });
+		mapper.setOutboundHeaderNames("x*", "*z", "a*f");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("x1", "x1-value");
 		messageHeaders.put("1x", "1x-value");
@@ -361,18 +361,18 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertThat(headers.get("z1")).isNull();
 		assertThat(headers.get("abc")).isNull();
 		assertThat(headers.get("def")).isNull();
-		assertThat(headers.get("x1").size()).isEqualTo(1);
+		assertThat(headers.get("x1")).hasSize(1);
 		assertThat(headers.getFirst("x1")).isEqualTo("x1-value");
-		assertThat(headers.get("1z").size()).isEqualTo(1);
+		assertThat(headers.get("1z")).hasSize(1);
 		assertThat(headers.getFirst("1z")).isEqualTo("1z-value");
-		assertThat(headers.get("abcdef").size()).isEqualTo(1);
+		assertThat(headers.get("abcdef")).hasSize(1);
 		assertThat(headers.getFirst("abcdef")).isEqualTo("abcdef-value");
 	}
 
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
+		mapper.setOutboundHeaderNames("foo*", "HTTP_RESPONSE_HEADERS");
 		mapper.setUserDefinedHeaderPrefix("X-");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foobar", "abc");
@@ -383,7 +383,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertThat(headers.size()).isEqualTo(2);
 		assertThat(headers.getAccept().isEmpty()).isTrue();
 		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
-		assertThat(headers.get("X-foobar").size()).isEqualTo(1);
+		assertThat(headers.get("X-foobar")).hasSize(1);
 		assertThat(headers.getFirst("X-foobar")).isEqualTo("abc");
 	}
 
@@ -391,7 +391,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefix() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix("Z-");
-		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
+		mapper.setOutboundHeaderNames("foo*", "HTTP_RESPONSE_HEADERS");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -401,7 +401,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertThat(headers.size()).isEqualTo(2);
 		assertThat(headers.getAccept().isEmpty()).isTrue();
 		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
-		assertThat(headers.get("Z-foobar").size()).isEqualTo(1);
+		assertThat(headers.get("Z-foobar")).hasSize(1);
 		assertThat(headers.getFirst("Z-foobar")).isEqualTo("abc");
 	}
 
@@ -409,7 +409,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix("");
-		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
+		mapper.setOutboundHeaderNames("foo*", "HTTP_RESPONSE_HEADERS");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -419,7 +419,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertThat(headers.size()).isEqualTo(2);
 		assertThat(headers.getAccept().isEmpty()).isTrue();
 		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
-		assertThat(headers.get("foobar").size()).isEqualTo(1);
+		assertThat(headers.get("foobar")).hasSize(1);
 		assertThat(headers.getFirst("foobar")).isEqualTo("abc");
 	}
 
@@ -427,7 +427,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixNull() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix(null);
-		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
+		mapper.setOutboundHeaderNames("foo*", "HTTP_RESPONSE_HEADERS");
 		Map<String, Object> messageHeaders = new HashMap<>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -437,14 +437,14 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertThat(headers.size()).isEqualTo(2);
 		assertThat(headers.getAccept().isEmpty()).isTrue();
 		assertThat(headers.getContentType()).isEqualTo(MediaType.TEXT_XML);
-		assertThat(headers.get("foobar").size()).isEqualTo(1);
+		assertThat(headers.get("foobar")).hasSize(1);
 		assertThat(headers.getFirst("foobar")).isEqualTo("abc");
 	}
 
 	@Test
 	public void validateCustomHeaderNamesMappedFromHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] { "foo", "bar" });
+		mapper.setInboundHeaderNames("foo", "bar");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "abc");
 		headers.set("bar", "123");
@@ -457,7 +457,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsMappedFromHttpHeaders() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] { "x*", "*z", "a*f" });
+		mapper.setInboundHeaderNames("x*", "*z", "a*f");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("x1", "x1-value");
 		headers.set("1x", "1x-value");
@@ -482,13 +482,13 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 			throws URISyntaxException {
 
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] { "foo*", "HTTP_REQUEST_HEADERS" });
+		mapper.setInboundHeaderNames("foo*", "HTTP_REQUEST_HEADERS");
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foobar", "abc");
 		headers.setAccept(Collections.singletonList(MediaType.TEXT_XML));
 		headers.setLocation(new URI("http://www.example.org"));
 		Map<String, ?> result = mapper.toHeaders(headers);
-		assertThat(result.size()).isEqualTo(2);
+		assertThat(result).hasSize(2);
 		assertThat(result.get("Location")).isNull();
 		assertThat(result.get("foobar")).isEqualTo("abc");
 		assertThat(result.get("Accept")).isEqualTo(MediaType.TEXT_XML);
@@ -497,7 +497,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndNoConverter() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
+		mapper.setOutboundHeaderNames("customHeader*");
 
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<>();
@@ -513,7 +513,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
+		mapper.setOutboundHeaderNames("customHeader*");
 		ConversionService cs = new DefaultConversionService();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
@@ -534,7 +534,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
+		mapper.setOutboundHeaderNames("customHeader*");
 		GenericConversionService cs = new DefaultConversionService();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();

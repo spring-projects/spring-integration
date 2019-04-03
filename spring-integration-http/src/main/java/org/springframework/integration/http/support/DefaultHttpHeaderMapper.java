@@ -20,7 +20,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +53,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.util.JavaUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -75,202 +78,420 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String UNUSED = "unused";
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	public static final String ACCEPT = "Accept";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT}
+	 */
+	@Deprecated
+	public static final String ACCEPT = HttpHeaders.ACCEPT;
 
-	public static final String ACCEPT_CHARSET = "Accept-Charset";
+	private static final String ACCEPT_LOWER = "accept";
 
-	public static final String ACCEPT_ENCODING = "Accept-Encoding";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_CHARSET}
+	 */
+	@Deprecated
+	public static final String ACCEPT_CHARSET = HttpHeaders.ACCEPT_CHARSET;
 
-	public static final String ACCEPT_LANGUAGE = "Accept-Language";
+	private static final String ACCEPT_CHARSET_LOWER = "accept-charset";
 
-	public static final String ACCEPT_RANGES = "Accept-Ranges";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_ENCODING}
+	 */
+	@Deprecated
+	public static final String ACCEPT_ENCODING = HttpHeaders.ACCEPT_ENCODING;
 
-	public static final String AGE = "Age";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_LANGUAGE}
+	 */
+	@Deprecated
+	public static final String ACCEPT_LANGUAGE = HttpHeaders.ACCEPT_LANGUAGE;
 
-	public static final String ALLOW = "Allow";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_RANGES}
+	 */
+	@Deprecated
+	public static final String ACCEPT_RANGES = HttpHeaders.ACCEPT_RANGES;
 
-	public static final String AUTHORIZATION = "Authorization";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#AGE}
+	 */
+	@Deprecated
+	public static final String AGE = HttpHeaders.AGE;
 
-	public static final String CACHE_CONTROL = "Cache-Control";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ALLOW}
+	 */
+	@Deprecated
+	public static final String ALLOW = HttpHeaders.ALLOW;
 
-	public static final String CONNECTION = "Connection";
+	private static final String ALLOW_LOWER = "allow";
 
-	public static final String CONTENT_ENCODING = "Content-Encoding";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#AUTHORIZATION}
+	 */
+	@Deprecated
+	public static final String AUTHORIZATION = HttpHeaders.AUTHORIZATION;
 
-	public static final String CONTENT_LANGUAGE = "Content-Language";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CACHE_CONTROL}
+	 */
+	@Deprecated
+	public static final String CACHE_CONTROL = HttpHeaders.CACHE_CONTROL;
 
-	public static final String CONTENT_LENGTH = "Content-Length";
+	private static final String CACHE_CONTROL_LOWER = "cache-control";
 
-	public static final String CONTENT_LOCATION = "Content-Location";
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONNECTION}
+	 */
+	@Deprecated
+	public static final String CONNECTION = HttpHeaders.CONNECTION;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_ENCODING}
+	 */
+	@Deprecated
+	public static final String CONTENT_ENCODING = HttpHeaders.CONTENT_ENCODING;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_LANGUAGE}
+	 */
+	@Deprecated
+	public static final String CONTENT_LANGUAGE = HttpHeaders.CONTENT_LANGUAGE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_LENGTH}
+	 */
+	@Deprecated
+	public static final String CONTENT_LENGTH = HttpHeaders.CONTENT_LENGTH;
+
+	private static final String CONTENT_LENGTH_LOWER = "content-length";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_LOCATION}
+	 */
+	@Deprecated
+	public static final String CONTENT_LOCATION = HttpHeaders.CONTENT_LOCATION;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_RANGE}
+	 */
+	@Deprecated
+	public static final String CONTENT_RANGE = HttpHeaders.CONTENT_RANGE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_TYPE}
+	 */
+	@Deprecated
+	public static final String CONTENT_TYPE = HttpHeaders.CONTENT_TYPE;
+
+	private static final String CONTENT_TYPE_LOWER = "content-type";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_DISPOSITION}
+	 */
+	@Deprecated
+	public static final String CONTENT_DISPOSITION = HttpHeaders.CONTENT_DISPOSITION;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#COOKIE}
+	 */
+	@Deprecated
+	public static final String COOKIE = HttpHeaders.COOKIE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#DATE}
+	 */
+	@Deprecated
+	public static final String DATE = HttpHeaders.DATE;
+
+	private static final String DATE_LOWER = "date";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ETAG}
+	 */
+	@Deprecated
+	public static final String ETAG = HttpHeaders.ETAG;
+
+	private static final String ETAG_LOWER = "etag";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#EXPECT}
+	 */
+	@Deprecated
+	public static final String EXPECT = HttpHeaders.EXPECT;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#EXPIRES}
+	 */
+	@Deprecated
+	public static final String EXPIRES = HttpHeaders.EXPIRES;
+
+	private static final String EXPIRES_LOWER = "expires";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#FROM}
+	 */
+	@Deprecated
+	public static final String FROM = HttpHeaders.FROM;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#HOST}
+	 */
+	@Deprecated
+	public static final String HOST = HttpHeaders.HOST;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_MATCH}
+	 */
+	@Deprecated
+	public static final String IF_MATCH = HttpHeaders.IF_MATCH;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_MODIFIED_SINCE}
+	 */
+	@Deprecated
+	public static final String IF_MODIFIED_SINCE = HttpHeaders.IF_MODIFIED_SINCE;
+
+	private static final String IF_MODIFIED_SINCE_LOWER = "if-modified-since";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_NONE_MATCH}
+	 */
+	@Deprecated
+	public static final String IF_NONE_MATCH = HttpHeaders.IF_NONE_MATCH;
+
+	private static final String IF_NONE_MATCH_LOWER = "if-none-match";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_RANGE}
+	 */
+	@Deprecated
+	public static final String IF_RANGE = HttpHeaders.IF_RANGE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_UNMODIFIED_SINCE}
+	 */
+	@Deprecated
+	public static final String IF_UNMODIFIED_SINCE = HttpHeaders.IF_UNMODIFIED_SINCE;
+
+	private static final String IF_UNMODIFIED_SINCE_LOWER = "if-unmodified-since";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#LAST_MODIFIED}
+	 */
+	@Deprecated
+	public static final String LAST_MODIFIED = HttpHeaders.LAST_MODIFIED;
+
+	private static final String LAST_MODIFIED_LOWER = "last-modified";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#LOCATION}
+	 */
+	@Deprecated
+	public static final String LOCATION = HttpHeaders.LOCATION;
+
+	private static final String LOCATION_LOWER = "location";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#MAX_FORWARDS}
+	 */
+	@Deprecated
+	public static final String MAX_FORWARDS = HttpHeaders.MAX_FORWARDS;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#PRAGMA}
+	 */
+	@Deprecated
+	public static final String PRAGMA = HttpHeaders.PRAGMA;
+
+	private static final String PRAGMA_LOWER = "pragma";
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#PROXY_AUTHENTICATE}
+	 */
+	@Deprecated
+	public static final String PROXY_AUTHENTICATE = HttpHeaders.PROXY_AUTHENTICATE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#PROXY_AUTHORIZATION}
+	 */
+	@Deprecated
+	public static final String PROXY_AUTHORIZATION = HttpHeaders.PROXY_AUTHORIZATION;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#RANGE}
+	 */
+	@Deprecated
+	public static final String RANGE = HttpHeaders.RANGE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#REFERER}
+	 */
+	@Deprecated
+	public static final String REFERER = HttpHeaders.REFERER;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#RETRY_AFTER}
+	 */
+	@Deprecated
+	public static final String RETRY_AFTER = HttpHeaders.RETRY_AFTER;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#SERVER}
+	 */
+	@Deprecated
+	public static final String SERVER = HttpHeaders.SERVER;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#SET_COOKIE}
+	 */
+	@Deprecated
+	public static final String SET_COOKIE = HttpHeaders.SET_COOKIE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#TE}
+	 */
+	@Deprecated
+	public static final String TE = HttpHeaders.TE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#TRAILER}
+	 */
+	@Deprecated
+	public static final String TRAILER = HttpHeaders.TRAILER;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#UPGRADE}
+	 */
+	@Deprecated
+	public static final String UPGRADE = HttpHeaders.UPGRADE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#USER_AGENT}
+	 */
+	@Deprecated
+	public static final String USER_AGENT = HttpHeaders.USER_AGENT;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#VARY}
+	 */
+	@Deprecated
+	public static final String VARY = HttpHeaders.VARY;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#VIA}
+	 */
+	@Deprecated
+	public static final String VIA = HttpHeaders.VIA;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#WARNING}
+	 */
+	@Deprecated
+	public static final String WARNING = HttpHeaders.WARNING;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#WWW_AUTHENTICATE}
+	 */
+	@Deprecated
+	public static final String WWW_AUTHENTICATE = HttpHeaders.WWW_AUTHENTICATE;
+
+	/**
+	 * @deprecated since 5.2 in favor of {@link HttpHeaders#TRANSFER_ENCODING}
+	 */
+	@Deprecated
+	public static final String TRANSFER_ENCODING = HttpHeaders.TRANSFER_ENCODING;
 
 	public static final String CONTENT_MD5 = "Content-MD5";
 
-	public static final String CONTENT_RANGE = "Content-Range";
-
-	public static final String CONTENT_TYPE = "Content-Type";
-
-	public static final String CONTENT_DISPOSITION = "Content-Disposition";
-
-	public static final String COOKIE = "Cookie";
-
-	public static final String DATE = "Date";
-
-	public static final String ETAG = "ETag";
-
-	public static final String EXPECT = "Expect";
-
-	public static final String EXPIRES = "Expires";
-
-	public static final String FROM = "From";
-
-	public static final String HOST = "Host";
-
-	public static final String IF_MATCH = "If-Match";
-
-	public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
-
-	public static final String IF_NONE_MATCH = "If-None-Match";
-
-	public static final String IF_RANGE = "If-Range";
-
-	public static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
-
-	public static final String LAST_MODIFIED = "Last-Modified";
-
-	public static final String LOCATION = "Location";
-
-	public static final String MAX_FORWARDS = "Max-Forwards";
-
-	public static final String PRAGMA = "Pragma";
-
-	public static final String PROXY_AUTHENTICATE = "Proxy-Authenticate";
-
-	public static final String PROXY_AUTHORIZATION = "Proxy-Authorization";
-
-	public static final String RANGE = "Range";
-
-	public static final String REFERER = "Referer";
-
 	public static final String REFRESH = "Refresh";
 
-	public static final String RETRY_AFTER = "Retry-After";
-
-	public static final String SERVER = "Server";
-
-	public static final String SET_COOKIE = "Set-Cookie";
-
-	public static final String TE = "TE";
-
-	public static final String TRAILER = "Trailer";
-
-	public static final String UPGRADE = "Upgrade";
-
-	public static final String USER_AGENT = "User-Agent";
-
-	public static final String VARY = "Vary";
-
-	public static final String VIA = "Via";
-
-	public static final String WARNING = "Warning";
-
-	public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
-
-	public static final String TRANSFER_ENCODING = "Transfer-Encoding";
-
 	private static final String[] HTTP_REQUEST_HEADER_NAMES = new String[] {
-			ACCEPT,
-			ACCEPT_CHARSET,
-			ACCEPT_ENCODING,
-			ACCEPT_LANGUAGE,
-			ACCEPT_RANGES,
-			AUTHORIZATION,
-			CACHE_CONTROL,
-			CONNECTION,
-			CONTENT_LENGTH,
-			CONTENT_TYPE,
-			COOKIE,
-			DATE,
-			EXPECT,
-			FROM,
-			HOST,
-			IF_MATCH,
-			IF_MODIFIED_SINCE,
-			IF_NONE_MATCH,
-			IF_RANGE,
-			IF_UNMODIFIED_SINCE,
-			MAX_FORWARDS,
-			PRAGMA,
-			PROXY_AUTHORIZATION,
-			RANGE,
-			REFERER,
-			TE,
-			UPGRADE,
-			USER_AGENT,
-			VIA,
-			WARNING
+			HttpHeaders.ACCEPT,
+			HttpHeaders.ACCEPT_CHARSET,
+			HttpHeaders.ACCEPT_ENCODING,
+			HttpHeaders.ACCEPT_LANGUAGE,
+			HttpHeaders.ACCEPT_RANGES,
+			HttpHeaders.AUTHORIZATION,
+			HttpHeaders.CACHE_CONTROL,
+			HttpHeaders.CONNECTION,
+			HttpHeaders.CONTENT_LENGTH,
+			HttpHeaders.CONTENT_TYPE,
+			HttpHeaders.COOKIE,
+			HttpHeaders.DATE,
+			HttpHeaders.EXPECT,
+			HttpHeaders.FROM,
+			HttpHeaders.HOST,
+			HttpHeaders.IF_MATCH,
+			HttpHeaders.IF_MODIFIED_SINCE,
+			HttpHeaders.IF_NONE_MATCH,
+			HttpHeaders.IF_RANGE,
+			HttpHeaders.IF_UNMODIFIED_SINCE,
+			HttpHeaders.MAX_FORWARDS,
+			HttpHeaders.PRAGMA,
+			HttpHeaders.PROXY_AUTHORIZATION,
+			HttpHeaders.RANGE,
+			HttpHeaders.REFERER,
+			HttpHeaders.TE,
+			HttpHeaders.UPGRADE,
+			HttpHeaders.USER_AGENT,
+			HttpHeaders.VIA,
+			HttpHeaders.WARNING
 	};
 
 	private static final Set<String> HTTP_REQUEST_HEADER_NAMES_LOWER = new HashSet<>();
 
 	private static final String[] HTTP_RESPONSE_HEADER_NAMES = new String[] {
-			ACCEPT_RANGES,
-			AGE,
-			ALLOW,
-			CACHE_CONTROL,
-			CONNECTION,
-			CONTENT_ENCODING,
-			CONTENT_LANGUAGE,
-			CONTENT_LENGTH,
-			CONTENT_LOCATION,
+			HttpHeaders.ACCEPT_RANGES,
+			HttpHeaders.AGE,
+			HttpHeaders.ALLOW,
+			HttpHeaders.CACHE_CONTROL,
+			HttpHeaders.CONNECTION,
+			HttpHeaders.CONTENT_ENCODING,
+			HttpHeaders.CONTENT_LANGUAGE,
+			HttpHeaders.CONTENT_LENGTH,
+			HttpHeaders.CONTENT_LOCATION,
 			CONTENT_MD5,
-			CONTENT_RANGE,
-			CONTENT_TYPE,
-			CONTENT_DISPOSITION,
-			TRANSFER_ENCODING,
-			DATE,
-			ETAG,
-			EXPIRES,
-			LAST_MODIFIED,
-			LOCATION,
-			PRAGMA,
-			PROXY_AUTHENTICATE,
+			HttpHeaders.CONTENT_RANGE,
+			HttpHeaders.CONTENT_TYPE,
+			HttpHeaders.CONTENT_DISPOSITION,
+			HttpHeaders.TRANSFER_ENCODING,
+			HttpHeaders.DATE,
+			HttpHeaders.ETAG,
+			HttpHeaders.EXPIRES,
+			HttpHeaders.LAST_MODIFIED,
+			HttpHeaders.LOCATION,
+			HttpHeaders.PRAGMA,
+			HttpHeaders.PROXY_AUTHENTICATE,
 			REFRESH,
-			RETRY_AFTER,
-			SERVER,
-			SET_COOKIE,
-			TRAILER,
-			VARY,
-			VIA,
-			WARNING,
-			WWW_AUTHENTICATE
+			HttpHeaders.RETRY_AFTER,
+			HttpHeaders.SERVER,
+			HttpHeaders.SET_COOKIE,
+			HttpHeaders.TRAILER,
+			HttpHeaders.VARY,
+			HttpHeaders.VIA,
+			HttpHeaders.WARNING,
+			HttpHeaders.WWW_AUTHENTICATE
 	};
 
-	private static final Set<String> HTTP_RESPONSE_HEADER_NAMES_LOWER = new HashSet<String>();
+	private static final Set<String> HTTP_RESPONSE_HEADER_NAMES_LOWER = new HashSet<>();
 
 	private static final String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = new String[0];
 
-	private static final String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS = new String[] {
-			CONTENT_LENGTH, TRANSFER_ENCODING
-	};
+	private static final String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS =
+			{ HttpHeaders.CONTENT_LENGTH, HttpHeaders.TRANSFER_ENCODING };
 
 	public static final String HTTP_REQUEST_HEADER_NAME_PATTERN = "HTTP_REQUEST_HEADERS";
 
 	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
 
-	// Copy of 'org.springframework.http.HttpHeaders#GMT'
-	private static final ZoneId GMT = ZoneId.of("GMT");
-
-	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATTER'
-	protected static final DateTimeFormatter DATE_FORMATTER =
-			DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).withZone(GMT);
-
 	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATS'
-	protected static final DateTimeFormatter[] DATE_FORMATS = new DateTimeFormatter[] {
+	protected static final DateTimeFormatter[] DATE_FORMATS = {
 			DateTimeFormatter.RFC_1123_DATE_TIME,
 			DateTimeFormatter.ofPattern("EEEE, dd-MMM-yy HH:mm:ss zz", Locale.US),
-			DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss yyyy", Locale.US).withZone(GMT)
+			DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss yyyy", Locale.US).withZone(ZoneId.of("GMT")) // NOSONAR
 	};
 
 	static {
@@ -321,15 +542,17 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 * @param outboundHeaderNames The outbound header names.
 	 */
-	public void setOutboundHeaderNames(String[] outboundHeaderNames) { //NOSONAR - false positive
+	public void setOutboundHeaderNames(String... outboundHeaderNames) {
 		if (HTTP_REQUEST_HEADER_NAMES == outboundHeaderNames) {
 			this.isDefaultOutboundMapper = true;
 		}
 		else if (HTTP_RESPONSE_HEADER_NAMES == outboundHeaderNames) {
 			this.isDefaultInboundMapper = true;
 		}
-		this.outboundHeaderNames = outboundHeaderNames != null ?
-				Arrays.copyOf(outboundHeaderNames, outboundHeaderNames.length) : new String[0];
+		this.outboundHeaderNames =
+				outboundHeaderNames != null
+						? Arrays.copyOf(outboundHeaderNames, outboundHeaderNames.length)
+						: new String[0];
 		String[] outboundHeaderNamesLower = new String[this.outboundHeaderNames.length];
 		for (int i = 0; i < this.outboundHeaderNames.length; i++) {
 			if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(this.outboundHeaderNames[i])
@@ -357,9 +580,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * that is an empty String.
 	 * @param inboundHeaderNames The inbound header names.
 	 */
-	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
-		this.inboundHeaderNames = inboundHeaderNames != null ?
-				Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length) : new String[0];
+	public void setInboundHeaderNames(String... inboundHeaderNames) {
+		this.inboundHeaderNames =
+				inboundHeaderNames != null
+						? Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length)
+						: new String[0];
 		this.inboundHeaderNamesLower = new String[this.inboundHeaderNames.length];
 		for (int i = 0; i < this.inboundHeaderNames.length; i++) {
 			if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(this.inboundHeaderNames[i])
@@ -409,6 +634,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
 	}
 
+	@Override
+	public void afterPropertiesSet() {
+		if (this.beanFactory != null) {
+			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
+		}
+	}
+
 	/**
 	 * Map from the integration MessageHeaders to an HttpHeaders instance.
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
@@ -421,26 +653,453 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
+			Object value = entry.getValue();
 			String lowerName = name.toLowerCase();
-			if (shouldMapOutboundHeader(lowerName)) {
-				Object value = entry.getValue();
-				if (value != null) {
-					if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
-							!HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName) &&
-							!MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-						// prefix the user-defined header names if not already prefixed
-
-						name =
-								StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
-										? name
-										: this.userDefinedHeaderPrefix + name;
-					}
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-					}
-					setHttpHeader(target, name, value);
+			if (value != null && shouldMapOutboundHeader(lowerName)) {
+				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName) &&
+						!HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName) &&
+						!MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+					// prefix the user-defined header names if not already prefixed
+					name =
+							StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
+									? name
+									: this.userDefinedHeaderPrefix + name;
 				}
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+				}
+				setHttpHeader(target, name, value);
 			}
+		}
+	}
+
+	private void setHttpHeader(HttpHeaders target, String name, Object value) {
+		AtomicBoolean headerSet = new AtomicBoolean();
+
+		JavaUtils.INSTANCE
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ACCEPT, name, headerSet), target, value,
+						this::setAccept)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ACCEPT_CHARSET, name, headerSet), target, value,
+						this::setAcceptCharset)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ALLOW, name, headerSet), target, value,
+						this::setAllow)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.CACHE_CONTROL, name, headerSet), target, value,
+						this::setCacheControl)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.CONTENT_LENGTH, name, headerSet), target, value,
+						this::setContentLength)
+				.acceptIfCondition(checkStandardHeaderToSet(MessageHeaders.CONTENT_TYPE, name, headerSet), target,
+						value, this::setContentType)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.DATE, name, headerSet), target, value,
+						this::setDate)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ETAG, name, headerSet), target, value,
+						this::setETag)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.EXPIRES, name, headerSet), target, value,
+						this::setExpires)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_MODIFIED_SINCE, name, headerSet), target,
+						value, this::setIfModifiedSince)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_UNMODIFIED_SINCE, name, headerSet), target,
+						value, this::setIfUnmodifiedSince)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_NONE_MATCH, name, headerSet), target, value,
+						this::setIfNoneMatch)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.LAST_MODIFIED, name, headerSet), target, value,
+						this::setLastModified)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.LOCATION, name, headerSet), target, value,
+						this::setLocation)
+				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.PRAGMA, name, headerSet), target, value,
+						this::setPragma);
+
+		if (!headerSet.get()) {
+			if (value instanceof String) {
+				target.set(name, (String) value);
+			}
+			else if (value instanceof String[]) {
+				target.addAll(name, Arrays.asList((String[]) value));
+			}
+			else if (value instanceof Iterable<?>) {
+				setIterableHeader(target, name, value);
+			}
+			else {
+				setPlainHeader(target, name, value);
+			}
+		}
+	}
+
+	private boolean checkStandardHeaderToSet(String headerName, String actualName, AtomicBoolean headerSet) {
+		boolean setHeader = headerName.equalsIgnoreCase(actualName);
+		headerSet.compareAndSet(false, setHeader);
+		return setHeader;
+	}
+
+	private void setAccept(HttpHeaders target, Object value) {
+		if (value instanceof Collection<?>) {
+			Collection<?> values = (Collection<?>) value;
+			if (!CollectionUtils.isEmpty(values)) {
+				List<MediaType> acceptableMediaTypes = new ArrayList<>();
+				for (Object type : values) {
+					if (type instanceof MediaType) {
+						acceptableMediaTypes.add((MediaType) type);
+					}
+					else if (type instanceof String) {
+						acceptableMediaTypes.addAll(MediaType.parseMediaTypes((String) type));
+					}
+					else {
+						throwIllegalArgumentForUnexpectedValue(
+								"Expected MediaType or String value for 'Accept' header value, but received: ", type);
+
+					}
+				}
+				target.setAccept(acceptableMediaTypes);
+			}
+		}
+		else if (value instanceof MediaType) {
+			target.setAccept(Collections.singletonList((MediaType) value));
+		}
+		else if (value instanceof String[]) {
+			target.setAccept(MediaType.parseMediaTypes(Arrays.asList((String[]) value)));
+		}
+		else if (value instanceof String) {
+			target.setAccept(MediaType.parseMediaTypes((String) value));
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected MediaType or String value for 'Accept' header value, but received: ", value);
+		}
+	}
+
+	private void setAcceptCharset(HttpHeaders target, Object value) {
+		List<Charset> acceptableCharsets = null;
+		if (value instanceof Collection<?>) {
+			acceptableCharsets =
+					((Collection<?>) value).stream()
+							.map((charset) -> {
+								if (charset instanceof Charset) {
+									return (Charset) charset;
+								}
+								else if (charset instanceof String) {
+									return Charset.forName((String) charset);
+								}
+								else {
+									throwIllegalArgumentForUnexpectedValue(
+											"Expected Charset or String value for 'Accept-Charset' header value, " +
+													"but received: ", charset);
+									return null;
+								}
+							})
+							.collect(Collectors.toList());
+		}
+		else if (value instanceof Charset[] || value instanceof String[]) {
+			acceptableCharsets =
+					Arrays.stream(ObjectUtils.toObjectArray(value))
+							.map((charset) -> charset instanceof String ? Charset.forName((String) charset) : charset)
+							.map(Charset.class::cast)
+							.collect(Collectors.toList());
+		}
+		else if (value instanceof Charset) {
+			acceptableCharsets = Collections.singletonList((Charset) value);
+		}
+		else if (value instanceof String) {
+			acceptableCharsets =
+					StringUtils.commaDelimitedListToSet((String) value)
+							.stream()
+							.map((charset) -> Charset.forName(charset.trim()))
+							.collect(Collectors.toList());
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Charset or String value for 'Accept-Charset' header value, but received: ", value);
+		}
+
+		if (!CollectionUtils.isEmpty(acceptableCharsets)) {
+			target.setAcceptCharset(acceptableCharsets);
+		}
+	}
+
+	private void setAllow(HttpHeaders target, Object value) {
+		Set<HttpMethod> allowedMethods = null;
+		if (value instanceof Collection<?>) {
+			allowedMethods =
+					((Collection<?>) value).stream()
+							.map((method) -> {
+								if (method instanceof HttpMethod) {
+									return (HttpMethod) method;
+								}
+								else if (method instanceof String) {
+									return HttpMethod.valueOf((String) method);
+								}
+								else {
+									throwIllegalArgumentForUnexpectedValue(
+											"Expected HttpMethod or String value for 'Allow' header value, " +
+													"but received: ", method);
+									return null;
+								}
+							})
+							.collect(Collectors.toSet());
+		}
+		else if (value instanceof HttpMethod) {
+			allowedMethods = Collections.singleton((HttpMethod) value);
+		}
+		else if (value instanceof HttpMethod[]) {
+			allowedMethods = new HashSet<>(Arrays.asList((HttpMethod[]) value));
+		}
+		else if (value instanceof String || value instanceof String[]) {
+			String[] values =
+					(value instanceof String[])
+							? (String[]) value
+							: StringUtils.delimitedListToStringArray((String) value, ",", " ");
+			allowedMethods =
+					Arrays.stream(values)
+							.map(HttpMethod::valueOf)
+							.collect(Collectors.toSet());
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected HttpMethod or String value for 'Allow' header value, but received: ", value);
+		}
+
+		if (!CollectionUtils.isEmpty(allowedMethods)) {
+			target.setAllow(allowedMethods);
+		}
+	}
+
+	private void setCacheControl(HttpHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setCacheControl((String) value);
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected String value for 'Cache-Control' header value, but received: ", value);
+		}
+	}
+
+	private void setContentLength(HttpHeaders target, Object value) {
+		if (value instanceof Number) {
+			target.setContentLength(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			target.setContentLength(Long.parseLong((String) value));
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Number or String value for 'Content-Length' header value, but received: ", value);
+		}
+	}
+
+	private void setContentType(HttpHeaders target, Object value) {
+		if (value instanceof MediaType) {
+			target.setContentType((MediaType) value);
+		}
+		else if (value instanceof String) {
+			target.setContentType(MediaType.parseMediaType((String) value));
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected MediaType or String value for 'Content-Type' header value, but received: ", value);
+		}
+	}
+
+	private void setDate(HttpHeaders target, Object value) {
+		if (value instanceof Date) {
+			target.setDate(((Date) value).getTime());
+		}
+		else if (value instanceof Number) {
+			target.setDate(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			try {
+				target.setDate(Long.parseLong((String) value));
+			}
+			catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+				target.setDate(getFirstDate((String) value, HttpHeaders.DATE));
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Date, Number, or String value for 'Date' header value, but received: ", value);
+		}
+	}
+
+	private void setETag(HttpHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setETag((String) value);
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue("Expected String value for 'ETag' header value, but received: ",
+					value);
+		}
+	}
+
+	private void setExpires(HttpHeaders target, Object value) {
+		if (value instanceof Date) {
+			target.setExpires(((Date) value).getTime());
+		}
+		else if (value instanceof Number) {
+			target.setExpires(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			try {
+				target.setExpires(Long.parseLong((String) value));
+			}
+			catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+				target.setExpires(getFirstDate((String) value, HttpHeaders.EXPIRES));
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Date, Number, or String value for 'Expires' header value, but received: ", value);
+		}
+	}
+
+	private void setIfModifiedSince(HttpHeaders target, Object value) {
+		if (value instanceof Date) {
+			target.setIfModifiedSince(((Date) value).getTime());
+		}
+		else if (value instanceof Number) {
+			target.setIfModifiedSince(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			try {
+				target.setIfModifiedSince(Long.parseLong((String) value));
+			}
+			catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+				target.setIfModifiedSince(getFirstDate((String) value, HttpHeaders.IF_MODIFIED_SINCE));
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Date, Number, or String value for 'If-Modified-Since' header value, but received: ",
+					value);
+		}
+	}
+
+	private void setIfUnmodifiedSince(HttpHeaders target, Object value) {
+		if (value instanceof Date) {
+			target.setIfUnmodifiedSince(((Date) value).getTime());
+		}
+		else if (value instanceof Number) {
+			target.setIfUnmodifiedSince(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			try {
+				target.setIfUnmodifiedSince(Long.parseLong((String) value));
+			}
+			catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+				target.setIfUnmodifiedSince(getFirstDate((String) value, HttpHeaders.IF_UNMODIFIED_SINCE));
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Date, Number, or String value for 'If-Unmodified-Since' header value, but received: ",
+					value);
+		}
+	}
+
+	private void setIfNoneMatch(HttpHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setIfNoneMatch((String) value);
+		}
+		else if (value instanceof String[]) {
+			target.setIfNoneMatch(StringUtils.arrayToCommaDelimitedString((String[]) value));
+		}
+		else if (value instanceof Collection) {
+			Collection<?> values = (Collection<?>) value;
+			if (!CollectionUtils.isEmpty(values)) {
+				List<String> ifNoneMatchList = new ArrayList<>();
+				for (Object next : values) {
+					if (next instanceof String) {
+						ifNoneMatchList.add((String) next);
+					}
+					else {
+						throwIllegalArgumentForUnexpectedValue(
+								"Expected String value for 'If-None-Match' header value, but received: ", value);
+					}
+				}
+				target.setIfNoneMatch(ifNoneMatchList);
+			}
+		}
+	}
+
+	private void setLastModified(HttpHeaders target, Object value) {
+		if (value instanceof Date) {
+			target.setLastModified(((Date) value).getTime());
+		}
+		else if (value instanceof Number) {
+			target.setLastModified(((Number) value).longValue());
+		}
+		else if (value instanceof String) {
+			try {
+				target.setLastModified(Long.parseLong((String) value));
+			}
+			catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
+				target.setLastModified(getFirstDate((String) value, HttpHeaders.LAST_MODIFIED));
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected Date, Number, or String value for 'Last-Modified' header value, but received: ", value);
+		}
+	}
+
+	private void setLocation(HttpHeaders target, Object value) {
+		if (value instanceof URI) {
+			target.setLocation((URI) value);
+		}
+		else if (value instanceof String) {
+			try {
+				target.setLocation(new URI((String) value));
+			}
+			catch (URISyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue(
+					"Expected URI or String value for 'Location' header value, but received: ", value);
+		}
+	}
+
+	private void setPragma(HttpHeaders target, Object value) {
+		if (value instanceof String) {
+			target.setPragma((String) value);
+		}
+		else {
+			throwIllegalArgumentForUnexpectedValue("Expected String value for 'Pragma' header value, but received: ",
+					value);
+		}
+	}
+
+	private void throwIllegalArgumentForUnexpectedValue(String message, @Nullable Object value) {
+		throw new IllegalArgumentException(message + (value != null ? value.getClass() : null));
+	}
+
+	private void setIterableHeader(HttpHeaders target, String name, Object value) {
+		for (Object next : (Iterable<?>) value) {
+			String convertedValue;
+			if (next instanceof String) {
+				convertedValue = (String) next;
+			}
+			else {
+				convertedValue = convertToString(value);
+			}
+			if (StringUtils.hasText(convertedValue)) {
+				target.add(name, convertedValue);
+			}
+			else {
+				this.logger.warn("Element of the header '" + name + "' with value '" + value +
+						"' will not be set since it is not a String and no Converter is available. " +
+						"Consider registering a Converter with ConversionService (e.g., <int:converter>)");
+			}
+		}
+	}
+
+	private void setPlainHeader(HttpHeaders target, String name, Object value) {
+		String convertedValue = convertToString(value);
+		if (StringUtils.hasText(convertedValue)) {
+			target.set(name, convertedValue);
+		}
+		else {
+			this.logger.warn("Header '" + name + "' with value '" + value +
+					"' will not be set since it is not a String and no Converter is available. " +
+					"Consider registering a Converter with ConversionService (e.g., <int:converter>)");
 		}
 	}
 
@@ -452,8 +1111,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Override
 	public Map<String, Object> toHeaders(HttpHeaders source) {
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug(MessageFormat.format("inboundHeaderNames={0}",
-					CollectionUtils.arrayToList(this.inboundHeaderNames)));
+			this.logger.debug("inboundHeaderNames=" + Arrays.toString(this.inboundHeaderNames));
 		}
 		Map<String, Object> target = new HashMap<>();
 		Set<String> headerNames = source.keySet();
@@ -462,50 +1120,111 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (shouldMapInboundHeader(lowerName)) {
 				if (!HTTP_REQUEST_HEADER_NAMES_LOWER.contains(lowerName)
 						&& !HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(lowerName)) {
-					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
-							? name
-							: this.userDefinedHeaderPrefix + name;
-					Object value = source.containsKey(prefixedName)
-							? getHttpHeader(source, prefixedName)
-							: getHttpHeader(source, name);
-					if (value != null) {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-						}
-						setMessageHeader(target, name, value);
-					}
+					populateUserDefinedHeader(source, target, name);
 				}
 				else {
-					Object value = getHttpHeader(source, name);
-					if (value != null) {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-						}
-						if (CONTENT_TYPE.equalsIgnoreCase(name)) {
-							name = MessageHeaders.CONTENT_TYPE;
-						}
-						setMessageHeader(target, name, value);
-					}
+					populateStandardHeader(source, target, name);
 				}
 			}
 		}
 		return target;
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		if (this.beanFactory != null) {
-			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
+	private void populateUserDefinedHeader(HttpHeaders source, Map<String, Object> target, String name) {
+		String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix)
+				? name
+				: this.userDefinedHeaderPrefix + name;
+		Object value = source.containsKey(prefixedName)
+				? getHttpHeader(source, prefixedName)
+				: getHttpHeader(source, name);
+		if (value != null) {
+			setMessageHeader(target, name, value);
 		}
 	}
 
-	protected final boolean containsElementIgnoreCase(String[] headerNames, String name) {
-		for (String headerName : headerNames) {
-			if (headerName.equalsIgnoreCase(name)) {
-				return true;
+	private void populateStandardHeader(HttpHeaders source, Map<String, Object> target, String name) {
+		Object value = getHttpHeader(source, name);
+		if (value != null) {
+			setMessageHeader(target,
+					HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name) ? MessageHeaders.CONTENT_TYPE : name, value);
+		}
+	}
+
+	protected Object getHttpHeader(HttpHeaders source, String name) { // NOSONAR
+		switch (name.toLowerCase()) {
+			case ACCEPT_LOWER:
+				return source.getAccept();
+			case ACCEPT_CHARSET_LOWER:
+				return source.getAcceptCharset();
+			case ALLOW_LOWER:
+				return source.getAllow();
+			case CACHE_CONTROL_LOWER:
+				String cacheControl = source.getCacheControl();
+				return (StringUtils.hasText(cacheControl)) ? cacheControl : null;
+			case CONTENT_LENGTH_LOWER:
+				long contentLength = source.getContentLength();
+				return (contentLength > -1) ? contentLength : null;
+			case CONTENT_TYPE_LOWER:
+				return source.getContentType();
+			case DATE_LOWER:
+				long date = source.getDate();
+				return (date > -1) ? date : null;
+			case ETAG_LOWER:
+				String eTag = source.getETag();
+				return (StringUtils.hasText(eTag)) ? eTag : null;
+			case EXPIRES_LOWER:
+				long expires = source.getExpires();
+				return (expires > -1) ? expires : null;
+			case IF_NONE_MATCH_LOWER:
+				return source.getIfNoneMatch();
+			case IF_MODIFIED_SINCE_LOWER:
+				long modifiedSince = source.getIfModifiedSince();
+				return (modifiedSince > -1) ? modifiedSince : null;
+			case IF_UNMODIFIED_SINCE_LOWER:
+				long unmodifiedSince = source.getIfUnmodifiedSince();
+				return (unmodifiedSince > -1) ? unmodifiedSince : null;
+			case LAST_MODIFIED_LOWER:
+				long lastModified = source.getLastModified();
+				return (lastModified > -1) ? lastModified : null;
+			case LOCATION_LOWER:
+				return source.getLocation();
+			case PRAGMA_LOWER:
+				String pragma = source.getPragma();
+				return (StringUtils.hasText(pragma)) ? pragma : null;
+			default:
+				return source.get(name);
+		}
+	}
+
+	private void setMessageHeader(Map<String, Object> target, String name, Object value) {
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+		}
+		if (ObjectUtils.isArray(value)) {
+			Object[] values = ObjectUtils.toObjectArray(value);
+			if (!ObjectUtils.isEmpty(values)) {
+				if (values.length == 1) {
+					target.put(name, values);
+				}
+				else {
+					target.put(name, values[0]);
+				}
 			}
 		}
-		return false;
+		else if (value instanceof Collection<?>) {
+			Collection<?> values = (Collection<?>) value;
+			if (!CollectionUtils.isEmpty(values)) {
+				if (values.size() == 1) {
+					target.put(name, values.iterator().next());
+				}
+				else {
+					target.put(name, values);
+				}
+			}
+		}
+		else if (value != null) {
+			target.put(name, value);
+		}
 	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
@@ -553,27 +1272,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
-				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
-					return true;
-				}
-				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
-						&& HTTP_REQUEST_HEADER_NAMES_LOWER.contains(headerName)) {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
-					return true;
-				}
-				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
-						&& HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(headerName)) {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-								headerName, pattern));
-					}
+				if (matchHeaderForPattern(headerName, pattern)) {
 					return true;
 				}
 			}
@@ -584,491 +1283,34 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		return false;
 	}
 
-	private void setHttpHeader(HttpHeaders target, String name, Object value) {
-		if (ACCEPT.equalsIgnoreCase(name)) {
-			if (value instanceof Collection<?>) {
-				Collection<?> values = (Collection<?>) value;
-				if (!CollectionUtils.isEmpty(values)) {
-					List<MediaType> acceptableMediaTypes = new ArrayList<>();
-					for (Object type : values) {
-						if (type instanceof MediaType) {
-							acceptableMediaTypes.add((MediaType) type);
-						}
-						else if (type instanceof String) {
-							acceptableMediaTypes.addAll(MediaType.parseMediaTypes((String) type));
-						}
-						else {
-							Class<?> clazz = (type != null) ? type.getClass() : null;
-							throw new IllegalArgumentException(
-									"Expected MediaType or String value for 'Accept' header value, but received: "
-											+ clazz);
-						}
-					}
-					target.setAccept(acceptableMediaTypes);
-				}
+	private boolean matchHeaderForPattern(String headerName, String pattern) {
+		if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+						headerName, pattern));
 			}
-			else if (value instanceof MediaType) {
-				target.setAccept(Collections.singletonList((MediaType) value));
-			}
-			else if (value instanceof String[]) {
-				List<MediaType> acceptableMediaTypes = new ArrayList<>();
-				for (String next : (String[]) value) {
-					acceptableMediaTypes.add(MediaType.parseMediaType(next));
-				}
-				target.setAccept(acceptableMediaTypes);
-			}
-			else if (value instanceof String) {
-				target.setAccept(MediaType.parseMediaTypes((String) value));
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected MediaType or String value for 'Accept' header value, but received: " + clazz);
-			}
+			return true;
 		}
-		else if (ACCEPT_CHARSET.equalsIgnoreCase(name)) {
-			if (value instanceof Collection<?>) {
-				Collection<?> values = (Collection<?>) value;
-				if (!CollectionUtils.isEmpty(values)) {
-					List<Charset> acceptableCharsets = new ArrayList<>();
-					for (Object charset : values) {
-						if (charset instanceof Charset) {
-							acceptableCharsets.add((Charset) charset);
-						}
-						else if (charset instanceof String) {
-							acceptableCharsets.add(Charset.forName((String) charset));
-						}
-						else {
-							Class<?> clazz = (charset != null) ? charset.getClass() : null;
-							throw new IllegalArgumentException(
-									"Expected Charset or String value for 'Accept-Charset' header value, but received: "
-											+ clazz);
-						}
-					}
-					target.setAcceptCharset(acceptableCharsets);
-				}
+		else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
+				&& HTTP_REQUEST_HEADER_NAMES_LOWER.contains(headerName)) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+						headerName, pattern));
 			}
-			else if (value instanceof Charset[] || value instanceof String[]) {
-				List<Charset> acceptableCharsets = new ArrayList<>();
-				Object[] values = ObjectUtils.toObjectArray(value);
-				for (Object charset : values) {
-					if (charset instanceof Charset) {
-						acceptableCharsets.add((Charset) charset);
-					}
-					else if (charset instanceof String) {
-						acceptableCharsets.add(Charset.forName((String) charset));
-					}
-				}
-				target.setAcceptCharset(acceptableCharsets);
-			}
-			else if (value instanceof Charset) {
-				target.setAcceptCharset(Collections.singletonList((Charset) value));
-			}
-			else if (value instanceof String) {
-				String[] charsets = StringUtils.commaDelimitedListToStringArray((String) value);
-				List<Charset> acceptableCharsets = new ArrayList<>();
-				for (String charset : charsets) {
-					acceptableCharsets.add(Charset.forName(charset.trim()));
-				}
-				target.setAcceptCharset(acceptableCharsets);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Charset or String value for 'Accept-Charset' header value, but received: " + clazz);
-			}
+			return true;
 		}
-		else if (ALLOW.equalsIgnoreCase(name)) {
-			if (value instanceof Collection<?>) {
-				Collection<?> values = (Collection<?>) value;
-				if (!CollectionUtils.isEmpty(values)) {
-					Set<HttpMethod> allowedMethods = new HashSet<>();
-					for (Object method : values) {
-						if (method instanceof HttpMethod) {
-							allowedMethods.add((HttpMethod) method);
-						}
-						else if (method instanceof String) {
-							allowedMethods.add(HttpMethod.valueOf((String) method));
-						}
-						else {
-							Class<?> clazz = (method != null) ? method.getClass() : null;
-							throw new IllegalArgumentException(
-									"Expected HttpMethod or String value for 'Allow' header value, but received: "
-											+ clazz);
-						}
-					}
-					target.setAllow(allowedMethods);
-				}
+		else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
+				&& HTTP_RESPONSE_HEADER_NAMES_LOWER.contains(headerName)) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+						headerName, pattern));
 			}
-			else {
-				if (value instanceof HttpMethod) {
-					target.setAllow(Collections.singleton((HttpMethod) value));
-				}
-				else if (value instanceof HttpMethod[]) {
-					Set<HttpMethod> allowedMethods = new HashSet<>();
-					Collections.addAll(allowedMethods, (HttpMethod[]) value);
-					target.setAllow(allowedMethods);
-				}
-				else if (value instanceof String || value instanceof String[]) {
-					String[] values = (value instanceof String[]) ? (String[]) value
-							: StringUtils.commaDelimitedListToStringArray((String) value);
-					Set<HttpMethod> allowedMethods = new HashSet<>();
-					for (String next : values) {
-						allowedMethods.add(HttpMethod.valueOf(next.trim()));
-					}
-					target.setAllow(allowedMethods);
-				}
-				else {
-					Class<?> clazz = (value != null) ? value.getClass() : null;
-					throw new IllegalArgumentException(
-							"Expected HttpMethod or String value for 'Allow' header value, but received: " + clazz);
-				}
-			}
+			return true;
 		}
-		else if (CACHE_CONTROL.equalsIgnoreCase(name)) {
-			if (value instanceof String) {
-				target.setCacheControl((String) value);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected String value for 'Cache-Control' header value, but received: " + clazz);
-			}
-		}
-		else if (CONTENT_LENGTH.equalsIgnoreCase(name)) {
-			if (value instanceof Number) {
-				target.setContentLength(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				target.setContentLength(Long.parseLong((String) value));
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Number or String value for 'Content-Length' header value, but received: " + clazz);
-			}
-		}
-		else if (MessageHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-			if (value instanceof MediaType) {
-				target.setContentType((MediaType) value);
-			}
-			else if (value instanceof String) {
-				target.setContentType(MediaType.parseMediaType((String) value));
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected MediaType or String value for 'Content-Type' header value, but received: " + clazz);
-			}
-		}
-		else if (DATE.equalsIgnoreCase(name)) {
-			if (value instanceof Date) {
-				target.setDate(((Date) value).getTime());
-			}
-			else if (value instanceof Number) {
-				target.setDate(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				try {
-					target.setDate(Long.parseLong((String) value));
-				}
-				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
-					target.setDate(getFirstDate((String) value, DATE));
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Date, Number, or String value for 'Date' header value, but received: " + clazz);
-			}
-		}
-		else if (ETAG.equalsIgnoreCase(name)) {
-			if (value instanceof String) {
-				target.setETag((String) value);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected String value for 'ETag' header value, but received: " + clazz);
-			}
-		}
-		else if (EXPIRES.equalsIgnoreCase(name)) {
-			if (value instanceof Date) {
-				target.setExpires(((Date) value).getTime());
-			}
-			else if (value instanceof Number) {
-				target.setExpires(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				try {
-					target.setExpires(Long.parseLong((String) value));
-				}
-				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
-					target.setExpires(getFirstDate((String) value, EXPIRES));
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Date, Number, or String value for 'Expires' header value, but received: " + clazz);
-			}
-		}
-		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
-			if (value instanceof Date) {
-				target.setIfModifiedSince(((Date) value).getTime());
-			}
-			else if (value instanceof Number) {
-				target.setIfModifiedSince(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				try {
-					target.setIfModifiedSince(Long.parseLong((String) value));
-				}
-				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
-					target.setIfModifiedSince(getFirstDate((String) value, IF_MODIFIED_SINCE));
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Date, Number, or String value for 'If-Modified-Since' header value, but received: "
-								+ clazz);
-			}
-		}
-		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
-			String ifUnmodifiedSinceValue;
-			if (value instanceof Date) {
-				ifUnmodifiedSinceValue = formatDate(((Date) value).getTime());
-			}
-			else if (value instanceof Number) {
-				ifUnmodifiedSinceValue = formatDate(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				try {
-					ifUnmodifiedSinceValue = formatDate(Long.parseLong((String) value));
-				}
-				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
-					long longValue = getFirstDate((String) value, IF_UNMODIFIED_SINCE);
-					ifUnmodifiedSinceValue = formatDate(longValue);
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Date, Number, or String value for 'If-Unmodified-Since' header value, but received: "
-								+ clazz);
-			}
-			target.set(IF_UNMODIFIED_SINCE, ifUnmodifiedSinceValue);
-		}
-		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
-			if (value instanceof String) {
-				target.setIfNoneMatch((String) value);
-			}
-			else if (value instanceof String[]) {
-				String delmitedString = StringUtils.arrayToCommaDelimitedString((String[]) value);
-				target.setIfNoneMatch(delmitedString);
-			}
-			else if (value instanceof Collection) {
-				Collection<?> values = (Collection<?>) value;
-				if (!CollectionUtils.isEmpty(values)) {
-					List<String> ifNoneMatchList = new ArrayList<>();
-					for (Object next : values) {
-						if (next instanceof String) {
-							ifNoneMatchList.add((String) next);
-						}
-						else {
-							Class<?> clazz = (next != null) ? next.getClass() : null;
-							throw new IllegalArgumentException(
-									"Expected String value for 'If-None-Match' header value, but received: " + clazz);
-						}
-					}
-					target.setIfNoneMatch(ifNoneMatchList);
-				}
-			}
-		}
-		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
-			if (value instanceof Date) {
-				target.setLastModified(((Date) value).getTime());
-			}
-			else if (value instanceof Number) {
-				target.setLastModified(((Number) value).longValue());
-			}
-			else if (value instanceof String) {
-				try {
-					target.setLastModified(Long.parseLong((String) value));
-				}
-				catch (@SuppressWarnings(UNUSED) NumberFormatException e) {
-					target.setLastModified(getFirstDate((String) value, LAST_MODIFIED));
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected Date, Number, or String value for 'Last-Modified' header value, but received: "
-								+ clazz);
-			}
-		}
-		else if (LOCATION.equalsIgnoreCase(name)) {
-			if (value instanceof URI) {
-				target.setLocation((URI) value);
-			}
-			else if (value instanceof String) {
-				try {
-					target.setLocation(new URI((String) value));
-				}
-				catch (URISyntaxException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected URI or String value for 'Location' header value, but received: " + clazz);
-			}
-		}
-		else if (PRAGMA.equalsIgnoreCase(name)) {
-			if (value instanceof String) {
-				target.setPragma((String) value);
-			}
-			else {
-				Class<?> clazz = (value != null) ? value.getClass() : null;
-				throw new IllegalArgumentException(
-						"Expected String value for 'Pragma' header value, but received: " + clazz);
-			}
-		}
-		else if (value instanceof String) {
-			target.set(name, (String) value);
-		}
-		else if (value instanceof String[]) {
-			for (String next : (String[]) value) {
-				target.add(name, next);
-			}
-		}
-		else if (value instanceof Iterable<?>) {
-			for (Object next : (Iterable<?>) value) {
-				String convertedValue;
-				if (next instanceof String) {
-					convertedValue = (String) next;
-				}
-				else {
-					convertedValue = convertToString(value);
-				}
-				if (StringUtils.hasText(convertedValue)) {
-					target.add(name, convertedValue);
-				}
-				else {
-					this.logger.warn("Element of the header '" + name + "' with value '" + value +
-							"' will not be set since it is not a String and no Converter is available. " +
-							"Consider registering a Converter with ConversionService (e.g., <int:converter>)");
-				}
-			}
-		}
-		else {
-			String convertedValue = convertToString(value);
-			if (StringUtils.hasText(convertedValue)) {
-				target.set(name, convertedValue);
-			}
-			else {
-				this.logger.warn("Header '" + name + "' with value '" + value +
-						"' will not be set since it is not a String and no Converter is available. " +
-						"Consider registering a Converter with ConversionService (e.g., <int:converter>)");
-			}
-		}
+		return false;
 	}
 
-	protected Object getHttpHeader(HttpHeaders source, String name) {
-		if (ACCEPT.equalsIgnoreCase(name)) {
-			return source.getAccept();
-		}
-		else if (ACCEPT_CHARSET.equalsIgnoreCase(name)) {
-			return source.getAcceptCharset();
-		}
-		else if (ALLOW.equalsIgnoreCase(name)) {
-			return source.getAllow();
-		}
-		else if (CACHE_CONTROL.equalsIgnoreCase(name)) {
-			String cacheControl = source.getCacheControl();
-			return (StringUtils.hasText(cacheControl)) ? cacheControl : null;
-		}
-		else if (CONTENT_LENGTH.equalsIgnoreCase(name)) {
-			long contentLength = source.getContentLength();
-			return (contentLength > -1) ? contentLength : null;
-		}
-		else if (CONTENT_TYPE.equalsIgnoreCase(name)) {
-			return source.getContentType();
-		}
-		else if (DATE.equalsIgnoreCase(name)) {
-			long date = source.getDate();
-			return (date > -1) ? date : null;
-		}
-		else if (ETAG.equalsIgnoreCase(name)) {
-			String eTag = source.getETag();
-			return (StringUtils.hasText(eTag)) ? eTag : null;
-		}
-		else if (EXPIRES.equalsIgnoreCase(name)) {
-			try {
-				long expires = source.getExpires();
-				return (expires > -1) ? expires : null;
-			}
-			catch (Exception e) {
-				this.logger.debug(e.getMessage());
-				// According to RFC 2616
-				return null;
-			}
-		}
-		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
-			return source.getIfNoneMatch();
-		}
-		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
-			long modifiedSince = source.getIfModifiedSince();
-			return (modifiedSince > -1) ? modifiedSince : null;
-		}
-		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
-			String unmodifiedSince = source.getFirst(IF_UNMODIFIED_SINCE);
-			return unmodifiedSince != null ? getFirstDate(unmodifiedSince, IF_UNMODIFIED_SINCE) : null;
-		}
-		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
-			long lastModified = source.getLastModified();
-			return (lastModified > -1) ? lastModified : null;
-		}
-		else if (LOCATION.equalsIgnoreCase(name)) {
-			return source.getLocation();
-		}
-		else if (PRAGMA.equalsIgnoreCase(name)) {
-			String pragma = source.getPragma();
-			return (StringUtils.hasText(pragma)) ? pragma : null;
-		}
-		return source.get(name);
-	}
-
-	private void setMessageHeader(Map<String, Object> target, String name, Object value) {
-		if (ObjectUtils.isArray(value)) {
-			Object[] values = ObjectUtils.toObjectArray(value);
-			if (!ObjectUtils.isEmpty(values)) {
-				if (values.length == 1) {
-					target.put(name, values);
-				}
-				else {
-					target.put(name, values[0]);
-				}
-			}
-		}
-		else if (value instanceof Collection<?>) {
-			Collection<?> values = (Collection<?>) value;
-			if (!CollectionUtils.isEmpty(values)) {
-				if (values.size() == 1) {
-					target.put(name, values.iterator().next());
-				}
-				else {
-					target.put(name, values);
-				}
-			}
-		}
-		else if (value != null) {
-			target.put(name, value);
-		}
-	}
-
+	@Nullable
 	protected String convertToString(Object value) {
 		if (this.conversionService != null &&
 				this.conversionService.canConvert(TypeDescriptor.forObject(value),
@@ -1081,7 +1323,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	// Utility methods
 
-	protected long getFirstDate(String headerValue, String headerName) {
+	protected static boolean containsElementIgnoreCase(String[] headerNames, String name) {
+		return Arrays.stream(headerNames).anyMatch(headerName -> headerName.equalsIgnoreCase(name));
+	}
+
+	protected static long getFirstDate(String headerValue, String headerName) {
 		for (DateTimeFormatter dateFormatter : DATE_FORMATS) {
 			try {
 				return ZonedDateTime.parse(headerValue, dateFormatter)
@@ -1095,12 +1341,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 		throw new IllegalArgumentException("Cannot parse date value '" + headerValue + "' for '" + headerName
 				+ "' header");
-	}
-
-	protected static String formatDate(long date) {
-		Instant instant = Instant.ofEpochMilli(date);
-		ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, GMT);
-		return DATE_FORMATTER.format(zonedDateTime);
 	}
 
 	/**

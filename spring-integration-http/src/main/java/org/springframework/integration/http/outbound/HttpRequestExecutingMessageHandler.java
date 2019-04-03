@@ -61,11 +61,11 @@ import org.springframework.web.client.RestTemplate;
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
+
 	private final RestTemplate restTemplate;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
-	 *
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(URI uri) {
@@ -74,7 +74,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
-	 *
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
@@ -83,7 +82,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	/**
 	 * Create a handler that will send requests to the provided URI Expression.
-	 *
 	 * @param uriExpression The URI expression.
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
@@ -142,9 +140,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	/**
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
-	 *
 	 * @param requestFactory The request factory.
-	 *
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
@@ -154,6 +150,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Override
 	protected Object exchange(Supplier<URI> uriSupplier, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Message<?> requestMessage) {
+
 		URI uri = uriSupplier.get();
 		ResponseEntity<?> httpResponse;
 		try {
@@ -162,14 +159,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 						(ParameterizedTypeReference<?>) expectedResponseType);
 			}
 			else {
-				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
-						(Class<?>) expectedResponseType);
+				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
 			}
 			return getReply(httpResponse);
 		}
 		catch (RestClientException e) {
-			throw new MessageHandlingException(requestMessage,
-					"HTTP request execution failed for URI [" + uri + "]", e);
+			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + uri + "]", e);
 		}
 	}
+
 }
