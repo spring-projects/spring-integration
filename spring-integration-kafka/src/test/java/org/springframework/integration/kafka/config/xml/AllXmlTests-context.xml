@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<bean id="cf" class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+		<constructor-arg>
+			<map>
+				<entry key="bootstrap.servers" value="#{embeddedKafka.brokersAsString}"/>
+				<entry key="auto.offset.reset" value="earliest"/>
+				<entry key="key.deserializer" value="org.apache.kafka.common.serialization.StringDeserializer"/>
+				<entry key="value.deserializer" value="org.apache.kafka.common.serialization.StringDeserializer"/>
+				<entry key="max.poll.records" value="1"/>
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="pf" class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+		<constructor-arg>
+			<map>
+				<entry key="bootstrap.servers" value="#{embeddedKafka.brokersAsString}"/>
+				<entry key="key.serializer" value="org.apache.kafka.common.serialization.StringSerializer"/>
+				<entry key="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer"/>
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<int-kafka:inbound-channel-adapter
+			channel="fromOne"
+			consumer-factory="cf"
+			topics="one"
+			group-id="groupForTopic1">
+		<int:poller fixed-delay="5000"/>
+	</int-kafka:inbound-channel-adapter>
+
+	<int:chain input-channel="fromOne">
+		<int:transformer expression="payload + headers['kafka_receivedTopic']"/>
+		<int-kafka:outbound-channel-adapter
+				kafka-template="template"
+				topic="two"/>
+	</int:chain>
+
+	<int-kafka:message-driven-channel-adapter
+			listener-container="containerTwo"
+			channel="fromTwo"/>
+
+	<int:chain input-channel="fromTwo" output-channel="lastChannel">
+		<int:transformer expression="payload + headers['kafka_receivedTopic']"/>
+		<int-kafka:outbound-gateway
+				kafka-template="replyingTemplate"/>
+		<int:transformer expression="payload + headers['kafka_receivedTopic']"/>
+	</int:chain>
+
+	<int:channel id="lastChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int-kafka:inbound-gateway
+			listener-container="containerThree"
+			kafka-template="replyingTemplate"
+			request-channel="fromThree"/>
+
+	<int:transformer input-channel="fromThree"
+					 expression="payload + headers['kafka_receivedTopic']"/>
+
+	<bean id="template" class="org.springframework.kafka.core.KafkaTemplate">
+		<constructor-arg ref="pf"/>
+	</bean>
+
+	<bean id="containerTwo" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg ref="cf"/>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="two"/>
+				<property name="groupId" value="container1"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="containerThree" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg ref="cf"/>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="three"/>
+				<property name="groupId" value="container3"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="replyingTemplate" class="org.springframework.kafka.requestreply.ReplyingKafkaTemplate">
+		<constructor-arg ref="pf"/>
+		<constructor-arg ref="containerFour"/>
+		<property name="defaultTopic" value="three"/>
+	</bean>
+
+	<bean id="containerFour" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
+		<constructor-arg ref="cf"/>
+		<constructor-arg>
+			<bean class="org.springframework.kafka.listener.ContainerProperties">
+				<constructor-arg name="topics" value="four"/>
+				<property name="groupId" value="container4"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

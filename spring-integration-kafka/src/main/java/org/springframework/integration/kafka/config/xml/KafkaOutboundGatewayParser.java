@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,35 @@ package org.springframework.integration.kafka.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 
 /**
- * Parser for the outbound channel adapter.
+ * Parser for the outbound gateway.
  *
- * @author Soby Chacko
- * @author Artem Bilan
  * @author Gary Russell
- * @author Biju Kunjummen
- * @since 0.5
+ * @since 3.2
  *
  */
-public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class KafkaOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(final Element element, final ParserContext parserContext) {
-		final BeanDefinitionBuilder builder =
-								BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
 
+	@Override
+	protected String getInputChannelAttributeName() {
+		return "request-channel";
+	}
+
+	@Override
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
 		KafkaParsingUtils.commonOutboundProperties(element, parserContext, builder);
-		return builder.getBeanDefinition();
+		return builder;
 	}
 
 }

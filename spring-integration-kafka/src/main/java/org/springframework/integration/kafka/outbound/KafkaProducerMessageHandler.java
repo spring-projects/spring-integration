@@ -132,8 +132,6 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private Type replyPayloadType = Object.class;
 
-	private volatile boolean noOutputChannel;
-
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
 		this.kafkaTemplate = kafkaTemplate;
@@ -360,6 +358,9 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		String topic = this.topicExpression != null ?
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
 				: messageHeaders.get(KafkaHeaders.TOPIC, String.class);
+		if (topic == null) {
+			topic = this.kafkaTemplate.getDefaultTopic();
+		}
 
 		Assert.state(StringUtils.hasText(topic), "The 'topic' can not be empty or null");
 

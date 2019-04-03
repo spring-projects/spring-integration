@@ -112,6 +112,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 */
 	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			ListenerMode mode) {
+
 		Assert.notNull(messageListenerContainer, "messageListenerContainer is required");
 		Assert.isNull(messageListenerContainer.getContainerProperties().getMessageListener(),
 				"Container must not already have a listener");
