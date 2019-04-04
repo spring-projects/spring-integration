@@ -789,11 +789,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				}
 			}
 		}
-		else if (value instanceof Charset) {
-			acceptableCharsets = Collections.singletonList((Charset) value);
-		}
-		else if (value instanceof Charset[]) {
-			acceptableCharsets = Arrays.asList((Charset[]) value);
+		else if (value instanceof Charset || value instanceof Charset[]) {
+			acceptableCharsets = Arrays.asList((Charset[]) ObjectUtils.toObjectArray(value));
 		}
 		else if (value instanceof String || value instanceof String[]) {
 			String[] values = arrayFromValue(value);
@@ -830,11 +827,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				}
 			}
 		}
-		else if (value instanceof HttpMethod) {
-			allowedMethods = Collections.singleton((HttpMethod) value);
-		}
-		else if (value instanceof HttpMethod[]) {
-			allowedMethods = new LinkedHashSet<>(Arrays.asList((HttpMethod[]) value));
+		else if (value instanceof HttpMethod || value instanceof HttpMethod[]) {
+			allowedMethods = new LinkedHashSet<>(Arrays.asList((HttpMethod[]) ObjectUtils.toObjectArray(value)));
 		}
 		else if (value instanceof String || value instanceof String[]) {
 			String[] values = arrayFromValue(value);
