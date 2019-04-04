@@ -116,9 +116,9 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @return the router spec.
 	 * @see AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
-	public RouterSpec<K, R> channelMapping(K key, final String channelName) {
+	public RouterSpec<K, R> channelMapping(K key, String channelName) {
 		Assert.notNull(key, "'key' must not be null");
-		Assert.hasText(channelName, "'channelName' must not be null");
+		Assert.hasText(channelName, "'channelName' must not be empty");
 		if (key instanceof String) {
 			this.handler.setChannelMapping((String) key, channelName);
 		}
@@ -137,6 +137,26 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 			});
 		}
+		return _this();
+	}
+
+	/**
+	 * The router mapping configuration based on the provided generic key
+	 * and  {@link MessageChannel} bean.
+	 * The {@link MessageChannel} must be instance of {@link NamedComponent}
+	 * for proper target router mapping based on the bean name.
+	 * @param key the key.
+	 * @param channel the {@link MessageChannel} instance to use.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setChannelMapping(String, String)
+	 * @since 5.2
+	 */
+	public RouterSpec<K, R> channelMapping(K key, final MessageChannel channel) {
+		Assert.notNull(key, "'key' must not be null");
+		Assert.notNull(channel, "'channel' must not be null");
+		Assert.isInstanceOf(NamedComponent.class, channel,
+				() -> "The routing channel '" + channel + " must be instance of 'NamedComponent'.");
+		this.mappingProvider.addMapping(key, (NamedComponent) channel);
 		return _this();
 	}
 

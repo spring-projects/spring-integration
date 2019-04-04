@@ -89,7 +89,7 @@ public class RouterTests {
 	public void testRouter() {
 		this.beanFactory.containsBean("routeFlow.subFlow#0.channel#0");
 
-		int[] payloads = new int[] { 1, 2, 3, 4, 5, 6 };
+		int[] payloads = { 1, 2, 3, 4, 5, 6 };
 
 		for (int payload : payloads) {
 			this.routerInput.send(new GenericMessage<>(payload));
@@ -124,7 +124,7 @@ public class RouterTests {
 		@SuppressWarnings("unchecked")
 		List<Integer> results = (List<Integer>) payload;
 
-		assertThat(results.toArray(new Integer[results.size()])).isEqualTo(new Integer[] { 3, 4, 9, 8, 15, 12 });
+		assertThat(results).containsExactly(3, 4, 9, 8, 15, 12);
 	}
 
 	@Autowired
@@ -606,7 +606,7 @@ public class RouterTests {
 		public IntegrationFlow routeFlow() {
 			return IntegrationFlows.from("routerInput")
 					.<Integer, Boolean>route(p -> p % 2 == 0,
-							m -> m.channelMapping(true, "evenChannel")
+							m -> m.channelMapping(true, evenChannel())
 									.subFlowMapping(false, f ->
 											f.<Integer>handle((p, h) -> p * 3))
 									.defaultOutputToParentFlow())
@@ -928,6 +928,5 @@ public class RouterTests {
 		}
 
 	}
-
 
 }
