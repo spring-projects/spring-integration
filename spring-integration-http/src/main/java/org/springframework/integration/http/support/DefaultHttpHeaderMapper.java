@@ -31,13 +31,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,7 +53,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.integration.util.JavaUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -86,15 +85,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String ACCEPT = HttpHeaders.ACCEPT;
 
-	private static final String ACCEPT_LOWER = "accept";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_CHARSET}
 	 */
 	@Deprecated
 	public static final String ACCEPT_CHARSET = HttpHeaders.ACCEPT_CHARSET;
-
-	private static final String ACCEPT_CHARSET_LOWER = "accept-charset";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ACCEPT_ENCODING}
@@ -126,8 +121,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String ALLOW = HttpHeaders.ALLOW;
 
-	private static final String ALLOW_LOWER = "allow";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#AUTHORIZATION}
 	 */
@@ -139,8 +132,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	@Deprecated
 	public static final String CACHE_CONTROL = HttpHeaders.CACHE_CONTROL;
-
-	private static final String CACHE_CONTROL_LOWER = "cache-control";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONNECTION}
@@ -166,8 +157,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String CONTENT_LENGTH = HttpHeaders.CONTENT_LENGTH;
 
-	private static final String CONTENT_LENGTH_LOWER = "content-length";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_LOCATION}
 	 */
@@ -185,8 +174,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	@Deprecated
 	public static final String CONTENT_TYPE = HttpHeaders.CONTENT_TYPE;
-
-	private static final String CONTENT_TYPE_LOWER = "content-type";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#CONTENT_DISPOSITION}
@@ -206,15 +193,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String DATE = HttpHeaders.DATE;
 
-	private static final String DATE_LOWER = "date";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#ETAG}
 	 */
 	@Deprecated
 	public static final String ETAG = HttpHeaders.ETAG;
-
-	private static final String ETAG_LOWER = "etag";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#EXPECT}
@@ -227,8 +210,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	@Deprecated
 	public static final String EXPIRES = HttpHeaders.EXPIRES;
-
-	private static final String EXPIRES_LOWER = "expires";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#FROM}
@@ -254,15 +235,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String IF_MODIFIED_SINCE = HttpHeaders.IF_MODIFIED_SINCE;
 
-	private static final String IF_MODIFIED_SINCE_LOWER = "if-modified-since";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_NONE_MATCH}
 	 */
 	@Deprecated
 	public static final String IF_NONE_MATCH = HttpHeaders.IF_NONE_MATCH;
-
-	private static final String IF_NONE_MATCH_LOWER = "if-none-match";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#IF_RANGE}
@@ -276,23 +253,17 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	@Deprecated
 	public static final String IF_UNMODIFIED_SINCE = HttpHeaders.IF_UNMODIFIED_SINCE;
 
-	private static final String IF_UNMODIFIED_SINCE_LOWER = "if-unmodified-since";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#LAST_MODIFIED}
 	 */
 	@Deprecated
 	public static final String LAST_MODIFIED = HttpHeaders.LAST_MODIFIED;
 
-	private static final String LAST_MODIFIED_LOWER = "last-modified";
-
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#LOCATION}
 	 */
 	@Deprecated
 	public static final String LOCATION = HttpHeaders.LOCATION;
-
-	private static final String LOCATION_LOWER = "location";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#MAX_FORWARDS}
@@ -305,8 +276,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	@Deprecated
 	public static final String PRAGMA = HttpHeaders.PRAGMA;
-
-	private static final String PRAGMA_LOWER = "pragma";
 
 	/**
 	 * @deprecated since 5.2 in favor of {@link HttpHeaders#PROXY_AUTHENTICATE}
@@ -407,6 +376,36 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public static final String CONTENT_MD5 = "Content-MD5";
 
 	public static final String REFRESH = "Refresh";
+
+	private static final String ACCEPT_LOWER = "accept";
+
+	private static final String ACCEPT_CHARSET_LOWER = "accept-charset";
+
+	private static final String ALLOW_LOWER = "allow";
+
+	private static final String CACHE_CONTROL_LOWER = "cache-control";
+
+	private static final String CONTENT_LENGTH_LOWER = "content-length";
+
+	private static final String CONTENT_TYPE_LOWER = "content-type";
+
+	private static final String DATE_LOWER = "date";
+
+	private static final String ETAG_LOWER = "etag";
+
+	private static final String EXPIRES_LOWER = "expires";
+
+	private static final String IF_MODIFIED_SINCE_LOWER = "if-modified-since";
+
+	private static final String IF_NONE_MATCH_LOWER = "if-none-match";
+
+	private static final String IF_UNMODIFIED_SINCE_LOWER = "if-unmodified-since";
+
+	private static final String LAST_MODIFIED_LOWER = "last-modified";
+
+	private static final String LOCATION_LOWER = "location";
+
+	private static final String PRAGMA_LOWER = "pragma";
 
 	private static final String[] HTTP_REQUEST_HEADER_NAMES = new String[] {
 			HttpHeaders.ACCEPT,
@@ -673,61 +672,67 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 	}
 
-	private void setHttpHeader(HttpHeaders target, String name, Object value) {
-		AtomicBoolean headerSet = new AtomicBoolean();
-
-		JavaUtils.INSTANCE
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ACCEPT, name, headerSet), target, value,
-						this::setAccept)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ACCEPT_CHARSET, name, headerSet), target, value,
-						this::setAcceptCharset)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ALLOW, name, headerSet), target, value,
-						this::setAllow)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.CACHE_CONTROL, name, headerSet), target, value,
-						this::setCacheControl)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.CONTENT_LENGTH, name, headerSet), target, value,
-						this::setContentLength)
-				.acceptIfCondition(checkStandardHeaderToSet(MessageHeaders.CONTENT_TYPE, name, headerSet), target,
-						value, this::setContentType)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.DATE, name, headerSet), target, value,
-						this::setDate)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.ETAG, name, headerSet), target, value,
-						this::setETag)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.EXPIRES, name, headerSet), target, value,
-						this::setExpires)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_MODIFIED_SINCE, name, headerSet), target,
-						value, this::setIfModifiedSince)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_UNMODIFIED_SINCE, name, headerSet), target,
-						value, this::setIfUnmodifiedSince)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.IF_NONE_MATCH, name, headerSet), target, value,
-						this::setIfNoneMatch)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.LAST_MODIFIED, name, headerSet), target, value,
-						this::setLastModified)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.LOCATION, name, headerSet), target, value,
-						this::setLocation)
-				.acceptIfCondition(checkStandardHeaderToSet(HttpHeaders.PRAGMA, name, headerSet), target, value,
-						this::setPragma);
-
-		if (!headerSet.get()) {
-			if (value instanceof String) {
-				target.set(name, (String) value);
-			}
-			else if (value instanceof String[]) {
-				target.addAll(name, Arrays.asList((String[]) value));
-			}
-			else if (value instanceof Iterable<?>) {
-				setIterableHeader(target, name, value);
-			}
-			else {
-				setPlainHeader(target, name, value);
-			}
+	private void setHttpHeader(HttpHeaders target, String name, Object value) { // NOSONAR
+		switch (name.toLowerCase()) {
+			case ACCEPT_LOWER:
+				setAccept(target, value);
+				break;
+			case ACCEPT_CHARSET_LOWER:
+				setAcceptCharset(target, value);
+				break;
+			case ALLOW_LOWER:
+				setAllow(target, value);
+				break;
+			case CACHE_CONTROL_LOWER:
+				setCacheControl(target, value);
+				break;
+			case CONTENT_LENGTH_LOWER:
+				setContentLength(target, value);
+				break;
+			case "contenttype": // Lower case for MessageHeaders.CONTENT_TYPE
+				setContentType(target, value);
+				break;
+			case DATE_LOWER:
+				setDate(target, value);
+				break;
+			case ETAG_LOWER:
+				setETag(target, value);
+				break;
+			case EXPIRES_LOWER:
+				setExpires(target, value);
+				break;
+			case IF_MODIFIED_SINCE_LOWER:
+				setIfModifiedSince(target, value);
+				break;
+			case IF_UNMODIFIED_SINCE_LOWER:
+				setIfUnmodifiedSince(target, value);
+				break;
+			case IF_NONE_MATCH_LOWER:
+				setIfNoneMatch(target, value);
+				break;
+			case LAST_MODIFIED_LOWER:
+				setLastModified(target, value);
+				break;
+			case LOCATION_LOWER:
+				setLocation(target, value);
+				break;
+			case PRAGMA_LOWER:
+				setPragma(target, value);
+				break;
+			default:
+				if (value instanceof String) {
+					target.set(name, (String) value);
+				}
+				else if (value instanceof String[]) {
+					target.addAll(name, Arrays.asList((String[]) value));
+				}
+				else if (value instanceof Iterable<?>) {
+					setIterableHeader(target, name, value);
+				}
+				else {
+					setPlainHeader(target, name, value);
+				}
 		}
-	}
-
-	private boolean checkStandardHeaderToSet(String headerName, String actualName, AtomicBoolean headerSet) {
-		boolean setHeader = headerName.equalsIgnoreCase(actualName);
-		headerSet.compareAndSet(false, setHeader);
-		return setHeader;
 	}
 
 	private void setAccept(HttpHeaders target, Object value) {
@@ -769,40 +774,33 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private void setAcceptCharset(HttpHeaders target, Object value) {
 		List<Charset> acceptableCharsets = null;
 		if (value instanceof Collection<?>) {
-			acceptableCharsets =
-					((Collection<?>) value).stream()
-							.map((charset) -> {
-								if (charset instanceof Charset) {
-									return (Charset) charset;
-								}
-								else if (charset instanceof String) {
-									return Charset.forName((String) charset);
-								}
-								else {
-									throwIllegalArgumentForUnexpectedValue(
-											"Expected Charset or String value for 'Accept-Charset' header value, " +
-													"but received: ", charset);
-									return null;
-								}
-							})
-							.collect(Collectors.toList());
-		}
-		else if (value instanceof Charset[] || value instanceof String[]) {
-			acceptableCharsets =
-					Arrays.stream(ObjectUtils.toObjectArray(value))
-							.map((charset) -> charset instanceof String ? Charset.forName((String) charset) : charset)
-							.map(Charset.class::cast)
-							.collect(Collectors.toList());
+			acceptableCharsets = new LinkedList<>();
+			for (Object charset : (Collection<?>) value) {
+				if (charset instanceof Charset) {
+					acceptableCharsets.add((Charset) charset);
+				}
+				else if (charset instanceof String) {
+					acceptableCharsets.add(Charset.forName((String) charset));
+				}
+				else {
+					throwIllegalArgumentForUnexpectedValue(
+							"Expected Charset or String value for 'Accept-Charset' header value, " +
+									"but received: ", charset);
+				}
+			}
 		}
 		else if (value instanceof Charset) {
 			acceptableCharsets = Collections.singletonList((Charset) value);
 		}
-		else if (value instanceof String) {
-			acceptableCharsets =
-					StringUtils.commaDelimitedListToSet((String) value)
-							.stream()
-							.map((charset) -> Charset.forName(charset.trim()))
-							.collect(Collectors.toList());
+		else if (value instanceof Charset[]) {
+			acceptableCharsets = Arrays.asList((Charset[]) value);
+		}
+		else if (value instanceof String || value instanceof String[]) {
+			String[] values = arrayFromValue(value);
+			acceptableCharsets = new LinkedList<>();
+			for (String charset : values) {
+				acceptableCharsets.add(Charset.forName(charset));
+			}
 		}
 		else {
 			throwIllegalArgumentForUnexpectedValue(
@@ -817,39 +815,33 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private void setAllow(HttpHeaders target, Object value) {
 		Set<HttpMethod> allowedMethods = null;
 		if (value instanceof Collection<?>) {
-			allowedMethods =
-					((Collection<?>) value).stream()
-							.map((method) -> {
-								if (method instanceof HttpMethod) {
-									return (HttpMethod) method;
-								}
-								else if (method instanceof String) {
-									return HttpMethod.valueOf((String) method);
-								}
-								else {
-									throwIllegalArgumentForUnexpectedValue(
-											"Expected HttpMethod or String value for 'Allow' header value, " +
-													"but received: ", method);
-									return null;
-								}
-							})
-							.collect(Collectors.toSet());
+			allowedMethods = new LinkedHashSet<>();
+			for (Object method : (Collection<?>) value) {
+				if (method instanceof HttpMethod) {
+					allowedMethods.add((HttpMethod) method);
+				}
+				else if (method instanceof String) {
+					allowedMethods.add(HttpMethod.valueOf((String) method));
+				}
+				else {
+					throwIllegalArgumentForUnexpectedValue(
+							"Expected HttpMethod or String value for 'Allow' header value, " +
+									"but received: ", method);
+				}
+			}
 		}
 		else if (value instanceof HttpMethod) {
 			allowedMethods = Collections.singleton((HttpMethod) value);
 		}
 		else if (value instanceof HttpMethod[]) {
-			allowedMethods = new HashSet<>(Arrays.asList((HttpMethod[]) value));
+			allowedMethods = new LinkedHashSet<>(Arrays.asList((HttpMethod[]) value));
 		}
 		else if (value instanceof String || value instanceof String[]) {
-			String[] values =
-					(value instanceof String[])
-							? (String[]) value
-							: StringUtils.delimitedListToStringArray((String) value, ",", " ");
-			allowedMethods =
-					Arrays.stream(values)
-							.map(HttpMethod::valueOf)
-							.collect(Collectors.toSet());
+			String[] values = arrayFromValue(value);
+			allowedMethods = new LinkedHashSet<>();
+			for (String method : values) {
+				allowedMethods.add(HttpMethod.valueOf(method));
+			}
 		}
 		else {
 			throwIllegalArgumentForUnexpectedValue(
@@ -859,6 +851,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		if (!CollectionUtils.isEmpty(allowedMethods)) {
 			target.setAllow(allowedMethods);
 		}
+	}
+
+	private String[] arrayFromValue(Object value) {
+		return value instanceof String[]
+				? (String[]) value
+				: StringUtils.delimitedListToStringArray((String) value, ",", " ");
 	}
 
 	private void setCacheControl(HttpHeaders target, Object value) {
@@ -1324,7 +1322,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	// Utility methods
 
 	protected static boolean containsElementIgnoreCase(String[] headerNames, String name) {
-		return Arrays.stream(headerNames).anyMatch(headerName -> headerName.equalsIgnoreCase(name));
+		for (String headerName : headerNames) {
+			if (headerName.equalsIgnoreCase(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected static long getFirstDate(String headerValue, String headerName) {
