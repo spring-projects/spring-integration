@@ -16,8 +16,6 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import java.lang.reflect.Type;
-
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -70,7 +68,7 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 		return this;
 	}
 
-	public KafkaInboundChannelAdapterSpec<K, V> payloadType(Type type) {
+	public KafkaInboundChannelAdapterSpec<K, V> payloadType(Class<?> type) {
 		this.target.setPayloadType(type);
 		return this;
 	}

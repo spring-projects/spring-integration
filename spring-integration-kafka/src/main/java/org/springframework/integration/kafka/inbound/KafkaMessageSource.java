@@ -16,7 +16,6 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,7 +112,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
-	private Type payloadType;
+	private Class<?> payloadType;
 
 	private ConsumerRebalanceListener rebalanceListener;
 
@@ -202,7 +201,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.messageConverter = messageConverter;
 	}
 
-	protected Type getPayloadType() {
+	protected Class<?> getPayloadType() {
 		return this.payloadType;
 	}
 
@@ -211,7 +210,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * Only applies if a type-aware message converter is provided.
 	 * @param payloadType the type to convert to.
 	 */
-	public void setPayloadType(Type payloadType) {
+	public void setPayloadType(Class<?> payloadType) {
 		this.payloadType = payloadType;
 	}
 

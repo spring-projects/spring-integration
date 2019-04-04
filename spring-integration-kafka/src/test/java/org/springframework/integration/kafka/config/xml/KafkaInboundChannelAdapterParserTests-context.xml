@@ -16,7 +16,7 @@
 			client-id="client"
 			group-id="group"
 			message-converter="converter"
-			payload-type="#{T(java.lang.String)}"
+			payload-type="java.lang.String"
 			raw-header="true"
 			auto-startup="false"
 			rebalance-listener="rebal">
