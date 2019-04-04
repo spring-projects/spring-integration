@@ -30,13 +30,17 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.TreeNode;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Base class for Message-splitting handlers.
@@ -47,9 +51,14 @@ import reactor.core.publisher.Flux;
  * @author Ruslan Stelmachenko
  * @author Gary Russell
  */
-public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
+public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler
+		implements DiscardingMessageHandler {
 
 	private boolean applySequence = true;
+
+	private MessageChannel discardChannel;
+
+	private String discardChannelName;
 
 	/**
 	 * Set the applySequence flag to the specified value. Defaults to true.
@@ -59,10 +68,46 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		this.applySequence = applySequence;
 	}
 
+	/**
+	 * Specify a channel where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped.
+	 * A "Rejected Message" means that split function has returned an empty result (but not null):
+	 * no items to iterate for sending.
+	 * @param discardChannel The discard channel.
+	 * @since 5.2
+	 */
+	public void setDiscardChannel(MessageChannel discardChannel) {
+		this.discardChannel = discardChannel;
+	}
+
+	/**
+	 * Specify a channel bean name (resolved to {@link MessageChannel} lazily)
+	 * where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped.
+	 * A "Rejected Message" means that split function has returned an empty result (but not null):
+	 * no items to iterate for sending.
+	 * @param discardChannelName The discard channel bean name.
+	 * @since 5.2
+	 */
+	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
+		this.discardChannelName = discardChannelName;
+	}
+
+	@Override
+	public MessageChannel getDiscardChannel() {
+		String channelName = this.discardChannelName;
+		if (channelName != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			this.discardChannelName = null;
+		}
+		return this.discardChannel;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
-		Object result = this.splitMessage(message);
+		Object result = splitMessage(message);
 		// return null if 'null'
 		if (result == null) {
 			return null;
@@ -137,6 +182,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 
 		if (iterator != null && !iterator.hasNext()) {
+			MessageChannel discardingChannel = getDiscardChannel();
+			if (discardingChannel != null) {
+				this.messagingTemplate.send(discardingChannel, message);
+			}
 			return null;
 		}
 
@@ -154,7 +203,16 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 				object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
 
 		if (reactive) {
-			return flux.map(messageBuilderFunction);
+			return flux
+					.map(messageBuilderFunction)
+					.switchIfEmpty(
+							Mono.defer(() -> {
+								MessageChannel discardingChannel = getDiscardChannel();
+								if (discardingChannel != null) {
+									this.messagingTemplate.send(discardingChannel, message);
+								}
+								return Mono.empty();
+							}));
 		}
 		else {
 			return new FunctionIterator<>(result instanceof AutoCloseable && !result.equals(iterator)
@@ -195,6 +253,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,
 			Object correlationId, int sequenceNumber, int sequenceSize) {
+
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (item instanceof Message) {
 			builder = getMessageBuilderFactory().fromMessage((Message<?>) item);

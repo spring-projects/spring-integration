@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -31,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.channel.QueueChannel;
@@ -47,10 +47,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
@@ -89,6 +89,9 @@ public class CorrelationHandlerTests {
 
 	@Autowired
 	private PollableChannel releaseChannel;
+
+	@Autowired
+	private PollableChannel discardChannel;
 
 	@Test
 	public void testSplitterResequencer() {
@@ -150,16 +153,23 @@ public class CorrelationHandlerTests {
 		assertThat(out.getPayload()).isEqualTo("bar");
 	}
 
+	@Test
+	public void testSplitterDiscard() {
+		this.splitAggregateInput.send(new GenericMessage<>(new ArrayList<>()));
+		Message<?> receive = this.discardChannel.receive(10_000);
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(ArrayNode.class)
+				.extracting("_children")
+				.element(0)
+				.asList()
+				.hasSize(0);
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
-
-		@Bean
-		public Executor taskExecutor() {
-			ThreadPoolTaskExecutor tpte = new ThreadPoolTaskExecutor();
-			tpte.setCorePoolSize(50);
-			return tpte;
-		}
 
 		@Bean
 		public TestSplitterPojo testSplitterData() {
@@ -175,22 +185,22 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
-		public MessageChannelSpec<?, ?> executorChannel() {
-			return MessageChannels.executor(taskExecutor());
+		public MessageChannelSpec<?, ?> executorChannel(TaskExecutor taskExecutor) {
+			return MessageChannels.executor(taskExecutor);
 		}
 
 		@Bean
 		@SuppressWarnings("rawtypes")
-		public IntegrationFlow splitResequenceFlow(MessageChannel executorChannel) {
+		public IntegrationFlow splitResequenceFlow(MessageChannel executorChannel, TaskExecutor taskExecutor) {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
 					.split("testSplitterData", "buildList", c -> c.applySequence(false))
 					.channel(executorChannel)
 					.split(Message.class, Message::getPayload, c -> c.applySequence(false))
-					.channel(MessageChannels.executor(taskExecutor()))
+					.channel(MessageChannels.executor(taskExecutor))
 					.split(s -> s
 							.applySequence(false)
 							.delimiters(","))
-					.channel(MessageChannels.executor(taskExecutor()))
+					.channel(MessageChannels.executor(taskExecutor))
 					.<String, Integer>transform(Integer::parseInt)
 					.enrichHeaders(h ->
 							h.headerFunction(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Message::getPayload))
@@ -203,8 +213,9 @@ public class CorrelationHandlerTests {
 		public IntegrationFlow splitAggregateFlow() {
 			return IntegrationFlows.from("splitAggregateInput", true)
 					.transform(Transformers.toJson(ObjectToJsonTransformer.ResultType.NODE))
-					.split()
-					.channel(MessageChannels.executor(taskExecutor()))
+					.split((splitter) -> splitter
+							.discardFlow((subFlow) -> subFlow.channel((c) -> c.queue("discardChannel"))))
+					.channel(MessageChannels.flux())
 					.resequence()
 					.aggregate()
 					.get();

@@ -23,6 +23,7 @@ import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -42,12 +43,24 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	private String delimiters;
 
+	private MessageChannel discardChannel;
+
+	private String discardChannelName;
+
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
 	}
 
 	public void setDelimiters(String delimiters) {
 		this.delimiters = delimiters;
+	}
+
+	public void setDiscardChannel(MessageChannel discardChannel) {
+		this.discardChannel = discardChannel;
+	}
+
+	public void setDiscardChannelName(String discardChannelName) {
+		this.discardChannelName = discardChannelName;
 	}
 
 	@Override
@@ -90,6 +103,12 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	protected AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
 		postProcessReplyProducer(splitter);
+		if (this.discardChannel != null) {
+			splitter.setDiscardChannel(this.discardChannel);
+		}
+		else {
+			splitter.setDiscardChannelName(this.discardChannelName);
+		}
 		return splitter;
 	}
 

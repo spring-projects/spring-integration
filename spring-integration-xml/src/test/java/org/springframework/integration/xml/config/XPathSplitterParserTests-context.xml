@@ -30,7 +30,8 @@
 					apply-sequence="false"
 					create-documents="true"
 					output-properties="outputProperties"
-					iterator="false">
+					iterator="false"
+					discard-channel="nullChannel">
 		<xpath-expression expression="/orders/order"/>
 	</xpath-splitter>
 

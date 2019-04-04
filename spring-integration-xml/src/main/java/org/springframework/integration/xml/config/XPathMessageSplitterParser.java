@@ -42,7 +42,8 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		boolean hasChild = xPathExpressionNodes.getLength() == 1;
 		boolean hasReference = StringUtils.hasText(xPathExpressionRef);
-		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
+		Assert.isTrue(hasChild ^ hasReference,
+				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (hasChild) {
 			Element xpathExpressionElement = (Element) xPathExpressionNodes.item(0);
 			builder.addConstructorArgValue(xpathExpressionElement.getAttribute("expression"));
@@ -51,12 +52,14 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "doc-builder-factory", "documentBuilder");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "doc-builder-factory",
+				"documentBuilder");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "create-documents");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "iterator");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "output-properties");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "discard-channel", "discardChannelName");
 		return builder;
 	}
 

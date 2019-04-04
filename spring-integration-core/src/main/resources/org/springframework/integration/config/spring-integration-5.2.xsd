@@ -3669,6 +3669,19 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="discard-channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							The channel where the splitter will send the messages that return an empty container from
+							split function.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

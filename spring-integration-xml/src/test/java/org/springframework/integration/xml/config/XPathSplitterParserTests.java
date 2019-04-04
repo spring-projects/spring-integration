@@ -45,13 +45,16 @@ import org.springframework.util.MultiValueMap;
 @DirtiesContext
 public class XPathSplitterParserTests {
 
-	@Autowired @Qualifier("xpathSplitter.handler")
+	@Autowired
+	@Qualifier("xpathSplitter.handler")
 	private MessageHandler xpathSplitter;
 
-	@Autowired @Qualifier("xpathSplitter")
+	@Autowired
+	@Qualifier("xpathSplitter")
 	private EventDrivenConsumer consumer;
 
-	@Autowired @Qualifier("outputProperties")
+	@Autowired
+	@Qualifier("outputProperties")
 	private Properties outputProperties;
 
 	@Autowired
@@ -64,10 +67,11 @@ public class XPathSplitterParserTests {
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "returnIterator", Boolean.class)).isFalse();
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties")).isSameAs(this.outputProperties);
 		assertThat(TestUtils.getPropertyValue(this.xpathSplitter,
-				"xpathExpression.xpathExpression.xpath.m_patternString",
-				String.class)).isEqualTo("/orders/order");
+				"xpathExpression.xpathExpression.xpath.m_patternString", String.class))
+				.isEqualTo("/orders/order");
 		assertThat(TestUtils.getPropertyValue(xpathSplitter, "order")).isEqualTo(2);
 		assertThat(TestUtils.getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout")).isEqualTo(123L);
+		assertThat(TestUtils.getPropertyValue(this.xpathSplitter, "discardChannelName")).isEqualTo("nullChannel");
 		assertThat(TestUtils.getPropertyValue(consumer, "phase")).isEqualTo(-1);
 		assertThat(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class)).isFalse();
 		@SuppressWarnings("unchecked")

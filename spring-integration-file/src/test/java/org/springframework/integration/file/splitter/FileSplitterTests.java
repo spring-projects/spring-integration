@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class FileSplitterTests {
 
 	private static File file;
 
-	private static final String SAMPLE_CONTENT = "HelloWorld\n????";
+	private static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
 	@Autowired
 	private MessageChannel input1;
@@ -97,7 +98,7 @@ public class FileSplitterTests {
 	@BeforeClass
 	public static void setup() throws IOException {
 		file = File.createTempFile("foo", ".txt");
-		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes("UTF-8"),
+		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8),
 				new FileOutputStream(file, false));
 	}
 
@@ -108,24 +109,24 @@ public class FileSplitterTests {
 
 	@Test
 	public void testFileSplitter() throws Exception {
-		this.input1.send(new GenericMessage<File>(file));
+		this.input1.send(new GenericMessage<>(file));
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getPayload()).isEqualTo("HelloWorld");
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
-		assertThat(receive.getPayload()).isEqualTo("????");
+		assertThat(receive).isNotNull();  //äöüß
+		assertThat(receive.getPayload()).isEqualTo("äöüß");
 		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
 		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
 		assertThat(this.output.receive(1)).isNull();
 
-		this.input1.send(new GenericMessage<String>(file.getAbsolutePath()));
+		this.input1.send(new GenericMessage<>(file.getAbsolutePath()));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(receive.getHeaders().get(FileHeaders.ORIGINAL_FILE)).isEqualTo(file);
 		assertThat(receive.getHeaders().get(FileHeaders.FILENAME)).isEqualTo(file.getName());
 		assertThat(this.output.receive(1)).isNull();
@@ -135,54 +136,56 @@ public class FileSplitterTests {
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(2);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 
-		this.input2.send(new GenericMessage<File>(file));
+		this.input2.send(new GenericMessage<>(file));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 
-		this.input2.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
+		this.input2.send(new GenericMessage<InputStream>(
+				new ByteArrayInputStream(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8))));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 
 		try {
-			this.input2.send(new GenericMessage<String>("bar"));
+			this.input2.send(new GenericMessage<>("bar"));
 			fail("FileNotFoundException expected");
 		}
 		catch (Exception e) {
 			assertThat(e.getCause()).isInstanceOf(FileNotFoundException.class);
 			assertThat(e.getMessage()).contains("failed to read file [bar]");
 		}
-		this.input2.send(new GenericMessage<Date>(new Date()));
+		this.input2.send(new GenericMessage<>(new Date()));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(1);
 		assertThat(receive.getPayload()).isInstanceOf(Date.class);
 		assertThat(this.output.receive(1)).isNull();
 
-		this.input3.send(new GenericMessage<File>(file));
+		this.input3.send(new GenericMessage<>(file));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 
-		this.input3.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
+		this.input3.send(new GenericMessage<>(
+				new ByteArrayInputStream(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8))));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
 		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isEqualTo(0);
 		receive = this.output.receive(10000);
-		assertThat(receive).isNotNull(); //????
+		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 	}
 
@@ -191,7 +194,7 @@ public class FileSplitterTests {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
-		splitter.handleMessage(new GenericMessage<File>(file));
+		splitter.handleMessage(new GenericMessage<>(file));
 		Message<?> received = outputChannel.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
@@ -218,7 +221,7 @@ public class FileSplitterTests {
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
 		File file = File.createTempFile("empty", ".txt");
-		splitter.handleMessage(new GenericMessage<File>(file));
+		splitter.handleMessage(new GenericMessage<>(file));
 		Message<?> received = outputChannel.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
@@ -246,7 +249,7 @@ public class FileSplitterTests {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true, true);
 		splitter.setOutputChannel(outputChannel);
-		splitter.handleMessage(new GenericMessage<File>(file));
+		splitter.handleMessage(new GenericMessage<>(file));
 		Message<?> received = outputChannel.receive(0);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)).isNull();
@@ -263,7 +266,7 @@ public class FileSplitterTests {
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.MARKER)).isEqualTo("END");
 		assertThat(received.getPayload()).isInstanceOf(String.class);
-		fileMarker = objectMapper.fromJson((String) received.getPayload(), FileSplitter.FileMarker.class);
+		fileMarker = objectMapper.fromJson(received.getPayload(), FileSplitter.FileMarker.class);
 		assertThat(fileMarker.getMark()).isEqualTo(FileSplitter.FileMarker.Mark.END);
 		assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
 		assertThat(fileMarker.getLineCount()).isEqualTo(2);

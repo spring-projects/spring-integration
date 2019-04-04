@@ -18,6 +18,7 @@ package org.springframework.integration.dsl;
 
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * A {@link ConsumerEndpointSpec} for a {@link AbstractMessageSplitter} implementations.
@@ -43,7 +44,7 @@ public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
 	 */
 	public SplitterEndpointSpec<S> applySequence(boolean applySequence) {
 		this.handler.setApplySequence(applySequence);
-		return _this();
+		return this;
 	}
 
 	/**
@@ -63,6 +64,47 @@ public final class SplitterEndpointSpec<S extends AbstractMessageSplitter>
 			logger.warn("'delimiters' can be applied only for the DefaultMessageSplitter");
 		}
 		return this;
+	}
+
+	/**
+	 * Specify a channel where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped.
+	 * A "Rejected Message" means that split function has returned an empty result (but not null):
+	 * no items to iterate for sending.
+	 * @param discardChannel The discard channel.
+	 * @return the endpoint spec.
+	 * @since 5.2
+	 * @see DefaultMessageSplitter#setDelimiters(String)
+	 */
+	public SplitterEndpointSpec<S> discardChannel(MessageChannel discardChannel) {
+		this.handler.setDiscardChannel(discardChannel);
+		return this;
+	}
+
+	/**
+	 * Specify a channel bean name where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped.
+	 * A "Rejected Message" means that split function has returned an empty result (but not null):
+	 * no items to iterate for sending.
+	 * @param discardChannelName The discard channel bean name.
+	 * @return the endpoint spec.
+	 * @since 5.2
+	 * @see DefaultMessageSplitter#setDelimiters(String)
+	 */
+	public SplitterEndpointSpec<S> discardChannel(String discardChannelName) {
+		this.handler.setDiscardChannelName(discardChannelName);
+		return this;
+	}
+
+	/**
+	 * Configure a subflow to run for discarded messages instead of a
+	 * {@link #discardChannel(MessageChannel)}.
+	 * @param discardFlow the discard flow.
+	 * @return the endpoint spec.
+	 * @since 5.2
+	 */
+	public SplitterEndpointSpec<S> discardFlow(IntegrationFlow discardFlow) {
+		return discardChannel(obtainInputChannelFromFlow(discardFlow));
 	}
 
 }

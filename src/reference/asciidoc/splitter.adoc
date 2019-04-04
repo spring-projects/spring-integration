@@ -64,6 +64,10 @@ In this case, the target `Iterator` is built on their iteration functionality.
 
 In addition, if the splitter's output channel is an instance of a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` produces a `Flux` result instead of an `Iterator`, and the output channel is subscribed to this `Flux` for back-pressure-based splitting on downstream flow demand.
 
+Starting with version 5.2, the splitter supports a `discardChannel` option for sending those request messages for which a split function has returned an empty container (collection, array, stream, `Flux` etc.).
+In this case there is just no item to iterate for sending to the `outputChannel`.
+The `null` splitting result remains as an end of flow indicator.
+
 ==== Configuring a Splitter with XML
 
 A splitter can be configured through XML as follows:
@@ -73,11 +77,12 @@ A splitter can be configured through XML as follows:
 ----
 <int:channel id="inputChannel"/>
 
-<int:splitter id="splitter"         <1>
-  ref="splitterBean"                <2>
-  method="split"                    <3>
-  input-channel="inputChannel"      <4>
-  output-channel="outputChannel" /> <5>
+<int:splitter id="splitter"           <1>
+  ref="splitterBean"                  <2>
+  method="split"                      <3>
+  input-channel="inputChannel"        <4>
+  output-channel="outputChannel"      <5>
+  discard-channel="discardChannel" /> <6>
 
 <int:channel id="outputChannel"/>
 
@@ -94,6 +99,8 @@ Optional.
 Required.
 <5> The channel to which the splitter sends the results of splitting the incoming message.
 Optional (because incoming messages can specify a reply channel themselves).
+<6> The channel to which the request message is sent in case of empty splitting result.
+Optional (the will stop as in case of `null` result).
 ====
 
 We recommend using a `ref` attribute if the custom splitter implementation can be referenced in other `<splitter>` definitions.
