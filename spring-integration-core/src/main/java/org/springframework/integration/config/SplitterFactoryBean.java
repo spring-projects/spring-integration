@@ -106,7 +106,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		if (this.discardChannel != null) {
 			splitter.setDiscardChannel(this.discardChannel);
 		}
-		else {
+		else if (StringUtils.hasText(this.discardChannelName)) {
 			splitter.setDiscardChannelName(this.discardChannelName);
 		}
 		return splitter;
