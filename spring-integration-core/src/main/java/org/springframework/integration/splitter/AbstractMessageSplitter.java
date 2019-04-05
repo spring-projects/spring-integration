@@ -96,12 +96,20 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	@Override
 	public MessageChannel getDiscardChannel() {
-		String channelName = this.discardChannelName;
-		if (channelName != null) {
-			this.discardChannel = getChannelResolver().resolveDestination(channelName);
-			this.discardChannelName = null;
+		if (this.discardChannel == null) {
+			String channelName = this.discardChannelName;
+			if (channelName != null) {
+				this.discardChannel = getChannelResolver().resolveDestination(channelName);
+				this.discardChannelName = null;
+			}
 		}
 		return this.discardChannel;
+	}
+
+	@Override
+	protected void doInit() {
+		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
+				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 	}
 
 	@Override
