@@ -18,8 +18,12 @@ package org.springframework.integration.redis.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.mock;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -35,6 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -427,6 +433,20 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		result.get();
 		assertThat(getExpire(registry, "foo")).isEqualTo(expire);
 		lock.unlock();
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void ntestUlink() {
+		RedisOperations ops = mock(RedisOperations.class);
+		Properties props = new Properties();
+		willReturn(props).given(ops).execute(any(RedisCallback.class));
+		props.setProperty("redis_version", "3.0.0");
+		RedisLockRegistry registry = new RedisLockRegistry(mock(RedisConnectionFactory.class), "foo");
+		assertThat(TestUtils.getPropertyValue(registry, "ulinkAvailable", Boolean.class)).isFalse();
+		props.setProperty("redis_version", "4.0.0");
+		registry = new RedisLockRegistry(mock(RedisConnectionFactory.class), "foo");
+		assertThat(TestUtils.getPropertyValue(registry, "ulinkAvailable", Boolean.class)).isTrue();
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {

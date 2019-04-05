@@ -97,6 +97,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final String registryKey;
 
+	private final boolean unlinkAvailable;
+
 	private final StringRedisTemplate redisTemplate;
 
 	private final RedisScript<Boolean> obtainLockScript;
@@ -138,6 +140,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
+		this.unlinkAvailable = RedisUtils.isUnlinkAvailable(this.redisTemplate);
 	}
 
 	/**
@@ -183,6 +186,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		private final String lockKey;
 
 		private final ReentrantLock localLock = new ReentrantLock();
+
+		private final boolean unlinkAvailable = RedisLockRegistry.this.unlinkAvailable;
 
 		private volatile long lockedAt;
 
@@ -329,7 +334,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		}
 
 		private void removeLockKey() {
-			if (RedisUtils.isUnlinkAvailable(RedisLockRegistry.this.redisTemplate)) {
+			if (this.unlinkAvailable) {
 				RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
 			}
 			else {

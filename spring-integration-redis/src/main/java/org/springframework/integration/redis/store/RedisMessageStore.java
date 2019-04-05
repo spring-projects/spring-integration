@@ -45,6 +45,8 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	private final RedisTemplate<Object, Object> redisTemplate;
 
+	private final boolean unlinkAvailable;
+
 	private boolean valueSerializerSet;
 
 	/**
@@ -72,6 +74,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		this.redisTemplate.afterPropertiesSet();
+		this.unlinkAvailable = RedisUtils.isUnlinkAvailable(this.redisTemplate);
 	}
 
 	@Override
@@ -131,7 +134,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		Assert.notNull(id, "'id' must not be null");
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
-			if (RedisUtils.isUnlinkAvailable(this.redisTemplate)) {
+			if (this.unlinkAvailable) {
 				this.redisTemplate.unlink(id);
 			}
 			else {
@@ -143,7 +146,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	@Override
 	protected void doRemoveAll(Collection<Object> ids) {
-		if (RedisUtils.isUnlinkAvailable(this.redisTemplate)) {
+		if (this.unlinkAvailable) {
 			this.redisTemplate.unlink(ids);
 		}
 		else {
