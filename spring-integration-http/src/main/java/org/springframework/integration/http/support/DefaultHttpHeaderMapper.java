@@ -31,8 +31,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -736,121 +734,85 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private void setAccept(HttpHeaders target, Object value) {
-		if (value instanceof Collection<?>) {
-			Collection<?> values = (Collection<?>) value;
-			if (!CollectionUtils.isEmpty(values)) {
-				List<MediaType> acceptableMediaTypes = new ArrayList<>();
-				for (Object type : values) {
-					if (type instanceof MediaType) {
-						acceptableMediaTypes.add((MediaType) type);
-					}
-					else if (type instanceof String) {
-						acceptableMediaTypes.addAll(MediaType.parseMediaTypes((String) type));
-					}
-					else {
-						throwIllegalArgumentForUnexpectedValue(
-								"Expected MediaType or String value for 'Accept' header value, but received: ", type);
-
-					}
+		Collection<?> valuesToAccept = valueToCollection(value);
+		if (!CollectionUtils.isEmpty(valuesToAccept)) {
+			List<MediaType> acceptableMediaTypes = new ArrayList<>();
+			for (Object type : valuesToAccept) {
+				if (type instanceof MediaType) {
+					acceptableMediaTypes.add((MediaType) type);
 				}
-				target.setAccept(acceptableMediaTypes);
+				else if (type instanceof String) {
+					acceptableMediaTypes.addAll(MediaType.parseMediaTypes((String) type));
+				}
+				else {
+					throwIllegalArgumentForUnexpectedValue(
+							"Expected MediaType or String value for 'Accept' header value, but received: ", type);
+
+				}
 			}
-		}
-		else if (value instanceof MediaType) {
-			target.setAccept(Collections.singletonList((MediaType) value));
-		}
-		else if (value instanceof String[]) {
-			target.setAccept(MediaType.parseMediaTypes(Arrays.asList((String[]) value)));
-		}
-		else if (value instanceof String) {
-			target.setAccept(MediaType.parseMediaTypes((String) value));
-		}
-		else {
-			throwIllegalArgumentForUnexpectedValue(
-					"Expected MediaType or String value for 'Accept' header value, but received: ", value);
+			target.setAccept(acceptableMediaTypes);
 		}
 	}
 
 	private void setAcceptCharset(HttpHeaders target, Object value) {
-		List<Charset> acceptableCharsets = null;
-		if (value instanceof Collection<?>) {
-			acceptableCharsets = new LinkedList<>();
-			for (Object charset : (Collection<?>) value) {
+		Collection<?> valuesToConvert = valueToCollection(value);
+		if (!CollectionUtils.isEmpty(valuesToConvert)) {
+			List<Charset> acceptableCharsets = new ArrayList<>();
+			for (Object charset : valuesToConvert) {
 				if (charset instanceof Charset) {
 					acceptableCharsets.add((Charset) charset);
 				}
 				else if (charset instanceof String) {
-					acceptableCharsets.add(Charset.forName((String) charset));
+					String[] charsets = StringUtils.delimitedListToStringArray((String) charset, ",", " ");
+					for (String charset2 : charsets) {
+						acceptableCharsets.add(Charset.forName(charset2));
+					}
 				}
 				else {
 					throwIllegalArgumentForUnexpectedValue(
-							"Expected Charset or String value for 'Accept-Charset' header value, " +
-									"but received: ", charset);
+							"Expected Charset or String value for 'Accept-Charset' header value, but received: ",
+							charset);
 				}
 			}
-		}
-		else if (value instanceof Charset || value instanceof Charset[]) {
-			acceptableCharsets = Arrays.asList((Charset[]) ObjectUtils.toObjectArray(value));
-		}
-		else if (value instanceof String || value instanceof String[]) {
-			String[] values = arrayFromValue(value);
-			acceptableCharsets = new LinkedList<>();
-			for (String charset : values) {
-				acceptableCharsets.add(Charset.forName(charset));
-			}
-		}
-		else {
-			throwIllegalArgumentForUnexpectedValue(
-					"Expected Charset or String value for 'Accept-Charset' header value, but received: ", value);
-		}
-
-		if (!CollectionUtils.isEmpty(acceptableCharsets)) {
 			target.setAcceptCharset(acceptableCharsets);
 		}
 	}
 
 	private void setAllow(HttpHeaders target, Object value) {
-		Set<HttpMethod> allowedMethods = null;
-		if (value instanceof Collection<?>) {
-			allowedMethods = new LinkedHashSet<>();
-			for (Object method : (Collection<?>) value) {
+		Collection<?> valuesToConvert = valueToCollection(value);
+		if (!CollectionUtils.isEmpty(valuesToConvert)) {
+			Set<HttpMethod> allowedMethods = new HashSet<>();
+			for (Object method : valuesToConvert) {
 				if (method instanceof HttpMethod) {
 					allowedMethods.add((HttpMethod) method);
 				}
 				else if (method instanceof String) {
-					allowedMethods.add(HttpMethod.valueOf((String) method));
+					String[] methods = StringUtils.delimitedListToStringArray((String) method, ",", " ");
+					for (String method2 : methods) {
+						allowedMethods.add(HttpMethod.valueOf(method2));
+					}
 				}
 				else {
 					throwIllegalArgumentForUnexpectedValue(
-							"Expected HttpMethod or String value for 'Allow' header value, " +
-									"but received: ", method);
+							"Expected HttpMethod or String value for 'Allow' header value, but received: ", method);
 				}
 			}
-		}
-		else if (value instanceof HttpMethod || value instanceof HttpMethod[]) {
-			allowedMethods = new LinkedHashSet<>(Arrays.asList((HttpMethod[]) ObjectUtils.toObjectArray(value)));
-		}
-		else if (value instanceof String || value instanceof String[]) {
-			String[] values = arrayFromValue(value);
-			allowedMethods = new LinkedHashSet<>();
-			for (String method : values) {
-				allowedMethods.add(HttpMethod.valueOf(method));
-			}
-		}
-		else {
-			throwIllegalArgumentForUnexpectedValue(
-					"Expected HttpMethod or String value for 'Allow' header value, but received: ", value);
-		}
-
-		if (!CollectionUtils.isEmpty(allowedMethods)) {
 			target.setAllow(allowedMethods);
 		}
 	}
 
-	private String[] arrayFromValue(Object value) {
-		return value instanceof String[]
-				? (String[]) value
-				: StringUtils.delimitedListToStringArray((String) value, ",", " ");
+	private Collection<?> valueToCollection(Object value) {
+		Collection<?> valuesToConvert;
+		if (value instanceof Collection<?>) {
+			valuesToConvert = (Collection<?>) value;
+		}
+		else if (value.getClass().isArray()) {
+			valuesToConvert = Arrays.asList(ObjectUtils.toObjectArray(value));
+		}
+		else {
+			valuesToConvert = Collections.singleton(value);
+		}
+		return valuesToConvert;
 	}
 
 	private void setCacheControl(HttpHeaders target, Object value) {
@@ -986,27 +948,21 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private void setIfNoneMatch(HttpHeaders target, Object value) {
-		if (value instanceof String) {
-			target.setIfNoneMatch((String) value);
-		}
-		else if (value instanceof String[]) {
-			target.setIfNoneMatch(StringUtils.arrayToCommaDelimitedString((String[]) value));
-		}
-		else if (value instanceof Collection) {
-			Collection<?> values = (Collection<?>) value;
-			if (!CollectionUtils.isEmpty(values)) {
-				List<String> ifNoneMatchList = new ArrayList<>();
-				for (Object next : values) {
-					if (next instanceof String) {
-						ifNoneMatchList.add((String) next);
-					}
-					else {
-						throwIllegalArgumentForUnexpectedValue(
-								"Expected String value for 'If-None-Match' header value, but received: ", value);
-					}
-				}
-				target.setIfNoneMatch(ifNoneMatchList);
+		Collection<?> valuesToAccept = valueToCollection(value);
+		List<String> ifNoneMatchList = new ArrayList<>();
+
+		for (Object match : valuesToAccept) {
+			if (match instanceof String) {
+				ifNoneMatchList.add((String) match);
 			}
+			else {
+				throwIllegalArgumentForUnexpectedValue(
+						"Expected String value for 'If-None-Match' header value, but received: ", value);
+			}
+		}
+
+		if (!ifNoneMatchList.isEmpty()) {
+			target.setIfNoneMatch(ifNoneMatchList);
 		}
 	}
 
