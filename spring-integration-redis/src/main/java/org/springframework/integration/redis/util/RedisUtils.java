@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.util;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,14 +42,14 @@ public final class RedisUtils {
 
 	@SuppressWarnings("serial")
 	private static final Map<RedisOperations<?, ?>, Boolean> unlinkAvailable =
-			new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
+			Collections.synchronizedMap(new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
 
 				@Override
 				protected boolean removeEldestEntry(Entry<RedisOperations<?, ?>, Boolean> eldest) {
 					return size() > 100;
 				}
 
-			};
+			});
 
 	/**
 	 * Perform an {@code INFO} command on the provided {@link RedisOperations} to check
