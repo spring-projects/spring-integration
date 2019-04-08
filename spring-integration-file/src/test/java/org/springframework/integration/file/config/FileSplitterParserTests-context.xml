@@ -22,6 +22,7 @@
 					   send-timeout="5"
 					   auto-startup="false"
 					   order="2"
-					   phase="1"/>
+					   phase="1"
+					   discard-channel="nullChannel"/>
 
 </beans>

@@ -28,6 +28,7 @@ import org.springframework.integration.config.SplitterFactoryBean;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 
@@ -45,6 +46,7 @@ public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 	void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delimiters");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "discard-channel", "discardChannelName");
 	}
 
 }
