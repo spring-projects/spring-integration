@@ -19,7 +19,6 @@ package org.springframework.integration.resource;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
@@ -44,7 +43,7 @@ import org.springframework.util.ObjectUtils;
  * @since 2.1
  */
 public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]>
-		implements ApplicationContextAware, InitializingBean {
+		implements ApplicationContextAware {
 
 	private final String pattern;
 

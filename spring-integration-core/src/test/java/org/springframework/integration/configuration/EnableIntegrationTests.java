@@ -472,8 +472,8 @@ public class EnableIntegrationTests {
 		child.refresh();
 		AbstractMessageChannel foo = child.getBean("foo", AbstractMessageChannel.class);
 		ChannelInterceptor baz = child.getBean("baz", ChannelInterceptor.class);
-		assertThat(foo.getChannelInterceptors().contains(baz)).isTrue();
-		assertThat(this.output.getChannelInterceptors().contains(baz)).isFalse();
+		assertThat(foo.getInterceptors().contains(baz)).isTrue();
+		assertThat(this.output.getInterceptors().contains(baz)).isFalse();
 		child.close();
 	}
 
@@ -485,8 +485,8 @@ public class EnableIntegrationTests {
 		child.refresh();
 		AbstractMessageChannel foo = child.getBean("foo", AbstractMessageChannel.class);
 		ChannelInterceptor baz = child.getBean("baz", ChannelInterceptor.class);
-		assertThat(foo.getChannelInterceptors().contains(baz)).isTrue();
-		assertThat(this.output.getChannelInterceptors().contains(baz)).isFalse();
+		assertThat(foo.getInterceptors().contains(baz)).isTrue();
+		assertThat(this.output.getInterceptors().contains(baz)).isFalse();
 		child.close();
 	}
 

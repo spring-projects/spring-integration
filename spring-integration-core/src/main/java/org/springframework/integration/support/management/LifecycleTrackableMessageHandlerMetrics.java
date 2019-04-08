@@ -21,12 +21,16 @@ import org.springframework.util.Assert;
 
 /**
  * Adds {@link TrackableComponent}.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  *
  * @author Gary Russell
  * @author Artem Bilan
  *
  * @since 4.2
  */
+@Deprecated
 @IntegrationManagedResource
 public class LifecycleTrackableMessageHandlerMetrics extends LifecycleMessageHandlerMetrics
 		implements TrackableComponent {

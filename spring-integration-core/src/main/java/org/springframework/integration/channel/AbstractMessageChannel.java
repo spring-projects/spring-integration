@@ -37,8 +37,6 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
@@ -69,7 +67,8 @@ import org.springframework.util.StringUtils;
 @IntegrationManagedResource
 @SuppressWarnings("deprecation")
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
-		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
+		implements MessageChannel, TrackableComponent, ChannelInterceptorAware,
+		org.springframework.integration.support.management.MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
 
 	protected final ChannelInterceptorList interceptors; // NOSONAR
@@ -117,8 +116,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
-		this.metricsCaptor = metricsCaptor;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
+		this.metricsCaptor = metricsCaptorToRegister;
 	}
 
 	@Nullable
@@ -429,7 +428,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		boolean metricsProcessed = false;
-		MetricsContext metricsContext = null;
+		org.springframework.integration.support.management.MetricsContext metricsContext = null;
 		boolean countsAreEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptorList = this.interceptors;
 		AbstractMessageChannelMetrics metrics = this.channelMetrics;

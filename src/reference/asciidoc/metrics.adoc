@@ -97,7 +97,7 @@ Starting with version 5.0.2, the framework automatically detects whether the app
 [[micrometer-integration]]
 ==== Micrometer Integration
 
-Starting with version 5.0.3, the presence of a https://micrometer.io/[Micrometer] `MeterRegistry` in the application context triggers support for Micrometer metrics in addition to the built-in metrics (note that built-in metrics will be removed in a future release).
+Starting with version 5.0.3, the presence of a https://micrometer.io/[Micrometer] `MeterRegistry` in the application context triggers support for Micrometer metrics in addition to the built-in metrics (note that the legacy built-in metrics will be removed in a future release).
 
 IMPORTANT: Micrometer was first supported in version 5.0.2, but changes were made to the Micrometer `Meters` in version 5.0.3 to make them more suitable for use in dimensional systems.
 Further changes were made in 5.0.4.

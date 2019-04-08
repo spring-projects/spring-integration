@@ -39,7 +39,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -574,8 +573,7 @@ public class ManualFlowTests {
 
 	}
 
-	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler
-			implements DisposableBean {
+	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler {
 
 		@Autowired
 		private BeanFactory beanFactory;

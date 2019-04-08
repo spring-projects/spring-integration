@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Gary Russell
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics {
 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;

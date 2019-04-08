@@ -26,7 +26,7 @@ import org.springframework.jmx.support.MetricType;
  * @since 4.2
  *
  */
-public interface PollableChannelManagement extends MessageChannelMetrics {
+public interface PollableChannelManagement extends PollableChannelMetrics {
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	int getReceiveCount();
@@ -34,10 +34,20 @@ public interface PollableChannelManagement extends MessageChannelMetrics {
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	long getReceiveCountLong();
 
+	@Override
+	default long receiveCount() {
+		return getReceiveCountLong();
+	}
+
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	int getReceiveErrorCount();
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	long getReceiveErrorCountLong();
+
+	@Override
+	default long receiveErrorCount() {
+		return getReceiveErrorCountLong();
+	}
 
 }

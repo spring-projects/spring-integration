@@ -44,8 +44,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageSourceMetrics;
-import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -71,9 +69,11 @@ import reactor.core.publisher.Mono;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
-		implements TrackableComponent, MessageSourceMetrics {
+		implements org.springframework.integration.support.management.TrackableComponent,
+			org.springframework.integration.support.management.MessageSourceMetrics {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 

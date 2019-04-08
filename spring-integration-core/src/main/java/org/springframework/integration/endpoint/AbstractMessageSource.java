@@ -27,7 +27,6 @@ import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -43,9 +42,11 @@ import org.springframework.util.CollectionUtils;
  *
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator
-		implements MessageSource<T>, MessageSourceMetrics, NamedComponent, BeanNameAware {
+		implements MessageSource<T>, org.springframework.integration.support.management.MessageSourceMetrics,
+			NamedComponent, BeanNameAware {
 
 	private final AtomicLong messageCount = new AtomicLong();
 

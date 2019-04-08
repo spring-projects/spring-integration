@@ -35,7 +35,6 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
-import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
@@ -75,6 +74,7 @@ public class MonitorTests {
 	private NullChannel nullChannel;
 
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testStats() throws InterruptedException {
 		final CountDownLatch afterSendLatch = new CountDownLatch(1);
@@ -87,7 +87,9 @@ public class MonitorTests {
 			Object result = invocation.callRealMethod();
 			afterSendLatch.countDown();
 			return result;
-		}).when(channelMetrics).afterSend(Mockito.any(MetricsContext.class), Mockito.eq(Boolean.TRUE));
+		}).when(channelMetrics)
+			.afterSend(Mockito.any(org.springframework.integration.support.management.MetricsContext.class),
+					Mockito.eq(Boolean.TRUE));
 
 		new DirectFieldAccessor(this.next).setPropertyValue("channelMetrics", channelMetrics);
 

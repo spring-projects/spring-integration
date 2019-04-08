@@ -24,6 +24,7 @@ package org.springframework.integration.support.management;
  *
  */
 @FunctionalInterface
+@SuppressWarnings("deprecation")
 public interface MessageSourceMetricsConfigurer {
 
 	void configure(MessageSourceMetrics metrics, String beanName);

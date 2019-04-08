@@ -29,6 +29,7 @@ import org.springframework.context.Lifecycle;
  * @since 4.2
  *
  */
+@SuppressWarnings("deprecation")
 public class RouterMetrics extends LifecycleMessageHandlerMetrics implements MappingMessageRouterManagement {
 
 	private final MappingMessageRouterManagement router;

@@ -37,9 +37,6 @@ import org.springframework.integration.support.management.DefaultMessageHandlerM
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
-import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.MessageHandlerMetrics;
-import org.springframework.integration.support.management.MetricsFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
+@SuppressWarnings("deprecation")
 public class MBeanExporterParserTests {
 
 	@Autowired
@@ -72,38 +70,42 @@ public class MBeanExporterParserTests {
 		assertThat(properties.containsKey("bar")).isTrue();
 		assertThat(exporter.getServer()).isEqualTo(server);
 		assertThat(TestUtils.getPropertyValue(exporter, "namingStrategy")).isSameAs(context.getBean("keyNamer"));
-		MessageChannelMetrics metrics = context.getBean("foo", MessageChannelMetrics.class);
+		org.springframework.integration.support.management.MessageChannelMetrics metrics =
+				context.getBean("foo", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isTrue();
 		assertThat(metrics.isStatsEnabled()).isFalse();
 		checkCustomized(metrics);
-		MessageHandlerMetrics handlerMetrics = context.getBean("transformer.handler", MessageHandlerMetrics.class);
+		org.springframework.integration.support.management.MessageHandlerMetrics handlerMetrics =
+				context.getBean("transformer.handler",
+						org.springframework.integration.support.management.MessageHandlerMetrics.class);
 		checkCustomized(handlerMetrics);
-		metrics = context.getBean("bar", MessageChannelMetrics.class);
+		metrics = context.getBean("bar", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isTrue();
 		assertThat(metrics.isStatsEnabled()).isFalse();
-		metrics = context.getBean("baz", MessageChannelMetrics.class);
+		metrics = context.getBean("baz", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isFalse();
 		assertThat(metrics.isStatsEnabled()).isFalse();
-		metrics = context.getBean("qux", MessageChannelMetrics.class);
+		metrics = context.getBean("qux", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isFalse();
 		assertThat(metrics.isStatsEnabled()).isFalse();
-		metrics = context.getBean("fiz", MessageChannelMetrics.class);
+		metrics = context.getBean("fiz", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isTrue();
 		assertThat(metrics.isStatsEnabled()).isTrue();
-		metrics = context.getBean("buz", MessageChannelMetrics.class);
+		metrics = context.getBean("buz", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isTrue();
 		assertThat(metrics.isStatsEnabled()).isTrue();
-		metrics = context.getBean("!excluded", MessageChannelMetrics.class);
+		metrics = context.getBean("!excluded", org.springframework.integration.support.management.MessageChannelMetrics.class);
 		assertThat(metrics.isCountsEnabled()).isFalse();
 		assertThat(metrics.isStatsEnabled()).isFalse();
 		checkCustomized(metrics);
-		MetricsFactory factory = context.getBean(MetricsFactory.class);
+		org.springframework.integration.support.management.MetricsFactory factory =
+				context.getBean(org.springframework.integration.support.management.MetricsFactory.class);
 		IntegrationManagementConfigurer configurer = context.getBean(IntegrationManagementConfigurer.class);
 		assertThat(TestUtils.getPropertyValue(configurer, "metricsFactory")).isSameAs(factory);
 		exporter.destroy();
 	}
 
-	private void checkCustomized(MessageChannelMetrics metrics) {
+	private void checkCustomized(org.springframework.integration.support.management.MessageChannelMetrics metrics) {
 		assertThat(metrics.isLoggingEnabled()).isFalse();
 		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.window")).isEqualTo(20);
 		assertThat(TestUtils.getPropertyValue(metrics, "channelMetrics.sendDuration.factor", Double.class))
@@ -125,13 +127,13 @@ public class MBeanExporterParserTests {
 				.isCloseTo(.001 / 140000, Offset.offset(.01));
 	}
 
-	private void checkCustomized(MessageHandlerMetrics metrics) {
+	private void checkCustomized(org.springframework.integration.support.management.MessageHandlerMetrics metrics) {
 		assertThat(TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.window")).isEqualTo(20);
 		assertThat(TestUtils.getPropertyValue(metrics, "handlerMetrics.duration.factor", Double.class))
 				.isCloseTo(1000000., Offset.offset(.01));
 	}
 
-	public static class CustomMetrics implements MetricsFactory {
+	public static class CustomMetrics implements org.springframework.integration.support.management.MetricsFactory {
 
 		@Override
 		public AbstractMessageChannelMetrics createChannelMetrics(String name) {

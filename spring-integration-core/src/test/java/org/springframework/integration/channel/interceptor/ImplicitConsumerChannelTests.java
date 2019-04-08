@@ -53,15 +53,15 @@ public class ImplicitConsumerChannelTests {
 	@Test
 	public void testImplicit() {
 		// used to fail to load AC (no channel 'bar')
-		List<ChannelInterceptor> barInterceptors = bar.getChannelInterceptors();
+		List<ChannelInterceptor> barInterceptors = bar.getInterceptors();
 		assertThat(barInterceptors.size()).isEqualTo(2);
 		assertThat(barInterceptors.get(0)).isInstanceOfAny(Interceptor1.class, Interceptor2.class);
 		assertThat(barInterceptors.get(1)).isInstanceOfAny(Interceptor1.class, Interceptor2.class);
-		List<ChannelInterceptor> fooInterceptors = foo.getChannelInterceptors();
+		List<ChannelInterceptor> fooInterceptors = foo.getInterceptors();
 		assertThat(fooInterceptors.size()).isEqualTo(2);
 		assertThat(fooInterceptors.get(0)).isInstanceOfAny(WireTap.class, Interceptor2.class);
 		assertThat(fooInterceptors.get(1)).isInstanceOfAny(WireTap.class, Interceptor2.class);
-		List<ChannelInterceptor> bazInterceptors = baz.getChannelInterceptors();
+		List<ChannelInterceptor> bazInterceptors = baz.getInterceptors();
 		assertThat(bazInterceptors.size()).isEqualTo(2);
 		assertThat(bazInterceptors.get(0)).isInstanceOfAny(WireTap.class, Interceptor1.class);
 		assertThat(bazInterceptors.get(1)).isInstanceOfAny(WireTap.class, Interceptor1.class);

@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics {
 
 	public static final long ONE_SECOND_SECONDS = 1;

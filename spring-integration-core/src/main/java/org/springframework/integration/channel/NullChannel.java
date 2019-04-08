@@ -27,7 +27,6 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
@@ -47,7 +46,9 @@ import org.springframework.util.Assert;
  * @author Artyem Bilan
  */
 @IntegrationManagedResource
-public class NullChannel implements PollableChannel, MessageChannelMetrics,
+@SuppressWarnings("deprecation")
+public class NullChannel implements PollableChannel,
+		org.springframework.integration.support.management.MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(getClass());

@@ -32,7 +32,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
@@ -92,7 +91,7 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware, Lifecycle {
+		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle {
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 

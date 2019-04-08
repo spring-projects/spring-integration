@@ -16,9 +16,6 @@
 
 package org.springframework.integration.support.management;
 
-
-
-
 /**
  * Implementation that returns aggregating metrics.
  *
@@ -26,6 +23,7 @@ package org.springframework.integration.support.management;
  * @since 4.2
  *
  */
+@SuppressWarnings("deprecation")
 public class AggregatingMetricsFactory implements MetricsFactory {
 
 	private final int sampleSize;

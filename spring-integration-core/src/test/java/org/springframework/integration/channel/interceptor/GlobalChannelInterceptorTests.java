@@ -148,7 +148,7 @@ public class GlobalChannelInterceptorTests {
 		ConfigurableListableBeanFactory beanFactory = this.applicationContext.getBeanFactory();
 		beanFactory.initializeBean(testChannel, "testChannel");
 
-		List<ChannelInterceptor> channelInterceptors = testChannel.getChannelInterceptors();
+		List<ChannelInterceptor> channelInterceptors = testChannel.getInterceptors();
 
 		assertThat(channelInterceptors.size()).isEqualTo(2);
 		assertThat(channelInterceptors.get(0)).isInstanceOf(SampleInterceptor.class);

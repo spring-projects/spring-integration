@@ -19,14 +19,15 @@ package org.springframework.integration.monitor;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.springframework.integration.support.management.LifecycleMessageHandlerMetrics;
-import org.springframework.integration.support.management.LifecycleMessageSourceMetrics;
 import org.springframework.jmx.export.metadata.JmxAttributeSource;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 
 /**
  * The {@link MetadataNamingStrategy} naming extension to extract an {@link ObjectName}
- * from the {@link LifecycleMessageSourceMetrics} or {@link LifecycleMessageHandlerMetrics}
+ * from the
+ * {@link org.springframework.integration.support.management.LifecycleMessageSourceMetrics}
+ * or
+ * {@link org.springframework.integration.support.management.LifecycleMessageHandlerMetrics}
  * managed bean's delegate.
  * <p>
  * Otherwise delegate to the {@link MetadataNamingStrategy#getObjectName} as is.
@@ -47,12 +48,15 @@ public class IntegrationMetadataNamingStrategy extends MetadataNamingStrategy {
 		return super.getObjectName(extractManagedBean(managedBean), beanKey);
 	}
 
+	@SuppressWarnings("deprecation")
 	private Object extractManagedBean(Object managedBean) {
-		if (managedBean instanceof LifecycleMessageSourceMetrics) {
-			return ((LifecycleMessageSourceMetrics) managedBean).getDelegate();
+		if (managedBean instanceof org.springframework.integration.support.management.LifecycleMessageSourceMetrics) {
+			return ((org.springframework.integration.support.management.LifecycleMessageSourceMetrics) managedBean)
+					.getDelegate();
 		}
-		else if (managedBean instanceof LifecycleMessageHandlerMetrics) {
-			return ((LifecycleMessageHandlerMetrics) managedBean).getDelegate();
+		else if (managedBean instanceof org.springframework.integration.support.management.LifecycleMessageHandlerMetrics) {
+			return ((org.springframework.integration.support.management.LifecycleMessageHandlerMetrics) managedBean)
+					.getDelegate();
 		}
 		return managedBean;
 	}

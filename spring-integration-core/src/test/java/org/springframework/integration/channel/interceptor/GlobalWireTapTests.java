@@ -87,7 +87,7 @@ public class GlobalWireTapTests {
 
 		assertThat(this.wiretapAll2.receive(1)).isNull();
 
-		assertThat(this.channel.getChannelInterceptors().size()).isEqualTo(4);
+		assertThat(this.channel.getInterceptors().size()).isEqualTo(4);
 	}
 
 	@Test

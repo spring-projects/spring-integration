@@ -26,6 +26,7 @@ package org.springframework.integration.support.management;
  * @since 4.2
  *
  */
+@SuppressWarnings("deprecation")
 public class DefaultMetricsFactory implements MetricsFactory {
 
 	@Override

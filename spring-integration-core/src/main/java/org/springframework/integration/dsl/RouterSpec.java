@@ -42,8 +42,7 @@ import org.springframework.util.StringUtils;
  * @since 5.0
  */
 public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
-		extends AbstractRouterSpec<RouterSpec<K, R>, R>
-		implements ComponentsRegistration {
+		extends AbstractRouterSpec<RouterSpec<K, R>, R> {
 
 	private final RouterMappingProvider mappingProvider;
 

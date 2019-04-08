@@ -25,6 +25,7 @@ import org.springframework.context.Lifecycle;
  * @since 5.0
  *
  */
+@SuppressWarnings("deprecation")
 public class LifecycleMessageSourceManagement extends LifecycleMessageSourceMetrics implements MessageSourceManagement {
 
 	public LifecycleMessageSourceManagement(Lifecycle lifecycle, MessageSourceManagement delegate) {
