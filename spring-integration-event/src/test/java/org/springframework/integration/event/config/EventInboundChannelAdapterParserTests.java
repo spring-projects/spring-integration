@@ -40,7 +40,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,10 +50,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class EventInboundChannelAdapterParserTests {
 
 	@Autowired
