@@ -21,14 +21,12 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.integration.core.MessageSource} implementation that
- * delegates to a
- * {@link MailReceiver} to poll a mailbox. Each poll of the mailbox may
+ * delegates to a {@link MailReceiver} to poll a mailbox. Each poll of the mailbox may
  * return more than one message which will then be stored in a queue.
  *
  * @author Jonas Partner
@@ -69,12 +67,7 @@ public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("received mail message [" + mailMessage + "]");
 				}
-				if (mailMessage instanceof Message) {
-					return getMessageBuilderFactory().fromMessage((Message<?>) mailMessage);
-				}
-				else {
-					return getMessageBuilderFactory().withPayload(mailMessage);
-				}
+				return mailMessage;
 			}
 		}
 		catch (Exception e) {

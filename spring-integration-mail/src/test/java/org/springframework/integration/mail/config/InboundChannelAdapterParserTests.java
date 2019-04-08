@@ -74,6 +74,7 @@ public class InboundChannelAdapterParserTests {
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
 		assertThat(value).isTrue();
 		assertThat(receiverAccessor.getPropertyValue("embeddedPartsAsBytes")).isEqualTo(Boolean.FALSE);
+		assertThat(receiverAccessor.getPropertyValue("autoCloseFolder")).isEqualTo(false);
 		assertThat(receiverAccessor.getPropertyValue("headerMapper")).isNotNull();
 	}
 

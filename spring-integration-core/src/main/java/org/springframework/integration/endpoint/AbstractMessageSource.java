@@ -162,6 +162,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	@SuppressWarnings("unchecked")
 	protected Message<T> buildMessage(Object result) {
+		if (result == null) {
+			return null;
+		}
 		Message<?> message = null;
 		Map<String, Object> headers = evaluateHeaders();
 		if (result instanceof AbstractIntegrationMessageBuilder<?>) {
@@ -181,14 +184,14 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 								.build();
 			}
 		}
-		else if (result != null) {
+		else {
 			message =
 					getMessageBuilderFactory()
 							.withPayload(result)
 							.copyHeaders(headers)
 							.build();
 		}
-		if (this.countsEnabled && message != null) {
+		if (this.countsEnabled) {
 			if (this.metricsCaptor != null) {
 				incrementReceiveCounter();
 			}

@@ -38,6 +38,7 @@
 			header-mapper="mapper"
 			simple-content="true"
 			embedded-parts-as-bytes="false"
+			auto-close-folder="false"
 			should-delete-messages="true"/>
 
 	<bean id="mapper" class="org.springframework.integration.mail.support.DefaultMailHeaderMapper" />

@@ -84,6 +84,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertThat(receiverAccessor.getPropertyValue("embeddedPartsAsBytes")).isEqualTo(Boolean.FALSE);
 		assertThat(receiverAccessor.getPropertyValue("headerMapper")).isNotNull();
 		assertThat(receiverAccessor.getPropertyValue("simpleContent")).isEqualTo(Boolean.TRUE);
+		assertThat(receiverAccessor.getPropertyValue("autoCloseFolder")).isEqualTo(false);
 	}
 
 	@Test

@@ -18,6 +18,8 @@ package org.springframework.integration.mail.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Properties;
 
 import javax.mail.Flags;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -60,15 +63,13 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class MailTests {
 
@@ -144,14 +145,16 @@ public class MailTests {
 	}
 
 	@Test
-	public void testPop3() throws Exception {
+	public void testPop3() throws IOException {
 		Message<?> message = this.pop3Channel.receive(10000);
 		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
-		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
+		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo("foo\r\n\r\n");
+		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
+		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
 	}
 
 	@Test
@@ -163,6 +166,8 @@ public class MailTests {
 		assertThat(mm.getFrom()[0].toString()).isEqualTo("Bar <bar@baz>");
 		assertThat(mm.getSubject()).isEqualTo("Test Email");
 		assertThat(mm.getContent()).isEqualTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n");
+		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
+		message.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, Closeable.class).close();
 	}
 
 	@Test
@@ -170,10 +175,11 @@ public class MailTests {
 		Message<?> message = this.imapIdleChannel.receive(10000);
 		assertThat(message).isNotNull();
 		MessageHeaders headers = message.getHeaders();
-		assertThat(headers.get(MailHeaders.TO, String[].class)[0]).isEqualTo("Foo <foo@bar>");
+		assertThat(headers.get(MailHeaders.TO, String[].class)).containsExactly("Foo <foo@bar>");
 		assertThat(headers.get(MailHeaders.FROM)).isEqualTo("Bar <bar@baz>");
 		assertThat(headers.get(MailHeaders.SUBJECT)).isEqualTo("Test Email");
 		assertThat(message.getPayload()).isEqualTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n");
+		assertThat(message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isTrue();
 		this.imapIdleAdapter.stop();
 		assertThat(TestUtils.getPropertyValue(this.imapIdleAdapter, "shouldReconnectAutomatically", Boolean.class))
 				.isFalse();
@@ -204,6 +210,7 @@ public class MailTests {
 			return IntegrationFlows
 					.from(Mail.pop3InboundAdapter("localhost", pop3Server.getPort(), "user", "pw")
 									.javaMailProperties(p -> p.put("mail.debug", "false"))
+									.autoCloseFolder(false)
 									.headerMapper(mailHeaderMapper()),
 							e -> e.autoStartup(true).poller(p -> p.fixedDelay(1000)))
 					.enrichHeaders(s -> s.headerExpressions(c -> c.put(MailHeaders.SUBJECT, "payload.subject")
@@ -218,6 +225,7 @@ public class MailTests {
 					.from(Mail.imapInboundAdapter("imap://user:pw@localhost:" + imapServer.getPort() + "/INBOX")
 									.searchTermStrategy(this::fromAndNotSeenTerm)
 									.userFlag("testSIUserFlag")
+									.autoCloseFolder(false)
 									.simpleContent(true)
 									.javaMailProperties(p -> p.put("mail.debug", "false")),
 							e -> e.autoStartup(true)
@@ -230,13 +238,14 @@ public class MailTests {
 		public IntegrationFlow imapIdleFlow() {
 			return IntegrationFlows
 					.from(Mail.imapIdleAdapter("imap://user:pw@localhost:" + imapIdleServer.getPort() + "/INBOX")
-									.autoStartup(true)
-									.searchTermStrategy(this::fromAndNotSeenTerm)
-									.userFlag("testSIUserFlag")
-									.javaMailProperties(p -> p.put("mail.debug", "false")
-											.put("mail.imap.connectionpoolsize", "5"))
-									.shouldReconnectAutomatically(false)
-									.headerMapper(mailHeaderMapper()))
+							.autoStartup(true)
+							.searchTermStrategy(this::fromAndNotSeenTerm)
+							.userFlag("testSIUserFlag")
+							.autoCloseFolder(false)
+							.javaMailProperties(p -> p.put("mail.debug", "false")
+									.put("mail.imap.connectionpoolsize", "5"))
+							.shouldReconnectAutomatically(false)
+							.headerMapper(mailHeaderMapper()))
 					.channel(MessageChannels.queue("imapIdleChannel"))
 					.get();
 		}

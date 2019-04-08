@@ -81,6 +81,8 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
 	private Boolean simpleContent;
 
+	private Boolean autoCloseFolder;
+
 	public void setStoreUri(@Nullable String storeUri) {
 		this.storeUri = storeUri;
 	}
@@ -139,6 +141,10 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 
 	public void setSimpleContent(@Nullable Boolean simpleContent) {
 		this.simpleContent = simpleContent;
+	}
+
+	public void setAutoCloseFolder(@Nullable Boolean autoCloseFolder) {
+		this.autoCloseFolder = autoCloseFolder;
 	}
 
 	@Override
@@ -210,6 +216,9 @@ public class MailReceiverFactoryBean extends AbstractFactoryBean<MailReceiver> {
 		}
 		if (this.simpleContent != null) {
 			mailReceiver.setSimpleContent(this.simpleContent);
+		}
+		if (this.autoCloseFolder != null) {
+			mailReceiver.setAutoCloseFolder(this.autoCloseFolder);
 		}
 		mailReceiver.afterPropertiesSet();
 		return mailReceiver;

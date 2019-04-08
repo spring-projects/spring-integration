@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
@@ -37,6 +38,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 
@@ -52,7 +54,8 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, txElement,
 					"synchronization-factory", "transactionSynchronizationFactory");
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor", "sendingTaskExecutor");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor",
+				"sendingTaskExecutor");
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(null,
 				DomUtils.getChildElementByTagName(element, "transactional"), beanDefinition, parserContext);
@@ -90,15 +93,15 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 
 		String selectorExpression = element.getAttribute("mail-filter-expression");
 
-		RootBeanDefinition expressionDef = null;
 		if (StringUtils.hasText(selectorExpression)) {
-			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "header-mapper");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "embedded-parts-as-bytes");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "simple-content");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "auto-close-folder");
 
 		return receiverBuilder.getBeanDefinition();
 	}

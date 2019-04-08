@@ -23,6 +23,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.MailReceivingMessageSource;
@@ -36,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MailInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
@@ -87,15 +89,15 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 		String selectorExpression = element.getAttribute("mail-filter-expression");
 
-		RootBeanDefinition expressionDef = null;
 		if (StringUtils.hasText(selectorExpression)) {
-			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "header-mapper");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "embedded-parts-as-bytes");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "simple-content");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "auto-close-folder");
 
 		return receiverBuilder.getBeanDefinition();
 	}
