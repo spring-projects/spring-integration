@@ -13,6 +13,7 @@
 	<jdbc:embedded-database id="dataSource" type="H2" />
 
 	<jdbc:initialize-database data-source="dataSource">
+		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-h2.sql"/>
 		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:initialize-database>
 
