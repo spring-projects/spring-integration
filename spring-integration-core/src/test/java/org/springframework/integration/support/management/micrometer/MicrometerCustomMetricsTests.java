@@ -31,7 +31,9 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.search.MeterNotFoundException;
@@ -39,11 +41,13 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.1
  *
  */
 @RunWith(SpringRunner.class)
+@TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class MicrometerCustomMetricsTests {
 
 	@Autowired
@@ -56,7 +60,7 @@ public class MicrometerCustomMetricsTests {
 	private QueueChannel queue;
 
 	@Test
-	public void testSend() throws Exception {
+	public void testSend() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		this.queue.send(message);
 		this.queue.receive();
@@ -112,6 +116,7 @@ public class MicrometerCustomMetricsTests {
 		public MetricsCaptor captor() {
 			return new CustomMetricsCaptor(meterRegistry());
 		}
+
 	}
 
 	static class CustomMetricsCaptor extends MicrometerMetricsCaptor {

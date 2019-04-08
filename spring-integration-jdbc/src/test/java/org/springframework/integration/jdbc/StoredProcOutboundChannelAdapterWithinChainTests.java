@@ -24,28 +24,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
  *
  * @since 2.2
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext // close at the end after class
 public class StoredProcOutboundChannelAdapterWithinChainTests {
-
-	@Autowired
-	private AbstractApplicationContext context;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -64,9 +58,6 @@ public class StoredProcOutboundChannelAdapterWithinChainTests {
 		assertThat(map.get("USERNAME")).as("Wrong username").isEqualTo("username");
 		assertThat(map.get("PASSWORD")).as("Wrong password").isEqualTo("password");
 		assertThat(map.get("EMAIL")).as("Wrong email").isEqualTo("email");
-//		embeddedDatabase can be in working state. So other tests with the same embeddedDatabase beanId, type and init scripts
-//		may be failed with Exception like: object in the DB already exists
-		this.context.close();
 	}
 
 }

@@ -49,7 +49,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.search.MeterNotFoundException;
@@ -57,12 +59,14 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.2
  *
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
+@TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class MicrometerMetricsTests {
 
 	@Autowired
@@ -91,7 +95,7 @@ public class MicrometerMetricsTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSend() throws Exception {
+	public void testSend() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		this.channel.send(message);
 		try {
@@ -186,15 +190,15 @@ public class MicrometerMetricsTests {
 
 		// Test meter removal
 		registry.get("spring.integration.send")
-			.tag("name", "newChannel")
-			.tag("result", "success")
-			.timer();
-		newChannel.destroy();
-		try {
-			registry.get("spring.integration.send")
 				.tag("name", "newChannel")
 				.tag("result", "success")
 				.timer();
+		newChannel.destroy();
+		try {
+			registry.get("spring.integration.send")
+					.tag("name", "newChannel")
+					.tag("result", "success")
+					.timer();
 			fail("Expected MeterNotFoundException");
 		}
 		catch (MeterNotFoundException e) {

@@ -25,32 +25,26 @@ import java.net.Socket;
 
 import javax.net.SocketFactory;
 
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class TcpConfigInboundGatewayTests {
-
-	static AbstractApplicationContext staticContext;
-
-	@Autowired
-	AbstractApplicationContext ctx;
 
 	@Autowired
 	@Qualifier("crLfServer")
@@ -286,18 +280,6 @@ public class TcpConfigInboundGatewayTests {
 			}
 		}
 
-	}
-
-	@Before
-	public void copyContext() {
-		if (staticContext == null) {
-			staticContext = ctx;
-		}
-	}
-
-	@AfterClass
-	public static void shutDown() {
-		staticContext.close();
 	}
 
 }
