@@ -353,6 +353,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				"either a password or a private key is required");
 		try {
 			JSchSessionWrapper jschSession;
+			SftpSession sftpSession;
 			if (this.isSharedSession) {
 				this.sharedSessionLock.readLock().lock();
 				try {
@@ -375,17 +376,19 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 							this.sharedSessionLock.writeLock().unlock();
 						}
 					}
+					jschSession = this.sharedJschSession;
+					sftpSession = new SftpSession(jschSession);
+					sftpSession.connect();
 				}
 				finally {
 					this.sharedSessionLock.readLock().unlock();
 				}
-				jschSession = this.sharedJschSession;
 			}
 			else {
 				jschSession = new JSchSessionWrapper(initJschSession());
+				sftpSession = new SftpSession(jschSession);
+				sftpSession.connect();
 			}
-			SftpSession sftpSession = new SftpSession(jschSession);
-			sftpSession.connect();
 			jschSession.addChannel();
 			return sftpSession;
 		}
