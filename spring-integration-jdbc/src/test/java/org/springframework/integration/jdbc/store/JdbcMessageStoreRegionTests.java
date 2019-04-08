@@ -29,26 +29,29 @@ import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class JdbcMessageStoreRegionTests {
 
 	private static EmbeddedDatabase dataSource;
+
 	private JdbcTemplate jdbcTemplate;
 
 	private JdbcMessageStore messageStore1;
+
 	private JdbcMessageStore messageStore2;
 
 	@BeforeClass
 	public static void setupDatabase() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-drop-h2.sql")
 				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
 				.build();
 	}
@@ -76,7 +79,7 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	public void testVerifyMessageCount() throws Exception {
+	public void testVerifyMessageCount() {
 
 		messageStore1.addMessage(MessageBuilder.withPayload("payload1").build());
 		messageStore1.addMessage(MessageBuilder.withPayload("payload2").build());
@@ -90,7 +93,7 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	public void testInsertNullRegion() throws Exception {
+	public void testInsertNullRegion() {
 
 		try {
 			messageStore1.setRegion(null);
@@ -104,7 +107,7 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	public void testVerifyMessageGroupCount() throws Exception {
+	public void testVerifyMessageGroupCount() {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 		messageStore1.addMessageToGroup("group2", MessageBuilder.withPayload("payload2").build());
@@ -123,12 +126,12 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	public void testRegionSetToMessageGroup() throws Exception {
+	public void testRegionSetToMessageGroup() {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
 		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'",
-				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
+				(rs, rowNum) -> rs.getString("REGION"));
 
 		assertThat(regions.size()).isEqualTo(1);
 		assertThat(regions.get(0)).isEqualTo("region1");
@@ -136,7 +139,7 @@ public class JdbcMessageStoreRegionTests {
 		messageStore2.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
 		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'",
-				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
+				(rs, rowNum) -> rs.getString("REGION"));
 
 		assertThat(regions2.size()).isEqualTo(1);
 		assertThat(regions2.get(0)).isEqualTo("region2");
@@ -144,7 +147,7 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	public void testRemoveMessageGroup() throws Exception {
+	public void testRemoveMessageGroup() {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 		messageStore1.addMessageToGroup("group2", MessageBuilder.withPayload("payload2").build());
@@ -158,4 +161,5 @@ public class JdbcMessageStoreRegionTests {
 		assertThat(messageStore2.getMessageGroupCount()).isEqualTo(2);
 
 	}
+
 }

@@ -52,6 +52,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 	public static void init() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-drop-h2.sql")
 				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
 				.build();
 	}
@@ -65,7 +66,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 	public void testDistributedLeaderElection() throws Exception {
 		CountDownLatch granted = new CountDownLatch(1);
 		CountingPublisher countingPublisher = new CountingPublisher(granted);
-		List<LockRegistryLeaderInitiator> initiators = new ArrayList<LockRegistryLeaderInitiator>();
+		List<LockRegistryLeaderInitiator> initiators = new ArrayList<>();
 		for (int i = 0; i < 2; i++) {
 			DefaultLockRepository lockRepository = new DefaultLockRepository(dataSource);
 			lockRepository.afterPropertiesSet();
