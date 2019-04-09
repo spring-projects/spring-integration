@@ -34,4 +34,8 @@ public final class GenericEndpointSpec<H extends MessageHandler>
 		super(messageHandler);
 	}
 
+	MessageHandler getHandler() {
+		return this.handler;
+	}
+
 }

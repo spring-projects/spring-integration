@@ -38,6 +38,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
@@ -58,6 +59,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
 
 /**
  * @author Artem Bilan
@@ -592,6 +594,16 @@ public class RouterTests {
 				.withMessage("intentional");
 	}
 
+	@Autowired(required = false)
+	@Qualifier("subflowStartsWithAChannel.channel#0")
+	public MessageChannel startChannel;
+
+	@Test
+	public void subflowChannel() {
+		// test needs some work - this works with the new code removed.
+		assertThat(this.startChannel).isNull();
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -897,6 +909,32 @@ public class RouterTests {
 									}),
 							sg -> sg.gatherTimeout(100))
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow routerWithSubflowStartsWithAChannel() {
+			return IntegrationFlows.from(MessageChannels.direct())
+					.route("'foo'", mapping -> mapping
+							.subFlowMapping("foo",  subflowStartsWithAChannel()))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow subflowStartsWithAChannel() {
+			return s -> s
+					.channel("startChannel")
+					.bridge()
+					.channel("endChannel");
+		}
+
+		@Bean
+		public MessageChannel startChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public MessageChannel endChannel() {
+			return new DirectChannel();
 		}
 
 	}

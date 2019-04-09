@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +26,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.dsl.support.MessageChannelReference;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * The standard implementation of the {@link IntegrationFlow} interface instantiated
@@ -74,8 +79,31 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private boolean running;
 
+	@SuppressWarnings("unchecked")
 	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
+		Iterator<Object> iterator = this.integrationComponents.keySet().iterator();
+		Object one = null;
+		Object two = null;
+		Object three = null;
+		if (iterator.hasNext()) {
+			one = iterator.next();
+		}
+		if (iterator.hasNext()) {
+			two = iterator.next();
+		}
+		if (iterator.hasNext()) {
+			three = iterator.next();
+		}
+		// We have at least 4 components and the first three are a synthesized bridge
+		if (iterator.hasNext() && three != null
+				&& one instanceof DirectChannel && ((DirectChannel) one).getBeanName() == null
+				&& two instanceof GenericEndpointSpec
+				&& ((GenericEndpointSpec<? extends MessageHandler>) two).getHandler() instanceof BridgeHandler
+				&& three instanceof MessageChannelReference) {
+			this.integrationComponents.remove(one);
+			this.integrationComponents.remove(two);
+		}
 	}
 
 	@Override
