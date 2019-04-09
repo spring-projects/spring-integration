@@ -99,6 +99,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 				"@EnableIntegrationMBeanExport is not present on importing class " + importMetadata.getClassName());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Bean(name = MBEAN_EXPORTER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public IntegrationMBeanExporter mbeanExporter() {

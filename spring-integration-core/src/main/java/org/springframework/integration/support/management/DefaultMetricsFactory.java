@@ -21,11 +21,15 @@ package org.springframework.integration.support.management;
 
 /**
  * Default implementation.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
+@Deprecated
 @SuppressWarnings("deprecation")
 public class DefaultMetricsFactory implements MetricsFactory {
 

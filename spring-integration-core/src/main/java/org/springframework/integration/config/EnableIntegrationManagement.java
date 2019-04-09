@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.
@@ -53,8 +54,28 @@ public @interface EnableIntegrationManagement {
 	 * Defaults to no components, unless JMX is enabled in which case, defaults to all
 	 * components. Overrides {@link #defaultCountsEnabled()} for matching bean names.
 	 * @return the patterns.
+	 * @deprecated in favor of 'metersEnabled'.
 	 */
+	@Deprecated
+	@AliasFor("metersEnabled")
 	String[] countsEnabled() default "*";
+
+	/**
+	 * A list of simple patterns for component names for which message counts will be
+	 * enabled (defaults to '*'). Enables message
+	 * counting (`sendCount`, `errorCount`, `receiveCount`) for those components that
+	 * support counters (channels, message handlers, etc). This is the initial setting
+	 * only, individual components can have counts enabled/disabled at runtime. May be
+	 * overridden by an entry in {@link #statsEnabled() statsEnabled} which is additional
+	 * functionality over simple counts. If a pattern starts with `!`, counts are disabled
+	 * for matches. For components that match multiple patterns, the first pattern wins.
+	 * Disabling counts at runtime also disables stats.
+	 * Defaults to no components, unless JMX is enabled in which case, defaults to all
+	 * components. Overrides {@link #defaultCountsEnabled()} for matching bean names.
+	 * @return the patterns.
+	 */
+	@AliasFor("countsEnabled")
+	String[] metersEnabled() default "*";
 
 	/**
 	 * A list of simple patterns for component names for which message statistics will be
@@ -72,7 +93,11 @@ public @interface EnableIntegrationManagement {
 	 * Defaults to no components, unless JMX is enabled in which case, defaults to all
 	 * components.
 	 * @return the patterns.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 */
+	@Deprecated
 	String[] statsEnabled() default "*";
 
 	/**
@@ -86,7 +111,11 @@ public @interface EnableIntegrationManagement {
 	 * The default setting for enabling statistics when a bean name is not matched by
 	 * {@link #statsEnabled() statsEnabled}.
 	 * @return the value; false by default, or true when JMX is enabled.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 */
+	@Deprecated
 	String defaultStatsEnabled() default "false";
 
 	/**
@@ -113,7 +142,11 @@ public @interface EnableIntegrationManagement {
 	 * The bean name of a {@code MetricsFactory}. The {@code DefaultMetricsFactory} is used
 	 * if omitted.
 	 * @return the bean name.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 */
+	@Deprecated
 	String metricsFactory() default "";
 
 }

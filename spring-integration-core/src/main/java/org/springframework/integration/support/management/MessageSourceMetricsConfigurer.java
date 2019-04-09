@@ -18,11 +18,15 @@ package org.springframework.integration.support.management;
 
 /**
  * Perform additional configuration on {@link MessageSourceMetrics}.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  *
  * @author Gary Russell
  * @since 5.0.2
  *
  */
+@Deprecated
 @FunctionalInterface
 @SuppressWarnings("deprecation")
 public interface MessageSourceMetricsConfigurer {

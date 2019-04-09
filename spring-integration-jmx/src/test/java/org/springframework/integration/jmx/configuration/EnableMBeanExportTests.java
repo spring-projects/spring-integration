@@ -40,7 +40,6 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.integration.support.management.DefaultMetricsFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.mock.env.MockEnvironment;
@@ -145,7 +144,7 @@ public class EnableMBeanExportTests {
 		@SuppressWarnings("deprecation")
 		@Bean
 		public org.springframework.integration.support.management.MetricsFactory myMetricsFactory() {
-			return new DefaultMetricsFactory();
+			return new org.springframework.integration.support.management.DefaultMetricsFactory();
 		}
 
 	}

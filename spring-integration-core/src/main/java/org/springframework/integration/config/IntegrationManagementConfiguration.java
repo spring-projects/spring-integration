@@ -64,6 +64,7 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 				"@EnableIntegrationManagement is not present on importing class " + importMetadata.getClassName());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Bean(name = IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public IntegrationManagementConfigurer managementConfigurer() {
@@ -93,6 +94,7 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 		configurer.setEnabledCountsPatterns(patterns.toArray(new String[patterns.size()]));
 	}
 
+	@SuppressWarnings("deprecation")
 	private void setupStatsEnabledNamePatterns(IntegrationManagementConfigurer configurer) {
 		List<String> patterns = new ArrayList<String>();
 		String[] statsEnabled = this.attributes.getStringArray("statsEnabled");

@@ -34,10 +34,8 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMetricsFactory;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
-import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
@@ -78,7 +76,9 @@ public class IntegrationManagementConfigurer
 	private final Map<String, org.springframework.integration.support.management.MessageSourceMetrics>
 		sourcesByName = new HashMap<>();
 
-	private final Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = new HashMap<>();
+	private final Map<String,
+		org.springframework.integration.support.management.MessageSourceMetricsConfigurer>
+			sourceConfigurers = new HashMap<>();
 
 	private ApplicationContext applicationContext;
 
@@ -115,10 +115,14 @@ public class IntegrationManagementConfigurer
 	/**
 	 * Set a metrics factory.
 	 * Has a precedence over {@link #metricsFactoryBeanName}.
-	 * Defaults to {@link DefaultMetricsFactory}.
+	 * Defaults to {@link org.springframework.integration.support.management.DefaultMetricsFactory}.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @param metricsFactory the factory.
 	 * @since 4.2
 	 */
+	@Deprecated
 	public void setMetricsFactory(org.springframework.integration.support.management.MetricsFactory metricsFactory) {
 		this.metricsFactory = metricsFactory;
 	}
@@ -127,8 +131,12 @@ public class IntegrationManagementConfigurer
 	 * Set a metrics factory bean name.
 	 * Is used if {@link #metricsFactory} isn't specified.
 	 * @param metricsFactory the factory.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @since 4.2
 	 */
+	@Deprecated
 	public void setMetricsFactoryBeanName(String metricsFactory) {
 		this.metricsFactoryBeanName = metricsFactory;
 	}
@@ -164,8 +172,12 @@ public class IntegrationManagementConfigurer
 	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
 	 * components that match multiple patterns, the first pattern wins. Enabling stats at
 	 * runtime also enables counts.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @param enabledStatsPatterns the patterns.
 	 */
+	@Deprecated
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
 		Assert.notEmpty(enabledStatsPatterns, "enabledStatsPatterns must not be empty");
 		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
@@ -188,11 +200,23 @@ public class IntegrationManagementConfigurer
 	 * Set whether managed components maintain message statistics by default.
 	 * Defaults to false, unless an Integration MBean Exporter is configured.
 	 * @param defaultStatsEnabled true to enable.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 */
+	@Deprecated
 	public void setDefaultStatsEnabled(Boolean defaultStatsEnabled) {
 		this.defaultStatsEnabled = defaultStatsEnabled;
 	}
 
+	/**
+	 * Return true if stats are enabled by default.
+	 * @return the stats enabled.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
+	 */
+	@Deprecated
 	public Boolean getDefaultStatsEnabled() {
 		return this.defaultStatsEnabled;
 	}
@@ -246,9 +270,10 @@ public class IntegrationManagementConfigurer
 			}
 		}
 		if (this.metricsFactory == null) {
-			this.metricsFactory = new DefaultMetricsFactory();
+			this.metricsFactory = new org.springframework.integration.support.management.DefaultMetricsFactory();
 		}
-		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(MessageSourceMetricsConfigurer.class));
+		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(
+				org.springframework.integration.support.management.MessageSourceMetricsConfigurer.class));
 		Map<String, IntegrationManagement> managed = this.applicationContext
 				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
