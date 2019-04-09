@@ -596,7 +596,7 @@ consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
 See <<file-splitter>> and <<stream-transformer>> for more information about these components.
-The follwoing example shows how to configure an `inbound-streaming-channel-adapter`:
+The following example shows how to configure an `inbound-streaming-channel-adapter`:
 
 ====
 [source, xml]

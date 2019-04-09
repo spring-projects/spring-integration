@@ -272,15 +272,15 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	/**
-	 * Configure a {@code boolean} flag to close the folder automatically after fetch (default) or
-	 * populate additional {@link IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE} message header instead.
-	 * It is downstream flow responsibility to obtain this header and call its {@code close()} whenever
+	 * Configure a {@code boolean} flag to close the folder automatically after a fetch (default) or
+	 * populate an additional {@link IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE} message header instead.
+	 * It is the downstream flow's responsibility to obtain this header and call its {@code close()} whenever
 	 * it is necessary.
-	 * <p> The kept opened folder approach might be useful in cases we need to do round trip to the mail
-	 * server when parsing maltipart content of the email with attachments.
+	 * <p> Keeping the folder open is useful in cases where communication with the server is needed
+	 * when parsing multipart content of the email with attachments.
 	 * <p> The {@link #setSimpleContent(boolean)} and {@link #setHeaderMapper(HeaderMapper)} options are not
 	 * affected by this flag.
-	 * @param autoCloseFolder {@code false} do not close the folder automatically after fetch.
+	 * @param autoCloseFolder {@code false} do not close the folder automatically after a fetch.
 	 * @since 5.2
 	 */
 	public void setAutoCloseFolder(boolean autoCloseFolder) {
