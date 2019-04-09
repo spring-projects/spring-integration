@@ -269,6 +269,21 @@ public class ImapIdleChannelAdapterSpec
 		return _this();
 	}
 
+	/**
+	 * When configured to {@code false}, the folder is not closed automatically after a fetch.
+	 * It is the target application's responsibility to close it using the
+	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE} header
+	 * from the message produced by this channel adapter.
+	 * @param autoCloseFolder set to {@code false} to keep folder opened.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see ImapMailReceiver#setAutoCloseFolder(boolean)
+	 */
+	public ImapIdleChannelAdapterSpec autoCloseFolder(boolean autoCloseFolder) {
+		assertReceiver();
+		this.receiver.setAutoCloseFolder(autoCloseFolder);
+		return _this();
+	}
 
 	/**
 	 * Configure a {@link TransactionSynchronizationFactory}. Usually used to synchronize

@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -43,9 +44,11 @@ import javax.mail.internet.MimeMessage;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -102,6 +105,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private boolean embeddedPartsAsBytes = true;
 
 	private boolean simpleContent;
+
+	private boolean autoCloseFolder = true;
 
 	private volatile Store store;
 
@@ -266,6 +271,22 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.simpleContent = simpleContent;
 	}
 
+	/**
+	 * Configure a {@code boolean} flag to close the folder automatically after a fetch (default) or
+	 * populate an additional {@link IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE} message header instead.
+	 * It is the downstream flow's responsibility to obtain this header and call its {@code close()} whenever
+	 * it is necessary.
+	 * <p> Keeping the folder open is useful in cases where communication with the server is needed
+	 * when parsing multipart content of the email with attachments.
+	 * <p> The {@link #setSimpleContent(boolean)} and {@link #setHeaderMapper(HeaderMapper)} options are not
+	 * affected by this flag.
+	 * @param autoCloseFolder {@code false} do not close the folder automatically after a fetch.
+	 * @since 5.2
+	 */
+	public void setAutoCloseFolder(boolean autoCloseFolder) {
+		this.autoCloseFolder = autoCloseFolder;
+	}
+
 	protected Folder getFolder() {
 		return this.folder;
 	}
@@ -357,13 +378,25 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				return convertMessagesIfNecessary(searchAndFilterMessages());
 			}
 			finally {
-				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
+				if (this.autoCloseFolder) {
+					closeFolder();
+				}
 			}
 		}
 		finally {
 			if (this.folderLock.getReadHoldCount() > 0) {
 				this.folderReadLock.unlock();
 			}
+		}
+	}
+
+	private void closeFolder() {
+		this.folderReadLock.lock();
+		try {
+			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
+		}
+		finally {
+			this.folderReadLock.unlock();
 		}
 	}
 
@@ -395,17 +428,26 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private Object[] convertMessagesIfNecessary(MimeMessage[] filteredMessages) {
-		if (this.headerMapper != null) {
+		if (this.headerMapper != null || !this.autoCloseFolder) {
 			org.springframework.messaging.Message<?>[] converted =
 					new org.springframework.messaging.Message<?>[filteredMessages.length];
 			int n = 0;
 			for (MimeMessage message : filteredMessages) {
-				Map<String, Object> headers = this.headerMapper.toHeaders(message);
-				converted[n++] =
+				Object payload = message;
+				Map<String, Object> headers = null;
+				if (this.headerMapper != null) {
+					headers = this.headerMapper.toHeaders(message);
+					payload = extractContent(message, headers);
+				}
+				AbstractIntegrationMessageBuilder<Object> messageBuilder =
 						getMessageBuilderFactory()
-								.withPayload(extractContent(message, headers))
-								.copyHeaders(headers)
-								.build();
+								.withPayload(payload)
+								.copyHeaders(headers);
+				if (!this.autoCloseFolder) {
+					messageBuilder.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE,
+							(Closeable) this::closeFolder);
+				}
+				converted[n++] = messageBuilder.build();
 			}
 			return converted;
 		}
@@ -566,7 +608,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	public void destroy() {
 		this.folderWriteLock.lock();
 		try {
-			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
+			closeFolder();
 			MailTransportUtils.closeService(this.store);
 			this.folder = null;
 			this.store = null;
@@ -628,11 +670,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		@Override
 		public Folder getFolder() {
-			try {
-				return obtainFolderInstance();
+			if (!AbstractMailReceiver.this.autoCloseFolder) {
+				return AbstractMailReceiver.this.folder;
 			}
-			catch (MessagingException e) {
-				throw new org.springframework.messaging.MessagingException("Unable to obtain the mail folder", e);
+			else {
+				try {
+					return obtainFolderInstance();
+				}
+				catch (MessagingException e) {
+					throw new org.springframework.messaging.MessagingException("Unable to obtain the mail folder", e);
+				}
 			}
 		}
 

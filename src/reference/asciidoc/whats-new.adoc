@@ -42,3 +42,9 @@ See <<tcp-codecs>> for more information.
 
 When using a `TcpNioServerConnectionFactory`, priority is now given to accepting new connections over reading from existing connections, but it is configurable.
 See <<note-nio>> for more information.
+
+[[x5.2-mail]]
+==== Mail Changes
+
+The `AbstractMailReceiver` has now an `autoCloseFolder` option (`true` by default), to disable an automatic folder close after a fetch, but populate `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header instead for downstream interaction.
+See <<mail-inbound>> for more information.

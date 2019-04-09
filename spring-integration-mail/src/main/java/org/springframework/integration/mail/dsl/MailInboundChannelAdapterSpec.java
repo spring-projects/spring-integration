@@ -253,6 +253,22 @@ MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R e
 		return _this();
 	}
 
+	/**
+	 * When configured to {@code false}, the folder is not closed automatically after a fetch.
+	 * It is the target application's responsibility to close it using the
+	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE} header
+	 * from the message produced by this channel adapter.
+	 * @param autoCloseFolder set to {@code false} to keep folder opened.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see AbstractMailReceiver#setAutoCloseFolder(boolean)
+	 */
+	public S autoCloseFolder(boolean autoCloseFolder) {
+		assertReceiver();
+		this.receiver.setAutoCloseFolder(autoCloseFolder);
+		return _this();
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return Collections.singletonMap(this.receiver, this.receiver.getComponentName());

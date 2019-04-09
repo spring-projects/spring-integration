@@ -416,6 +416,16 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
+		<xsd:attribute name="auto-close-folder" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Default 'true' - close folder automatically after fetch, before producing messages.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 </xsd:schema>
