@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.management.BaseHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
@@ -85,11 +86,11 @@ public class ChannelIntegrationTests {
 
 		assertThat(messageChannelsMonitor.getChannelMetrics(intermediateChannelName)).isSameAs(intermediate);
 
-		org.springframework.integration.support.management.MessageHandlerMetrics handlerMetrics = messageChannelsMonitor
+		BaseHandlerMetrics handlerMetrics = messageChannelsMonitor
 				.getHandlerMetrics("bridge");
 
-		assertThat(handlerMetrics.getHandleCount()).isEqualTo(3);
-		assertThat(handlerMetrics.getErrorCount()).isEqualTo(1);
+		assertThat(handlerMetrics.handleCount()).isEqualTo(3);
+		assertThat(handlerMetrics.errorCount()).isEqualTo(1);
 
 		assertThat(this.sourceChannel.receive(10000)).isNotNull();
 
