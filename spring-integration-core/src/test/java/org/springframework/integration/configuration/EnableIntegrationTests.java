@@ -341,15 +341,15 @@ public class EnableIntegrationTests {
 
 		this.input.send(MessageBuilder.withPayload("Foo").build());
 
-		Message<?> interceptedMessage = this.wireTapChannel.receive(10000);
+		Message<?> interceptedMessage = this.wireTapChannel.receive(10_000);
 		assertThat(interceptedMessage).isNotNull();
 		assertThat(interceptedMessage.getPayload()).isEqualTo("Foo");
 
-		Message<?> receive = this.output.receive(10000);
+		Message<?> receive = this.output.receive(10_000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("FOO");
 
-		receive = this.wireTapFromOutput.receive(10000);
+		receive = this.wireTapFromOutput.receive(10_000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("FOO");
 
@@ -360,7 +360,7 @@ public class EnableIntegrationTests {
 		assertThat(messageHistoryString).contains("annotationTestService.handle.serviceActivator.handler");
 		assertThat(messageHistoryString).doesNotContain("output");
 
-		receive = this.publishedChannel.receive(10000);
+		receive = this.publishedChannel.receive(10_000);
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("foo");
@@ -389,20 +389,20 @@ public class EnableIntegrationTests {
 		countSA.start();
 
 		for (int i = 0; i < 10; i++) {
-			Message<?> message = this.counterChannel.receive(1000);
+			Message<?> message = this.counterChannel.receive(10_000);
 			assertThat(message).isNotNull();
 			assertThat(message.getPayload()).isEqualTo(i + 1);
 		}
 
-		Message<?> message = this.fooChannel.receive(1000);
+		Message<?> message = this.fooChannel.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
-		message = this.fooChannel.receive(1000);
+		message = this.fooChannel.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
 		assertThat(this.fooChannel.receive(10)).isNull();
 
-		message = this.messageChannel.receive(1000);
+		message = this.messageChannel.receive(10_000);
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("bar");
 		assertThat(message.getHeaders().containsKey("foo")).isTrue();
