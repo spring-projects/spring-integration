@@ -55,11 +55,11 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -384,7 +384,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (this.channelResolver == null && beanFactory != null) {
-				this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
+				this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = determineServiceInterface();
 			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(proxyInterface);

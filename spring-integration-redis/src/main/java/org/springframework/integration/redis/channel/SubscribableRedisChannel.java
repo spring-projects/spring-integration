@@ -33,7 +33,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -149,7 +149,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		}
 		this.container.setConnectionFactory(this.connectionFactory);
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-			ErrorHandler errorHandler = IntegrationContextUtils.getErrorHandler(beanFactory);
+			ErrorHandler errorHandler = ChannelUtils.getErrorHandler(beanFactory);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
 		this.container.setTaskExecutor(this.taskExecutor);

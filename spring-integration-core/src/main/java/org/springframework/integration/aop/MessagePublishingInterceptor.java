@@ -31,13 +31,13 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -104,7 +104,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
 		if (this.channelResolver == null) {
-			this.channelResolver = IntegrationContextUtils.getChannelResolver(this.beanFactory);
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 		}
 	}
 

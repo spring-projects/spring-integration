@@ -26,6 +26,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -96,7 +97,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		if (this.channelResolver == null) {
-			this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 		}
 	}
 

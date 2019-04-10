@@ -19,7 +19,6 @@ package org.springframework.integration.channel;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -139,7 +138,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 							+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
-					this.errorHandler = IntegrationContextUtils.getErrorHandler(beanFactory);
+					this.errorHandler = ChannelUtils.getErrorHandler(beanFactory);
 				}
 				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}

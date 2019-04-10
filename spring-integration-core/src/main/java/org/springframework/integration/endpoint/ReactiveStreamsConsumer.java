@@ -23,9 +23,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
 import org.springframework.messaging.Message;
@@ -123,7 +123,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	protected void onInit() {
 		super.onInit();
 		if (this.errorHandler == null) {
-			this.errorHandler = IntegrationContextUtils.getErrorHandler(getBeanFactory());
+			this.errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
 		}
 	}
 

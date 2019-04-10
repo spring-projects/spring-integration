@@ -22,6 +22,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.GenericMessagingTemplate;
@@ -61,7 +62,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory; //NOSONAR - non-sync is ok here
-		setDestinationResolver(IntegrationContextUtils.getChannelResolver(beanFactory));
+		setDestinationResolver(ChannelResolverUtils.getChannelResolver(beanFactory));
 	}
 
 	@Override

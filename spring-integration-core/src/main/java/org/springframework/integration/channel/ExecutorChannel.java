@@ -18,7 +18,6 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -103,7 +102,7 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 				+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 		super.onInit();
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
-			ErrorHandler errorHandler = IntegrationContextUtils.getErrorHandler(getBeanFactory());
+			ErrorHandler errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(this.executor);
