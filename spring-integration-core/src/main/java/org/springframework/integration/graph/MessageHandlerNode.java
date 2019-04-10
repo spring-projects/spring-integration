@@ -16,7 +16,6 @@
 
 package org.springframework.integration.graph;
 
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -89,7 +88,7 @@ public class MessageHandlerNode extends EndpointNode {
 			return this.handler.getActiveCountLong();
 		}
 
-		public Statistics getDuration() {
+		public org.springframework.integration.support.management.Statistics getDuration() {
 			return this.handler.getDuration();
 		}
 

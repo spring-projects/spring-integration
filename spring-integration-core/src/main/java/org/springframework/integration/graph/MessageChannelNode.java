@@ -16,7 +16,6 @@
 
 package org.springframework.integration.graph;
 
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -99,15 +98,15 @@ public class MessageChannelNode extends IntegrationNode {
 			return this.channel.getStandardDeviationSendDuration();
 		}
 
-		public Statistics getSendDuration() {
+		public org.springframework.integration.support.management.Statistics getSendDuration() {
 			return this.channel.getSendDuration();
 		}
 
-		public Statistics getSendRate() {
+		public org.springframework.integration.support.management.Statistics getSendRate() {
 			return this.channel.getSendRate();
 		}
 
-		public Statistics getErrorRate() {
+		public org.springframework.integration.support.management.Statistics getErrorRate() {
 			return this.channel.getErrorRate();
 		}
 

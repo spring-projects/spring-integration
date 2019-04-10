@@ -17,10 +17,16 @@
 package org.springframework.integration.support.management;
 
 /**
+ * Statistics.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
+ *
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
  */
+@Deprecated
 public class Statistics {
 
 	private final long count;

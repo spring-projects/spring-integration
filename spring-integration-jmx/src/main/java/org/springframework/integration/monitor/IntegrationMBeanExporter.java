@@ -62,7 +62,6 @@ import org.springframework.integration.support.management.MappingMessageRouterMa
 import org.springframework.integration.support.management.MessageSourceManagement;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.RouterMetrics;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.TrackableRouterMetrics;
 import org.springframework.integration.support.utils.PatternMatchUtils;
@@ -689,7 +688,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		return this.managementConfigurer.getHandlerMetrics(name);
 	}
 
-	public Statistics getHandlerDuration(String name) {
+	public org.springframework.integration.support.management.Statistics getHandlerDuration(String name) {
 		org.springframework.integration.support.management.MessageHandlerMetrics handlerMetrics = getHandlerMetrics(name);
 		return handlerMetrics != null ? handlerMetrics.getDuration() : null;
 	}
@@ -749,13 +748,13 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	@ManagedOperation
-	public Statistics getChannelSendRate(String name) {
+	public org.springframework.integration.support.management.Statistics getChannelSendRate(String name) {
 		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
 				getChannelMetrics(name);
 		return channelMetrics != null ? channelMetrics.getSendRate() : null;
 	}
 
-	public Statistics getChannelErrorRate(String name) {
+	public org.springframework.integration.support.management.Statistics getChannelErrorRate(String name) {
 		org.springframework.integration.support.management.MessageChannelMetrics channelMetrics =
 				getChannelMetrics(name);
 		return channelMetrics != null ? channelMetrics.getErrorRate() : null;

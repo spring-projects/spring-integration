@@ -454,15 +454,15 @@ public class IntegrationManagementConfigurer
 	}
 
 	public String[] getChannelNames() {
-		return this.channelsByName.keySet().toArray(new String[this.channelsByName.size()]);
+		return this.channelsByName.keySet().toArray(new String[0]);
 	}
 
 	public String[] getHandlerNames() {
-		return this.handlersByName.keySet().toArray(new String[this.handlersByName.size()]);
+		return this.handlersByName.keySet().toArray(new String[0]);
 	}
 
 	public String[] getSourceNames() {
-		return this.sourcesByName.keySet().toArray(new String[this.sourcesByName.size()]);
+		return this.sourcesByName.keySet().toArray(new String[0]);
 	}
 
 	public org.springframework.integration.support.management.MessageChannelMetrics getChannelMetrics(String name) {

@@ -32,11 +32,16 @@ import java.util.List;
  * those trends can be approximately reflected. For performance reasons, the calculation is performed on retrieval,
  * {@code window * 5} samples are retained meaning that the earliest retained value contributes just 0.5% to the
  * sum.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  *
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class ExponentialMovingAverage {
 
 	private volatile long count;

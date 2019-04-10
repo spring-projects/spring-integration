@@ -34,9 +34,6 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
-import org.springframework.integration.support.management.ExponentialMovingAverage;
-import org.springframework.integration.support.management.ExponentialMovingAverageRate;
-import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -138,15 +135,19 @@ public class MBeanExporterParserTests {
 		@Override
 		public AbstractMessageChannelMetrics createChannelMetrics(String name) {
 			return new DefaultMessageChannelMetrics(name,
-					new ExponentialMovingAverage(20, 1000000.),
-					new ExponentialMovingAverageRate(2000, 120000, 30, true),
-					new ExponentialMovingAverageRatio(130000, 40, true),
-					new ExponentialMovingAverageRate(3000, 140000, 50, true));
+					new org.springframework.integration.support.management.ExponentialMovingAverage(20, 1000000.),
+					new org.springframework.integration.support.management.ExponentialMovingAverageRate(2000, 120000,
+							30, true),
+					new org.springframework.integration.support.management.ExponentialMovingAverageRatio(130000, 40,
+							true),
+					new org.springframework.integration.support.management.ExponentialMovingAverageRate(3000, 140000,
+							50, true));
 		}
 
 		@Override
 		public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-			return new DefaultMessageHandlerMetrics(name, new ExponentialMovingAverage(20, 1000000.));
+			return new DefaultMessageHandlerMetrics(name,
+					new org.springframework.integration.support.management.ExponentialMovingAverage(20, 1000000.));
 		}
 
 	}

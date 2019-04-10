@@ -91,18 +91,18 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
 			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
 		}
-		configurer.setEnabledCountsPatterns(patterns.toArray(new String[patterns.size()]));
+		configurer.setEnabledCountsPatterns(patterns.toArray(new String[0]));
 	}
 
 	@SuppressWarnings("deprecation")
 	private void setupStatsEnabledNamePatterns(IntegrationManagementConfigurer configurer) {
-		List<String> patterns = new ArrayList<String>();
+		List<String> patterns = new ArrayList<>();
 		String[] statsEnabled = this.attributes.getStringArray("statsEnabled");
 		for (String managedComponent : statsEnabled) {
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
 			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
 		}
-		configurer.setEnabledStatsPatterns(patterns.toArray(new String[patterns.size()]));
+		configurer.setEnabledStatsPatterns(patterns.toArray(new String[0]));
 	}
 
 }

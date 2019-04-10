@@ -29,7 +29,6 @@ import org.springframework.integration.support.management.AbstractMessageHandler
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -281,7 +280,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	@Override
-	public Statistics getDuration() {
+	public org.springframework.integration.support.management.Statistics getDuration() {
 		return this.handlerMetrics.getDuration();
 	}
 

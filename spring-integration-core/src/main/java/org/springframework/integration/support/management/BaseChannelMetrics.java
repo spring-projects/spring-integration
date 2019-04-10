@@ -20,6 +20,8 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
 /**
+ * Primary interface for channels that provide metrics.
+ *
  * @author Gary Russell
  * @since 5.2
  *
