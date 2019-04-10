@@ -134,14 +134,14 @@ subprojects { subproject ->
 		romeToolsVersion = '1.12.0'
 		servletApiVersion = '4.0.1'
 		smackVersion = '4.3.1'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.BUILD-SNAPSHOT'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.M1'
 		springDataJpaVersion = '2.2.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '2.2.0.BUILD-SNAPSHOT'
 		springDataRedisVersion = '2.2.0.BUILD-SNAPSHOT'
 		springGemfireVersion = '2.2.0.BUILD-SNAPSHOT'
 		springSecurityVersion = '5.2.0.BUILD-SNAPSHOT'
 		springRetryVersion = '1.2.4.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.M1'
 		springWsVersion = '3.0.7.RELEASE'
 		tomcatVersion = "9.0.16"
 		xstreamVersion = '1.4.11.1'
@@ -301,7 +301,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = "8.18"
+		toolVersion = "8.19"
 	}
 
 	artifacts {
