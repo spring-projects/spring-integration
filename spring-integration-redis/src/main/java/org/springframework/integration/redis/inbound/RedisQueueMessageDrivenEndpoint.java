@@ -31,9 +31,9 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -177,7 +177,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		BeanFactory beanFactory = getBeanFactory();
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
 			MessagePublishingErrorHandler errorHandler =
-					new MessagePublishingErrorHandler(IntegrationContextUtils.getChannelResolver(beanFactory));
+					new MessagePublishingErrorHandler(ChannelResolverUtils.getChannelResolver(beanFactory));
 			errorHandler.setDefaultErrorChannel(this.errorChannel);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}

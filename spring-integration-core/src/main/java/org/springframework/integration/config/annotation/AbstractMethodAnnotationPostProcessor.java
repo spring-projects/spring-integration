@@ -54,7 +54,6 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
@@ -70,6 +69,7 @@ import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapp
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.lang.Nullable;
@@ -125,7 +125,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.conversionService = this.beanFactory.getConversionService() != null
 				? this.beanFactory.getConversionService()
 				: DefaultConversionService.getSharedInstance();
-		this.channelResolver = IntegrationContextUtils.getChannelResolver(beanFactory);
+		this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 		this.annotationType =
 				(Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 						MethodAnnotationPostProcessor.class);

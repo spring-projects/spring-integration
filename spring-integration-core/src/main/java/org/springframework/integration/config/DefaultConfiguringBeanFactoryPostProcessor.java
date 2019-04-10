@@ -49,6 +49,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
@@ -64,6 +65,7 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
@@ -149,16 +151,16 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	private void registerBeanFactoryChannelResolver() {
-		if (!this.beanFactory.containsBeanDefinition(IntegrationContextUtils.CHANNEL_RESOLVER_BEAN_NAME)) {
-			this.registry.registerBeanDefinition(IntegrationContextUtils.CHANNEL_RESOLVER_BEAN_NAME,
+		if (!this.beanFactory.containsBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME)) {
+			this.registry.registerBeanDefinition(ChannelResolverUtils.CHANNEL_RESOLVER_BEAN_NAME,
 					new RootBeanDefinition(BeanFactoryChannelResolver.class));
 		}
 	}
 
 	private void registerMessagePublishingErrorHandler() {
 		if (!this.beanFactory.containsBeanDefinition(
-				IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
-			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME,
+				ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)) {
+			this.registry.registerBeanDefinition(ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME,
 					new RootBeanDefinition(MessagePublishingErrorHandler.class));
 		}
 	}
@@ -301,7 +303,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 					.addPropertyValue("threadNamePrefix", "task-scheduler-")
 					.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy())
 					.addPropertyReference("errorHandler",
-							IntegrationContextUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
+							ChannelUtils.MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME)
 					.getBeanDefinition();
 
 			this.registry.registerBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);
