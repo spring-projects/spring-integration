@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -73,8 +72,7 @@ import org.springframework.util.StringUtils;
  * @author Liujiong
  * @author Gary Russell
  */
-public class RecipientListRouter extends AbstractMessageRouter
-		implements InitializingBean, RecipientListRouterManagement {
+public class RecipientListRouter extends AbstractMessageRouter implements RecipientListRouterManagement {
 
 	private volatile Queue<Recipient> recipients = new ConcurrentLinkedQueue<>();
 

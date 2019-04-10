@@ -36,6 +36,7 @@ import org.springframework.util.StopWatch;
  * @author Artem Bilan
  */
 @Ignore("Very sensitive to the time. Don't forget to test after some changes.")
+@SuppressWarnings("deprecation")
 public class ExponentialMovingAverageRateTests {
 
 	private static final Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);

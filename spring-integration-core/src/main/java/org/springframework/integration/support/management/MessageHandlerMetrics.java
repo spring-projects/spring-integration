@@ -22,9 +22,13 @@ import org.springframework.jmx.support.MetricType;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  * @since 2.0
  */
-public interface MessageHandlerMetrics extends IntegrationStatsManagement {
+@Deprecated
+public interface MessageHandlerMetrics extends BaseHandlerMetrics {
 
 	/**
 	 * @return the number of successful handler calls
@@ -39,6 +43,12 @@ public interface MessageHandlerMetrics extends IntegrationStatsManagement {
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count")
 	long getHandleCountLong();
 
+
+	@Override
+	default long handleCount() {
+		return getHandleCountLong();
+	}
+
 	/**
 	 * @return the number of failed handler calls
 	 */
@@ -51,6 +61,11 @@ public interface MessageHandlerMetrics extends IntegrationStatsManagement {
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count")
 	long getErrorCountLong();
+
+	@Override
+	default long errorCount() {
+		return getErrorCountLong();
+	}
 
 	/**
 	 * @return the mean handler duration (milliseconds)

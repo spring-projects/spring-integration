@@ -21,7 +21,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
 /**
@@ -51,7 +50,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @since 4.2
  */
 public abstract class ThreadStatePropagationChannelInterceptor<S>
-		implements ChannelInterceptor, ExecutorChannelInterceptor {
+		implements ExecutorChannelInterceptor {
 
 	@Override
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {

@@ -23,13 +23,16 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 /**
  * A {@link MessageSourceMetrics} that exposes in addition the {@link Lifecycle} interface.
  * The lifecycle methods can be used to start and stop polling endpoints, for instance, in a live system.
- *
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
  *
  * @since 2.0
  */
+@Deprecated
 @IntegrationManagedResource
 public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Lifecycle {
 

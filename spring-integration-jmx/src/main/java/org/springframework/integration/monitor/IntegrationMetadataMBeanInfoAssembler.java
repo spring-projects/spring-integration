@@ -18,14 +18,15 @@ package org.springframework.integration.monitor;
 
 import javax.management.Descriptor;
 
-import org.springframework.integration.support.management.LifecycleMessageHandlerMetrics;
-import org.springframework.integration.support.management.LifecycleMessageSourceMetrics;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.metadata.JmxAttributeSource;
 
 /**
- * The {@link MetadataMBeanInfoAssembler} extension to assemble metadata MBean info
- * from the {@link LifecycleMessageSourceMetrics} or {@link LifecycleMessageHandlerMetrics}
+ * The {@link MetadataMBeanInfoAssembler} extension to assemble metadata MBean info from
+ * the
+ * {@link org.springframework.integration.support.management.LifecycleMessageSourceMetrics}
+ * or
+ * {@link org.springframework.integration.support.management.LifecycleMessageHandlerMetrics}
  * managed bean's delegate.
  * <p>
  * All other managed beans are left as is.
@@ -51,12 +52,15 @@ public class IntegrationMetadataMBeanInfoAssembler extends MetadataMBeanInfoAsse
 		super.populateMBeanDescriptor(desc, extractManagedBean(managedBean), beanKey);
 	}
 
+	@SuppressWarnings("deprecation")
 	private Object extractManagedBean(Object managedBean) {
-		if (managedBean instanceof LifecycleMessageSourceMetrics) {
-			return ((LifecycleMessageSourceMetrics) managedBean).getDelegate();
+		if (managedBean instanceof org.springframework.integration.support.management.LifecycleMessageSourceMetrics) {
+			return ((org.springframework.integration.support.management.LifecycleMessageSourceMetrics) managedBean)
+					.getDelegate();
 		}
-		else if (managedBean instanceof LifecycleMessageHandlerMetrics) {
-			return ((LifecycleMessageHandlerMetrics) managedBean).getDelegate();
+		else if (managedBean instanceof org.springframework.integration.support.management.LifecycleMessageHandlerMetrics) {
+			return ((org.springframework.integration.support.management.LifecycleMessageHandlerMetrics) managedBean)
+					.getDelegate();
 		}
 		return managedBean;
 	}

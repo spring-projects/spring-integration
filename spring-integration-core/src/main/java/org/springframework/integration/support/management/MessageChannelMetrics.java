@@ -20,14 +20,18 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
 /**
- * Interface for all message channel monitors containing accessors for various useful metrics that are generic for all
- * channel types.
+ * Interface for all message channel monitors containing accessors for various useful
+ * metrics that are generic for all channel types.
  *
  * @author Dave Syer
  * @author Gary Russell
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  * @since 2.0
  */
-public interface MessageChannelMetrics extends IntegrationStatsManagement {
+@Deprecated
+public interface MessageChannelMetrics extends BaseChannelMetrics {
 
 	/**
 	 * @return the number of successful sends
@@ -42,6 +46,12 @@ public interface MessageChannelMetrics extends IntegrationStatsManagement {
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Count")
 	long getSendCountLong();
 
+
+	@Override
+	default long sendCount() {
+		return getSendCountLong();
+	}
+
 	/**
 	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
 	 */
@@ -54,6 +64,11 @@ public interface MessageChannelMetrics extends IntegrationStatsManagement {
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Error Count")
 	long getSendErrorCountLong();
+
+	@Override
+	default long sendErrorCount() {
+		return getSendErrorCountLong();
+	}
 
 	/**
 	 * @return the time in milliseconds since the last send

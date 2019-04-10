@@ -25,6 +25,7 @@ package org.springframework.integration.support.management;
  * @author Gary Russell
  * @since 4.2
  */
+@SuppressWarnings("deprecation")
 public class AggregatingMessageHandlerMetrics extends DefaultMessageHandlerMetrics {
 
 	private static final int DEFAULT_SAMPLE_SIZE = 1000;

@@ -66,7 +66,7 @@ import org.springframework.util.Assert;
  */
 
 public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
-		implements BasicMessageGroupStore, InitializingBean, ApplicationContextAware {
+		implements InitializingBean, ApplicationContextAware {
 
 	public static final String SEQUENCE_NAME = "messagesSequence";
 

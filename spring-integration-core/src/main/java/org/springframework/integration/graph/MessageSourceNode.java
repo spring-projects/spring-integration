@@ -17,7 +17,6 @@
 package org.springframework.integration.graph;
 
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.management.MessageSourceMetrics;
 
 /**
  * Represents a message source.
@@ -27,19 +26,23 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
  * @since 4.3
  *
  */
+@SuppressWarnings("deprecation")
 public class MessageSourceNode extends ErrorCapableEndpointNode {
 
 	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
-		super(nodeId, name, messageSource, output, errors, messageSource instanceof MessageSourceMetrics
-				? new Stats((MessageSourceMetrics) messageSource) : new IntegrationNode.Stats());
+		super(nodeId, name, messageSource, output, errors,
+				messageSource instanceof org.springframework.integration.support.management.MessageSourceMetrics
+						? new Stats(
+								(org.springframework.integration.support.management.MessageSourceMetrics) messageSource)
+						: new IntegrationNode.Stats());
 	}
 
 
 	public static final class Stats extends IntegrationNode.Stats {
 
-		private final MessageSourceMetrics source;
+		private final org.springframework.integration.support.management.MessageSourceMetrics source;
 
-		Stats(MessageSourceMetrics source) {
+		Stats(org.springframework.integration.support.management.MessageSourceMetrics source) {
 			this.source = source;
 		}
 

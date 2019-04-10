@@ -29,9 +29,6 @@ import org.springframework.integration.support.management.AbstractMessageHandler
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageHandlerMetrics;
-import org.springframework.integration.support.management.MetricsContext;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -55,9 +52,12 @@ import reactor.core.CoreSubscriber;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport
-		implements MessageHandler, MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
+		implements MessageHandler,
+		org.springframework.integration.support.management.MessageHandlerMetrics,
+		ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
 		TrackableComponent, Orderable, CoreSubscriber<Message<?>> {
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
@@ -147,7 +147,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
-		MetricsContext start = null;
+		org.springframework.integration.support.management.MetricsContext start = null;
 		boolean countsAreEnabled = this.countsEnabled;
 		AbstractMessageHandlerMetrics metrics = this.handlerMetrics;
 		SampleFacade sample = null;
@@ -280,7 +280,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	@Override
-	public Statistics getDuration() {
+	public org.springframework.integration.support.management.Statistics getDuration() {
 		return this.handlerMetrics.getDuration();
 	}
 

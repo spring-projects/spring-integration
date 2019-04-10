@@ -21,23 +21,32 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
- * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
- * be used to stop and start polling endpoints, for instance, in a live system.
+ * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle}
+ * interface. The lifecycle methods can be used to stop and start polling endpoints, for
+ * instance, in a live system.
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  *
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
  */
+@Deprecated
 @IntegrationManagedResource
-public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Lifecycle,
-		ConfigurableMetricsAware<AbstractMessageHandlerMetrics> {
+@SuppressWarnings("deprecation")
+public class LifecycleMessageHandlerMetrics implements
+		org.springframework.integration.support.management.MessageHandlerMetrics, Lifecycle,
+			ConfigurableMetricsAware<AbstractMessageHandlerMetrics> {
 
 	private final Lifecycle lifecycle;
 
-	protected final MessageHandlerMetrics delegate;
+	protected final org.springframework.integration.support.management.MessageHandlerMetrics delegate;
 
 
-	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle, MessageHandlerMetrics delegate) {
+	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle,
+			org.springframework.integration.support.management.MessageHandlerMetrics delegate) {
+
 		this.lifecycle = lifecycle;
 		this.delegate = delegate;
 	}

@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 @IntegrationManagedResource
 public class LifecycleTrackableMessageSourceMetrics extends LifecycleMessageSourceMetrics
 		implements TrackableComponent {

@@ -27,8 +27,6 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.lang.Nullable;
@@ -47,7 +45,9 @@ import org.springframework.util.Assert;
  * @author Artyem Bilan
  */
 @IntegrationManagedResource
-public class NullChannel implements PollableChannel, MessageChannelMetrics,
+@SuppressWarnings("deprecation")
+public class NullChannel implements PollableChannel,
+		org.springframework.integration.support.management.MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(getClass());
@@ -211,17 +211,17 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
-	public Statistics getSendDuration() {
+	public org.springframework.integration.support.management.Statistics getSendDuration() {
 		return this.channelMetrics.getSendDuration();
 	}
 
 	@Override
-	public Statistics getSendRate() {
+	public org.springframework.integration.support.management.Statistics getSendRate() {
 		return this.channelMetrics.getSendRate();
 	}
 
 	@Override
-	public Statistics getErrorRate() {
+	public org.springframework.integration.support.management.Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();
 	}
 

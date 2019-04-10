@@ -33,6 +33,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Steven Swor
  */
 @Ignore("Very sensitive to the time. Don't forget to test after some changes.")
+@SuppressWarnings("deprecation")
 public class ExponentialMovingAverageRatioTests {
 
 	private final ExponentialMovingAverageRatio history = new ExponentialMovingAverageRatio(0.5, 10, true);
@@ -69,7 +70,7 @@ public class ExponentialMovingAverageRatioTests {
 		 * time.
 		 */
 		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
-		assertThat(timeSinceLastMeasurement).isGreaterThan((double) (sleepTime / 100));
+		assertThat(timeSinceLastMeasurement).isGreaterThan(sleepTime / 100);
 		assertThat(timeSinceLastMeasurement).isLessThanOrEqualTo(1.5 * sleepTime / 100);
 	}
 

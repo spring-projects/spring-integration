@@ -61,6 +61,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @return the context to be used in a subsequent {@link #afterSend(MetricsContext, boolean)}
 	 * call.
 	 */
+	@SuppressWarnings("deprecation")
 	public abstract MetricsContext beforeSend();
 
 	/**
@@ -70,7 +71,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @param context the context.
 	 * @param result true for success, false otherwise.
 	 */
-	public abstract void afterSend(MetricsContext context, boolean result);
+	public abstract void afterSend(@SuppressWarnings("deprecation") MetricsContext context, boolean result);
 
 	/**
 	 * Reset all counters/statistics.
@@ -101,10 +102,13 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	public abstract double getStandardDeviationSendDuration();
 
+	@SuppressWarnings("deprecation")
 	public abstract Statistics getSendDuration();
 
+	@SuppressWarnings("deprecation")
 	public abstract Statistics getSendRate();
 
+	@SuppressWarnings("deprecation")
 	public abstract Statistics getErrorRate();
 
 	public abstract void afterReceive();

@@ -28,6 +28,7 @@ import org.junit.Test;
  * @author Gary Russell
  */
 @Ignore("Very sensitive to the time. Don't forget to test after some changes.")
+@SuppressWarnings("deprecation")
 public class ExponentialMovingAverageTests {
 
 	private final ExponentialMovingAverage history = new ExponentialMovingAverage(10);

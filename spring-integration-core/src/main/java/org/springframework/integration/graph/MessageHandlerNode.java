@@ -16,8 +16,6 @@
 
 package org.springframework.integration.graph;
 
-import org.springframework.integration.support.management.MessageHandlerMetrics;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -28,13 +26,16 @@ import org.springframework.messaging.MessageHandler;
  * @since 4.3
  *
  */
+@SuppressWarnings("deprecation")
 public class MessageHandlerNode extends EndpointNode {
 
 	private final String input;
 
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
-		super(nodeId, name, handler, output, handler instanceof MessageHandlerMetrics
-				? new Stats((MessageHandlerMetrics) handler) : new IntegrationNode.Stats());
+		super(nodeId, name, handler, output,
+				handler instanceof org.springframework.integration.support.management.MessageHandlerMetrics
+						? new Stats((org.springframework.integration.support.management.MessageHandlerMetrics) handler)
+						: new IntegrationNode.Stats());
 		this.input = input;
 	}
 
@@ -44,9 +45,9 @@ public class MessageHandlerNode extends EndpointNode {
 
 	public static final class Stats extends IntegrationNode.Stats {
 
-		private final MessageHandlerMetrics handler;
+		private final org.springframework.integration.support.management.MessageHandlerMetrics handler;
 
-		Stats(MessageHandlerMetrics handler) {
+		Stats(org.springframework.integration.support.management.MessageHandlerMetrics handler) {
 			this.handler = handler;
 		}
 
@@ -87,7 +88,7 @@ public class MessageHandlerNode extends EndpointNode {
 			return this.handler.getActiveCountLong();
 		}
 
-		public Statistics getDuration() {
+		public org.springframework.integration.support.management.Statistics getDuration() {
 			return this.handler.getDuration();
 		}
 

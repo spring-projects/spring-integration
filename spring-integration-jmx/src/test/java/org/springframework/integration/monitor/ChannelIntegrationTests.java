@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.support.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.BaseHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
@@ -54,6 +54,7 @@ public class ChannelIntegrationTests {
 	@Autowired
 	private IntegrationMBeanExporter messageChannelsMonitor;
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testMessageChannelStatistics() throws Exception {
 
@@ -76,7 +77,7 @@ public class ChannelIntegrationTests {
 		try {
 			requests.send(new GenericMessage<String>("foo"));
 		}
-		catch (MessageDeliveryException e) {
+		catch (@SuppressWarnings("unused") MessageDeliveryException e) {
 		}
 
 		assertThat(messageChannelsMonitor.getChannelSendCount(intermediateChannelName)).isEqualTo(3);
@@ -85,10 +86,11 @@ public class ChannelIntegrationTests {
 
 		assertThat(messageChannelsMonitor.getChannelMetrics(intermediateChannelName)).isSameAs(intermediate);
 
-		MessageHandlerMetrics handlerMetrics = messageChannelsMonitor.getHandlerMetrics("bridge");
+		BaseHandlerMetrics handlerMetrics = messageChannelsMonitor
+				.getHandlerMetrics("bridge");
 
-		assertThat(handlerMetrics.getHandleCount()).isEqualTo(3);
-		assertThat(handlerMetrics.getErrorCount()).isEqualTo(1);
+		assertThat(handlerMetrics.handleCount()).isEqualTo(3);
+		assertThat(handlerMetrics.errorCount()).isEqualTo(1);
 
 		assertThat(this.sourceChannel.receive(10000)).isNotNull();
 

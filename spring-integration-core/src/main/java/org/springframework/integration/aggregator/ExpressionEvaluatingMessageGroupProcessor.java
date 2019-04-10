@@ -19,7 +19,6 @@ package org.springframework.integration.aggregator;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
 
@@ -32,7 +31,7 @@ import org.springframework.integration.store.MessageGroup;
  * @author Dave Syer
  * @author Gary Russell
  */
-public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor implements BeanFactoryAware {
+public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
 	private final ExpressionEvaluatingMessageListProcessor processor;
 

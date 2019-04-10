@@ -70,7 +70,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		this.inputChannel = inputChannel;
 		this.handler = handler;
 		if (this.inputChannel instanceof ExecutorChannelInterceptorAware) {
-			this.channelInterceptors = ((ExecutorChannelInterceptorAware) this.inputChannel).getChannelInterceptors();
+			this.channelInterceptors = ((ExecutorChannelInterceptorAware) this.inputChannel).getInterceptors();
 		}
 		else {
 			this.channelInterceptors = null;

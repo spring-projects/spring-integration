@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
  * @since 4.2
  *
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetrics {
 
 	protected final Log logger = LogFactory.getLog(getClass());

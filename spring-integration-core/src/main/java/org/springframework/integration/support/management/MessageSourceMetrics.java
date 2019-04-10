@@ -23,13 +23,16 @@ import org.springframework.jmx.support.MetricType;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  * @since 2.0
  */
-public interface MessageSourceMetrics extends IntegrationManagement {
+@Deprecated
+public interface MessageSourceMetrics extends BaseSourceMetrics {
 
 	/**
-	 * @return the number of successful handler calls
+	 * @return the number of successful message receptions.
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
 	int getMessageCount();
@@ -40,6 +43,11 @@ public interface MessageSourceMetrics extends IntegrationManagement {
 	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
 	long getMessageCountLong();
+
+	@Override
+	default long messageCount() {
+		return getMessageCountLong();
+	}
 
 	void setManagedName(String name);
 

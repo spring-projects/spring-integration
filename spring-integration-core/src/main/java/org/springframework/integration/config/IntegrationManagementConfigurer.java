@@ -34,14 +34,8 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
-import org.springframework.integration.support.management.DefaultMetricsFactory;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
-import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.MessageHandlerMetrics;
-import org.springframework.integration.support.management.MessageSourceMetrics;
-import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
-import org.springframework.integration.support.management.MetricsFactory;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
@@ -64,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @since 4.2
  *
  */
+@SuppressWarnings("deprecation")
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware,
 				DestructionAwareBeanPostProcessor {
@@ -72,13 +67,18 @@ public class IntegrationManagementConfigurer
 
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
 
-	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<>();
+	private final Map<String, org.springframework.integration.support.management.MessageChannelMetrics>
+		channelsByName = new HashMap<>();
 
-	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<>();
+	private final Map<String, org.springframework.integration.support.management.MessageHandlerMetrics>
+		handlersByName = new HashMap<>();
 
-	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<>();
+	private final Map<String, org.springframework.integration.support.management.MessageSourceMetrics>
+		sourcesByName = new HashMap<>();
 
-	private final Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = new HashMap<>();
+	private final Map<String,
+		org.springframework.integration.support.management.MessageSourceMetricsConfigurer>
+			sourceConfigurers = new HashMap<>();
 
 	private ApplicationContext applicationContext;
 
@@ -90,7 +90,7 @@ public class IntegrationManagementConfigurer
 
 	private Boolean defaultStatsEnabled = false;
 
-	private MetricsFactory metricsFactory;
+	private org.springframework.integration.support.management.MetricsFactory metricsFactory;
 
 	private String metricsFactoryBeanName;
 
@@ -115,11 +115,15 @@ public class IntegrationManagementConfigurer
 	/**
 	 * Set a metrics factory.
 	 * Has a precedence over {@link #metricsFactoryBeanName}.
-	 * Defaults to {@link DefaultMetricsFactory}.
+	 * Defaults to {@link org.springframework.integration.support.management.DefaultMetricsFactory}.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @param metricsFactory the factory.
 	 * @since 4.2
 	 */
-	public void setMetricsFactory(MetricsFactory metricsFactory) {
+	@Deprecated
+	public void setMetricsFactory(org.springframework.integration.support.management.MetricsFactory metricsFactory) {
 		this.metricsFactory = metricsFactory;
 	}
 
@@ -127,8 +131,12 @@ public class IntegrationManagementConfigurer
 	 * Set a metrics factory bean name.
 	 * Is used if {@link #metricsFactory} isn't specified.
 	 * @param metricsFactory the factory.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @since 4.2
 	 */
+	@Deprecated
 	public void setMetricsFactoryBeanName(String metricsFactory) {
 		this.metricsFactoryBeanName = metricsFactory;
 	}
@@ -164,8 +172,12 @@ public class IntegrationManagementConfigurer
 	 * 'foo' in {@link #setEnabledCountsPatterns(String[]) enabledCountsPatterns}. For
 	 * components that match multiple patterns, the first pattern wins. Enabling stats at
 	 * runtime also enables counts.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 * @param enabledStatsPatterns the patterns.
 	 */
+	@Deprecated
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
 		Assert.notEmpty(enabledStatsPatterns, "enabledStatsPatterns must not be empty");
 		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
@@ -188,11 +200,23 @@ public class IntegrationManagementConfigurer
 	 * Set whether managed components maintain message statistics by default.
 	 * Defaults to false, unless an Integration MBean Exporter is configured.
 	 * @param defaultStatsEnabled true to enable.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
 	 */
+	@Deprecated
 	public void setDefaultStatsEnabled(Boolean defaultStatsEnabled) {
 		this.defaultStatsEnabled = defaultStatsEnabled;
 	}
 
+	/**
+	 * Return true if stats are enabled by default.
+	 * @return the stats enabled.
+	 * @deprecated in favor of dimensional metrics via
+	 * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+	 * Built-in metrics will be removed in a future release.
+	 */
+	@Deprecated
 	public Boolean getDefaultStatsEnabled() {
 		return this.defaultStatsEnabled;
 	}
@@ -234,18 +258,22 @@ public class IntegrationManagementConfigurer
 			registerComponentGauges();
 		}
 		if (this.metricsFactory == null && StringUtils.hasText(this.metricsFactoryBeanName)) {
-			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
+			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName,
+					org.springframework.integration.support.management.MetricsFactory.class);
 		}
 		if (this.metricsFactory == null) {
-			Map<String, MetricsFactory> factories = this.applicationContext.getBeansOfType(MetricsFactory.class);
+			Map<String, org.springframework.integration.support.management.MetricsFactory>
+				factories = this.applicationContext
+					.getBeansOfType(org.springframework.integration.support.management.MetricsFactory.class);
 			if (factories.size() == 1) {
 				this.metricsFactory = factories.values().iterator().next();
 			}
 		}
 		if (this.metricsFactory == null) {
-			this.metricsFactory = new DefaultMetricsFactory();
+			this.metricsFactory = new org.springframework.integration.support.management.DefaultMetricsFactory();
 		}
-		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(MessageSourceMetricsConfigurer.class));
+		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(
+				org.springframework.integration.support.management.MessageSourceMetricsConfigurer.class));
 		Map<String, IntegrationManagement> managed = this.applicationContext
 				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
@@ -284,44 +312,47 @@ public class IntegrationManagementConfigurer
 
 	@Override
 	public boolean requiresDestruction(Object bean) {
-		return bean instanceof MessageChannelMetrics ||
-				bean instanceof MessageHandlerMetrics ||
-				bean instanceof MessageSourceMetrics;
+		return bean instanceof org.springframework.integration.support.management.MessageChannelMetrics ||
+				bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics ||
+				bean instanceof org.springframework.integration.support.management.MessageSourceMetrics;
 	}
 
 	@Override
-	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageChannelMetrics) {
-			this.channelsByName.remove(beanName);
+	public void postProcessBeforeDestruction(Object bean, String nameOfBean) throws BeansException {
+		if (bean instanceof org.springframework.integration.support.management.MessageChannelMetrics) {
+			this.channelsByName.remove(nameOfBean);
 		}
-		else if (bean instanceof MessageHandlerMetrics) {
-			if (this.handlersByName.remove(beanName) == null) {
-				this.handlersByName.remove(beanName + ".handler");
+		else if (bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics) {
+			if (this.handlersByName.remove(nameOfBean) == null) {
+				this.handlersByName.remove(nameOfBean + ".handler");
 			}
 		}
-		else if (bean instanceof MessageSourceMetrics) {
-			if (this.sourcesByName.remove(beanName) == null) {
-				this.sourcesByName.remove(beanName + ".source");
+		else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
+			if (this.sourcesByName.remove(nameOfBean) == null) {
+				this.sourcesByName.remove(nameOfBean + ".source");
 			}
 		}
 	}
 
 	private Object doConfigureMetrics(Object bean, String name) {
-		if (bean instanceof MessageChannelMetrics) {
-			configureChannelMetrics(name, (MessageChannelMetrics) bean);
+		if (bean instanceof org.springframework.integration.support.management.MessageChannelMetrics) {
+			configureChannelMetrics(name, (org.springframework.integration.support.management.MessageChannelMetrics) bean);
 		}
-		else if (bean instanceof MessageHandlerMetrics) {
-			configureHandlerMetrics(name, (MessageHandlerMetrics) bean);
+		else if (bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics) {
+			configureHandlerMetrics(name, (org.springframework.integration.support.management.MessageHandlerMetrics) bean);
 		}
-		else if (bean instanceof MessageSourceMetrics) {
-			configureSourceMetrics(name, (MessageSourceMetrics) bean);
-			this.sourceConfigurers.values().forEach(c -> c.configure((MessageSourceMetrics) bean, name));
+		else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
+			configureSourceMetrics(name, (org.springframework.integration.support.management.MessageSourceMetrics) bean);
+			this.sourceConfigurers.values().forEach(c -> c
+					.configure((org.springframework.integration.support.management.MessageSourceMetrics) bean, name));
 		}
 		return bean;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void configureChannelMetrics(String name, MessageChannelMetrics bean) {
+	private void configureChannelMetrics(String name,
+			org.springframework.integration.support.management.MessageChannelMetrics bean) {
+
 		AbstractMessageChannelMetrics metrics;
 		if (bean instanceof PollableChannelManagement) {
 			metrics = this.metricsFactory.createPollableChannelMetrics(name);
@@ -358,7 +389,8 @@ public class IntegrationManagementConfigurer
 	}
 
 	@SuppressWarnings("unchecked")
-	private void configureHandlerMetrics(String name, MessageHandlerMetrics bean) {
+	private void configureHandlerMetrics(String name,
+			org.springframework.integration.support.management.MessageHandlerMetrics bean) {
 		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
 		ManagementOverrides overrides = bean.getOverrides();
@@ -389,7 +421,9 @@ public class IntegrationManagementConfigurer
 		this.handlersByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
 	}
 
-	private void configureSourceMetrics(String name, MessageSourceMetrics bean) {
+	private void configureSourceMetrics(String name,
+			org.springframework.integration.support.management.MessageSourceMetrics bean) {
+
 		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
@@ -420,18 +454,18 @@ public class IntegrationManagementConfigurer
 	}
 
 	public String[] getChannelNames() {
-		return this.channelsByName.keySet().toArray(new String[this.channelsByName.size()]);
+		return this.channelsByName.keySet().toArray(new String[0]);
 	}
 
 	public String[] getHandlerNames() {
-		return this.handlersByName.keySet().toArray(new String[this.handlersByName.size()]);
+		return this.handlersByName.keySet().toArray(new String[0]);
 	}
 
 	public String[] getSourceNames() {
-		return this.sourcesByName.keySet().toArray(new String[this.sourcesByName.size()]);
+		return this.sourcesByName.keySet().toArray(new String[0]);
 	}
 
-	public MessageChannelMetrics getChannelMetrics(String name) {
+	public org.springframework.integration.support.management.MessageChannelMetrics getChannelMetrics(String name) {
 		if (this.channelsByName.containsKey(name)) {
 			return this.channelsByName.get(name);
 		}
@@ -441,7 +475,7 @@ public class IntegrationManagementConfigurer
 		return null;
 	}
 
-	public MessageHandlerMetrics getHandlerMetrics(String name) {
+	public org.springframework.integration.support.management.MessageHandlerMetrics getHandlerMetrics(String name) {
 		if (this.handlersByName.containsKey(name)) {
 			return this.handlersByName.get(name);
 		}
@@ -455,7 +489,7 @@ public class IntegrationManagementConfigurer
 		return null;
 	}
 
-	public MessageSourceMetrics getSourceMetrics(String name) {
+	public org.springframework.integration.support.management.MessageSourceMetrics getSourceMetrics(String name) {
 		if (this.sourcesByName.containsKey(name)) {
 			return this.sourcesByName.get(name);
 		}

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.graph;
 
-import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -28,19 +26,22 @@ import org.springframework.messaging.MessageChannel;
  * @since 4.3
  *
  */
+@SuppressWarnings("deprecation")
 public class MessageChannelNode extends IntegrationNode {
 
 	public MessageChannelNode(int nodeId, String name, MessageChannel channel) {
-		super(nodeId, name, channel, channel instanceof MessageChannelMetrics
-				? new Stats((MessageChannelMetrics) channel) : new IntegrationNode.Stats());
+		super(nodeId, name, channel,
+				channel instanceof org.springframework.integration.support.management.MessageChannelMetrics
+						? new Stats((org.springframework.integration.support.management.MessageChannelMetrics) channel)
+						: new IntegrationNode.Stats());
 	}
 
 
 	public static final class Stats extends IntegrationNode.Stats {
 
-		private final MessageChannelMetrics channel;
+		private final org.springframework.integration.support.management.MessageChannelMetrics channel;
 
-		Stats(MessageChannelMetrics channel) {
+		Stats(org.springframework.integration.support.management.MessageChannelMetrics channel) {
 			this.channel = channel;
 		}
 
@@ -97,15 +98,15 @@ public class MessageChannelNode extends IntegrationNode {
 			return this.channel.getStandardDeviationSendDuration();
 		}
 
-		public Statistics getSendDuration() {
+		public org.springframework.integration.support.management.Statistics getSendDuration() {
 			return this.channel.getSendDuration();
 		}
 
-		public Statistics getSendRate() {
+		public org.springframework.integration.support.management.Statistics getSendRate() {
 			return this.channel.getSendRate();
 		}
 
-		public Statistics getErrorRate() {
+		public org.springframework.integration.support.management.Statistics getErrorRate() {
 			return this.channel.getErrorRate();
 		}
 

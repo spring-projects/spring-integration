@@ -19,11 +19,14 @@ package org.springframework.integration.support.management;
 /**
  * Factories implementing this interface provide metric objects for message channels and
  * message handlers.
- *
+ * @deprecated in favor of dimensional metrics via
+ * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
+ * Built-in metrics will be removed in a future release.
  * @author Gary Russell
  * @since 4.2
  *
  */
+@Deprecated
 public interface MetricsFactory {
 
 	/**

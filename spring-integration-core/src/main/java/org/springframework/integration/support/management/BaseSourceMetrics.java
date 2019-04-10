@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,16 @@
 package org.springframework.integration.support.management;
 
 /**
- * Interface representing an opaque object containing state between initiating an
- * event and concluding it.
- * @deprecated in favor of dimensional metrics via
- * {@link org.springframework.integration.support.management.metrics.MeterFacade}.
- * Built-in metrics will be removed in a future release.
  * @author Gary Russell
- * @since 4.2
+ * @since 5.2
+ *
  */
-@Deprecated
-public interface MetricsContext {
+public interface BaseSourceMetrics extends IntegrationManagement {
+
+	/**
+	 * The number of successful message receptions.
+	 * @return the count.
+	 */
+	long messageCount();
 
 }
