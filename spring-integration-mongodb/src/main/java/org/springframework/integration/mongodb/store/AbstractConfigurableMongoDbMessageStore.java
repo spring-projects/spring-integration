@@ -86,7 +86,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	private RuntimeException NOT_IMPLEMENTED =
+	private static final RuntimeException NOT_IMPLEMENTED =
 			new UnsupportedOperationException("The operation isn't implemented for this class.");
 
 	protected final String collectionName; // NOSONAR - final
