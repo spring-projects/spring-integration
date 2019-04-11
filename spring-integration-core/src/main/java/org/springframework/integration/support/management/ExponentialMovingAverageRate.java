@@ -46,7 +46,6 @@ import java.util.List;
  *
  */
 @Deprecated
-@SuppressWarnings("deprecation")
 public class ExponentialMovingAverageRate {
 
 	private volatile double min = Double.MAX_VALUE;
@@ -61,7 +60,7 @@ public class ExponentialMovingAverageRate {
 
 	private final double period;
 
-	private final Deque<Long> times = new ArrayDeque<Long>();
+	private final Deque<Long> times = new ArrayDeque<>();
 
 	private final int retention;
 

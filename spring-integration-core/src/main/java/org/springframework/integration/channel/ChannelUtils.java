@@ -18,7 +18,6 @@ package org.springframework.integration.channel;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -27,6 +26,7 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.2
  *
  */
@@ -42,7 +42,8 @@ public final class ChannelUtils {
 	 * Obtain an {@link ErrorHandler} registered with the
 	 * {@value MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME} bean name.
 	 * By default resolves to the {@link org.springframework.integration.channel.MessagePublishingErrorHandler}
-	 * with the {@value ChannelResolverUtils#CHANNEL_RESOLVER_BEAN_NAME} {@link DestinationResolver} bean.
+	 * with the {@value ChannelResolverUtils#CHANNEL_RESOLVER_BEAN_NAME}
+	 * {@link org.springframework.messaging.core.DestinationResolver} bean.
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return the instance of {@link ErrorHandler} bean whose name is
 	 * {@value MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME}.

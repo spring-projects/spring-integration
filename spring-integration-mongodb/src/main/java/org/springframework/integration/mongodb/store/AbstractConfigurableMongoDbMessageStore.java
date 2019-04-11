@@ -47,7 +47,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.mongodb.support.BinaryToMessageConverter;
 import org.springframework.integration.mongodb.support.MessageToBinaryConverter;
 import org.springframework.integration.store.AbstractMessageGroupStore;
-import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -57,7 +56,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * The abstract MongoDB {@link BasicMessageGroupStore} implementation to provide configuration for common options
+ * The abstract MongoDB {@link AbstractMessageGroupStore} implementation to provide configuration for common options
  * for implementations of this class.
  *
  * @author Artem Bilan
@@ -85,19 +84,22 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	@Deprecated
 	public static final String CREATED_DATE_KEY = "MongoDbMessageStore.CREATED_DATE";
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	protected final String collectionName;
+	private RuntimeException NOT_IMPLEMENTED =
+			new UnsupportedOperationException("The operation isn't implemented for this class.");
 
-	protected final MongoDbFactory mongoDbFactory;
+	protected final String collectionName; // NOSONAR - final
+
+	protected final MongoDbFactory mongoDbFactory; // NOSONAR - final
 
 	protected MongoTemplate mongoTemplate;
 
-	protected MappingMongoConverter mappingMongoConverter;
+	private MappingMongoConverter mappingMongoConverter;
 
-	protected ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
-	protected MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
@@ -125,6 +127,22 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		this.applicationContext = applicationContext;
 	}
 
+	protected MongoTemplate getMongoTemplate() {
+		return this.mongoTemplate;
+	}
+
+	protected MappingMongoConverter getMappingMongoConverter() {
+		return this.mappingMongoConverter;
+	}
+
+	protected ApplicationContext getApplicationContext() {
+		return this.applicationContext;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		return this.messageBuilderFactory;
+	}
+
 	@Override
 	public void afterPropertiesSet() {
 		if (this.mongoTemplate == null) {
@@ -132,7 +150,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				this.mappingMongoConverter = new MappingMongoConverter(new DefaultDbRefResolver(this.mongoDbFactory),
 						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
-				List<Object> customConverters = new ArrayList<Object>();
+				List<Object> customConverters = new ArrayList<>();
 				customConverters.add(new MessageToBinaryConverter());
 				customConverters.add(new BinaryToMessageConverter());
 				this.mappingMongoConverter.setCustomConversions(new MongoCustomConversions(customConverters));
@@ -202,7 +220,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				new Update().inc(MessageDocumentFields.SEQUENCE, 1),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
 				Map.class, this.collectionName)
-					.get(MessageDocumentFields.SEQUENCE); // NOSONAR - never returns null
+				.get(MessageDocumentFields.SEQUENCE); // NOSONAR - never returns null
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {
@@ -227,37 +245,37 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	@Override
 	public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public void completeGroup(Object groupId) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
-		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+		throw NOT_IMPLEMENTED;
 	}
 
 }

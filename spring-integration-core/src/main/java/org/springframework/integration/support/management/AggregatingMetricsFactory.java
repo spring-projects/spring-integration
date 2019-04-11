@@ -27,7 +27,6 @@ package org.springframework.integration.support.management;
  *
  */
 @Deprecated
-@SuppressWarnings("deprecation")
 public class AggregatingMetricsFactory implements MetricsFactory {
 
 	private final int sampleSize;

@@ -34,14 +34,13 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  */
 @Deprecated
 @IntegrationManagedResource
-@SuppressWarnings("deprecation")
 public class LifecycleMessageHandlerMetrics implements
 		org.springframework.integration.support.management.MessageHandlerMetrics, Lifecycle,
 			ConfigurableMetricsAware<AbstractMessageHandlerMetrics> {
 
 	private final Lifecycle lifecycle;
 
-	protected final org.springframework.integration.support.management.MessageHandlerMetrics delegate;
+	protected final org.springframework.integration.support.management.MessageHandlerMetrics delegate; // NOSONAR
 
 
 	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle,

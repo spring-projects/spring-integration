@@ -61,23 +61,23 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("deprecation")
 public class IntegrationManagementConfigurer
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware,
-				DestructionAwareBeanPostProcessor {
+		DestructionAwareBeanPostProcessor {
 
-	private static final Log logger = LogFactory.getLog(IntegrationManagementConfigurer.class);
+	private static final Log LOGGER = LogFactory.getLog(IntegrationManagementConfigurer.class);
 
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
 
 	private final Map<String, org.springframework.integration.support.management.MessageChannelMetrics>
-		channelsByName = new HashMap<>();
+			channelsByName = new HashMap<>();
 
 	private final Map<String, org.springframework.integration.support.management.MessageHandlerMetrics>
-		handlersByName = new HashMap<>();
+			handlersByName = new HashMap<>();
 
 	private final Map<String, org.springframework.integration.support.management.MessageSourceMetrics>
-		sourcesByName = new HashMap<>();
+			sourcesByName = new HashMap<>();
 
 	private final Map<String,
-		org.springframework.integration.support.management.MessageSourceMetricsConfigurer>
+			org.springframework.integration.support.management.MessageSourceMetricsConfigurer>
 			sourceConfigurers = new HashMap<>();
 
 	private ApplicationContext applicationContext;
@@ -229,7 +229,7 @@ public class IntegrationManagementConfigurer
 	 * Exception logging (debug or otherwise) is not affected by this setting.
 	 * <p>
 	 * It has been found that in high-volume messaging environments, calls to methods such as
-	 * {@code logger.isDebuggingEnabled()} can be quite expensive and account for an inordinate amount of CPU
+	 * {@link Log#isDebugEnabled()} can be quite expensive and account for an inordinate amount of CPU
 	 * time.
 	 * <p>
 	 * Set this to false to disable logging by default in all framework components that implement
@@ -263,7 +263,7 @@ public class IntegrationManagementConfigurer
 		}
 		if (this.metricsFactory == null) {
 			Map<String, org.springframework.integration.support.management.MetricsFactory>
-				factories = this.applicationContext
+					factories = this.applicationContext
 					.getBeansOfType(org.springframework.integration.support.management.MetricsFactory.class);
 			if (factories.size() == 1) {
 				this.metricsFactory = factories.values().iterator().next();
@@ -327,22 +327,25 @@ public class IntegrationManagementConfigurer
 				this.handlersByName.remove(nameOfBean + ".handler");
 			}
 		}
-		else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
-			if (this.sourcesByName.remove(nameOfBean) == null) {
-				this.sourcesByName.remove(nameOfBean + ".source");
-			}
+		else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics &&
+				this.sourcesByName.remove(nameOfBean) == null) {
+
+			this.sourcesByName.remove(nameOfBean + ".source");
 		}
 	}
 
 	private Object doConfigureMetrics(Object bean, String name) {
 		if (bean instanceof org.springframework.integration.support.management.MessageChannelMetrics) {
-			configureChannelMetrics(name, (org.springframework.integration.support.management.MessageChannelMetrics) bean);
+			configureChannelMetrics(name,
+					(org.springframework.integration.support.management.MessageChannelMetrics) bean);
 		}
 		else if (bean instanceof org.springframework.integration.support.management.MessageHandlerMetrics) {
-			configureHandlerMetrics(name, (org.springframework.integration.support.management.MessageHandlerMetrics) bean);
+			configureHandlerMetrics(name,
+					(org.springframework.integration.support.management.MessageHandlerMetrics) bean);
 		}
 		else if (bean instanceof org.springframework.integration.support.management.MessageSourceMetrics) {
-			configureSourceMetrics(name, (org.springframework.integration.support.management.MessageSourceMetrics) bean);
+			configureSourceMetrics(name,
+					(org.springframework.integration.support.management.MessageSourceMetrics) bean);
 			this.sourceConfigurers.values().forEach(c -> c
 					.configure((org.springframework.integration.support.management.MessageSourceMetrics) bean, name));
 		}
@@ -469,8 +472,8 @@ public class IntegrationManagementConfigurer
 		if (this.channelsByName.containsKey(name)) {
 			return this.channelsByName.get(name);
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("No channel found for (" + name + ")");
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("No channel found for (" + name + ")");
 		}
 		return null;
 	}
@@ -483,8 +486,8 @@ public class IntegrationManagementConfigurer
 			return this.handlersByName.get(name + ".handler");
 		}
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("No handler found for (" + name + ")");
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("No handler found for (" + name + ")");
 		}
 		return null;
 	}
@@ -497,8 +500,8 @@ public class IntegrationManagementConfigurer
 			return this.sourcesByName.get(name + ".source");
 		}
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("No source found for (" + name + ")");
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("No source found for (" + name + ")");
 		}
 		return null;
 	}

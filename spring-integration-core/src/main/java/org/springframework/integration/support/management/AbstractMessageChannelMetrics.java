@@ -29,9 +29,11 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class AbstractMessageChannelMetrics implements ConfigurableMetrics {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	private static final String DEPRECATION = "deprecation";
 
-	protected final String name;
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
+
+	protected final String name; // NOSONAR - final
 
 	private volatile boolean fullStatsEnabled;
 
@@ -61,7 +63,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @return the context to be used in a subsequent {@link #afterSend(MetricsContext, boolean)}
 	 * call.
 	 */
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings(DEPRECATION)
 	public abstract MetricsContext beforeSend();
 
 	/**
@@ -71,7 +73,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @param context the context.
 	 * @param result true for success, false otherwise.
 	 */
-	public abstract void afterSend(@SuppressWarnings("deprecation") MetricsContext context, boolean result);
+	public abstract void afterSend(@SuppressWarnings(DEPRECATION) MetricsContext context, boolean result);
 
 	/**
 	 * Reset all counters/statistics.
@@ -102,13 +104,13 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	public abstract double getStandardDeviationSendDuration();
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings(DEPRECATION)
 	public abstract Statistics getSendDuration();
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings(DEPRECATION)
 	public abstract Statistics getSendRate();
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings(DEPRECATION)
 	public abstract Statistics getErrorRate();
 
 	public abstract void afterReceive();

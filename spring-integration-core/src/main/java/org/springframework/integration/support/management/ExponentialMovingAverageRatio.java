@@ -47,7 +47,6 @@ import java.util.List;
  * @since 2.0
  */
 @Deprecated
-@SuppressWarnings("deprecation")
 public class ExponentialMovingAverageRatio {
 
 	private volatile double t0;
@@ -60,9 +59,9 @@ public class ExponentialMovingAverageRatio {
 
 	private final double lapse;
 
-	private final Deque<Long> times = new ArrayDeque<Long>();
+	private final Deque<Long> times = new ArrayDeque<>();
 
-	private final Deque<Integer> values = new ArrayDeque<Integer>();
+	private final Deque<Integer> values = new ArrayDeque<>();
 
 	private final int retention;
 

@@ -90,7 +90,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		this.mongoTemplate.indexOps(this.collectionName)
+		getMongoTemplate().indexOps(this.collectionName)
 				.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 						.on(MessageDocumentFields.PRIORITY, Sort.Direction.DESC)
 						.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.ASC)
@@ -132,7 +132,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 			sort = Sort.by(Sort.Direction.DESC, MessageDocumentFields.PRIORITY).and(sort);
 		}
 		Query query = groupIdQuery(groupId).with(sort);
-		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
+		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, this.collectionName);
 		Message<?> message = null;
 		if (document != null) {
 			message = document.getMessage();

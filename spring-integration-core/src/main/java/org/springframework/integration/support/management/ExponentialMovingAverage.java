@@ -41,7 +41,6 @@ import java.util.List;
  * @since 2.0
  */
 @Deprecated
-@SuppressWarnings("deprecation")
 public class ExponentialMovingAverage {
 
 	private volatile long count;
@@ -50,7 +49,7 @@ public class ExponentialMovingAverage {
 
 	private volatile double max;
 
-	private final Deque<Double> samples = new ArrayDeque<Double>();
+	private final Deque<Double> samples = new ArrayDeque<>();
 
 	private final int retention;
 

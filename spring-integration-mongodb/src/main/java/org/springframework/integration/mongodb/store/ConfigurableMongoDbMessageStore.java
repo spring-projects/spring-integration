@@ -95,7 +95,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
-		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);
+		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, this.collectionName);
 		return (document != null) ? document.getMessage() : null;
 	}
 
@@ -103,7 +103,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public long getMessageCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
 				.and(MessageDocumentFields.GROUP_ID).exists(false));
-		return this.mongoTemplate.getCollection(this.collectionName).countDocuments(query.getQueryObject());
+		return getMongoTemplate().getCollection(this.collectionName).countDocuments(query.getQueryObject());
 	}
 
 
@@ -112,7 +112,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 
 		Query query = groupOrderQuery(groupId);
-		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 
 		if (messageDocument != null) {
 			long createdTime = messageDocument.getGroupCreatedTime();
@@ -144,7 +144,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(messages, "'message' must not be null");
 
 		Query query = groupOrderQuery(groupId);
-		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 
 		long createdTime = System.currentTimeMillis();
 		int lastReleasedSequence = 0;
@@ -191,7 +191,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	private void removeMessages(Object groupId, Collection<UUID> ids) {
 		Query query = groupIdQuery(groupId)
 				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).in(ids.toArray()));
-		this.mongoTemplate.remove(query, this.collectionName);
+		getMongoTemplate().remove(query, this.collectionName);
 	}
 
 	@Override
@@ -236,7 +236,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public int getMessageCountForAllMessageGroups() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
 				.and(MessageDocumentFields.GROUP_ID).exists(true));
-		long count = this.mongoTemplate.count(query, this.collectionName);
+		long count = getMongoTemplate().count(query, this.collectionName);
 		Assert.isTrue(count <= Integer.MAX_VALUE, "Message count is out of Integer's range");
 		return (int) count;
 	}
@@ -245,7 +245,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@ManagedAttribute
 	public int getMessageGroupCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		return this.mongoTemplate.getCollection(this.collectionName)
+		return getMongoTemplate().getCollection(this.collectionName)
 				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), Object.class)
 				.into(new ArrayList<>())
 				.size();
@@ -255,7 +255,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public Message<?> getOneMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = groupOrderQuery(groupId);
-		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		MessageDocument messageDocument = getMongoTemplate().findOne(query, MessageDocument.class, this.collectionName);
 		if (messageDocument != null) {
 			return messageDocument.getMessage();
 		}
@@ -268,7 +268,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = groupOrderQuery(groupId);
-		List<MessageDocument> documents = this.mongoTemplate.find(query, MessageDocument.class, this.collectionName);
+		List<MessageDocument> documents = getMongoTemplate().find(query, MessageDocument.class, this.collectionName);
 
 		return documents.stream()
 				.map(MessageDocument::getMessage)
@@ -276,7 +276,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	private void updateGroup(Object groupId, Update update) {
-		this.mongoTemplate.updateFirst(groupOrderQuery(groupId), update, this.collectionName);
+		getMongoTemplate().updateFirst(groupOrderQuery(groupId), update, this.collectionName);
 	}
 
 	private static Update lastModifiedUpdate() {
