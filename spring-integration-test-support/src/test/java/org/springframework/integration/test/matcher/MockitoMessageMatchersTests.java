@@ -17,6 +17,7 @@
 package org.springframework.integration.test.matcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.exceptions.verification.junit.ArgumentsAreDifferent;
+import org.mockito.exceptions.verification.opentest4j.ArgumentsAreDifferent;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.messaging.Message;
@@ -39,6 +40,7 @@ import org.springframework.messaging.support.MessageBuilder;
  * @author Alex Peters
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -60,37 +62,42 @@ public class MockitoMessageMatchersTests {
 
 	@Before
 	public void setUp() {
-		message = MessageBuilder.withPayload(SOME_PAYLOAD).setHeader(SOME_HEADER_KEY,
-				SOME_HEADER_VALUE).build();
+		this.message =
+				MessageBuilder.withPayload(SOME_PAYLOAD)
+						.setHeader(SOME_HEADER_KEY, SOME_HEADER_VALUE)
+						.build();
 	}
 
 	@Test
 	public void anyMatcher_withVerifyArgumentMatcherAndEqualPayload_matching() {
-		handler.handleMessage(message);
-		verify(handler).handleMessage(MockitoMessageMatchers.messageWithPayload(SOME_PAYLOAD));
-		verify(handler)
+		this.handler.handleMessage(this.message);
+		verify(this.handler).handleMessage(MockitoMessageMatchers.messageWithPayload(SOME_PAYLOAD));
+		verify(this.handler)
 				.handleMessage(MockitoMessageMatchers.messageWithPayload(Matchers.is(Matchers.instanceOf(Date.class))));
 	}
 
-	@Test(expected = ArgumentsAreDifferent.class)
+	@Test
 	public void anyMatcher_withVerifyAndDifferentPayload_notMatching() {
-		handler.handleMessage(message);
-		verify(handler).handleMessage(MockitoMessageMatchers.messageWithPayload(Matchers.nullValue()));
+		this.handler.handleMessage(this.message);
+		assertThatExceptionOfType(ArgumentsAreDifferent.class)
+				.isThrownBy(() ->
+						verify(this.handler)
+								.handleMessage(MockitoMessageMatchers.messageWithPayload(Matchers.nullValue())));
 	}
 
 	@Test
 	public void anyMatcher_withWhenArgumentMatcherAndEqualPayload_matching() {
-		when(channel.send(MockitoMessageMatchers.messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
-		assertThat(channel.send(message)).isTrue();
+		when(this.channel.send(MockitoMessageMatchers.messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
+		assertThat(channel.send(this.message)).isTrue();
 	}
 
 	@Test
 	public void anyMatcher_withWhenAndDifferentPayload_notMatching() {
-		when(channel.send(
+		when(this.channel.send(
 				MockitoMessageMatchers.messageWithHeaderEntry(SOME_HEADER_KEY,
 						Matchers.is(Matchers.instanceOf(Short.class)))))
 				.thenReturn(true);
-		assertThat(channel.send(message)).isFalse();
+		assertThat(this.channel.send(this.message)).isFalse();
 	}
 
 }
