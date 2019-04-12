@@ -666,7 +666,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @since 5.2
 	 */
 	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, Object> expirationDateFunction) {
-		return priorityFunction(expirationDateFunction, null);
+		return expirationDateFunction(expirationDateFunction, null);
 	}
 
 	/**
