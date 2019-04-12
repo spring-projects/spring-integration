@@ -6,6 +6,7 @@
 			http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<jdbc:embedded-database id="dataSource" type="H2">
+		<jdbc:script location="org/springframework/integration/jdbc/schema-drop-h2.sql"/>
 		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:embedded-database>
 
