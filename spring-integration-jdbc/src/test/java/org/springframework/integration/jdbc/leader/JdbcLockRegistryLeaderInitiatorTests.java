@@ -184,7 +184,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		destroy();
 
-		assertThat(countingPublisher.revoked.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countingPublisher.revoked.await(20, TimeUnit.SECONDS)).isTrue();
 
 		granted = new CountDownLatch(1);
 		countingPublisher = new CountingPublisher(granted);
