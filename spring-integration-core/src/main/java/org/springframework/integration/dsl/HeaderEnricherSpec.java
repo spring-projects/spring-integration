@@ -37,6 +37,7 @@ import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.support.AbstractHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
+import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -528,6 +529,206 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 		return headerFunction(MessageHeaders.ERROR_CHANNEL, errorChannelFunction, overwrite);
 	}
 
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 * If the header exists, it will <b>not</b> be overwritten unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param priority the header value for {@link IntegrationMessageHeaderAccessor#PRIORITY}.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec priority(Number priority) {
+		return priority(priority, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 * @param priority the header value for {@link IntegrationMessageHeaderAccessor#PRIORITY}.
+	 * @param overwrite true to overwrite an existing header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec priority(Number priority, Boolean overwrite) {
+		return header(IntegrationMessageHeaderAccessor.PRIORITY, priority, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header
+	 * where the value is a SpEL {@link Expression} evaluation result.
+	 * If the header exists, it will <b>not</b> be overwritten
+	 * unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param priorityExpression the expression for {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec priorityExpression(String priorityExpression) {
+		return priorityExpression(priorityExpression, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header
+	 * where the value is a SpEL {@link Expression} evaluation result.
+	 * @param priorityExpression the expression for {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 * @param overwrite true to overwrite an existing header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec priorityExpression(String priorityExpression, Boolean overwrite) {
+		return headerExpression(IntegrationMessageHeaderAccessor.PRIORITY, priorityExpression, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header where the
+	 * value is obtained by invoking the {@link Function} callback.
+	 * If the header exists, it will <b>not</b> be overwritten
+	 * unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param priorityFunction the function.
+	 * @param <P> the payload type.
+	 * @return the header enricher spec.
+	 * @see FunctionExpression
+	 * @since 5.2
+	 */
+	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, Object> priorityFunction) {
+		return priorityFunction(priorityFunction, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#PRIORITY} header where the
+	 * value is obtained by invoking the {@link Function} callback.
+	 * @param priorityFunction the function.
+	 * @param overwrite true to overwrite an existing header.
+	 * @param <P> the payload type.
+	 * @return the header enricher spec.
+	 * @see FunctionExpression
+	 * @since 5.2
+	 */
+	public <P> HeaderEnricherSpec priorityFunction(Function<Message<P>, ?> priorityFunction, Boolean overwrite) {
+		return headerFunction(IntegrationMessageHeaderAccessor.PRIORITY, priorityFunction, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header: {@link java.util.Date} or {@code long}.
+	 * If the header exists, it will <b>not</b> be overwritten unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param expirationDate the header value for {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE}.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec expirationDate(Object expirationDate) {
+		return expirationDate(expirationDate, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header.
+	 * @param expirationDate the header value for {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE}.
+	 * @param overwrite true to overwrite an existing header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec expirationDate(Object expirationDate, Boolean overwrite) {
+		return header(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header
+	 * where the value is a SpEL {@link Expression} evaluation result.
+	 * If the header exists, it will <b>not</b> be overwritten
+	 * unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param expirationDateExpression the expression for {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE}
+	 *                                   header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec expirationDateExpression(String expirationDateExpression) {
+		return expirationDateExpression(expirationDateExpression, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header
+	 * where the value is a SpEL {@link Expression} evaluation result.
+	 * @param expirationDateExpression the expression for
+	 * {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header.
+	 * @param overwrite true to overwrite an existing header.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec expirationDateExpression(String expirationDateExpression, Boolean overwrite) {
+		return headerExpression(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDateExpression, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header where the
+	 * value is obtained by invoking the {@link Function} callback.
+	 * If the header exists, it will <b>not</b> be overwritten
+	 * unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param expirationDateFunction the function.
+	 * @param <P> the payload type.
+	 * @return the header enricher spec.
+	 * @see FunctionExpression
+	 * @since 5.2
+	 */
+	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, Object> expirationDateFunction) {
+		return priorityFunction(expirationDateFunction, null);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#EXPIRATION_DATE} header where the
+	 * value is obtained by invoking the {@link Function} callback.
+	 * @param expirationDateFunction the function.
+	 * @param overwrite true to overwrite an existing header.
+	 * @param <P> the payload type.
+	 * @return the header enricher spec.
+	 * @see FunctionExpression
+	 * @since 5.2
+	 */
+	public <P> HeaderEnricherSpec expirationDateFunction(Function<Message<P>, ?> expirationDateFunction,
+			Boolean overwrite) {
+
+		return headerFunction(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDateFunction, overwrite);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP} header.
+	 * The possible values are:
+	 * <p><ul>
+	 * <li>A {@link org.springframework.messaging.MessageChannel} instance.
+	 * <li>A {@link org.springframework.messaging.MessageChannel} bean name.
+	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} instance.
+	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} bean name.
+	 * <li>A {@code String} for SpEL expression which has to be evaluated to the
+	 * {@link org.springframework.messaging.MessageChannel} or
+	 * {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy}.
+	 * </ul><p>
+	 * If the header exists, it will <b>not</b> be overwritten unless {@link #defaultOverwrite(boolean)} is true.
+	 * @param routingSlipPath the header value for {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP}.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec routingSlip(Object... routingSlipPath) {
+		return routingSlip(null, routingSlipPath);
+	}
+
+	/**
+	 * Add a {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP} header.
+	 * The possible values are:
+	 * <p><ul>
+	 * <li>A {@link org.springframework.messaging.MessageChannel} instance.
+	 * <li>A {@link org.springframework.messaging.MessageChannel} bean name.
+	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} instance.
+	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} bean name.
+	 * <li>A {@code String} for SpEL expression which has to be evaluated to the
+	 * {@link org.springframework.messaging.MessageChannel} or
+	 * {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy}.
+	 * </ul><p>
+	 * @param overwrite true to overwrite an existing header.
+	 * @param routingSlipPath the header value for {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP}.
+	 * @return the header enricher spec.
+	 * @since 5.2
+	 */
+	public HeaderEnricherSpec routingSlip(Boolean overwrite, Object... routingSlipPath) {
+		RoutingSlipHeaderValueMessageProcessor routingSlipHeaderValueMessageProcessor =
+				new RoutingSlipHeaderValueMessageProcessor(routingSlipPath);
+		routingSlipHeaderValueMessageProcessor.setOverwrite(overwrite);
+		return header(IntegrationMessageHeaderAccessor.ROUTING_SLIP, routingSlipHeaderValueMessageProcessor);
+	}
 
 	/**
 	 * Add a single header specification. If the header exists, it will <b>not</b> be
@@ -540,6 +741,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	public <V> HeaderEnricherSpec header(String name, V value) {
 		return header(name, value, null);
 	}
+
 
 	/**
 	 * Add a single header specification.
