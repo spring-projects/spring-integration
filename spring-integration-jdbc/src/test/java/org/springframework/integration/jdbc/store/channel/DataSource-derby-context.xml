@@ -17,6 +17,7 @@
 		/> </bean> -->
 
 	<jdbc:initialize-database data-source="dataSource">
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-drop-derby.sql" />
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-derby.sql" />
 	</jdbc:initialize-database>
 
