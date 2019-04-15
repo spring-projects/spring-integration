@@ -361,11 +361,16 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			this.sharedSessionLock.lock();
 		}
 		try {
+			boolean freshJschSession = false;
 			if (jschSession == null || !jschSession.isConnected()) {
 				jschSession = new JSchSessionWrapper(initJschSession());
+				freshJschSession = true;
 			}
 			sftpSession = new SftpSession(jschSession);
 			sftpSession.connect();
+			if (this.isSharedSession && freshJschSession) {
+				this.sharedJschSession = jschSession;
+			}
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to create SFTP Session", e);
@@ -374,9 +379,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			if (this.sharedSessionLock != null) {
 				this.sharedSessionLock.unlock();
 			}
-		}
-		if (this.isSharedSession) {
-			this.sharedJschSession = jschSession;
 		}
 		jschSession.addChannel();
 		return sftpSession;
