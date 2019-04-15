@@ -106,7 +106,7 @@ subprojects { subproject ->
 		hazelcastVersion = '3.12'
 		hibernateVersion = '5.4.2.Final'
 		hsqldbVersion = '2.4.1'
-		h2Version = '1.4.199'
+		h2Version = '1.4.197'
 		jackson2Version = '2.9.8'
 		javaxActivationVersion = '1.2.0'
 		javaxMailVersion = '1.6.2'
