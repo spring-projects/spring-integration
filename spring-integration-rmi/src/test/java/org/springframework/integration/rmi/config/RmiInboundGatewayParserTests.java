@@ -29,6 +29,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -38,6 +39,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class RmiInboundGatewayParserTests {
+
+	public static final int PORT = SocketUtils.findAvailableTcpPort();
 
 	@Autowired
 	@Qualifier("testChannel")
@@ -78,7 +81,7 @@ public class RmiInboundGatewayParserTests {
 	@Test
 	public void gatewayWithPort() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithPort");
-		assertThat(TestUtils.getPropertyValue(gateway, "registryPort")).isEqualTo(1234);
+		assertThat(TestUtils.getPropertyValue(gateway, "registryPort")).isEqualTo(PORT);
 	}
 
 	@Test

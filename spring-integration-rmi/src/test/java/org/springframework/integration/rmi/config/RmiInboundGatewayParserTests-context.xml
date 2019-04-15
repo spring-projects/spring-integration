@@ -16,20 +16,25 @@
 
 	<channel id="testErrorChannel"/>
 
-	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel" auto-startup="false"/>
+	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel" auto-startup="false"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiInboundGatewayParserTests).PORT}"/>
 
 	<rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
-						 expect-reply="false" request-timeout="123" reply-timeout="456" auto-startup="false"/>
+						 expect-reply="false" request-timeout="123" reply-timeout="456" auto-startup="false"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiInboundGatewayParserTests).PORT}"/>
 
 	<rmi:inbound-gateway id="gatewayWithHostAndErrorChannel" request-channel="testChannel" registry-host="localhost"
-						 error-channel="testErrorChannel" auto-startup="false"/>
+						 error-channel="testErrorChannel" auto-startup="false"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiInboundGatewayParserTests).PORT}"/>
 
-	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234" auto-startup="false"/>
+	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" auto-startup="false"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiInboundGatewayParserTests).PORT}"/>
 
 	<rmi:inbound-gateway id="gatewayWithExecutorRef"
 						 request-channel="testChannel"
 						 remote-invocation-executor="invocationExecutor"
-						 auto-startup="false"/>
+						 auto-startup="false"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiInboundGatewayParserTests).PORT}"/>
 
 	<beans:bean id="invocationExecutor"
 				class="org.springframework.integration.rmi.config.StubRemoteInvocationExecutor"/>
