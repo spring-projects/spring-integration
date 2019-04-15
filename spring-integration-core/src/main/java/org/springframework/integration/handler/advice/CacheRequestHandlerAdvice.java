@@ -174,59 +174,59 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 	@Override
 	protected void onInit() {
-		List<CacheOperation> cacheOperations;
+		List<CacheOperation> cacheOperationsToUse;
 		if (!ObjectUtils.isEmpty(this.cacheNames)) {
-			cacheOperations = this.cacheOperations.stream()
-					.filter((operation) -> ObjectUtils.isEmpty(operation.getCacheNames()))
-					.map((operation) -> {
-						CacheOperation.Builder builder;
-						if (operation instanceof CacheableOperation) {
-							CacheableOperation cacheableOperation = (CacheableOperation) operation;
-							CacheableOperation.Builder cacheableBuilder = new CacheableOperation.Builder();
-							cacheableBuilder.setSync(cacheableOperation.isSync());
-							String unless = cacheableOperation.getUnless();
-							if (unless != null) {
-								cacheableBuilder.setUnless(unless);
-							}
-							builder = cacheableBuilder;
-						}
-						else if (operation instanceof CacheEvictOperation) {
-							CacheEvictOperation.Builder cacheEvictBuilder = new CacheEvictOperation.Builder();
-							CacheEvictOperation cacheEvictOperation = (CacheEvictOperation) operation;
-							cacheEvictBuilder.setBeforeInvocation(cacheEvictOperation.isBeforeInvocation());
-							cacheEvictBuilder.setCacheWide(cacheEvictOperation.isCacheWide());
-							builder = cacheEvictBuilder;
-						}
-						else {
-							CachePutOperation cachePutOperation = (CachePutOperation) operation;
-							CachePutOperation.Builder cachePutBuilder = new CachePutOperation.Builder();
-							String unless = cachePutOperation.getUnless();
-							if (unless != null) {
-								cachePutBuilder.setUnless(unless);
-							}
-							builder = cachePutBuilder;
-						}
-
-						builder.setName(operation.getName());
-						builder.setCacheManager(operation.getCacheManager());
-						builder.setCacheNames(this.cacheNames);
-						builder.setCacheResolver(operation.getCacheResolver());
-						builder.setCondition(operation.getCondition());
-						builder.setKey(operation.getKey());
-						builder.setKeyGenerator(operation.getKeyGenerator());
-						return builder.build();
-					})
-					.collect(Collectors.toList());
+			cacheOperationsToUse =
+					this.cacheOperations.stream()
+							.filter((operation) -> ObjectUtils.isEmpty(operation.getCacheNames()))
+							.map((operation) -> {
+								CacheOperation.Builder builder;
+								if (operation instanceof CacheableOperation) {
+									CacheableOperation cacheableOperation = (CacheableOperation) operation;
+									CacheableOperation.Builder cacheableBuilder = new CacheableOperation.Builder();
+									cacheableBuilder.setSync(cacheableOperation.isSync());
+									String unless = cacheableOperation.getUnless();
+									if (unless != null) {
+										cacheableBuilder.setUnless(unless);
+									}
+									builder = cacheableBuilder;
+								}
+								else if (operation instanceof CacheEvictOperation) {
+									CacheEvictOperation.Builder cacheEvictBuilder = new CacheEvictOperation.Builder();
+									CacheEvictOperation cacheEvictOperation = (CacheEvictOperation) operation;
+									cacheEvictBuilder.setBeforeInvocation(cacheEvictOperation.isBeforeInvocation());
+									cacheEvictBuilder.setCacheWide(cacheEvictOperation.isCacheWide());
+									builder = cacheEvictBuilder;
+								}
+								else {
+									CachePutOperation cachePutOperation = (CachePutOperation) operation;
+									CachePutOperation.Builder cachePutBuilder = new CachePutOperation.Builder();
+									String unless = cachePutOperation.getUnless();
+									if (unless != null) {
+										cachePutBuilder.setUnless(unless);
+									}
+									builder = cachePutBuilder;
+								}
+								builder.setName(operation.getName());
+								builder.setCacheManager(operation.getCacheManager());
+								builder.setCacheNames(this.cacheNames);
+								builder.setCacheResolver(operation.getCacheResolver());
+								builder.setCondition(operation.getCondition());
+								builder.setKey(operation.getKey());
+								builder.setKeyGenerator(operation.getKeyGenerator());
+								return builder.build();
+							})
+							.collect(Collectors.toList());
 		}
 		else {
-			cacheOperations = this.cacheOperations;
+			cacheOperationsToUse = this.cacheOperations;
 		}
 
 		this.delegate.setBeanFactory(getBeanFactory());
 		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		this.delegate.setKeyGenerator((target, method, params) ->
 				this.keyExpression.getValue(evaluationContext, params[0])); // NOSONAR
-		this.delegate.setCacheOperationSources((method, targetClass) -> cacheOperations);
+		this.delegate.setCacheOperationSources((method, targetClass) -> cacheOperationsToUse);
 		this.delegate.afterPropertiesSet();
 
 	}
