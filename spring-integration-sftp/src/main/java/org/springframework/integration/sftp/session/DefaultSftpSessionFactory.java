@@ -19,8 +19,6 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,51 +62,49 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		JSch.setLogger(new JschLogger());
 	}
 
-	private final ReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
-
 	private final UserInfo userInfoWrapper = new UserInfoWrapper();
 
 	private final JSch jsch;
 
 	private final boolean isSharedSession;
 
-	private volatile String host;
+	private String host;
 
-	private volatile int port = 22; // the default
+	private int port = 22; // the default
 
-	private volatile String user;
+	private String user;
 
-	private volatile String password;
+	private String password;
 
-	private volatile String knownHosts;
+	private String knownHosts;
 
-	private volatile Resource privateKey;
+	private Resource privateKey;
 
-	private volatile String privateKeyPassphrase;
+	private String privateKeyPassphrase;
 
-	private volatile Properties sessionConfig;
+	private Properties sessionConfig;
 
-	private volatile Proxy proxy;
+	private Proxy proxy;
 
-	private volatile SocketFactory socketFactory;
+	private SocketFactory socketFactory;
 
-	private volatile Integer timeout;
+	private Integer timeout;
 
-	private volatile String clientVersion;
+	private String clientVersion;
 
-	private volatile String hostKeyAlias;
+	private String hostKeyAlias;
 
-	private volatile Integer serverAliveInterval;
+	private Integer serverAliveInterval;
 
-	private volatile Integer serverAliveCountMax;
+	private Integer serverAliveCountMax;
 
-	private volatile Boolean enableDaemonThread;
+	private Boolean enableDaemonThread;
+
+	private UserInfo userInfo;
+
+	private boolean allowUnknownKeys = false;
 
 	private volatile JSchSessionWrapper sharedJschSession;
-
-	private volatile UserInfo userInfo;
-
-	private volatile boolean allowUnknownKeys = false;
 
 
 	public DefaultSftpSessionFactory() {
@@ -349,47 +345,15 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	@Override
 	public SftpSession getSession() {
-		Assert.hasText(this.host, "host must not be empty");
-		Assert.hasText(this.user, "user must not be empty");
-		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
-				"either a password or a private key is required");
 		try {
-			JSchSessionWrapper jschSession;
-			SftpSession sftpSession;
-			if (this.isSharedSession) {
-				this.sharedSessionLock.readLock().lock();
-				try {
-					if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
-						this.sharedSessionLock.readLock().unlock();
-						this.sharedSessionLock.writeLock().lock();
-						try {
-							if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
-								this.sharedJschSession = new JSchSessionWrapper(initJschSession());
-								try {
-									this.sharedJschSession.getSession().connect();
-								}
-								catch (JSchException e) {
-									throw new IllegalStateException("failed to connect", e);
-								}
-							}
-						}
-						finally {
-							this.sharedSessionLock.readLock().lock();
-							this.sharedSessionLock.writeLock().unlock();
-						}
-					}
-					jschSession = this.sharedJschSession;
-					sftpSession = new SftpSession(jschSession);
-					sftpSession.connect();
-				}
-				finally {
-					this.sharedSessionLock.readLock().unlock();
-				}
-			}
-			else {
+			JSchSessionWrapper jschSession = this.sharedJschSession;
+			if (jschSession == null || !jschSession.isConnected()) {
 				jschSession = new JSchSessionWrapper(initJschSession());
-				sftpSession = new SftpSession(jschSession);
-				sftpSession.connect();
+			}
+			SftpSession sftpSession = new SftpSession(jschSession);
+			sftpSession.connect();
+			if (this.isSharedSession) {
+				this.sharedJschSession = jschSession;
 			}
 			jschSession.addChannel();
 			return sftpSession;
@@ -400,6 +364,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	private com.jcraft.jsch.Session initJschSession() throws JSchException, IOException {
+		Assert.hasText(this.host, "host must not be empty");
+		Assert.hasText(this.user, "user must not be empty");
+		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
+				"either a password or a private key is required");
+
 		if (this.port <= 0) {
 			this.port = 22;
 		}
@@ -564,6 +533,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		@Override
 		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
 				boolean[] echo) {
+
 			if (hasDelegate() && getDelegate() instanceof UIKeyboardInteractive) {
 				return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
 						instruction, prompt, echo);
@@ -571,11 +541,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 			else {
 				if (logger.isDebugEnabled()) {
 					logger.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
-							+ ":" + Arrays.asList(prompt) + ":" + Arrays.asList(echo));
+							+ ":" + Arrays.asList(prompt) + ":" + Arrays.toString(echo));
 				}
 				return null;
 			}
 		}
+
 	}
 
 }
