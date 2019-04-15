@@ -128,6 +128,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 	/**
 	 * Set the {@link CacheErrorHandler} instance to use to handle errors
 	 * thrown by the cache provider.
+	 * @param errorHandler the {@link CacheErrorHandler} to use.
 	 * @see CacheAspectSupport#setErrorHandler(CacheErrorHandler)
 	 */
 	public void setErrorHandler(CacheErrorHandler errorHandler) {
