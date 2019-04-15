@@ -139,7 +139,7 @@ subprojects { subproject ->
 		springDataMongoVersion = '2.2.0.M3'
 		springDataRedisVersion = '2.2.0.M3'
 		springGemfireVersion = '2.2.0.M3'
-		springSecurityVersion = '5.2.0.BUILD-SNAPSHOT'
+		springSecurityVersion = '5.2.0.M2'
 		springRetryVersion = '1.2.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.M1'
 		springWsVersion = '3.0.7.RELEASE'
