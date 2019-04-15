@@ -13,6 +13,13 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 The `RateLimiterRequestHandlerAdvice` is now available for limiting requests rate on handlers.
 See <<rate-limiter-advice>> for more information.
 
+[[x5.2-cacheAdvice]]
+=== Caching Advice Support
+
+The `CacheRequestHandlerAdvice` is now available for caching request results on handlers.
+See <<cache-advice>> for more information.
+
+
 [[x5.2-general]]
 === General Changes
 

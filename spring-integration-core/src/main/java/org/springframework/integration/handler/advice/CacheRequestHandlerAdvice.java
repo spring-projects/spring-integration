@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -235,7 +235,6 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 		CacheOperationInvoker operationInvoker =
 				() -> {
-
 					Object result = callback.execute();
 					// Drop MessageBuilder optimization in favor of Serializable support in cache implementation.
 					if (result instanceof AbstractIntegrationMessageBuilder<?>) {
@@ -247,8 +246,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 				};
 
-		return this.delegate.execute(operationInvoker, target, HANDLE_REQUEST_METHOD, // NOSONAR
-				new Object[] { message });
+		return this.delegate.invoke(operationInvoker, target, message);
 	}
 
 	private static class IntegrationCacheAspect extends CacheAspectSupport {
@@ -257,9 +255,8 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 		}
 
 		@Nullable
-		@Override
-		public Object execute(CacheOperationInvoker invoker, Object target, Method method, Object[] args) {
-			return super.execute(invoker, target, method, args);
+		Object invoke(CacheOperationInvoker invoker, Object target, Message<?> message) {
+			return super.execute(invoker, target, HANDLE_REQUEST_METHOD, new Object[] { message }); // NOSONAR
 		}
 
 	}
