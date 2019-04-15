@@ -19,6 +19,8 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,6 +69,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	private final JSch jsch;
 
 	private final boolean isSharedSession;
+
+	private final Lock sharedSessionLock;
 
 	private String host;
 
@@ -126,6 +130,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	public DefaultSftpSessionFactory(JSch jsch, boolean isSharedSession) {
 		this.jsch = jsch;
 		this.isSharedSession = isSharedSession;
+		if (this.isSharedSession) {
+			this.sharedSessionLock = new ReentrantLock();
+		}
+		else {
+			this.sharedSessionLock = null;
+		}
 	}
 
 	/**
@@ -345,22 +355,31 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	@Override
 	public SftpSession getSession() {
+		JSchSessionWrapper jschSession = this.sharedJschSession;
+		SftpSession sftpSession;
+		if (this.sharedSessionLock != null) {
+			this.sharedSessionLock.lock();
+		}
 		try {
-			JSchSessionWrapper jschSession = this.sharedJschSession;
 			if (jschSession == null || !jschSession.isConnected()) {
 				jschSession = new JSchSessionWrapper(initJschSession());
 			}
-			SftpSession sftpSession = new SftpSession(jschSession);
+			sftpSession = new SftpSession(jschSession);
 			sftpSession.connect();
-			if (this.isSharedSession) {
-				this.sharedJschSession = jschSession;
-			}
-			jschSession.addChannel();
-			return sftpSession;
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to create SFTP Session", e);
 		}
+		finally {
+			if (this.sharedSessionLock != null) {
+				this.sharedSessionLock.unlock();
+			}
+		}
+		if (this.isSharedSession) {
+			this.sharedJschSession = jschSession;
+		}
+		jschSession.addChannel();
+		return sftpSession;
 	}
 
 	private com.jcraft.jsch.Session initJschSession() throws JSchException, IOException {
