@@ -38,14 +38,14 @@ import org.springframework.kafka.support.converter.RecordMessageConverter;
 public class KafkaInboundChannelAdapterSpec<K, V>
 		extends MessageSourceSpec<KafkaInboundChannelAdapterSpec<K, V>, KafkaMessageSource<K, V>> {
 
-	KafkaInboundChannelAdapterSpec(ConsumerFactory<K, V> consumerFactory, String... topics) {
-		this.target = new KafkaMessageSource<>(consumerFactory, topics);
+	KafkaInboundChannelAdapterSpec(ConsumerFactory<K, V> consumerFactory, boolean allowMultiFetch, String... topics) {
+		this.target = new KafkaMessageSource<>(consumerFactory, allowMultiFetch, topics);
 	}
 
 	KafkaInboundChannelAdapterSpec(ConsumerFactory<K, V> consumerFactory,
-			KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
+			KafkaAckCallbackFactory<K, V> ackCallbackFactory, boolean allowMultiFetch, String... topics) {
 
-		this.target = new KafkaMessageSource<>(consumerFactory, ackCallbackFactory, topics);
+		this.target = new KafkaMessageSource<>(consumerFactory, ackCallbackFactory, allowMultiFetch, topics);
 	}
 
 	public KafkaInboundChannelAdapterSpec<K, V> groupId(String groupId) {

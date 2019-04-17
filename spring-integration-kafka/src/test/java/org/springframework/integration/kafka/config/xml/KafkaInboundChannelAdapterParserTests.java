@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -65,6 +67,10 @@ public class KafkaInboundChannelAdapterParserTests {
 			.isSameAs(this.context.getBean("rebal"));
 
 		assertThat(TestUtils.getPropertyValue(this.source2, "topics")).isEqualTo(new String[] { "topic1", "topic2" });
+		DefaultKafkaConsumerFactory<?, ?> cf = TestUtils.getPropertyValue(this.source2, "consumerFactory",
+				DefaultKafkaConsumerFactory.class);
+		assertThat(cf).isSameAs(this.context.getBean("multiFetchConsumerFactory"));
+		assertThat(cf.getConfigurationProperties().get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG)).isEqualTo("10");
 	}
 
 }

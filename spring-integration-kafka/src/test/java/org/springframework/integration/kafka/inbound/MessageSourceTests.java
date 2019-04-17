@@ -483,4 +483,69 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).poll(Duration.of(2, ChronoUnit.SECONDS));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testAllowMulti() {
+		Consumer consumer = mock(Consumer.class);
+		TopicPartition topicPartition = new TopicPartition("foo", 0);
+		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
+		willAnswer(i -> {
+			((ConsumerRebalanceListener) i.getArgument(1))
+					.onPartitionsAssigned(assigned);
+			return null;
+		}).given(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
+		ArgumentCaptor<Collection<TopicPartition>> partitions = ArgumentCaptor.forClass(Collection.class);
+		willDoNothing().given(consumer).pause(partitions.capture());
+		willDoNothing().given(consumer).resume(partitions.capture());
+		Map<TopicPartition, List<ConsumerRecord>> records = new LinkedHashMap<>();
+		records.put(topicPartition, Arrays.asList(
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo"),
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar"),
+				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz"),
+				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
+		ConsumerRecords cr1 = new ConsumerRecords(records);
+		ConsumerRecords cr2 = new ConsumerRecords(Collections.emptyMap());
+		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2);
+		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 4)).given(consumerFactory)
+				.getConfigurationProperties();
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, true, "foo");
+		source.setRawMessageHeader(true);
+
+		Message<?> received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaMessageSource.REMAINING_RECORDS, Integer.class)).isEqualTo(3);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+		received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaMessageSource.REMAINING_RECORDS, Integer.class)).isEqualTo(2);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+		received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaMessageSource.REMAINING_RECORDS, Integer.class)).isEqualTo(1);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+		received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaMessageSource.REMAINING_RECORDS, Integer.class)).isEqualTo(0);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+		received = source.receive();
+		assertThat(received).isNull();
+		source.destroy();
+		InOrder inOrder = inOrder(consumer);
+		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).close();
+		inOrder.verifyNoMoreInteractions();
+	}
+
 }

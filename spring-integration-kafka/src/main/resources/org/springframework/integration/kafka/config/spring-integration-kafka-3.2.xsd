@@ -245,6 +245,21 @@
 					<xsd:union memberTypes="xsd:int xsd:boolean"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="allow-multi-fetch">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allow fetching multiple records per poll.
+						IMPORTANT: When true, you must poll the adapter at a sufficient rate to consume
+						the number of records received within 'max.poll.interval.ms'.
+						When false, you must poll the adapter within 'max.poll.interval.ms'.
+						Pausing the adapter will not take effect until the records from the previous poll
+						are consumed. Default 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
