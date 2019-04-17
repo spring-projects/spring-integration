@@ -25,7 +25,8 @@
 
 	<int-kafka:inbound-channel-adapter
 			id="adapter2"
-			consumer-factory="consumerFactory"
+			consumer-factory="multiFetchConsumerFactory"
+			allow-multi-fetch="true"
 			topics="topic1, topic2"
 			group-id="group"
 			auto-startup="false"
@@ -37,6 +38,14 @@
 		<constructor-arg>
 			<map>
 				<entry key="max.poll.records" value="1"/>
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="multiFetchConsumerFactory" class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">
+		<constructor-arg>
+			<map>
+				<entry key="max.poll.records" value="10"/>
 			</map>
 		</constructor-arg>
 	</bean>

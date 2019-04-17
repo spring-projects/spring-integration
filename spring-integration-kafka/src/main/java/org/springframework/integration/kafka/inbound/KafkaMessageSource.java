@@ -22,11 +22,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -92,6 +94,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private static final long MIN_ASSIGN_TIMEOUT = 2000L;
 
+	/**
+	 * The number of records remaining from the previous poll.
+	 * @since 3.2
+	 */
+	public static final String REMAINING_RECORDS = KafkaHeaders.PREFIX + "remainingRecords";
+
 	private final Supplier<Duration> minTimeoutProvider =
 			() -> Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT));
 
@@ -104,6 +112,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	private final Object consumerMonitor = new Object();
 
 	private final Map<TopicPartition, Set<KafkaAckInfo<K, V>>> inflightRecords = new ConcurrentHashMap<>();
+
+	private final AtomicInteger remainingCount = new AtomicInteger();
 
 	private String groupId;
 
@@ -135,17 +145,79 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private volatile boolean paused;
 
+	private volatile Iterator<ConsumerRecord<K, V>> recordsIterator;
+
+	/**
+	 * Construct an instance with the supplied parameters. Fetching multiple
+	 * records per poll will be disabled.
+	 *
+	 * @param consumerFactory the consumer factory.
+	 * @param topics the topics.
+	 * @see #KafkaMessageSource(ConsumerFactory, KafkaAckCallbackFactory, boolean, String...)
+	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, String... topics) {
-		this(consumerFactory, new KafkaAckCallbackFactory<>(), topics);
+		this(consumerFactory, new KafkaAckCallbackFactory<>(), false, topics);
 	}
 
+	/**
+	 * Construct an instance with the supplied parameters. Set 'allowMultiFetch' to true
+	 * to allow up to {@code max.poll.records} to be fetched on each poll. When false
+	 * (default) {@code max.poll.records} is coerced to 1 if the consumer factory is a
+	 * {@link DefaultKafkaConsumerFactory} or otherwise rejected with an
+	 * {@link IllegalArgumentException}. IMPORTANT: When true, you must call
+	 * {@link #receive()} at a sufficient rate to consume the number of records received
+	 * within {@code max.poll.interval.ms}. When false, you must call {@link #receive()}
+	 * within {@code max.poll.interval.ms}. {@link #pause()} will not take effect until
+	 * the records from the previous poll are consumed.
+	 *
+	 * @param consumerFactory the consumer factory.
+	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
+	 * @param topics the topics.
+	 * @since 3.2
+	 */
+	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, boolean allowMultiFetch, String... topics) {
+		this(consumerFactory, new KafkaAckCallbackFactory<>(), allowMultiFetch, topics);
+	}
+
+	/**
+	 * Construct an instance with the supplied parameters. Fetching multiple
+	 * records per poll will be disabled.
+	 *
+	 * @param consumerFactory the consumer factory.
+	 * @param ackCallbackFactory the ack callback factory.
+	 * @param topics the topics.
+	 * @see #KafkaMessageSource(ConsumerFactory, KafkaAckCallbackFactory, boolean, String...)
+	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
 			KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
+
+		this(consumerFactory, ackCallbackFactory, false, topics);
+	}
+
+	/**
+	 * Construct an instance with the supplied parameters. Set 'allowMultiFetch' to true
+	 * to allow up to {@code max.poll.records} to be fetched on each poll. When false
+	 * (default) {@code max.poll.records} is coerced to 1 if the consumer factory is a
+	 * {@link DefaultKafkaConsumerFactory} or otherwise rejected with an
+	 * {@link IllegalArgumentException}. IMPORTANT: When true, you must call
+	 * {@link #receive()} at a sufficient rate to consume the number of records received
+	 * within {@code max.poll.interval.ms}. When false, you must call {@link #receive()}
+	 * within {@code max.poll.interval.ms}. {@link #pause()} will not take effect until
+	 * the records from the previous poll are consumed.
+	 *
+	 * @param consumerFactory the consumer factory.
+	 * @param ackCallbackFactory the ack callback factory.
+	 * @param allowMultiFetch true to allow {@code max.poll.records > 1}.
+	 * @param topics the topics.
+	 * @since 3.2
+	 */
+	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
+			KafkaAckCallbackFactory<K, V> ackCallbackFactory, boolean allowMultiFetch, String... topics) {
 
 		Assert.notNull(consumerFactory, "'consumerFactory' must not be null");
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' must not be null");
 		Assert.isTrue(topics != null && topics.length > 0, "At least one topic is required");
-		this.consumerFactory = fixOrRejectConsumerFactory(consumerFactory);
+		this.consumerFactory = fixOrRejectConsumerFactory(consumerFactory, allowMultiFetch);
 		this.ackCallbackFactory = ackCallbackFactory;
 		this.topics = topics;
 	}
@@ -261,11 +333,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.ackCallbackFactory.setCommitTimeout(commitTimeout);
 	}
 
-	private ConsumerFactory<K, V> fixOrRejectConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory) {
+	private ConsumerFactory<K, V> fixOrRejectConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory,
+			boolean allowMultiFetch) {
+
 		Object maxPoll = suppliedConsumerFactory.getConfigurationProperties()
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
-		if (maxPoll == null || (maxPoll instanceof Number && ((Number) maxPoll).intValue() != 1)
-				|| (maxPoll instanceof String && Integer.parseInt((String) maxPoll) != 1)) {
+		if (!allowMultiFetch && (maxPoll == null || maxPollGtrOne(maxPoll))) {
 			if (!suppliedConsumerFactory.getClass().getName().equals(DefaultKafkaConsumerFactory.class.getName())) {
 				throw new IllegalArgumentException("Custom consumer factory is not configured with '"
 						+ ConsumerConfig.MAX_POLL_RECORDS_CONFIG + " = 1'");
@@ -289,6 +362,18 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		else {
 			return suppliedConsumerFactory;
 		}
+	}
+
+	private boolean maxPollGtrOne(Object maxPoll) {
+		return maxPollNumberGtrOne(maxPoll) || maxPollStringGtr1(maxPoll);
+	}
+
+	private boolean maxPollNumberGtrOne(Object maxPoll) {
+		return maxPoll instanceof Number && ((Number) maxPoll).intValue() != 1;
+	}
+
+	private boolean maxPollStringGtr1(Object maxPoll) {
+		return maxPoll instanceof String && Integer.parseInt((String) maxPoll) != 1;
 	}
 
 	@Override
@@ -339,19 +424,27 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			this.consumer.resume(this.assignedPartitions);
 			this.paused = false;
 		}
-		if (this.paused) {
+		if (this.paused && this.recordsIterator == null) {
 			this.logger.debug("Consumer is paused; no records will be returned");
 		}
 		ConsumerRecord<K, V> record;
 		TopicPartition topicPartition;
-		synchronized (this.consumerMonitor) {
-			ConsumerRecords<K, V> records = this.consumer.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
-			if (records == null || records.count() == 0) {
-				return null;
-			}
-			record = records.iterator().next();
-			topicPartition = new TopicPartition(record.topic(), record.partition());
+		if (this.recordsIterator != null) {
+			record = nextRecord();
 		}
+		else {
+			synchronized (this.consumerMonitor) {
+				ConsumerRecords<K, V> records = this.consumer
+						.poll(this.assignedPartitions.isEmpty() ? this.assignTimeout : this.pollTimeout);
+				if (records == null || records.count() == 0) {
+					return null;
+				}
+				this.remainingCount.set(records.count());
+				this.recordsIterator = records.iterator();
+				record = nextRecord();
+			}
+		}
+		topicPartition = new TopicPartition(record.topic(), record.partition());
 		KafkaAckInfo<K, V> ackInfo = new KafkaAckInfoImpl(record, topicPartition);
 		AcknowledgmentCallback ackCallback = this.ackCallbackFactory.createCallback(ackInfo);
 		this.inflightRecords.computeIfAbsent(topicPartition, tp -> Collections.synchronizedSet(new TreeSet<>()))
@@ -362,6 +455,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		if (message.getHeaders() instanceof KafkaMessageHeaders) {
 			Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
 			rawHeaders.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, ackCallback);
+			rawHeaders.put(REMAINING_RECORDS, this.remainingCount.get());
 			if (this.rawMessageHeader) {
 				rawHeaders.put(KafkaHeaders.RAW_DATA, record);
 			}
@@ -369,12 +463,23 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 		else {
 			AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().fromMessage(message)
-					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, ackCallback);
+					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, ackCallback)
+					.setHeader(REMAINING_RECORDS, this.remainingCount.get());
 			if (this.rawMessageHeader) {
 				builder.setHeader(KafkaHeaders.RAW_DATA, record);
 			}
 			return builder;
 		}
+	}
+
+	private ConsumerRecord<K, V> nextRecord() {
+		ConsumerRecord<K, V> record;
+		record = this.recordsIterator.next();
+		if (!this.recordsIterator.hasNext()) {
+			this.recordsIterator = null;
+		}
+		this.remainingCount.decrementAndGet();
+		return record;
 	}
 
 	protected void createConsumer() {

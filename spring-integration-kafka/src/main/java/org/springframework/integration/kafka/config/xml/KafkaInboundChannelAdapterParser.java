@@ -48,6 +48,10 @@ public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChan
 		if (StringUtils.hasText(attribute)) {
 			builder.addConstructorArgReference(attribute);
 		}
+		attribute = element.getAttribute("allow-multi-fetch");
+		if (StringUtils.hasText(attribute)) {
+			builder.addConstructorArgValue(attribute);
+		}
 		builder.addConstructorArgValue(element.getAttribute("topics"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
