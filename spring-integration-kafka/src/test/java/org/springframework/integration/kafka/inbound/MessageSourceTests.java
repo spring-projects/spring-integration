@@ -31,7 +31,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -66,6 +68,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
+ * @author Anshul Mehra
  * @since 3.0.1
  *
  */
@@ -82,12 +85,9 @@ public class MessageSourceTests {
 					.onPartitionsAssigned(assigned);
 			return null;
 		}).given(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
-		AtomicReference<Set<TopicPartition>> paused = new AtomicReference<>(new HashSet<>());
-		willAnswer(i -> {
-			paused.set(new HashSet<>(i.getArgument(0)));
-			return null;
-		}).given(consumer).pause(anyCollection());
-		willAnswer(i -> paused.get()).given(consumer).paused();
+		ArgumentCaptor<Collection<TopicPartition>> partitions = ArgumentCaptor.forClass(Collection.class);
+		willDoNothing().given(consumer).pause(partitions.capture());
+		willDoNothing().given(consumer).resume(partitions.capture());
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Arrays.asList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
@@ -148,9 +148,9 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).pause(assigned);
+		inOrder.verify(consumer).pause(partitions.getAllValues().get(0));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).resume(assigned);
+		inOrder.verify(consumer).resume(partitions.getAllValues().get(1));
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
@@ -420,6 +420,67 @@ public class MessageSourceTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage()).contains(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
 		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testPollTimeouts() {
+		Consumer consumer = mock(Consumer.class);
+		TopicPartition topicPartition = new TopicPartition("foo", 0);
+		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
+		AtomicReference<ConsumerRebalanceListener> listener = new AtomicReference<>();
+		willAnswer(i -> {
+			listener.set(i.getArgument(1));
+			return null;
+		}).given(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
+
+		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
+		records1.put(topicPartition, Arrays.asList(
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+		ConsumerRecords cr1 = new ConsumerRecords(records1);
+		given(consumer.poll(Duration.of(2, ChronoUnit.SECONDS))).willReturn(cr1, ConsumerRecords.EMPTY);
+		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
+		records2.put(topicPartition, Arrays.asList(
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
+		ConsumerRecords cr2 = new ConsumerRecords(records2);
+		given(consumer.poll(Duration.of(50, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
+		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
+				.getConfigurationProperties();
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		source.setRawMessageHeader(true);
+
+		Message<?> received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isEqualTo(cr1.records(topicPartition).get(0));
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+
+		listener.get().onPartitionsAssigned(assigned);
+		received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isEqualTo(cr2.records(topicPartition).get(0));
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
+
+		listener.get().onPartitionsRevoked(assigned);
+		received = source.receive();
+		assertThat(received).isNull();
+
+		InOrder inOrder = inOrder(consumer);
+		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
+		// assignTimeout used on initial poll (before partition assigned)
+		inOrder.verify(consumer).poll(Duration.of(2, ChronoUnit.SECONDS));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
+		// pollTimeout used on subsequent polls
+		inOrder.verify(consumer).poll(Duration.of(50, ChronoUnit.MILLIS));
+		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
+		// assignTimeout used after partitions revoked
+		inOrder.verify(consumer).poll(Duration.of(2, ChronoUnit.SECONDS));
 	}
 
 }
