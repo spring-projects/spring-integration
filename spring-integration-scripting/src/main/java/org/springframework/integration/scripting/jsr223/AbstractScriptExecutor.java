@@ -39,25 +39,31 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	protected final ScriptEngine scriptEngine;
-
-	protected final String language;
+	private final ScriptEngine scriptEngine;
 
 	protected AbstractScriptExecutor(String language) {
 		Assert.hasText(language, "language must not be empty");
-		this.language = language;
-
-		this.scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
-		Assert.notNull(this.scriptEngine, invalidLanguageMessage(this.language));
+		this.scriptEngine = new ScriptEngineManager().getEngineByName(language);
+		Assert.notNull(this.scriptEngine, () -> invalidLanguageMessage(language));
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Using script engine : " + this.scriptEngine.getFactory().getEngineName());
 		}
+	}
+
+	protected AbstractScriptExecutor(ScriptEngine scriptEngine) {
+		Assert.notNull(scriptEngine, "'scriptEngine' must not be null.");
+		this.scriptEngine = scriptEngine;
+	}
+
+	public ScriptEngine getScriptEngine() {
+		return this.scriptEngine;
 	}
 
 	@Override

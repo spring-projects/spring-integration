@@ -600,11 +600,14 @@ project('spring-integration-scripting') {
 	description = 'Spring Integration Scripting Support'
 	dependencies {
 		compile project(":spring-integration-core")
+		compile ('org.jetbrains.kotlin:kotlin-script-util', optional)
+		compile ('org.jetbrains.kotlin:kotlin-compiler-embeddable', optional)
 
 		testCompile("org.jruby:jruby-complete:$jrubyVersion")
 		testCompile("org.codehaus.groovy:groovy:$groovyVersion")
 		testCompile("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
 		testCompile("org.python:jython-standalone:$jythonVersion")
+		testRuntime 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
 	}
 }
 

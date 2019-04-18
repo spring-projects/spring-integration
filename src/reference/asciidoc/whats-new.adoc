@@ -19,6 +19,11 @@ See <<rate-limiter-advice>> for more information.
 The `CacheRequestHandlerAdvice` is now available for caching request results on handlers.
 See <<cache-advice>> for more information.
 
+[[x5.2-kotlinScripts]]
+=== Kotlin Scripts Support
+
+The JSR223 scripting module now includes a support for Kotlin scripts.
+See <<scripting>> for more information.
 
 [[x5.2-general]]
 === General Changes

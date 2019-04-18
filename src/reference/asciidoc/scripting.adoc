@@ -2,7 +2,7 @@
 === Scripting Support
 
 Spring Integration 2.1 added support for the https://www.jcp.org/en/jsr/detail?id=223[JSR223 Scripting for Java specification], introduced in Java version 6.
-It lets you use scripts written in any supported language (including Ruby, JRuby, Javascript, and Groovy) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
+It lets you use scripts written in any supported language (including Ruby, JRuby, Javascript, Groovy and Kotlin) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
 For more information about JSR223, see the https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/api.html[documentation].
 
 You need to include this dependency into your project:
@@ -26,6 +26,19 @@ compile "org.springframework.integration:spring-integration-scripting:{project-v
 ====
 
 In addition you need to add a script engine implementation, e.g. JRuby, Jython.
+
+Starting with version 5.2, Spring Integration provides a Kotlin Jsr223 support.
+You need to add these dependencies into your project to make it working:
+
+[source, groovy]
+----
+runtime 'org.jetbrains.kotlin:kotlin-script-util'
+runtime 'org.jetbrains.kotlin:kotlin-compiler-embeddable'
+runtime 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
+----
+====
+
+The `KotlinScriptExecutor` is selected by the provided `kotlin` language indicator or script file comes with the `.kts` extension.
 
 IMPORTANT: Note that this feature requires Java 6 or higher.
 
@@ -52,7 +65,7 @@ The following pair of examples show sample configurations that create filters:
 [source,xml]
 ----
 <int:filter input-channel="referencedScriptInput">
-   <int-script:script lang="ruby" location="some/path/to/ruby/script/RubyFilterTests.rb"/>
+   <int-script:script location="some/path/to/ruby/script/RubyFilterTests.rb"/>
 </int:filter>
 
 <int:filter input-channel="inlineScriptInput">

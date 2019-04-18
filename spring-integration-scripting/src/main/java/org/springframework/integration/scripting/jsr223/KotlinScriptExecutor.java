@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,30 @@
 
 package org.springframework.integration.scripting.jsr223;
 
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+
+import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory;
+
+
 /**
- * @author David Turanski
  * @author Artem Bilan
  *
- * @since 2.1
- *
+ * @since 5.2
  */
-public class RubyScriptExecutor extends DefaultScriptExecutor {
+public class KotlinScriptExecutor extends AbstractScriptExecutor {
 
 	static {
-		System.setProperty("org.jruby.embed.localvariable.behavior", "transient");
-		System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
+		System.setProperty("idea.use.native.fs.for.win", "false");
 	}
 
-	public RubyScriptExecutor() {
-		super("ruby");
+	public KotlinScriptExecutor() {
+		super(new KotlinJsr223JvmLocalScriptEngineFactory().getScriptEngine());
+	}
+
+	@Override
+	protected Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings) {
+		return result;
 	}
 
 }

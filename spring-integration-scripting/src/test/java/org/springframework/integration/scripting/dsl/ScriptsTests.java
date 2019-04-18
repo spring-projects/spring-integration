@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.QueueChannelOperations;
@@ -100,7 +101,7 @@ public class ScriptsTests {
 
 	@BeforeClass
 	public static void setup() throws IOException {
-		SCRIPT_FILE = FOLDER.newFile("script.jython");
+		SCRIPT_FILE = FOLDER.newFile("script.py");
 		FileCopyUtils.copy("1".getBytes(), SCRIPT_FILE);
 	}
 
@@ -152,7 +153,7 @@ public class ScriptsTests {
 	}
 
 	@Test
-	public void routerTest() throws IOException {
+	public void routerTest() {
 		this.scriptRouterInput.send(new GenericMessage<>("aardvark"));
 		this.scriptRouterInput.send(new GenericMessage<>("bear"));
 		this.scriptRouterInput.send(new GenericMessage<>("cat"));
@@ -166,7 +167,7 @@ public class ScriptsTests {
 	}
 
 	@Test
-	public void messageSourceTest() throws IOException, InterruptedException {
+	public void messageSourceTest() throws InterruptedException {
 		Message<?> message = this.messageSourceChannel.receive(20000);
 		assertThat(message).isNotNull();
 		Object payload = message.getPayload();
@@ -180,6 +181,20 @@ public class ScriptsTests {
 		assertThat(this.messageSourceChannel.receive(20000)).isNotNull();
 	}
 
+	@Autowired
+	@Qualifier("kotlinScriptFlow.input")
+	private MessageChannel kotlinScriptFlowInput;
+
+	@Test
+	public void testKotlinScript() {
+		this.kotlinScriptFlowInput.send(new GenericMessage<>(3));
+		Message<?> receive = this.results.receive(10_000);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo(5);
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -187,7 +202,7 @@ public class ScriptsTests {
 		@Value("scripts/TesSplitterScript.groovy")
 		private Resource splitterScript;
 
-		@Value("scripts/TestFilterScript.groovy")
+		@Value("scripts/TestFilterScript.kts")
 		private Resource filterScript;
 
 		@Bean
@@ -244,11 +259,20 @@ public class ScriptsTests {
 		@Bean
 		public IntegrationFlow scriptPollingAdapter() {
 			return IntegrationFlows
-					.from(Scripts.messageSource("scripts/TestMessageSourceScript.ruby"),
+					.from(Scripts.messageSource("scripts/TestMessageSourceScript.rb"),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.channel(c -> c.queue("messageSourceChannel"))
 					.get();
 		}
+
+		@Bean
+		public IntegrationFlow kotlinScriptFlow() {
+			return f -> f
+					.handle(Scripts.processor(new ByteArrayResource("2 + bindings[\"payload\"] as Int".getBytes()))
+							.lang("kotlin"))
+					.channel(results());
+		}
+
 
 	}
 
