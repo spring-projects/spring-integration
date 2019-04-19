@@ -211,7 +211,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		reactiveHandler.setExpectedResponseType(String.class);
 		reactiveHandler.setReplyPayloadToFlux(true);
 
-		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
+		reactiveHandler.handleMessage(MessageBuilder.withPayload(Mono.just("hello, world")).build());
 
 		Message<?> receive = replyChannel.receive(10_000);
 

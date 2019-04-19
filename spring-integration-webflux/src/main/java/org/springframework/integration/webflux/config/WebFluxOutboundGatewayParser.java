@@ -18,13 +18,10 @@ package org.springframework.integration.webflux.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.config.HttpOutboundGatewayParser;
-import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'outbound-gateway' element of the webflux namespace.
@@ -38,15 +35,7 @@ public class WebFluxOutboundGatewayParser extends HttpOutboundGatewayParser {
 	@Override
 	protected BeanDefinitionBuilder getBuilder(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(WebFluxRequestExecutingMessageHandler.class);
-
-		String webClientRef = element.getAttribute("web-client");
-		if (StringUtils.hasText(webClientRef)) {
-			builder.getBeanDefinition()
-					.getConstructorArgumentValues()
-					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
-		}
-
+				WebFluxOutboundChannelAdapterParser.buildWebFluxRequestExecutingMessageHandler(element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-payload-to-flux");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "body-extractor");
 		return builder;

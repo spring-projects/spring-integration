@@ -20,7 +20,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
+import org.reactivestreams.Publisher;
+
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.expression.Expression;
@@ -28,16 +31,21 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ClientHttpRequest;
 import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -57,6 +65,7 @@ import reactor.core.publisher.Mono;
  * @since 5.0
  *
  * @see org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler
+ * @see WebClient
  */
 public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
@@ -65,6 +74,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private boolean replyPayloadToFlux;
 
 	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
+
+	private Expression publisherElementTypeExpression;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -143,6 +154,31 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		this.bodyExtractor = bodyExtractor;
 	}
 
+	/**
+	 * Configure a type for a request {@link Publisher} elements.
+	 * @param publisherElementType the type of the request {@link Publisher} elements.
+	 * @since 5.2
+	 * @see BodyInserters#fromPublisher(Publisher, Class)
+	 */
+	public void setPublisherElementType(Class<?> publisherElementType) {
+		Assert.notNull(publisherElementType, "'publisherElementType' must not be null");
+		setPublisherElementTypeExpression(new ValueExpression<>(publisherElementType));
+
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate a request {@link Publisher} elements type at runtime against
+	 * a request message.
+	 * @param publisherElementTypeExpression the expression to evaluate a type for the request
+	 * {@link Publisher} elements.
+	 * @since 5.2
+	 * @see BodyInserters#fromPublisher(Publisher, Class)
+	 * @see BodyInserters#fromPublisher(Publisher, ParameterizedTypeReference)
+	 */
+	public void setPublisherElementTypeExpression(Expression publisherElementTypeExpression) {
+		this.publisherElementTypeExpression = publisherElementTypeExpression;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (isExpectReply() ? "webflux:outbound-gateway" : "webflux:outbound-channel-adapter");
@@ -156,9 +192,9 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 				this.webClient.method(httpMethod)
 						.uri(b -> uriSupplier.get())
 						.headers(headers -> headers.putAll(httpRequest.getHeaders()));
-
-		if (httpRequest.hasBody()) {
-			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody())); // NOSONAR protected with hasBody()
+		BodyInserter<?, ? super ClientHttpRequest> inserter = buildBodyInserterForRequest(requestMessage, httpRequest);
+		if (inserter != null) {
+			requestSpec.body(inserter);
 		}
 
 		Mono<ClientResponse> responseMono =
@@ -252,6 +288,68 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		else {
 			responseMono.subscribe(v -> { }, ex -> sendErrorMessage(requestMessage, ex));
 
+			return null;
+		}
+	}
+
+	@Nullable
+	private BodyInserter<?, ? super ClientHttpRequest> buildBodyInserterForRequest(Message<?> requestMessage,
+			HttpEntity<?> httpRequest) {
+
+		Object requestBody = httpRequest.getBody();
+		if (requestBody == null) {
+			return null;
+		}
+
+		BodyInserter<?, ? super ClientHttpRequest> inserter = null;
+		if (requestBody instanceof Resource) {
+			inserter = BodyInserters.fromResource((Resource) requestBody);
+		}
+		else if (requestBody instanceof Publisher<?>) {
+			inserter = buildBodyInserterForPublisher(requestMessage, (Publisher<?>) requestBody);
+		}
+		else if (requestBody instanceof MultiValueMap<?, ?>) {
+			inserter = buildBodyInserterForMultiValueMap((MultiValueMap<?, ?>) requestBody,
+					httpRequest.getHeaders().getContentType());
+		}
+
+		if (inserter == null) {
+			inserter = BodyInserters.fromObject(requestBody);
+		}
+		return inserter;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T, P extends Publisher<T>> BodyInserter<P, ? super ClientHttpRequest> buildBodyInserterForPublisher(
+			Message<?> requestMessage, P publisher) {
+
+		BodyInserter<P, ? super ClientHttpRequest> inserter;
+		Object publisherElementType = evaluateTypeFromExpression(requestMessage,
+				this.publisherElementTypeExpression, "publisherElementType");
+		if (publisherElementType instanceof Class<?>) {
+			inserter = BodyInserters.fromPublisher(publisher, (Class<T>) publisherElementType);
+		}
+		else if (publisherElementType instanceof ParameterizedTypeReference<?>) {
+			inserter = BodyInserters.fromPublisher(publisher, (ParameterizedTypeReference<T>) publisherElementType);
+		}
+		else {
+			inserter = BodyInserters.fromPublisher(publisher, (Class<T>) Object.class);
+		}
+		return inserter;
+	}
+
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private BodyInserters.FormInserter<?> buildBodyInserterForMultiValueMap(
+			MultiValueMap<?, ?> requestBody, MediaType contentType) {
+
+		if (MediaType.APPLICATION_FORM_URLENCODED.equals(contentType)) {
+			return BodyInserters.fromFormData((MultiValueMap<String, String>) requestBody);
+		}
+		else if (MediaType.MULTIPART_FORM_DATA.equals(contentType)) {
+			return BodyInserters.fromMultipartData((MultiValueMap<String, ?>) requestBody);
+		}
+		else {
 			return null;
 		}
 	}

@@ -19,6 +19,7 @@ package org.springframework.integration.webflux.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.Charset;
+import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,6 +83,9 @@ public class WebFluxOutboundChannelAdapterParserTests {
 	public void reactiveWebClientConfig() {
 		assertThat(TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"))
 				.isSameAs(this.webClient);
+		assertThat(TestUtils.getPropertyValue(this.reactiveWebClientConfig,
+				"handler.publisherElementTypeExpression.value"))
+				.isSameAs(Date.class);
 	}
 
 }

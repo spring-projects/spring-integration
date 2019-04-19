@@ -376,6 +376,29 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="publisher-element-type" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The type for a request 'Publisher' elements.
+						This attribute cannot be provided if the expected-response-type-expression has a value
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation>
+							<tool:expected-type type="java.lang.Class" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="publisher-element-type-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression to determine the type for a request 'Publisher' elements against a request
+						message. The returned value of the expression could be an instance of java.lang.Class,
+						or java.lang.String representing a fully qualified class name, or 'ParameterizedTypeReference'.
+						This attribute cannot be provided if 'publisher-element-type' has a value
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -510,6 +533,29 @@
 								A reference to an org.springframework.web.reactive.function.BodyExtractor bean
 								which is used to to extract the content from the response.
 								Must be used instead of 'expected-response-type(-expression)'
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="publisher-element-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The type for a request 'Publisher' elements.
+								This attribute cannot be provided if the expected-response-type-expression has a value
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation>
+									<tool:expected-type type="java.lang.Class" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="publisher-element-type-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression to determine the type for a request 'Publisher' elements against a request
+								message. The returned value of the expression could be an instance of java.lang.Class,
+								or java.lang.String representing a fully qualified class name, or 'ParameterizedTypeReference'.
+								This attribute cannot be provided if 'publisher-element-type' has a value
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

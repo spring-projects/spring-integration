@@ -30,6 +30,9 @@ import java.util.function.Supplier;
 
 import javax.xml.transform.Source;
 
+import org.reactivestreams.Publisher;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -48,6 +51,7 @@ import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -74,7 +78,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public abstract class AbstractHttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final List<HttpMethod> noBodyHttpMethods =
+	private static final List<HttpMethod> NO_BODY_HTTP_METHODS =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.TRACE);
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
@@ -140,7 +144,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
 		Assert.notNull(httpMethod, "'httpMethod' must not be null");
-		this.httpMethodExpression = new ValueExpression<HttpMethod>(httpMethod);
+		this.httpMethodExpression = new ValueExpression<>(httpMethod);
 	}
 
 	/**
@@ -193,7 +197,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
 		Assert.notNull(expectedResponseType, "'expectedResponseType' must not be null");
-		this.expectedResponseTypeExpression = new ValueExpression<Class<?>>(expectedResponseType);
+		setExpectedResponseTypeExpression(new ValueExpression<>(expectedResponseType));
 	}
 
 	/**
@@ -261,20 +265,18 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	@Override
 	protected void doInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		this.simpleEvaluationContext = ExpressionUtils.createSimpleEvaluationContext(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
+		this.simpleEvaluationContext = ExpressionUtils.createSimpleEvaluationContext(beanFactory);
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		HttpMethod httpMethod = determineHttpMethod(requestMessage);
-
-		if (!shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
-						"since the HTTP Method is '" + httpMethod +
-						"', and no request body will be sent for that method.");
-			}
+		if (this.extractPayloadExplicitlySet && logger.isWarnEnabled() && !shouldIncludeRequestBody(httpMethod)) {
+			logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
+					"since the HTTP Method is '" + httpMethod +
+					"', and no request body will be sent for that method.");
 		}
 
 		Object expectedResponseType = determineExpectedResponseType(requestMessage);
@@ -293,9 +295,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				"'uriExpression' evaluation must result in a 'String' or 'URI' instance, not: "
 						+ (uri == null ? "null" : uri.getClass()));
 		Map<String, ?> uriVariables = determineUriVariables(requestMessage);
-		UriComponentsBuilder uriComponentsBuilder = uri instanceof String
-				? UriComponentsBuilder.fromUriString((String) uri)
-				: UriComponentsBuilder.fromUri((URI) uri);
+		UriComponentsBuilder uriComponentsBuilder =
+				uri instanceof String
+						? UriComponentsBuilder.fromUriString((String) uri)
+						: UriComponentsBuilder.fromUri((URI) uri);
 		UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 		try {
 			return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
@@ -310,7 +313,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			HttpHeaders httpHeaders = httpResponse.getHeaders();
 			Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
 			if (this.transferCookies) {
-				this.doConvertSetCookie(headers);
+				doConvertSetCookie(headers);
 			}
 
 			AbstractIntegrationMessageBuilder<?> replyBuilder = null;
@@ -355,8 +358,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod) {
 		Assert.notNull(message, "message must not be null");
-		return (this.extractPayload) ? this.createHttpEntityFromPayload(message, httpMethod)
-				: this.createHttpEntityFromMessage(message, httpMethod);
+		return this.extractPayload
+				? createHttpEntityFromPayload(message, httpMethod)
+				: createHttpEntityFromMessage(message, httpMethod);
 	}
 
 	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message, HttpMethod httpMethod) {
@@ -371,16 +375,20 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 		// otherwise, we are creating a request with a body and need to deal with the content-type header as well
 		if (httpHeaders.getContentType() == null) {
-			MediaType contentType = (payload instanceof String)
-					? resolveContentType((String) payload, this.charset)
-					: resolveContentType(payload);
+			MediaType contentType =
+					payload instanceof String
+							? new MediaType("text", "plain", this.charset)
+							: resolveContentType(payload);
 			httpHeaders.setContentType(contentType);
 		}
-		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
-				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
-			if (!(payload instanceof MultiValueMap)) {
-				payload = this.convertToMultiValueMap((Map<?, ?>) payload);
-			}
+		if ((MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
+				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType()))
+				&& !(payload instanceof MultiValueMap)) {
+
+			Assert.isInstanceOf(Map.class, payload,
+					() -> "For " + MediaType.APPLICATION_FORM_URLENCODED + " and " +
+							MediaType.MULTIPART_FORM_DATA + " media types the payload must be an instance of a Map.");
+			payload = convertToMultiValueMap((Map<?, ?>) payload);
 		}
 		return new HttpEntity<>(payload, httpHeaders);
 	}
@@ -409,34 +417,28 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		else if (content instanceof Source) {
 			contentType = MediaType.TEXT_XML;
 		}
-		else if (content instanceof Map) {
+		else if (content instanceof Map && isFormData((Map<Object, ?>) content)) {
 			// We need to check separately for MULTIPART as well as URLENCODED simply because
 			// MultiValueMap<Object, Object> is actually valid content for serialization
-			if (this.isFormData((Map<Object, ?>) content)) {
-				if (this.isMultipart((Map<String, ?>) content)) {
-					contentType = MediaType.MULTIPART_FORM_DATA;
-				}
-				else {
-					contentType = MediaType.APPLICATION_FORM_URLENCODED;
-				}
+			if (isMultipart((Map<String, ?>) content)) {
+				contentType = MediaType.MULTIPART_FORM_DATA;
+			}
+			else {
+				contentType = MediaType.APPLICATION_FORM_URLENCODED;
 			}
 		}
-		if (contentType == null) {
+		if (contentType == null && !(content instanceof Publisher<?>)) {
 			contentType = new MediaType("application", "x-java-serialized-object");
 		}
 		return contentType;
 	}
 
 	private boolean shouldIncludeRequestBody(HttpMethod httpMethod) {
-		return !(CollectionUtils.containsInstance(noBodyHttpMethods, httpMethod));
-	}
-
-	private MediaType resolveContentType(String content, Charset charset) {
-		return new MediaType("text", "plain", charset);
+		return !(CollectionUtils.containsInstance(NO_BODY_HTTP_METHODS, httpMethod));
 	}
 
 	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<?, ?> simpleMap) {
-		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
+		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<>();
 		for (Entry<?, ?> entry : simpleMap.entrySet()) {
 			Object key = entry.getKey();
 			Object value = entry.getValue();
@@ -444,13 +446,25 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				value = Arrays.asList((Object[]) value);
 			}
 			if (value instanceof Collection) {
-				multipartValueMap.put(key, new ArrayList<Object>((Collection<?>) value));
+				multipartValueMap.put(key, new ArrayList<>((Collection<?>) value));
 			}
 			else {
 				multipartValueMap.add(key, value);
 			}
 		}
 		return multipartValueMap;
+	}
+
+	/**
+	 * If all keys and values are Strings, we'll consider the Map to be form data.
+	 */
+	private boolean isFormData(Map<Object, ?> map) {
+		for (Object key : map.keySet()) {
+			if (!(key instanceof String)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -479,21 +493,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return false;
 	}
 
-	/**
-	 * If all keys and values are Strings, we'll consider the Map to be form data.
-	 */
-	private boolean isFormData(Map<Object, ?> map) {
-		for (Object key : map.keySet()) {
-			if (!(key instanceof String)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	private HttpMethod determineHttpMethod(Message<?> requestMessage) {
 		Object httpMethod = this.httpMethodExpression.getValue(this.evaluationContext, requestMessage);
-		Assert.state(httpMethod != null && (httpMethod instanceof String || httpMethod instanceof HttpMethod),
+		Assert.state((httpMethod instanceof String || httpMethod instanceof HttpMethod), () ->
 				"'httpMethodExpression' evaluation must result in an 'HttpMethod' enum or its String representation, " +
 						"not: " + (httpMethod == null ? "null" : httpMethod.getClass()));
 		if (httpMethod instanceof HttpMethod) {
@@ -503,36 +505,43 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			try {
 				return HttpMethod.valueOf((String) httpMethod);
 			}
-			catch (Exception e) {
+			catch (Exception ex) {
 				throw new IllegalStateException("The 'httpMethodExpression' returned an invalid HTTP Method value: "
-						+ httpMethod);
+						+ httpMethod, ex);
 			}
 		}
 	}
 
 	private Object determineExpectedResponseType(Message<?> requestMessage) {
-		Object expectedResponseType = null;
-		if (this.expectedResponseTypeExpression != null) {
-			expectedResponseType = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage);
+		return evaluateTypeFromExpression(requestMessage, this.expectedResponseTypeExpression, "expectedResponseType");
+	}
+
+	@Nullable
+	protected Object evaluateTypeFromExpression(Message<?> requestMessage, @Nullable Expression expression,
+			String property) {
+
+		Object type = null;
+		if (expression != null) {
+			type = expression.getValue(this.evaluationContext, requestMessage);
 		}
-		if (expectedResponseType != null) {
-			Assert.state(expectedResponseType instanceof Class<?>
-							|| expectedResponseType instanceof String
-							|| expectedResponseType instanceof ParameterizedTypeReference,
-					"'expectedResponseType' can be an instance of 'Class<?>', 'String' " +
+		if (type != null) {
+			Class<?> typeClass = type.getClass();
+			Assert.state(type instanceof Class<?>
+							|| type instanceof String
+							|| type instanceof ParameterizedTypeReference,
+					() -> "The '" + property + "' can be an instance of 'Class<?>', 'String' " +
 							"or 'ParameterizedTypeReference<?>'; " +
-							"evaluation resulted in a" + expectedResponseType.getClass() + ".");
-			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)) {
+							"evaluation resulted in a " + typeClass + ".");
+			if (type instanceof String && StringUtils.hasText((String) type)) {
 				try {
-					expectedResponseType = ClassUtils.forName((String) expectedResponseType,
-							getApplicationContext().getClassLoader());
+					type = ClassUtils.forName((String) type, getApplicationContext().getClassLoader());
 				}
 				catch (ClassNotFoundException e) {
-					throw new IllegalStateException("Cannot load class for name: " + expectedResponseType, e);
+					throw new IllegalStateException("Cannot load class for name: " + type, e);
 				}
 			}
 		}
-		return expectedResponseType;
+		return type;
 	}
 
 	@SuppressWarnings("unchecked")
