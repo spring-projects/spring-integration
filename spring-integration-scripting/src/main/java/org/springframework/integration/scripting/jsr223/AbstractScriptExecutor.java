@@ -29,11 +29,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.integration.scripting.ScriptingException;
+import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
 /**
- * Base Class for {@link ScriptExecutor}
+ * Base Class for {@link ScriptExecutor}.
  *
  * @author David Turanski
  * @author Mark Fisher
@@ -67,10 +68,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	}
 
 	@Override
+	@Nullable
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
-		Object result;
-
 		try {
+			Object result;
 			String script = scriptSource.getScriptAsString();
 			Date start = new Date();
 			if (this.logger.isDebugEnabled()) {
@@ -91,13 +92,11 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
 			}
+			return result;
 		}
-
 		catch (Exception e) {
 			throw new ScriptingException(e.getMessage(), e);
 		}
-
-		return result;
 	}
 
 	/**

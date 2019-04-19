@@ -23,6 +23,12 @@ import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactor
 
 
 /**
+ * An {@link AbstractScriptExecutor} for the Kotlin scripts support.
+ * Uses {@link KotlinJsr223JvmLocalScriptEngineFactory} directly since there is
+ * no {@code META-INF/services/javax.script.ScriptEngineFactory} file in CLASSPATH.
+ * Also sets an {@code idea.use.native.fs.for.win} system property to {@code false}
+ * to disable a native engine discovery for Windows: bay be resolved in the future Kotlin versions.
+ *
  * @author Artem Bilan
  *
  * @since 5.2

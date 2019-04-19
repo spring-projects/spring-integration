@@ -17,6 +17,7 @@
 package org.springframework.integration.scripting.jsr223;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +42,9 @@ public class Jsr223ScriptExecutorTests {
 		executor.executeScript(new StaticScriptSource("'hello, world'"));
 		executor.executeScript(new StaticScriptSource("'hello, again'"));
 
-		Map<String, Object> variables = new HashMap<String, Object>();
+		Map<String, Object> variables = new HashMap<>();
 
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put("one", 1);
 		headers.put("two", "two");
 		headers.put("three", 3);
@@ -54,14 +55,14 @@ public class Jsr223ScriptExecutorTests {
 		Resource resource = new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb");
 		String result = (String) executor.executeScript(new ResourceScriptSource(resource), variables);
 
-		assertThat(result.substring(0, "payload modified".length())).isEqualTo("payload modified");
+		assertThat(result).isNotNull().contains("payload modified");
 	}
 
 	@Test
 	public void testJs() {
 		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("js");
 		Object obj = executor.executeScript(new StaticScriptSource("function js(){ return 'js';} js();"));
-		assertThat(obj.toString()).isEqualTo("js");
+		assertThat(obj).isNotNull().isEqualTo("js");
 	}
 
 	@Test
@@ -74,9 +75,9 @@ public class Jsr223ScriptExecutorTests {
 		assertThat(obj).isEqualTo(2);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testInvalidLanguageThrowsIllegalArgumentException() {
-		ScriptExecutorFactory.getScriptExecutor("foo");
+		assertThatIllegalArgumentException().isThrownBy(() -> ScriptExecutorFactory.getScriptExecutor("foo"));
 	}
 
 }

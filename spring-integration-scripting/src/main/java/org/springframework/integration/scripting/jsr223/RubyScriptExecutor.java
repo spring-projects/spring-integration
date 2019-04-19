@@ -17,6 +17,12 @@
 package org.springframework.integration.scripting.jsr223;
 
 /**
+ * A {@link DefaultScriptExecutor} extension for Ruby scripting support.
+ * It is present here only for the reason to populate
+ * {@code org.jruby.embed.localvariable.behavior} and
+ * {@code org.jruby.embed.localcontext.scope} system properties.
+ * May be revised in the future.
+ *
  * @author David Turanski
  * @author Artem Bilan
  *

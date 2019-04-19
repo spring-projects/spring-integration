@@ -20,12 +20,16 @@ import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
 /**
- * Default implementation of the
- * {@link org.springframework.integration.scripting.ScriptExecutor}
+ * Default implementation of the {@link AbstractScriptExecutor}.
+ * Accepts a scripting language for resolving a target {@code ScriptEngine} for
+ * evaluation and does nothing with the {@code result} in the
+ * {@link #postProcess(Object, ScriptEngine, String, Bindings)} implementation.
  *
  * @author David Turanski
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class DefaultScriptExecutor extends AbstractScriptExecutor {

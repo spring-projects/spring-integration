@@ -39,32 +39,32 @@ import org.springframework.scripting.support.StaticScriptSource;
  */
 public class PythonScriptExecutorTests {
 
-	ScriptExecutor executor;
+	private ScriptExecutor executor;
 
 	@Before
 	public void init() {
-		executor = new PythonScriptExecutor();
+		this.executor = new PythonScriptExecutor();
 	}
 
 	@Test
 	public void testLiteral() {
-		Object obj = executor.executeScript(new StaticScriptSource("3+4"));
+		Object obj = this.executor.executeScript(new StaticScriptSource("3+4"));
 		assertThat(obj).isEqualTo(7);
 
-		obj = executor.executeScript(new StaticScriptSource("'hello,world'"));
+		obj = this.executor.executeScript(new StaticScriptSource("'hello,world'"));
 		assertThat(obj).isEqualTo("hello,world");
 	}
 
 	@Test
 
 	public void test1() {
-		Object obj = executor.executeScript(new StaticScriptSource("x=2"));
+		Object obj = this.executor.executeScript(new StaticScriptSource("x=2"));
 		assertThat(obj).isEqualTo(2);
 	}
 
 	@Test
 	public void test2() {
-		Object obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
+		Object obj = this.executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
 		assertThat(obj).isEqualTo(2);
 	}
 
@@ -73,9 +73,13 @@ public class PythonScriptExecutorTests {
 		ScriptSource source =
 				new ResourceScriptSource(
 						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
-		Object obj = executor.executeScript(source);
-		PyTuple tuple = (PyTuple) obj;
-		assertThat(tuple.get(0)).isEqualTo(1);
+		Object obj = this.executor.executeScript(source);
+		assertThat(obj)
+				.isNotNull()
+				.isInstanceOf(PyTuple.class)
+				.asList()
+				.element(0)
+				.isEqualTo(1);
 	}
 
 	@Test
@@ -85,17 +89,20 @@ public class PythonScriptExecutorTests {
 						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
 		HashMap<String, Object> variables = new HashMap<>();
 		variables.put("foo", "bar");
-		Object obj = executor.executeScript(source, variables);
-		assertThat(obj).isNotNull();
-		PyTuple tuple = (PyTuple) obj;
-		assertThat(tuple.get(0)).isEqualTo(1);
+		Object obj = this.executor.executeScript(source, variables);
+		assertThat(obj)
+				.isNotNull()
+				.isInstanceOf(PyTuple.class)
+				.asList()
+				.element(0)
+				.isEqualTo(1);
 	}
 
 	@Test
 	public void testEmbeddedVariable() {
 		Map<String, Object> variables = new HashMap<>();
 		variables.put("scope", "world");
-		Object obj = executor.executeScript(new StaticScriptSource("\"hello, %s\"% scope"), variables);
+		Object obj = this.executor.executeScript(new StaticScriptSource("\"hello, %s\"% scope"), variables);
 		assertThat(obj).isEqualTo("hello, world");
 	}
 

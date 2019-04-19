@@ -24,9 +24,13 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 
 /**
+ * A {@link ScriptSource} implementation, which caches a script string and refreshes it from the
+ * target file (if modified) according the provided {@link #refreshDelay}.
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class RefreshableResourceScriptSource implements ScriptSource {

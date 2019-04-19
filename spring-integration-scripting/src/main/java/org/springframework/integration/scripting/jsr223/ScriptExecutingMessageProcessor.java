@@ -27,6 +27,10 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link AbstractScriptExecutingMessageProcessor} implementation for evaluating scripts
+ * from the provided {@link ScriptSource} in the provided {@link ScriptExecutor} against an optional
+ * binding {@code variables}.
+ *
  * @author David Turanski
  * @author Artem Bilan
  *
@@ -36,7 +40,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 
 	private final ScriptExecutor scriptExecutor;
 
-	private volatile ScriptSource scriptSource;
+	private final ScriptSource scriptSource;
 
 
 	/**
@@ -46,8 +50,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	 * @param scriptExecutor The script executor.
 	 */
 	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor) {
-		this.scriptSource = scriptSource;
-		this.scriptExecutor = scriptExecutor;
+		this(scriptSource, new DefaultScriptVariableGenerator(), scriptExecutor);
 	}
 
 	/**
@@ -61,6 +64,8 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 			ScriptExecutor scriptExecutor) {
 
 		super(scriptVariableGenerator);
+		Assert.notNull(scriptSource, "'scriptSource' must not be null");
+		Assert.notNull(scriptExecutor, "'scriptExecutor' must not be null");
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor;
 	}
@@ -75,9 +80,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor,
 			Map<String, Object> variables) {
 
-		super(new DefaultScriptVariableGenerator(variables));
-		this.scriptSource = scriptSource;
-		this.scriptExecutor = scriptExecutor;
+		this(scriptSource, new DefaultScriptVariableGenerator(variables), scriptExecutor);
 	}
 
 

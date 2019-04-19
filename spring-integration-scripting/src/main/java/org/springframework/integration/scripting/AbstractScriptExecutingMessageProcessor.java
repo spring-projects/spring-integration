@@ -24,6 +24,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
@@ -42,9 +43,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
-	protected volatile ClassLoader beanClassLoader;
+	protected ClassLoader beanClassLoader;
 
-	protected volatile BeanFactory beanFactory;
+	protected BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
 		this(new DefaultScriptVariableGenerator());
@@ -70,6 +71,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * Executes the script and returns the result.
 	 */
 	@Override
+	@Nullable
 	public final T processMessage(Message<?> message) {
 		try {
 			ScriptSource source = getScriptSource(message);
@@ -96,6 +98,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 */
+	@Nullable
 	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables);
 
 }
