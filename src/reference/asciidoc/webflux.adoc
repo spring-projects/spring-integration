@@ -138,6 +138,11 @@ In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `W
 It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.
 Spring Integration provides `ClientHttpResponseBodyExtractor` as a identity function to produce (downstream) the whole `ClientHttpResponse` and any other possible custom logic.
 
+Starting with version 5.2, the `WebFluxRequestExecutingMessageHandler` supports a reactive `Publisher`, `Resource` and `MultiValueMap` types as a request message payload.
+A respective `BodyInserter` is used internally to be populated into the `WebClient.RequestBodySpec`.
+When the payload is a reactive `Publisher`, a configured `publisherElementType` or `publisherElementTypeExpression` can be used to determine a type for the publisher's element type.
+The expression must be resolved to a `Class<?>`, `String` which is resolved to the target `Class<?>` or `ParameterizedTypeReference`.
+
 See <<http-outbound>> for more possible configuration options.
 
 [[webflux-namespace]]

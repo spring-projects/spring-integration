@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.http.config.HttpOutboundChannelAdapterParser;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
@@ -36,6 +37,12 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 
 	@Override
 	protected BeanDefinitionBuilder getBuilder(Element element, ParserContext parserContext) {
+		return buildWebFluxRequestExecutingMessageHandler(element, parserContext);
+	}
+
+	static BeanDefinitionBuilder buildWebFluxRequestExecutingMessageHandler(Element element,
+			ParserContext parserContext) {
+
 		BeanDefinitionBuilder builder =
 				BeanDefinitionBuilder.genericBeanDefinition(WebFluxRequestExecutingMessageHandler.class);
 
@@ -44,6 +51,28 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 			builder.getBeanDefinition()
 					.getConstructorArgumentValues()
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
+		}
+
+		String type = element.getAttribute("publisher-element-type");
+		String typeExpression = element.getAttribute("publisher-element-type-expression");
+
+		boolean hasType = StringUtils.hasText(type);
+		boolean hasTypeExpression = StringUtils.hasText(typeExpression);
+
+		if (hasType && hasTypeExpression) {
+			parserContext.getReaderContext()
+					.error("The 'publisher-element-type' and 'publisher-element-type-expression' " +
+							"are mutually exclusive. You can only have one or the other", element);
+		}
+
+		if (hasType) {
+			builder.addPropertyValue("publisherElementType", type);
+		}
+		else if (hasTypeExpression) {
+			builder.addPropertyValue("publisherElementTypeExpression",
+					BeanDefinitionBuilder.rootBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(typeExpression)
+							.getBeanDefinition());
 		}
 
 		return builder;

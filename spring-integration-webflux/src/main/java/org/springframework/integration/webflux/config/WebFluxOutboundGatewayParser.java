@@ -38,15 +38,7 @@ public class WebFluxOutboundGatewayParser extends HttpOutboundGatewayParser {
 	@Override
 	protected BeanDefinitionBuilder getBuilder(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder =
-				BeanDefinitionBuilder.genericBeanDefinition(WebFluxRequestExecutingMessageHandler.class);
-
-		String webClientRef = element.getAttribute("web-client");
-		if (StringUtils.hasText(webClientRef)) {
-			builder.getBeanDefinition()
-					.getConstructorArgumentValues()
-					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
-		}
-
+				WebFluxOutboundChannelAdapterParser.buildWebFluxRequestExecutingMessageHandler(element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-payload-to-flux");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "body-extractor");
 		return builder;

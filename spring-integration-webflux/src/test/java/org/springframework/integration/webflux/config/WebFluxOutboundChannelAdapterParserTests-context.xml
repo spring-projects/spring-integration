@@ -13,7 +13,8 @@
 	<outbound-channel-adapter id="reactiveMinimalConfig" url="http://localhost/test1" channel="requests"/>
 
 	<outbound-channel-adapter id="reactiveWebClientConfig" url="http://localhost/test1" channel="requests"
-									   web-client="webClient"/>
+							  web-client="webClient"
+							  publisher-element-type="java.util.Date"/>
 
 	<beans:bean id="webClient" class="org.springframework.web.reactive.function.client.WebClient"
 				factory-method="create"/>

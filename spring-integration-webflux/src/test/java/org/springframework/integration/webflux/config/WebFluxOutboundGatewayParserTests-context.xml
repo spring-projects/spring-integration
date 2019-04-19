@@ -37,7 +37,8 @@
 					  auto-startup="false"
 					  transfer-cookies="true"
 					  reply-payload-to-flux="true"
-					  body-extractor="bodyExtractor">
+					  body-extractor="bodyExtractor"
+					  publisher-element-type-expression="headers.elementType">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 

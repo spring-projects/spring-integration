@@ -126,6 +126,8 @@ public class WebFluxOutboundGatewayParserTests {
 		assertThat(handlerAccessor.getPropertyValue("transferCookies")).isEqualTo(true);
 		assertThat(handlerAccessor.getPropertyValue("replyPayloadToFlux")).isEqualTo(true);
 		assertThat(handlerAccessor.getPropertyValue("bodyExtractor")).isSameAs(this.bodyExtractor);
+		assertThat(handlerAccessor.getPropertyValue("publisherElementTypeExpression.expression"))
+				.isEqualTo("headers.elementType");
 	}
 
 }
