@@ -16,24 +16,28 @@
 
 package org.springframework.integration.scripting.jsr223;
 
-import org.springframework.util.ClassUtils;
-
-
 /**
+ * A {@link DefaultScriptExecutor} extension for Ruby scripting support.
+ * It is present here only for the reason to populate
+ * {@code org.jruby.embed.localvariable.behavior} and
+ * {@code org.jruby.embed.localcontext.scope} system properties.
+ * May be revised in the future.
+ *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
 public class RubyScriptExecutor extends DefaultScriptExecutor {
 
 	static {
-		if (ClassUtils.isPresent("org.jruby.embed.jsr223.JRubyEngine", System.class.getClassLoader())) {
-			System.setProperty("org.jruby.embed.localvariable.behavior", "transient");
-			System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
-		}
+		System.setProperty("org.jruby.embed.localvariable.behavior", "transient");
+		System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
 	}
 
 	public RubyScriptExecutor() {
 		super("ruby");
 	}
+
 }

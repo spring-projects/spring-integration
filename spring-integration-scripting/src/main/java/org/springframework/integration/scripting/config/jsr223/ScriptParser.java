@@ -16,9 +16,6 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -29,8 +26,11 @@ import org.springframework.integration.scripting.jsr223.ScriptExecutorFactory;
 import org.springframework.util.StringUtils;
 
 /**
+ * An {@link AbstractScriptParser} parser extension for the {@code <int-script:script>} tag.
+ *
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ScriptParser extends AbstractScriptParser {
@@ -50,38 +50,12 @@ public class ScriptParser extends AbstractScriptParser {
 			if (!StringUtils.hasText(scriptLocation)) {
 				parserContext.getReaderContext().error(
 						"An inline script requires the '" + LANGUAGE_ATTRIBUTE + "' attribute.", element);
-				return;
 			}
 			else {
-				language = getLanguageFromFileExtension(scriptLocation, parserContext, element);
-				if (language == null) {
-					parserContext.getReaderContext().error(
-							"Unable to determine language for script '" + scriptLocation + "'", element);
-					return;
-				}
+				language = ScriptExecutorFactory.deriveLanguageFromFileExtension(scriptLocation);
 			}
 		}
-
 		builder.addConstructorArgValue(ScriptExecutorFactory.getScriptExecutor(language));
 	}
 
-	private String getLanguageFromFileExtension(String scriptLocation, ParserContext parserContext, Element element) {
-		ScriptEngineManager engineManager = new ScriptEngineManager();
-		ScriptEngine engine = null;
-
-		int index = scriptLocation.lastIndexOf(".") + 1;
-		if (index < 1) {
-			return null;
-		}
-		String extension = scriptLocation.substring(index);
-
-		engine = engineManager.getEngineByExtension(extension);
-
-		if (engine == null) {
-			parserContext.getReaderContext().error(
-					"No suitable scripting engine found for extension '" + extension + "'", element);
-		}
-
-		return engine.getFactory().getLanguageName();
-	}
 }

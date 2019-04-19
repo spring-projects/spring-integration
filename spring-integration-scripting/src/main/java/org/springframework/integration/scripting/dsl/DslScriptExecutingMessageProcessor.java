@@ -18,7 +18,6 @@ package org.springframework.integration.scripting.dsl;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,6 +31,7 @@ import org.springframework.integration.scripting.jsr223.ScriptExecutingMessagePr
 import org.springframework.integration.scripting.jsr223.ScriptExecutorFactory;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -99,20 +99,15 @@ class DslScriptExecutingMessageProcessor
 			this.script = this.applicationContext.getResource(this.location);
 		}
 
-		ScriptSource scriptSource = new RefreshableResourceScriptSource(this.script, this.refreshCheckDelay);
 
 		if (!StringUtils.hasText(this.lang)) {
-			String filename = this.script.getFilename();
-			int index =
-					filename != null
-							? filename.lastIndexOf('.') + 1
-							: -1;
-			if (index < 1) {
-				throw new BeanCreationException(
-						"'lang' isn't provided and there is no 'file extension' for script resource: " + this.script);
-			}
-			this.lang = filename.substring(index);
+			String scriptFilename = this.script.getFilename();
+			Assert.hasText(scriptFilename,
+					() -> "Either 'lang' or file extension must be provided for script: " + this.script);
+			this.lang = ScriptExecutorFactory.deriveLanguageFromFileExtension(scriptFilename);
 		}
+
+		ScriptSource scriptSource = new RefreshableResourceScriptSource(this.script, this.refreshCheckDelay);
 
 		if (this.applicationContext.containsBean(ScriptExecutingProcessorFactory.BEAN_NAME)) {
 			ScriptExecutingProcessorFactory processorFactory =

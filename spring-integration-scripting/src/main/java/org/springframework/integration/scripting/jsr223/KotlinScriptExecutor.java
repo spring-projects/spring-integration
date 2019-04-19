@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,28 @@ package org.springframework.integration.scripting.jsr223;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
+import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory;
+
+
 /**
- * Default implementation of the {@link AbstractScriptExecutor}.
- * Accepts a scripting language for resolving a target {@code ScriptEngine} for
- * evaluation and does nothing with the {@code result} in the
- * {@link #postProcess(Object, ScriptEngine, String, Bindings)} implementation.
+ * An {@link AbstractScriptExecutor} for the Kotlin scripts support.
+ * Uses {@link KotlinJsr223JvmLocalScriptEngineFactory} directly since there is
+ * no {@code META-INF/services/javax.script.ScriptEngineFactory} file in CLASSPATH.
+ * Also sets an {@code idea.use.native.fs.for.win} system property to {@code false}
+ * to disable a native engine discovery for Windows: bay be resolved in the future Kotlin versions.
  *
- * @author David Turanski
- * @author Mark Fisher
- * @author Gary Russell
  * @author Artem Bilan
  *
- * @since 2.1
+ * @since 5.2
  */
-public class DefaultScriptExecutor extends AbstractScriptExecutor {
+public class KotlinScriptExecutor extends AbstractScriptExecutor {
 
-	/**
-	 * Create a DefaultScriptExecutor for the specified language name (JSR233 alias).
-	 * @param language the scripting language identificator.
-	 */
-	public DefaultScriptExecutor(String language) {
-		super(language);
+	static {
+		System.setProperty("idea.use.native.fs.for.win", "false");
+	}
+
+	public KotlinScriptExecutor() {
+		super(new KotlinJsr223JvmLocalScriptEngineFactory().getScriptEngine());
 	}
 
 	@Override

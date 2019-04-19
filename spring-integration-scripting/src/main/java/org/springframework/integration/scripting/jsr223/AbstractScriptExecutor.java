@@ -29,42 +29,49 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.integration.scripting.ScriptingException;
+import org.springframework.lang.Nullable;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
 /**
- * Base Class for {@link ScriptExecutor}
+ * Base Class for {@link ScriptExecutor}.
  *
  * @author David Turanski
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	protected final ScriptEngine scriptEngine;
-
-	protected final String language;
+	private final ScriptEngine scriptEngine;
 
 	protected AbstractScriptExecutor(String language) {
 		Assert.hasText(language, "language must not be empty");
-		this.language = language;
-
-		this.scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
-		Assert.notNull(this.scriptEngine, invalidLanguageMessage(this.language));
+		this.scriptEngine = new ScriptEngineManager().getEngineByName(language);
+		Assert.notNull(this.scriptEngine, () -> invalidLanguageMessage(language));
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Using script engine : " + this.scriptEngine.getFactory().getEngineName());
 		}
 	}
 
-	@Override
-	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
-		Object result;
+	protected AbstractScriptExecutor(ScriptEngine scriptEngine) {
+		Assert.notNull(scriptEngine, "'scriptEngine' must not be null.");
+		this.scriptEngine = scriptEngine;
+	}
 
+	public ScriptEngine getScriptEngine() {
+		return this.scriptEngine;
+	}
+
+	@Override
+	@Nullable
+	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		try {
+			Object result;
 			String script = scriptSource.getScriptAsString();
 			Date start = new Date();
 			if (this.logger.isDebugEnabled()) {
@@ -85,13 +92,11 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
 			}
+			return result;
 		}
-
 		catch (Exception e) {
 			throw new ScriptingException(e.getMessage(), e);
 		}
-
-		return result;
 	}
 
 	/**

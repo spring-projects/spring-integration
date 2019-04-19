@@ -17,76 +17,74 @@
 package org.springframework.integration.scripting.jsr223;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
 public class DeriveLanguageFromExtensionTests {
+
 	@Autowired
 	private ApplicationContext ctx;
 
 	@Test
 	public void testParseLanguage() {
-		String[] langs = { "ruby", "Groovy", "ECMAScript", "python" };
+		String[] langs = { "ruby", "Groovy", "ECMAScript", "python", "kotlin" };
 		Class<?>[] executors = {
 				RubyScriptExecutor.class,
 				DefaultScriptExecutor.class,
 				DefaultScriptExecutor.class,
-				PythonScriptExecutor.class
+				PythonScriptExecutor.class,
+				KotlinScriptExecutor.class
 		};
 
-		Map<String, ScriptExecutingMessageProcessor> scriptProcessors = ctx
-				.getBeansOfType(ScriptExecutingMessageProcessor.class);
-		assertThat(scriptProcessors.size()).isEqualTo(4);
+		Map<String, ScriptExecutingMessageProcessor> scriptProcessors =
+				this.ctx.getBeansOfType(ScriptExecutingMessageProcessor.class);
+		assertThat(scriptProcessors.size()).isEqualTo(5);
 
-		for (int i = 0; i < 4; i++) {
-
+		for (int i = 0; i < 5; i++) {
 			ScriptExecutingMessageProcessor processor = ctx.getBean(
 					"org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor#" + i,
 					ScriptExecutingMessageProcessor.class);
 
-			AbstractScriptExecutor executor = (AbstractScriptExecutor) TestUtils.getPropertyValue(processor,
-					"scriptExecutor");
-			assertThat(executor.language).isEqualTo(langs[i]);
+			AbstractScriptExecutor executor =
+					TestUtils.getPropertyValue(processor, "scriptExecutor", AbstractScriptExecutor.class);
+			assertThat(executor.getScriptEngine().getFactory().getLanguageName()).isEqualTo(langs[i]);
 			assertThat(executor.getClass()).isEqualTo(executors[i]);
 		}
 	}
 
 	@Test
 	public void testBadExtension() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass())
-					.close();
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage().contains("No suitable scripting engine found for extension 'xx'")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail1-context.xml",
+								getClass()).close())
+				.withMessageContaining("No suitable scripting engine found for extension 'xx'");
 	}
 
 	@Test
 	public void testNoExtension() {
-		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass())
-					.close();
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage().contains("Unable to determine language for script 'foo'")).isTrue();
-		}
+		assertThatExceptionOfType(BeanDefinitionStoreException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-fail2-context.xml",
+								getClass()).close())
+				.withMessageContaining("Unable to determine language for script 'foo'");
 	}
 
 }
