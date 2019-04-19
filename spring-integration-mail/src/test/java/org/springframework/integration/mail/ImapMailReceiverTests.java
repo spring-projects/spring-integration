@@ -58,8 +58,7 @@ import javax.mail.search.FromTerm;
 import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -102,19 +101,20 @@ import com.sun.mail.imap.IMAPFolder;
 @DirtiesContext
 public class ImapMailReceiverTests {
 
-	private final ImapServer imapIdleServer = TestMailServer.imap(0);
+	@ClassRule
+	public static final LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
-	@Rule
-	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
+	private AtomicInteger failed;
 
-	private final AtomicInteger failed = new AtomicInteger(0);
-
+	private ImapServer imapIdleServer;
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Before
 	public void setup() throws InterruptedException {
+		failed = new AtomicInteger(0);
+		this.imapIdleServer = TestMailServer.imap(0);
 		int n = 0;
 		while (n++ < 100 && (!this.imapIdleServer.isListening())) {
 			Thread.sleep(100);
@@ -182,7 +182,6 @@ public class ImapMailReceiverTests {
 	}
 
 	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
-		this.imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
 		mailProps.put("mail.imap.connectionpool.debug", "true");
@@ -458,7 +457,6 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	@Ignore
 	public void testMessageHistory() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 		adapter.setReconnectDelay(1);
@@ -480,6 +478,7 @@ public class ImapMailReceiverTests {
 			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
 			IMAPFolder folder = mock(IMAPFolder.class);
 			accessor.setPropertyValue("folder", folder);
+			given(folder.isOpen()).willReturn(true);
 			given(folder.hasNewMessages()).willReturn(true);
 			return null;
 		}).given(receiver).openFolder();
@@ -712,7 +711,6 @@ public class ImapMailReceiverTests {
 
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception {
-
 		for (int i = 0; i < 1000; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
