@@ -273,12 +273,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		HttpMethod httpMethod = determineHttpMethod(requestMessage);
-		if (!shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
-						"since the HTTP Method is '" + httpMethod +
-						"', and no request body will be sent for that method.");
-			}
+		if (this.extractPayloadExplicitlySet && logger.isWarnEnabled() && !shouldIncludeRequestBody(httpMethod)) {
+			logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
+					"since the HTTP Method is '" + httpMethod +
+					"', and no request body will be sent for that method.");
 		}
 
 		Object expectedResponseType = determineExpectedResponseType(requestMessage);
@@ -299,8 +297,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		Map<String, ?> uriVariables = determineUriVariables(requestMessage);
 		UriComponentsBuilder uriComponentsBuilder =
 				uri instanceof String
-				? UriComponentsBuilder.fromUriString((String) uri)
-				: UriComponentsBuilder.fromUri((URI) uri);
+						? UriComponentsBuilder.fromUriString((String) uri)
+						: UriComponentsBuilder.fromUri((URI) uri);
 		UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 		try {
 			return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
@@ -419,16 +417,14 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		else if (content instanceof Source) {
 			contentType = MediaType.TEXT_XML;
 		}
-		else if (content instanceof Map) {
+		else if (content instanceof Map && isFormData((Map<Object, ?>) content)) {
 			// We need to check separately for MULTIPART as well as URLENCODED simply because
 			// MultiValueMap<Object, Object> is actually valid content for serialization
-			if (isFormData((Map<Object, ?>) content)) {
-				if (isMultipart((Map<String, ?>) content)) {
-					contentType = MediaType.MULTIPART_FORM_DATA;
-				}
-				else {
-					contentType = MediaType.APPLICATION_FORM_URLENCODED;
-				}
+			if (isMultipart((Map<String, ?>) content)) {
+				contentType = MediaType.MULTIPART_FORM_DATA;
+			}
+			else {
+				contentType = MediaType.APPLICATION_FORM_URLENCODED;
 			}
 		}
 		if (contentType == null && !(content instanceof Publisher<?>)) {
@@ -509,9 +505,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			try {
 				return HttpMethod.valueOf((String) httpMethod);
 			}
-			catch (Exception e) {
+			catch (Exception ex) {
 				throw new IllegalStateException("The 'httpMethodExpression' returned an invalid HTTP Method value: "
-						+ httpMethod);
+						+ httpMethod, ex);
 			}
 		}
 	}

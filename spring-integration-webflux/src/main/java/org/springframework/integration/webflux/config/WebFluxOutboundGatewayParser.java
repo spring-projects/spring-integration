@@ -18,13 +18,10 @@ package org.springframework.integration.webflux.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.config.HttpOutboundGatewayParser;
-import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'outbound-gateway' element of the webflux namespace.
