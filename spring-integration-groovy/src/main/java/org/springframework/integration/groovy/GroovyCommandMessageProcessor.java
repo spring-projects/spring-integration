@@ -47,7 +47,7 @@ import groovy.lang.GString;
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
-	private volatile GroovyObjectCustomizer customizer;
+	private GroovyObjectCustomizer customizer;
 
 	private Binding binding;
 
@@ -125,12 +125,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 			customizerDecorator.setVariables(variables);
 		}
 		GroovyScriptFactory factory = new GroovyScriptFactory(getClass().getSimpleName(), customizerDecorator);
-		if (this.beanClassLoader != null) {
-			factory.setBeanClassLoader(this.beanClassLoader);
-		}
-		if (this.beanFactory != null) {
-			factory.setBeanFactory(this.beanFactory);
-		}
+		factory.setBeanClassLoader(getBeanClassLoader());
+		factory.setBeanFactory(getBeanFactory());
 		try {
 			Object result = factory.getScriptedObject(scriptSource);
 			return (result instanceof GString) ? result.toString() : result;
@@ -138,7 +134,6 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-
 	}
 
 	protected String generateScriptName(Message<?> message) {

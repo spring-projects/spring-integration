@@ -52,7 +52,7 @@ public final class ScriptExecutorFactory {
 	 * @since 5.2
 	 */
 	public static String deriveLanguageFromFileExtension(String scriptLocation) {
-		int index = scriptLocation.lastIndexOf(".") + 1;
+		int index = scriptLocation.lastIndexOf('.') + 1;
 		Assert.state(index > 0, () -> "Unable to determine language for script '" + scriptLocation + "'");
 		String extension = scriptLocation.substring(index);
 		if (extension.equals("kts")) {

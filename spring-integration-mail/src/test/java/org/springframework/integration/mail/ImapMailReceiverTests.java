@@ -74,7 +74,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.mail.TestMailServer;
 import org.springframework.integration.test.mail.TestMailServer.ImapServer;
@@ -689,11 +688,10 @@ public class ImapMailReceiverTests {
 	public void testConnectionException() throws Exception {
 		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
-		final AtomicReference<ImapIdleExceptionEvent> theEvent = new AtomicReference<>();
+		final AtomicReference<Object> theEvent = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		adapter.setApplicationEventPublisher(event -> {
-			assertThat(theEvent.get()).as("only one event expected").isNull();
-			theEvent.set((ImapIdleExceptionEvent) event);
+			theEvent.set(event);
 			latch.countDown();
 		});
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();

@@ -43,9 +43,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
-	protected ClassLoader beanClassLoader;
+	private ClassLoader beanClassLoader;
 
-	protected BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
 		this(new DefaultScriptVariableGenerator());
@@ -65,6 +65,18 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	protected ScriptVariableGenerator getScriptVariableGenerator() {
+		return this.scriptVariableGenerator;
+	}
+
+	protected ClassLoader getBeanClassLoader() {
+		return this.beanClassLoader;
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return this.beanFactory;
 	}
 
 	/**

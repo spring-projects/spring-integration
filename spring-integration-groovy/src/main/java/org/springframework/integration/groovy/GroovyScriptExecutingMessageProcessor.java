@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -144,8 +145,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	@Override
 	public void afterPropertiesSet() {
-		if (this.beanFactory != null && this.beanFactory instanceof ConfigurableListableBeanFactory) {
-			((ConfigurableListableBeanFactory) this.beanFactory).ignoreDependencyType(MetaClass.class);
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			((ConfigurableListableBeanFactory) beanFactory).ignoreDependencyType(MetaClass.class);
 		}
 
 		CompilerConfiguration compilerConfig = this.compilerConfiguration;
@@ -154,7 +156,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			compilerConfig.addCompilationCustomizers(new ASTTransformationCustomizer(CompileStatic.class));
 		}
 
-		this.groovyClassLoader = new GroovyClassLoader(this.beanClassLoader, compilerConfig);
+		this.groovyClassLoader = new GroovyClassLoader(getBeanClassLoader(), compilerConfig);
 	}
 
 	@Override
@@ -218,8 +220,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		}
 		catch (IllegalAccessException ex) {
 			throw new ScriptCompilationException(
-					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(),
-					ex);
+					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
 		}
 	}
 
@@ -234,20 +235,20 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			try {
 				return super.getVariable(name);
 			}
-			catch (MissingPropertyException e) {
+			catch (MissingPropertyException ex) {
 				// Original {@link Binding} doesn't have 'variable' for the given 'name'.
 				// Try to resolve it as 'bean' from the given <code>beanFactory</code>.
 			}
 
-			if (GroovyScriptExecutingMessageProcessor.this.beanFactory == null) {
-				throw new MissingPropertyException(name, this.getClass());
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory == null) {
+				throw new MissingPropertyException(name, getClass());
 			}
-
 			try {
-				return GroovyScriptExecutingMessageProcessor.this.beanFactory.getBean(name);
+				return beanFactory.getBean(name);
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				throw new MissingPropertyException(name, this.getClass(), e);
+				throw new MissingPropertyException(name, getClass(), e);
 			}
 		}
 
