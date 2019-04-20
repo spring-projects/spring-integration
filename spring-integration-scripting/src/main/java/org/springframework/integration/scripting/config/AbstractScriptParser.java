@@ -64,7 +64,6 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		List<Element> variableElements = DomUtils.getChildElementsByTagName(element, "variable");
 		String scriptVariableGeneratorName = element.getAttribute("script-variable-generator");
 
-
 		if (StringUtils.hasText(scriptVariableGeneratorName) && variableElements.size() > 0) {
 			parserContext.getReaderContext().error(
 					"'script-variable-generator' and 'variable' sub-elements are mutually exclusive.", element);
@@ -72,18 +71,16 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		}
 
 		if (StringUtils.hasText(scriptLocation)) {
-			builder.addConstructorArgValue(this.resolveScriptLocation(element, parserContext.getReaderContext(),
-					scriptLocation));
+			builder.addConstructorArgValue(resolveScriptLocation(element, scriptLocation));
 		}
 		else {
 			builder.addConstructorArgValue(new StaticScriptSource(scriptText));
 		}
 
-		BeanMetadataElement scriptVariableGeneratorDef = null;
-
+		BeanMetadataElement scriptVariableGeneratorDef;
 		if (!StringUtils.hasText(scriptVariableGeneratorName)) {
-			BeanDefinitionBuilder scriptVariableGeneratorBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultScriptVariableGenerator.class);
+			BeanDefinitionBuilder scriptVariableGeneratorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultScriptVariableGenerator.class);
 			ManagedMap<String, Object> variableMap = buildVariablesMap(element, parserContext, variableElements);
 			if (!CollectionUtils.isEmpty(variableMap)) {
 				scriptVariableGeneratorBuilder.addConstructorArgValue(variableMap);
@@ -108,7 +105,7 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 	}
 
-	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {
+	private Object resolveScriptLocation(Element element, String scriptLocation) {
 		String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);
 		String beanClassName = RefreshableResourceScriptSource.class.getName();
 		BeanDefinitionBuilder resourceScriptSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanClassName);
@@ -124,6 +121,7 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 
 	private ManagedMap<String, Object> buildVariablesMap(final Element element, final ParserContext parserContext,
 			List<Element> variableElements) {
+
 		@SuppressWarnings("serial")
 		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>() {
 

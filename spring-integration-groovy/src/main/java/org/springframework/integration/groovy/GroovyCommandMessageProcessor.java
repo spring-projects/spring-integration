@@ -125,7 +125,10 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 			customizerDecorator.setVariables(variables);
 		}
 		GroovyScriptFactory factory = new GroovyScriptFactory(getClass().getSimpleName(), customizerDecorator);
-		factory.setBeanClassLoader(getBeanClassLoader());
+		ClassLoader beanClassLoader = getBeanClassLoader();
+		if (beanClassLoader != null) {
+			factory.setBeanClassLoader(beanClassLoader);
+		}
 		factory.setBeanFactory(getBeanFactory());
 		try {
 			Object result = factory.getScriptedObject(scriptSource);
