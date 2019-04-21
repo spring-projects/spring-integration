@@ -150,13 +150,18 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			((ConfigurableListableBeanFactory) beanFactory).ignoreDependencyType(MetaClass.class);
 		}
 
-		CompilerConfiguration compilerConfig = this.compilerConfiguration;
-		if (compilerConfig == null && this.compileStatic) {
+		CompilerConfiguration compilerConfig;
+		if (this.compilerConfiguration == null && this.compileStatic) {
 			compilerConfig = new CompilerConfiguration();
 			compilerConfig.addCompilationCustomizers(new ASTTransformationCustomizer(CompileStatic.class));
 		}
+		else {
+			compilerConfig = this.compilerConfiguration;
+		}
 
-		this.groovyClassLoader = new GroovyClassLoader(getBeanClassLoader(), compilerConfig);
+		this.groovyClassLoader =
+				AccessController.doPrivileged((PrivilegedAction<GroovyClassLoader>)
+						() -> new GroovyClassLoader(getBeanClassLoader(), compilerConfig));
 	}
 
 	@Override
