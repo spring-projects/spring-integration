@@ -208,14 +208,18 @@ public class SftpSession implements Session<LsEntry> {
 				}
 			}
 			catch (IOException ioex) {
-				throw new NestedIOException("Failed to delete file " + pathTo, ioex);
+				NestedIOException nioex = new NestedIOException("Failed to delete file " + pathTo, ioex);
+				nioex.addSuppressed(sftpex);
+				throw nioex;
 			}
 			try {
 				// attempt to rename again
 				this.channel.rename(pathFrom, pathTo);
 			}
 			catch (SftpException sftpex2) {
-				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex2);
+				NestedIOException nioex2 = new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex2);
+				nioex2.addSuppressed(sftpex);
+				throw nioex2;
 			}
 		}
 		if (this.logger.isDebugEnabled()) {
