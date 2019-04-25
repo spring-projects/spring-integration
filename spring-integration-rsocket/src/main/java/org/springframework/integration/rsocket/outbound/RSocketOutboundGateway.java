@@ -26,7 +26,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
@@ -57,11 +56,9 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
-	@Nullable
-	private Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer;
+	private Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer = (clientRSocketFactory) -> { };
 
-	@Nullable
-	private Consumer<RSocketStrategies.Builder> strategiesConfigurer;
+	private Consumer<RSocketStrategies.Builder> strategiesConfigurer = (builder) -> { };
 
 	private Expression commandExpression = new ValueExpression<>(Command.requestResponse);
 
@@ -91,11 +88,13 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.dataMimeType = dataMimeType;
 	}
 
-	public void setFactoryConfigurer(@Nullable Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer) {
+	public void setFactoryConfigurer(Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer) {
+		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
 		this.factoryConfigurer = factoryConfigurer;
 	}
 
-	public void setStrategiesConfigurer(@Nullable Consumer<RSocketStrategies.Builder> strategiesConfigurer) {
+	public void setStrategiesConfigurer(Consumer<RSocketStrategies.Builder> strategiesConfigurer) {
+		Assert.notNull(strategiesConfigurer, "'strategiesConfigurer' must not be null");
 		this.strategiesConfigurer = strategiesConfigurer;
 	}
 
@@ -156,14 +155,11 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	protected void doInit() {
 		super.doInit();
-		RSocketRequester.Builder builder = RSocketRequester.builder();
-		if (this.factoryConfigurer != null) {
-			builder.rsocketFactory(this.factoryConfigurer);
-		}
-		if (this.strategiesConfigurer != null) {
-			builder.rsocketStrategies(this.strategiesConfigurer);
-		}
-		this.rSocketRequesterMono = builder.connect(this.clientTransport, this.dataMimeType);
+		this.rSocketRequesterMono =
+				RSocketRequester.builder()
+						.rsocketFactory(this.factoryConfigurer)
+						.rsocketStrategies(this.strategiesConfigurer)
+						.connect(this.clientTransport, this.dataMimeType);
 
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}

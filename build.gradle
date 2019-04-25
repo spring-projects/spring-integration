@@ -599,7 +599,7 @@ project('spring-integration-rmi') {
 }
 
 project('spring-integration-rsocket') {
-	description = 'Spring Integration RSockets Support'
+	description = 'Spring Integration RSocket Support'
 	dependencies {
 		compile project(":spring-integration-core")
 		compile("io.projectreactor.netty:reactor-netty:$reactorNettyVersion")

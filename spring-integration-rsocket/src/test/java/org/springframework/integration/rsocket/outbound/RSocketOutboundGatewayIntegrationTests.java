@@ -51,7 +51,6 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.SocketUtils;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.RSocketFactory;
@@ -63,6 +62,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.ReplayProcessor;
+import reactor.netty.tcp.TcpServer;
 import reactor.test.StepVerifier;
 
 /**
@@ -74,7 +74,7 @@ import reactor.test.StepVerifier;
 @DirtiesContext
 public class RSocketOutboundGatewayIntegrationTests {
 
-	private static final int PORT = SocketUtils.findAvailableTcpPort();
+	private static int PORT;
 
 	private static final String ROUTE_HEADER = "rsocket_route";
 
@@ -96,11 +96,13 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@BeforeAll
 	static void setup() {
 		context = new AnnotationConfigApplicationContext(ServerConfig.class);
-
+		TcpServer tcpServer =
+				TcpServer.create().port(0)
+						.doOnBound(server -> PORT = server.port());
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
 				.acceptor(context.getBean(MessageHandlerAcceptor.class))
-				.transport(TcpServerTransport.create("localhost", PORT))
+				.transport(TcpServerTransport.create(tcpServer))
 				.start()
 				.block();
 	}
