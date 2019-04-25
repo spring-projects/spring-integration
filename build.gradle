@@ -39,6 +39,7 @@ allprojects {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
+        maven { url "https://oss.jfrog.org/artifactory/libs-snapshot" } // RSocket
 //		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
@@ -128,10 +129,11 @@ subprojects { subproject ->
 		mysqlVersion = '8.0.15'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.2.5'
-		reactorNettyVersion = '0.8.6.RELEASE'
-		reactorVersion = '3.2.8.RELEASE'
+		reactorNettyVersion = '0.9.0.BUILD-SNAPSHOT'
+		reactorVersion = '3.3.0.BUILD-SNAPSHOT'
 		resilience4jVersion = '0.14.1'
 		romeToolsVersion = '1.12.0'
+		rsocketVersion = '0.12.2-RC3-SNAPSHOT'
 		servletApiVersion = '4.0.1'
 		smackVersion = '4.3.3'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.M1'
@@ -141,7 +143,7 @@ subprojects { subproject ->
 		springGemfireVersion = '2.2.0.M3'
 		springSecurityVersion = '5.2.0.M2'
 		springRetryVersion = '1.2.4.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.M1'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.BUILD-SNAPSHOT'
 		springWsVersion = '3.0.7.RELEASE'
 		tomcatVersion = "9.0.17"
 		xstreamVersion = '1.4.11.1'
@@ -593,6 +595,18 @@ project('spring-integration-rmi') {
 	description = 'Spring Integration RMI Support'
 	dependencies {
 		compile project(":spring-integration-core")
+	}
+}
+
+project('spring-integration-rsocket') {
+	description = 'Spring Integration RSockets Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile("io.projectreactor.netty:reactor-netty:$reactorNettyVersion")
+		compile("io.rsocket:rsocket-core:$rsocketVersion")
+		compile("io.rsocket:rsocket-transport-netty:$rsocketVersion")
+
+		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 

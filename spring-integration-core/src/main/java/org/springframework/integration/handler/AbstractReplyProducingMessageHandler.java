@@ -87,6 +87,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.beanClassLoader = beanClassLoader;
 	}
 
+	protected ClassLoader getBeanClassLoader() {
+		return this.beanClassLoader;
+	}
 
 	@Override
 	protected final void onInit() {

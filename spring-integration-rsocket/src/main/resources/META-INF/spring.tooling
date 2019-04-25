@@ -1,0 +1,4 @@
+# Tooling related information for the integration rsocket namespace
+http\://www.springframework.org/schema/integration/rsocket@name=integration rsocket Namespace
+http\://www.springframework.org/schema/integration/rsocket@prefix=int-rsocket
+http\://www.springframework.org/schema/integration/rsocket@icon=org/springframework/integration/rsocket/config/spring-integration-rsocket.gif
