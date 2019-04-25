@@ -82,8 +82,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		ConnectableFlux<?> connectableFlux =
 				Flux.from(publisher)
 						.handle((message, sink) -> sink.next(send(message)))
-						.onErrorContinue((throwable, o) -> logger.warn("Error during processing event: " + o, throwable)
-						)
+						.onErrorContinue((throwable, event) ->
+								logger.warn("Error during processing event: " + event, throwable))
 						.doOnComplete(() -> this.publishers.remove(publisher))
 						.publish();
 

@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
@@ -283,6 +284,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				((ReactiveStreamsSubscribableChannel) messageChannel)
 						.subscribeTo(
 								Flux.from((Publisher<?>) reply)
+										.doOnError((ex) -> sendErrorMessage(requestMessage, ex))
 										.map(result -> createOutputMessage(result, requestHeaders)));
 			}
 		}
@@ -311,25 +313,22 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void asyncNonReactiveReply(Message<?> requestMessage, Object reply, Object replyChannel) {
-
 		ListenableFuture<?> future;
 		if (reply instanceof ListenableFuture<?>) {
 			future = (ListenableFuture<?>) reply;
 		}
 		else {
 			SettableListenableFuture<Object> settableListenableFuture = new SettableListenableFuture<>();
-
 			Mono.from((Publisher<?>) reply)
 					.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
-
 			future = settableListenableFuture;
 		}
-
 		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
 			AtomicInteger routingSlipIndex) {
+
 		if (routingSlipIndex.get() >= routingSlip.size()) {
 			return null;
 		}
@@ -365,7 +364,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
-		AbstractIntegrationMessageBuilder<?> builder = null;
+		AbstractIntegrationMessageBuilder<?> builder;
 		if (output instanceof Message<?>) {
 			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
 				return (Message<?>) output;
@@ -449,7 +448,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 			catch (Exception e) {
 				Exception exceptionToLog =
-						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage, () -> null,  e);
+						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage, () -> null, e);
 				logger.error("Failed to send async reply", exceptionToLog);
 			}
 		}
@@ -459,7 +458,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		Object errorChannel = requestHeaders.getErrorChannel();
 		if (errorChannel == null) {
 			try {
-				errorChannel = getChannelResolver().resolveDestination("errorChannel");
+				errorChannel = getChannelResolver().resolveDestination(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 			}
 			catch (DestinationResolutionException e) {
 				// ignore
