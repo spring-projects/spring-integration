@@ -41,6 +41,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
@@ -195,31 +196,32 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				return null;
 			}
 			this.handler = createHandler();
-			if (this.handler instanceof ApplicationContextAware && this.applicationContext != null) {
-				((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext);
-			}
-			if (this.handler instanceof BeanFactoryAware && getBeanFactory() != null) {
-				((BeanFactoryAware) this.handler).setBeanFactory(getBeanFactory());
-			}
-			if (this.handler instanceof BeanNameAware && this.beanName != null) {
-				((BeanNameAware) this.handler).setBeanName(this.beanName);
-			}
-			if (this.handler instanceof ApplicationEventPublisherAware && this.applicationEventPublisher != null) {
-				((ApplicationEventPublisherAware) this.handler)
-						.setApplicationEventPublisher(this.applicationEventPublisher);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfCondition(this.handler instanceof ApplicationContextAware && this.applicationContext != null,
+					this.applicationContext,
+					context -> ((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext))
+				.acceptIfCondition(this.handler instanceof BeanFactoryAware && getBeanFactory() != null,
+					getBeanFactory(),
+					factory -> ((BeanFactoryAware) this.handler).setBeanFactory(factory))
+				.acceptIfCondition(this.handler instanceof BeanNameAware && this.beanName != null, this.beanName,
+					namne -> ((BeanNameAware) this.handler).setBeanName(this.beanName))
+				.acceptIfCondition(this.handler instanceof ApplicationEventPublisherAware
+										&& this.applicationEventPublisher != null,
+					this.applicationEventPublisher,
+					publisher -> ((ApplicationEventPublisherAware) this.handler)
+						.setApplicationEventPublisher(publisher));
 			configureOutputChannelIfAny();
 			Object actualHandler = extractTarget(this.handler);
 			if (actualHandler == null) {
 				actualHandler = this.handler;
 			}
+			final Object handlerToConfigure = actualHandler; // must final for lambdas
 			if (actualHandler instanceof IntegrationObjectSupport) {
-				if (this.componentName != null) {
-					((IntegrationObjectSupport) actualHandler).setComponentName(this.componentName);
-				}
-				if (this.channelResolver != null) {
-					((IntegrationObjectSupport) actualHandler).setChannelResolver(this.channelResolver);
-				}
+				JavaUtils.INSTANCE
+					.acceptIfNotNull(this.componentName,
+							name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
+					.acceptIfNotNull(this.channelResolver,
+							resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
 			}
 			if (!CollectionUtils.isEmpty(this.adviceChain)) {
 				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
@@ -234,15 +236,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 							+ (name == null ? "" : (", " + name)) + ".");
 				}
 			}
-			if (this.async != null) {
-				if (actualHandler instanceof AbstractMessageProducingHandler) {
-					((AbstractMessageProducingHandler) actualHandler)
-							.setAsync(this.async);
-				}
-			}
-			if (this.handler instanceof Orderable && this.order != null) {
-				((Orderable) this.handler).setOrder(this.order);
-			}
+			JavaUtils.INSTANCE
+				.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
+					this.async,
+					asyncValue -> ((AbstractMessageProducingHandler) handlerToConfigure).setAsync(asyncValue))
+				.acceptIfCondition(this.handler instanceof Orderable && this.order != null,
+					this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
 		}
 		if (this.handler instanceof InitializingBean) {

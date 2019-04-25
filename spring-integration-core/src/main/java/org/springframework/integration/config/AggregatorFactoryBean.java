@@ -29,6 +29,7 @@ import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
@@ -107,6 +108,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.sendTimeout = sendTimeout;
 	}
 
+	@Override
 	public void setOutputChannelName(String outputChannelName) {
 		this.outputChannelName = outputChannelName;
 	}
@@ -194,86 +196,27 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 			}
 		}
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(outputProcessor);
-
-		if (this.expireGroupsUponCompletion != null) {
-			aggregator.setExpireGroupsUponCompletion(this.expireGroupsUponCompletion);
-		}
-
-		if (this.sendTimeout != null) {
-			aggregator.setSendTimeout(this.sendTimeout);
-		}
-
-		if (this.outputChannelName != null) {
-			aggregator.setOutputChannelName(this.outputChannelName);
-		}
-
-		if (this.metrics != null) {
-			aggregator.configureMetrics(this.metrics);
-		}
-
-		if (this.statsEnabled != null) {
-			aggregator.setStatsEnabled(this.statsEnabled);
-		}
-
-		if (this.countsEnabled != null) {
-			aggregator.setCountsEnabled(this.countsEnabled);
-		}
-
-		if (this.lockRegistry != null) {
-			aggregator.setLockRegistry(this.lockRegistry);
-		}
-
-		if (this.messageStore != null) {
-			aggregator.setMessageStore(this.messageStore);
-		}
-
-		if (this.correlationStrategy != null) {
-			aggregator.setCorrelationStrategy(this.correlationStrategy);
-		}
-
-		if (this.releaseStrategy != null) {
-			aggregator.setReleaseStrategy(this.releaseStrategy);
-		}
-
-		if (this.groupTimeoutExpression != null) {
-			aggregator.setGroupTimeoutExpression(this.groupTimeoutExpression);
-		}
-
-		if (this.forceReleaseAdviceChain != null) {
-			aggregator.setForceReleaseAdviceChain(this.forceReleaseAdviceChain);
-		}
-
-		if (this.taskScheduler != null) {
-			aggregator.setTaskScheduler(this.taskScheduler);
-		}
-
-		if (this.discardChannel != null) {
-			aggregator.setDiscardChannel(this.discardChannel);
-		}
-
-		if (this.discardChannelName != null) {
-			aggregator.setDiscardChannelName(this.discardChannelName);
-		}
-
-		if (this.sendPartialResultOnExpiry != null) {
-			aggregator.setSendPartialResultOnExpiry(this.sendPartialResultOnExpiry);
-		}
-
-		if (this.minimumTimeoutForEmptyGroups != null) {
-			aggregator.setMinimumTimeoutForEmptyGroups(this.minimumTimeoutForEmptyGroups);
-		}
-
-		if (this.expireGroupsUponTimeout != null) {
-			aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
-		}
-
-		if (this.popSequence != null) {
-			aggregator.setPopSequence(this.popSequence);
-		}
-
-		if (this.releaseLockBeforeSend != null) {
-			aggregator.setReleaseLockBeforeSend(this.releaseLockBeforeSend);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
+			.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
+			.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
+			.acceptIfNotNull(this.metrics, aggregator::configureMetrics)
+			.acceptIfNotNull(this.statsEnabled, aggregator::setStatsEnabled)
+			.acceptIfNotNull(this.countsEnabled, aggregator::setCountsEnabled)
+			.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
+			.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
+			.acceptIfNotNull(this.correlationStrategy, aggregator::setCorrelationStrategy)
+			.acceptIfNotNull(this.releaseStrategy, aggregator::setReleaseStrategy)
+			.acceptIfNotNull(this.groupTimeoutExpression, aggregator::setGroupTimeoutExpression)
+			.acceptIfNotNull(this.forceReleaseAdviceChain, aggregator::setForceReleaseAdviceChain)
+			.acceptIfNotNull(this.taskScheduler, aggregator::setTaskScheduler)
+			.acceptIfNotNull(this.discardChannel, aggregator::setDiscardChannel)
+			.acceptIfNotNull(this.discardChannelName, aggregator::setDiscardChannelName)
+			.acceptIfNotNull(this.sendPartialResultOnExpiry, aggregator::setSendPartialResultOnExpiry)
+			.acceptIfNotNull(this.minimumTimeoutForEmptyGroups, aggregator::setMinimumTimeoutForEmptyGroups)
+			.acceptIfNotNull(this.expireGroupsUponTimeout, aggregator::setExpireGroupsUponTimeout)
+			.acceptIfNotNull(this.popSequence, aggregator::setPopSequence)
+			.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend);
 
 		return aggregator;
 	}
