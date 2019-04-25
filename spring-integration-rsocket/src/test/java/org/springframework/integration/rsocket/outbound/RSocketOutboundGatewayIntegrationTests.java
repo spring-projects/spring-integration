@@ -74,13 +74,13 @@ import reactor.test.StepVerifier;
 @DirtiesContext
 public class RSocketOutboundGatewayIntegrationTests {
 
-	private static int PORT;
-
 	private static final String ROUTE_HEADER = "rsocket_route";
 
 	private static final String COMMAND_HEADER = "rsocket_command";
 
 	private static AnnotationConfigApplicationContext context;
+
+	private static int port;
 
 	private static CloseableChannel server;
 
@@ -98,7 +98,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		context = new AnnotationConfigApplicationContext(ServerConfig.class);
 		TcpServer tcpServer =
 				TcpServer.create().port(0)
-						.doOnBound(server -> PORT = server.port());
+						.doOnBound(server -> port = server.port());
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
 				.acceptor(context.getBean(MessageHandlerAcceptor.class))
@@ -324,7 +324,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@Bean
 		public MessageHandler rsocketOutboundGateway() {
 			RSocketOutboundGateway rsocketOutboundGateway =
-					new RSocketOutboundGateway(TcpClientTransport.create(PORT),
+					new RSocketOutboundGateway(TcpClientTransport.create(port),
 							new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(ROUTE_HEADER)));
 			rsocketOutboundGateway.setCommandExpression(
 					new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(COMMAND_HEADER)));
