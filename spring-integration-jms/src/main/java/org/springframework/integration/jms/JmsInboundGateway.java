@@ -45,7 +45,55 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 	@Override
 	public void setRequestChannel(MessageChannel requestChannel) {
 		super.setRequestChannel(requestChannel);
-		this.endpoint.getListener().setRequestChannel(requestChannel);
+		this.endpoint.setOutputChannel(requestChannel);
+	}
+
+	@Override
+	public void setRequestChannelName(String requestChannelName) {
+		super.setRequestChannelName(requestChannelName);
+		this.endpoint.setOutputChannelName(requestChannelName);
+	}
+
+	@Override
+	public void setReplyChannel(MessageChannel replyChannel) {
+		super.setReplyChannel(replyChannel);
+		this.endpoint.getListener().setReplyChannel(replyChannel);
+	}
+
+	@Override
+	public void setReplyChannelName(String replyChannelName) {
+		super.setReplyChannelName(replyChannelName);
+		this.endpoint.getListener().setReplyChannelName(replyChannelName);
+	}
+
+	@Override
+	public void setErrorChannel(MessageChannel errorChannel) {
+		super.setErrorChannel(errorChannel);
+		this.endpoint.setErrorChannel(errorChannel);
+	}
+
+	@Override
+	public void setErrorChannelName(String errorChannelName) {
+		super.setErrorChannelName(errorChannelName);
+		this.endpoint.setErrorChannelName(errorChannelName);
+	}
+
+	@Override
+	public void setRequestTimeout(long requestTimeout) {
+		super.setRequestTimeout(requestTimeout);
+		this.endpoint.setSendTimeout(requestTimeout);
+	}
+
+	@Override
+	public void setReplyTimeout(long replyTimeout) {
+		super.setReplyTimeout(replyTimeout);
+		this.endpoint.getListener().setReplyTimeout(replyTimeout);
+	}
+
+	@Override
+	public void setShouldTrack(boolean shouldTrack) {
+		super.setShouldTrack(shouldTrack);
+		this.endpoint.setShouldTrack(shouldTrack);
 	}
 
 	/**
