@@ -105,6 +105,18 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	 */
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
 		Map<String, Object> aggregatedHeaders = new HashMap<>();
+		Set<String> conflictKeys = doAggregateHeaders(group, aggregatedHeaders);
+		for (String keyToRemove : conflictKeys) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
+						+ "in MessageGroup with correlation key: " + group.getGroupId());
+			}
+			aggregatedHeaders.remove(keyToRemove);
+		}
+		return aggregatedHeaders;
+	}
+
+	private Set<String> doAggregateHeaders(MessageGroup group, Map<String, Object> aggregatedHeaders) {
 		Set<String> conflictKeys = new HashSet<>();
 		for (Message<?> message : group.getMessages()) {
 			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
@@ -126,14 +138,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 				}
 			}
 		}
-		for (String keyToRemove : conflictKeys) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
-						+ "in MessageGroup with correlation key: " + group.getGroupId());
-			}
-			aggregatedHeaders.remove(keyToRemove);
-		}
-		return aggregatedHeaders;
+		return conflictKeys;
 	}
 
 	protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);

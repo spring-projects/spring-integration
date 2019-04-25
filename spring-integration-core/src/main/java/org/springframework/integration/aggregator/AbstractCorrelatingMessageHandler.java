@@ -643,7 +643,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		afterRelease(group, completedMessages);
 	}
 
-	protected void forceComplete(MessageGroup group) {
+	protected void forceComplete(MessageGroup group) { // NOSONAR Complexity
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
 		UUID groupId = UUIDConverter.getUUID(correlationKey);
@@ -737,7 +737,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 		}
-		catch (InterruptedException ie) {
+		catch (@SuppressWarnings("unused") InterruptedException ie) {
 			Thread.currentThread().interrupt();
 			this.logger.debug("Thread was interrupted while trying to obtain lock");
 		}
@@ -748,7 +748,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.messageStore.removeMessageGroup(correlationKey);
 	}
 
-	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence) {
+	protected int findLastReleasedSequenceNumber(@SuppressWarnings("unused") Object groupId,
+			Collection<Message<?>> partialSequence) {
+
 		Message<?> lastReleasedMessage = Collections.max(partialSequence, this.sequenceNumberComparator);
 		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
