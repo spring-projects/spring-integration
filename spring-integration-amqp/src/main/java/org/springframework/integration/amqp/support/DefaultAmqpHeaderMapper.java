@@ -187,27 +187,27 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 		JavaUtils.INSTANCE
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class),
-					appId -> amqpMessageProperties.setAppId(appId))
+					amqpMessageProperties::setAppId)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.CLUSTER_ID, String.class),
-					clusterId -> amqpMessageProperties.setClusterId(clusterId))
+					amqpMessageProperties::setClusterId)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_ENCODING, String.class),
-					contentEncoding -> amqpMessageProperties.setContentEncoding(contentEncoding))
+					amqpMessageProperties::setContentEncoding)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_LENGTH, Long.class),
-					contentLength -> amqpMessageProperties.setContentLength(contentLength))
+					amqpMessageProperties::setContentLength)
 			.acceptIfHasText(this.extractContentTypeAsString(headers),
-					contentType -> amqpMessageProperties.setContentType(contentType))
+					amqpMessageProperties::setContentType)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.CORRELATION_ID, String.class),
-					correlationId -> amqpMessageProperties.setCorrelationId(correlationId))
+					amqpMessageProperties::setCorrelationId)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELAY, Integer.class),
-					delay -> amqpMessageProperties.setDelay(delay))
+					amqpMessageProperties::setDelay)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class),
-					deliveryMode -> amqpMessageProperties.setDeliveryMode(deliveryMode))
+					amqpMessageProperties::setDeliveryMode)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_TAG, Long.class),
-					deliveryTag -> amqpMessageProperties.setDeliveryTag(deliveryTag))
+					amqpMessageProperties::setDeliveryTag)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.EXPIRATION, String.class),
-					expiration -> amqpMessageProperties.setExpiration(expiration))
+					amqpMessageProperties::setExpiration)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_COUNT, Integer.class),
-					messageCount -> amqpMessageProperties.setMessageCount(messageCount));
+					amqpMessageProperties::setMessageCount);
 		String messageId = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_ID, String.class);
 		if (StringUtils.hasText(messageId)) {
 			amqpMessageProperties.setMessageId(messageId);
@@ -220,15 +220,15 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		}
 		JavaUtils.INSTANCE
 			.acceptIfNotNull(getHeaderIfAvailable(headers, IntegrationMessageHeaderAccessor.PRIORITY, Integer.class),
-					priority -> amqpMessageProperties.setPriority(priority))
+					amqpMessageProperties::setPriority)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_EXCHANGE, String.class),
-					receivedExchange -> amqpMessageProperties.setReceivedExchange(receivedExchange))
+					amqpMessageProperties::setReceivedExchange)
 			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_ROUTING_KEY, String.class),
-					receivedRoutingKey -> amqpMessageProperties.setReceivedRoutingKey(receivedRoutingKey))
+					amqpMessageProperties::setReceivedRoutingKey)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.REDELIVERED, Boolean.class),
-					redelivered -> amqpMessageProperties.setRedelivered(redelivered))
+					amqpMessageProperties::setRedelivered)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.REPLY_TO, String.class),
-					replyTo -> amqpMessageProperties.setReplyTo(replyTo));
+					amqpMessageProperties::setReplyTo);
 		Date timestamp = getHeaderIfAvailable(headers, AmqpHeaders.TIMESTAMP, Date.class);
 		if (timestamp != null) {
 			amqpMessageProperties.setTimestamp(timestamp);
@@ -241,9 +241,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		}
 		JavaUtils.INSTANCE
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.TYPE, String.class),
-					type -> amqpMessageProperties.setType(type))
+					amqpMessageProperties::setType)
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.USER_ID, String.class),
-					userId -> amqpMessageProperties.setUserId(userId));
+					amqpMessageProperties::setUserId);
 
 		Map<String, String> jsonHeaders = new HashMap<String, String>();
 
