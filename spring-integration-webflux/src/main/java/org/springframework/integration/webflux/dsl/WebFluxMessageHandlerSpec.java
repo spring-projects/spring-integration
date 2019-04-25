@@ -17,13 +17,17 @@
 package org.springframework.integration.webflux.dsl;
 
 import java.net.URI;
+import java.util.function.Function;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.client.reactive.ClientHttpResponse;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.dsl.BaseHttpMessageHandlerSpec;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -86,6 +90,57 @@ public class WebFluxMessageHandlerSpec
 	 */
 	public WebFluxMessageHandlerSpec bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
 		this.target.setBodyExtractor(bodyExtractor);
+		return this;
+	}
+
+	/**
+	 * Configure a type for a request {@link org.reactivestreams.Publisher} elements.
+	 * @param publisherElementType  the type of the request {@link org.reactivestreams.Publisher} elements.
+	 * @return the spec
+	 * @since 5.2
+	 * @see WebFluxRequestExecutingMessageHandler#setPublisherElementType
+	 */
+	public WebFluxMessageHandlerSpec publisherElementType(Class<?> publisherElementType) {
+		this.target.setPublisherElementType(publisherElementType);
+		return this;
+	}
+
+	/**
+	 * Configure a {@link ParameterizedTypeReference} for a request {@link org.reactivestreams.Publisher} elements.
+	 * @param publisherElementType the type of the request {@link org.reactivestreams.Publisher} elements.
+	 * @return the spec
+	 * @since 5.2
+	 * @see WebFluxRequestExecutingMessageHandler#setPublisherElementType
+	 */
+	public WebFluxMessageHandlerSpec publisherElementType(ParameterizedTypeReference<?> publisherElementType) {
+		return publisherElementTypeExpression(new ValueExpression<>(publisherElementType));
+	}
+
+	/**
+	 * Configure a {@link Function} to evaluate a request {@link org.reactivestreams.Publisher}
+	 * elements type at runtime against a request message.
+	 * @param typeFunction the {@link Function} to evaluate a type for the request
+	 * {@link org.reactivestreams.Publisher} elements.
+	 * @param <P> the expected payload type.
+	 * @return the spec
+	 * @since 5.2
+	 * @see WebFluxRequestExecutingMessageHandler#setPublisherElementTypeExpression(Expression)
+	 */
+	public <P> WebFluxMessageHandlerSpec publisherElementTypeFunction(Function<Message<P>, ?> typeFunction) {
+		return publisherElementTypeExpression(new FunctionExpression<>(typeFunction));
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate a request {@link org.reactivestreams.Publisher}
+	 * elements type at runtime against a request message.
+	 * @param publisherElementTypeExpression the expression to evaluate a type for the request
+	 * {@link org.reactivestreams.Publisher} elements.
+	 * @return the spec
+	 * @since 5.2
+	 * @see WebFluxRequestExecutingMessageHandler#setPublisherElementTypeExpression(Expression)
+	 */
+	public WebFluxMessageHandlerSpec publisherElementTypeExpression(Expression publisherElementTypeExpression) {
+		this.target.setPublisherElementTypeExpression(publisherElementTypeExpression);
 		return this;
 	}
 
