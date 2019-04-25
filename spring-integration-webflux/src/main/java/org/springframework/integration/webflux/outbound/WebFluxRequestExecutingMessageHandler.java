@@ -106,7 +106,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * @param uri The URI.
 	 * @param webClient The WebClient to use.
 	 */
-	public WebFluxRequestExecutingMessageHandler(String uri, WebClient webClient) {
+	public WebFluxRequestExecutingMessageHandler(String uri, @Nullable WebClient webClient) {
 		this(new LiteralExpression(uri), webClient);
 		/*
 		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
@@ -122,7 +122,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param webClient The WebClient to use.
 	 */
-	public WebFluxRequestExecutingMessageHandler(Expression uriExpression, WebClient webClient) {
+	public WebFluxRequestExecutingMessageHandler(Expression uriExpression, @Nullable WebClient webClient) {
 		super(uriExpression);
 		this.webClient = (webClient == null ? WebClient.create() : webClient);
 		this.setAsync(true);
