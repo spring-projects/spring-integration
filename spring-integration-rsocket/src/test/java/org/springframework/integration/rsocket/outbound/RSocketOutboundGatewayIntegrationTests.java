@@ -19,10 +19,13 @@ package org.springframework.integration.rsocket.outbound;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.Collections;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -38,14 +41,17 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.MessageHandlerAcceptor;
+import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.stereotype.Controller;
@@ -55,12 +61,13 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.RSocketFactory;
 import io.rsocket.frame.decoder.PayloadDecoder;
-import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
+import io.rsocket.util.DefaultPayload;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
 import reactor.core.publisher.ReplayProcessor;
 import reactor.netty.tcp.TcpServer;
 import reactor.test.StepVerifier;
@@ -78,11 +85,19 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 	private static final String COMMAND_HEADER = "rsocket_command";
 
-	private static AnnotationConfigApplicationContext context;
+	private static AnnotationConfigApplicationContext serverContext;
 
 	private static int port;
 
 	private static CloseableChannel server;
+
+	private static FluxMessageChannel serverInputChannel;
+
+	private static FluxMessageChannel serverResultChannel;
+
+	private static PollableChannel serverErrorChannel;
+
+	private static TestController serverController;
 
 	@Autowired
 	private FluxMessageChannel inputChannel;
@@ -93,36 +108,69 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@Autowired
 	private PollableChannel errorChannel;
 
+	@Autowired
+	private TestController clientController;
+
+	@Autowired
+	private ClientRSocketConnector clientRSocketConnector;
+
+	private RSocketRequester serverRsocketRequester;
+
 	@BeforeAll
 	static void setup() {
-		context = new AnnotationConfigApplicationContext(ServerConfig.class);
+		serverContext = new AnnotationConfigApplicationContext(ServerConfig.class);
 		TcpServer tcpServer =
 				TcpServer.create().port(0)
 						.doOnBound(server -> port = server.port());
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
-				.acceptor(context.getBean(MessageHandlerAcceptor.class))
+				.acceptor(serverContext.getBean(MessageHandlerAcceptor.class))
 				.transport(TcpServerTransport.create(tcpServer))
 				.start()
 				.block();
+
+		serverController = serverContext.getBean(TestController.class);
+		serverInputChannel = serverContext.getBean("inputChannel", FluxMessageChannel.class);
+		serverResultChannel = serverContext.getBean("resultChannel", FluxMessageChannel.class);
+		serverErrorChannel = serverContext.getBean("errorChannel", PollableChannel.class);
 	}
 
 	@AfterAll
 	static void tearDown() {
-		context.close();
+		serverContext.close();
 		server.dispose();
 	}
 
+	@BeforeEach
+	void setupTest(TestInfo testInfo) {
+		if (testInfo.getDisplayName().startsWith("server")) {
+			this.clientRSocketConnector.connect();
+			this.serverRsocketRequester = serverController.clientRequester.block(Duration.ofSeconds(10));
+		}
+	}
+
 	@Test
-	void fireAndForget() {
-		Disposable disposable = Flux.from(this.resultChannel).subscribe();
-		this.inputChannel.send(
+	void clientFireAndForget() {
+		fireAndForget(this.inputChannel, this.resultChannel, serverController, null);
+	}
+
+	@Test
+	void serverFireAndForget() {
+		fireAndForget(serverInputChannel, serverResultChannel, this.clientController, this.serverRsocketRequester);
+	}
+
+	private void fireAndForget(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			TestController controller, RSocketRequester rsocketRequester) {
+
+		Disposable disposable = Flux.from(resultChannel).subscribe();
+		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "receive")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.fireAndForget)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(context.getBean(ServerController.class).fireForgetPayloads)
+		StepVerifier.create(controller.fireForgetPayloads)
 				.expectNext("Hello")
 				.thenCancel()
 				.verify();
@@ -130,16 +178,29 @@ public class RSocketOutboundGatewayIntegrationTests {
 		disposable.dispose();
 	}
 
+
 	@Test
-	void echo() {
-		this.inputChannel.send(
+	void clientEcho() {
+		echo(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverEcho() {
+		echo(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void echo(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		StepVerifier.create(
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.map(Message::getPayload)
 						.cast(String.class))
 				.expectNext("Hello")
@@ -148,15 +209,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void echoAsync() {
-		this.inputChannel.send(
+	void clientEchoAsync() {
+		echoAsync(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverEchoAsync() {
+		echoAsync(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void echoAsync(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-async")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		StepVerifier.create(
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.map(Message::getPayload)
 						.cast(String.class))
 				.expectNext("Hello async")
@@ -165,15 +238,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void echoStream() {
-		this.inputChannel.send(
+	void clientEchoStream() {
+		echoStream(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverEchoStream() {
+		echoStream(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void echoStream(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-stream")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		Message<?> resultMessage =
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.blockFirst();
 
 		assertThat(resultMessage)
@@ -191,15 +276,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void echoChannel() {
-		this.inputChannel.send(
+	void clientEchoChannel() {
+		echoChannel(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverEchoChannel() {
+		echoChannel(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void echoChannel(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload(Flux.range(1, 10).map(i -> "Hello " + i))
 						.setHeader(ROUTE_HEADER, "echo-channel")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		Message<?> resultMessage =
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.blockFirst();
 
 		assertThat(resultMessage)
@@ -215,16 +312,29 @@ public class RSocketOutboundGatewayIntegrationTests {
 				.verify();
 	}
 
+
 	@Test
-	void voidReturnValue() {
-		this.inputChannel.send(
+	void clientVoidReturnValue() {
+		voidReturnValue(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverVoidReturnValue() {
+		voidReturnValue(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void voidReturnValue(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "void-return-value")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		Message<?> resultMessage =
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.blockFirst();
 
 		assertThat(resultMessage)
@@ -239,15 +349,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void voidReturnValueFromExceptionHandler() {
-		this.inputChannel.send(
+	void clientVoidReturnValueFromExceptionHandler() {
+		voidReturnValueFromExceptionHandler(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverVoidReturnValueFromExceptionHandler() {
+		voidReturnValueFromExceptionHandler(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void voidReturnValueFromExceptionHandler(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("bad")
 						.setHeader(ROUTE_HEADER, "void-return-value")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		Message<?> resultMessage =
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.blockFirst();
 
 		assertThat(resultMessage)
@@ -262,15 +384,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void handleWithThrownException() {
-		this.inputChannel.send(
+	void clientHandleWithThrownException() {
+		handleWithThrownException(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverHandleWithThrownException() {
+		handleWithThrownException(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void handleWithThrownException(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "thrown-exception")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		StepVerifier.create(
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.map(Message::getPayload)
 						.cast(String.class))
 				.expectNext("Invalid input error handled")
@@ -279,15 +413,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void handleWithErrorSignal() {
-		this.inputChannel.send(
+	void clientHandleWithErrorSignal() {
+		handleWithErrorSignal(this.inputChannel, this.resultChannel, null);
+	}
+
+	@Test
+	void serverHandleWithErrorSignal() {
+		handleWithErrorSignal(serverInputChannel, serverResultChannel, this.serverRsocketRequester);
+	}
+
+	private void handleWithErrorSignal(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			RSocketRequester rsocketRequester) {
+
+		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "error-signal")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		StepVerifier.create(
-				Flux.from(this.resultChannel)
+				Flux.from(resultChannel)
 						.map(Message::getPayload)
 						.cast(String.class))
 				.expectNext("Invalid input error handled")
@@ -296,12 +442,24 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Test
-	void noMatchingRoute() {
-		Disposable disposable = Flux.from(this.resultChannel).subscribe();
-		this.inputChannel.send(
+	void clientNoMatchingRoute() {
+		noMatchingRoute(this.inputChannel, this.resultChannel, this.errorChannel, null);
+	}
+
+	@Test
+	void serverNoMatchingRoute() {
+		noMatchingRoute(serverInputChannel, serverResultChannel, serverErrorChannel, this.serverRsocketRequester);
+	}
+
+	private void noMatchingRoute(MessageChannel inputChannel, FluxMessageChannel resultChannel,
+			PollableChannel errorChannel, RSocketRequester rsocketRequester) {
+
+		Disposable disposable = Flux.from(resultChannel).subscribe();
+		inputChannel.send(
 				MessageBuilder.withPayload("anything")
 						.setHeader(ROUTE_HEADER, "invalid")
 						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
 		Message<?> errorMessage = errorChannel.receive(10_000);
@@ -317,22 +475,30 @@ public class RSocketOutboundGatewayIntegrationTests {
 		disposable.dispose();
 	}
 
-	@Configuration
-	@EnableIntegration
-	public static class ClientConfig {
+	private abstract static class CommonConfig {
 
 		@Bean
-		public MessageHandler rsocketOutboundGateway() {
+		public RSocketStrategies rsocketStrategies() {
+			return RSocketStrategies.builder()
+					.decoder(StringDecoder.allMimeTypes())
+					.encoder(CharSequenceEncoder.allMimeTypes())
+					.dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
+					.build();
+		}
+
+		@Bean
+		public TestController controller() {
+			return new TestController();
+		}
+
+		@Bean
+		public RSocketOutboundGateway rsocketOutboundGateway() {
 			RSocketOutboundGateway rsocketOutboundGateway =
-					new RSocketOutboundGateway(TcpClientTransport.create(port),
-							new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(ROUTE_HEADER)));
+					new RSocketOutboundGateway(
+							new FunctionExpression<Message<?>>((m) ->
+									m.getHeaders().get(ROUTE_HEADER)));
 			rsocketOutboundGateway.setCommandExpression(
 					new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(COMMAND_HEADER)));
-			rsocketOutboundGateway.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
-			rsocketOutboundGateway.setStrategiesConfigurer((strategies) ->
-					strategies.decoder(StringDecoder.allMimeTypes())
-							.encoder(CharSequenceEncoder.allMimeTypes())
-							.dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT)));
 			return rsocketOutboundGateway;
 		}
 
@@ -352,35 +518,57 @@ public class RSocketOutboundGatewayIntegrationTests {
 	}
 
 	@Configuration
-	static class ServerConfig {
+	@EnableIntegration
+	public static class ClientConfig extends CommonConfig {
 
 		@Bean
-		public ServerController controller() {
-			return new ServerController();
-		}
-
-		@Bean
-		public MessageHandlerAcceptor messageHandlerAcceptor() {
+		public MessageHandlerAcceptor clientAcceptor() {
 			MessageHandlerAcceptor acceptor = new MessageHandlerAcceptor();
+			acceptor.setHandlers(Collections.singletonList(controller()));
+			acceptor.setAutoDetectDisabled();
 			acceptor.setRSocketStrategies(rsocketStrategies());
 			return acceptor;
 		}
 
 		@Bean
-		public RSocketStrategies rsocketStrategies() {
-			return RSocketStrategies.builder()
-					.decoder(StringDecoder.allMimeTypes())
-					.encoder(CharSequenceEncoder.allMimeTypes())
-					.dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
-					.build();
+		public ClientRSocketConnector clientRSocketConnector() {
+			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
+			clientRSocketConnector.setFactoryConfigurer((factory) -> factory
+					.frameDecoder(PayloadDecoder.ZERO_COPY)
+					.acceptor(clientAcceptor()));
+			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
+			clientRSocketConnector.setConnectRoute("clientConnect");
+			return clientRSocketConnector;
+		}
+
+		@Bean
+		public RSocketOutboundGateway rsocketOutboundGateway() {
+			RSocketOutboundGateway rsocketOutboundGateway = super.rsocketOutboundGateway();
+			rsocketOutboundGateway.setClientRSocketConnector(clientRSocketConnector());
+			return rsocketOutboundGateway;
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	static class ServerConfig extends CommonConfig {
+
+		@Bean
+		public MessageHandlerAcceptor serverAcceptor() {
+			MessageHandlerAcceptor acceptor = new MessageHandlerAcceptor();
+			acceptor.setRSocketStrategies(rsocketStrategies());
+			return acceptor;
 		}
 
 	}
 
 	@Controller
-	static class ServerController {
+	static class TestController {
 
 		final ReplayProcessor<String> fireForgetPayloads = ReplayProcessor.create();
+
+		final MonoProcessor<RSocketRequester> clientRequester = MonoProcessor.create();
 
 		@MessageMapping("receive")
 		void receive(String payload) {
@@ -432,6 +620,11 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@MessageExceptionHandler
 		Mono<Void> handleExceptionWithVoidReturnValue(IllegalStateException ex) {
 			return Mono.delay(Duration.ofMillis(10)).then(Mono.empty());
+		}
+
+		@MessageMapping("clientConnect")
+		void clientConnect(RSocketRequester requester) {
+			this.clientRequester.onNext(requester);
 		}
 
 	}

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.rsocket.outbound;
 
-import java.util.function.Consumer;
-
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -26,39 +24,51 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
 
-import io.rsocket.RSocketFactory;
-import io.rsocket.transport.ClientTransport;
-import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
 /**
- * An Outbound Messaging Gateway for RSocket client requests.
+ * An Outbound Messaging Gateway for RSocket requests.
+ * The request logic is fully based on the {@link RSocketRequester}, which can be obtained from the
+ * {@link ClientRSocketConnector} on the client side or from the
+ * {@link RSocketRequesterMethodArgumentResolver#RSOCKET_REQUESTER_HEADER} request message header
+ * on the server side.
+ * <p>
+ * An RSocket operation is determined by the configured {@link Command} ro respective SpEL
+ * expression to be evaluated at runtime against request message.
+ * By default the {@link Command#requestResponse} operation is used.
+ * <p>
+ * For a {@link Publisher}-based requests, it must be present in the request message {@code payload}.
+ * The flattening via upstream {@link org.springframework.integration.channel.FluxMessageChannel} will work, too,
+ * but this way we will lose a scope of particular request and every {@link Publisher} event
+ * will be send in its own plain request.
+ * <p>
+ * If reply is a {@link reactor.core.publisher.Flux}, it is wrapped to the {@link Mono} to retain a request scope.
+ * The downstream flow is responsible to obtain this {@link reactor.core.publisher.Flux} from a message payload
+ * and subscribe to it by itself. The {@link Mono} reply from this component is subscribed from the downstream
+ * {@link org.springframework.integration.channel.FluxMessageChannel} or it is adapted to the
+ * {@link org.springframework.util.concurrent.ListenableFuture} otherwise.
  *
  * @author Artem Bilan
  *
  * @since 5.2
  *
+ * @see Command
  * @see RSocketRequester
  */
 public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final ClientTransport clientTransport;
-
 	private final Expression routeExpression;
 
-	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
-
-	private Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer = (clientRSocketFactory) -> { };
-
-	private Consumer<RSocketStrategies.Builder> strategiesConfigurer = (builder) -> { };
+	@Nullable
+	private ClientRSocketConnector clientRSocketConnector;
 
 	private Expression commandExpression = new ValueExpression<>(Command.requestResponse);
 
@@ -66,42 +76,56 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression expectedResponseTypeExpression = new ValueExpression<>(String.class);
 
-	private Mono<RSocketRequester> rSocketRequesterMono;
-
 	private EvaluationContext evaluationContext;
 
-	public RSocketOutboundGateway(ClientTransport clientTransport, String route) {
-		this(clientTransport, new ValueExpression<>(route));
+	@Nullable
+	private Mono<RSocketRequester> rsocketRequesterMono;
+
+	/**
+	 * Instantiate based on the provided RSocket endpoint {@code route}.
+	 * @param route the RSocket endpoint route to use.
+	 */
+	public RSocketOutboundGateway(String route) {
+		this(new ValueExpression<>(route));
 	}
 
-	public RSocketOutboundGateway(ClientTransport clientTransport, Expression routeExpression) {
-		Assert.notNull(clientTransport, "'clientTransport' must not be null");
+	/**
+	 * Instantiate based on the provided SpEL expression to evaluate an RSocket endpoint {@code route}
+	 * at runtime against a request message.
+	 * @param routeExpression the SpEL expression to use.
+	 */
+	public RSocketOutboundGateway(Expression routeExpression) {
 		Assert.notNull(routeExpression, "'routeExpression' must not be null");
-		this.clientTransport = clientTransport;
 		this.routeExpression = routeExpression;
 		setAsync(true);
 		setPrimaryExpression(this.routeExpression);
 	}
 
-	public void setDataMimeType(MimeType dataMimeType) {
-		Assert.notNull(dataMimeType, "'dataMimeType' must not be null");
-		this.dataMimeType = dataMimeType;
+	/**
+	 * Configure a {@link ClientRSocketConnector} for client side requests based on the connection
+	 * provided by the {@link ClientRSocketConnector#getRSocketRequester()}.
+	 * In case of server side, an {@link RSocketRequester} must be provided in the
+	 * {@link RSocketRequesterMethodArgumentResolver#RSOCKET_REQUESTER_HEADER} header of request message.
+	 * @param clientRSocketConnector the {@link ClientRSocketConnector} to use.
+	 */
+	public void setClientRSocketConnector(ClientRSocketConnector clientRSocketConnector) {
+		Assert.notNull(clientRSocketConnector, "'clientRSocketConnector' must not be null");
+		this.clientRSocketConnector = clientRSocketConnector;
 	}
 
-	public void setFactoryConfigurer(Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer) {
-		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
-		this.factoryConfigurer = factoryConfigurer;
-	}
-
-	public void setStrategiesConfigurer(Consumer<RSocketStrategies.Builder> strategiesConfigurer) {
-		Assert.notNull(strategiesConfigurer, "'strategiesConfigurer' must not be null");
-		this.strategiesConfigurer = strategiesConfigurer;
-	}
-
+	/**
+	 * Configure a {@link Command} for RSocket request type.
+	 * @param command the {@link Command} to use.
+	 */
 	public void setCommand(Command command) {
 		setCommandExpression(new ValueExpression<>(command));
 	}
 
+	/**
+	 * Configure a SpEL expression to evaluate a {@link Command} for RSocket request type at runtime
+	 * against a request message.
+	 * @param commandExpression the SpEL expression to use.
+	 */
 	public void setCommandExpression(Expression commandExpression) {
 		Assert.notNull(commandExpression, "'commandExpression' must not be null");
 		this.commandExpression = commandExpression;
@@ -155,26 +179,35 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	protected void doInit() {
 		super.doInit();
-		this.rSocketRequesterMono =
-				RSocketRequester.builder()
-						.rsocketFactory(this.factoryConfigurer)
-						.rsocketStrategies(this.strategiesConfigurer)
-						.connect(this.clientTransport, this.dataMimeType);
-
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.clientRSocketConnector != null) {
+			this.rsocketRequesterMono = this.clientRSocketConnector.getRSocketRequester().cache();
+		}
 	}
 
 	@Override
 	public void destroy() {
 		super.destroy();
-		this.rSocketRequesterMono.map(RSocketRequester::rsocket)
-				.doOnNext(Disposable::dispose)
-				.subscribe();
+
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		return this.rSocketRequesterMono.cache()
+		RSocketRequester rsocketRequester = requestMessage.getHeaders()
+				.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, RSocketRequester.class);
+		Mono<RSocketRequester> requesterMono;
+		if (rsocketRequester != null) {
+			requesterMono = Mono.just(rsocketRequester);
+		}
+		else {
+			requesterMono = this.rsocketRequesterMono;
+		}
+
+		Assert.notNull(requesterMono, () ->
+				"The 'RSocketRequester' must be configured via 'ClientRSocketConnector' or provided in the '" +
+						RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER + "' request message headers.");
+
+		return requesterMono
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
 				.map((requestSpec) -> createResponseSpec(requestSpec, requestMessage))
 				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
