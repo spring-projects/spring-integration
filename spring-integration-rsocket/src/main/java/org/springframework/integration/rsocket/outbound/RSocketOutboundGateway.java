@@ -34,9 +34,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
-import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
 import io.rsocket.transport.ClientTransport;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
 /**
@@ -167,7 +167,9 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Override
 	public void destroy() {
 		super.destroy();
-		this.rSocketRequesterMono.block().rsocket().dispose();
+		this.rSocketRequesterMono.map(RSocketRequester::rsocket)
+				.doOnNext(Disposable::dispose)
+				.subscribe();
 	}
 
 	@Override
@@ -275,20 +277,20 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	public enum Command {
 
 		/**
-		 * Perform {@link RSocket#fireAndForget fireAndForget}.
+		 * Perform {@link io.rsocket.RSocket#fireAndForget fireAndForget}.
 		 * @see RSocketRequester.ResponseSpec#send()
 		 */
 		fireAndForget,
 
 		/**
-		 * Perform {@link RSocket#requestResponse requestResponse}.
+		 * Perform {@link io.rsocket.RSocket#requestResponse requestResponse}.
 		 * @see RSocketRequester.ResponseSpec#retrieveMono
 		 */
 		requestResponse,
 
 		/**
-		 * Perform {@link RSocket#requestStream requestStream} or
-		 * {@link RSocket#requestChannel requestChannel} depending on whether
+		 * Perform {@link io.rsocket.RSocket#requestStream requestStream} or
+		 * {@link io.rsocket.RSocket#requestChannel requestChannel} depending on whether
 		 * the request input consists of a single or multiple payloads.
 		 * @see RSocketRequester.ResponseSpec#retrieveFlux
 		 */

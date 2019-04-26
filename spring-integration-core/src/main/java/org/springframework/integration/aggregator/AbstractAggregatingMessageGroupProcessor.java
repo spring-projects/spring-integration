@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -53,11 +54,11 @@ import org.springframework.util.Assert;
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor,
 		BeanFactoryAware {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
+	private boolean messageBuilderFactorySet;
 
 	private BeanFactory beanFactory;
 
@@ -79,8 +80,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	@Override
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
-
-		Map<String, Object> headers = this.aggregateHeaders(group);
+		Map<String, Object> headers = aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (payload instanceof Message<?>) {
@@ -131,8 +131,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 					aggregatedHeaders.put(key, value);
 				}
 				else {
-					Object existingValue = aggregatedHeaders.get(key);
-					if (value != existingValue && (value == null || !value.equals(existingValue))) {
+					if (!Objects.equals(value, aggregatedHeaders.get(key))) {
 						conflictKeys.add(key);
 					}
 				}
