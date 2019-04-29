@@ -106,7 +106,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 						"An example of when this often occurs is if the lambda is configured to " +
 						"receive a Message<?> argument.", e.getCause());
 			}
-			throw new MessageHandlingException(message, e.getCause());
+			throw new MessageHandlingException(message, e.getCause()); // NOSONAR lost stack trace
 		}
 		catch (Exception e) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,

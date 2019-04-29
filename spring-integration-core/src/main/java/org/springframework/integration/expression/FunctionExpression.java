@@ -179,7 +179,7 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public String getExpressionString() {
+	public final String getExpressionString() {
 		return this.function.toString();
 	}
 

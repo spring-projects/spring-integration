@@ -57,7 +57,7 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  *
  */
-public class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {
+public final class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {
 
 	private final Matcher<T> matcher;
 

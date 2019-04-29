@@ -16,9 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -42,8 +39,6 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
-
 	protected volatile T target; // NOSONAR
 
 	private String id;
@@ -51,11 +46,11 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	/**
 	 * Configure the component identifier. Used as the {@code beanName} to register the
 	 * bean in the application context for this component.
-	 * @param id the id.
+	 * @param idToSet the id.
 	 * @return the spec.
 	 */
-	protected S id(String id) {
-		this.id = id;
+	protected S id(String idToSet) {
+		this.id = idToSet;
 		return _this();
 	}
 

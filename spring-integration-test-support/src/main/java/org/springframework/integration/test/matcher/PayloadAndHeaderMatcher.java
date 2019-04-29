@@ -49,7 +49,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Gary Russell
  *
  */
-public class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
+public final class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
 
 	private final T payload;
 

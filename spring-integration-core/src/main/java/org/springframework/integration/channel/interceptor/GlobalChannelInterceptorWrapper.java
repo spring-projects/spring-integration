@@ -32,7 +32,7 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 
 	private final ChannelInterceptor channelInterceptor;
 
-	private volatile String[] patterns = new String[]{"*"}; // default
+	private volatile String[] patterns = { "*" }; // default
 
 	private volatile int order = 0;
 
@@ -57,7 +57,7 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 	}
 
 	@Override
-	public int getOrder() {
+	public final int getOrder() {
 		return this.order;
 	}
 

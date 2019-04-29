@@ -358,9 +358,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					throw new IOException("Timed out waiting for IO");
 				}
 			}
-			catch (@SuppressWarnings(UNUSED) InterruptedException e) {
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new IOException("Interrupted waiting for IO");
+				throw new IOException("Interrupted waiting for IO", e);
 			}
 		}
 		Message<?> message = null;

@@ -43,7 +43,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	}
 
 	@Override
-	public List<Registration> getRegistrations() {
+	public final List<Registration> getRegistrations() {
 		List<Registration> registrations = new ArrayList<Registration>();
 		for (KryoRegistrar registrar : this.delegates) {
 			registrations.addAll(registrar.getRegistrations());
@@ -59,13 +59,13 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 			Assert.isTrue(registration.getId() >= MIN_REGISTRATION_VALUE,
 					"registration ID must be >= " + MIN_REGISTRATION_VALUE);
 			if (ids.contains(registration.getId())) {
-				throw new RuntimeException(String.format("Duplicate registration ID found: %d",
+				throw new IllegalArgumentException(String.format("Duplicate registration ID found: %d",
 						registration.getId()));
 			}
 			ids.add(registration.getId());
 
 			if (types.contains(registration.getType())) {
-				throw new RuntimeException(String.format("Duplicate registration found for type: %s",
+				throw new IllegalArgumentException(String.format("Duplicate registration found for type: %s",
 						registration.getType()));
 			}
 			types.add(registration.getType());

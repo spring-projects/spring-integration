@@ -80,7 +80,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 * the real listener supplied here, with the modified message.
 	 */
 	@Override
-	public void registerListener(TcpListener listener) {
+	public void registerListener(TcpListener listener) { // NOSONAR - not useless, custom Javadoc
 		super.registerListener(listener);
 	}
 

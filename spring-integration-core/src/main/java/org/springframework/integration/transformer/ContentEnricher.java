@@ -488,7 +488,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 
 		@Override
-		protected Message<?> sendAndReceiveMessage(Object object) {
+		protected Message<?> sendAndReceiveMessage(Object object) { // NOSONAR - not useless, increases visibility
 			return super.sendAndReceiveMessage(object);
 		}
 

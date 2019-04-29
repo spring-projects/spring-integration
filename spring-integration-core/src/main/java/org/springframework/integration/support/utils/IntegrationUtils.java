@@ -96,7 +96,7 @@ public final class IntegrationUtils {
 				logger.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory, using default.");
 			}
 			if (fatalWhenNoBeanFactory) {
-				throw new RuntimeException("All Message creators need a BeanFactory");
+				throw new IllegalStateException("All Message creators need a BeanFactory");
 			}
 		}
 		if (messageBuilderFactory == null) {

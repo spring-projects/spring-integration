@@ -50,7 +50,7 @@ public class MutableMessageHeaders extends MessageHeaders {
 	}
 
 	@Override
-	protected Map<String, Object> getRawHeaders() {
+	protected Map<String, Object> getRawHeaders() { // NOSONAR - not useless; increases visibility
 		return super.getRawHeaders();
 	}
 

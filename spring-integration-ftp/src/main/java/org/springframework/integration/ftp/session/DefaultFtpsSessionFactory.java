@@ -130,7 +130,7 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 				throw (RuntimeException) e;
 			}
 
-			throw new RuntimeException("Failed to create FTPS client.", e);
+			throw new IllegalStateException("Failed to create FTPS client.", e);
 		}
 	}
 

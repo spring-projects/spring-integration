@@ -52,7 +52,7 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	}
 
 	@Override
-	public S id(String id) {
+	public S id(String id) { // NOSONAR - not useless, increases visibility
 		return super.id(id);
 	}
 
