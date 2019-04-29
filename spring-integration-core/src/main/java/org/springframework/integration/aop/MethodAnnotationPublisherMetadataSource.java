@@ -205,8 +205,8 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	private <T> T getAnnotationValue(Annotation annotation, String attributeName, Class<T> expectedType) {
 		T value = null;
 		Object valueAsObject = (attributeName == null) ?
-							   AnnotationUtils.getValue(AnnotationUtils.synthesizeAnnotation(annotation, null)) :
-							   AnnotationUtils.getValue(annotation, attributeName);
+							AnnotationUtils.getValue(AnnotationUtils.synthesizeAnnotation(annotation, null)) :
+							AnnotationUtils.getValue(annotation, attributeName);
 
 		if (valueAsObject != null) {
 			if (expectedType.isAssignableFrom(valueAsObject.getClass())) {
