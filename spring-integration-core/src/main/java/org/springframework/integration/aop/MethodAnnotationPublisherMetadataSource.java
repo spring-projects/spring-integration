@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gareth Chapman
  * @author Cameron Mayfield
+ * @author Chengchen Ji
  *
  * @since 2.0
  */
@@ -114,7 +115,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 								"@Payload can be used at most once on a @Publisher method, " +
 										"either at method-level or on a single parameter");
 
-						Assert.state("".equals(AnnotationUtils.getValue(currentAnnotation)),
+						Assert.state("".equals(AnnotationUtils.getValue(AnnotationUtils.synthesizeAnnotation(currentAnnotation, null))),
 								"@Payload on a parameter for a @Publisher method may not contain an expression");
 
 						payloadExpression =
