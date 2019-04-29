@@ -210,6 +210,14 @@ public class ConsumerEndpointFactoryBean
 			}
 		}
 
+		adviceChain();
+		if (this.channelResolver == null) {
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
+		}
+		initializeEndpoint();
+	}
+
+	private void adviceChain() {
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			/*
 			 *  ARPMHs advise the handleRequestMessage method internally and already have the advice chain injected.
@@ -236,10 +244,6 @@ public class ConsumerEndpointFactoryBean
 				}
 			}
 		}
-		if (this.channelResolver == null) {
-			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
-		}
-		initializeEndpoint();
 	}
 
 	@Override
@@ -277,55 +281,17 @@ public class ConsumerEndpointFactoryBean
 			}
 			Assert.state(channel != null, "one of inputChannelName or inputChannel is required");
 			if (channel instanceof SubscribableChannel) {
-				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
-						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
-				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
-				if (logger.isWarnEnabled()
-						&& Boolean.FALSE.equals(this.autoStartup)
-						&& channel instanceof FixedSubscriberChannel) {
-					logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
-				}
+				eventDrivenConsumer(channel);
 			}
 			else if (channel instanceof PollableChannel) {
-				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
-				if (this.pollerMetadata == null) {
-					this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
-					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
-							+ "', and no default poller is available within the context.");
-				}
-				pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
-				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
-				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
-				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
-
-				pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
-
-				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
-				pollingConsumer.setTransactionSynchronizationFactory(
-						this.pollerMetadata.getTransactionSynchronizationFactory());
-				pollingConsumer.setBeanClassLoader(this.beanClassLoader);
-				pollingConsumer.setBeanFactory(this.beanFactory);
-				this.endpoint = pollingConsumer;
+				pollingConsumer(channel);
 			}
 			else {
 				this.endpoint = new ReactiveStreamsConsumer(channel, this.handler);
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
-			if (this.autoStartup != null) {
-				this.endpoint.setAutoStartup(this.autoStartup);
-			}
-			int phaseToSet = this.phase;
-			if (!this.isPhaseSet) {
-				if (this.endpoint instanceof PollingConsumer) {
-					phaseToSet = Integer.MAX_VALUE / 2;
-				}
-				else {
-					phaseToSet = Integer.MIN_VALUE;
-				}
-			}
-
-			this.endpoint.setPhase(phaseToSet);
+			smartLifecycle();
 			this.endpoint.setRole(this.role);
 			if (this.taskScheduler != null) {
 				this.endpoint.setTaskScheduler(this.taskScheduler);
@@ -333,6 +299,56 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
+	}
+
+	private void eventDrivenConsumer(MessageChannel channel) {
+		Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
+				+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
+		this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
+		if (logger.isWarnEnabled()
+				&& Boolean.FALSE.equals(this.autoStartup)
+				&& channel instanceof FixedSubscriberChannel) {
+			logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
+		}
+	}
+
+	private void pollingConsumer(MessageChannel channel) {
+		PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
+		if (this.pollerMetadata == null) {
+			this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
+			Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
+					+ "', and no default poller is available within the context.");
+		}
+		pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
+		pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
+		pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
+		pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
+
+		pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
+
+		pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
+		pollingConsumer.setTransactionSynchronizationFactory(
+				this.pollerMetadata.getTransactionSynchronizationFactory());
+		pollingConsumer.setBeanClassLoader(this.beanClassLoader);
+		pollingConsumer.setBeanFactory(this.beanFactory);
+		this.endpoint = pollingConsumer;
+	}
+
+	private void smartLifecycle() {
+		if (this.autoStartup != null) {
+			this.endpoint.setAutoStartup(this.autoStartup);
+		}
+		int phaseToSet = this.phase;
+		if (!this.isPhaseSet) {
+			if (this.endpoint instanceof PollingConsumer) {
+				phaseToSet = Integer.MAX_VALUE / 2;
+			}
+			else {
+				phaseToSet = Integer.MIN_VALUE;
+			}
+		}
+
+		this.endpoint.setPhase(phaseToSet);
 	}
 
 

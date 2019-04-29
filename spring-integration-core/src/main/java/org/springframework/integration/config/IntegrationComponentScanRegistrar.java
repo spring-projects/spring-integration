@@ -111,23 +111,7 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 				};
 
-		if ((boolean) componentScan.get("useDefaultFilters")) { // NOSONAR - never null
-			for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
-				scanner.addIncludeFilter(typeFilter);
-			}
-		}
-
-		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("includeFilters")) {
-			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
-				scanner.addIncludeFilter(typeFilter);
-			}
-		}
-		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("excludeFilters")) {
-			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
-				scanner.addExcludeFilter(typeFilter);
-			}
-		}
-
+		filter(registry, componentScan, scanner); // NOSONAR - never null
 
 		scanner.setResourceLoader(this.resourceLoader);
 
@@ -144,8 +128,30 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 		}
 	}
 
+	private void filter(BeanDefinitionRegistry registry, Map<String, Object> componentScan,
+			ClassPathScanningCandidateComponentProvider scanner) {
+
+		if ((boolean) componentScan.get("useDefaultFilters")) { // NOSONAR - never null
+			for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
+				scanner.addIncludeFilter(typeFilter);
+			}
+		}
+
+		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("includeFilters")) {
+			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
+				scanner.addIncludeFilter(typeFilter);
+			}
+		}
+		for (AnnotationAttributes filter : (AnnotationAttributes[]) componentScan.get("excludeFilters")) {
+			for (TypeFilter typeFilter : typeFiltersFor(filter, registry)) {
+				scanner.addExcludeFilter(typeFilter);
+			}
+		}
+	}
+
 	protected Collection<String> getBasePackages(AnnotationMetadata importingClassMetadata,
-			BeanDefinitionRegistry registry) {
+			@SuppressWarnings("unused") BeanDefinitionRegistry registry) {
+
 		Map<String, Object> componentScan =
 				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
 
