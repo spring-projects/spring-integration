@@ -44,11 +44,11 @@ import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -237,7 +237,7 @@ public class ConsumerEndpointFactoryBean
 			}
 		}
 		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
+			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 		}
 		initializeEndpoint();
 	}
