@@ -37,6 +37,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Cameron Mayfield
+ * @author Chengchen Ji
  *
  * @since 2.0
  */
@@ -116,6 +117,18 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		assertThat(payloadExpression).isEqualTo("#args[0]");
 	}
 
+	@Test(expected = IllegalStateException.class)
+	public void voidReturnAndParameterPayloadAnnotationWithExpression() {
+		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotationWithExpression", String.class);
+		source.getExpressionForPayload(method).getExpressionString();
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void voidReturnAndParameterPayloadAnnotationWithValue() {
+		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotationWithValue", String.class);
+		source.getExpressionForPayload(method).getExpressionString();
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturnAndNoPayloadAnnotation() {
 		Method method = getMethod("methodWithVoidReturnAndNoPayloadAnnotation", String.class);
@@ -182,11 +195,19 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 
 	@Publisher
 	@Payload("testExpression2")
-	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header("bar") String h2) {
+	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header(name = "bar") String h2) {
 	}
 
 	@Publisher
 	public void methodWithVoidReturnAndParameterPayloadAnnotation(@Payload String payload) {
+	}
+
+	@Publisher
+	public void methodWithVoidReturnAndParameterPayloadAnnotationWithExpression(@Payload(expression = "foo") String payload) {
+	}
+
+	@Publisher
+	public void methodWithVoidReturnAndParameterPayloadAnnotationWithValue(@Payload("foo") String payload) {
 	}
 
 	@Publisher

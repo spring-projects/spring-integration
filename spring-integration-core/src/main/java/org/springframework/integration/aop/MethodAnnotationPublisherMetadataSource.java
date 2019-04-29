@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gareth Chapman
  * @author Cameron Mayfield
+ * @author Chengchen Ji
  *
  * @since 2.0
  */
@@ -114,7 +115,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 								"@Payload can be used at most once on a @Publisher method, " +
 										"either at method-level or on a single parameter");
 
-						Assert.state("".equals(AnnotationUtils.getValue(currentAnnotation)),
+						Assert.state("".equals(AnnotationUtils.getValue(AnnotationUtils.synthesizeAnnotation(currentAnnotation, null))),
 								"@Payload on a parameter for a @Publisher method may not contain an expression");
 
 						payloadExpression =
@@ -204,8 +205,10 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	@SuppressWarnings("unchecked")
 	private <T> T getAnnotationValue(Annotation annotation, String attributeName, Class<T> expectedType) {
 		T value = null;
-		Object valueAsObject = (attributeName == null) ? AnnotationUtils.getValue(annotation)
-				: AnnotationUtils.getValue(annotation, attributeName);
+		Object valueAsObject = (attributeName == null) ?
+							AnnotationUtils.getValue(AnnotationUtils.synthesizeAnnotation(annotation, null)) :
+							AnnotationUtils.getValue(annotation, attributeName);
+
 		if (valueAsObject != null) {
 			if (expectedType.isAssignableFrom(valueAsObject.getClass())) {
 				value = (T) valueAsObject;
