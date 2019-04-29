@@ -182,7 +182,7 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 
 	@Publisher
 	@Payload("testExpression2")
-	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header("bar") String h2) {
+	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header(name = "bar") String h2) {
 	}
 
 	@Publisher
