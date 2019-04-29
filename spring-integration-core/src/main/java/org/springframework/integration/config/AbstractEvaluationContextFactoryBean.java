@@ -92,52 +92,65 @@ public abstract class AbstractEvaluationContextFactoryBean implements Applicatio
 
 	protected void initialize(String beanName) {
 		if (this.applicationContext != null) {
-			ConversionService conversionService = IntegrationUtils.getConversionService(getApplicationContext());
-			if (conversionService != null) {
-				this.typeConverter = new StandardTypeConverter(conversionService);
+			conversionService();
+			functions();
+			propertyAccessors();
+			processParentIfPresent(beanName);
+		}
+		this.initialized = true;
+	}
+
+	private void conversionService() {
+		ConversionService conversionService = IntegrationUtils.getConversionService(getApplicationContext());
+		if (conversionService != null) {
+			this.typeConverter = new StandardTypeConverter(conversionService);
+		}
+	}
+
+	private void functions() {
+		Map<String, SpelFunctionFactoryBean> functionFactoryBeanMap = BeanFactoryUtils
+				.beansOfTypeIncludingAncestors(this.applicationContext, SpelFunctionFactoryBean.class);
+		for (SpelFunctionFactoryBean spelFunctionFactoryBean : functionFactoryBeanMap.values()) {
+			if (!getFunctions().containsKey(spelFunctionFactoryBean.getFunctionName())) {
+				getFunctions().put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
 			}
+		}
+	}
 
-			Map<String, SpelFunctionFactoryBean> functionFactoryBeanMap = BeanFactoryUtils
-					.beansOfTypeIncludingAncestors(this.applicationContext, SpelFunctionFactoryBean.class);
-			for (SpelFunctionFactoryBean spelFunctionFactoryBean : functionFactoryBeanMap.values()) {
-				if (!getFunctions().containsKey(spelFunctionFactoryBean.getFunctionName())) {
-					getFunctions().put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
-				}
-			}
-
-			try {
-				SpelPropertyAccessorRegistrar propertyAccessorRegistrar =
-						this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
-				for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors()
-						.entrySet()) {
-					if (!getPropertyAccessors().containsKey(entry.getKey())) {
-						getPropertyAccessors().put(entry.getKey(), entry.getValue());
-					}
-				}
-			}
-			catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
-				// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
-			}
-
-			ApplicationContext parent = this.applicationContext.getParent();
-
-			if (parent != null && parent.containsBean(beanName)) {
-				AbstractEvaluationContextFactoryBean parentFactoryBean = parent.getBean("&" + beanName, getClass());
-
-				for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
-					if (!getPropertyAccessors().containsKey(entry.getKey())) {
-						getPropertyAccessors().put(entry.getKey(), entry.getValue());
-					}
-				}
-
-				for (Entry<String, Method> entry : parentFactoryBean.getFunctions().entrySet()) {
-					if (!getFunctions().containsKey(entry.getKey())) {
-						getFunctions().put(entry.getKey(), entry.getValue());
-					}
+	private void propertyAccessors() {
+		try {
+			SpelPropertyAccessorRegistrar propertyAccessorRegistrar =
+					this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
+			for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors()
+					.entrySet()) {
+				if (!getPropertyAccessors().containsKey(entry.getKey())) {
+					getPropertyAccessors().put(entry.getKey(), entry.getValue());
 				}
 			}
 		}
-		this.initialized = true;
+		catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
+			// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
+		}
+	}
+
+	private void processParentIfPresent(String beanName) {
+		ApplicationContext parent = this.applicationContext.getParent();
+
+		if (parent != null && parent.containsBean(beanName)) {
+			AbstractEvaluationContextFactoryBean parentFactoryBean = parent.getBean("&" + beanName, getClass());
+
+			for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
+				if (!getPropertyAccessors().containsKey(entry.getKey())) {
+					getPropertyAccessors().put(entry.getKey(), entry.getValue());
+				}
+			}
+
+			for (Entry<String, Method> entry : parentFactoryBean.getFunctions().entrySet()) {
+				if (!getFunctions().containsKey(entry.getKey())) {
+					getFunctions().put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
 	}
 
 }

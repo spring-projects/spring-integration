@@ -215,27 +215,9 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (actualHandler == null) {
 				actualHandler = this.handler;
 			}
-			final Object handlerToConfigure = actualHandler; // must final for lambdas
-			if (actualHandler instanceof IntegrationObjectSupport) {
-				JavaUtils.INSTANCE
-					.acceptIfNotNull(this.componentName,
-							name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
-					.acceptIfNotNull(this.channelResolver,
-							resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
-			}
-			if (!CollectionUtils.isEmpty(this.adviceChain)) {
-				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
-					((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
-				}
-				else if (this.logger.isDebugEnabled()) {
-					String name = this.componentName;
-					if (name == null && actualHandler instanceof NamedComponent) {
-						name = ((NamedComponent) actualHandler).getBeanName();
-					}
-					this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
-							+ (name == null ? "" : (", " + name)) + ".");
-				}
-			}
+			final Object handlerToConfigure = actualHandler; // must be final for lambdas
+			integrationObjectSupport(actualHandler, handlerToConfigure);
+			adviceChain(actualHandler);
 			JavaUtils.INSTANCE
 				.acceptIfCondition(this.async != null && actualHandler instanceof AbstractMessageProducingHandler,
 					this.async,
@@ -244,6 +226,37 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 					this.order, theOrder -> ((Orderable) this.handler).setOrder(theOrder));
 			this.initialized = true;
 		}
+		initializingBean();
+		return this.handler;
+	}
+
+	private void integrationObjectSupport(Object actualHandler, final Object handlerToConfigure) {
+		if (actualHandler instanceof IntegrationObjectSupport) {
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.componentName,
+						name -> ((IntegrationObjectSupport) handlerToConfigure).setComponentName(name))
+				.acceptIfNotNull(this.channelResolver,
+						resolver -> ((IntegrationObjectSupport) handlerToConfigure).setChannelResolver(resolver));
+		}
+	}
+
+	private void adviceChain(Object actualHandler) {
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
+			}
+			else if (this.logger.isDebugEnabled()) {
+				String name = this.componentName;
+				if (name == null && actualHandler instanceof NamedComponent) {
+					name = ((NamedComponent) actualHandler).getBeanName();
+				}
+				this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
+						+ (name == null ? "" : (", " + name)) + ".");
+			}
+		}
+	}
+
+	private void initializingBean() {
 		if (this.handler instanceof InitializingBean) {
 			try {
 				((InitializingBean) this.handler).afterPropertiesSet();
@@ -252,7 +265,6 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				throw new BeanInitializationException("failed to initialize MessageHandler", e);
 			}
 		}
-		return this.handler;
 	}
 
 	private void configureOutputChannelIfAny() {

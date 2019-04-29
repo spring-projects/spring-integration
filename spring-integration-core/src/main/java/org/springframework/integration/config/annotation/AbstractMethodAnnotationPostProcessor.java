@@ -133,7 +133,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		try {
 			disposablesBean = beanFactory.getBean(Disposables.class);
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings("unused") Exception e) {
 			// NOSONAR - only for test cases
 		}
 		this.disposables = disposablesBean;
@@ -155,18 +155,46 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		MessageHandler handler = createHandler(bean, method, annotations);
 
-		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
+		orderable(method, handler);
+		producerOrRouter(annotations, handler);
 
-		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
+		if (handler != sourceHandler) {
+			String handlerBeanName = generateHandlerBeanName(beanName, method);
+			if (handler instanceof ReplyProducingMessageHandlerWrapper
+					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
+				handlerBeanName = handlerBeanName + ".wrapper";
+			}
+			this.beanFactory.registerSingleton(handlerBeanName, handler);
+			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+			if (handler instanceof DisposableBean && this.disposables != null) {
+				this.disposables.add((DisposableBean) handler);
+			}
 		}
 
+		handler = annotated(method, handler);
+		handler = adviceChain(beanName, annotations, handler);
+
+		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
+		if (endpoint != null) {
+			return endpoint;
+		}
+		else {
+			return handler;
+		}
+	}
+
+
+	private void orderable(Method method, MessageHandler handler) {
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
 				((Orderable) handler).setOrder(orderAnnotation.value());
 			}
 		}
+	}
+
+
+	private void producerOrRouter(List<Annotation> annotations, MessageHandler handler) {
 		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
 			String sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", String.class);
 			if (sendTimeout != null) {
@@ -182,22 +210,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 		}
+	}
 
-		if (handler != sourceHandler) {
-			String handlerBeanName = generateHandlerBeanName(beanName, method);
-			if (handler instanceof ReplyProducingMessageHandlerWrapper
-					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
-				handlerBeanName = handlerBeanName + ".wrapper";
-			}
-			this.beanFactory.registerSingleton(handlerBeanName, handler);
-			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
-			if (handler instanceof DisposableBean && this.disposables != null) {
-				this.disposables.add((DisposableBean) handler);
-			}
-		}
 
+	private MessageHandler annotated(Method method, MessageHandler handlerArg) {
+		MessageHandler handler = handlerArg;
 		if (AnnotatedElementUtils.isAnnotated(method, IdempotentReceiver.class.getName())
 				&& !AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+
 			String[] interceptors =
 					AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value(); // NOSONAR never null
 			for (String interceptor : interceptors) {
@@ -218,6 +238,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 		}
+		return handler;
+	}
+
+
+	private MessageHandler adviceChain(String beanName, List<Annotation> annotations, MessageHandler handlerArg) {
+		MessageHandler handler = handlerArg;
+		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
+
+		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
+		}
 
 		if (!CollectionUtils.isEmpty(adviceChain)) {
 			for (Advice advice : adviceChain) {
@@ -235,14 +266,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 		}
-
-		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
-		if (endpoint != null) {
-			return endpoint;
-		}
-		else {
-			return handler;
-		}
+		return handler;
 	}
 
 	@Override
@@ -299,7 +323,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return adviceChain;
 	}
 
-	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {
+	protected AbstractEndpoint createEndpoint(MessageHandler handler, @SuppressWarnings("unused") Method method,
+			List<Annotation> annotations) {
+
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),
 				String.class);
@@ -376,53 +402,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 			}
 			else {
-				pollerMetadata = new PollerMetadata();
-				if (StringUtils.hasText(maxMessagesPerPollValue)) {
-					pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
-				}
-				else if (pollingEndpoint instanceof SourcePollingChannelAdapter) {
-					// SPCAs default to 1 message per poll
-					pollerMetadata.setMaxMessagesPerPoll(1);
-				}
-
-				if (StringUtils.hasText(executorRef)) {
-					pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
-				}
-
-				Trigger trigger = null;
-				if (StringUtils.hasText(triggerRef)) {
-					Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
-									&& !StringUtils.hasText(fixedRateValue),
-							"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
-					trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
-				}
-				else if (StringUtils.hasText(cron)) {
-					Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
-							"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
-					trigger = new CronTrigger(cron);
-				}
-				else if (StringUtils.hasText(fixedDelayValue)) {
-					Assert.state(!StringUtils.hasText(fixedRateValue),
-							"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
-					trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
-				}
-				else if (StringUtils.hasText(fixedRateValue)) {
-					trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
-					((PeriodicTrigger) trigger).setFixedRate(true);
-				}
-				//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
-				pollerMetadata.setTrigger(trigger);
-
-				if (StringUtils.hasText(errorChannel)) {
-					MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
-					errorHandler.setDefaultErrorChannelName(errorChannel);
-					errorHandler.setBeanFactory(this.beanFactory);
-					pollerMetadata.setErrorHandler(errorHandler);
-				}
-
-				if (StringUtils.hasText(receiveTimeout)) {
-					pollerMetadata.setReceiveTimeout(Long.parseLong(receiveTimeout));
-				}
+				pollerMetadata = configurePoller(pollingEndpoint, triggerRef, executorRef, fixedDelayValue,
+						fixedRateValue, maxMessagesPerPollValue, cron, errorChannel, receiveTimeout);
 			}
 		}
 		else {
@@ -439,6 +420,68 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			((PollingConsumer) pollingEndpoint).setReceiveTimeout(pollerMetadata.getReceiveTimeout());
 		}
 		pollingEndpoint.setTransactionSynchronizationFactory(pollerMetadata.getTransactionSynchronizationFactory());
+	}
+
+
+	private PollerMetadata configurePoller(AbstractPollingEndpoint pollingEndpoint, String triggerRef,
+			String executorRef, String fixedDelayValue, String fixedRateValue, String maxMessagesPerPollValue,
+			String cron, String errorChannel, String receiveTimeout) {
+
+		PollerMetadata pollerMetadata;
+		pollerMetadata = new PollerMetadata();
+		if (StringUtils.hasText(maxMessagesPerPollValue)) {
+			pollerMetadata.setMaxMessagesPerPoll(Long.parseLong(maxMessagesPerPollValue));
+		}
+		else if (pollingEndpoint instanceof SourcePollingChannelAdapter) {
+			// SPCAs default to 1 message per poll
+			pollerMetadata.setMaxMessagesPerPoll(1);
+		}
+
+		if (StringUtils.hasText(executorRef)) {
+			pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
+		}
+
+		trigger(triggerRef, fixedDelayValue, fixedRateValue, cron, pollerMetadata);
+
+		if (StringUtils.hasText(errorChannel)) {
+			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+			errorHandler.setDefaultErrorChannelName(errorChannel);
+			errorHandler.setBeanFactory(this.beanFactory);
+			pollerMetadata.setErrorHandler(errorHandler);
+		}
+
+		if (StringUtils.hasText(receiveTimeout)) {
+			pollerMetadata.setReceiveTimeout(Long.parseLong(receiveTimeout));
+		}
+		return pollerMetadata;
+	}
+
+
+	private void trigger(String triggerRef, String fixedDelayValue, String fixedRateValue, String cron,
+			PollerMetadata pollerMetadata) {
+		Trigger trigger = null;
+		if (StringUtils.hasText(triggerRef)) {
+			Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
+							&& !StringUtils.hasText(fixedRateValue),
+					"The '@Poller' 'trigger' attribute is mutually exclusive with other attributes.");
+			trigger = this.beanFactory.getBean(triggerRef, Trigger.class);
+		}
+		else if (StringUtils.hasText(cron)) {
+			Assert.state(!StringUtils.hasText(fixedDelayValue) && !StringUtils.hasText(fixedRateValue),
+					"The '@Poller' 'cron' attribute is mutually exclusive with other attributes.");
+			trigger = new CronTrigger(cron);
+		}
+		else if (StringUtils.hasText(fixedDelayValue)) {
+			Assert.state(!StringUtils.hasText(fixedRateValue),
+					"The '@Poller' 'fixedDelay' attribute is mutually exclusive with other attributes.");
+			trigger = new PeriodicTrigger(Long.parseLong(fixedDelayValue));
+		}
+		else if (StringUtils.hasText(fixedRateValue)) {
+			trigger = new PeriodicTrigger(Long.parseLong(fixedRateValue));
+			((PeriodicTrigger) trigger).setFixedRate(true);
+		}
+		//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
+		pollerMetadata.setTrigger(trigger);
 	}
 
 	protected String generateHandlerBeanName(String originalBeanName, Method method) {

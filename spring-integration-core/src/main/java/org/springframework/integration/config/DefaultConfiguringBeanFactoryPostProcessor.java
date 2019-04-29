@@ -343,14 +343,20 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerBuiltInBeans() {
 		int registryId = System.identityHashCode(this.registry);
+		jsonPath(registryId);
+		xpath(registryId);
+		jsonNodeToString(registryId);
+		registriesProcessed.add(registryId);
+	}
 
+	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
 		if (!this.beanFactory.containsBean(jsonPathBeanName) && !registriesProcessed.contains(registryId)) {
 			Class<?> jsonPathClass = null;
 			try {
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
 			}
-			catch (ClassNotFoundException e) {
+			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
 				logger.debug("The '#jsonPath' SpEL function cannot be registered: " +
 						"there is no jayway json-path.jar on the classpath.");
 			}
@@ -374,7 +380,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 						IntegrationConfigUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
 			}
 		}
+	}
 
+	private void xpath(int registryId) throws LinkageError {
 		String xpathBeanName = "xpath";
 		if (!this.beanFactory.containsBean(xpathBeanName) && !registriesProcessed.contains(registryId)) {
 			Class<?> xpathClass = null;
@@ -382,7 +390,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
 						this.classLoader);
 			}
-			catch (ClassNotFoundException e) {
+			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
 				logger.debug("SpEL function '#xpath' isn't registered: " +
 						"there is no spring-integration-xml.jar on the classpath.");
 			}
@@ -392,7 +400,9 @@ class DefaultConfiguringBeanFactoryPostProcessor
 						IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
 			}
 		}
+	}
 
+	private void jsonNodeToString(int registryId) {
 		if (!this.beanFactory.containsBean(
 				IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME) &&
 				!registriesProcessed.contains(registryId) && JacksonPresent.isJackson2Present()) {
@@ -406,8 +416,6 @@ class DefaultConfiguringBeanFactoryPostProcessor
 					new RuntimeBeanReference(
 							IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME));
 		}
-
-		registriesProcessed.add(registryId);
 	}
 
 	/**

@@ -103,27 +103,35 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
 			IdGeneratorConfigurer.theIdGenerator = idGeneratorBean;
 		}
-		catch (NoSuchBeanDefinitionException e) {
+		catch (@SuppressWarnings("unused") NoSuchBeanDefinitionException e) {
 			// No custom IdGenerator. We will use the default.
-			int idBeans = context.getBeansOfType(IdGenerator.class).size();
-			if (idBeans > 1 && this.logger.isWarnEnabled()) {
-				this.logger.warn("Found too many 'IdGenerator' beans (" + idBeans + ") " +
-						"Will use the existing UUID strategy.");
-			}
-			else if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use the existing UUID strategy.");
-			}
+			noSuchBean(context);
 			return false;
 		}
 		catch (IllegalStateException e) {
 			// thrown from ReflectionUtils
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
-						" Will use the existing UUID strategy.", e);
-			}
+			illegalState(e);
 			return false;
 		}
 		return true;
+	}
+
+	private void noSuchBean(ApplicationContext context) {
+		int idBeans = context.getBeansOfType(IdGenerator.class).size();
+		if (idBeans > 1 && this.logger.isWarnEnabled()) {
+			this.logger.warn("Found too many 'IdGenerator' beans (" + idBeans + ") " +
+					"Will use the existing UUID strategy.");
+		}
+		else if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use the existing UUID strategy.");
+		}
+	}
+
+	private void illegalState(IllegalStateException e) {
+		if (this.logger.isWarnEnabled()) {
+			this.logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
+					" Will use the existing UUID strategy.", e);
+		}
 	}
 
 	private void unsetIdGenerator() {

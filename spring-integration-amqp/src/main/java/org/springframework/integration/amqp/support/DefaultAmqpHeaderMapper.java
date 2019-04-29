@@ -245,6 +245,16 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			.acceptIfNotNull(getHeaderIfAvailable(headers, AmqpHeaders.USER_ID, String.class),
 					amqpMessageProperties::setUserId);
 
+		mapJsonHeaders(headers, amqpMessageProperties);
+
+		JavaUtils.INSTANCE
+			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_CORRELATION, String.class),
+					replyCorrelation -> amqpMessageProperties.setHeader("spring_reply_correlation", replyCorrelation))
+			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_TO_STACK, String.class),
+					replyToStack -> amqpMessageProperties.setHeader("spring_reply_to", replyToStack));
+	}
+
+	private void mapJsonHeaders(Map<String, Object> headers, MessageProperties amqpMessageProperties) {
 		Map<String, String> jsonHeaders = new HashMap<String, String>();
 
 		for (String jsonHeader : JsonHeaders.HEADERS) {
@@ -265,12 +275,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (!amqpMessageProperties.getHeaders().containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))) {
 			amqpMessageProperties.getHeaders().putAll(jsonHeaders);
 		}
-
-		JavaUtils.INSTANCE
-			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_CORRELATION, String.class),
-					replyCorrelation -> amqpMessageProperties.setHeader("spring_reply_correlation", replyCorrelation))
-			.acceptIfHasText(getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_TO_STACK, String.class),
-					replyToStack -> amqpMessageProperties.setHeader("spring_reply_to", replyToStack));
 	}
 
 	@Override

@@ -76,49 +76,7 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 				}
 			}
 			else if (beanDefinition instanceof AnnotatedBeanDefinition) {
-				if (beanDefinition.getSource() instanceof MethodMetadata) {
-					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
-					String annotationType = IdempotentReceiver.class.getName();
-					if (beanMethod.isAnnotated(annotationType)) { // NOSONAR never null
-						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value"); // NOSONAR
-						if (value != null) {
-
-							Class<?> returnType;
-							if (beanMethod instanceof StandardMethodMetadata) {
-								returnType = ((StandardMethodMetadata) beanMethod).getIntrospectedMethod()
-										.getReturnType();
-							}
-							else {
-								try {
-									returnType = ClassUtils.forName(beanMethod.getReturnTypeName(),
-											beanFactory.getBeanClassLoader());
-								}
-								catch (ClassNotFoundException e) {
-									throw new CannotLoadBeanClassException(beanDefinition.getDescription(),
-											beanName, beanMethod.getReturnTypeName(), e);
-								}
-							}
-
-							String endpoint = beanName;
-							if (!MessageHandler.class.isAssignableFrom(returnType)) {
-								/*
-								   MessageHandler beans, populated from @Bean methods, have a complex id,
-								   including @Configuration bean name, method name and the Messaging annotation name.
-								   The following pattern matches the bean name, regardless of the annotation name.
-								*/
-								endpoint = beanDefinition.getFactoryBeanName() + "." + beanName +
-										".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
-							}
-
-							String[] interceptors = (String[]) value;
-							for (String interceptor : interceptors) {
-								Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
-								idempotentEndpoint.put(interceptor, endpoint);
-								idempotentEndpointsMapping.add(idempotentEndpoint);
-							}
-						}
-					}
-				}
+				annotated(beanFactory, idempotentEndpointsMapping, beanName, beanDefinition);
 			}
 		}
 
@@ -127,6 +85,54 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 					.addPropertyValue("idempotentEndpointsMapping", idempotentEndpointsMapping)
 					.getBeanDefinition();
 			registry.registerBeanDefinition(IDEMPOTENT_RECEIVER_AUTO_PROXY_CREATOR_BEAN_NAME, bd);
+		}
+	}
+
+	private void annotated(ConfigurableListableBeanFactory beanFactory,
+			List<Map<String, String>> idempotentEndpointsMapping, String beanName, BeanDefinition beanDefinition)
+			throws LinkageError {
+		if (beanDefinition.getSource() instanceof MethodMetadata) {
+			MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
+			String annotationType = IdempotentReceiver.class.getName();
+			if (beanMethod.isAnnotated(annotationType)) { // NOSONAR never null
+				Object value = beanMethod.getAnnotationAttributes(annotationType).get("value"); // NOSONAR
+				if (value != null) {
+
+					Class<?> returnType;
+					if (beanMethod instanceof StandardMethodMetadata) {
+						returnType = ((StandardMethodMetadata) beanMethod).getIntrospectedMethod()
+								.getReturnType();
+					}
+					else {
+						try {
+							returnType = ClassUtils.forName(beanMethod.getReturnTypeName(),
+									beanFactory.getBeanClassLoader());
+						}
+						catch (ClassNotFoundException e) {
+							throw new CannotLoadBeanClassException(beanDefinition.getDescription(),
+									beanName, beanMethod.getReturnTypeName(), e);
+						}
+					}
+
+					String endpoint = beanName;
+					if (!MessageHandler.class.isAssignableFrom(returnType)) {
+						/*
+						   MessageHandler beans, populated from @Bean methods, have a complex id,
+						   including @Configuration bean name, method name and the Messaging annotation name.
+						   The following pattern matches the bean name, regardless of the annotation name.
+						*/
+						endpoint = beanDefinition.getFactoryBeanName() + "." + beanName +
+								".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
+					}
+
+					String[] interceptors = (String[]) value;
+					for (String interceptor : interceptors) {
+						Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
+						idempotentEndpoint.put(interceptor, endpoint);
+						idempotentEndpointsMapping.add(idempotentEndpoint);
+					}
+				}
+			}
 		}
 	}
 

@@ -73,7 +73,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		}
 	}
 
-	public BeanDefinitionHolder parse(Map<String, Object> gatewayAttributes) {
+	public BeanDefinitionHolder parse(Map<String, Object> gatewayAttributes) { // NOSONAR complexity
 		String defaultPayloadExpression = (String) gatewayAttributes.get("defaultPayloadExpression");
 
 		@SuppressWarnings("unchecked")
