@@ -144,27 +144,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
-			if (parserContext.getRegistry()
-					.containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
-
-				BeanDefinition channelRegistry = parserContext.getRegistry().
-						getBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-				ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
-				ValueHolder vh = caValues.getArgumentValue(0, Collection.class);
-				if (vh == null) { //although it should never happen if it does we can fix it
-					caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
-				}
-
-				@SuppressWarnings("unchecked")
-				Collection<String> channelCandidateNames =
-						(Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue(); // NOSONAR see comment above
-				channelCandidateNames.add(inputChannelName); // NOSONAR
-			}
-			else {
-				parserContext.getReaderContext().error("Failed to locate '" +
-						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'",
-						parserContext.getRegistry());
-			}
+			registerChannelForCreation(parserContext, inputChannelName);
 		}
 		IntegrationNamespaceUtils.checkAndConfigureFixedSubscriberChannel(element, parserContext, inputChannelName,
 				handlerBeanName);
@@ -186,6 +166,30 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		return null;
+	}
+
+	private void registerChannelForCreation(ParserContext parserContext, String inputChannelName) {
+		if (parserContext.getRegistry()
+				.containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
+
+			BeanDefinition channelRegistry = parserContext.getRegistry().
+					getBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+			ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
+			ValueHolder vh = caValues.getArgumentValue(0, Collection.class);
+			if (vh == null) { //although it should never happen if it does we can fix it
+				caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
+			}
+
+			@SuppressWarnings("unchecked")
+			Collection<String> channelCandidateNames =
+					(Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue(); // NOSONAR see comment above
+			channelCandidateNames.add(inputChannelName); // NOSONAR
+		}
+		else {
+			parserContext.getReaderContext().error("Failed to locate '" +
+					IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'",
+					parserContext.getRegistry());
+		}
 	}
 
 	/**

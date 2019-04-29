@@ -94,6 +94,12 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			router.setIgnoreSendFailures(resolveAttributeToBoolean(ignoreSendFailures));
 		}
 
+		routerAttributes(annotations, router);
+
+		return router;
+	}
+
+	private void routerAttributes(List<Annotation> annotations, AbstractMessageRouter router) {
 		if (routerAttributesProvided(annotations)) {
 
 			MethodInvokingRouter methodInvokingRouter = (MethodInvokingRouter) router;
@@ -127,8 +133,6 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			}
 
 		}
-
-		return router;
 	}
 
 	private boolean routerAttributesProvided(List<Annotation> annotations) {

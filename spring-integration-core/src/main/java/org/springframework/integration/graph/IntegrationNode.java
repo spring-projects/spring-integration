@@ -39,7 +39,7 @@ public abstract class IntegrationNode {
 
 	private final int nodeId;
 
-	private final String name;
+	private final String nodeName;
 
 	private final Stats stats;
 
@@ -51,7 +51,7 @@ public abstract class IntegrationNode {
 
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
 		this.nodeId = nodeId;
-		this.name = name;
+		this.nodeName = name;
 		this.componentType =
 				nodeObject instanceof NamedComponent
 						? ((NamedComponent) nodeObject).getComponentType()
@@ -70,10 +70,10 @@ public abstract class IntegrationNode {
 	}
 
 	public String getName() {
-		return this.name;
+		return this.nodeName;
 	}
 
-	public String getComponentType() {
+	public final  String getComponentType() {
 		return this.componentType;
 	}
 
@@ -98,12 +98,12 @@ public abstract class IntegrationNode {
 
 	/**
 	 * Add extra property to the node.
-	 * @param properties additional properties to add
+	 * @param props additional properties to add
 	 * @since 5.1
 	 */
-	public void addProperties(@Nullable Map<String, Object> properties) {
-		if (properties != null) {
-			this.properties.putAll(properties);
+	public void addProperties(@Nullable Map<String, Object> props) {
+		if (props != null) {
+			this.properties.putAll(props);
 		}
 	}
 

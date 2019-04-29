@@ -64,7 +64,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  *
  */
-public class MockitoMessageMatchers {
+public final class MockitoMessageMatchers {
 
 	private MockitoMessageMatchers() {
 		super();

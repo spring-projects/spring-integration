@@ -42,11 +42,12 @@ import org.springframework.util.ObjectUtils;
  * enabling debug logging for a test case.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0.1
  *
  */
-public class Log4j2LevelAdjuster implements MethodRule {
+public final class Log4j2LevelAdjuster implements MethodRule {
 
 	private static final Log logger = LogFactory.getLog(Log4j2LevelAdjuster.class);
 

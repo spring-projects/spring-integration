@@ -75,7 +75,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	public SmartLifecycleRoleController(List<String> roles, List<SmartLifecycle> lifecycles) {
 		Assert.notNull(roles, "'roles' cannot be null");
 		Assert.notNull(lifecycles, "'lifecycles' cannot be null");
-		Assert.isTrue(roles.size() == lifecycles.size(), "'roles' and 'lifecycles' must be the same lenght");
+		Assert.isTrue(roles.size() == lifecycles.size(), "'roles' and 'lifecycles' must be the same length");
 		Iterator<SmartLifecycle> iterator = lifecycles.iterator();
 		for (String role : roles) {
 			SmartLifecycle lifecycle = iterator.next();
@@ -134,7 +134,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param role the role.
 	 * @param lifecycleBeanName the bean name of the {@link SmartLifecycle}.
 	 */
-	public void addLifecycleToRole(String role, String lifecycleBeanName) {
+	public final void addLifecycleToRole(String role, String lifecycleBeanName) {
 		Assert.state(this.applicationContext != null, "An application context is required to use this method");
 		this.lazyLifecycles.add(role, lifecycleBeanName);
 	}

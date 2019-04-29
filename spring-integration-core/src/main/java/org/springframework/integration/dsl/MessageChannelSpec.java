@@ -57,22 +57,17 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 		super();
 	}
 
-	@Override
-	protected S id(String id) {
-		return super.id(id);
-	}
-
-	public S datatype(Class<?>... datatypes) {
-		Assert.notNull(datatypes, "'datatypes' must not be null");
-		Assert.noNullElements(datatypes, "'datatypes' must not contain null elements");
-		this.datatypes.addAll(Arrays.asList(datatypes));
+	public S datatype(Class<?>... types) {
+		Assert.notNull(types, "'datatypes' must not be null");
+		Assert.noNullElements(types, "'datatypes' must not contain null elements");
+		this.datatypes.addAll(Arrays.asList(types));
 		return _this();
 	}
 
-	public S interceptor(ChannelInterceptor... interceptors) {
-		Assert.notNull(interceptors, "'interceptors' must not be null");
-		Assert.noNullElements(interceptors, "'interceptors' must not contain null elements");
-		this.interceptors.addAll(Arrays.asList(interceptors));
+	public S interceptor(ChannelInterceptor... interceptorArray) {
+		Assert.notNull(interceptorArray, "'interceptorArray' must not be null");
+		Assert.noNullElements(interceptorArray, "'interceptorArray' must not contain null elements");
+		this.interceptors.addAll(Arrays.asList(interceptorArray));
 		return _this();
 	}
 
@@ -111,8 +106,8 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 		return interceptor(interceptor);
 	}
 
-	public S messageConverter(MessageConverter messageConverter) {
-		this.messageConverter = messageConverter;
+	public S messageConverter(MessageConverter converter) {
+		this.messageConverter = converter;
 		return _this();
 	}
 

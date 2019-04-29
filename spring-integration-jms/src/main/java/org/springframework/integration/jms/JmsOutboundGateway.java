@@ -1337,7 +1337,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 						debugLogger.debug("No pending reply for " + siMessage + " with correlationId: "
 								+ correlnId + " pending replies: " + this.replies.keySet());
 					}
-					throw new RuntimeException("No sender waiting for reply");
+					throw new IllegalStateException("No sender waiting for reply");
 				}
 				synchronized (this.earlyOrLateReplies) {
 					queue = this.replies.get(correlnId);
@@ -1410,9 +1410,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					try {
 						Thread.sleep(100);
 					}
-					catch (@SuppressWarnings("unused") InterruptedException e) {
+					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						throw new IllegalStateException("Container did not establish a destination");
+						throw new IllegalStateException("Container did not establish a destination", e);
 					}
 				}
 				if (this.replyDestination == null) {

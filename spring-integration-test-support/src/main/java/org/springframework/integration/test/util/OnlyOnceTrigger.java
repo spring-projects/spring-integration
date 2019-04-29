@@ -97,11 +97,12 @@ public class OnlyOnceTrigger implements Trigger {
 	public void await() {
 		try {
 			if (!this.latch.await(10000, TimeUnit.MILLISECONDS)) {
-				throw new RuntimeException("test latch.await() did not count down");
+				throw new IllegalStateException("test latch.await() did not count down");
 			}
 		}
 		catch (InterruptedException e) {
-			throw new RuntimeException("test latch.await() interrupted");
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("test latch.await() interrupted", e);
 		}
 	}
 

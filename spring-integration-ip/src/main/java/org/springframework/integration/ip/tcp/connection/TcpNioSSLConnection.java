@@ -421,7 +421,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new MessagingException("Interrupted during SSL Handshaking");
+				throw new MessagingException("Interrupted during SSL Handshaking", e);
 			}
 		}
 

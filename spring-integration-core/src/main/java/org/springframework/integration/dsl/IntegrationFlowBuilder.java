@@ -28,7 +28,7 @@ public final class IntegrationFlowBuilder extends IntegrationFlowDefinition<Inte
 	}
 
 	@Override
-	public StandardIntegrationFlow get() {
+	public StandardIntegrationFlow get() { // NOSONAR - not useless, increases visibility
 		return super.get();
 	}
 

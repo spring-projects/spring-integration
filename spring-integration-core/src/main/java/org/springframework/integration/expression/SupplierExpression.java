@@ -178,7 +178,7 @@ public class SupplierExpression<T> implements Expression {
 	}
 
 	@Override
-	public String getExpressionString() {
+	public final String getExpressionString() {
 		return this.supplier.toString();
 	}
 

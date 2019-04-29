@@ -59,7 +59,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 			return this.beanWrapper.getPropertyValue(paramName);
 		}
 		catch (NotReadablePropertyException ex) {
-			throw new IllegalArgumentException(ex.getMessage());
+			throw new IllegalArgumentException(ex.getMessage()); // NOSONAR - lost stack trace
 		}
 	}
 

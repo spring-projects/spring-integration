@@ -45,7 +45,7 @@ public abstract class JmsDestinationAccessorSpec<S extends JmsDestinationAccesso
 	}
 
 	@Override
-	public S id(String id) {
+	public S id(String id) { // NOSONAR - not useless, increases visibility
 		return super.id(id);
 	}
 

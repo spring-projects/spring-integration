@@ -46,14 +46,14 @@ import org.springframework.util.Base64Utils;
  * @since 5.0
  *
  */
-public class TestMailServer {
+public final class TestMailServer {
 
 	public static SmtpServer smtp(int port) {
 		try {
 			return new SmtpServer(port);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalStateException(e);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class TestMailServer {
 			return new Pop3Server(port);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalStateException(e);
 		}
 	}
 
@@ -71,7 +71,7 @@ public class TestMailServer {
 			return new ImapServer(port);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalStateException(e);
 		}
 	}
 

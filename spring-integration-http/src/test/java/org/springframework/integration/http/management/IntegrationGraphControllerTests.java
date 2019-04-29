@@ -124,8 +124,8 @@ public class IntegrationGraphControllerTests {
 
 		handlerAdapter.handle(request, response, handler);
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-		assertThat(response.getContentAsString()).contains("\"name\":\"nullChannel\",");
-		assertThat(response.getContentAsString()).doesNotContain("\"name\":\"myChannel\",");
+		assertThat(response.getContentAsString()).contains("\"name\":\"nullChannel\"");
+		assertThat(response.getContentAsString()).doesNotContain("\"name\":\"myChannel\"");
 
 		context.getBeanFactory().registerSingleton("myChannel", new DirectChannel());
 
@@ -146,7 +146,7 @@ public class IntegrationGraphControllerTests {
 
 		handlerAdapter.handle(request, response, handler);
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-		assertThat(response.getContentAsString()).contains("\"name\":\"myChannel\",");
+		assertThat(response.getContentAsString()).contains("\"name\":\"myChannel\"");
 
 		context.close();
 	}

@@ -138,7 +138,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			this.connectionFactoryName = connectionFactoryName;
 		}
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("New connection " + this.getConnectionId());
+			this.logger.debug("New connection " + this.connectionId);
 		}
 	}
 

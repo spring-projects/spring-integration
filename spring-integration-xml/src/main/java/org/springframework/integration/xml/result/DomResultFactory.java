@@ -29,6 +29,7 @@ import org.springframework.xml.DocumentBuilderFactoryUtils;
 /**
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class DomResultFactory implements ResultFactory {
 
@@ -46,13 +47,14 @@ public class DomResultFactory implements ResultFactory {
 	}
 
 
+	@Override
 	public synchronized Result createResult(Object payload) {
 		try {
 			return new DOMResult(getNewDocumentBuilder().newDocument());
 		}
 		catch (ParserConfigurationException e) {
 			throw new MessagingException("failed to create Result for payload type [" +
-					payload.getClass().getName() + "]");
+					payload.getClass().getName() + "]", e);
 		}
 	}
 

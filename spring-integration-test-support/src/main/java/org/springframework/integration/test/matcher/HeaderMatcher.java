@@ -70,7 +70,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Gary Russell
  *
  */
-public class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {
+public final class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {
 
 	private final Matcher<?> matcher;
 

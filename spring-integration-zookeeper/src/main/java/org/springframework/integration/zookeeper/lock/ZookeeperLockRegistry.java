@@ -246,7 +246,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 				this.mutex.acquire();
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Failed to acquire mutex at " + this.path, e);
+				throw new IllegalStateException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 

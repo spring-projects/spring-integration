@@ -29,6 +29,7 @@ import org.springframework.util.ClassUtils;
  * Utility to help generate UUID instances from generic objects.
  *
  * @author Dave Syer
+ * @author Gary Russell
  */
 public class UUIDConverter implements Converter<Object, UUID> {
 
@@ -41,6 +42,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 *
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
+	@Override
 	public UUID convert(Object source) {
 		return getUUID(source);
 	}
@@ -80,7 +82,10 @@ public class UUIDConverter implements Converter<Object, UUID> {
 					return UUID.nameUUIDFromBytes(((String) input).getBytes(DEFAULT_CHARSET));
 				}
 				catch (UnsupportedEncodingException ex) {
-					throw new IllegalStateException("Cannot convert String using charset=" + DEFAULT_CHARSET, ex);
+					IllegalStateException exception =
+							new IllegalStateException("Cannot convert String using charset=" + DEFAULT_CHARSET, ex);
+					exception.addSuppressed(e);
+					throw exception; // NOSONAR - added to suppressed exceptions
 				}
 			}
 		}

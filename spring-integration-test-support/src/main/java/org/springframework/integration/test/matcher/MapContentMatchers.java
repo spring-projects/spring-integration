@@ -61,9 +61,10 @@ import org.hamcrest.core.AllOf;
  * @author Iwein Fuld
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
-public class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super T, ? super V>> {
+public final class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super T, ? super V>> {
 
 	private final T key;
 

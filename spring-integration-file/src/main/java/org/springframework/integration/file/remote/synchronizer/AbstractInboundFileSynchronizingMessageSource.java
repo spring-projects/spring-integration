@@ -283,7 +283,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		}
 
 		@Override
-		protected AbstractIntegrationMessageBuilder<File> doReceive() {
+		protected AbstractIntegrationMessageBuilder<File> doReceive() { // NOSONAR - not useless, increases visibility
 			return super.doReceive();
 		}
 

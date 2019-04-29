@@ -73,13 +73,13 @@ final class ExpressionEvaluatingParameterSourceUtils {
 	public static class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
 
 		@Override
-		public StandardEvaluationContext getEvaluationContext() {
+		public StandardEvaluationContext getEvaluationContext() { // NOSONAR - not useless, increases visibility
 			return super.getEvaluationContext();
 		}
 
 		@Override
 		@Nullable
-		public Object evaluateExpression(Expression expression, Object input) {
+		public Object evaluateExpression(Expression expression, Object input) { // NOSONAR - not useless, increases vis.
 			return super.evaluateExpression(expression, input);
 		}
 

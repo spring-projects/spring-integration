@@ -101,6 +101,17 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 			return null;
 		}
+		methodAttribute(element, parserContext, source, builder, innerDefinition, hasRef, hasExpression,
+				expressionElement);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
+		this.postProcess(builder, element, parserContext);
+		return builder;
+	}
+
+	private void methodAttribute(Element element, ParserContext parserContext, Object source,
+			BeanDefinitionBuilder builder, BeanComponentDefinition innerDefinition, boolean hasRef,
+			boolean hasExpression, Element expressionElement) {
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(method)) {
 			if (hasExpression || expressionElement != null) {
@@ -117,10 +128,6 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 			}
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
-		this.postProcess(builder, element, parserContext);
-		return builder;
 	}
 
 	/**

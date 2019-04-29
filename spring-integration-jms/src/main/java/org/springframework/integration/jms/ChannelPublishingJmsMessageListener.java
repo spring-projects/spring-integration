@@ -502,12 +502,12 @@ public class ChannelPublishingJmsMessageListener
 		}
 
 		@Override
-		protected void send(Object request) {
+		protected void send(Object request) { // NOSONAR - not useless, increases visibility
 			super.send(request);
 		}
 
 		@Override
-		protected Message<?> sendAndReceiveMessage(Object request) {
+		protected Message<?> sendAndReceiveMessage(Object request) { // NOSONAR - not useless, increases visibility
 			return super.sendAndReceiveMessage(request);
 		}
 

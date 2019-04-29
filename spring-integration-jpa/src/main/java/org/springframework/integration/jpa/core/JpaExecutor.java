@@ -611,7 +611,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					catch (NumberFormatException e) {
 						throw new IllegalArgumentException(
 								"Value " + evaluationResult + " passed as cannot be " +
-										"parsed to a number, expected to be numeric");
+										"parsed to a number, expected to be numeric", e);
 					}
 				}
 				else {
