@@ -93,11 +93,13 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	@Override
 	public void afterPropertiesSet() {
 		File baseDir = new File(this.baseDirectory);
-		baseDir.mkdirs();
+		if (!baseDir.mkdirs() && this.logger.isWarnEnabled()) {
+			this.logger.warn("Failed to create directories for " + baseDir);
+		}
 		this.file = new File(baseDir, this.fileName);
 		try {
-			if (!this.file.exists()) {
-				this.file.createNewFile();
+			if (!this.file.exists() &&!this.file.createNewFile() && this.logger.isWarnEnabled()) {
+				this.logger.warn("Failed to create file " + this.file);
 			}
 		}
 		catch (Exception e) {
