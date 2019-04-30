@@ -72,8 +72,8 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 			}
 			return n - 1; // trim \r
 		}
-		catch (SoftEndOfStreamException e) {
-			throw e;
+		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
+			throw e; // it's an IO exception and we don't want an event for this
 		}
 		catch (IOException e) {
 			publishEvent(e, buffer, n);

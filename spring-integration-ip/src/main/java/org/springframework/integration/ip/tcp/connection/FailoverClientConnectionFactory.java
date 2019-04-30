@@ -205,7 +205,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 								+ ", trying another");
 					}
 					if (!this.factoryIterator.hasNext()) {
-						if (retried && lastFactoryToTry == null || lastFactoryToTry == nextFactory) {
+						if (retried && (lastFactoryToTry == null || lastFactoryToTry.equals(nextFactory))) {
 							/*
 							 *  We've tried every factory including the
 							 *  one the current connection was on.
@@ -249,7 +249,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					success = true;
 				}
 				catch (RuntimeException e) {
-					if (retried && lastFactoryTried == lastFactoryToTry) {
+					if (retried && lastFactoryTried.equals(lastFactoryToTry)) {
 						logger.error("All connection factories exhausted", e);
 						this.open = false;
 						throw e;

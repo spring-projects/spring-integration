@@ -319,7 +319,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.active = this.listening = false;
+		this.active = false;
+		this.listening = false;
 	}
 
 	public boolean isListening() {

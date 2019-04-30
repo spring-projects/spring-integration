@@ -17,6 +17,7 @@
 package org.springframework.integration.feed.inbound;
 
 import java.io.Reader;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -254,7 +255,8 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	}
 
 
-	private static final class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
+	@SuppressWarnings("serial")
+	private static final class SyndEntryPublishedDateComparator implements Comparator<SyndEntry>, Serializable {
 
 		SyndEntryPublishedDateComparator() {
 			super();

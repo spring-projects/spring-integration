@@ -59,7 +59,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 	private BeanDefinitionRegistry beanDefinitionRegistry;
 
-	private StandardIntegrationFlowContext() {
+	StandardIntegrationFlowContext() {
 	}
 
 	@Override

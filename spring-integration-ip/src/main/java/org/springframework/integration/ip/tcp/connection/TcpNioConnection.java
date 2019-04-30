@@ -444,9 +444,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			sendToPipe(this.rawBuffer);
 		}
-		catch (RejectedExecutionException e) {
-			throw e;
-		}
 		catch (IOException e) {
 			publishConnectionExceptionEvent(e);
 			throw e;
@@ -507,9 +504,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				logger.debug(getConnectionId() + " Channel is closed");
 			}
 			closeConnection(true);
-		}
-		catch (RejectedExecutionException e) {
-			throw e;
 		}
 		catch (Exception e) {
 			logger.error("Exception on Read " +

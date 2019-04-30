@@ -29,6 +29,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * reference bean properties in its input.
  *
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class BeanPropertySqlParameterSourceFactory implements SqlParameterSourceFactory {
@@ -51,8 +52,7 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 
 	@Override
 	public SqlParameterSource createParameterSource(Object input) {
-		SqlParameterSource toReturn = new StaticBeanPropertySqlParameterSource(input, this.staticParameters);
-		return toReturn;
+		return new StaticBeanPropertySqlParameterSource(input, this.staticParameters);
 	}
 
 	private static final class StaticBeanPropertySqlParameterSource extends AbstractSqlParameterSource implements

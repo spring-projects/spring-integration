@@ -170,7 +170,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						try {
 							socket.close();
 						}
-						catch (@SuppressWarnings("unused") IOException e1) {
+						catch (@SuppressWarnings("unused") IOException e1) { // NOSONAR - exception as flow control
 							// empty
 						}
 					}

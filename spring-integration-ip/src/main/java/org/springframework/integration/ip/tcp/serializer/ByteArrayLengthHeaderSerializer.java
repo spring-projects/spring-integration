@@ -277,8 +277,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 			}
 			return messageLength;
 		}
-		catch (SoftEndOfStreamException e) {
-			throw e;
+		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
+			throw e; // it's an IO exception and we don't want an event for this
 		}
 		catch (IOException e) {
 			publishEvent(e, lengthPart, -1);

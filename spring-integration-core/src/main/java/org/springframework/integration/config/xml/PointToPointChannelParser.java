@@ -52,7 +52,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 		// configure a queue-based channel if any queue sub-element is defined
 		String channel = element.getAttribute(ID_ATTRIBUTE);
-		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
+		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) { // NOSONAR inner assignment
 			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
 			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, channel, false);
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
@@ -76,7 +76,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 						element);
 			}
 		}
-		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
+		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) { // NOSONAR
 			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
 			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
 			String comparatorRef = queueElement.getAttribute("comparator");
@@ -97,7 +97,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			}
 
 		}
-		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
+		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) { // NOSONAR
 			builder = BeanDefinitionBuilder.genericBeanDefinition(RendezvousChannel.class);
 		}
 

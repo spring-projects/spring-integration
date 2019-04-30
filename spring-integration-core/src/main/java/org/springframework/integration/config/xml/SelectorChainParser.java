@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
@@ -43,6 +44,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		return MessageSelectorChain.class.getName();
 	}
 
+	@Override
 	public void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (!StringUtils.hasText(element.getAttribute("id"))) {
 			parserContext.getReaderContext().error("id is required", element);
@@ -82,8 +84,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
 		String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(nestedBuilder.getBeanDefinition(),
 				parserContext.getRegistry());
-		RuntimeBeanReference built = new RuntimeBeanReference(nestedBeanName);
-		return built;
+		return new RuntimeBeanReference(nestedBeanName);
 	}
 
 	private RuntimeBeanReference buildMethodInvokingSelector(ParserContext parserContext, String ref, String method) {

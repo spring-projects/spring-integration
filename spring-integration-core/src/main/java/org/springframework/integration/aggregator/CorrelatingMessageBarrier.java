@@ -108,6 +108,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	}
 
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Message<Object> receive() {
 		for (Object key : this.correlationLocks.keySet()) {
@@ -130,9 +131,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 						else {
 							remove(key);
 						}
-						@SuppressWarnings("unchecked")
-						Message<Object> result = (Message<Object>) nextMessage;
-						return result;
+						return (Message<Object>) nextMessage;
 					}
 				}
 			}
