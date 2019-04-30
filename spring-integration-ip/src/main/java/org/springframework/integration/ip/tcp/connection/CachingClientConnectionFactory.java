@@ -58,30 +58,30 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		// override single-use to true so the target creates multiple connections
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		this.pool = new SimplePool<TcpConnectionSupport>(poolSize,
-				new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
+		class Callback implements SimplePool.PoolItemCallback<TcpConnectionSupport> {
 
-					@Override
-					public TcpConnectionSupport createForPool() {
-						try {
-							return CachingClientConnectionFactory.this.targetConnectionFactory.getConnection();
-						}
-						catch (Exception e) {
-							throw new MessagingException("Failed to obtain connection", e);
-						}
-					}
+			@Override
+			public TcpConnectionSupport createForPool() {
+				try {
+					return CachingClientConnectionFactory.this.targetConnectionFactory.getConnection();
+				}
+				catch (Exception e) {
+					throw new MessagingException("Failed to obtain connection", e);
+				}
+			}
 
-					@Override
-					public boolean isStale(TcpConnectionSupport connection) {
-						return !connection.isOpen();
-					}
+			@Override
+			public boolean isStale(TcpConnectionSupport connection) {
+				return !connection.isOpen();
+			}
 
-					@Override
-					public void removedFromPool(TcpConnectionSupport connection) {
-						connection.close();
-					}
+			@Override
+			public void removedFromPool(TcpConnectionSupport connection) {
+				connection.close();
+			}
 
-				});
+		}
+		this.pool = new SimplePool<TcpConnectionSupport>(poolSize, new Callback());
 	}
 
 	/**

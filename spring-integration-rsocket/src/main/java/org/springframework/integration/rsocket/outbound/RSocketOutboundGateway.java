@@ -186,12 +186,6 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public void destroy() {
-		super.destroy();
-
-	}
-
-	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		RSocketRequester rsocketRequester = requestMessage.getHeaders()
 				.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, RSocketRequester.class);

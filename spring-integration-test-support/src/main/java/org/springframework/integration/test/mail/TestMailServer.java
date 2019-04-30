@@ -32,6 +32,9 @@ import java.util.concurrent.Executors;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.util.Base64Utils;
 
 /**
@@ -145,7 +148,7 @@ public final class TestMailServer {
 					messages.add(sb.toString());
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error(IO_EXCEPTION, e);
 				}
 			}
 
@@ -205,7 +208,7 @@ public final class TestMailServer {
 					}
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error(IO_EXCEPTION, e);
 				}
 			}
 
@@ -357,7 +360,7 @@ public final class TestMailServer {
 									write("* 2 EXISTS");
 									seen = false;
 								}
-								catch (InterruptedException e) {
+								catch (@SuppressWarnings("unused") InterruptedException e) {
 									Thread.currentThread().interrupt();
 								}
 							}
@@ -373,7 +376,7 @@ public final class TestMailServer {
 					}
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error(IO_EXCEPTION, e);
 				}
 			}
 
@@ -392,6 +395,10 @@ public final class TestMailServer {
 	}
 
 	public abstract static class MailServer implements Runnable {
+
+		protected final Log LOGGER = LogFactory.getLog(getClass()); // NOSONAR
+
+		protected static final String IO_EXCEPTION = "IOException"; // NOSONAR
 
 		private final ServerSocket serverSocket;
 
@@ -437,7 +444,7 @@ public final class TestMailServer {
 					exec.execute(mailHandler(socket));
 				}
 			}
-			catch (IOException e) {
+			catch (@SuppressWarnings("unused") IOException e) {
 				this.listening = false;
 			}
 		}
@@ -449,7 +456,7 @@ public final class TestMailServer {
 				this.serverSocket.close();
 			}
 			catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error(IO_EXCEPTION, e);
 			}
 			this.exec.shutdownNow();
 		}
@@ -485,7 +492,7 @@ public final class TestMailServer {
 					this.writer = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error(IO_EXCEPTION, e);
 				}
 				doRun();
 			}

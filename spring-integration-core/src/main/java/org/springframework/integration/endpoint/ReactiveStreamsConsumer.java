@@ -132,38 +132,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.start();
 		}
-		this.publisher.subscribe(new BaseSubscriber<Message<?>>() {
-
-			private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
-
-			@Override
-			public void hookOnSubscribe(Subscription s) {
-				this.delegate.onSubscribe(s);
-				ReactiveStreamsConsumer.this.subscription = s;
-			}
-
-			@Override
-			public void hookOnNext(Message<?> message) {
-				try {
-					this.delegate.onNext(message);
-				}
-				catch (Exception e) {
-					ReactiveStreamsConsumer.this.errorHandler.handleError(e);
-					hookOnError(e);
-				}
-			}
-
-			@Override
-			public void hookOnError(Throwable t) {
-				this.delegate.onError(t);
-			}
-
-			@Override
-			public void hookOnComplete() {
-				this.delegate.onComplete();
-			}
-
-		});
+		this.publisher.subscribe(new DelegatingSubscriber());
 	}
 
 	@Override
@@ -176,6 +145,42 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		}
 	}
 
+	private final class DelegatingSubscriber extends BaseSubscriber<Message<?>> {
+
+		private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
+
+		DelegatingSubscriber() {
+			super();
+		}
+
+		@Override
+		public void hookOnSubscribe(Subscription s) {
+			this.delegate.onSubscribe(s);
+			ReactiveStreamsConsumer.this.subscription = s;
+		}
+
+		@Override
+		public void hookOnNext(Message<?> message) {
+			try {
+				this.delegate.onNext(message);
+			}
+			catch (Exception e) {
+				ReactiveStreamsConsumer.this.errorHandler.handleError(e);
+				hookOnError(e);
+			}
+		}
+
+		@Override
+		public void hookOnError(Throwable t) {
+			this.delegate.onError(t);
+		}
+
+		@Override
+		public void hookOnComplete() {
+			this.delegate.onComplete();
+		}
+
+	}
 
 	private static final class MessageHandlerSubscriber
 			implements CoreSubscriber<Message<?>>, Disposable, Lifecycle {

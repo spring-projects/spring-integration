@@ -19,8 +19,6 @@ package org.springframework.integration.handler.advice;
 import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
@@ -37,10 +35,8 @@ import org.springframework.messaging.MessageHandler;
  */
 public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSupport implements HandleMessageAdvice {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
 	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
+	public final Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		Object invocationThis = invocation.getThis();
 		Object[] arguments = invocation.getArguments();

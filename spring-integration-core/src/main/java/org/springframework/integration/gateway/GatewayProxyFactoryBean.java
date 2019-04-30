@@ -465,7 +465,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Nullable
-	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable {
+	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		if (AopUtils.isToStringMethod(method)) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
@@ -474,7 +474,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return invokeGatewayMethod(invocation, runningOnCallerThread);
 		}
 		catch (Throwable e) { //NOSONAR - ok to catch, rethrown below
-			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
+			rethrowExceptionCauseIfPossible(e, invocation.getMethod());
 			return null; // preceding call should always throw something
 		}
 	}
@@ -538,7 +538,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		return (response != null) ? this.convert(response, returnType) : null;
 	}
 
-	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable {
+	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable { // NOSONAR
 		Class<?>[] exceptionTypes = method.getExceptionTypes();
 		Throwable t = originalException;
 		while (t != null) {

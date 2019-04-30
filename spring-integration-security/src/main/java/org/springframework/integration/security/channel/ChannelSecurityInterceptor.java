@@ -53,7 +53,8 @@ public final class ChannelSecurityInterceptor extends AbstractSecurityIntercepto
 	}
 
 
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	@Override
+	public Object invoke(MethodInvocation invocation) throws Throwable { // NOSONAR
 		Method method = invocation.getMethod();
 		if (method.getName().equals("send") || method.getName().equals("receive")) {
 			return this.invokeWithAuthorizationCheck(invocation);
@@ -61,7 +62,7 @@ public final class ChannelSecurityInterceptor extends AbstractSecurityIntercepto
 		return invocation.proceed();
 	}
 
-	private Object invokeWithAuthorizationCheck(MethodInvocation methodInvocation) throws Throwable {
+	private Object invokeWithAuthorizationCheck(MethodInvocation methodInvocation) throws Throwable { // NOSONAR
 		Object returnValue = null;
 		InterceptorStatusToken token = super.beforeInvocation(new ChannelInvocation(methodInvocation));
 		try {
