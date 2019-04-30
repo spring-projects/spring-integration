@@ -16,6 +16,7 @@
 
 package org.springframework.integration.test.util;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -112,7 +113,8 @@ public final class SocketUtils {
 				}
 
 			}
-			catch (Exception e) {
+			catch (@SuppressWarnings("unused") IOException e) {
+				// empty
 			}
 		}
 
@@ -173,7 +175,11 @@ public final class SocketUtils {
 				}
 
 			}
-			catch (Exception e) {
+			catch (@SuppressWarnings("unused") IOException e) {
+				// empty
+			}
+			catch (@SuppressWarnings("unused") InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
 

@@ -39,7 +39,7 @@ public final class FixedSubscriberChannelBeanFactoryPostProcessor implements Bea
 
 	private final Map<String, String> candidateFixedChannelHandlerMap;
 
-	private FixedSubscriberChannelBeanFactoryPostProcessor(Map<String, String> candidateHandlers) {
+	FixedSubscriberChannelBeanFactoryPostProcessor(Map<String, String> candidateHandlers) {
 		this.candidateFixedChannelHandlerMap = candidateHandlers;
 	}
 

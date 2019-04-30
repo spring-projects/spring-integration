@@ -920,20 +920,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			else {
 				outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			}
-			if (replacing) {
-				if (!localFile.delete() && this.logger.isWarnEnabled()) {
-					this.logger.warn("Failed to delete " + localFile);
-				}
+			if (replacing && !localFile.delete() && this.logger.isWarnEnabled()) {
+				this.logger.warn("Failed to delete " + localFile);
 			}
 			try {
 				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
 				/* Some operation systems acquire exclusive file-lock during file processing
-				and the file can't be deleted without closing streams before.
+				   and the file can't be deleted without closing streams before.
 				*/
 				outputStream.close();
-				tempFile.delete();
+				if (!tempFile.delete() && this.logger.isWarnEnabled()) {
+					this.logger.warn("Failed to delete tempFile " + tempFile);
+				}
 
 				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
@@ -953,11 +953,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (!appending && !tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
-			if (this.options.contains(Option.PRESERVE_TIMESTAMP)
-					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)) {
-				if (!localFile.setLastModified(getModified(fileInfo)) && this.logger.isWarnEnabled()) {
-					logger.warn("Failed to set lastModified on " + localFile);
-				}
+			if ((this.options.contains(Option.PRESERVE_TIMESTAMP)
+					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode))
+					&& (!localFile.setLastModified(getModified(fileInfo)) && this.logger.isWarnEnabled())) {
+				logger.warn("Failed to set lastModified on " + localFile);
 			}
 			if (this.options.contains(Option.DELETE)) {
 				boolean result = session.remove(remoteFilePath);

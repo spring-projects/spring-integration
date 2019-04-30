@@ -47,8 +47,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 
 	@Override
 	public ParameterSource createParameterSource(Object input) {
-		ParameterSource toReturn = new StaticBeanPropertyParameterSource(input, this.staticParameters);
-		return toReturn;
+		return new StaticBeanPropertyParameterSource(input, this.staticParameters);
 	}
 
 	private static final class StaticBeanPropertyParameterSource implements

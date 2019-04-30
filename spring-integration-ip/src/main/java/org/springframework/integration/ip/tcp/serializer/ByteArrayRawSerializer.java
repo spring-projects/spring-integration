@@ -102,8 +102,8 @@ public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySeriali
 			}
 			return copyToSizedArray(buffer, n);
 		}
-		catch (SoftEndOfStreamException e) {
-			throw e;
+		catch (SoftEndOfStreamException e) { // NOSONAR catch and throw
+			throw e; // it's an IO exception and we don't want an event for this
 		}
 		catch (IOException e) {
 			publishEvent(e, buffer, n);

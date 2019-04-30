@@ -137,7 +137,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		addRecipient(channelName, selectorExpression, this.recipients);
 	}
 
-	private void addRecipient(String channelName, String selectorExpression, Queue<Recipient> recipients) {
+	private void addRecipient(String channelName, String selectorExpression, Queue<Recipient> recipientsToAdd) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
 		Assert.hasText(selectorExpression, "'selectorExpression' must not be empty.");
 		ExpressionEvaluatingSelector expressionEvaluatingSelector =
@@ -145,7 +145,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		expressionEvaluatingSelector.setBeanFactory(getBeanFactory());
 		Recipient recipient = new Recipient(channelName, expressionEvaluatingSelector);
 		setupRecipient(recipient);
-		recipients.add(recipient);
+		recipientsToAdd.add(recipient);
 	}
 
 	@Override
@@ -158,11 +158,11 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 		addRecipient(channelName, selector, this.recipients);
 	}
 
-	private void addRecipient(String channelName, MessageSelector selector, Queue<Recipient> recipients) {
+	private void addRecipient(String channelName, MessageSelector selector, Queue<Recipient> recipientsToAdd) {
 		Assert.hasText(channelName, "'channelName' must not be empty.");
 		Recipient recipient = new Recipient(channelName, selector);
 		setupRecipient(recipient);
-		recipients.add(recipient);
+		recipientsToAdd.add(recipient);
 	}
 
 	public void addRecipient(MessageChannel channel) {
@@ -208,9 +208,9 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 			Recipient next = it.next();
 			MessageSelector selector = next.getSelector();
 			MessageChannel channel = next.getChannel();
-			if (selector instanceof ExpressionEvaluatingSelector &&
-					channel == targetChannel &&
-					((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
+			if (selector instanceof ExpressionEvaluatingSelector
+					&& channel.equals(targetChannel)
+					&& ((ExpressionEvaluatingSelector) selector).getExpressionString().equals(selectorExpression)) {
 				it.remove();
 				counter++;
 			}

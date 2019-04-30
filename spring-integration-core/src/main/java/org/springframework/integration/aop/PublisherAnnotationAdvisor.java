@@ -193,7 +193,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 			}
 			// The method may be on an interface, so let's check on the target class as well.
 			Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
-			return (specificMethod != method &&
+			return (!specificMethod.equals(method) &&
 					(AnnotationUtils.getAnnotation(specificMethod, this.annotationType) != null));
 		}
 

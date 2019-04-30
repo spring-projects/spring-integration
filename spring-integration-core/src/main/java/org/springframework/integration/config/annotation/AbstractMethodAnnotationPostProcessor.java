@@ -158,7 +158,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		orderable(method, handler);
 		producerOrRouter(annotations, handler);
 
-		if (handler != sourceHandler) {
+		if (!handler.equals(sourceHandler)) {
 			String handlerBeanName = generateHandlerBeanName(beanName, method);
 			if (handler instanceof ReplyProducingMessageHandlerWrapper
 					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {

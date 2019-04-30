@@ -31,7 +31,7 @@ public final class SyslogHeaders {
 		super();
 	}
 
-	public static String PREFIX = "syslog_";
+	public static final String PREFIX = "syslog_";
 
 	public static final String FACILITY = PREFIX + SyslogToMapTransformer.FACILITY;
 

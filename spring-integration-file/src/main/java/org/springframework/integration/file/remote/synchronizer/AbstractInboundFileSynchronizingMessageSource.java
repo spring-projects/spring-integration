@@ -190,36 +190,40 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 				}
 			}
 			this.fileSource.setDirectory(this.localDirectory);
-			if (this.localFileListFilter == null) {
-				this.localFileListFilter =
-						new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), getComponentName());
-			}
-			FileListFilter<File> filter = buildFilter();
-			if (this.scannerExplicitlySet) {
-				Assert.state(!this.fileSource.isUseWatchService(),
-						"'useWatchService' and 'scanner' are mutually exclusive.");
-				this.fileSource.getScanner()
-						.setFilter(filter);
-			}
-			else if (!this.fileSource.isUseWatchService()) {
-				DirectoryScanner directoryScanner = new DefaultDirectoryScanner();
-				directoryScanner.setFilter(filter);
-				this.fileSource.setScanner(directoryScanner);
-			}
-			else {
-				this.fileSource.setFilter(filter);
-			}
+			initFiltersAndScanner();
 			if (this.getBeanFactory() != null) {
 				this.fileSource.setBeanFactory(this.getBeanFactory());
 			}
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException e) { // NOSONAR catch and throw
 			throw e;
 		}
 		catch (Exception e) {
 			throw new BeanInitializationException("Failure during initialization for: " + this, e);
+		}
+	}
+
+	private void initFiltersAndScanner() {
+		if (this.localFileListFilter == null) {
+			this.localFileListFilter =
+					new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), getComponentName());
+		}
+		FileListFilter<File> filter = buildFilter();
+		if (this.scannerExplicitlySet) {
+			Assert.state(!this.fileSource.isUseWatchService(),
+					"'useWatchService' and 'scanner' are mutually exclusive.");
+			this.fileSource.getScanner()
+					.setFilter(filter);
+		}
+		else if (!this.fileSource.isUseWatchService()) {
+			DirectoryScanner directoryScanner = new DefaultDirectoryScanner();
+			directoryScanner.setFilter(filter);
+			this.fileSource.setScanner(directoryScanner);
+		}
+		else {
+			this.fileSource.setFilter(filter);
 		}
 	}
 

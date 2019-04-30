@@ -239,7 +239,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private void scheduleReconnect(Throwable e) {
 		this.epoch.incrementAndGet();
-		this.connecting = this.connected = false;
+		this.connecting = false;
+		this.connected = false;
 		if (e != null) {
 			this.logger.error("STOMP connect error for " + this, e);
 		}

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -25,8 +26,10 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  */
-public class MessageSequenceComparator implements Comparator<Message<?>> {
+@SuppressWarnings("serial")
+public class MessageSequenceComparator implements Comparator<Message<?>>, Serializable {
 
 	@Override
 	public int compare(Message<?> o1, Message<?> o2) {

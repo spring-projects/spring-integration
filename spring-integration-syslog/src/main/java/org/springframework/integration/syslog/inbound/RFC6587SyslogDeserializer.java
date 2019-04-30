@@ -106,9 +106,10 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 
 	private int calculateLength(DataInputStream stream, int peek) throws IOException {
 		int length = peek & 0xf;
-		int c;
-		while (isDigit((c = stream.read()))) {
+		int c = stream.read();
+		while (isDigit(c)) {
 			length = length * 10 + (c & 0xf);
+			c = stream.read();
 		}
 		return length;
 	}

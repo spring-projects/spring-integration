@@ -37,7 +37,7 @@ public abstract class AbstractTransformer extends IntegrationObjectSupport imple
 			return (result instanceof Message) ? (Message<?>) result
 					: this.getMessageBuilderFactory().withPayload(result).copyHeaders(message.getHeaders()).build();
 		}
-		catch (MessageTransformationException e) {
+		catch (MessageTransformationException e) { // NOSONAR - catch and throw
 			throw e;
 		}
 		catch (Exception e) {

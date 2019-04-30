@@ -1036,7 +1036,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					}
 					return reply;
 				}
-				catch (JMSException e) {
+				catch (JMSException e) { // NOSONAR - exception as flow control
 					exception = e;
 					if (logger.isDebugEnabled()) {
 						logger.debug("Connection lost waiting for reply, retrying: " + e.getMessage());
@@ -1047,7 +1047,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 							consumerSession = createSession(consumerConnection);
 							break;
 						}
-						catch (JMSException ee) {
+						catch (JMSException ee) { // NOSONAR - exception as flow control
 							exception = ee;
 							if (logger.isDebugEnabled()) {
 								logger.debug("Could not reconnect, retrying: " + ee.getMessage());
@@ -1073,7 +1073,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 		}
 		finally {
-			if (consumerSession != session) {
+			if (!consumerSession.equals(session)) {
 				JmsUtils.closeSession(consumerSession);
 				JmsUtils.closeConnection(consumerConnection);
 			}
