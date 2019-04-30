@@ -64,42 +64,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		else {
 			Message<?> message = (Message<?>) arguments[0];
 			try {
-				return doInvoke(new ExecutionCallback() {
-
-					@Override
-					public Object execute() {
-						try {
-							return invocation.proceed();
-						}
-						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
-							throw new ThrowableHolderException(e);
-						}
-					}
-
-					@Override
-					public Object cloneAndExecute() {
-						try {
-							/*
-				 			* If we don't copy the invocation carefully it won't keep a reference to the other
-				 			* interceptors in the chain.
-				 			*/
-							if (invocation instanceof ProxyMethodInvocation) {
-								return ((ProxyMethodInvocation) invocation).invocableClone().proceed();
-							}
-							else {
-								throw new IllegalStateException(
-										"MethodInvocation of the wrong type detected - this should not happen with Spring AOP," +
-												" so please raise an issue if you see this exception");
-							}
-						}
-						catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
-							throw new MessagingException(message, "Failed to handle", e);
-						}
-						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
-							throw new ThrowableHolderException(e);
-						}
-					}
-				}, invocationThis, message);
+				return doInvoke(new CallbackImpl(invocation), invocationThis, message);
 			}
 			catch (Exception e) {
 				throw this.unwrapThrowableIfNecessary(e);
@@ -169,6 +134,50 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		 * @return The result of the execution.
 		 */
 		Object cloneAndExecute();
+
+	}
+
+	private static final class CallbackImpl implements ExecutionCallback {
+
+		private final MethodInvocation invocation;
+
+		CallbackImpl(MethodInvocation invocation) {
+			this.invocation = invocation;
+		}
+
+		@Override
+		public Object execute() {
+			try {
+				return this.invocation.proceed();
+			}
+			catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
+				throw new ThrowableHolderException(e);
+			}
+		}
+
+		@Override
+		public Object cloneAndExecute() {
+			try {
+				/*
+	 			* If we don't copy the invocation carefully it won't keep a reference to the other
+	 			* interceptors in the chain.
+	 			*/
+				if (this.invocation instanceof ProxyMethodInvocation) {
+					return ((ProxyMethodInvocation) this.invocation).invocableClone().proceed();
+				}
+				else {
+					throw new IllegalStateException(
+							"MethodInvocation of the wrong type detected - this should not happen with Spring AOP," +
+									" so please raise an issue if you see this exception");
+				}
+			}
+			catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
+				throw new MessagingException((Message<?>) this.invocation.getArguments()[0], "Failed to handle", e);
+			}
+			catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
+				throw new ThrowableHolderException(e);
+			}
+		}
 
 	}
 

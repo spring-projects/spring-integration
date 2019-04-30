@@ -181,7 +181,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 					if (logger.isDebugEnabled()) {
 						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
 					}
-					this.localDirectory.mkdirs();
+					if (!this.localDirectory.mkdirs() && this.logger.isWarnEnabled()) {
+						this.logger.warn("Failed to create directories for " + this.localDirectory);
+					}
 				}
 				else {
 					throw new FileNotFoundException(this.localDirectory.getName());

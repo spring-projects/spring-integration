@@ -208,37 +208,38 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	private void subscribeDestination(final String destination) {
 		if (this.stompSession != null) {
+			class FrameHandler implements StompFrameHandler {
+
+				@Override
+				public Type getPayloadType(StompHeaders headers) {
+					return StompInboundChannelAdapter.this.payloadType;
+				}
+
+				@Override
+				public void handleFrame(StompHeaders headers, @Nullable Object body) {
+					Message<?> message;
+
+					if (body == null) {
+						logger.info("No body in STOMP frame: nothing to produce.");
+						return;
+					}
+					else if (body instanceof Message) {
+						message = (Message<?>) body;
+					}
+					else {
+						message =
+								getMessageBuilderFactory()
+										.withPayload(body)
+										.copyHeaders(
+												StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
+										.build();
+					}
+					sendMessage(message);
+				}
+
+			}
 			final StompSession.Subscription subscription =
-					this.stompSession.subscribe(destination, new StompFrameHandler() {
-
-						@Override
-						public Type getPayloadType(StompHeaders headers) {
-							return StompInboundChannelAdapter.this.payloadType;
-						}
-
-						@Override
-						public void handleFrame(StompHeaders headers, @Nullable Object body) {
-							Message<?> message;
-
-							if (body == null) {
-								logger.info("No body in STOMP frame: nothing to produce.");
-								return;
-							}
-							else if (body instanceof Message) {
-								message = (Message<?>) body;
-							}
-							else {
-								message =
-										getMessageBuilderFactory()
-												.withPayload(body)
-												.copyHeaders(
-														StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
-												.build();
-							}
-							sendMessage(message);
-						}
-
-					});
+					this.stompSession.subscribe(destination, new FrameHandler());
 
 			if (this.stompSessionManager.isAutoReceiptEnabled()) {
 				final ApplicationEventPublisher eventPublisher = this.applicationEventPublisher;

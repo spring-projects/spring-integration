@@ -35,42 +35,49 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		StandardAnnotationMetadata importingClassMetadata =
-				new StandardAnnotationMetadata(Object.class) {
-
-					@Override
-					public Map<String, Object> getAnnotationAttributes(String annotationType) {
-						if (EnablePublisher.class.getName().equals(annotationType)) {
-							Element enablePublisherElement =
-									DomUtils.getChildElementByTagName(element, "enable-publisher");
-							if (enablePublisherElement != null) {
-								Map<String, Object> attributes = new HashMap<>();
-								attributes.put("defaultChannel",
-										enablePublisherElement.getAttribute("default-publisher-channel"));
-								attributes.put("proxyTargetClass",
-										enablePublisherElement.getAttribute("proxy-target-class"));
-								attributes.put("order", enablePublisherElement.getAttribute("order"));
-								return attributes;
-							}
-							else {
-								return null;
-							}
-						}
-						else {
-							return null;
-						}
-					}
-
-				};
-
-		new IntegrationRegistrar().registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
-
+		new IntegrationRegistrar().registerBeanDefinitions(new ExtendedAnnotationMetadata(Object.class, element),
+				parserContext.getRegistry());
 		return null;
+	}
+
+	private static final class ExtendedAnnotationMetadata extends StandardAnnotationMetadata {
+
+		private final Element element;
+
+		ExtendedAnnotationMetadata(Class<?> introspectedClass, Element element) {
+			super(introspectedClass);
+			this.element = element;
+		}
+
+		@Override
+		public Map<String, Object> getAnnotationAttributes(String annotationType) {
+			if (EnablePublisher.class.getName().equals(annotationType)) {
+				Element enablePublisherElement =
+						DomUtils.getChildElementByTagName(this.element, "enable-publisher");
+				if (enablePublisherElement != null) {
+					Map<String, Object> attributes = new HashMap<>();
+					attributes.put("defaultChannel",
+							enablePublisherElement.getAttribute("default-publisher-channel"));
+					attributes.put("proxyTargetClass",
+							enablePublisherElement.getAttribute("proxy-target-class"));
+					attributes.put("order", enablePublisherElement.getAttribute("order"));
+					return attributes;
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+
 	}
 
 }

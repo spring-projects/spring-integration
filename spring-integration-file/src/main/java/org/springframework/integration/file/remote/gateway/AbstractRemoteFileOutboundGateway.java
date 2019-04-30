@@ -685,10 +685,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * nothing.
 	 * @param remoteFileOperations the remote file template.
 	 * @param path the path.
-	 * @param chmod the chmod to set.
+	 * @param chmodToSet the chmod to set.
 	 * @since 4.3
 	 */
-	protected void doChmod(RemoteFileOperations<F> remoteFileOperations, String path, int chmod) {
+	protected void doChmod(RemoteFileOperations<F> remoteFileOperations, String path, int chmodToSet) {
 		// no-op
 	}
 
@@ -921,7 +921,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			}
 			if (replacing) {
-				localFile.delete();
+				if (!localFile.delete() && this.logger.isWarnEnabled()) {
+					this.logger.warn("Failed to delete " + localFile);
+				}
 			}
 			try {
 				session.read(remoteFilePath, outputStream);
@@ -944,7 +946,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				try {
 					outputStream.close();
 				}
-				catch (Exception ignored2) {
+				catch (@SuppressWarnings("unused") Exception ignored2) {
 					//Ignore it
 				}
 			}
@@ -953,7 +955,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			if (this.options.contains(Option.PRESERVE_TIMESTAMP)
 					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)) {
-				localFile.setLastModified(getModified(fileInfo));
+				if (!localFile.setLastModified(getModified(fileInfo)) && this.logger.isWarnEnabled()) {
+					logger.warn("Failed to set lastModified on " + localFile);
+				}
 			}
 			if (this.options.contains(Option.DELETE)) {
 				boolean result = session.remove(remoteFilePath);

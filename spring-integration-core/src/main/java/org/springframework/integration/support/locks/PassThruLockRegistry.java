@@ -21,44 +21,59 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 /**
- * The {@link LockRegistry} implementation which has no effect. Mainly used in cases where locking itself must be conditional
- * but an extra IF statement would clutter the code.
- * For example. In the FILE module FileWritingMessageHandler is initialized with this instance of LockRegistry by default
- * since real locking is only required if its 'append' flag is set to true.
+ * The {@link LockRegistry} implementation which has no effect. Mainly used in cases where
+ * locking itself must be conditional but an extra IF statement would clutter the code.
+ * For example. In the FILE module FileWritingMessageHandler is initialized with this
+ * instance of LockRegistry by default since real locking is only required if its 'append'
+ * flag is set to true.
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public final class PassThruLockRegistry implements LockRegistry {
 
+	@Override
 	public Lock obtain(Object lockKey) {
-		return new Lock() {
-
-			public void unlock() {
-				// noop
-			}
-
-			public boolean tryLock(long time, TimeUnit unit)
-					throws InterruptedException {
-				return true;
-			}
-
-			public boolean tryLock() {
-				return true;
-			}
-
-			public Condition newCondition() {
-				throw new UnsupportedOperationException("This method is not supported for this implementation of Lock");
-			}
-
-			public void lockInterruptibly() throws InterruptedException {
-				// noop
-			}
-
-			public void lock() {
-				// noop
-			}
-		};
+		return new PassThruLock();
 	}
+
+	private static final class PassThruLock implements Lock {
+
+		PassThruLock() {
+			super();
+		}
+
+		@Override
+		public void unlock() {
+			// noop
+		}
+
+		@Override
+		public boolean tryLock(long time, TimeUnit unit) {
+			return true;
+		}
+
+		@Override
+		public boolean tryLock() {
+			return true;
+		}
+
+		@Override
+		public Condition newCondition() {
+			throw new UnsupportedOperationException("This method is not supported for this implementation of Lock");
+		}
+
+		@Override
+		public void lockInterruptibly() {
+			// noop
+		}
+
+		@Override
+		public void lock() {
+			// noop
+		}
+	}
+
 }
