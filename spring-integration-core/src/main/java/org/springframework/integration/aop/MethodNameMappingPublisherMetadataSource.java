@@ -78,24 +78,6 @@ public class MethodNameMappingPublisherMetadataSource implements PublisherMetada
 	}
 
 	@Override
-	@Deprecated
-	public String getPayloadExpression(Method method) {
-		Expression expressionForPayload = getExpressionForPayload(method);
-		return expressionForPayload != null ? expressionForPayload.getExpressionString() : null;
-	}
-
-	@Override
-	@Deprecated
-	public Map<String, String> getHeaderExpressions(Method method) {
-		Map<String, Expression> expressionsForHeaders = getExpressionsForHeaders(method);
-		return expressionsForHeaders == null
-				? null
-				: expressionsForHeaders.entrySet()
-						.stream()
-						.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getExpressionString()));
-	}
-
-	@Override
 	public Map<String, Expression> getExpressionsForHeaders(Method method) {
 		return this.headerExpressionMap
 				.entrySet()

@@ -73,15 +73,16 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void demoMethodNameMappingExpressionSource() {
-		Map<String, String> expressionMap = new HashMap<String, String>();
+		Map<String, String> expressionMap = new HashMap<>();
 		expressionMap.put("test", "#return");
-		MethodNameMappingPublisherMetadataSource metadataSource = new MethodNameMappingPublisherMetadataSource(expressionMap);
-		Map<String, String> channelMap = new HashMap<String, String>();
+		MethodNameMappingPublisherMetadataSource metadataSource =
+				new MethodNameMappingPublisherMetadataSource(expressionMap);
+		Map<String, String> channelMap = new HashMap<>();
 		channelMap.put("test", "c");
 		metadataSource.setChannelMap(channelMap);
 
-		Map<String, Map<String, String>> headerExpressionMap = new HashMap<String, Map<String, String>>();
-		Map<String, String> headerExpressions = new HashMap<String, String>();
+		Map<String, Map<String, String>> headerExpressionMap = new HashMap<>();
+		Map<String, String> headerExpressions = new HashMap<>();
 		headerExpressions.put("bar", "#return");
 		headerExpressions.put("name", "'oleg'");
 		headerExpressionMap.put("test", headerExpressions);
@@ -126,21 +127,8 @@ public class MessagePublishingInterceptorTests {
 		}
 
 		@Override
-		@Deprecated
-		public String getPayloadExpression(Method method) {
-			return getExpressionForPayload(method)
-					.getExpressionString();
-		}
-
-		@Override
 		public Expression getExpressionForPayload(Method method) {
 			return EXPRESSION_PARSER.parseExpression("'test-' + #return");
-		}
-
-		@Override
-		@Deprecated
-		public Map<String, String> getHeaderExpressions(Method method) {
-			return null;
 		}
 
 		@Override

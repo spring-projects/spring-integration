@@ -55,12 +55,6 @@ public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 	}
 
 	@Override
-	@Deprecated
-	public String getPayloadExpression(Method method) {
-		return this.payloadExpression.getExpressionString();
-	}
-
-	@Override
 	public Expression getExpressionForPayload(Method method) {
 		return this.payloadExpression;
 	}
@@ -71,16 +65,6 @@ public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 						.stream()
 						.collect(Collectors.toMap(Map.Entry::getKey,
 								e -> EXPRESSION_PARSER.parseExpression(e.getValue())));
-	}
-
-	@Override
-	@Deprecated
-	public Map<String, String> getHeaderExpressions(Method method) {
-		return this.headerExpressions
-				.entrySet()
-				.stream()
-				.collect(Collectors.toMap(Map.Entry::getKey,
-						e -> e.getValue().getExpressionString()));
 	}
 
 	@Override
