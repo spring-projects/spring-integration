@@ -98,7 +98,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 		}
 		this.file = new File(baseDir, this.fileName);
 		try {
-			if (!this.file.exists() &&!this.file.createNewFile() && this.logger.isWarnEnabled()) {
+			if (!this.file.exists() && !this.file.createNewFile() && this.logger.isWarnEnabled()) {
 				this.logger.warn("Failed to create file " + this.file);
 			}
 		}
