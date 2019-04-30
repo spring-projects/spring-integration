@@ -32,7 +32,9 @@ import org.springframework.integration.file.remote.session.Session;
  */
 public final class RemoteFileUtils {
 
-	private RemoteFileUtils() { }
+	private RemoteFileUtils() {
+		super();
+	}
 
 	/**
 	 * Recursively create remote directories.
@@ -43,8 +45,8 @@ public final class RemoteFileUtils {
 	 * @param logger The logger.
 	 * @throws IOException Any IOException.
 	 */
-	public static <F> void makeDirectories(String path, Session<F> session, String remoteFileSeparator, Log logger)
-			throws IOException {
+	public static synchronized <F> void makeDirectories(String path, Session<F> session, String remoteFileSeparator,
+			Log logger) throws IOException {
 
 		if (!session.exists(path)) {
 
