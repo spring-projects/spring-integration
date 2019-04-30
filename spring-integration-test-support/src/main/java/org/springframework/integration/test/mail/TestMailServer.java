@@ -259,7 +259,7 @@ public final class TestMailServer {
 						if (line == null) {
 							break;
 						}
-						String tag = line.substring(0, line.indexOf(" ") + 1);
+						String tag = line.substring(0, line.indexOf(' ') + 1);
 						if (line.endsWith("CAPABILITY")) {
 							write("* CAPABILITY IDLE IMAP4rev1");
 							write(tag + "OK CAPABILITY completed");

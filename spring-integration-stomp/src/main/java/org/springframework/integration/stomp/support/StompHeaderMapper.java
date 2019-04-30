@@ -80,21 +80,23 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
 	private String[] outboundHeaderNames = STOMP_OUTBOUND_HEADER_NAMES;
 
-	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
+	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null.");
 		Assert.noNullElements(inboundHeaderNames, "'inboundHeaderNames' must not contains null elements.");
-		Arrays.sort(inboundHeaderNames);
+		String[] copy = Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length);
+		Arrays.sort(copy);
 		if (!Arrays.equals(STOMP_INBOUND_HEADER_NAMES, inboundHeaderNames)) {
-			this.inboundHeaderNames = inboundHeaderNames;
+			this.inboundHeaderNames = copy;
 		}
 	}
 
-	public void setOutboundHeaderNames(String[] outboundHeaderNames) { //NOSONAR - false positive
+	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		Assert.notNull(outboundHeaderNames, "'outboundHeaderNames' must not be null.");
 		Assert.noNullElements(outboundHeaderNames, "'outboundHeaderNames' must not contains null elements.");
-		Arrays.sort(outboundHeaderNames);
+		String[] copy = Arrays.copyOf(outboundHeaderNames, outboundHeaderNames.length);
+		Arrays.sort(copy);
 		if (!Arrays.equals(STOMP_OUTBOUND_HEADER_NAMES, outboundHeaderNames)) {
-			this.outboundHeaderNames = outboundHeaderNames;
+			this.outboundHeaderNames = copy;
 		}
 	}
 

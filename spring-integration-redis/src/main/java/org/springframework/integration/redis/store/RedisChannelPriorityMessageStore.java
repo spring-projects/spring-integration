@@ -141,8 +141,8 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 			for (Object key : keys) {
 				Assert.isInstanceOf(String.class, key);
 				String keyString = (String) key;
-				int lastIndexOfColon = keyString.lastIndexOf(":");
-				if (keyString.indexOf(":") != lastIndexOfColon) {
+				int lastIndexOfColon = keyString.lastIndexOf(':');
+				if (keyString.indexOf(':') != lastIndexOfColon) {
 					narrowedKeys.add(keyString.substring(0, lastIndexOfColon));
 				}
 				else {

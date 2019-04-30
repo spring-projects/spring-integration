@@ -47,8 +47,8 @@ public class MessageGroupExpiredEvent extends IntegrationEvent {
 		super(source);
 		this.groupId = groupId;
 		this.messageCount = messageCount;
-		this.lastModified = lastModified;
-		this.expired = expired;
+		this.lastModified = (Date) lastModified.clone();
+		this.expired = (Date) expired.clone();
 		this.discarded = discarded;
 	}
 

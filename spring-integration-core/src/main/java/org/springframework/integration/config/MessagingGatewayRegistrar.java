@@ -163,7 +163,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		}
 		String id = (String) gatewayAttributes.get("name");
 		if (!StringUtils.hasText(id)) {
-			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf(".") + 1));
+			id = Introspector.decapitalize(serviceInterface.substring(serviceInterface.lastIndexOf('.') + 1));
 		}
 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
