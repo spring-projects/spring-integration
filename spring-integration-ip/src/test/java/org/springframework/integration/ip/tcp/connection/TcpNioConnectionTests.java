@@ -697,7 +697,7 @@ public class TcpNioConnectionTests {
 		ioExec.initialize();
 		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
 		assemblerExec.setCorePoolSize(2);
-		assemblerExec.setMaxPoolSize(5);
+		assemblerExec.setMaxPoolSize(10);
 		assemblerExec.setQueueCapacity(0);
 		assemblerExec.setThreadNamePrefix("assembler-");
 		assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
