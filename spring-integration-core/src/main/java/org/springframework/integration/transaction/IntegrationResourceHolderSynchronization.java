@@ -29,7 +29,7 @@ import org.springframework.transaction.support.ResourceHolderSynchronization;
 public class IntegrationResourceHolderSynchronization
 		extends ResourceHolderSynchronization<IntegrationResourceHolder, Object> {
 
-	protected final IntegrationResourceHolder resourceHolder;
+	protected final IntegrationResourceHolder resourceHolder; // NOSONAR final
 
 	private boolean shouldUnbindAtCompletion = true;
 

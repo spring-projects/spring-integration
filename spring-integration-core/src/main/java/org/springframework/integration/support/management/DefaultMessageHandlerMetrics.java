@@ -31,13 +31,13 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
 
-	protected final AtomicLong activeCount = new AtomicLong();
+	protected final AtomicLong activeCount = new AtomicLong(); // NOSONAR final
 
-	protected final AtomicLong handleCount = new AtomicLong();
+	protected final AtomicLong handleCount = new AtomicLong(); // NOSONAR final
 
-	protected final AtomicLong errorCount = new AtomicLong();
+	protected final AtomicLong errorCount = new AtomicLong(); // NOSONAR final
 
-	protected final ExponentialMovingAverage duration;
+	protected final ExponentialMovingAverage duration; // NOSONAR final
 
 	public DefaultMessageHandlerMetrics() {
 		this(null);
@@ -153,7 +153,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	protected static class DefaultHandlerMetricsContext implements MetricsContext {
 
-		protected final long start;
+		protected final long start; // NOSONAR final
 
 		protected DefaultHandlerMetricsContext(long start) {
 			this.start = start;

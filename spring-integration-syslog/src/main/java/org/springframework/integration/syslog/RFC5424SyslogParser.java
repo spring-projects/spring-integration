@@ -38,7 +38,7 @@ public class RFC5424SyslogParser {
 
 	protected static final char SPACE = ' ';
 
-	protected final boolean retainOriginal;
+	protected final boolean retainOriginal; // NOSONAR final
 
 
 	/**
@@ -161,7 +161,7 @@ public class RFC5424SyslogParser {
 		}
 
 		if (!Character.isDigit(c)) {
-			throw new IllegalStateException("Year expected @" + r.idx);
+			throw new IllegalStateException("Year expected @" + r.getIndex());
 		}
 
 		StringBuilder dateBuilder = new StringBuilder();
@@ -207,6 +207,10 @@ public class RFC5424SyslogParser {
 
 		public Reader(String l) {
 			this.line = l;
+		}
+
+		public int getIndex() {
+			return this.idx;
 		}
 
 		public void mark() {

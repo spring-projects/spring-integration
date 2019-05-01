@@ -49,7 +49,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 
 	private final List<ChannelInterceptor> interceptors = new LinkedList<>();
 
-	protected C channel;
+	protected C channel; // NOSONAR
 
 	private MessageConverter messageConverter;
 

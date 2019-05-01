@@ -85,7 +85,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.isTrue(this.initialized, getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(isInitialized(), getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		try {
 			Object payload = message.getPayload();
 			org.jivesoftware.smack.packet.Message xmppMessage = null;
@@ -101,11 +101,11 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			if (this.headerMapper != null) {
 				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
 			}
-
-			if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
-				((AbstractXMPPConnection) this.xmppConnection).connect();
+			XMPPConnection xmppConnection = getXmppConnection();
+			if (!xmppConnection.isConnected() && xmppConnection instanceof AbstractXMPPConnection) {
+				((AbstractXMPPConnection) xmppConnection).connect();
 			}
-			this.xmppConnection.sendStanza(xmppMessage);
+			xmppConnection.sendStanza(xmppMessage);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

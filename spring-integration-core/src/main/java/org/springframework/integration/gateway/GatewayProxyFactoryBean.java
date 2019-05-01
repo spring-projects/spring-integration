@@ -801,7 +801,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
-		Expression receiveTimeoutExpression;
+		private Expression receiveTimeoutExpression;
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);

@@ -40,7 +40,7 @@ public abstract class AmqpInboundChannelAdapterSpec
 		extends AmqpBaseInboundChannelAdapterSpec<S>
 		implements ComponentsRegistration {
 
-	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec;
+	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
 
 	AmqpInboundChannelAdapterSpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
 		super(new AmqpInboundChannelAdapter(listenerContainerSpec.get()));

@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractXmppConnectionAwareEndpoint extends MessageProducerSupport {
 
-	protected volatile XMPPConnection xmppConnection;
+	private XMPPConnection xmppConnection;
 
-	protected volatile boolean initialized;
+	private boolean initialized;
 
 
 	public AbstractXmppConnectionAwareEndpoint() {
@@ -41,6 +41,15 @@ public abstract class AbstractXmppConnectionAwareEndpoint extends MessageProduce
 	public AbstractXmppConnectionAwareEndpoint(XMPPConnection xmppConnection) {
 		Assert.notNull(xmppConnection, "'xmppConnection' must no be null");
 		this.xmppConnection = xmppConnection;
+	}
+
+	protected XMPPConnection getXmppConnection() {
+		return this.xmppConnection;
+	}
+
+	@Override
+	protected boolean isInitialized() {
+		return this.initialized;
 	}
 
 	@Override

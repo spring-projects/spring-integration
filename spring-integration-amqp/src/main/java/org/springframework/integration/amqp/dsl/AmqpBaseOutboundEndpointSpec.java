@@ -44,7 +44,7 @@ public abstract class
 AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E extends AbstractAmqpOutboundEndpoint>
 		extends MessageHandlerSpec<S, E> {
 
-	protected final DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
+	protected final DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper(); // NOSONAR final
 
 	/**
 	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.

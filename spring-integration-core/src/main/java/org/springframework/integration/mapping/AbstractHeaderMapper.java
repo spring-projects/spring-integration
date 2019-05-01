@@ -66,7 +66,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	private static final Collection<String> TRANSIENT_HEADER_NAMES = Arrays.asList(
 			MessageHeaders.ID, MessageHeaders.TIMESTAMP);
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private final String standardHeaderPrefix;
 

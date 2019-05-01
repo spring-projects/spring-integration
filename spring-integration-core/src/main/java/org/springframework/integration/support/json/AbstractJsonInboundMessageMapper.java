@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  * to a {@link org.springframework.messaging.Message} with the specified payload type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  *
  * @see JsonInboundMessageMapper
@@ -47,11 +48,11 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 		DEFAULT_HEADER_TYPES.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class);
 	}
 
-	protected final Type payloadType;
+	protected final Type payloadType; // NOSONAR final
 
-	protected final Map<String, Class<?>> headerTypes = DEFAULT_HEADER_TYPES;
+	protected final Map<String, Class<?>> headerTypes = DEFAULT_HEADER_TYPES; // NOSONAR final
 
-	protected volatile boolean mapToPayload = false;
+	private boolean mapToPayload = false;
 
 	public AbstractJsonInboundMessageMapper(Type payloadType) {
 		Assert.notNull(payloadType, "payloadType must not be null");
@@ -64,6 +65,10 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 
 	public void setMapToPayload(boolean mapToPayload) {
 		this.mapToPayload = mapToPayload;
+	}
+
+	public boolean isMapToPayload() {
+		return this.mapToPayload;
 	}
 
 	protected abstract Object readPayload(P parser, String jsonMessage);

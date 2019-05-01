@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec<S>>
 		extends MessageSourceSpec<S, JmsDestinationPollingSource> {
 
-	protected final JmsTemplateSpec jmsTemplateSpec = new JmsTemplateSpec();
+	protected final JmsTemplateSpec jmsTemplateSpec = new JmsTemplateSpec(); // NOSONAR final
 
 	JmsInboundChannelAdapterSpec(JmsTemplate jmsTemplate) {
 		this.target = new JmsDestinationPollingSource(jmsTemplate);

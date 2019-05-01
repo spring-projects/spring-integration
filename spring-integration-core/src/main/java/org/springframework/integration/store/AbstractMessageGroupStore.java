@@ -40,7 +40,7 @@ import org.springframework.messaging.Message;
 public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageGroupStore
 		implements MessageGroupStore, Iterable<MessageGroup> {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<>();
 

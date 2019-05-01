@@ -40,7 +40,7 @@ public abstract class AmqpInboundGatewaySpec
 		extends AmqpBaseInboundGatewaySpec<S>
 		implements ComponentsRegistration {
 
-	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec;
+	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec; // NOSONAR final
 
 	AmqpInboundGatewaySpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
 		super(new AmqpInboundGateway(listenerContainerSpec.get()));

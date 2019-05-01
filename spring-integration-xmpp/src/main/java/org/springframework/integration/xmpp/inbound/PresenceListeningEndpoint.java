@@ -18,8 +18,6 @@ package org.springframework.integration.xmpp.inbound;
 
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
@@ -44,9 +42,6 @@ import org.springframework.util.StringUtils;
  */
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
-	private static final Log logger = LogFactory.getLog(PresenceListeningEndpoint.class);
-
-
 	private final PresencePublishingRosterListener rosterListener = new PresencePublishingRosterListener();
 
 
@@ -66,15 +61,16 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
-		Roster roster = Roster.getInstanceFor(this.xmppConnection);
+		Assert.isTrue(isInitialized(), this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
+		Roster roster = Roster.getInstanceFor(getXmppConnection());
 		roster.addRosterListener(this.rosterListener);
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.xmppConnection != null) {
-			Roster.getInstanceFor(this.xmppConnection).removeRosterListener(this.rosterListener);
+		XMPPConnection xmppConnection = getXmppConnection();
+		if (xmppConnection != null) {
+			Roster.getInstanceFor(xmppConnection).removeRosterListener(this.rosterListener);
 		}
 	}
 

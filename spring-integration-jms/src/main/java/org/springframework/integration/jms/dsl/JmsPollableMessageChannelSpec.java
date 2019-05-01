@@ -41,7 +41,7 @@ import org.springframework.lang.Nullable;
 public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>
 		extends MessageChannelSpec<S, AbstractJmsChannel> {
 
-	protected final JmsChannelFactoryBean jmsChannelFactoryBean;
+	protected final JmsChannelFactoryBean jmsChannelFactoryBean; // NOSONAR final
 
 	JmsPollableMessageChannelSpec(ConnectionFactory connectionFactory) {
 		this(new JmsChannelFactoryBean(false), connectionFactory);

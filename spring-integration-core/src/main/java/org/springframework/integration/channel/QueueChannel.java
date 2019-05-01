@@ -47,7 +47,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	private final Queue<Message<?>> queue;
 
-	protected final Semaphore queueSemaphore = new Semaphore(0);
+	protected final Semaphore queueSemaphore = new Semaphore(0); // NOSONAR final
 
 	/**
 	 * Create a channel with the specified queue.

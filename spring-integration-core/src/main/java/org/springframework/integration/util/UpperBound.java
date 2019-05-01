@@ -26,12 +26,13 @@ import java.util.concurrent.TimeUnit;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
 public final class UpperBound {
 
-	public final Semaphore semaphore;
+	private final Semaphore semaphore;
 
 
 	/**

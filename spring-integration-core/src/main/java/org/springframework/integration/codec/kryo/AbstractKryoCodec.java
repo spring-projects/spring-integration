@@ -39,7 +39,7 @@ import com.esotericsoftware.kryo.pool.KryoPool;
  */
 public abstract class AbstractKryoCodec implements Codec {
 
-	protected final KryoPool pool;
+	protected final KryoPool pool; // NOSONAR final
 
 	protected AbstractKryoCodec() {
 		KryoFactory factory = () -> {
@@ -53,7 +53,7 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public void encode(final Object object, OutputStream outputStream) throws IOException {
+	public void encode(final Object object, OutputStream outputStream) {
 		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
@@ -77,7 +77,7 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public <T> T decode(InputStream inputStream, final Class<T> type) throws IOException {
+	public <T> T decode(InputStream inputStream, final Class<T> type) {
 		Assert.notNull(inputStream, "'inputStream' cannot be null");
 		Assert.notNull(type, "'type' cannot be null");
 		final Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream));

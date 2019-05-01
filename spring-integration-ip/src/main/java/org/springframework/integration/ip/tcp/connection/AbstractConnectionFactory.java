@@ -73,67 +73,67 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private static final int DEFAULT_READ_DELAY = 100;
 
-	private volatile String host;
-
-	private volatile int port;
-
-	private volatile TcpListener listener;
-
-	private volatile TcpSender sender;
-
-	private volatile int soTimeout = -1;
-
-	private volatile int soSendBufferSize;
-
-	private volatile int soReceiveBufferSize;
-
-	private volatile boolean soTcpNoDelay;
-
-	private volatile int soLinger = -1; // don't set by default
-
-	private volatile boolean soKeepAlive;
-
-	private volatile int soTrafficClass = -1; // don't set by default
-
-	private volatile Executor taskExecutor;
-
-	private volatile boolean privateExecutor;
-
-	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
-
-	private volatile boolean deserializerSet;
-
-	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
-
-	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
-
-	private volatile boolean mapperSet;
-
-	private volatile boolean singleUse;
-
-	private volatile boolean active;
-
-	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
-
-	private volatile boolean lookupHost = true;
+	protected final Object lifecycleMonitor = new Object(); // NOSONAR final
 
 	private final Map<String, TcpConnectionSupport> connections = new ConcurrentHashMap<String, TcpConnectionSupport>();
 
-	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
-
-	protected final Object lifecycleMonitor = new Object();
-
-	private volatile long nextCheckForClosedNioConnections;
-
-	private volatile int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
-
-	private volatile ApplicationEventPublisher applicationEventPublisher;
-
 	private final BlockingQueue<PendingIO> delayedReads = new LinkedBlockingQueue<AbstractConnectionFactory.PendingIO>();
 
-	private volatile long readDelay = DEFAULT_READ_DELAY;
+	private String host;
 
-	private volatile Integer sslHandshakeTimeout;
+	private int port;
+
+	private TcpListener listener;
+
+	private TcpSender sender;
+
+	private int soTimeout = -1;
+
+	private int soSendBufferSize;
+
+	private int soReceiveBufferSize;
+
+	private boolean soTcpNoDelay;
+
+	private int soLinger = -1; // don't set by default
+
+	private boolean soKeepAlive;
+
+	private int soTrafficClass = -1; // don't set by default
+
+	private Executor taskExecutor;
+
+	private boolean privateExecutor;
+
+	private Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
+
+	private boolean deserializerSet;
+
+	private Serializer<?> serializer = new ByteArrayCrLfSerializer();
+
+	private TcpMessageMapper mapper = new TcpMessageMapper();
+
+	private boolean mapperSet;
+
+	private boolean singleUse;
+
+	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+
+	private boolean lookupHost = true;
+
+	private TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
+
+	private long nextCheckForClosedNioConnections;
+
+	private int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
+
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private long readDelay = DEFAULT_READ_DELAY;
+
+	private Integer sslHandshakeTimeout;
+
+	private volatile boolean active;
 
 	public AbstractConnectionFactory(int port) {
 		this.port = port;
@@ -502,6 +502,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public void setReadDelay(long readDelay) {
 		Assert.isTrue(readDelay > 0, "'readDelay' must be positive");
 		this.readDelay = readDelay;
+	}
+
+	protected Object getLifecycleMonitor() {
+		return this.lifecycleMonitor;
 	}
 
 	@Override

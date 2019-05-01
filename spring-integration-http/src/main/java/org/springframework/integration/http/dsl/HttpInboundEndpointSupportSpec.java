@@ -49,11 +49,11 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 		extends MessagingGatewaySpec<S, E>
 		implements ComponentsRegistration {
 
-	protected final RequestMapping requestMapping = new RequestMapping();
+	protected final RequestMapping requestMapping = new RequestMapping(); // NOSONAR final
 
-	protected final Map<String, Expression> headerExpressions = new HashMap<>();
+	protected final Map<String, Expression> headerExpressions = new HashMap<>(); // NOSONAR final
 
-	protected final HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
+	protected final HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper(); // NOSONAR final
 
 	private HeaderMapper<HttpHeaders> explicitHeaderMapper;
 
@@ -67,12 +67,12 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 	/**
 	 * Provide a {@link Consumer} for configuring {@link RequestMapping} via {@link RequestMappingSpec}
-	 * @param requestMapping the {@link Consumer} to configure {@link RequestMappingSpec}.
+	 * @param mapping the {@link Consumer} to configure {@link RequestMappingSpec}.
 	 * @return the spec
 	 * @see RequestMapping
 	 */
-	public S requestMapping(Consumer<RequestMappingSpec> requestMapping) {
-		requestMapping.accept(new RequestMappingSpec(this.requestMapping));
+	public S requestMapping(Consumer<RequestMappingSpec> mapping) {
+		mapping.accept(new RequestMappingSpec(this.requestMapping));
 		return _this();
 	}
 
@@ -123,14 +123,14 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 	/**
 	 * Specify a Map of SpEL expressions to evaluate in order to generate the Message headers.
-	 * @param headerExpressions The {@link Map} of SpEL expressions for headers.
+	 * @param expressions The {@link Map} of SpEL expressions for headers.
 	 * @return the spec
 	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
 	 */
-	public S headerExpressions(Map<String, Expression> headerExpressions) {
-		Assert.notNull(headerExpressions, "'headerExpressions' must not be null");
+	public S headerExpressions(Map<String, Expression> expressions) {
+		Assert.notNull(expressions, "'headerExpressions' must not be null");
 		this.headerExpressions.clear();
-		this.headerExpressions.putAll(headerExpressions);
+		this.headerExpressions.putAll(expressions);
 		return _this();
 	}
 
@@ -171,12 +171,12 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 	/**
 	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
-	 * @param headerMapper The header mapper.
+	 * @param mapper The header mapper.
 	 * @return the current Spec.
 	 */
-	public S headerMapper(HeaderMapper<HttpHeaders> headerMapper) {
-		this.target.setHeaderMapper(headerMapper);
-		this.explicitHeaderMapper = headerMapper;
+	public S headerMapper(HeaderMapper<HttpHeaders> mapper) {
+		this.target.setHeaderMapper(mapper);
+		this.explicitHeaderMapper = mapper;
 		return _this();
 	}
 

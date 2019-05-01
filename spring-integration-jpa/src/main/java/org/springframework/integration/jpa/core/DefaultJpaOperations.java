@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
 
@@ -51,7 +52,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	@Override
 	public void delete(Object entity) {
 		Assert.notNull(entity, "The entity must not be null!");
-		entityManager.remove(entity);
+		getEntityManager().remove(entity);
 	}
 
 	@Override
@@ -78,6 +79,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 			}
 		}
 
+		EntityManager entityManager = getEntityManager();
 		final String entityName  = JpaUtils.getEntityName(entityManager, entityClass);
 		final String queryString = JpaUtils.getQueryString(JpaUtils.DELETE_ALL_QUERY_STRING, entityName);
 
@@ -88,32 +90,32 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public int executeUpdate(String updateQuery,  ParameterSource source) {
-		Query query = entityManager.createQuery(updateQuery);
+		Query query = getEntityManager().createQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
 	@Override
 	public int executeUpdateWithNamedQuery(String updateQuery, ParameterSource source) {
-		Query query = entityManager.createNamedQuery(updateQuery);
+		Query query = getEntityManager().createNamedQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
 	@Override
 	public int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source) {
-		Query query = entityManager.createNativeQuery(updateQuery);
+		Query query = getEntityManager().createNativeQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
 	@Override
 	public <T> T find(Class<T> entityType, Object id) {
-		return entityManager.find(entityType, id);
+		return getEntityManager().find(entityType, id);
 	}
 
 	private Query getQuery(String queryString, ParameterSource source) {
-		Query query = entityManager.createQuery(queryString);
+		Query query = getEntityManager().createQuery(queryString);
 		setParametersIfRequired(queryString, source, query);
 		return query;
 	}
@@ -122,8 +124,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	@Override
 	public List<?> getResultListForClass(Class<?> entityClass, int firstResult, int maxNumberOfResults) {
 
-		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
-		final Query query = entityManager.createQuery("select x from " + entityName + " x", entityClass);
+		final String entityName = JpaUtils.getEntityName(getEntityManager(), entityClass);
+		final Query query = getEntityManager().createQuery("select x from " + entityName + " x", entityClass);
 		if (firstResult > 0) {
 			query.setFirstResult(firstResult);
 		}
@@ -139,7 +141,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	public List<?> getResultListForNamedQuery(String selectNamedQuery,
 			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
-		final Query query = entityManager.createNamedQuery(selectNamedQuery);
+		final Query query = getEntityManager().createNamedQuery(selectNamedQuery);
 		setParametersIfRequired(selectNamedQuery, parameterSource, query);
 
 		if (firstResult > 0) {
@@ -160,10 +162,10 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		final Query query;
 
 		if (entityClass == null) {
-			query = entityManager.createNativeQuery(selectQuery);
+			query = getEntityManager().createNativeQuery(selectQuery);
 		}
 		else {
-			query = entityManager.createNativeQuery(selectQuery, entityClass);
+			query = getEntityManager().createNativeQuery(selectQuery, entityClass);
 		}
 
 		setParametersIfRequired(selectQuery, parameterSource, query);
@@ -235,6 +237,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	private Object persistOrMerge(Object entity, boolean isMerge, int flushSize, boolean clearOnFlush) {
 		Object result = null;
 
+		EntityManager entityManager = getEntityManager();
 		if (entity instanceof Iterable) {
 			result = persistOrMergeIterable(entity, isMerge, flushSize, clearOnFlush);
 		}
@@ -269,6 +272,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		List<Object> mergedEntities = new ArrayList<Object>();
 
+		EntityManager entityManager = getEntityManager();
 		for (Object iteratedEntity : entities) {
 			if (iteratedEntity == null) {
 				nullEntities++;

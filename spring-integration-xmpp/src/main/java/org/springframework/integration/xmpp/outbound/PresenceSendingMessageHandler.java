@@ -50,15 +50,16 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.state(this.initialized, this.getComponentName() + " must be initialized");
+		Assert.state(isInitialized(), getComponentName() + " must be initialized");
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Presence,
 				"Payload must be of type 'org.jivesoftware.smack.packet.Presence', was: " + payload.getClass().getName());
 		try {
-			if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
-				((AbstractXMPPConnection) this.xmppConnection).connect();
+			XMPPConnection xmppConnection = getXmppConnection();
+			if (!xmppConnection.isConnected() && xmppConnection instanceof AbstractXMPPConnection) {
+				((AbstractXMPPConnection) xmppConnection).connect();
 			}
-			this.xmppConnection.sendStanza((Presence) payload);
+			xmppConnection.sendStanza((Presence) payload);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

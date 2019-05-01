@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSpec<S>>
 		extends MessageHandlerSpec<S, JmsSendingMessageHandler> {
 
-	protected final JmsTemplateSpec jmsTemplateSpec = new JmsTemplateSpec();
+	protected final JmsTemplateSpec jmsTemplateSpec = new JmsTemplateSpec(); // NOSONAR final
 
 	JmsOutboundChannelAdapterSpec(JmsTemplate jmsTemplate) {
 		this.target = new JmsSendingMessageHandler(jmsTemplate);

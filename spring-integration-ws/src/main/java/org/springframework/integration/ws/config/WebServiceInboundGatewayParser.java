@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  */
 public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -75,6 +75,7 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 		}
 	}
 
+	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
