@@ -59,10 +59,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.netty.buffer.PooledByteBufAllocator;
+import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
 import io.rsocket.frame.decoder.PayloadDecoder;
+import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
+import io.rsocket.util.DefaultPayload;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -143,7 +146,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@BeforeEach
 	void setupTest(TestInfo testInfo) {
 		if (testInfo.getDisplayName().startsWith("server")) {
-			this.clientRSocketConnector.connect();
 			this.serverRsocketRequester = serverController.clientRequester.block(Duration.ofSeconds(10));
 		}
 	}
@@ -524,19 +526,27 @@ public class RSocketOutboundGatewayIntegrationTests {
 		public MessageHandlerAcceptor clientAcceptor() {
 			MessageHandlerAcceptor acceptor = new MessageHandlerAcceptor();
 			acceptor.setHandlers(Collections.singletonList(controller()));
-			acceptor.setAutoDetectDisabled();
 			acceptor.setRSocketStrategies(rsocketStrategies());
 			return acceptor;
+		}
+
+		@Bean(destroyMethod = "dispose")
+		public RSocket rsocketForServerRequests() {
+			return RSocketFactory.connect()
+					.setupPayload(DefaultPayload.create("", "clientConnect"))
+					.dataMimeType("text/plain")
+					.frameDecoder(PayloadDecoder.ZERO_COPY)
+					.acceptor(clientAcceptor())
+					.transport(TcpClientTransport.create("localhost", port))
+					.start()
+					.block();
 		}
 
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
 			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
-			clientRSocketConnector.setFactoryConfigurer((factory) -> factory
-					.frameDecoder(PayloadDecoder.ZERO_COPY)
-					.acceptor(clientAcceptor()));
+			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
-			clientRSocketConnector.setConnectRoute("clientConnect");
 			return clientRSocketConnector;
 		}
 
