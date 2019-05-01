@@ -132,10 +132,10 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	@Override
 	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return handler instanceof MessageFilter
-				|| (!(handler instanceof MessageSelector) && nofilterAttributesProvided());
+				|| (!(handler instanceof MessageSelector) && noFilterAttributesProvided());
 	}
 
-	private boolean nofilterAttributesProvided() {
+	private boolean noFilterAttributesProvided() {
 		return this.discardChannel == null
 				&& this.throwExceptionOnRejection == null
 				&& this.discardWithinAdvice == null;
