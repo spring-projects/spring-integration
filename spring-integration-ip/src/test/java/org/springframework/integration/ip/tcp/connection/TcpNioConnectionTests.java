@@ -331,7 +331,7 @@ public class TcpNioConnectionTests {
 				}
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				logger.debug("Expected timeout", e);
 				throw (Exception) e.getCause();
 			}
 			return null;
@@ -698,7 +698,7 @@ public class TcpNioConnectionTests {
 		ThreadPoolTaskExecutor assemblerExec = new ThreadPoolTaskExecutor();
 		assemblerExec.setCorePoolSize(2);
 		assemblerExec.setMaxPoolSize(10);
-		assemblerExec.setQueueCapacity(0);
+		assemblerExec.setQueueCapacity(1000);
 		assemblerExec.setThreadNamePrefix("assembler-");
 		assemblerExec.setRejectedExecutionHandler(new AbortPolicy());
 		assemblerExec.initialize();
