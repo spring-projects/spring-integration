@@ -103,15 +103,16 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType()
+		Assert.isTrue(isInitialized(), this.getComponentName() + " [" + this.getComponentType()
 				+ "] must be initialized");
-		this.xmppConnection.addAsyncStanzaListener(this.stanzaListener, this.stanzaFilter);
+		getXmppConnection().addAsyncStanzaListener(this.stanzaListener, this.stanzaFilter);
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.xmppConnection != null) {
-			this.xmppConnection.removeAsyncStanzaListener(this.stanzaListener);
+		XMPPConnection xmppConnection = getXmppConnection();
+		if (xmppConnection != null) {
+			xmppConnection.removeAsyncStanzaListener(this.stanzaListener);
 		}
 	}
 

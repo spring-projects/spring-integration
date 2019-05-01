@@ -99,7 +99,7 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 
 	protected static class AggregatingChannelMetricsContext extends DefaultChannelMetricsContext {
 
-		protected long newCount;
+		protected long newCount; // NOSONAR
 
 		public AggregatingChannelMetricsContext(long start, long newCount) {
 			super(start);

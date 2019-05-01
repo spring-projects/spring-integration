@@ -200,7 +200,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
 		Query query = groupIdQuery(groupId).with(sort);
-		MessageDocument document = mongoTemplate.findAndRemove(query, MessageDocument.class, collectionName);
+		MessageDocument document = getMongoTemplate().findAndRemove(query, MessageDocument.class, collectionName);
 		Message<?> message = null;
 		if (document != null) {
 			message = document.getMessage();
@@ -222,7 +222,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	@Override
 	public Iterator<MessageGroup> iterator() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		Iterable<String> groupIds = mongoTemplate.getCollection(collectionName)
+		Iterable<String> groupIds = getMongoTemplate().getCollection(collectionName)
 				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), String.class);
 
 		return StreamSupport.stream(groupIds.spliterator(), false)

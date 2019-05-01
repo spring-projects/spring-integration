@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractJpaOperations implements JpaOperations, InitializingBean {
 
-	protected EntityManager entityManager;
+	private EntityManager entityManager;
 
 	private EntityManagerFactory entityManagerFactory;
 
@@ -43,11 +43,18 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 	}
 
 
+	protected EntityManager getEntityManager() {
+		return this.entityManager;
+	}
+
+
 	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
 		Assert.notNull(entityManagerFactory, "The provided entityManagerFactory must not be null.");
 		this.entityManagerFactory = entityManagerFactory;
 	}
 
+
+	@Override
 	public final void afterPropertiesSet() {
 		this.onInit();
 	}

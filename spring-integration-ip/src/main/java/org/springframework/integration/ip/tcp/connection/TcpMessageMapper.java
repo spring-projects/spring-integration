@@ -65,21 +65,21 @@ public class TcpMessageMapper implements
 		OutboundMessageMapper<Object>,
 		BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR final
 
-	private volatile String charset = "UTF-8";
+	private String charset = "UTF-8";
 
-	private volatile boolean stringToBytes = true;
+	private boolean stringToBytes = true;
 
-	private volatile boolean applySequence = false;
+	private boolean applySequence = false;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
+	private boolean messageBuilderFactorySet;
 
-	private volatile String contentType = "application/octet-stream;charset=" + this.charset;
+	private String contentType = "application/octet-stream;charset=" + this.charset;
 
-	private volatile boolean addContentTypeHeader;
+	private boolean addContentTypeHeader;
 
 	private BeanFactory beanFactory;
 

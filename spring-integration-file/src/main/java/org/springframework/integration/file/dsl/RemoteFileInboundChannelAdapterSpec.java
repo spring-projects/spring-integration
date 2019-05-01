@@ -47,7 +47,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		extends MessageSourceSpec<S, MS>
 		implements ComponentsRegistration {
 
-	protected final AbstractInboundFileSynchronizer<F> synchronizer;
+	protected final AbstractInboundFileSynchronizer<F> synchronizer; // NOSONAR final
 
 	private ExpressionFileListFilter<F> expressionFileListFilter;
 

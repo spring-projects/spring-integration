@@ -32,28 +32,28 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C>, C extends AbstractMessageChannel>
 		extends MessageChannelSpec<S, C> {
 
-	protected LoadBalancingStrategy loadBalancingStrategy = new RoundRobinLoadBalancingStrategy();
+	protected LoadBalancingStrategy loadBalancingStrategy = new RoundRobinLoadBalancingStrategy(); // NOSONAR
 
-	protected Boolean failover;
+	protected Boolean failover; // NOSONAR
 
-	protected Integer maxSubscribers;
+	protected Integer maxSubscribers; // NOSONAR
 
 	protected LoadBalancingChannelSpec() {
 		super();
 	}
 
-	public S loadBalancer(LoadBalancingStrategy loadBalancingStrategy) {
-		this.loadBalancingStrategy = loadBalancingStrategy;
+	public S loadBalancer(LoadBalancingStrategy loadBalancingStrategyToSet) {
+		this.loadBalancingStrategy = loadBalancingStrategyToSet;
 		return _this();
 	}
 
-	public S failover(Boolean failover) {
-		this.failover = failover;
+	public S failover(Boolean failoverToSet) {
+		this.failover = failoverToSet;
 		return _this();
 	}
 
-	public S maxSubscribers(Integer maxSubscribers) {
-		this.maxSubscribers = maxSubscribers;
+	public S maxSubscribers(Integer maxSubscribersToSet) {
+		this.maxSubscribers = maxSubscribersToSet;
 		return _this();
 	}
 

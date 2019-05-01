@@ -47,11 +47,11 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		extends IntegrationComponentSpec<S, Tuple2<F, H>>
 		implements ComponentsRegistration {
 
-	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>(); // NOSONAR final
 
-	protected H handler;
+	protected H handler; // NOSONAR final
 
-	protected F endpointFactoryBean;
+	protected F endpointFactoryBean; // NOSONAR final
 
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {

@@ -65,7 +65,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 
 		return new Iterator<MessageHandler>() {
 
-			int currentIndex = 0;
+			private int currentIndex = 0;
 
 			public boolean hasNext() {
 				return this.currentIndex < reorderedHandlers.length;

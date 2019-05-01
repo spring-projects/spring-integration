@@ -56,13 +56,13 @@ import org.springframework.messaging.Message;
  */
 public class MockMessageHandler extends AbstractMessageProducingHandler {
 
-	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>();
+	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>(); // NOSONAR final
 
 	private final CapturingMatcher<Message<?>> capturingMatcher;
 
-	protected Function<Message<?>, ?> lastFunction;
+	protected Function<Message<?>, ?> lastFunction; // NOSONAR
 
-	protected boolean hasReplies;
+	protected boolean hasReplies; // NOSONAR
 
 	@SuppressWarnings("unchecked")
 	protected MockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {

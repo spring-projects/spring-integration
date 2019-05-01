@@ -66,17 +66,17 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
-	private volatile WebServiceMessageCallback requestCallback;
+	private WebServiceMessageCallback requestCallback;
 
 	private WebServiceTemplate webServiceTemplate;
 
-	private volatile boolean ignoreEmptyResponses = true;
+	private boolean ignoreEmptyResponses = true;
 
-	private volatile boolean encodeUri = true;
+	private boolean encodeUri = true;
 
-	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
+	private SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	private boolean webServiceTemplateExplicitlySet;
 
@@ -143,9 +143,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
-	protected final void doSetWebServiceTemplate(WebServiceTemplate webServiceTemplate) {
-		Assert.notNull(webServiceTemplate, "'webServiceTemplate' must not be null");
-		this.webServiceTemplate = webServiceTemplate;
+	protected final void doSetWebServiceTemplate(WebServiceTemplate template) {
+		Assert.notNull(template, "'webServiceTemplate' must not be null");
+		this.webServiceTemplate = template;
 		this.webServiceTemplateExplicitlySet = true;
 	}
 
@@ -233,18 +233,18 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 
-	protected abstract Object doHandle(String uri, Message<?> requestMessage,
-			WebServiceMessageCallback requestCallback);
+	protected abstract Object doHandle(String theUri, Message<?> requestMessage,
+			WebServiceMessageCallback reqCallback);
 
 	protected abstract class RequestMessageCallback extends TransformerObjectSupport
 			implements WebServiceMessageCallback {
 
-		private final WebServiceMessageCallback requestCallback;
+		private final WebServiceMessageCallback reqCallback;
 
 		private final Message<?> requestMessage;
 
 		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
-			this.requestCallback = requestCallback;
+			this.reqCallback = requestCallback;
 			this.requestMessage = requestMessage;
 		}
 
@@ -256,8 +256,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 				AbstractWebServiceOutboundGateway.this.headerMapper
 						.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage) message);
 			}
-			if (this.requestCallback != null) {
-				this.requestCallback.doWithMessage(message);
+			if (this.reqCallback != null) {
+				this.reqCallback.doWithMessage(message);
 			}
 		}
 

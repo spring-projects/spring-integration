@@ -42,23 +42,23 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
-	protected FTPClientConfig config;
+	private FTPClientConfig config;
 
-	protected String username;
+	private String username;
 
-	protected String host;
+	private String host;
 
-	protected String password;
+	private String password;
 
-	protected int port = FTP.DEFAULT_PORT;
+	private int port = FTP.DEFAULT_PORT;
 
-	protected int bufferSize = 2048; //see https://issues.apache.org/jira/browse/NET-207
+	private int bufferSize = 2048; //see https://issues.apache.org/jira/browse/NET-207
 
-	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+	private int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
-	protected int fileType = FTP.BINARY_FILE_TYPE;
+	private int fileType = FTP.BINARY_FILE_TYPE;
 
-	protected String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
+	private String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
 
 	private Integer connectTimeout;
 

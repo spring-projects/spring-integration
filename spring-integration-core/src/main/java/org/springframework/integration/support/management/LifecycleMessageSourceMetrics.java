@@ -38,7 +38,7 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 
 	private final Lifecycle lifecycle;
 
-	protected final MessageSourceMetrics delegate;
+	protected final MessageSourceMetrics delegate; // NOSONAR final
 
 
 	public LifecycleMessageSourceMetrics(Lifecycle lifecycle, MessageSourceMetrics delegate) {

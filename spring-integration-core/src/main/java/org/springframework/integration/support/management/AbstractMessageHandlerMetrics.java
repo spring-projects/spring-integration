@@ -29,11 +29,11 @@ import org.apache.commons.logging.LogFactory;
 @SuppressWarnings("deprecation")
 public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetrics {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	protected final String name;
+	protected final String name; // NOSONAR final
 
-	private volatile boolean fullStatsEnabled;
+	private boolean fullStatsEnabled;
 
 	public AbstractMessageHandlerMetrics(String name) {
 		this.name = name;

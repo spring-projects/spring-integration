@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  */
 public class SimplePool<T> implements Pool<T> {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private final Semaphore permits = new Semaphore(0);
 

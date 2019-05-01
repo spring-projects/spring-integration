@@ -16,9 +16,6 @@
 
 package org.springframework.integration.syslog.inbound;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.syslog.DefaultMessageConverter;
 import org.springframework.integration.syslog.MessageConverter;
@@ -39,11 +36,9 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 
 	private volatile int port = DEFAULT_PORT;
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	private MessageConverter converter = new DefaultMessageConverter();
 
-	private volatile MessageConverter converter = new DefaultMessageConverter();
-
-	private volatile boolean converterSet;
+	private boolean converterSet;
 
 	/**
 	 * @return The port on which this adapter listens.

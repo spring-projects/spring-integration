@@ -52,10 +52,6 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 		this.messageParser = messageParser;
 	}
 
-	public boolean isMapToPayload() {
-		return mapToPayload;
-	}
-
 	public Type getPayloadType() {
 		return payloadType;
 	}

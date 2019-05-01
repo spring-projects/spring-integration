@@ -50,9 +50,9 @@ import org.springframework.util.Assert;
  */
 public class ErrorMessagePublisher implements BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
 
 	private DestinationResolver<MessageChannel> channelResolver;
 

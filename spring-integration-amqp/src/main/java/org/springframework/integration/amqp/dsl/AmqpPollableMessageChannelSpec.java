@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
 public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannelSpec<S>>
 		extends MessageChannelSpec<S, AbstractAmqpChannel> {
 
-	protected final AmqpChannelFactoryBean amqpChannelFactoryBean;
+	protected final AmqpChannelFactoryBean amqpChannelFactoryBean; // NOSONAR final
 
 	AmqpPollableMessageChannelSpec(ConnectionFactory connectionFactory) {
 		this(new AmqpChannelFactoryBean(false), connectionFactory);

@@ -79,7 +79,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private final ObjectMapper objectMapper;
 

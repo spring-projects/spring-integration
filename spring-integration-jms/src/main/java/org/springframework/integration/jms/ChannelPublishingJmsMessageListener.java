@@ -66,7 +66,7 @@ public class ChannelPublishingJmsMessageListener
 		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean,
 		TrackableComponent, BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private volatile boolean expectReply;
 

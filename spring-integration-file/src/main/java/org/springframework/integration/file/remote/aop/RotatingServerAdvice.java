@@ -117,9 +117,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 */
 	public static class StandardRotationPolicy implements RotationPolicy {
 
-		protected final Log logger = LogFactory.getLog(getClass());
+		protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-		protected final DelegatingSessionFactory<?> factory;
+		protected final DelegatingSessionFactory<?> factory; // NOSONAR final
 
 		private final List<KeyDirectory> keyDirectories = new ArrayList<>();
 

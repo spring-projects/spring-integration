@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  */
 public abstract class TcpConnectionSupport implements TcpConnection {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR final
 
 	private final CountDownLatch listenerRegisteredLatch = new CountDownLatch(1);
 
@@ -69,28 +69,28 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private final SocketInfo socketInfo;
 
 	@SuppressWarnings("rawtypes")
-	private volatile Deserializer deserializer;
+	private Deserializer deserializer;
 
 	@SuppressWarnings("rawtypes")
-	private volatile Serializer serializer;
+	private Serializer serializer;
 
-	private volatile TcpMessageMapper mapper;
+	private TcpMessageMapper mapper;
 
-	private volatile TcpListener listener;
+	private TcpListener listener;
 
-	private volatile TcpSender sender;
+	private TcpSender sender;
 
-	private volatile String connectionId;
+	private String connectionId;
 
-	private volatile String hostName = "unknown";
+	private String hostName = "unknown";
 
-	private volatile String hostAddress = "unknown";
+	private String hostAddress = "unknown";
 
-	private volatile String connectionFactoryName = "unknown";
+	private String connectionFactoryName = "unknown";
 
-	private volatile boolean noReadErrorOnClose;
+	private boolean noReadErrorOnClose;
 
-	private volatile boolean manualListenerRegistration;
+	private boolean manualListenerRegistration;
 
 	public TcpConnectionSupport() {
 		this(null);

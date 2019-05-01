@@ -31,9 +31,9 @@ import org.springframework.messaging.Message;
  */
 public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, QueueChannel> {
 
-	protected Queue<Message<?>> queue;
+	protected Queue<Message<?>> queue; // NOSONAR
 
-	protected Integer capacity;
+	protected Integer capacity; // NOSONAR
 
 	QueueChannelSpec() {
 		super();
@@ -84,13 +84,13 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 		}
 
 
-		public MessageStoreSpec capacity(Integer capacity) {
-			this.capacity = capacity;
+		public MessageStoreSpec capacity(Integer capacityToSet) {
+			this.capacity = capacityToSet;
 			return this;
 		}
 
-		public MessageStoreSpec storeLock(Lock storeLock) {
-			this.storeLock = storeLock;
+		public MessageStoreSpec storeLock(Lock storeLockToSet) {
+			this.storeLock = storeLockToSet;
 			return this;
 		}
 

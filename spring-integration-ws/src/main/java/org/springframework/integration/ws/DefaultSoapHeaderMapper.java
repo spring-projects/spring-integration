@@ -64,7 +64,7 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 		STANDARD_HEADER_NAMES.add(WebServiceHeaders.SOAP_ACTION);
 	}
 
-	protected final TransformerHelper transformerHelper = new TransformerHelper();
+	protected final TransformerHelper transformerHelper = new TransformerHelper(); // NOSONAR final
 
 	public DefaultSoapHeaderMapper() {
 		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.<String>emptyList());

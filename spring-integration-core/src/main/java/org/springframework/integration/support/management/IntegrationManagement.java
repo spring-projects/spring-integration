@@ -85,13 +85,13 @@ public interface IntegrationManagement extends DisposableBean {
 	 */
 	class ManagementOverrides {
 
-		public boolean loggingConfigured;
+		public boolean loggingConfigured; // NOSONAR
 
-		public boolean countsConfigured;
+		public boolean countsConfigured; // NOSONAR
 
-		public boolean statsConfigured;
+		public boolean statsConfigured; // NOSONAR
 
-		public boolean metricsConfigured;
+		public boolean metricsConfigured; // NOSONAR
 
 	}
 

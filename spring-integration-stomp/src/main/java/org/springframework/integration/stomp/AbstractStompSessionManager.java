@@ -73,9 +73,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private static final long DEFAULT_RECOVERY_INTERVAL = 10000;
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	protected final StompClientSupport stompClient;
+	protected final StompClientSupport stompClient; // NOSONAR final
 
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
 

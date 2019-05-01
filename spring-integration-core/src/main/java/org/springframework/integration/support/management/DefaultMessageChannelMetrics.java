@@ -37,21 +37,21 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
-	protected final ExponentialMovingAverage sendDuration;
+	protected final ExponentialMovingAverage sendDuration; // NOSONAR final
 
-	protected final ExponentialMovingAverageRate sendErrorRate;
+	protected final ExponentialMovingAverageRate sendErrorRate; // NOSONAR final
 
-	protected final ExponentialMovingAverageRatio sendSuccessRatio;
+	protected final ExponentialMovingAverageRatio sendSuccessRatio; // NOSONAR final
 
-	protected final ExponentialMovingAverageRate sendRate;
+	protected final ExponentialMovingAverageRate sendRate; // NOSONAR final
 
-	protected final AtomicLong sendCount = new AtomicLong();
+	protected final AtomicLong sendCount = new AtomicLong(); // NOSONAR final
 
-	protected final AtomicLong sendErrorCount = new AtomicLong();
+	protected final AtomicLong sendErrorCount = new AtomicLong(); // NOSONAR final
 
-	protected final AtomicLong receiveCount = new AtomicLong();
+	protected final AtomicLong receiveCount = new AtomicLong(); // NOSONAR final
 
-	protected final AtomicLong receiveErrorCount = new AtomicLong();
+	protected final AtomicLong receiveErrorCount = new AtomicLong(); // NOSONAR final
 
 	public DefaultMessageChannelMetrics() {
 		this(null);
@@ -256,7 +256,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	protected static class DefaultChannelMetricsContext implements MetricsContext {
 
-		protected final long start;
+		protected final long start; // NOSONAR
 
 		protected DefaultChannelMetricsContext(long start) {
 			this.start = start;

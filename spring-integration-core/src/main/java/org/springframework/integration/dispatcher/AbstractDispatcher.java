@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private volatile int maxSubscribers = Integer.MAX_VALUE;
 

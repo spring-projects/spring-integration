@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractXmppConnectionAwareMessageHandler extends AbstractMessageHandler {
 
-	protected volatile XMPPConnection xmppConnection;
+	private XMPPConnection xmppConnection;
 
-	protected volatile boolean initialized;
+	private volatile boolean initialized;
 
 
 	public AbstractXmppConnectionAwareMessageHandler() {
@@ -43,6 +43,14 @@ public abstract class AbstractXmppConnectionAwareMessageHandler extends Abstract
 		this.xmppConnection = xmppConnection;
 	}
 
+	protected XMPPConnection getXmppConnection() {
+		return this.xmppConnection;
+	}
+
+	@Override
+	protected boolean isInitialized() {
+		return this.initialized;
+	}
 
 	@Override
 	protected void onInit() {
