@@ -55,6 +55,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
 
+	private static final String TYPE_ATTRIBUTE = "type";
+
 	private static final Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<>(); // NOSONAR lower case
 
 	private final Map<String, String> elementToNameMap = new HashMap<>();
@@ -114,14 +116,14 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				else {
 					headerName = this.elementToNameMap.get(elementName);
 					headerType = this.elementToTypeMap.get(elementName);
-					if (headerType != null && StringUtils.hasText(headerElement.getAttribute("type"))) {
+					if (headerType != null && StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
 						parserContext.getReaderContext().error("The " + elementName
 								+ " header does not accept a 'type' attribute. The required type is ["
 								+ headerType + "]", element);
 					}
 				}
 				if (headerType == null) {
-					headerType = headerElement.getAttribute("type");
+					headerType = headerElement.getAttribute(TYPE_ATTRIBUTE);
 				}
 				if (headerName == null) {
 					String ttlExpression = headerElement.getAttribute("time-to-live-expression");
@@ -261,7 +263,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			valueProcessorBuilder.addConstructorArgValue(headerType);
 		}
 		else if (isCustomBean) {
-			if (StringUtils.hasText(headerElement.getAttribute("type"))) {
+			if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
 				parserContext.getReaderContext().error(
 						"The 'type' attribute cannot be used with an inner bean.", element);
 			}
@@ -280,7 +282,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			}
 		}
 		else {
-			if (StringUtils.hasText(headerElement.getAttribute("type"))) {
+			if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
 				parserContext.getReaderContext().error(
 						"The 'type' attribute cannot be used with the 'ref' attribute.", element);
 			}

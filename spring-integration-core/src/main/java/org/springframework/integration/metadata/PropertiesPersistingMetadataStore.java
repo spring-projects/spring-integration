@@ -55,6 +55,8 @@ import org.springframework.util.DefaultPropertiesPersister;
 public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStore, InitializingBean, DisposableBean,
 		Closeable, Flushable {
 
+	private static final String KEY_CANNOT_BE_NULL = "'key' cannot be null";
+
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final Properties metadata = new Properties();
@@ -111,7 +113,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
@@ -126,7 +128,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public String get(String key) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -139,7 +141,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public String remove(String key) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
 		try {
@@ -153,7 +155,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		Lock lock = this.lockRegistry.obtain(key);
 		lock.lock();
@@ -175,7 +177,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' cannot be null");
 		Assert.notNull(newValue, "'newValue' cannot be null");
 		Lock lock = this.lockRegistry.obtain(key);

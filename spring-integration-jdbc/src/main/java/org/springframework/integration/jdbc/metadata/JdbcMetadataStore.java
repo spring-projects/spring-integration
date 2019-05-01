@@ -42,6 +42,8 @@ import org.springframework.util.Assert;
  */
 public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean {
 
+	private static final String KEY_CANNOT_BE_NULL = "'key' cannot be null";
+
 	/**
 	 * Default value for the table prefix property.
 	 */
@@ -134,7 +136,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	@Transactional
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
 			//try to insert if does not exists
@@ -169,7 +171,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	@Transactional
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' cannot be null");
 		Assert.notNull(newValue, "'newValue' cannot be null");
 		int affectedRows = this.jdbcTemplate.update(this.replaceValueQuery,
@@ -185,7 +187,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	@Transactional
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		Assert.notNull(value, "'value' cannot be null");
 		while (true) {
 			//try to insert if does not exist, if exists we will try to update it
@@ -215,7 +217,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	@Transactional
 	public String get(String key) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		try {
 			return this.jdbcTemplate.queryForObject(this.getValueQuery, String.class, key, this.region);
 		}
@@ -228,7 +230,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	@Transactional
 	public String remove(String key) {
-		Assert.notNull(key, "'key' cannot be null");
+		Assert.notNull(key, KEY_CANNOT_BE_NULL);
 		String oldValue;
 		try {
 			//select old value and lock row for removal

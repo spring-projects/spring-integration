@@ -58,6 +58,11 @@ import reactor.util.function.Tuples;
  */
 public class MockIntegrationContext implements BeanFactoryAware {
 
+	private static final String HANDLER = "handler";
+
+	/**
+	 * The bean name for the mock integration context.
+	 */
 	public static final String MOCK_INTEGRATION_CONTEXT_BEAN_NAME = "mockIntegrationContext";
 
 	private final Map<String, Object> beans = new HashMap<>();
@@ -97,11 +102,11 @@ public class MockIntegrationContext implements BeanFactoryAware {
 					}
 					else if (endpoint instanceof ReactiveStreamsConsumer) {
 						Tuple2<?, ?> value = (Tuple2<?, ?>) e.getValue();
-						directFieldAccessor.setPropertyValue("handler", value.getT1());
+						directFieldAccessor.setPropertyValue(HANDLER, value.getT1());
 						directFieldAccessor.setPropertyValue("subscriber", value.getT2());
 					}
 					else if (endpoint instanceof IntegrationConsumer) {
-						directFieldAccessor.setPropertyValue("handler", e.getValue());
+						directFieldAccessor.setPropertyValue(HANDLER, e.getValue());
 					}
 				});
 
@@ -147,7 +152,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 			((Lifecycle) endpoint).stop();
 		}
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
-		Object targetMessageHandler = directFieldAccessor.getPropertyValue("handler");
+		Object targetMessageHandler = directFieldAccessor.getPropertyValue(HANDLER);
 		Assert.notNull(targetMessageHandler, () -> "'handler' must not be null in the: " + endpoint);
 		if (endpoint instanceof ReactiveStreamsConsumer) {
 			Object targetSubscriber = directFieldAccessor.getPropertyValue("subscriber");
@@ -177,7 +182,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 			}
 		}
 
-		directFieldAccessor.setPropertyValue("handler", mockMessageHandler);
+		directFieldAccessor.setPropertyValue(HANDLER, mockMessageHandler);
 
 		if (endpoint instanceof ReactiveStreamsConsumer) {
 			directFieldAccessor.setPropertyValue("subscriber", mockMessageHandler);

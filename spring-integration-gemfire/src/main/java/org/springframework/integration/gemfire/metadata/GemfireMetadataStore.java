@@ -44,6 +44,8 @@ import org.springframework.util.Assert;
  */
 public class GemfireMetadataStore implements ListenableMetadataStore {
 
+	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
+
 	public static final String KEY = "MetaData";
 
 	private final GemfireCacheListener cacheListener = new GemfireCacheListener();
@@ -66,21 +68,21 @@ public class GemfireMetadataStore implements ListenableMetadataStore {
 
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		this.region.put(key, value);
 	}
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		return this.region.putIfAbsent(key, value);
 	}
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		return this.region.replace(key, oldValue, newValue);
@@ -88,13 +90,13 @@ public class GemfireMetadataStore implements ListenableMetadataStore {
 
 	@Override
 	public String get(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		return this.region.get(key);
 	}
 
 	@Override
 	public String remove(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		return this.region.remove(key);
 	}
 

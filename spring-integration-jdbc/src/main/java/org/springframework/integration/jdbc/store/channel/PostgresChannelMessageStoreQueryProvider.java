@@ -23,32 +23,34 @@ package org.springframework.integration.jdbc.store.channel;
  */
 public class PostgresChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
+	private static final String SELECT_COMMON =
+			"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES "
+			+ "from %PREFIX%CHANNEL_MESSAGE "
+			+ "where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ";
+
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
+		return SELECT_COMMON
+				+ "and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) "
+				+ "order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
+		return SELECT_COMMON +
 				"order by CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
+		return SELECT_COMMON +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
 	}
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
+		return SELECT_COMMON +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE LIMIT 1 FOR UPDATE";
 	}
 

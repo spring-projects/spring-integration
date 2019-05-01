@@ -49,6 +49,8 @@ import com.jcraft.jsch.SftpException;
  */
 public class SftpSession implements Session<LsEntry> {
 
+	private static final String SESSION_IS_NOT_CONNECTED = "session is not connected";
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final com.jcraft.jsch.Session jschSession;
@@ -74,7 +76,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public boolean remove(String path) throws IOException {
-		Assert.state(this.channel != null, "session is not connected");
+		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
 		try {
 			this.channel.rm(path);
 			return true;
@@ -86,7 +88,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public LsEntry[] list(String path) throws IOException {
-		Assert.state(this.channel != null, "session is not connected");
+		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
 		try {
 			Vector<?> lsEntries = this.channel.ls(path); // NOSONAR (Vector)
 			if (lsEntries != null) {
@@ -123,7 +125,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public void read(String source, OutputStream os) throws IOException {
-		Assert.state(this.channel != null, "session is not connected");
+		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
 		try {
 			InputStream is = this.channel.get(source);
 			FileCopyUtils.copy(is, os);
@@ -150,7 +152,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public void write(InputStream inputStream, String destination) throws IOException {
-		Assert.state(this.channel != null, "session is not connected");
+		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
 		try {
 			this.channel.put(inputStream, destination);
 		}
@@ -161,7 +163,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public void append(InputStream inputStream, String destination) throws IOException {
-		Assert.state(this.channel != null, "session is not connected");
+		Assert.state(this.channel != null, SESSION_IS_NOT_CONNECTED);
 		try {
 			this.channel.put(inputStream, destination, ChannelSftp.APPEND);
 		}

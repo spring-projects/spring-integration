@@ -41,6 +41,8 @@ import org.springframework.util.PatternMatchUtils;
  */
 public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 
+	private static final String ID_MUST_NOT_BE_NULL = "'id' must not be null";
+
 	private final Region<Object, Object> messageStoreRegion;
 
 	/**
@@ -68,20 +70,20 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 
 	@Override
 	protected Object doRetrieve(Object id) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return this.messageStoreRegion.get(id);
 	}
 
 	@Override
 	protected void doStore(Object id, Object objectToStore) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
 		this.messageStoreRegion.put(id, objectToStore);
 	}
 
 	@Override
 	protected void doStoreIfAbsent(Object id, Object objectToStore) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
 		Object present = this.messageStoreRegion.putIfAbsent(id, objectToStore);
 		if (present != null && logger.isDebugEnabled()) {
@@ -92,7 +94,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 
 	@Override
 	protected Object doRemove(Object id) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return this.messageStoreRegion.remove(id);
 	}
 

@@ -46,6 +46,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 
+	private static final String PAYLOAD = "payload";
+
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.genericBeanDefinition(
@@ -54,7 +56,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class);
 		Map<String, Map<?, ?>> mappings = this
 				.getMappings(element, element.getAttribute("default-channel"), parserContext);
-		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
+		spelSourceBuilder.addConstructorArgValue(mappings.get(PAYLOAD));
 		if (mappings.get("headers") != null) {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
@@ -81,8 +83,8 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				// set payloadMap
 				String methodPattern = StringUtils.hasText(mapping.getAttribute("pattern")) ?
 						mapping.getAttribute("pattern") : "*";
-				String payloadExpression = StringUtils.hasText(mapping.getAttribute("payload")) ?
-						mapping.getAttribute("payload") : "#return";
+				String payloadExpression = StringUtils.hasText(mapping.getAttribute(PAYLOAD)) ?
+						mapping.getAttribute(PAYLOAD) : "#return";
 				payloadExpressionMap.put(methodPattern, payloadExpression);
 
 				// set headersMap
@@ -125,7 +127,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		if (payloadExpressionMap.size() == 0) {
 			payloadExpressionMap.put("*", "#return");
 		}
-		interceptorMappings.put("payload", payloadExpressionMap);
+		interceptorMappings.put(PAYLOAD, payloadExpressionMap);
 		if (headersExpressionMap.size() > 0) {
 			interceptorMappings.put("headers", headersExpressionMap);
 		}

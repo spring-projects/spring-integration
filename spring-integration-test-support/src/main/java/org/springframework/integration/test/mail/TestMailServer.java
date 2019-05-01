@@ -169,6 +169,8 @@ public final class TestMailServer {
 
 		class Pop3Handler extends MailHandler {
 
+			private static final String PLUS_OK = "+OK";
+
 			Pop3Handler(Socket socket) {
 				super(socket);
 			}
@@ -180,29 +182,29 @@ public final class TestMailServer {
 					while (!socket.isClosed()) {
 						String line = reader.readLine();
 						if ("CAPA".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 							write("USER");
 							write(".");
 						}
 						else if ("USER user".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 						}
 						else if ("PASS pw".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 						}
 						else if ("STAT".equals(line)) {
 							write("+OK 1 3");
 						}
 						else if ("NOOP".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 						}
 						else if ("RETR 1".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 							write(MESSAGE);
 							write(".");
 						}
 						else if ("QUIT".equals(line)) {
-							write("+OK");
+							write(PLUS_OK);
 							socket.close();
 						}
 					}
@@ -239,6 +241,8 @@ public final class TestMailServer {
 		}
 
 		class ImapHandler extends MailHandler {
+
+			private static final String OK_FETCH_COMPLETED = "OK FETCH completed";
 
 			/**
 			 * Time to wait while IDLE before returning a result.
@@ -314,13 +318,13 @@ public final class TestMailServer {
 									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") " // msgid
 									+ "BODYSTRUCTURE "
 									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
-							write(tag + "OK FETCH completed");
+							write(tag + OK_FETCH_COMPLETED);
 						}
 						else if (line.contains("FETCH 2 (BODYSTRUCTURE)")) {
 							write("* 2 FETCH " +
 									"BODYSTRUCTURE "
 									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
-							write(tag + "OK FETCH completed");
+							write(tag + OK_FETCH_COMPLETED);
 						}
 						else if (line.contains("STORE 1 +FLAGS (\\Flagged)")) {
 							write("* 1 FETCH (FLAGS (\\Flagged))");
@@ -333,13 +337,13 @@ public final class TestMailServer {
 						}
 						else if (line.contains("FETCH 1 FLAGS")) {
 							write("* 1 FLAGS(\\Seen)");
-							write(tag + "OK FETCH completed");
+							write(tag + OK_FETCH_COMPLETED);
 						}
 						else if (line.contains("FETCH 1 (BODY.PEEK")) {
 							write("* 1 FETCH (BODY[]<0> {" + (MESSAGE.length() + 2) + "}");
 							write(MESSAGE);
 							write(")");
-							write(tag + "OK FETCH completed");
+							write(tag + OK_FETCH_COMPLETED);
 						}
 						else if (line.contains("CLOSE")) {
 							write(tag + "OK CLOSE completed");

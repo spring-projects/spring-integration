@@ -43,6 +43,9 @@ import org.springframework.util.StringUtils;
 public class TransactionSynchronizationFactoryBean implements FactoryBean<DefaultTransactionSynchronizationFactory>,
 		BeanFactoryAware {
 
+	private static final String EXPRESSION_OR_CHANNEL_NEEDED =
+			"At least one attribute ('expression' and/or 'messageChannel') must be defined";
+
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final AtomicInteger counter = new AtomicInteger();
@@ -77,13 +80,13 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 	/**
 	 * Specify the {@link DestinationResolver} strategy to use.
 	 * The default is a BeanFactoryChannelResolver.
-	 * @param channelResolver The channel resolver.
+	 * @param resolver The channel resolver.
 	 * @return current TransactionSynchronizationFactoryBean
 	 * @since 4.1.3
 	 */
-	public TransactionSynchronizationFactoryBean channelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.channelResolver = channelResolver;
+	public TransactionSynchronizationFactoryBean channelResolver(DestinationResolver<MessageChannel> resolver) {
+		Assert.notNull(resolver, "'channelResolver' must not be null");
+		this.channelResolver = resolver;
 		return this;
 	}
 
@@ -94,7 +97,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean beforeCommit(String expression, String messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || StringUtils.hasText(messageChannel),
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.beforeCommitExpression = expression;
 		this.beforeCommitChannelName = messageChannel;
 		this.beforeCommitChannel = null;
@@ -107,7 +110,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean beforeCommit(String expression, MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.beforeCommitExpression = expression;
 		this.beforeCommitChannel = messageChannel;
 		this.beforeCommitChannelName = null;
@@ -120,7 +123,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean afterCommit(String expression, String messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || StringUtils.hasText(messageChannel),
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterCommitExpression = expression;
 		this.afterCommitChannelName = messageChannel;
 		this.afterCommitChannel = null;
@@ -133,7 +136,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean afterCommit(String expression, MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterCommitExpression = expression;
 		this.afterCommitChannel = messageChannel;
 		this.afterCommitChannelName = null;
@@ -146,7 +149,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean afterRollback(String expression, String messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || StringUtils.hasText(messageChannel),
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterRollbackExpression = expression;
 		this.afterRollbackChannelName = messageChannel;
 		this.afterRollbackChannel = null;
@@ -159,7 +162,7 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 
 	public TransactionSynchronizationFactoryBean afterRollback(String expression, MessageChannel messageChannel) {
 		Assert.state(StringUtils.hasText(expression) || messageChannel != null,
-				"At least one attribute ('expression' and/or 'messageChannel') must be defined");
+				EXPRESSION_OR_CHANNEL_NEEDED);
 		this.afterRollbackExpression = expression;
 		this.afterRollbackChannel = messageChannel;
 		this.afterRollbackChannelName = null;
@@ -171,6 +174,22 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
 		}
+<<<<<<< HEAD
+=======
+		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
+				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+
+		if (StringUtils.hasText(this.beforeCommitExpression)) {
+			processor.setBeforeCommitExpression(PARSER.parseExpression(this.beforeCommitExpression));
+		}
+		if (StringUtils.hasText(this.afterCommitExpression)) {
+			processor.setAfterCommitExpression(PARSER.parseExpression(this.afterCommitExpression));
+		}
+		if (StringUtils.hasText(this.afterRollbackExpression)) {
+			processor.setAfterRollbackExpression(PARSER.parseExpression(this.afterRollbackExpression));
+		}
+
+>>>>>>> Sonar: repeated literals
 		if (StringUtils.hasText(this.beforeCommitChannelName)) {
 			this.beforeCommitChannel = this.channelResolver.resolveDestination(this.beforeCommitChannelName);
 		}

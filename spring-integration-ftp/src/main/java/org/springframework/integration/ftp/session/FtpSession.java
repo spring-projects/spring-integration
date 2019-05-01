@@ -42,6 +42,8 @@ import org.springframework.util.ObjectUtils;
  */
 public class FtpSession implements Session<FTPFile> {
 
+	private static final String SERVER_REPLIED_WITH = "'. Server replied with: ";
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final FTPClient client;
@@ -58,7 +60,7 @@ public class FtpSession implements Session<FTPFile> {
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		if (!this.client.deleteFile(path)) {
-			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + this.client.getReplyString());
+			throw new IOException("Failed to delete '" + path + SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		else {
 			return true;
@@ -82,7 +84,7 @@ public class FtpSession implements Session<FTPFile> {
 		boolean completed = this.client.retrieveFile(path, fos);
 		if (!completed) {
 			throw new IOException("Failed to copy '" + path +
-					"'. Server replied with: " + this.client.getReplyString());
+					SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		this.logger.info("File has been successfully transferred from: " + path);
 	}
@@ -122,7 +124,7 @@ public class FtpSession implements Session<FTPFile> {
 		boolean completed = this.client.storeFile(path, inputStream);
 		if (!completed) {
 			throw new IOException("Failed to write to '" + path
-					+ "'. Server replied with: " + this.client.getReplyString());
+					+ SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("File has been successfully transferred to: " + path);
@@ -136,7 +138,7 @@ public class FtpSession implements Session<FTPFile> {
 		boolean completed = this.client.appendFile(path, inputStream);
 		if (!completed) {
 			throw new IOException("Failed to append to '" + path
-					+ "'. Server replied with: " + this.client.getReplyString());
+					+ SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("File has been successfully appended to: " + path);
@@ -179,7 +181,7 @@ public class FtpSession implements Session<FTPFile> {
 		boolean completed = this.client.rename(pathFrom, pathTo);
 		if (!completed) {
 			throw new IOException("Failed to rename '" + pathFrom +
-					"' to " + pathTo + "'. Server replied with: " + this.client.getReplyString());
+					"' to " + pathTo + SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);

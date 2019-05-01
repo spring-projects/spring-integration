@@ -47,6 +47,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
 
+	private static final String TYPE_ATTRIBUTE = "type";
+
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ContentEnricher.class);
@@ -65,8 +67,8 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String name = subElement.getAttribute("name");
 
 				String value = subElement.getAttribute("value");
-				String type = subElement.getAttribute("type");
-				String expression = subElement.getAttribute("expression");
+				String type = subElement.getAttribute(TYPE_ATTRIBUTE);
+				String expression = subElement.getAttribute(EXPRESSION_ATTRIBUTE);
 				String nullResultExpression = subElement.getAttribute("null-result-expression");
 				boolean hasAttributeValue = StringUtils.hasText(value);
 				boolean hasAttributeExpression = StringUtils.hasText(expression);
@@ -131,13 +133,13 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				String name = subElement.getAttribute("name");
 				String nullResultHeaderExpression = subElement.getAttribute("null-result-expression");
 				String valueElementValue = subElement.getAttribute("value");
-				String expressionElementValue = subElement.getAttribute("expression");
+				String expressionElementValue = subElement.getAttribute(EXPRESSION_ATTRIBUTE);
 				boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
 				boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
 				boolean hasAttributeNullResultExpression = StringUtils.hasText(nullResultHeaderExpression);
 				if (hasAttributeValue && hasAttributeExpression) {
 					parserContext.getReaderContext().error("Only one of '" + "value" + "' or '"
-							+ "expression" + "' is allowed", subElement);
+							+ EXPRESSION_ATTRIBUTE + "' is allowed", subElement);
 				}
 
 				if (!hasAttributeValue && !hasAttributeExpression && !hasAttributeNullResultExpression) {
@@ -151,11 +153,12 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 				}
 				else if (hasAttributeExpression) {
 					expressionDef =
-							IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("expression", subElement);
+							IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined(EXPRESSION_ATTRIBUTE,
+									subElement);
 				}
 
-				if (StringUtils.hasText(subElement.getAttribute("expression"))
-						&& StringUtils.hasText(subElement.getAttribute("type"))) {
+				if (StringUtils.hasText(subElement.getAttribute(EXPRESSION_ATTRIBUTE))
+						&& StringUtils.hasText(subElement.getAttribute(TYPE_ATTRIBUTE))) {
 					parserContext.getReaderContext()
 							.warning("The use of a 'type' attribute is deprecated since 4.0 "
 									+ "when using 'expression'", subElement);
@@ -164,8 +167,9 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder
 							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
 							.addConstructorArgValue(expressionDef)
-							.addConstructorArgValue(subElement.getAttribute("type"));
-					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
+							.addConstructorArgValue(subElement.getAttribute(TYPE_ATTRIBUTE));
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement,
+							"overwrite");
 					expressions.put(name, valueProcessorBuilder.getBeanDefinition());
 				}
 				if (hasAttributeNullResultExpression) {
@@ -174,7 +178,7 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 					BeanDefinitionBuilder nullResultValueProcessorBuilder = BeanDefinitionBuilder
 							.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class)
 							.addConstructorArgValue(nullResultExpressionDefinition)
-							.addConstructorArgValue(subElement.getAttribute("type"));
+							.addConstructorArgValue(subElement.getAttribute(TYPE_ATTRIBUTE));
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(nullResultValueProcessorBuilder, subElement,
 							"overwrite");
 					nullResultHeaderExpressions.put(name, nullResultValueProcessorBuilder.getBeanDefinition());

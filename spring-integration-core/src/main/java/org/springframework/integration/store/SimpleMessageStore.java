@@ -50,6 +50,12 @@ import org.springframework.util.CollectionUtils;
 public class SimpleMessageStore extends AbstractMessageGroupStore
 		implements MessageStore, ChannelMessageStore {
 
+	private static final String MESSAGE_GROUP_FOR_GROUP_ID = "MessageGroup for groupId '";
+
+	private static final String UPPER_BOUND_MUST_NOT_BE_NULL = "'upperBound' must not be null.";
+
+	private static final String INTERRUPTED_WHILE_OBTAINING_LOCK = "Interrupted while obtaining lock";
+
 	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
 
 	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup =
@@ -256,7 +262,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -291,7 +297,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				}
 				else {
 					upperBound = this.groupToUpperBound.get(groupId);
-					Assert.state(upperBound != null, "'upperBound' must not be null.");
+					Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
 					for (Message<?> message : messages) {
 						lock.unlock();
 						if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
@@ -313,7 +319,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -326,7 +332,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				MessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
 				if (messageGroup != null) {
 					UpperBound upperBound = this.groupToUpperBound.remove(groupId);
-					Assert.state(upperBound != null, "'upperBound' must not be null.");
+					Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
 					upperBound.release(this.groupCapacity);
 				}
 			}
@@ -336,7 +342,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -347,10 +353,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
 						"can not be located while attempting to remove Message(s) from the MessageGroup");
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);
-				Assert.state(upperBound != null, "'upperBound' must not be null.");
+				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
 				boolean modified = false;
 				for (Message<?> messageToRemove : messages) {
 					if (group.remove(messageToRemove)) {
@@ -368,7 +374,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -384,7 +390,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
 						"can not be located while attempting to set 'lastReleasedSequenceNumber'");
 				group.setLastReleasedMessageSequenceNumber(sequenceNumber);
 				group.setLastModified(System.currentTimeMillis());
@@ -395,7 +401,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -406,7 +412,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
 						"can not be located while attempting to complete the MessageGroup");
 				group.complete();
 				group.setLastModified(System.currentTimeMillis());
@@ -417,7 +423,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 
@@ -460,12 +466,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			lock.lockInterruptibly();
 			try {
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+				Assert.notNull(group, MESSAGE_GROUP_FOR_GROUP_ID + groupId + "' " +
 						"can not be located while attempting to complete the MessageGroup");
 				group.clear();
 				group.setLastModified(System.currentTimeMillis());
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);
-				Assert.state(upperBound != null, "'upperBound' must not be null.");
+				Assert.state(upperBound != null, UPPER_BOUND_MUST_NOT_BE_NULL);
 				upperBound.release(this.groupCapacity);
 			}
 			finally {
@@ -474,7 +480,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
+			throw new MessagingException(INTERRUPTED_WHILE_OBTAINING_LOCK, e);
 		}
 	}
 

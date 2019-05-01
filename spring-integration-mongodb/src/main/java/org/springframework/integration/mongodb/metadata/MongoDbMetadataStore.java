@@ -44,6 +44,8 @@ import org.springframework.util.Assert;
  */
 public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
+	private static final String KEY_MUST_NOT_BE_EMPTY = "'key' must not be empty.";
+
 	private static final String DEFAULT_COLLECTION_NAME = "metadataStore";
 
 	private static final String ID_FIELD = "_id";
@@ -107,7 +109,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public void put(String key, String value) {
-		Assert.hasText(key, "'key' must not be empty.");
+		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Assert.hasText(value, "'value' must not be empty.");
 		final Map<String, Object> entry = new HashMap<>();
 		entry.put(ID_FIELD, key);
@@ -123,7 +125,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public String get(String key) {
-		Assert.hasText(key, "'key' must not be empty.");
+		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
@@ -141,7 +143,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public String remove(String key) {
-		Assert.hasText(key, "'key' must not be empty.");
+		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
 		query.fields().exclude(ID_FIELD);
 		@SuppressWarnings("unchecked")
@@ -167,7 +169,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.hasText(key, "'key' must not be empty.");
+		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Assert.hasText(value, "'value' must not be empty.");
 
 		Query query = new Query(Criteria.where(ID_FIELD).is(key));
@@ -190,7 +192,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.hasText(key, "'key' must not be empty.");
+		Assert.hasText(key, KEY_MUST_NOT_BE_EMPTY);
 		Assert.hasText(oldValue, "'oldValue' must not be empty.");
 		Assert.hasText(newValue, "'newValue' must not be empty.");
 		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.lang.Nullable;
@@ -65,6 +66,9 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String DELIVERY_ATTEMPT = "deliveryAttempt";
 
 	public static final String ACKNOWLEDGMENT_CALLBACK = "acknowledgmentCallback";
+
+	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
+			(name, trailer) -> "The '" + name + trailer;
 
 	private Set<String> readOnlyHeaders = new HashSet<>();
 
@@ -168,22 +172,22 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		if (headerName != null && headerValue != null) {
 			super.verifyType(headerName, headerValue);
 			if (IntegrationMessageHeaderAccessor.EXPIRATION_DATE.equals(headerName)) {
-				Assert.isTrue(headerValue instanceof Date || headerValue instanceof Long, "The '" + headerName
-						+ "' header value must be a Date or Long.");
+				Assert.isTrue(headerValue instanceof Date || headerValue instanceof Long,
+						TYPE_VERIFY_MESSAGE_FUNCTION.apply(headerName, "' header value must be a Date or Long."));
 			}
 			else if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
 					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)
 					|| IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
-				Assert.isTrue(Number.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be a Number.");
+				Assert.isTrue(Number.class.isAssignableFrom(headerValue.getClass()),
+						TYPE_VERIFY_MESSAGE_FUNCTION.apply(headerName, "' header value must be a Number."));
 			}
 			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
-				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be a Map.");
+				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()),
+						TYPE_VERIFY_MESSAGE_FUNCTION.apply(headerName, "' header value must be a Map."));
 			}
 			else if (IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE.equals(headerName)) {
-				Assert.isTrue(Boolean.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be an Boolean.");
+				Assert.isTrue(Boolean.class.isAssignableFrom(headerValue.getClass()),
+						TYPE_VERIFY_MESSAGE_FUNCTION.apply(headerName, "' header value must be an Boolean."));
 			}
 		}
 	}

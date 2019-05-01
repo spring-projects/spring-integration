@@ -52,6 +52,8 @@ public final class MessageHistory implements List<Properties>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHistory.class);
 
+	private static final String MESSAGE_HISTORY_IS_IMMUTABLE = "MessageHistory is immutable.";
+
 	public static final String HEADER_NAME = "history";
 
 	public static final String NAME_PROPERTY = "name";
@@ -215,52 +217,52 @@ public final class MessageHistory implements List<Properties>, Serializable {
 
 	@Override
 	public boolean add(Properties e) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public void add(int index, Properties element) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends Properties> c) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public boolean addAll(int index, Collection<? extends Properties> c) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public Properties set(int index, Properties element) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public Properties remove(int index) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 	@Override
 	public void clear() {
-		throw new UnsupportedOperationException("MessageHistory is immutable.");
+		throw new UnsupportedOperationException(MESSAGE_HISTORY_IS_IMMUTABLE);
 	}
 
 
