@@ -113,6 +113,10 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 						result = this.delegate.getPhase();
 					}
 					break;
+
+				default:
+					break;
+
 			}
 		}
 

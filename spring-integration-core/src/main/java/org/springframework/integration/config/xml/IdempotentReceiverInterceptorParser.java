@@ -60,23 +60,24 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 
 		String endpoints = element.getAttribute("endpoint");
 
-		if (!hasSelector & !(hasKeyStrategy | hasKeyExpression)) {
+		if (!hasSelector && !(hasKeyStrategy || hasKeyExpression)) {
 			parserContext.getReaderContext().error("One of the 'selector', 'key-strategy' or 'key-expression' " +
 					"attributes must be provided", source);
 		}
 
-		if (hasSelector & (hasStore | hasKeyStrategy | hasKeyExpression | hasValueStrategy | hasValueExpression)) {
+		if (hasSelector && (hasStore || hasKeyStrategy || hasKeyExpression || hasValueStrategy // NOSONAR complexity
+				|| hasValueExpression)) {
 			parserContext.getReaderContext().error("The 'selector' attribute is mutually exclusive with " +
 					"'metadata-store', 'key-strategy', 'key-expression', 'value-strategy' " +
 					"or 'value-expression'", source);
 		}
 
-		if (hasKeyStrategy & hasKeyExpression) {
+		if (hasKeyStrategy && hasKeyExpression) {
 			parserContext.getReaderContext().error("The 'key-strategy' and 'key-expression' attributes " +
 					"are mutually exclusive", source);
 		}
 
-		if (hasValueStrategy & hasValueExpression) {
+		if (hasValueStrategy && hasValueExpression) {
 			parserContext.getReaderContext().error("The 'value-strategy' and 'value-expression' attributes " +
 					"are mutually exclusive", source);
 		}

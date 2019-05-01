@@ -791,15 +791,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		 */
 		@SuppressWarnings("unused")
 		@Id
-		private String _id;
+		private String _id; // NOSONAR name
 
-		private volatile Object _groupId;
+		private volatile Object _groupId; // NOSONAR name
 
 		@Transient
-		private final Message<?> message;
+		private final Message<?> message; // NOSONAR name
 
 		@SuppressWarnings("unused")
-		private final String _messageType;
+		private final String _messageType; // NOSONAR name
 
 		@SuppressWarnings("unused")
 		private final Object payload;
@@ -810,15 +810,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private final Message<?> inputMessage;
 
-		private long _message_timestamp;
+		private long _message_timestamp; // NOSONAR name
 
-		private volatile long _group_timestamp;
+		private volatile long _group_timestamp; // NOSONAR name
 
-		private volatile long _group_update_timestamp;
+		private volatile long _group_update_timestamp; // NOSONAR name
 
-		private volatile int _last_released_sequence;
+		private volatile int _last_released_sequence; // NOSONAR name
 
-		private volatile boolean _group_complete;
+		private volatile boolean _group_complete; // NOSONAR name
 
 		@SuppressWarnings("unused")
 		private int sequence;
@@ -837,20 +837,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			}
 		}
 
-		public int get_LastReleasedSequenceNumber() {
+		public int get_LastReleasedSequenceNumber() { // NOSONAR name
 			return this._last_released_sequence;
 		}
 
-		public long get_Group_timestamp() {
+		public long get_Group_timestamp() { // NOSONAR name
 			return this._group_timestamp;
 		}
 
-		public boolean get_Group_complete() {
+		public boolean get_Group_complete() { // NOSONAR name
 			return this._group_complete;
 		}
 
 		@SuppressWarnings("unused")
-		public Object get_GroupId() {
+		public Object get_GroupId() { // NOSONAR name
 			return this._groupId;
 		}
 
@@ -858,39 +858,39 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return this.message;
 		}
 
-		public void set_GroupId(Object groupId) {
+		public void set_GroupId(Object groupId) { // NOSONAR name
 			this._groupId = groupId;
 		}
 
-		public void set_Group_timestamp(long groupTimestamp) {
+		public void set_Group_timestamp(long groupTimestamp) { // NOSONAR name
 			this._group_timestamp = groupTimestamp;
 		}
 
-		public long get_message_timestamp() {
+		public long get_message_timestamp() { // NOSONAR name
 			return this._message_timestamp;
 		}
 
-		public void set_message_timestamp(long _message_timestamp) {
+		public void set_message_timestamp(long _message_timestamp) { // NOSONAR name
 			this._message_timestamp = _message_timestamp;
 		}
 
-		public long get_Group_update_timestamp() {
+		public long get_Group_update_timestamp() { // NOSONAR name
 			return this._group_update_timestamp;
 		}
 
-		public void set_Group_update_timestamp(long lastModified) {
+		public void set_Group_update_timestamp(long lastModified) { // NOSONAR name
 			this._group_update_timestamp = lastModified;
 		}
 
-		public void set_LastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
+		public void set_LastReleasedSequenceNumber(int lastReleasedSequenceNumber) { // NOSONAR name
 			this._last_released_sequence = lastReleasedSequenceNumber;
 		}
 
-		public void set_Group_complete(boolean completedGroup) {
+		public void set_Group_complete(boolean completedGroup) { // NOSONAR name
 			this._group_complete = completedGroup;
 		}
 
-		public void set_Sequence(int sequence) {
+		public void set_Sequence(int sequence) { // NOSONAR name
 			this.sequence = sequence;
 		}
 

@@ -47,7 +47,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getOrigin() {
-		return this.origin;
+		return this.origin; // NOSONAR - expose internals
 	}
 
 	public void setAllowedHeaders(String... allowedHeaders) {
@@ -55,7 +55,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getAllowedHeaders() {
-		return this.allowedHeaders;
+		return this.allowedHeaders; // NOSONAR - expose internals
 	}
 
 	public void setExposedHeaders(String... exposedHeaders) {
@@ -63,7 +63,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getExposedHeaders() {
-		return this.exposedHeaders;
+		return this.exposedHeaders; // NOSONAR - expose internals
 	}
 
 	public void setMethod(RequestMethod... method) {
@@ -71,7 +71,7 @@ public class CrossOrigin {
 	}
 
 	public RequestMethod[] getMethod() {
-		return this.method;
+		return this.method; // NOSONAR - expose internals
 	}
 
 	public void setAllowCredentials(Boolean allowCredentials) {

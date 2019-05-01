@@ -40,7 +40,7 @@ public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSuppo
 		Method method = invocation.getMethod();
 		Object invocationThis = invocation.getThis();
 		Object[] arguments = invocation.getArguments();
-		boolean isMessageHandler = invocationThis != null && invocationThis instanceof MessageHandler;
+		boolean isMessageHandler = invocationThis instanceof MessageHandler;
 		boolean isMessageMethod = method.getName().equals("handleMessage")
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 		if (!isMessageHandler || !isMessageMethod) {
@@ -59,6 +59,6 @@ public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSuppo
 		return doInvoke(invocation, message);
 	}
 
-	protected abstract Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable;
+	protected abstract Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable; // NOSONAR
 
 }

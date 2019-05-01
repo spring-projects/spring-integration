@@ -150,7 +150,7 @@ public class WebFluxMessageHandlerSpec
 	}
 
 	@Override
-	protected WebFluxMessageHandlerSpec expectReply(boolean expectReply) {
+	protected WebFluxMessageHandlerSpec expectReply(boolean expectReply) { // NOSONAR increases visibility
 		return super.expectReply(expectReply);
 	}
 

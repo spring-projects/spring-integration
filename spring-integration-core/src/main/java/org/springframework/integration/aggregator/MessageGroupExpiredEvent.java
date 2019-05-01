@@ -65,7 +65,7 @@ public class MessageGroupExpiredEvent extends IntegrationEvent {
 	}
 
 	public Date getExpired() {
-		return this.expired;
+		return (Date) this.expired.clone();
 	}
 
 	public boolean isDiscarded() {

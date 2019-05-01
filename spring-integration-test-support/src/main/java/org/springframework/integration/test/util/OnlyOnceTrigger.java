@@ -54,7 +54,7 @@ public class OnlyOnceTrigger implements Trigger {
 			return null;
 		}
 
-		return this.executionTime;
+		return this.executionTime; // NOSONAR - expose internals
 	}
 
 	@Override

@@ -147,7 +147,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
 		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
 				String.class);
-		return StringUtils.hasText(defaultOutputChannel) || !ObjectUtils.isEmpty(channelMappings)
+		return StringUtils.hasText(defaultOutputChannel) || !ObjectUtils.isEmpty(channelMappings) // NOSONAR complexity
 				|| StringUtils.hasText(prefix) || StringUtils.hasText(suffix) || StringUtils.hasText(resolutionRequired)
 				|| StringUtils.hasText(applySequence) || StringUtils.hasText(ignoreSendFailures);
 	}

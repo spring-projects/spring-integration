@@ -111,7 +111,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		if (this == obj) {
 			return true;
 		}
-		if (obj != null && obj instanceof MutableMessage<?>) {
+		if (obj instanceof MutableMessage<?>) {
 			MutableMessage<?> other = (MutableMessage<?>) obj;
 			UUID thisId = this.headers.getId();
 			UUID otherId = other.headers.getId();

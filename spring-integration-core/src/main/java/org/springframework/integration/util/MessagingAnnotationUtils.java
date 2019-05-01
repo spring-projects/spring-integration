@@ -72,7 +72,7 @@ public final class MessagingAnnotationUtils {
 	}
 
 	public static boolean hasValue(Object value) {
-		return value != null && (!(value instanceof String) || (StringUtils.hasText((String) value)))
+		return value != null && (!(value instanceof String) || (StringUtils.hasText((String) value))) // NOSONAR
 				&& (!value.getClass().isArray() || ((Object[]) value).length > 0);
 	}
 
@@ -103,7 +103,7 @@ public final class MessagingAnnotationUtils {
 		Annotation match = null;
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> type = annotation.annotationType();
-			if (type.equals(Payload.class)
+			if (type.equals(Payload.class) // NOSONAR boolean complexity
 					|| type.equals(Header.class)
 					|| type.equals(Headers.class)
 					|| (payloads && type.equals(Payloads.class))) {

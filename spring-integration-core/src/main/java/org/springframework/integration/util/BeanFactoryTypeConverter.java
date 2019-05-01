@@ -108,7 +108,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (sourceType != null) {
 			Class<?> sourceClass = sourceType.getType();
 			Class<?> targetClass = targetType.getType();
-			if ((sourceClass == MessageHeaders.class && targetClass == MessageHeaders.class) ||
+			if ((sourceClass == MessageHeaders.class && targetClass == MessageHeaders.class) || // NOSONAR
 				(sourceClass == MessageHistory.class && targetClass == MessageHistory.class) ||
 				(sourceType.isAssignableTo(targetType) && ClassUtils.isPrimitiveArray(sourceClass))) {
 				return value;
