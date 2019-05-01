@@ -76,7 +76,7 @@ public class WebFluxInboundEndpointTests {
 	@Test
 	public void testJsonResult() {
 		this.webTestClient.get().uri("/persons")
-				.accept(MediaType.APPLICATION_JSON_UTF8)
+				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody()

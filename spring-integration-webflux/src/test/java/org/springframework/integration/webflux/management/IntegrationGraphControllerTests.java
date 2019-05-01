@@ -53,10 +53,10 @@ public class IntegrationGraphControllerTests {
 						.build();
 
 		webTestClient.get().uri("/testIntegration")
-				.accept(MediaType.APPLICATION_JSON_UTF8)
+				.accept(MediaType.APPLICATION_JSON)
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+				.expectHeader().contentType(MediaType.APPLICATION_JSON)
 				.expectBody()
 				.jsonPath("$.nodes..name").isArray()
 				.jsonPath("$.contentDescriptor.name").isEqualTo("testApplication")

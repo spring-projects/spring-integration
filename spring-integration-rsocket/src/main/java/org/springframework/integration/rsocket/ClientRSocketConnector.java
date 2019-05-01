@@ -101,11 +101,11 @@ public class ClientRSocketConnector implements InitializingBean, DisposableBean 
 						.dataMimeType(this.dataMimeType.toString());
 		this.factoryConfigurer.accept(clientFactory);
 		clientFactory.setupPayload(this.connectPayload);
-		this.rsocketMono = clientFactory.transport(this.clientTransport).start();
+		this.rsocketMono = clientFactory.transport(this.clientTransport).start().cache();
 	}
 
 	public void connect() {
-		this.rsocketMono.cache().subscribe();
+		this.rsocketMono.subscribe();
 	}
 
 	public Mono<RSocketRequester> getRSocketRequester() {

@@ -72,7 +72,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression commandExpression = new ValueExpression<>(Command.requestResponse);
 
-	private Expression publisherElementTypeExpression = new ValueExpression<>(String.class);
+	private Expression publisherElementTypeExpression;
 
 	private Expression expectedResponseTypeExpression = new ValueExpression<>(String.class);
 
@@ -181,7 +181,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		super.doInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.clientRSocketConnector != null) {
-			this.rsocketRequesterMono = this.clientRSocketConnector.getRSocketRequester().cache();
+			this.rsocketRequesterMono = this.clientRSocketConnector.getRSocketRequester();
 		}
 	}
 
@@ -220,8 +220,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 			Message<?> requestMessage) {
 
 		Object payload = requestMessage.getPayload();
-
-		if (payload instanceof Publisher<?>) {
+		if (payload instanceof Publisher<?> && this.publisherElementTypeExpression != null) {
 			Object publisherElementType = evaluateExpressionForType(requestMessage, this.publisherElementTypeExpression,
 					"publisherElementTypeExpression");
 			return responseSpecForPublisher(requestSpec, (Publisher<?>) payload, publisherElementType);

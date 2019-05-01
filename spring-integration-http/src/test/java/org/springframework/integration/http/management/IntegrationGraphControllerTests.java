@@ -82,9 +82,9 @@ public class IntegrationGraphControllerTests {
 	public void testIntegrationGraphGet() throws Exception {
 		this.mockMvc.perform(get("/testIntegration")
 				.header(HttpHeaders.ORIGIN, "https://foo.bar.com")
-				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
+				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(handler().handlerType(IntegrationGraphController.class))
 				.andExpect(handler().methodName("getGraph"))
 				.andExpect(jsonPath("$.nodes..name")
