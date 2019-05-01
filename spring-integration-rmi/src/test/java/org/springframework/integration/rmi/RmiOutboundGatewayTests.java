@@ -17,24 +17,25 @@
 package org.springframework.integration.rmi;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.rmi.RemoteException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -43,117 +44,102 @@ import org.springframework.util.SocketUtils;
  */
 public class RmiOutboundGatewayTests {
 
-	private static final int port = SocketUtils.findAvailableTcpPort();
+	private static final QueueChannel OUTPUT = new QueueChannel(1);
 
-	private final RmiOutboundGateway gateway =
-			new RmiOutboundGateway("rmi://localhost:" + port + "/testRemoteHandler");
+	private static RmiServiceExporter EXPORTER;
 
-	private final QueueChannel output = new QueueChannel(1);
+	private static RmiOutboundGateway GATEWAY;
 
-	@Before
-	public void initializeGateway() {
-		this.gateway.setOutputChannel(this.output);
+	@BeforeAll
+	static void setup() throws RemoteException {
+		EXPORTER = new RmiServiceExporter();
+		EXPORTER.setService(new TestExchanger());
+		EXPORTER.setServiceInterface(RequestReplyExchanger.class);
+		EXPORTER.setServiceName("testRemoteHandler");
+		EXPORTER.setRegistryPort(0);
+		EXPORTER.afterPropertiesSet();
+
+		Integer localPort = TestUtils.getPropertyValue(EXPORTER, "registry.ref.ref.ep.port", Integer.class);
+
+		GATEWAY = new RmiOutboundGateway("rmi://localhost:" + localPort + "/testRemoteHandler");
+		GATEWAY.setOutputChannel(OUTPUT);
 	}
 
-	@Before
-	public void createExporter() throws RemoteException {
-		RmiServiceExporter exporter = new RmiServiceExporter();
-		exporter.setService(new TestExchanger());
-		exporter.setServiceInterface(RequestReplyExchanger.class);
-		exporter.setServiceName("testRemoteHandler");
-		exporter.setRegistryPort(port);
-		exporter.afterPropertiesSet();
+	@AfterAll
+	static void tearDown() throws RemoteException {
+		EXPORTER.destroy();
 	}
-
 
 	@Test
-	public void serializablePayload() {
-		gateway.handleMessage(new GenericMessage<>("test"));
-		Message<?> replyMessage = output.receive(0);
+	void serializablePayload() {
+		GATEWAY.handleMessage(new GenericMessage<>("test"));
+		Message<?> replyMessage = OUTPUT.receive(0);
 		assertThat(replyMessage).isNotNull();
 		assertThat(replyMessage.getPayload()).isEqualTo("TEST");
 	}
 
 	@Test
-	public void failedMessage() {
+	void failedMessage() {
 		GenericMessage<String> message = new GenericMessage<>("fail");
-		try {
-			gateway.handleMessage(message);
-			fail("Exception expected");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getFailedMessage()).isSameAs(message);
-			assertThat(((MessagingException) e.getCause()).getFailedMessage().getPayload()).isEqualTo("bar");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> GATEWAY.handleMessage(message))
+				.satisfies((ex) -> {
+					assertThat(ex.getFailedMessage()).isSameAs(message);
+					assertThat(((MessagingException) ex.getCause()).getFailedMessage().getPayload()).isEqualTo("bar");
+				});
 	}
 
 	@Test
-	public void serializableAttribute() {
+	void serializableAttribute() {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", "foo").build();
-		gateway.handleMessage(requestMessage);
-		Message<?> replyMessage = output.receive(0);
+		GATEWAY.handleMessage(requestMessage);
+		Message<?> replyMessage = OUTPUT.receive(0);
 		assertThat(replyMessage).isNotNull();
 		assertThat(replyMessage.getHeaders().get("testAttribute")).isEqualTo("foo");
 	}
 
-	@Test(expected = MessageHandlingException.class)
-	public void nonSerializablePayload() {
+	@Test
+	void nonSerializablePayload() {
 		NonSerializableTestObject payload = new NonSerializableTestObject();
 		Message<?> requestMessage = new GenericMessage<>(payload);
-		gateway.handleMessage(requestMessage);
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> GATEWAY.handleMessage(requestMessage));
 	}
 
 	@Test
-	public void nonSerializableAttribute() {
+	void nonSerializableAttribute() {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", new NonSerializableTestObject()).build();
-		gateway.handleMessage(requestMessage);
-		Message<?> reply = output.receive(0);
+		GATEWAY.handleMessage(requestMessage);
+		Message<?> reply = OUTPUT.receive(0);
 		assertThat(requestMessage.getHeaders().get("testAttribute")).isNotNull();
 		assertThat(reply.getHeaders().get("testAttribute")).isNotNull();
 	}
 
 	@Test
-	public void invalidServiceName() {
+	void invalidServiceName() {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
-		boolean exceptionThrown = false;
-		try {
-			gateway.handleMessage(new GenericMessage<>("test"));
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getClass()).isEqualTo(RemoteLookupFailureException.class);
-			exceptionThrown = true;
-		}
-		assertThat(exceptionThrown).isTrue();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
+				.withCauseInstanceOf(RemoteLookupFailureException.class);
 	}
 
 	@Test
-	public void invalidHost() {
+	void invalidHost() {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://noSuchHost:1099/testRemoteHandler");
-		boolean exceptionThrown = false;
-		try {
-			gateway.handleMessage(new GenericMessage<>("test"));
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getClass()).isEqualTo(RemoteLookupFailureException.class);
-			exceptionThrown = true;
-		}
-		assertThat(exceptionThrown).isTrue();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
+				.withCauseInstanceOf(RemoteLookupFailureException.class);
 	}
 
 	@Test
-	public void invalidUrl() {
+	void invalidUrl() {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
-		boolean exceptionThrown = false;
-		try {
-			gateway.handleMessage(new GenericMessage<>("test"));
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getClass()).isEqualTo(RemoteLookupFailureException.class);
-			exceptionThrown = true;
-		}
-		assertThat(exceptionThrown).isTrue();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gateway.handleMessage(new GenericMessage<>("test")))
+				.withCauseInstanceOf(RemoteLookupFailureException.class);
 	}
 
 
@@ -172,10 +158,12 @@ public class RmiOutboundGatewayTests {
 					protected Object handleRequestMessage(Message<?> requestMessage) {
 						throw new RuntimeException("foo");
 					}
+
 				}.handleMessage(new GenericMessage<>("bar"));
 			}
 			return new GenericMessage<>(message.getPayload().toString().toUpperCase(), message.getHeaders());
 		}
+
 	}
 
 
