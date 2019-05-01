@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
 public class TransactionSynchronizationFactoryBean implements FactoryBean<DefaultTransactionSynchronizationFactory>,
 		BeanFactoryAware {
 
-	private final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final AtomicInteger counter = new AtomicInteger();
 

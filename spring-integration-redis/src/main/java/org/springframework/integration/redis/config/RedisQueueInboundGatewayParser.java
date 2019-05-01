@@ -40,7 +40,7 @@ public class RedisQueueInboundGatewayParser extends AbstractInboundGatewayParser
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("queue")
+		return !attributeName.equals("queue") // NOSONAR boolean complexity
 				&& !attributeName.equals("connection-factory")
 				&& !attributeName.equals("serializer")
 				&& !attributeName.equals("task-executor")

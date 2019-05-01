@@ -80,7 +80,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 			}
 			this.propertyNames = names.toArray(new String[names.size()]);
 		}
-		return this.propertyNames;
+		return this.propertyNames; // NOSONAR - expose internals
 	}
 
 }

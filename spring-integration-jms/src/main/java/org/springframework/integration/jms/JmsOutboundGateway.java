@@ -572,9 +572,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			 *  This is needed because there is no way to detect 2 or more gateways using the same reply queue
 			 *  with no correlation key.
 			 */
-			if (this.useReplyContainer && (this.correlationKey == null &&
-					(this.replyDestination != null || this.replyDestinationName != null) ||
-					this.replyDestinationExpressionProcessor != null)) {
+			boolean hasAReplyDest = this.replyDestination != null || this.replyDestinationName != null
+					|| this.replyDestinationExpressionProcessor != null;
+			if (this.useReplyContainer && (this.correlationKey == null && hasAReplyDest)) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("The gateway cannot use a reply listener container with a specified " +
 							"destination(Name/Expression) " +

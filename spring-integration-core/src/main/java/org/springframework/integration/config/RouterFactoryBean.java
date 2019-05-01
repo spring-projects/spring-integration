@@ -152,7 +152,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	protected boolean noRouterAttributesProvided() {
-		return this.channelMappings == null && this.defaultOutputChannel == null
+		return this.channelMappings == null && this.defaultOutputChannel == null // NOSONAR boolean complexity
 				&& getSendTimeout() == null && this.resolutionRequired == null && this.applySequence == null
 				&& this.ignoreSendFailures == null;
 	}

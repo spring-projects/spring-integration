@@ -48,7 +48,7 @@ public class MapBuilder<B extends MapBuilder<B, K, V>, K, V> {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected final B _this() {
+	protected final B _this() { // NOSONAR name
 		return (B) this;
 	}
 

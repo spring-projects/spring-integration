@@ -51,7 +51,7 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("name") && !attributeName.equals("request-channel")
+		return !attributeName.equals("name") && !attributeName.equals("request-channel") // NOSONAR boolean complexity
 				&& !attributeName.equals("error-channel")
 				&& !attributeName.equals("reply-channel") && super.isEligibleAttribute(attributeName);
 	}

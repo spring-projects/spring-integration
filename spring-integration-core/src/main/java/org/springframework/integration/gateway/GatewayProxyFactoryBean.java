@@ -547,10 +547,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					throw t;
 				}
 			}
-			if (t instanceof RuntimeException
+			if (t instanceof RuntimeException // NOSONAR boolean complexity
 					&& !(t instanceof MessagingException)
 					&& !(t instanceof UndeclaredThrowableException)
-					&& !(t instanceof IllegalStateException && ("Unexpected exception thrown").equals(t.getMessage()))) {
+					&& !(t instanceof IllegalStateException && "Unexpected exception thrown".equals(t.getMessage()))) {
 				throw t;
 			}
 			t = t.getCause();

@@ -3114,7 +3114,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	@SuppressWarnings("unchecked")
-	protected final B _this() {
+	protected final B _this() { // NOSONAR name
 		return (B) this;
 	}
 

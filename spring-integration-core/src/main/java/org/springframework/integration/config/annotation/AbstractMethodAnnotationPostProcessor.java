@@ -395,9 +395,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String receiveTimeout = this.beanFactory.resolveEmbeddedValue(poller.receiveTimeout());
 
 			if (StringUtils.hasText(ref)) {
-				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) &&
-								!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue) &&
-								!StringUtils.hasText(fixedRateValue) && !StringUtils.hasText(maxMessagesPerPollValue),
+				Assert.state(!StringUtils.hasText(triggerRef)
+						&& !StringUtils.hasText(executorRef)
+						&& !StringUtils.hasText(cron)
+						&& !StringUtils.hasText(fixedDelayValue)
+						&& !StringUtils.hasText(fixedRateValue)
+						&& !StringUtils.hasText(maxMessagesPerPollValue), // NOSONAR boolean complexity
 						"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
 				pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 			}

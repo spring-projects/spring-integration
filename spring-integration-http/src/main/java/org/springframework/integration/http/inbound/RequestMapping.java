@@ -61,7 +61,7 @@ public class RequestMapping {
 	}
 
 	public String[] getPathPatterns() {
-		return this.pathPatterns;
+		return this.pathPatterns; // NOSONAR - expose internals
 	}
 
 	public void setMethods(HttpMethod... supportedMethods) {
@@ -70,7 +70,7 @@ public class RequestMapping {
 	}
 
 	public HttpMethod[] getMethods() {
-		return this.methods;
+		return this.methods; // NOSONAR - expose internals
 	}
 
 	public void setParams(String... params) {
@@ -79,7 +79,7 @@ public class RequestMapping {
 	}
 
 	public String[] getParams() {
-		return this.params;
+		return this.params; // NOSONAR - expose internals
 	}
 
 	public void setHeaders(String... headers) {
@@ -88,7 +88,7 @@ public class RequestMapping {
 	}
 
 	public String[] getHeaders() {
-		return this.headers;
+		return this.headers; // NOSONAR - expose internals
 	}
 
 	public void setConsumes(String... consumes) {
@@ -97,7 +97,7 @@ public class RequestMapping {
 	}
 
 	public String[] getConsumes() {
-		return this.consumes;
+		return this.consumes; // NOSONAR - expose internals
 	}
 
 	public void setProduces(String... produces) {
@@ -106,7 +106,7 @@ public class RequestMapping {
 	}
 
 	public String[] getProduces() {
-		return this.produces;
+		return this.produces; // NOSONAR - expose internals
 	}
 
 	public RequestMethod[] getRequestMethods() {

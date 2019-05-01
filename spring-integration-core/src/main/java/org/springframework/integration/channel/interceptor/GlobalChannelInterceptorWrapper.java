@@ -66,7 +66,7 @@ public class GlobalChannelInterceptorWrapper implements Ordered {
 	}
 
 	public String[] getPatterns() {
-		return this.patterns;
+		return this.patterns; // NOSONAR - expose internals
 	}
 
 	@Override

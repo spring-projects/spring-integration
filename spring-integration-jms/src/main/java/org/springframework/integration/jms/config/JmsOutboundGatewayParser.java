@@ -79,15 +79,17 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		Element container = DomUtils.getChildElementByTagName(element, "reply-listener");
 
 		if (container != null) {
-			this.parseReplyContainer(builder, parserContext, container);
+			this.parseReplyContainer(builder, container);
 		}
 		return builder;
 	}
 
 	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
-			String destinationAttributeName, String destinationNameAttributeName, String destinationExpressionAttributeName,
+			String destinationAttributeName, String destinationNameAttributeName,
+			String destinationExpressionAttributeName,
 			String destinationProperty, String destinationNameProperty, String destinationExpressionProperty,
 			boolean oneRequired) {
+
 		String destinationAttribute = element.getAttribute(destinationAttributeName);
 		String destinationNameAttribute = element.getAttribute(destinationNameAttributeName);
 		String destinationExpressionAttribute = element.getAttribute(destinationExpressionAttributeName);
@@ -99,14 +101,16 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 						(hasDestinationExpression ? 1 : 0);
 		if (oneRequired) {
 			if (destCount != 1) {
-				parserContext.getReaderContext().error("Exactly one of the '" + destinationAttribute + "', " +
-						"'" + destinationNameAttributeName + "', or '" + destinationExpressionAttributeName + "' attributes is required.", element);
+				parserContext.getReaderContext().error("Exactly one of the '" + destinationAttribute + "', "
+						+ "'" + destinationNameAttributeName + "', or '"
+						+ destinationExpressionAttributeName + "' attributes is required.", element);
 			}
 		}
 		else {
 			if (destCount > 1) {
-				parserContext.getReaderContext().error("Only one of the '" + destinationAttribute + "', " +
-						"'" + destinationNameAttributeName + "', or '" + destinationExpressionAttributeName + "' attributes is allowed.", element);
+				parserContext.getReaderContext().error("Only one of the '" + destinationAttribute + "', "
+						+ "'" + destinationNameAttributeName + "', or '"
+						+ destinationExpressionAttributeName + "' attributes is allowed.", element);
 			}
 		}
 		if (hasDestination) {
@@ -116,15 +120,18 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			builder.addPropertyValue(destinationNameProperty, destinationNameAttribute);
 		}
 		else if (hasDestinationExpression) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(ExpressionFactoryBean.class);
 			expressionBuilder.addConstructorArgValue(destinationExpressionAttribute);
 			builder.addPropertyValue(destinationExpressionProperty, expressionBuilder.getBeanDefinition());
 		}
 	}
 
-	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, ParserContext parserContext, Element element) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeModeName");
+	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, Element element) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge",
+				"sessionAcknowledgeModeName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");

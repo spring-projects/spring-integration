@@ -58,7 +58,8 @@ public class AggregateMessageDeliveryException extends MessageDeliveryException 
 	@Override
 	public String getMessage() {
 		String baseMessage = super.getMessage();
-		StringBuilder message = new StringBuilder(appendPeriodIfNecessary(baseMessage) + " Multiple causes:\n");
+		StringBuilder message = new StringBuilder(appendPeriodIfNecessary(baseMessage))
+				.append(" Multiple causes:\n");
 		for (Exception exception : this.aggregatedExceptions) {
 			message.append("    " + exception.getMessage() + "\n");
 		}

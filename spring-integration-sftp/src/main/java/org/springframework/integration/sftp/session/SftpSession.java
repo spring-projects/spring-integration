@@ -88,7 +88,7 @@ public class SftpSession implements Session<LsEntry> {
 	public LsEntry[] list(String path) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
-			Vector<?> lsEntries = this.channel.ls(path);
+			Vector<?> lsEntries = this.channel.ls(path); // NOSONAR (Vector)
 			if (lsEntries != null) {
 				LsEntry[] entries = new LsEntry[lsEntries.size()];
 				for (int i = 0; i < lsEntries.size(); i++) {

@@ -393,11 +393,11 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		private final AtomicBoolean released = new AtomicBoolean();
 
-		private CachedConnection(TcpConnectionSupport connection,
+		CachedConnection(TcpConnectionSupport connection,
 				@Nullable TcpListener tcpListener) {  // NOSONAR false positive, connection not marked @Nullable
 
 			super.setTheConnection(connection);
-			registerListener(tcpListener);
+			super.registerListener(tcpListener);
 		}
 
 		@Override

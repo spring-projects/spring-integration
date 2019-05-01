@@ -21,7 +21,6 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -260,7 +259,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 					buffer.position(4);
 					@SuppressWarnings("unchecked")
 					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
-							HashMap.class);
+							Map.class);
 
 					buffer.position(buffer.position() + headersLen);
 					buffer.getInt();

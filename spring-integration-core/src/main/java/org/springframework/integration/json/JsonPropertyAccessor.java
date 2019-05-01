@@ -68,7 +68,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
-		return SUPPORTED_CLASSES;
+		return SUPPORTED_CLASSES; // NOSONAR - expose internals
 	}
 
 	@Override

@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class EmbeddedJsonHeadersMessageMapperTests {
 
 	@Test
-	public void testEmbedAll() throws Exception {
+	public void testEmbedAll() {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper();
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertThat(mapper.toMessage(mapper.fromMessage(message))).isEqualTo(message);
@@ -92,7 +92,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 	}
 
 	@Test
-	public void testBytesEmbedSome() throws Exception {
+	public void testBytesEmbedSome() {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper("I*");
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes(), Collections.singletonMap("bar", "baz"));
 		byte[] bytes = mapper.fromMessage(message);
@@ -112,7 +112,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 	}
 
 	@Test
-	public void testBytesEmbedAllJson() throws Exception {
+	public void testBytesEmbedAllJson() {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper();
 		mapper.setRawBytes(false);
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
@@ -126,7 +126,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 	}
 
 	@Test
-	public void testBytesDecodeAll() throws Exception {
+	public void testBytesDecodeAll() {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper();
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));

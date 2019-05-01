@@ -65,16 +65,16 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		boolean hasExpressionElement = expressionElement != null;
 		boolean hasMethod = StringUtils.hasText(methodName);
 
-		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) {
+		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) { // NOSONAR
 			parserContext.getReaderContext().error(
-					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
+				"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
 		}
 
 		if (hasInnerDef) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
-								IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on "
+						+ "element " + IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
 			if (hasMethod) {
@@ -87,8 +87,9 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		else if (hasScriptElement) {
 			if (hasRef || hasMethod || hasExpression) {
 				parserContext.getReaderContext().error(
-						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is configured on element " +
-								IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is "
+						+ "configured on element "
+						+ IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
 				return null;
 			}
 			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
@@ -101,7 +102,8 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		else if (hasExpression || hasExpressionElement) {
 			if (hasRef || hasMethod) {
 				parserContext.getReaderContext().error(
-						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner <expression>.", element);
+						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner "
+						+ "<expression>.", element);
 				return null;
 			}
 			if (hasExpression & hasExpressionElement) {
@@ -124,9 +126,11 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		return result;
 	}
 
-	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element,
-			ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class);
+	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName,
+			Element element, ParserContext parserContext) {
+
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(MethodInvokingMessageSource.class);
 		sourceBuilder.addPropertyValue("object", targetObject);
 		sourceBuilder.addPropertyValue("methodName", methodName);
 		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
@@ -135,7 +139,9 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 
 	private BeanMetadataElement parseExpression(String expressionString, Element expressionElement, Element element,
 			ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
+
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
 
 		BeanDefinition expressionDef = null;
 
@@ -166,8 +172,9 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			ManagedMap<String, Object> headerExpressions = new ManagedMap<String, Object>();
 			for (Element headerElement : headerElements) {
 				String headerName = headerElement.getAttribute("name");
-				BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, headerElement, true);
+				BeanDefinition expressionDef = IntegrationNamespaceUtils
+						.createExpressionDefinitionFromValueOrExpression("value",
+								"expression", parserContext, headerElement, true);
 				headerExpressions.put(headerName, expressionDef);
 			}
 			builder.addPropertyValue("headerExpressions", headerExpressions);
