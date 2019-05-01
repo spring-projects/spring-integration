@@ -18,7 +18,6 @@ package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -60,37 +59,13 @@ interface PublisherMetadataSource {
 	String getChannelName(Method method);
 
 	/**
-	 * Returns the expression string to be evaluated for creating the Message
-	 * payload.
-	 * @param method The Method.
-	 * @return The payload expression.
-	 * @deprecated since 5.0.4 in favor of {@link #getExpressionForPayload(Method)}
-	 */
-	@Deprecated
-	String getPayloadExpression(Method method);
-
-	/**
 	 * Returns the SpEL expression to be evaluated for creating the Message
 	 * payload.
 	 * @param method the Method.
 	 * @return rhe payload expression.
 	 * @since 5.0.4
 	 */
-	@SuppressWarnings("deprecation")
-	default Expression getExpressionForPayload(Method method) {
-		return EXPRESSION_PARSER.parseExpression(getPayloadExpression(method));
-	}
-
-	/**
-	 * Returns the map of expression strings to be evaluated for any headers
-	 * that should be set on the published Message. The keys in the Map are
-	 * header names, the values are the expression strings.
-	 * @param method The Method.
-	 * @return The header expressions.
-	 * @deprecated since 5.0.4 in favor of {@link #getExpressionsForHeaders(Method)}
-	 */
-	@Deprecated
-	Map<String, String> getHeaderExpressions(Method method);
+	Expression getExpressionForPayload(Method method);
 
 	/**
 	 * Returns the map of expression strings to be evaluated for any headers
@@ -99,13 +74,6 @@ interface PublisherMetadataSource {
 	 * @param method The Method.
 	 * @return The header expressions.
 	 */
-	@SuppressWarnings("deprecation")
-	default Map<String, Expression> getExpressionsForHeaders(Method method) {
-		return getHeaderExpressions(method)
-				.entrySet()
-				.stream()
-				.collect(Collectors.toMap(Map.Entry::getKey,
-						e -> EXPRESSION_PARSER.parseExpression(e.getValue())));
-	}
+	Map<String, Expression> getExpressionsForHeaders(Method method);
 
 }
