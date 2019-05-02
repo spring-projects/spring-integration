@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -53,8 +54,6 @@ public final class StoredProcParserUtils {
 
 	private static final Log LOGGER = LogFactory.getLog(StoredProcParserUtils.class);
 
-	private static final String NAME_ATTRIBUTE = "name";
-
 	/** Prevent instantiation. */
 	private StoredProcParserUtils() {
 		throw new AssertionError();
@@ -73,7 +72,7 @@ public final class StoredProcParserUtils {
 
 		for (Element childElement : sqlParameterDefinitionChildElements) {
 
-			String name        = childElement.getAttribute(NAME_ATTRIBUTE);
+			String name        = childElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 			String sqlType     = childElement.getAttribute("type");
 			String direction   = childElement.getAttribute("direction");
 			String scale       = childElement.getAttribute("scale");
@@ -166,13 +165,13 @@ public final class StoredProcParserUtils {
 
 			BeanDefinitionBuilder parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProcedureParameter.class);
 
-			String name = childElement.getAttribute(NAME_ATTRIBUTE);
+			String name = childElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 			String expression = childElement.getAttribute("expression");
 			String value = childElement.getAttribute("value");
 			String type = childElement.getAttribute("type");
 
 			if (StringUtils.hasText(name)) {
-				parameterBuilder.addPropertyValue(NAME_ATTRIBUTE, name);
+				parameterBuilder.addPropertyValue(AbstractBeanDefinitionParser.NAME_ATTRIBUTE, name);
 			}
 
 			if (StringUtils.hasText(expression)) {
@@ -222,7 +221,7 @@ public final class StoredProcParserUtils {
 
 		for (Element childElement : returningResultsetChildElements) {
 
-			String name       = childElement.getAttribute(NAME_ATTRIBUTE);
+			String name = childElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 			String rowMapperAsString = childElement.getAttribute("row-mapper");
 
 			BeanMetadataElement rowMapperBeanDefinition = null;
@@ -232,7 +231,7 @@ public final class StoredProcParserUtils {
 				ClassUtils.forName(rowMapperAsString, parserContext.getReaderContext().getBeanClassLoader());
 				rowMapperBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString).getBeanDefinition();
 			}
-			catch (ClassNotFoundException e) {
+			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
 				//Ignore it and fallback to bean reference
 				rowMapperBeanDefinition = new RuntimeBeanReference(rowMapperAsString);
 			}

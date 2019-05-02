@@ -48,8 +48,6 @@ import org.springframework.util.xml.DomUtils;
  */
 public class GatewayParser implements BeanDefinitionParser {
 
-	private static final String NAME_ATTRIBUTE = "name";
-
 	private final MessagingGatewayRegistrar registrar = new MessagingGatewayRegistrar();
 
 	@Override
@@ -57,7 +55,8 @@ public class GatewayParser implements BeanDefinitionParser {
 		boolean isNested = parserContext.isNested();
 
 		final Map<String, Object> gatewayAttributes = new HashMap<String, Object>();
-		gatewayAttributes.put(NAME_ATTRIBUTE, element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
+		gatewayAttributes.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
+				element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
 		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
 		gatewayAttributes.put("defaultRequestChannel",
 				element.getAttribute(isNested ? "request-channel" : "default-request-channel"));
@@ -85,7 +84,8 @@ public class GatewayParser implements BeanDefinitionParser {
 			List<Map<String, Object>> headers = new ArrayList<Map<String, Object>>(headerElements.size());
 			for (Element e : headerElements) {
 				Map<String, Object> header = new HashMap<String, Object>();
-				header.put(NAME_ATTRIBUTE, e.getAttribute(NAME_ATTRIBUTE));
+				header.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
+						e.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE));
 				header.put("value", e.getAttribute("value"));
 				header.put("expression", e.getAttribute("expression"));
 				headers.add(header);
@@ -97,7 +97,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		if (!CollectionUtils.isEmpty(methodElements)) {
 			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<String, BeanDefinition>();
 			for (Element methodElement : methodElements) {
-				String methodName = methodElement.getAttribute(NAME_ATTRIBUTE);
+				String methodName = methodElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 				BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 						GatewayMethodMetadata.class);
 				methodMetadataBuilder.addPropertyValue("requestChannelName",
@@ -123,7 +123,8 @@ public class GatewayParser implements BeanDefinitionParser {
 								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,
 										headerElement, true);
 
-						headerExpressions.put(headerElement.getAttribute(NAME_ATTRIBUTE), expressionDef);
+						headerExpressions.put(headerElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE),
+								expressionDef);
 					}
 					methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
 				}
