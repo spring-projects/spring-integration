@@ -51,6 +51,7 @@ public class GatewayParser implements BeanDefinitionParser {
 	private final MessagingGatewayRegistrar registrar = new MessagingGatewayRegistrar();
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
 
@@ -90,7 +91,7 @@ public class GatewayParser implements BeanDefinitionParser {
 				header.put("expression", e.getAttribute("expression"));
 				headers.add(header);
 			}
-			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[headers.size()]));
+			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[0]));
 		}
 
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
