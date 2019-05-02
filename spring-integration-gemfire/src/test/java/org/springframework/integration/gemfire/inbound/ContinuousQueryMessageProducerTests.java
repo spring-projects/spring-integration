@@ -22,9 +22,9 @@ import static org.mockito.Mockito.mock;
 import org.apache.geode.cache.Operation;
 import org.apache.geode.cache.query.CqEvent;
 import org.apache.geode.cache.query.CqQuery;
-import org.apache.geode.cache.query.internal.cq.ServerCQImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.geode.cache.query.cq.internal.ServerCQImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
@@ -37,73 +37,63 @@ import org.springframework.messaging.MessagingException;
 /**
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ContinuousQueryMessageProducerTests {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	ContinuousQueryListenerContainer queryListenerContainer;
+	private ContinuousQueryMessageProducer cqMessageProducer;
 
-	ContinuousQueryMessageProducer cqMessageProducer;
+	private CqMessageHandler handler;
 
-	CqMessageHandler handler;
-
-	@Before
-	public void setUp() {
-		queryListenerContainer = mock(ContinuousQueryListenerContainer.class);
-		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "foo");
+	@BeforeEach
+	void setUp() {
+		ContinuousQueryListenerContainer queryListenerContainer = mock(ContinuousQueryListenerContainer.class);
+		this.cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "foo");
 		DirectChannel outputChannel = new DirectChannel();
-		cqMessageProducer.setOutputChannel(outputChannel);
-		cqMessageProducer.setBeanFactory(mock(BeanFactory.class));
-		handler = new CqMessageHandler();
-		outputChannel.subscribe(handler);
+		this.cqMessageProducer.setOutputChannel(outputChannel);
+		this.cqMessageProducer.setBeanFactory(mock(BeanFactory.class));
+		this.handler = new CqMessageHandler();
+		outputChannel.subscribe(this.handler);
 	}
 
 	@Test
-	public void testMessageProduced() {
+	void testMessageProduced() {
 		CqEvent cqEvent = event(Operation.CREATE, "hello");
-
-		cqMessageProducer.onEvent(cqEvent);
-
-		assertThat(handler.count).isEqualTo(1);
-		assertThat(handler.payload).isEqualTo(cqEvent);
+		this.cqMessageProducer.onEvent(cqEvent);
+		assertThat(this.handler.count).isEqualTo(1);
+		assertThat(this.handler.payload).isEqualTo(cqEvent);
 	}
 
 	@Test
-	public void testMessageNotProducedForUnsupportedEventType() {
+	void testMessageNotProducedForUnsupportedEventType() {
 		CqEvent cqEvent = event(Operation.DESTROY, "hello");
-
-		cqMessageProducer.onEvent(cqEvent);
-
-		assertThat(handler.count).isEqualTo(0);
+		this.cqMessageProducer.onEvent(cqEvent);
+		assertThat(this.handler.count).isEqualTo(0);
 	}
 
 	@Test
-	public void testMessageProducedForAddedEventType() {
-
+	void testMessageProducedForAddedEventType() {
 		CqEvent cqEvent = event(Operation.DESTROY, null);
-
-		cqMessageProducer.setSupportedEventTypes(CqEventType.DESTROYED);
-		cqMessageProducer.onEvent(cqEvent);
-
-		assertThat(handler.count).isEqualTo(1);
-		assertThat(handler.payload).isEqualTo(cqEvent);
+		this.cqMessageProducer.setSupportedEventTypes(CqEventType.DESTROYED);
+		this.cqMessageProducer.onEvent(cqEvent);
+		assertThat(this.handler.count).isEqualTo(1);
+		assertThat(this.handler.payload).isEqualTo(cqEvent);
 	}
 
 	@Test
-	public void testPayloadExpression() {
+	void testPayloadExpression() {
 		CqEvent cqEvent = event(Operation.CREATE, "hello");
-		cqMessageProducer.setPayloadExpression(PARSER.parseExpression("newValue.toUpperCase() + ', WORLD'"));
-		cqMessageProducer.afterPropertiesSet();
-
-		cqMessageProducer.onEvent(cqEvent);
-		assertThat(handler.count).isEqualTo(1);
-		assertThat(handler.payload).isEqualTo("HELLO, WORLD");
+		this.cqMessageProducer.setPayloadExpression(PARSER.parseExpression("newValue.toUpperCase() + ', WORLD'"));
+		this.cqMessageProducer.afterPropertiesSet();
+		this.cqMessageProducer.onEvent(cqEvent);
+		assertThat(this.handler.count).isEqualTo(1);
+		assertThat(this.handler.payload).isEqualTo("HELLO, WORLD");
 	}
 
 	CqEvent event(final Operation operation, final Object value) {
-
 		return new CqEvent() {
 
 			final CqQuery cq = new ServerCQImpl();
@@ -119,15 +109,15 @@ public class ContinuousQueryMessageProducerTests {
 			}
 
 			public CqQuery getCq() {
-				return cq;
+				return this.cq;
 			}
 
 			public byte[] getDeltaValue() {
-				return ba;
+				return this.ba;
 			}
 
 			public Object getKey() {
-				return key;
+				return this.key;
 			}
 
 			public Object getNewValue() {
@@ -139,7 +129,7 @@ public class ContinuousQueryMessageProducerTests {
 			}
 
 			public Throwable getThrowable() {
-				return ex;
+				return this.ex;
 			}
 
 		};
@@ -147,13 +137,13 @@ public class ContinuousQueryMessageProducerTests {
 
 	private static class CqMessageHandler implements MessageHandler {
 
-		public int count;
+		int count;
 
-		public Object payload;
+		Object payload;
 
 		public void handleMessage(Message<?> message) throws MessagingException {
-			count++;
-			payload = message.getPayload();
+			this.count++;
+			this.payload = message.getPayload();
 		}
 
 	}
