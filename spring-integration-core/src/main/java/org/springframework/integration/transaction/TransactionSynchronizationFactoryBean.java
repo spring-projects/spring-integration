@@ -24,6 +24,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
@@ -36,6 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class TransactionSynchronizationFactoryBean implements FactoryBean<DefaultTransactionSynchronizationFactory>,
@@ -169,39 +171,29 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
 		}
-		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
-				new ExpressionEvaluatingTransactionSynchronizationProcessor();
-
-		if (StringUtils.hasText(this.beforeCommitExpression)) {
-			processor.setBeforeCommitExpression(this.PARSER.parseExpression(this.beforeCommitExpression));
-		}
-		if (StringUtils.hasText(this.afterCommitExpression)) {
-			processor.setAfterCommitExpression(this.PARSER.parseExpression(this.afterCommitExpression));
-		}
-		if (StringUtils.hasText(this.afterRollbackExpression)) {
-			processor.setAfterRollbackExpression(this.PARSER.parseExpression(this.afterRollbackExpression));
-		}
-
 		if (StringUtils.hasText(this.beforeCommitChannelName)) {
 			this.beforeCommitChannel = this.channelResolver.resolveDestination(this.beforeCommitChannelName);
 		}
-		if (this.beforeCommitChannel != null) {
-			processor.setBeforeCommitChannel(this.beforeCommitChannel);
-		}
-
 		if (StringUtils.hasText(this.afterCommitChannelName)) {
 			this.afterCommitChannel = this.channelResolver.resolveDestination(this.afterCommitChannelName);
 		}
-		if (this.afterCommitChannel != null) {
-			processor.setAfterCommitChannel(this.afterCommitChannel);
-		}
-
 		if (StringUtils.hasText(this.afterRollbackChannelName)) {
 			this.afterRollbackChannel = this.channelResolver.resolveDestination(this.afterRollbackChannelName);
 		}
-		if (this.afterRollbackChannel != null) {
-			processor.setAfterRollbackChannel(this.afterRollbackChannel);
-		}
+
+		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
+				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+
+		JavaUtils.INSTANCE
+				.acceptIfHasText(this.beforeCommitExpression, (expression) ->
+						processor.setBeforeCommitExpression(PARSER.parseExpression(expression)))
+				.acceptIfHasText(this.afterCommitExpression, (expression) ->
+						processor.setAfterCommitExpression(PARSER.parseExpression(expression)))
+				.acceptIfHasText(this.afterRollbackExpression, (expression) ->
+						processor.setAfterRollbackExpression(PARSER.parseExpression(expression)))
+				.acceptIfNotNull(this.beforeCommitChannel, processor::setBeforeCommitChannel)
+				.acceptIfNotNull(this.afterCommitChannel, processor::setAfterCommitChannel)
+				.acceptIfNotNull(this.afterRollbackChannel, processor::setAfterRollbackChannel);
 
 		if (this.beanFactory instanceof AutowireCapableBeanFactory) {
 			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor,
