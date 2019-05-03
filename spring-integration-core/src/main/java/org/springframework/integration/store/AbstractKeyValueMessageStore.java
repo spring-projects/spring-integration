@@ -40,6 +40,8 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
+	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
+
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
 	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
@@ -193,7 +195,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public MessageGroupMetadata getGroupMetadata(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Object mgm = this.doRetrieve(this.groupPrefix + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
@@ -204,7 +206,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messages' must not be null");
 
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
@@ -239,7 +241,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messages' must not be null");
 
 		Object mgm = doRetrieve(this.groupPrefix + groupId);
@@ -268,7 +270,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public void completeGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata != null) {
 			metadata.complete();
@@ -282,7 +284,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	@Override
 	public void removeMessageGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Object mgm = doRemove(this.groupPrefix + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
@@ -300,7 +302,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata == null) {
 			SimpleMessageGroup messageGroup = new SimpleMessageGroup(groupId);

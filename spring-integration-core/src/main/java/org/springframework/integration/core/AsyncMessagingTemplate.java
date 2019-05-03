@@ -35,6 +35,8 @@ import org.springframework.util.Assert;
  */
 public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMessagingOperations {
 
+	private static final String UNCHECKED = "unchecked";
+
 	private volatile AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
 
@@ -90,19 +92,19 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncReceiveAndConvert() {
 		return this.executor.submit(() -> (R) receiveAndConvert(Object.class));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
 		return this.executor.submit(() -> (R) receiveAndConvert(channel, Object.class));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
 		return this.executor.submit(() -> (R) receiveAndConvert(channelName, Object.class));
 	}
@@ -123,32 +125,32 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final Object request) {
 		return this.executor.submit(() -> (R) convertSendAndReceive(request, Object.class));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request) {
 		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, Object.class));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request) {
 		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, Object.class));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final Object request,
 			final MessagePostProcessor requestPostProcessor) {
 		return this.executor.submit(() -> (R) convertSendAndReceive(request, Object.class, requestPostProcessor));
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request,
 			final MessagePostProcessor requestPostProcessor) {
 		return this.executor
@@ -156,7 +158,7 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request,
 			final MessagePostProcessor requestPostProcessor) {
 		return this.executor

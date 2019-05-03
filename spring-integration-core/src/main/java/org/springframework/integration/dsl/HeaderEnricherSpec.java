@@ -56,6 +56,8 @@ import reactor.util.function.Tuple2;
  */
 public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec, MessageTransformingHandler> {
 
+	private static final String HEADERS_MUST_NOT_BE_NULL = "'headers' must not be null";
+
 	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<>();
 
 	private final HeaderEnricher headerEnricher = new HeaderEnricher(this.headerToAdd);
@@ -150,7 +152,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headers(MapBuilder<?, String, Object> headers, Boolean overwrite) {
-		Assert.notNull(headers, "'headers' must not be null");
+		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		return headers(headers.get(), overwrite);
 	}
 
@@ -176,7 +178,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headers(Map<String, Object> headers, Boolean overwrite) {
-		Assert.notNull(headers, "'headers' must not be null");
+		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
 			Object value = entry.getValue();
@@ -214,7 +216,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpressions(MapBuilder<?, String, String> headers, Boolean overwrite) {
-		Assert.notNull(headers, "'headers' must not be null");
+		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		return headerExpressions(headers.get(), overwrite);
 	}
 
@@ -283,7 +285,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @return the header enricher spec.
 	 */
 	public HeaderEnricherSpec headerExpressions(Map<String, String> headers, Boolean overwrite) {
-		Assert.notNull(headers, "'headers' must not be null");
+		Assert.notNull(headers, HEADERS_MUST_NOT_BE_NULL);
 		for (Entry<String, String> entry : headers.entrySet()) {
 			AbstractHeaderValueMessageProcessor<Object> processor =
 					new ExpressionEvaluatingHeaderValueMessageProcessor<>(entry.getValue(), null);

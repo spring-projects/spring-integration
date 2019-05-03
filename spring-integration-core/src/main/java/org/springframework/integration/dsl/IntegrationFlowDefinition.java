@@ -115,6 +115,12 @@ import reactor.util.function.Tuple2;
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
 
+	private static final String UNCHECKED = "unchecked";
+
+	private static final String FUNCTION_MUST_NOT_BE_NULL = "'function' must not be null";
+
+	private static final String MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL = "'messageProcessorSpec' must not be null";
+
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
@@ -582,7 +588,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
+		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.transform(new MethodInvokingTransformer(processor), endpointConfigurer);
@@ -814,7 +820,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B filter(MessageProcessorSpec<?> messageProcessorSpec, Consumer<FilterEndpointSpec> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
+		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.filter(new MethodInvokingSelector(processor), endpointConfigurer);
@@ -1133,7 +1139,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
+		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.handle(new ServiceActivatingHandler(processor), endpointConfigurer);
@@ -1518,7 +1524,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
+		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
 				.split(new MethodInvokingSplitter(processor), endpointConfigurer);
@@ -2056,7 +2062,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
-		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
+		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		addComponent(processor);
 
@@ -2371,7 +2377,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(Function<Message<P>, Object> function) {
-		Assert.notNull(function, "'function' must not be null");
+		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);
 		return log(new FunctionExpression<>(function));
 	}
 
@@ -2488,7 +2494,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
-		Assert.notNull(function, "'function' must not be null");
+		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);
 		return log(level, category, new FunctionExpression<>(function));
 	}
 
@@ -2632,7 +2638,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see #bridge()
 	 */
 	public <P> IntegrationFlow logAndReply(Function<Message<P>, Object> function) {
-		Assert.notNull(function, "'function' must not be null");
+		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);
 		return logAndReply(new FunctionExpression<>(function));
 	}
 
@@ -2757,7 +2763,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, String category,
 			Function<Message<P>, Object> function) {
 
-		Assert.notNull(function, "'function' must not be null");
+		Assert.notNull(function, FUNCTION_MUST_NOT_BE_NULL);
 		return logAndReply(level, category, new FunctionExpression<>(function));
 	}
 
@@ -2961,7 +2967,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <O> the output type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
 		if (!(this.currentMessageChannel instanceof FluxMessageChannel)) {
 			channel(new FluxMessageChannel());
@@ -2984,7 +2990,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	public <T> Publisher<Message<T>> toReactivePublisher() {
 		MessageChannel channelForPublisher = this.currentMessageChannel;
 		Publisher<Message<T>> publisher;
@@ -3022,7 +3028,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				.get();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
 
@@ -3113,7 +3119,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	protected final B _this() { // NOSONAR name
 		return (B) this;
 	}

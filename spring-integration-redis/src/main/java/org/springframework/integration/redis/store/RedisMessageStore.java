@@ -43,6 +43,8 @@ import org.springframework.util.Assert;
  */
 public class RedisMessageStore extends AbstractKeyValueMessageStore implements BeanClassLoaderAware {
 
+	private static final String ID_MUST_NOT_BE_NULL = "'id' must not be null";
+
 	private final RedisTemplate<Object, Object> redisTemplate;
 
 	private final boolean unlinkAvailable;
@@ -92,7 +94,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	@Override
 	protected Object doRetrieve(Object id) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		return ops.get();
 	}
@@ -100,7 +102,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	@Override
 	protected void doStore(Object id, Object objectToStore) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		try {
@@ -114,7 +116,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	@Override
 	protected void doStoreIfAbsent(Object id, Object objectToStore) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		try {
@@ -131,7 +133,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	@Override
 	protected Object doRemove(Object id) {
-		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
 			if (this.unlinkAvailable) {

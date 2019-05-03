@@ -48,6 +48,8 @@ import org.springframework.util.Assert;
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
 
+	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
+
 	private static final String UNUSED = "unused";
 
 	private final Object lifecycleMonitor = new Object();
@@ -113,7 +115,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		synchronized (this.updateMap) {
 			try {
@@ -132,7 +134,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		synchronized (this.updateMap) {
@@ -171,7 +173,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		synchronized (this.updateMap) {
 			try {
@@ -196,7 +198,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String get(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
 		synchronized (this.updateMap) {
 			ChildData currentData = this.cache.getCurrentData(getPath(key));
@@ -225,7 +227,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public String remove(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		synchronized (this.updateMap) {
 			try {
 				byte[] bytes = this.client.getData().forPath(getPath(key));

@@ -59,6 +59,8 @@ import org.springframework.util.MultiValueMap;
 public class SmartLifecycleRoleController implements ApplicationListener<AbstractLeaderEvent>,
 		ApplicationContextAware {
 
+	private static final String IN_ROLE = " in role ";
+
 	private static final Log logger = LogFactory.getLog(SmartLifecycleRoleController.class);
 
 	private final MultiValueMap<String, SmartLifecycle> lifecycles = new LinkedMultiValueMap<String, SmartLifecycle>();
@@ -162,7 +164,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 			componentsInRole = new ArrayList<>(componentsInRole);
 			componentsInRole.sort(Comparator.comparingInt(Phased::getPhase));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Starting " + componentsInRole + " in role " + role);
+				logger.debug("Starting " + componentsInRole + IN_ROLE + role);
 			}
 
 			componentsInRole.forEach(lifecycle -> {
@@ -170,7 +172,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 					lifecycle.start();
 				}
 				catch (Exception e) {
-					logger.error("Failed to start " + lifecycle + " in role " + role, e);
+					logger.error("Failed to start " + lifecycle + IN_ROLE + role, e);
 				}
 			});
 		}
@@ -194,7 +196,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 			componentsInRole = new ArrayList<>(componentsInRole);
 			componentsInRole.sort((o1, o2) -> Integer.compare(o2.getPhase(), o1.getPhase()));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopping " + componentsInRole + " in role " + role);
+				logger.debug("Stopping " + componentsInRole + IN_ROLE + role);
 			}
 
 			componentsInRole.forEach(lifecycle -> {
@@ -202,7 +204,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 					lifecycle.stop();
 				}
 				catch (Exception e) {
-					logger.error("Failed to stop " + lifecycle + " in role " + role, e);
+					logger.error("Failed to stop " + lifecycle + IN_ROLE + role, e);
 				}
 			});
 		}

@@ -35,6 +35,8 @@ import org.springframework.xml.xpath.XPathExpression;
  */
 public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector {
 
+	private static final String REGEX_MUST_NOT_BE_NULL = "regex must not be null";
+
 	private final String regex;
 
 
@@ -47,7 +49,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	 */
 	public RegexTestXPathMessageSelector(String expression, Map<String, String> namespaces, String regex) {
 		super(expression, namespaces);
-		Assert.notNull(regex, "regex must not be null");
+		Assert.notNull(regex, REGEX_MUST_NOT_BE_NULL);
 		this.regex = regex;
 	}
 
@@ -61,7 +63,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	 */
 	public RegexTestXPathMessageSelector(String expression, String prefix, String namespace, String regex) {
 		super(expression, prefix, namespace);
-		Assert.notNull(regex, "regex must not be null");
+		Assert.notNull(regex, REGEX_MUST_NOT_BE_NULL);
 		this.regex = regex;
 	}
 
@@ -73,7 +75,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	 */
 	public RegexTestXPathMessageSelector(String expression, String regex) {
 		super(expression);
-		Assert.notNull(regex, "regex must not be null");
+		Assert.notNull(regex, REGEX_MUST_NOT_BE_NULL);
 		this.regex = regex;
 	}
 
@@ -86,7 +88,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	 */
 	public RegexTestXPathMessageSelector(XPathExpression expression, String regex) {
 		super(expression);
-		Assert.notNull(regex, "regex must not be null");
+		Assert.notNull(regex, REGEX_MUST_NOT_BE_NULL);
 		this.regex = regex;
 	}
 

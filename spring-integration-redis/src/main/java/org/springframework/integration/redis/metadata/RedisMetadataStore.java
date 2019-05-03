@@ -40,6 +40,8 @@ import org.springframework.util.Assert;
  */
 public class RedisMetadataStore implements ConcurrentMetadataStore {
 
+	private static final String KEY_MUST_NOT_BE_NULL = "'key' must not be null.";
+
 	public static final String KEY = "MetaData";
 
 	private final RedisProperties properties;
@@ -109,7 +111,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public void put(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		this.properties.put(key, value);
 	}
@@ -121,7 +123,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	 */
 	@Override
 	public String get(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Object value = this.properties.get(key);
 		if (value != null) {
 			Assert.isInstanceOf(String.class, value, "Invalid type in the store");
@@ -132,7 +134,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	@Override
 
 	public String remove(String key) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Object removed = this.properties.remove(key);
 		if (removed != null) {
 			Assert.isInstanceOf(String.class, removed, "The removed value was an invalid type");
@@ -142,7 +144,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 
 	@Override
 	public String putIfAbsent(String key, String value) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(value, "'value' must not be null.");
 		Object oldValue = this.properties.putIfAbsent(key, value);
 		if (oldValue != null) {
@@ -153,7 +155,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
-		Assert.notNull(key, "'key' must not be null.");
+		Assert.notNull(key, KEY_MUST_NOT_BE_NULL);
 		Assert.notNull(oldValue, "'oldValue' must not be null.");
 		Assert.notNull(newValue, "'newValue' must not be null.");
 		return this.properties.replace(key, oldValue, newValue);

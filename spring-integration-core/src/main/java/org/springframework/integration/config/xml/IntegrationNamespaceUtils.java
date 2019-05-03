@@ -255,7 +255,7 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder,
 			ParserContext parserContext) {
 
-		if (pollerElement.hasAttribute("ref")) {
+		if (pollerElement.hasAttribute(REF_ATTRIBUTE)) {
 			int numberOfAttributes = pollerElement.getAttributes().getLength();
 			if (numberOfAttributes != 1) {
 				/*
@@ -273,7 +273,7 @@ public abstract class IntegrationNamespaceUtils {
 				parserContext.getReaderContext().error(
 						"A 'poller' element that provides a 'ref' must have no child elements.", pollerElement);
 			}
-			targetBuilder.addPropertyReference("pollerMetadata", pollerElement.getAttribute("ref"));
+			targetBuilder.addPropertyReference("pollerMetadata", pollerElement.getAttribute(REF_ATTRIBUTE));
 		}
 		else {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(pollerElement,
@@ -519,7 +519,7 @@ public abstract class IntegrationNamespaceUtils {
 						parserContext.registerBeanComponent(new BeanComponentDefinition(holder)); // NOSONAR never null
 						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
 					}
-					else if ("ref".equals(localName)) {
+					else if (REF_ATTRIBUTE.equals(localName)) {
 						String ref = childElement.getAttribute("bean");
 						adviceChain.add(new RuntimeBeanReference(ref));
 					}

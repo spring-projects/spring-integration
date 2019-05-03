@@ -101,6 +101,12 @@ import com.mongodb.DBObject;
 public class MongoDbMessageStore extends AbstractMessageGroupStore
 		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
+	private static final String HEADERS = "headers";
+
+	private static final String UNCHECKED = "unchecked";
+
+	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
+
 	public static final String SEQUENCE_NAME = "messagesSequence";
 
 	private static final String DEFAULT_COLLECTION_NAME = "messages";
@@ -249,7 +255,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
@@ -273,7 +279,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'message' must not be null");
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
@@ -303,7 +309,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
 		Collection<UUID> ids = new ArrayList<>();
@@ -352,7 +358,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Message<?> pollMessageFromGroup(final Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdIs(groupId).with(Sort.by(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
@@ -382,7 +388,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 		if (messageWrapper != null) {
@@ -395,7 +401,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(groupId, GROUP_ID_MUST_NOT_BE_NULL);
 		Query query = whereGroupIdOrder(groupId);
 		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
 
@@ -463,10 +469,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				this.collectionName).get(SEQUENCE); // NOSONAR - never returns null
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
 		Map<String, Object> innerMap =
-				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
+				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue(HEADERS);
 		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 		Object idHeader = headers.get(MessageHeaders.ID);
 		if (idHeader != null) {
@@ -478,7 +484,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private static Map<String, Object> asMap(Bson bson) {
 		if (bson instanceof Document) {
 			return (Document) bson;
@@ -497,6 +503,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */
 	private final class MessageReadingMongoConverter extends MappingMongoConverter {
+
+		private static final String CLASS = "_class";
 
 		MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
@@ -531,7 +539,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		@Override
-		@SuppressWarnings({ "unchecked" })
+		@SuppressWarnings({ UNCHECKED })
 		public <S> S read(Class<S> clazz, Bson source) {
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
@@ -590,8 +598,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					Map<String, Object> document = asMap(source);
 					try {
 						Class<?> typeClass = null;
-						if (document.containsKey("_class")) {
-							Object type = document.get("_class");
+						if (document.containsKey(CLASS)) {
+							Object type = document.get(CLASS);
 							typeClass = ClassUtils.forName(type.toString(), MongoDbMessageStore.this.classLoader);
 						}
 						else if (source instanceof BasicDBList) {
@@ -618,7 +626,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 			if (payload instanceof Bson) {
 				Bson payloadObject = (Bson) payload;
-				Object payloadType = asMap(payloadObject).get("_class");
+				Object payloadType = asMap(payloadObject).get(CLASS);
 				try {
 					Class<?> payloadClass =
 							ClassUtils.forName(payloadType.toString(), MongoDbMessageStore.this.classLoader);
@@ -667,9 +675,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public GenericMessage<?> convert(Document source) {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(UNCHECKED)
 			Map<String, Object> headers =
-					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get(HEADERS));
 
 			GenericMessage<?> message =
 					new GenericMessage<>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
@@ -688,9 +696,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public MutableMessage<?> convert(Document source) {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(UNCHECKED)
 			Map<String, Object> headers =
-					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get(HEADERS));
 
 			Object payload = MongoDbMessageStore.this.converter.extractPayload(source);
 			return (MutableMessage<?>) MutableMessageBuilder.withPayload(payload)
@@ -709,9 +717,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public AdviceMessage<?> convert(Document source) {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(UNCHECKED)
 			Map<String, Object> headers =
-					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get(HEADERS));
 
 			Message<?> inputMessage = null;
 
@@ -749,9 +757,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public ErrorMessage convert(Document source) {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(UNCHECKED)
 			Map<String, Object> headers =
-					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get(HEADERS));
 
 			Object payload = this.deserializingConverter.convert(((Binary) source.get("payload")).getData());
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers); // NOSONAR not null
@@ -784,12 +792,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 	private static final class MessageWrapper {
 
+		private static final String UNUSED = "unused";
+
 		/*
 		 * Needed as a persistence property to suppress 'Cannot determine IsNewStrategy' MappingException
 		 * when the application context is configured with auditing. The document is not
 		 * currently Auditable.
 		 */
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		@Id
 		private String _id; // NOSONAR name
 
@@ -798,16 +808,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@Transient
 		private final Message<?> message; // NOSONAR name
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		private final String _messageType; // NOSONAR name
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		private final Object payload;
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		private final Map<String, ?> headers;
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		private final Message<?> inputMessage;
 
 		private long _message_timestamp; // NOSONAR name
@@ -820,7 +830,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private volatile boolean _group_complete; // NOSONAR name
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		private int sequence;
 
 		MessageWrapper(Message<?> message) {
@@ -849,7 +859,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return this._group_complete;
 		}
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings(UNUSED)
 		public Object get_GroupId() { // NOSONAR name
 			return this._groupId;
 		}

@@ -29,26 +29,28 @@ import org.springframework.util.StringUtils;
  * Parser for 'resource-inbound-channel-adapter'
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	private static final String FILTER = "filter";
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceRetrievingMessageSource.class);
 		sourceBuilder.addConstructorArgValue(element.getAttribute("pattern"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
-		boolean hasFilter = element.hasAttribute("filter");
+		boolean hasFilter = element.hasAttribute(FILTER);
 		if (hasFilter) {
-			String filterValue = element.getAttribute("filter");
+			String filterValue = element.getAttribute(FILTER);
 			if (StringUtils.hasText(filterValue)) {
-				sourceBuilder.addPropertyReference("filter", filterValue);
+				sourceBuilder.addPropertyReference(FILTER, filterValue);
 			}
 		}
 		else {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(AcceptOnceCollectionFilter.class);
-			sourceBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			sourceBuilder.addPropertyValue(FILTER, filterBuilder.getBeanDefinition());
 		}
 		return sourceBuilder.getBeanDefinition();
 	}
