@@ -895,7 +895,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @return The file.
 	 * @throws IOException Any IOException.
 	 */
-	protected File get(Message<?> message, Session<F> session, String remoteDir,// NOSONAR complexity
+	protected File get(Message<?> message, Session<F> session, String remoteDir, // NOSONAR complexity
 			String remoteFilePath, String remoteFilename, F fileInfoParam) throws IOException {
 
 		F fileInfo = fileInfoParam;
