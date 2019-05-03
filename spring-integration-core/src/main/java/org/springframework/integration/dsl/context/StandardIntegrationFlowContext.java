@@ -268,14 +268,15 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		}
 
 		/**
-		 * The {@code boolean} flag to indication if an {@link IntegrationFlow} must be started
-		 * automatically after registration. Defaults to {@code true}.
-		 * @param autoStartup start or not the {@link IntegrationFlow} automatically after registration.
+		 * The {@code boolean} flag to indication if an {@link IntegrationFlow} must be
+		 * started automatically after registration. Defaults to {@code true}.
+		 * @param autoStartupToSet start or not the {@link IntegrationFlow} automatically
+		 * after registration.
 		 * @return the current builder instance
 		 */
 		@Override
-		public StandardIntegrationFlowRegistrationBuilder autoStartup(boolean autoStartup) {
-			this.autoStartup = autoStartup;
+		public StandardIntegrationFlowRegistrationBuilder autoStartup(boolean autoStartupToSet) {
+			this.autoStartup = autoStartupToSet;
 			return this;
 		}
 

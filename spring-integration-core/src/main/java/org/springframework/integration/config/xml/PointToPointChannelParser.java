@@ -53,48 +53,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		// configure a queue-based channel if any queue sub-element is defined
 		String channel = element.getAttribute(ID_ATTRIBUTE);
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) { // NOSONAR inner assignment
-			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
-			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, channel, false);
-			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
-			if (!hasStoreRef || !hasQueueRef) {
-				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
-				if (hasCapacity && hasQueueRef) {
-					parserContext.getReaderContext().error(
-							"The 'capacity' attribute is not allowed when providing a 'ref' to a custom queue.",
-							element);
-				}
-				if (hasCapacity && hasStoreRef) {
-					parserContext.getReaderContext().error(
-							"The 'capacity' attribute is not allowed" +
-									" when providing a 'message-store' to a custom MessageGroupStore.",
-							element);
-				}
-			}
-			if (hasStoreRef && hasQueueRef) {
-				parserContext.getReaderContext().error(
-						"The 'message-store' attribute is not allowed when providing a 'ref' to a custom queue.",
-						element);
-			}
+			builder = queue(element, parserContext, queueElement, channel);
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) { // NOSONAR
-			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
-			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
-			String comparatorRef = queueElement.getAttribute("comparator");
-			if (StringUtils.hasText(comparatorRef)) {
-				builder.addConstructorArgReference(comparatorRef);
-			}
-			if (parseStoreRef(builder, queueElement, channel, true)) {
-				if (StringUtils.hasText(comparatorRef)) {
-					parserContext.getReaderContext().error(
-							"The 'message-store' attribute is not allowed" +
-									" when providing a 'comparator' to a priority queue.",
-							element);
-				}
-				if (hasCapacity) {
-					parserContext.getReaderContext().error("The 'capacity' attribute is not allowed"
-							+ " when providing a 'message-store' to a custom MessageGroupStore.", element);
-				}
-			}
+			builder = priorityQueue(element, parserContext, queueElement, channel);
 
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) { // NOSONAR
@@ -125,42 +87,104 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 					: DirectChannel.class);
 		}
 		else {
-			if (isFixedSubscriber) {
-				parserContext.getReaderContext().error(
-						"The 'fixed-subscriber' attribute is not allowed" +
-								" when a <dispatcher/> child element is present.",
-						element);
-			}
-			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
-			String taskExecutor = dispatcherElement.getAttribute("task-executor");
-			if (StringUtils.hasText(taskExecutor)) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(ExecutorChannel.class);
-				builder.addConstructorArgReference(taskExecutor);
-			}
-			else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-			}
-			// unless the 'load-balancer' attribute is explicitly set to 'none'
-			// or 'load-balancer-ref' is explicitly configured,
-			// configure the default RoundRobinLoadBalancingStrategy
-			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
-			String loadBalancerRef = dispatcherElement.getAttribute("load-balancer-ref");
-			if (StringUtils.hasText(loadBalancer) && StringUtils.hasText(loadBalancerRef)) {
-				parserContext.getReaderContext().error("'load-balancer' and 'load-balancer-ref' are mutually exclusive",
-						element);
-			}
-			if (StringUtils.hasText(loadBalancerRef)) {
-				builder.addConstructorArgReference(loadBalancerRef);
-			}
-			else {
-				if ("none".equals(loadBalancer)) {
-					builder.addConstructorArgValue(null);
-				}
-			}
-
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "max-subscribers");
+			builder = dispatcher(element, parserContext, isFixedSubscriber, dispatcherElement);
 		}
+		return builder;
+	}
+
+	private BeanDefinitionBuilder queue(Element element, ParserContext parserContext, Element queueElement,
+			String channel) {
+
+		BeanDefinitionBuilder builder;
+		builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
+		boolean hasStoreRef = this.parseStoreRef(builder, queueElement, channel, false);
+		boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
+		if (!hasStoreRef || !hasQueueRef) {
+			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+			if (hasCapacity && hasQueueRef) {
+				parserContext.getReaderContext().error(
+						"The 'capacity' attribute is not allowed when providing a 'ref' to a custom queue.",
+						element);
+			}
+			if (hasCapacity && hasStoreRef) {
+				parserContext.getReaderContext().error(
+						"The 'capacity' attribute is not allowed" +
+								" when providing a 'message-store' to a custom MessageGroupStore.",
+						element);
+			}
+		}
+		if (hasStoreRef && hasQueueRef) {
+			parserContext.getReaderContext().error(
+					"The 'message-store' attribute is not allowed when providing a 'ref' to a custom queue.",
+					element);
+		}
+		return builder;
+	}
+
+	private BeanDefinitionBuilder priorityQueue(Element element, ParserContext parserContext, Element queueElement,
+			String channel) {
+
+		BeanDefinitionBuilder builder;
+		builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
+		boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+		String comparatorRef = queueElement.getAttribute("comparator");
+		if (StringUtils.hasText(comparatorRef)) {
+			builder.addConstructorArgReference(comparatorRef);
+		}
+		if (parseStoreRef(builder, queueElement, channel, true)) {
+			if (StringUtils.hasText(comparatorRef)) {
+				parserContext.getReaderContext().error(
+						"The 'message-store' attribute is not allowed" +
+								" when providing a 'comparator' to a priority queue.",
+						element);
+			}
+			if (hasCapacity) {
+				parserContext.getReaderContext().error("The 'capacity' attribute is not allowed"
+						+ " when providing a 'message-store' to a custom MessageGroupStore.", element);
+			}
+		}
+		return builder;
+	}
+
+	private BeanDefinitionBuilder dispatcher(Element element, ParserContext parserContext, boolean isFixedSubscriber,
+			Element dispatcherElement) {
+
+		BeanDefinitionBuilder builder;
+		if (isFixedSubscriber) {
+			parserContext.getReaderContext().error(
+					"The 'fixed-subscriber' attribute is not allowed" +
+							" when a <dispatcher/> child element is present.",
+					element);
+		}
+		// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
+		String taskExecutor = dispatcherElement.getAttribute("task-executor");
+		if (StringUtils.hasText(taskExecutor)) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(ExecutorChannel.class);
+			builder.addConstructorArgReference(taskExecutor);
+		}
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+		}
+		// unless the 'load-balancer' attribute is explicitly set to 'none'
+		// or 'load-balancer-ref' is explicitly configured,
+		// configure the default RoundRobinLoadBalancingStrategy
+		String loadBalancer = dispatcherElement.getAttribute("load-balancer");
+		String loadBalancerRef = dispatcherElement.getAttribute("load-balancer-ref");
+		if (StringUtils.hasText(loadBalancer) && StringUtils.hasText(loadBalancerRef)) {
+			parserContext.getReaderContext().error("'load-balancer' and 'load-balancer-ref' are mutually exclusive",
+					element);
+		}
+		if (StringUtils.hasText(loadBalancerRef)) {
+			builder.addConstructorArgReference(loadBalancerRef);
+		}
+		else {
+			if ("none".equals(loadBalancer)) {
+				builder.addConstructorArgValue(null);
+			}
+		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "max-subscribers");
 		return builder;
 	}
 

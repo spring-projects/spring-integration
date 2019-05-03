@@ -75,8 +75,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
-		this.metricsCaptor = metricsCaptor;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToSet) {
+		this.metricsCaptor = metricsCaptorToSet;
 	}
 
 	@Override

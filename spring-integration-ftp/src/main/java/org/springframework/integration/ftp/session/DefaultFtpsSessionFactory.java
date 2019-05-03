@@ -24,6 +24,7 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.net.ftp.FTPSClient;
 
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -141,37 +142,18 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 	}
 
 	@Override
-	protected void postProcessClientBeforeConnect(FTPSClient ftpsClient) throws IOException {
-		if (StringUtils.hasText(this.authValue)) {
-			ftpsClient.setAuthValue(this.authValue);
-		}
-		if (this.trustManager != null) {
-			ftpsClient.setTrustManager(this.trustManager);
-		}
-		if (this.cipherSuites != null) {
-			ftpsClient.setEnabledCipherSuites(this.cipherSuites);
-		}
-		if (this.protocols != null) {
-			ftpsClient.setEnabledProtocols(this.protocols);
-		}
-		if (this.sessionCreation != null) {
-			ftpsClient.setEnabledSessionCreation(this.sessionCreation);
-		}
-		if (this.useClientMode != null) {
-			ftpsClient.setUseClientMode(this.useClientMode);
-		}
-		if (this.sessionCreation != null) {
-			ftpsClient.setEnabledSessionCreation(this.sessionCreation);
-		}
-		if (this.keyManager != null) {
-			ftpsClient.setKeyManager(this.keyManager);
-		}
-		if (this.needClientAuth != null) {
-			ftpsClient.setNeedClientAuth(this.needClientAuth);
-		}
-		if (this.wantsClientAuth != null) {
-			ftpsClient.setWantClientAuth(this.wantsClientAuth);
-		}
+	protected void postProcessClientBeforeConnect(FTPSClient ftpsClient) {
+		JavaUtils.INSTANCE
+			.acceptIfHasText(this.authValue, ftpsClient::setAuthValue)
+			.acceptIfNotNull(this.trustManager, ftpsClient::setTrustManager)
+			.acceptIfNotNull(this.cipherSuites, ftpsClient::setEnabledCipherSuites)
+			.acceptIfNotNull(this.protocols, ftpsClient::setEnabledProtocols)
+			.acceptIfNotNull(this.sessionCreation, ftpsClient::setEnabledSessionCreation)
+			.acceptIfNotNull(this.useClientMode, ftpsClient::setUseClientMode)
+			.acceptIfNotNull(this.sessionCreation, ftpsClient::setEnabledSessionCreation)
+			.acceptIfNotNull(this.keyManager, ftpsClient::setKeyManager)
+			.acceptIfNotNull(this.needClientAuth, ftpsClient::setNeedClientAuth)
+			.acceptIfNotNull(this.wantsClientAuth, ftpsClient::setWantClientAuth);
 	}
 
 }

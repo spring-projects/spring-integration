@@ -87,7 +87,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * is available within the allotted time or the receiving thread is
 	 * interrupted.
 	 */
-	@Override
+	@Override // NOSONAR complexity
 	@Nullable
 	public Message<?> receive(long timeout) {
 		ChannelInterceptorList interceptorList = getIChannelInterceptorList();
@@ -119,7 +119,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 					counted = true;
 				}
 
-				if (traceEnabled) {
+				if (logger.isDebugEnabled()) {
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 			}

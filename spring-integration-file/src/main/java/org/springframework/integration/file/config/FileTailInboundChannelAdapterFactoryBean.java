@@ -18,6 +18,7 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +28,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
+import org.springframework.integration.util.JavaUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -216,45 +218,27 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		else {
 			Assert.isTrue(this.nativeOptions == null,
 					"'native-options' is not allowed with 'delay', 'end', or 'reopen'");
-			adapter = new ApacheCommonsFileTailingMessageProducer();
-			if (this.delay != null) {
-				((ApacheCommonsFileTailingMessageProducer) adapter).setPollingDelay(this.delay);
-			}
-			if (this.end != null) {
-				((ApacheCommonsFileTailingMessageProducer) adapter).setEnd(this.end);
-			}
-			if (this.reopen != null) {
-				((ApacheCommonsFileTailingMessageProducer) adapter).setReopen(this.reopen);
-			}
+			ApacheCommonsFileTailingMessageProducer apache = new ApacheCommonsFileTailingMessageProducer();
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.delay, apache::setPollingDelay)
+				.acceptIfNotNull(this.end, apache::setEnd)
+				.acceptIfNotNull(this.reopen, apache::setReopen);
+			adapter = apache;
 		}
 		adapter.setFile(this.file);
-		if (this.taskExecutor != null) {
-			adapter.setTaskExecutor(this.taskExecutor);
-		}
-		if (this.taskScheduler != null) {
-			adapter.setTaskScheduler(this.taskScheduler);
-		}
-		if (this.fileDelay != null) {
-			adapter.setTailAttemptsDelay(this.fileDelay);
-		}
-		if (this.idleEventInterval != null) {
-			adapter.setIdleEventInterval(this.idleEventInterval);
-		}
 		adapter.setOutputChannel(this.outputChannel);
 		adapter.setErrorChannel(this.errorChannel);
 		adapter.setBeanName(this.beanName);
-		if (this.autoStartup != null) {
-			adapter.setAutoStartup(this.autoStartup);
-		}
-		if (this.phase != null) {
-			adapter.setPhase(this.phase);
-		}
-		if (this.applicationEventPublisher != null) {
-			adapter.setApplicationEventPublisher(this.applicationEventPublisher);
-		}
-		if (getBeanFactory() != null) {
-			adapter.setBeanFactory(getBeanFactory()); // NOSONAR never null
-		}
+		BeanFactory beanFactory = getBeanFactory();
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.taskExecutor, adapter::setTaskExecutor)
+			.acceptIfNotNull(this.taskScheduler, adapter::setTaskScheduler)
+			.acceptIfNotNull(this.fileDelay, adapter::setTailAttemptsDelay)
+			.acceptIfNotNull(this.idleEventInterval, adapter::setIdleEventInterval)
+			.acceptIfNotNull(this.autoStartup, adapter::setAutoStartup)
+			.acceptIfNotNull(this.phase, adapter::setPhase)
+			.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
+			.acceptIfNotNull(beanFactory, adapter::setBeanFactory);
 		adapter.afterPropertiesSet();
 		this.tailAdapter = adapter;
 		return adapter;

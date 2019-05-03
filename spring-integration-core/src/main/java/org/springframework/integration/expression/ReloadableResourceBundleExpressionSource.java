@@ -414,10 +414,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		PropertiesHolder propHolder = propHolderArg;
 		long refreshTimestamp = (this.cacheMillis < 0) ? -1 : System.currentTimeMillis();
 
-		Resource resource = this.resourceLoader.getResource(filename + PROPERTIES_SUFFIX);
-		if (!resource.exists()) {
-			resource = this.resourceLoader.getResource(filename + XML_SUFFIX);
-		}
+		Resource resource = getResource(filename);
 
 		if (resource.exists()) {
 			long fileTimestamp = -1;
@@ -427,7 +424,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 					fileTimestamp = resource.lastModified();
 					if (propHolder != null && propHolder.getFileTimestamp() == fileTimestamp) {
 						if (logger.isDebugEnabled()) {
-							logger.debug("Re-caching properties for filename [" + filename + "] - file hasn't been modified");
+							logger.debug("Re-caching properties for filename [" + filename
+									+ "] - file hasn't been modified");
 						}
 						propHolder.setRefreshTimestamp(refreshTimestamp);
 						return propHolder;
@@ -436,23 +434,13 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				catch (IOException ex) {
 					// Probably a class path resource: cache it forever.
 					if (logger.isDebugEnabled()) {
-						logger.debug(
-								resource + " could not be resolved in the file system - assuming that is hasn't changed", ex);
+						logger.debug(resource
+								+ " could not be resolved in the file system - assuming that is hasn't changed", ex);
 					}
 					fileTimestamp = -1;
 				}
 			}
-			try {
-				Properties props = loadProperties(resource, filename);
-				propHolder = new PropertiesHolder(props, fileTimestamp);
-			}
-			catch (IOException ex) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Could not parse properties file [" + resource.getFilename() + "]", ex);
-				}
-				// Empty holder representing "not valid".
-				propHolder = new PropertiesHolder();
-			}
+			propHolder = load(filename, resource, fileTimestamp);
 		}
 
 		else {
@@ -466,6 +454,30 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 		propHolder.setRefreshTimestamp(refreshTimestamp);
 		this.cachedProperties.put(filename, propHolder);
+		return propHolder;
+	}
+
+	private Resource getResource(String filename) {
+		Resource resource = this.resourceLoader.getResource(filename + PROPERTIES_SUFFIX);
+		if (!resource.exists()) {
+			resource = this.resourceLoader.getResource(filename + XML_SUFFIX);
+		}
+		return resource;
+	}
+
+	private PropertiesHolder load(String filename, Resource resource, long fileTimestamp) {
+		PropertiesHolder propHolder;
+		try {
+			Properties props = loadProperties(resource, filename);
+			propHolder = new PropertiesHolder(props, fileTimestamp);
+		}
+		catch (IOException ex) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Could not parse properties file [" + resource.getFilename() + "]", ex);
+			}
+			// Empty holder representing "not valid".
+			propHolder = new PropertiesHolder();
+		}
 		return propHolder;
 	}
 

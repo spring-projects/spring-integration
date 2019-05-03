@@ -285,18 +285,18 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
-		private final MessageBuilderFactory messageBuilderFactory =
+		private final MessageBuilderFactory msgBuilderFactory =
 				GatewayMethodInboundMessageMapper.this.messageBuilderFactory;
 
 		@Override
-		public Message<?> toMessage(MethodArgsHolder holder, @Nullable Map<String, Object> headers) {
+		public Message<?> toMessage(MethodArgsHolder holder, @Nullable Map<String, Object> headersToMap) {
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
 			Object[] arguments = holder.getArgs();
 			EvaluationContext methodInvocationEvaluationContext = createMethodInvocationEvaluationContext(arguments);
 			Map<String, Object> headersToPopulate =
-					headers != null
-							? new HashMap<>(headers)
+					headersToMap != null
+							? new HashMap<>(headersToMap)
 							: new HashMap<>();
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =
@@ -315,11 +315,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 								processPayloadAnnotation(messageOrPayload, argumentValue, methodParameter, annotation);
 						foundPayloadAnnotation = true;
 					}
-					else if (annotation.annotationType().equals(Header.class)) {
-						processHeaderAnnotation(headersToPopulate, argumentValue, methodParameter, annotation);
-					}
-					else if (annotation.annotationType().equals(Headers.class)) {
-						processHeadersAnnotation(headersToPopulate, argumentValue);
+					else {
+						headerOrHeaders(headersToPopulate, argumentValue, methodParameter, annotation);
 					}
 				}
 				else if (messageOrPayload == null) {
@@ -340,6 +337,16 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			populateSendAndReplyTimeoutHeaders(methodInvocationEvaluationContext, headersToPopulate);
 
 			return buildMessage(headersToPopulate, messageOrPayload, methodInvocationEvaluationContext);
+		}
+
+		private void headerOrHeaders(Map<String, Object> headersToPopulate, Object argumentValue,
+				MethodParameter methodParameter, Annotation annotation) {
+			if (annotation.annotationType().equals(Header.class)) {
+				processHeaderAnnotation(headersToPopulate, argumentValue, methodParameter, annotation);
+			}
+			else if (annotation.annotationType().equals(Headers.class)) {
+				processHeadersAnnotation(headersToPopulate, argumentValue);
+			}
 		}
 
 		@Nullable
@@ -417,8 +424,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 			AbstractIntegrationMessageBuilder<?> builder =
 					(messageOrPayload instanceof Message)
-							? this.messageBuilderFactory.fromMessage((Message<?>) messageOrPayload)
-							: this.messageBuilderFactory.withPayload(messageOrPayload);
+							? this.msgBuilderFactory.fromMessage((Message<?>) messageOrPayload)
+							: this.msgBuilderFactory.withPayload(messageOrPayload);
 			builder.copyHeadersIfAbsent(headers);
 			// Explicit headers in XML override any @Header annotations...
 			if (!CollectionUtils.isEmpty(GatewayMethodInboundMessageMapper.this.headerExpressions)) {

@@ -88,31 +88,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				payloadExpressionMap.put(methodPattern, payloadExpression);
 
 				// set headersMap
-				List<Element> headerElements = DomUtils.getChildElementsByTagName(mapping, "header");
-				Map<String, String> headerExpressions = new HashMap<>();
-				for (Element headerElement : headerElements) {
-					String name = headerElement.getAttribute("name");
-					if (!StringUtils.hasText(name)) {
-						parserContext.getReaderContext()
-								.error("the 'name' attribute is required on the <header> element",
-										parserContext.extractSource(headerElement));
-						continue;
-					}
-					String value = headerElement.getAttribute("value");
-					String expression = headerElement.getAttribute("expression");
-					boolean hasValue = StringUtils.hasText(value);
-					boolean hasExpression = StringUtils.hasText(expression);
-					if (hasValue == hasExpression) {
-						parserContext.getReaderContext()
-								.error("exactly one of 'value' or 'expression' is required on the <header> element",
-										parserContext.extractSource(headerElement));
-						continue;
-					}
-					if (hasValue) {
-						expression = "'" + value + "'";
-					}
-					headerExpressions.put(name, expression);
-				}
+				Map<String, String> headerExpressions = headerExpressions(parserContext, mapping);
 				if (headerExpressions.size() > 0) {
 					headersExpressionMap.put(methodPattern, headerExpressions);
 				}
@@ -136,6 +112,35 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 			interceptorMappings.put("resolvableChannels", resolvableChannelMap);
 		}
 		return interceptorMappings;
+	}
+
+	private Map<String, String> headerExpressions(ParserContext parserContext, Element mapping) {
+		List<Element> headerElements = DomUtils.getChildElementsByTagName(mapping, "header");
+		Map<String, String> headerExpressions = new HashMap<>();
+		for (Element headerElement : headerElements) {
+			String name = headerElement.getAttribute("name");
+			if (!StringUtils.hasText(name)) {
+				parserContext.getReaderContext()
+						.error("the 'name' attribute is required on the <header> element",
+								parserContext.extractSource(headerElement));
+				continue;
+			}
+			String value = headerElement.getAttribute("value");
+			String expression = headerElement.getAttribute("expression");
+			boolean hasValue = StringUtils.hasText(value);
+			boolean hasExpression = StringUtils.hasText(expression);
+			if (hasValue == hasExpression) {
+				parserContext.getReaderContext()
+						.error("exactly one of 'value' or 'expression' is required on the <header> element",
+								parserContext.extractSource(headerElement));
+				continue;
+			}
+			if (hasValue) {
+				expression = "'" + value + "'";
+			}
+			headerExpressions.put(name, expression);
+		}
+		return headerExpressions;
 	}
 
 }

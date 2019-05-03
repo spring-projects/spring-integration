@@ -49,10 +49,10 @@ public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMess
 	 * Subclasses must implement this method. Typically the returned value will be the
 	 * payload of type T, but the returned value may also be a Message instance whose
 	 * payload is of type T.
-	 * @param maxFetchSize the maximum number of messages to fetch if a fetch is
+	 * @param maxFetchSizeToReceive the maximum number of messages to fetch if a fetch is
 	 * necessary.
 	 * @return The value returned.
 	 */
-	protected abstract Object doReceive(int maxFetchSize);
+	protected abstract Object doReceive(int maxFetchSizeToReceive);
 
 }

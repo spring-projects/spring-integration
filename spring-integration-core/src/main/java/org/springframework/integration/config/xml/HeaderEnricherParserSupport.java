@@ -104,53 +104,59 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node node = childNodes.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				String headerName = null;
-				Element headerElement = (Element) node;
-				String elementName = node.getLocalName();
-				String headerType = null;
-				String expression = null;
-				String overwrite = headerElement.getAttribute("overwrite");
-				if ("header".equals(elementName)) {
-					headerName = headerElement.getAttribute(NAME_ATTRIBUTE);
-				}
-				else {
-					headerName = this.elementToNameMap.get(elementName);
-					headerType = this.elementToTypeMap.get(elementName);
-					if (headerType != null && StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
-						parserContext.getReaderContext().error("The " + elementName
-								+ " header does not accept a 'type' attribute. The required type is ["
-								+ headerType + "]", element);
-					}
-				}
-				if (headerType == null) {
-					headerType = headerElement.getAttribute(TYPE_ATTRIBUTE);
-				}
-				if (headerName == null) {
-					String ttlExpression = headerElement.getAttribute("time-to-live-expression");
-					if (cannedHeaderElementExpressions.containsKey(elementName)) {
-						for (int j = 0; j < cannedHeaderElementExpressions.get(elementName).length; j++) {
-							headerName = cannedHeaderElementExpressions.get(elementName)[j][0];
-							expression = cannedHeaderElementExpressions.get(elementName)[j][1];
-							if (StringUtils.hasText(ttlExpression)) {
-								expression = expression.replace("####", ttlExpression);
-							}
-							else {
-								expression = expression.replace(", ####", "");
-							}
-							overwrite = "true";
-							addHeader(element, headers, parserContext, headerName, headerElement, headerType,
-									expression, overwrite);
-						}
-					}
-				}
-				else {
-					addHeader(element, headers, parserContext, headerName, headerElement, headerType, null, overwrite);
-				}
+				elementNode(element, headers, parserContext, node);
 			}
 		}
 	}
 
-	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext,
+	private void elementNode(Element element, ManagedMap<String, Object> headers, ParserContext parserContext,
+			Node node) {
+
+		String headerName = null;
+		Element headerElement = (Element) node;
+		String elementName = node.getLocalName();
+		String headerType = null;
+		String expression = null;
+		String overwrite = headerElement.getAttribute("overwrite");
+		if ("header".equals(elementName)) {
+			headerName = headerElement.getAttribute(NAME_ATTRIBUTE);
+		}
+		else {
+			headerName = this.elementToNameMap.get(elementName);
+			headerType = this.elementToTypeMap.get(elementName);
+			if (headerType != null && StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
+				parserContext.getReaderContext().error("The " + elementName
+						+ " header does not accept a 'type' attribute. The required type is ["
+						+ headerType + "]", element);
+			}
+		}
+		if (headerType == null) {
+			headerType = headerElement.getAttribute(TYPE_ATTRIBUTE);
+		}
+		if (headerName == null) {
+			String ttlExpression = headerElement.getAttribute("time-to-live-expression");
+			if (cannedHeaderElementExpressions.containsKey(elementName)) {
+				for (int j = 0; j < cannedHeaderElementExpressions.get(elementName).length; j++) {
+					headerName = cannedHeaderElementExpressions.get(elementName)[j][0];
+					expression = cannedHeaderElementExpressions.get(elementName)[j][1];
+					if (StringUtils.hasText(ttlExpression)) {
+						expression = expression.replace("####", ttlExpression);
+					}
+					else {
+						expression = expression.replace(", ####", "");
+					}
+					overwrite = "true";
+					addHeader(element, headers, parserContext, headerName, headerElement, headerType,
+							expression, overwrite);
+				}
+			}
+		}
+		else {
+			addHeader(element, headers, parserContext, headerName, headerElement, headerType, null, overwrite);
+		}
+	}
+
+	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext, // NOSONAR complexity
 			String headerName, Element headerElement, String headerType, @Nullable String expressionArg,
 			String overwrite) {
 
@@ -206,6 +212,17 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 			innerComponentDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
 		}
 
+		BeanDefinitionBuilder valueProcessorBuilder = valueProcessor(element, parserContext, headerName, headerElement,
+				headerType, overwrite, value, ref, method, expression, expressionElement, isValue, isRef, hasMethod,
+				isExpression, isScript, innerComponentDefinition);
+		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
+	}
+
+	private BeanDefinitionBuilder valueProcessor(Element element, ParserContext parserContext, String headerName,
+			Element headerElement, String headerType, String overwrite, String value, String ref, String method,
+			String expression, Element expressionElement, boolean isValue, boolean isRef, boolean hasMethod,
+			boolean isExpression, boolean isScript, BeanDefinition innerComponentDefinition) {
+
 		boolean isCustomBean = innerComponentDefinition != null;
 
 		if (hasMethod && isScript) {
@@ -219,89 +236,124 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		}
 		BeanDefinitionBuilder valueProcessorBuilder = null;
 		if (isValue) {
-			if (hasMethod) {
-				parserContext.getReaderContext().error(
-						"The 'method' attribute cannot be used with the 'value' attribute.", element);
-			}
-			if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
-				List<String> routingSlipPath = new ManagedList<>();
-				routingSlipPath.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(value, ";")));
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
-								.addConstructorArgValue(routingSlipPath);
-			}
-			else {
-				Object headerValue = value;
-
-				if (StringUtils.hasText(headerType)) {
-					TypedStringValue typedStringValue = new TypedStringValue(value);
-					typedStringValue.setTargetTypeName(headerType);
-					headerValue = typedStringValue;
-				}
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-						.addConstructorArgValue(headerValue);
-			}
+			valueProcessorBuilder = value(element, parserContext, headerName, headerType, value, hasMethod);
 		}
 		else if (isExpression) {
-			if (hasMethod) {
-				parserContext.getReaderContext().error(
-						"The 'method' attribute cannot be used with the 'expression' attribute.", element);
-			}
-			valueProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
-			if (expressionElement != null) {
-				BeanDefinitionBuilder dynamicExpressionBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
-				dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
-				dynamicExpressionBuilder.addConstructorArgReference(expressionElement.getAttribute("source"));
-				valueProcessorBuilder.addConstructorArgValue(dynamicExpressionBuilder.getBeanDefinition());
-			}
-			else {
-				valueProcessorBuilder.addConstructorArgValue(expression);
-			}
-			valueProcessorBuilder.addConstructorArgValue(headerType);
+			valueProcessorBuilder = expression(element, parserContext, headerType, expression, expressionElement,
+					hasMethod);
 		}
 		else if (isCustomBean) {
-			if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
-				parserContext.getReaderContext().error(
-						"The 'type' attribute cannot be used with an inner bean.", element);
-			}
-			if (hasMethod || isScript) {
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
-								.addConstructorArgValue(innerComponentDefinition);
-				if (hasMethod) {
-					valueProcessorBuilder.addConstructorArgValue(method);
-				}
-			}
-			else {
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-								.addConstructorArgValue(innerComponentDefinition);
-			}
+			valueProcessorBuilder = innerComponentAndMethod(element, parserContext, headerElement, method, hasMethod,
+					isScript, innerComponentDefinition);
 		}
 		else {
-			if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
-				parserContext.getReaderContext().error(
-						"The 'type' attribute cannot be used with the 'ref' attribute.", element);
-			}
-			if (hasMethod) {
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
-								.addConstructorArgReference(ref)
-								.addConstructorArgValue(method);
-			}
-			else {
-				valueProcessorBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-								.addConstructorArgReference(ref);
-			}
+			valueProcessorBuilder = refAndMethod(element, parserContext, headerElement, ref, method, hasMethod);
 		}
 		if (StringUtils.hasText(overwrite)) {
 			valueProcessorBuilder.addPropertyValue("overwrite", overwrite);
 		}
-		headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
+		return valueProcessorBuilder;
+	}
+
+	private BeanDefinitionBuilder value(Element element, ParserContext parserContext, String headerName,
+			String headerType, String value, boolean hasMethod) {
+
+		BeanDefinitionBuilder valueProcessorBuilder;
+		if (hasMethod) {
+			parserContext.getReaderContext().error(
+					"The 'method' attribute cannot be used with the 'value' attribute.", element);
+		}
+		if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
+			List<String> routingSlipPath = new ManagedList<>();
+			routingSlipPath.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(value, ";")));
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(routingSlipPath);
+		}
+		else {
+			Object headerValue = value;
+
+			if (StringUtils.hasText(headerType)) {
+				TypedStringValue typedStringValue = new TypedStringValue(value);
+				typedStringValue.setTargetTypeName(headerType);
+				headerValue = typedStringValue;
+			}
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+					.addConstructorArgValue(headerValue);
+		}
+		return valueProcessorBuilder;
+	}
+
+	private BeanDefinitionBuilder expression(Element element, ParserContext parserContext, String headerType,
+			String expression, Element expressionElement, boolean hasMethod) {
+
+		BeanDefinitionBuilder valueProcessorBuilder;
+		if (hasMethod) {
+			parserContext.getReaderContext().error(
+					"The 'method' attribute cannot be used with the 'expression' attribute.", element);
+		}
+		valueProcessorBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingHeaderValueMessageProcessor.class);
+		if (expressionElement != null) {
+			BeanDefinitionBuilder dynamicExpressionBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
+			dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
+			dynamicExpressionBuilder.addConstructorArgReference(expressionElement.getAttribute("source"));
+			valueProcessorBuilder.addConstructorArgValue(dynamicExpressionBuilder.getBeanDefinition());
+		}
+		else {
+			valueProcessorBuilder.addConstructorArgValue(expression);
+		}
+		valueProcessorBuilder.addConstructorArgValue(headerType);
+		return valueProcessorBuilder;
+	}
+
+	private BeanDefinitionBuilder innerComponentAndMethod(Element element, ParserContext parserContext,
+			Element headerElement, String method, boolean hasMethod, boolean isScript,
+			BeanDefinition innerComponentDefinition) {
+
+		BeanDefinitionBuilder valueProcessorBuilder;
+		if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
+			parserContext.getReaderContext().error(
+					"The 'type' attribute cannot be used with an inner bean.", element);
+		}
+		if (hasMethod || isScript) {
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(innerComponentDefinition);
+			if (hasMethod) {
+				valueProcessorBuilder.addConstructorArgValue(method);
+			}
+		}
+		else {
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+							.addConstructorArgValue(innerComponentDefinition);
+		}
+		return valueProcessorBuilder;
+	}
+
+	private BeanDefinitionBuilder refAndMethod(Element element, ParserContext parserContext, Element headerElement,
+			String ref, String method, boolean hasMethod) {
+
+		BeanDefinitionBuilder valueProcessorBuilder;
+		if (StringUtils.hasText(headerElement.getAttribute(TYPE_ATTRIBUTE))) {
+			parserContext.getReaderContext().error(
+					"The 'type' attribute cannot be used with the 'ref' attribute.", element);
+		}
+		if (hasMethod) {
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(MessageProcessingHeaderValueMessageProcessor.class)
+							.addConstructorArgReference(ref)
+							.addConstructorArgValue(method);
+		}
+		else {
+			valueProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+							.addConstructorArgReference(ref);
+		}
+		return valueProcessorBuilder;
 	}
 
 	/**

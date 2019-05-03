@@ -415,7 +415,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
 	 */
-	@Override
+	@Override // NOSONAR complexity
 	public boolean send(Message<?> messageArg, long timeout) {
 		Assert.notNull(messageArg, "message must not be null");
 		Assert.notNull(messageArg.getPayload(), "message payload must not be null");

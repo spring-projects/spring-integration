@@ -37,11 +37,12 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;idempotent-receiver/&gt; element.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionParser {
 
-	@Override
+	@Override // NOSONAR complexity
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 

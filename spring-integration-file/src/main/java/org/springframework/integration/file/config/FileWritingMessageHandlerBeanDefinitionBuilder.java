@@ -77,6 +77,13 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "flush-predicate");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "chmod");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "preserve-timestamp");
+		filenameGenerators(element, parserContext, builder);
+		return builder;
+	}
+
+	private static void filenameGenerators(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+
 		String remoteFileNameGenerator = element.getAttribute("filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
 		boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);
@@ -97,7 +104,6 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 				builder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 			}
 		}
-		return builder;
 	}
 
 }

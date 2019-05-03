@@ -65,70 +65,40 @@ public class FtpFileInfo extends AbstractFileInfo<FTPFile> {
 	@Override
 	public String getPermissions() {
 		StringBuilder sb = new StringBuilder();
-		if (this.ftpFile.isDirectory()) {
-			sb.append("d");
-		}
-		else if (this.ftpFile.isSymbolicLink()) {
-			sb.append("l");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION)) {
-			sb.append("r");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION)) {
-			sb.append("w");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
-			sb.append("x");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION)) {
-			sb.append("r");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION)) {
-			sb.append("w");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
-			sb.append("x");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION)) {
-			sb.append("r");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION)) {
-			sb.append("w");
-		}
-		else {
-			sb.append("-");
-		}
-		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
-			sb.append("x");
-		}
-		else {
-			sb.append("-");
-		}
+		appendPermissionString(sb, this.ftpFile.isDirectory(), 'd', this.ftpFile.isSymbolicLink(), 'l');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION), 'r');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION), 'w');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.EXECUTE_PERMISSION), 'x');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION), 'r');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION), 'w');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.EXECUTE_PERMISSION), 'x');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION), 'r');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION), 'w');
+		appendPermissionString(sb, this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.EXECUTE_PERMISSION), 'x');
 		return sb.toString();
+	}
+
+	private void appendPermissionString(StringBuilder sb, boolean condition1, char char1, boolean condition2,
+			char char2) {
+
+		if (condition1) {
+			sb.append(char1);
+		}
+		else if (condition2) {
+			sb.append(char2);
+		}
+		else {
+			sb.append('-');
+		}
+	}
+
+	private void appendPermissionString(StringBuilder sb, boolean condition, char char1) {
+		if (condition) {
+			sb.append(char1);
+		}
+		else {
+			sb.append('-');
+		}
 	}
 
 	@Override

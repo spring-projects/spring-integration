@@ -118,42 +118,16 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 
 		List<String> triggerBeanNames = new ArrayList<String>();
 		if (StringUtils.hasText(triggerAttribute)) {
-			if (StringUtils.hasText(timeUnit)) {
-				parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'trigger' reference.", pollerElement);
-			}
-			triggerBeanNames.add(triggerAttribute);
+			trigger(pollerElement, parserContext, triggerAttribute, timeUnit, triggerBeanNames);
 		}
 		if (StringUtils.hasText(fixedRateAttribute)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
-			builder.addConstructorArgValue(fixedRateAttribute);
-			if (StringUtils.hasText(timeUnit)) {
-				builder.addConstructorArgValue(timeUnit);
-			}
-			builder.addPropertyValue("fixedRate", Boolean.TRUE);
-			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					builder.getBeanDefinition(), parserContext.getRegistry());
-			triggerBeanNames.add(triggerBeanName);
+			fixedRate(parserContext, fixedRateAttribute, timeUnit, triggerBeanNames);
 		}
 		if (StringUtils.hasText(fixedDelayAttribute)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
-			builder.addConstructorArgValue(fixedDelayAttribute);
-			if (StringUtils.hasText(timeUnit)) {
-				builder.addConstructorArgValue(timeUnit);
-			}
-			builder.addPropertyValue("fixedRate", Boolean.FALSE);
-			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					builder.getBeanDefinition(), parserContext.getRegistry());
-			triggerBeanNames.add(triggerBeanName);
+			fixedDelay(parserContext, fixedDelayAttribute, timeUnit, triggerBeanNames);
 		}
 		if (StringUtils.hasText(cronAttribute)) {
-			if (StringUtils.hasText(timeUnit)) {
-				parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'cron' trigger.", pollerElement);
-			}
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
-			builder.addConstructorArgValue(cronAttribute);
-			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					builder.getBeanDefinition(), parserContext.getRegistry());
-			triggerBeanNames.add(triggerBeanName);
+			cron(pollerElement, parserContext, cronAttribute, timeUnit, triggerBeanNames);
 		}
 		if (triggerBeanNames.isEmpty()) {
 			parserContext.getReaderContext().error(NO_TRIGGER_DEFINITIONS, pollerElement);
@@ -162,5 +136,55 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(MULTIPLE_TRIGGER_DEFINITIONS, pollerElement);
 		}
 		targetBuilder.addPropertyReference("trigger", triggerBeanNames.get(0));
+	}
+
+	private void trigger(Element pollerElement, ParserContext parserContext, String triggerAttribute, String timeUnit,
+			List<String> triggerBeanNames) {
+
+		if (StringUtils.hasText(timeUnit)) {
+			parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'trigger' reference.", pollerElement);
+		}
+		triggerBeanNames.add(triggerAttribute);
+	}
+
+	private void fixedRate(ParserContext parserContext, String fixedRateAttribute, String timeUnit,
+			List<String> triggerBeanNames) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
+		builder.addConstructorArgValue(fixedRateAttribute);
+		if (StringUtils.hasText(timeUnit)) {
+			builder.addConstructorArgValue(timeUnit);
+		}
+		builder.addPropertyValue("fixedRate", Boolean.TRUE);
+		String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
+		triggerBeanNames.add(triggerBeanName);
+	}
+
+	private void fixedDelay(ParserContext parserContext, String fixedDelayAttribute, String timeUnit,
+			List<String> triggerBeanNames) {
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
+		builder.addConstructorArgValue(fixedDelayAttribute);
+		if (StringUtils.hasText(timeUnit)) {
+			builder.addConstructorArgValue(timeUnit);
+		}
+		builder.addPropertyValue("fixedRate", Boolean.FALSE);
+		String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
+		triggerBeanNames.add(triggerBeanName);
+	}
+
+	private void cron(Element pollerElement, ParserContext parserContext, String cronAttribute, String timeUnit,
+			List<String> triggerBeanNames) {
+
+		if (StringUtils.hasText(timeUnit)) {
+			parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'cron' trigger.",
+					pollerElement);
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
+		builder.addConstructorArgValue(cronAttribute);
+		String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
+		triggerBeanNames.add(triggerBeanName);
 	}
 }
