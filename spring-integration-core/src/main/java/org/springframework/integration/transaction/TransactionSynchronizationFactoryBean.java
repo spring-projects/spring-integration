@@ -174,22 +174,6 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.beanFactory);
 		}
-<<<<<<< HEAD
-=======
-		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
-				new ExpressionEvaluatingTransactionSynchronizationProcessor();
-
-		if (StringUtils.hasText(this.beforeCommitExpression)) {
-			processor.setBeforeCommitExpression(PARSER.parseExpression(this.beforeCommitExpression));
-		}
-		if (StringUtils.hasText(this.afterCommitExpression)) {
-			processor.setAfterCommitExpression(PARSER.parseExpression(this.afterCommitExpression));
-		}
-		if (StringUtils.hasText(this.afterRollbackExpression)) {
-			processor.setAfterRollbackExpression(PARSER.parseExpression(this.afterRollbackExpression));
-		}
-
->>>>>>> Sonar: repeated literals
 		if (StringUtils.hasText(this.beforeCommitChannelName)) {
 			this.beforeCommitChannel = this.channelResolver.resolveDestination(this.beforeCommitChannelName);
 		}
