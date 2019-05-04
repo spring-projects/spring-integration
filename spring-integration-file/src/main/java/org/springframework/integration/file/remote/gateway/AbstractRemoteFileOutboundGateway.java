@@ -758,17 +758,23 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				}
 			}
 		}
-		catch (Exception ex) {
-			if (replies.size() > 0 || ex instanceof PartialSuccessException) { // NOSONAR
-				throw new PartialSuccessException(requestMessage,
-						"Partially successful 'mput' operation" +
-								(subDirectory == null ? "" : (" on " + subDirectory)), ex, replies, filteredFiles);
-			}
-			else {
-				throw ex;
-			}
+		catch (RuntimeException ex) {
+			throw handlePutException(requestMessage, subDirectory, filteredFiles, replies, ex);
 		}
 		return replies;
+	}
+
+	private RuntimeException handlePutException(Message<?> requestMessage, String subDirectory,
+			List<File> filteredFiles, List<String> replies, RuntimeException ex) {
+
+		if (replies.size() > 0 || ex instanceof PartialSuccessException) {
+			return new PartialSuccessException(requestMessage,
+					"Partially successful 'mput' operation" +
+							(subDirectory == null ? "" : (" on " + subDirectory)), ex, replies, filteredFiles);
+		}
+		else {
+			return ex;
+		}
 	}
 
 	/**
@@ -889,8 +895,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @return The file.
 	 * @throws IOException Any IOException.
 	 */
-	protected File get(Message<?> message, Session<F> session, String remoteDir, String remoteFilePath,
-			String remoteFilename, F fileInfoParam) throws IOException {
+	protected File get(Message<?> message, Session<F> session, String remoteDir, // NOSONAR complexity
+			String remoteFilePath, String remoteFilename, F fileInfoParam) throws IOException {
+
 		F fileInfo = fileInfoParam;
 		if (fileInfo == null) {
 			F[] files = session.list(remoteFilePath);

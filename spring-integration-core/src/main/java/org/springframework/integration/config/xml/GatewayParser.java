@@ -51,7 +51,6 @@ public class GatewayParser implements BeanDefinitionParser {
 	private final MessagingGatewayRegistrar registrar = new MessagingGatewayRegistrar();
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
 
@@ -80,6 +79,24 @@ public class GatewayParser implements BeanDefinitionParser {
 				element.getAttribute(isNested ? "request-timeout" : "default-request-timeout"));
 
 
+		headers(element, gatewayAttributes);
+
+		methods(element, parserContext, gatewayAttributes);
+
+		gatewayAttributes.put("serviceInterface", element.getAttribute("service-interface"));
+
+		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes);
+		if (isNested) {
+			return gatewayHolder.getBeanDefinition();
+		}
+		else {
+			BeanDefinitionReaderUtils.registerBeanDefinition(gatewayHolder, parserContext.getRegistry());
+			return null;
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void headers(final Element element, final Map<String, Object> gatewayAttributes) {
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
 			List<Map<String, Object>> headers = new ArrayList<Map<String, Object>>(headerElements.size());
@@ -93,7 +110,10 @@ public class GatewayParser implements BeanDefinitionParser {
 			}
 			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[0]));
 		}
+	}
 
+	private void methods(final Element element, ParserContext parserContext,
+			final Map<String, Object> gatewayAttributes) {
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
 		if (!CollectionUtils.isEmpty(methodElements)) {
 			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<String, BeanDefinition>();
@@ -133,17 +153,6 @@ public class GatewayParser implements BeanDefinitionParser {
 			}
 
 			gatewayAttributes.put("methods", methodMetadataMap);
-		}
-
-		gatewayAttributes.put("serviceInterface", element.getAttribute("service-interface"));
-
-		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes);
-		if (isNested) {
-			return gatewayHolder.getBeanDefinition();
-		}
-		else {
-			BeanDefinitionReaderUtils.registerBeanDefinition(gatewayHolder, parserContext.getRegistry());
-			return null;
 		}
 	}
 

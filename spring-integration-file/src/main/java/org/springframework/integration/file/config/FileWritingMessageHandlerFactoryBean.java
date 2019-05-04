@@ -24,6 +24,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.util.JavaUtils;
 
 /**
  * Factory bean used to create {@link FileWritingMessageHandler}s.
@@ -167,52 +168,23 @@ public class FileWritingMessageHandlerFactoryBean
 			throw new IllegalStateException("Either directory or directoryExpression must not be null");
 		}
 
-		if (this.charset != null) {
-			handler.setCharset(this.charset);
-		}
-		if (this.fileNameGenerator != null) {
-			handler.setFileNameGenerator(this.fileNameGenerator);
-		}
-		if (this.deleteSourceFiles != null) {
-			handler.setDeleteSourceFiles(this.deleteSourceFiles);
-		}
-		if (this.autoCreateDirectory != null) {
-			handler.setAutoCreateDirectory(this.autoCreateDirectory);
-		}
-		if (this.requiresReply != null) {
-			handler.setRequiresReply(this.requiresReply);
-		}
-		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout);
-		}
-		if (this.temporaryFileSuffix != null) {
-			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
-		}
 		handler.setExpectReply(this.expectReply);
-		if (this.appendNewLine != null) {
-			handler.setAppendNewLine(this.appendNewLine);
-		}
-		if (this.fileExistsMode != null) {
-			handler.setFileExistsMode(this.fileExistsMode);
-		}
-		if (this.bufferSize != null) {
-			handler.setBufferSize(this.bufferSize);
-		}
-		if (this.flushInterval != null) {
-			handler.setFlushInterval(this.flushInterval);
-		}
-		if (this.flushWhenIdle != null) {
-			handler.setFlushWhenIdle(this.flushWhenIdle);
-		}
-		if (this.flushPredicate != null) {
-			handler.setFlushPredicate(this.flushPredicate);
-		}
-		if (this.chmod != null) {
-			handler.setChmodOctal(this.chmod);
-		}
-		if (this.preserveTimestamp != null) {
-			handler.setPreserveTimestamp(this.preserveTimestamp);
-		}
+		JavaUtils.INSTANCE
+			.acceptIfNotNull(this.charset, handler::setCharset)
+			.acceptIfNotNull(this.fileNameGenerator, handler::setFileNameGenerator)
+			.acceptIfNotNull(this.deleteSourceFiles, handler::setDeleteSourceFiles)
+			.acceptIfNotNull(this.autoCreateDirectory, handler::setAutoCreateDirectory)
+			.acceptIfNotNull(this.requiresReply, handler::setRequiresReply)
+			.acceptIfNotNull(this.sendTimeout, handler::setSendTimeout)
+			.acceptIfNotNull(this.temporaryFileSuffix, handler::setTemporaryFileSuffix)
+			.acceptIfNotNull(this.appendNewLine, handler::setAppendNewLine)
+			.acceptIfNotNull(this.fileExistsMode, handler::setFileExistsMode)
+			.acceptIfNotNull(this.bufferSize, handler::setBufferSize)
+			.acceptIfNotNull(this.flushInterval, handler::setFlushInterval)
+			.acceptIfNotNull(this.flushWhenIdle, handler::setFlushWhenIdle)
+			.acceptIfNotNull(this.flushPredicate, handler::setFlushPredicate)
+			.acceptIfNotNull(this.chmod, handler::setChmodOctal)
+			.acceptIfNotNull(this.preserveTimestamp, handler::setPreserveTimestamp);
 
 		return handler;
 	}

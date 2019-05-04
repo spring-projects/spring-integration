@@ -137,7 +137,7 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) {
+	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) { // NOSONAR complexity
 		String flowNamePrefix = flowBeanName + ".";
 		if (this.flowContext == null) {
 			this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
@@ -354,7 +354,7 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private void invokeBeanInitializationHooks(final String beanName, final Object bean) {
+	private void invokeBeanInitializationHooks(final String beanName, final Object bean) { // NOSONAR complexity
 		if (bean instanceof Aware) {
 			if (bean instanceof BeanNameAware) {
 				((BeanNameAware) bean).setBeanName(beanName);

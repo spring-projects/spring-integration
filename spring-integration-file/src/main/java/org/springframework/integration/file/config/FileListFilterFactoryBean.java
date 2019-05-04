@@ -117,14 +117,8 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			return;
 		}
 		FileListFilter<File> createdFilter = null;
-		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex != null)) {
-			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
-					+ "either the 'filename-pattern' or 'filename-regex' attribute.");
-		}
 
-		if (this.filenamePattern != null && this.filenameRegex != null) {
-			throw new IllegalArgumentException("The 'filename-pattern' and 'filename-regex' attributes are mutually exclusive.");
-		}
+		validate();
 
 		final List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
 
@@ -134,36 +128,12 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 		//'filter' is set
 		if (this.filter != null) {
-			if (Boolean.TRUE.equals(this.preventDuplicates)) {
-				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
-				filtersNeeded.add(this.filter);
-			}
-			else { // preventDuplicates is either FALSE or NULL
-				filtersNeeded.add(this.filter);
-			}
+			filter(filtersNeeded);
 		}
 
 		// 'file-pattern' or 'file-regex' is set
 		else if (this.filenamePattern != null || this.filenameRegex != null) {
-
-			if (!Boolean.FALSE.equals(this.preventDuplicates)) {
-				//preventDuplicates is either null or true
-				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
-			}
-			if (this.filenamePattern != null) {
-				SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
-				if (this.alwaysAcceptDirectories != null) {
-					patternFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
-				}
-				filtersNeeded.add(patternFilter);
-			}
-			if (this.filenameRegex != null) {
-				RegexPatternFileListFilter regexFilter = new RegexPatternFileListFilter(this.filenameRegex);
-				if (this.alwaysAcceptDirectories != null) {
-					regexFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
-				}
-				filtersNeeded.add(regexFilter);
-			}
+			pattern(filtersNeeded);
 		}
 
 		// no filters are provided
@@ -182,6 +152,49 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		}
 
 		this.result = createdFilter;
+	}
+
+	private void validate() {
+		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex != null)) {
+			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
+					+ "either the 'filename-pattern' or 'filename-regex' attribute.");
+		}
+
+		if (this.filenamePattern != null && this.filenameRegex != null) {
+			throw new IllegalArgumentException("The 'filename-pattern' and 'filename-regex' attributes are "
+					+ "mutually exclusive.");
+		}
+	}
+
+	private void filter(final List<FileListFilter<File>> filtersNeeded) {
+		if (Boolean.TRUE.equals(this.preventDuplicates)) {
+			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+			filtersNeeded.add(this.filter);
+		}
+		else { // preventDuplicates is either FALSE or NULL
+			filtersNeeded.add(this.filter);
+		}
+	}
+
+	private void pattern(final List<FileListFilter<File>> filtersNeeded) {
+		if (!Boolean.FALSE.equals(this.preventDuplicates)) {
+			//preventDuplicates is either null or true
+			filtersNeeded.add(new AcceptOnceFileListFilter<File>());
+		}
+		if (this.filenamePattern != null) {
+			SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
+			if (this.alwaysAcceptDirectories != null) {
+				patternFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+			}
+			filtersNeeded.add(patternFilter);
+		}
+		if (this.filenameRegex != null) {
+			RegexPatternFileListFilter regexFilter = new RegexPatternFileListFilter(this.filenameRegex);
+			if (this.alwaysAcceptDirectories != null) {
+				regexFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+			}
+			filtersNeeded.add(regexFilter);
+		}
 	}
 
 }

@@ -46,7 +46,7 @@ import org.springframework.util.xml.DomUtils;
  */
 public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	@Override
+	@Override // NOSONAR complexity
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;

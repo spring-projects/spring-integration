@@ -68,6 +68,22 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 		AbstractBeanDefinition scatterGatherDefinition = builder.getRawBeanDefinition();
 		String id = resolveId(element, scatterGatherDefinition, parserContext);
 
+		scatter(parserContext, scatterChannel, hasScatterChannel, scatterer, hasScatterer, builder,
+				scatterGatherDefinition, id);
+
+		gather(element, parserContext, builder, scatterGatherDefinition, id);
+
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "gather-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "gather-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
+
+		return builder;
+	}
+
+	private void scatter(ParserContext parserContext, String scatterChannel, boolean hasScatterChannel,
+			Element scatterer, boolean hasScatterer, BeanDefinitionBuilder builder,
+			AbstractBeanDefinition scatterGatherDefinition, String id) {
+
 		if (hasScatterChannel) {
 			builder.addConstructorArgReference(scatterChannel);
 		}
@@ -89,6 +105,10 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 			parserContext.getRegistry().registerBeanDefinition(scattererId, scattererDefinition); // NOSONAR not null
 			builder.addConstructorArgValue(new RuntimeBeanReference(scattererId));
 		}
+	}
+
+	private void gather(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			AbstractBeanDefinition scatterGatherDefinition, String id) {
 
 		Element gatherer = DomUtils.getChildElementByTagName(element, "gatherer");
 
@@ -111,12 +131,6 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 		}
 		parserContext.getRegistry().registerBeanDefinition(gathererId, gathererDefinition); // NOSONAR not null
 		builder.addConstructorArgValue(new RuntimeBeanReference(gathererId));
-
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "gather-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "gather-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
-
-		return builder;
 	}
 
 }

@@ -146,7 +146,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		return this.messageBuilderFactory;
 	}
 
-	@Override
+	@Override // NOSONAR complexity
 	public boolean dispatch(Message<?> message) {
 		int dispatched = 0;
 		int sequenceNumber = 1;

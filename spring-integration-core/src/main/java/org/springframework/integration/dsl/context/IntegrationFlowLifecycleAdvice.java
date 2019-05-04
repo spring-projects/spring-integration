@@ -79,47 +79,52 @@ class IntegrationFlowLifecycleAdvice implements MethodInterceptor {
 			if (target instanceof SmartLifecycle) {
 				result = invocation.proceed();
 			}
-
-			switch (method) {
-
-				case "start":
-					this.delegate.start();
-					break;
-
-				case "stop":
-					Object[] arguments = invocation.getArguments();
-					if (!ObjectUtils.isEmpty(arguments)) {
-						this.delegate.stop((Runnable) arguments[0]);
-					}
-					else {
-						this.delegate.stop();
-					}
-					break;
-
-				case "isRunning":
-					if (result == null) {
-						result = this.delegate.isRunning();
-					}
-					break;
-
-				case "isAutoStartup":
-					if (result == null) {
-						result = this.delegate.isAutoStartup();
-					}
-					break;
-
-				case "getPhase":
-					if (result == null) {
-						result = this.delegate.getPhase();
-					}
-					break;
-
-				default:
-					break;
-
-			}
+			result = applyToDelegate(invocation, method, result);
 		}
 
+		return result;
+	}
+
+	private Object applyToDelegate(MethodInvocation invocation, String method, Object resultArg) {
+		Object result = resultArg;
+		switch (method) {
+
+			case "start":
+				this.delegate.start();
+				break;
+
+			case "stop":
+				Object[] arguments = invocation.getArguments();
+				if (!ObjectUtils.isEmpty(arguments)) {
+					this.delegate.stop((Runnable) arguments[0]);
+				}
+				else {
+					this.delegate.stop();
+				}
+				break;
+
+			case "isRunning":
+				if (result == null) {
+					result = this.delegate.isRunning();
+				}
+				break;
+
+			case "isAutoStartup":
+				if (result == null) {
+					result = this.delegate.isAutoStartup();
+				}
+				break;
+
+			case "getPhase":
+				if (result == null) {
+					result = this.delegate.getPhase();
+				}
+				break;
+
+			default:
+				break;
+
+		}
 		return result;
 	}
 

@@ -166,7 +166,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 		this.firstLineHeaderName = firstLineHeaderName;
 	}
 
-	@Override
+	@Override// NOSONAR complexity
 	protected Object splitMessage(final Message<?> message) {
 		Object payload = message.getPayload();
 

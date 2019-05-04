@@ -97,7 +97,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		ManagedList adviceChain = IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, txElement, true,
 				handlerBuilder.getRawBeanDefinition(), parserContext);
 
-		if (!CollectionUtils.isEmpty(adviceChain)) {
+		boolean hasAdviceChain = !CollectionUtils.isEmpty(adviceChain);
+		if (hasAdviceChain) {
 			handlerBuilder.addPropertyValue("adviceChain", adviceChain);
 		}
 
@@ -111,12 +112,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 						+ "' attribute isn't allowed for a nested (e.g. inside a <chain/>) endpoint element: "
 						+ elementDescription + ".", element);
 			}
-			if (!replyChannelInChainAllowed(element)) {
-				if (StringUtils.hasText(element.getAttribute("reply-channel"))) {
-					parserContext.getReaderContext().error("The 'reply-channel' attribute isn't"
-							+ " allowed for a nested (e.g. inside a <chain/>) outbound gateway element: "
-							+ elementDescription + ".", element);
-				}
+			if (!replyChannelInChainAllowed(element)
+					&& StringUtils.hasText(element.getAttribute("reply-channel"))) {
+				parserContext.getReaderContext().error("The 'reply-channel' attribute isn't"
+						+ " allowed for a nested (e.g. inside a <chain/>) outbound gateway element: "
+						+ elementDescription + ".", element);
 			}
 			return handlerBeanDefinition;
 		}
@@ -131,7 +131,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 
-		if (!CollectionUtils.isEmpty(adviceChain)) {
+		if (hasAdviceChain) {
 			builder.addPropertyValue("adviceChain", adviceChain);
 		}
 
@@ -151,13 +151,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
-		if (!CollectionUtils.isEmpty(pollerElementList)) {
-			if (pollerElementList.size() != 1) {
-				parserContext.getReaderContext().error(
-						"at most one poller element may be configured for an endpoint", element);
-			}
-			IntegrationNamespaceUtils.configurePollerMetadata(pollerElementList.get(0), builder, parserContext);
-		}
+		poller(element, parserContext, builder, pollerElementList);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.ROLE);
@@ -166,6 +160,17 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		return null;
+	}
+
+	private void poller(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			List<Element> pollerElementList) {
+		if (!CollectionUtils.isEmpty(pollerElementList)) {
+			if (pollerElementList.size() != 1) {
+				parserContext.getReaderContext().error(
+						"at most one poller element may be configured for an endpoint", element);
+			}
+			IntegrationNamespaceUtils.configurePollerMetadata(pollerElementList.get(0), builder, parserContext);
+		}
 	}
 
 	private void registerChannelForCreation(ParserContext parserContext, String inputChannelName) {

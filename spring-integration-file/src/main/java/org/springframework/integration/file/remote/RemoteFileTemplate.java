@@ -301,7 +301,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				try {
 					inputStreamHolder.stream.close();
 				}
-				catch (IOException e) {
+				catch (@SuppressWarnings("unused") IOException e) {
 				}
 			}
 		}
@@ -544,44 +544,49 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			try {
 				RemoteFileUtils.makeDirectories(remoteDirectory, session, this.remoteFileSeparator, this.logger);
 			}
-			catch (IllegalStateException e) {
+			catch (@SuppressWarnings("unused") IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
 				session.mkdir(remoteDirectory);
 			}
 		}
 
 		try (InputStream stream = inputStream) {
-			boolean rename = this.useTemporaryFileName;
-			if (FileExistsMode.REPLACE.equals(mode)) {
-				session.write(stream, tempFilePath);
-			}
-			else if (FileExistsMode.APPEND.equals(mode)) {
-				session.append(stream, tempFilePath);
-			}
-			else {
-				if (exists(remoteFilePath)) {
-					if (FileExistsMode.FAIL.equals(mode)) {
-						throw new MessagingException(
-								"The destination file already exists at '" + remoteFilePath + "'.");
-					}
-					else {
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("File not transferred to '" + remoteFilePath + "'; already exists.");
-						}
-					}
-					rename = false;
-				}
-				else {
-					session.write(stream, tempFilePath);
-				}
-			}
-			// then rename it to its final name if necessary
-			if (rename) {
-				session.rename(tempFilePath, remoteFilePath);
-			}
+			doSend(session, mode, remoteFilePath, tempFilePath, stream);
 		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
+		}
+	}
+
+	private void doSend(Session<F> session, FileExistsMode mode, String remoteFilePath, String tempFilePath,
+			InputStream stream) throws IOException {
+		boolean rename = this.useTemporaryFileName;
+		if (FileExistsMode.REPLACE.equals(mode)) {
+			session.write(stream, tempFilePath);
+		}
+		else if (FileExistsMode.APPEND.equals(mode)) {
+			session.append(stream, tempFilePath);
+		}
+		else {
+			if (exists(remoteFilePath)) {
+				if (FileExistsMode.FAIL.equals(mode)) {
+					throw new MessagingException(
+							"The destination file already exists at '" + remoteFilePath + "'.");
+				}
+				else {
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("File not transferred to '" + remoteFilePath + "'; already exists.");
+					}
+				}
+				rename = false;
+			}
+			else {
+				session.write(stream, tempFilePath);
+			}
+		}
+		// then rename it to its final name if necessary
+		if (rename) {
+			session.rename(tempFilePath, remoteFilePath);
 		}
 	}
 

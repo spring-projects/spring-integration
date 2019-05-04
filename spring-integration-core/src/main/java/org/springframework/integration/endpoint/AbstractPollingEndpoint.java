@@ -320,7 +320,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 																		new Date())
 												)), 1)
 				.repeat(this::isRunning)
-				.doOnSubscribe(subscription -> this.subscription = subscription);
+				.doOnSubscribe(subs -> this.subscription = subs);
 	}
 
 	private Message<?> pollForMessage() {
@@ -377,29 +377,33 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			return null;
 		}
 		else {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Poll resulted in Message: " + message);
-			}
-			if (holder != null) {
-				holder.setMessage(message);
-			}
-
-			if (!isReactive()) {
-				try {
-					handleMessage(message);
-				}
-				catch (Exception e) {
-					if (e instanceof MessagingException) {
-						throw new MessagingExceptionWrapper(message, (MessagingException) e);
-					}
-					else {
-						throw new MessagingException(message, e);
-					}
-				}
-			}
+			messageReceived(holder, message);
 		}
 
 		return message;
+	}
+
+	private void messageReceived(IntegrationResourceHolder holder, Message<?> message) {
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Poll resulted in Message: " + message);
+		}
+		if (holder != null) {
+			holder.setMessage(message);
+		}
+
+		if (!isReactive()) {
+			try {
+				handleMessage(message);
+			}
+			catch (Exception e) {
+				if (e instanceof MessagingException) {
+					throw new MessagingExceptionWrapper(message, (MessagingException) e);
+				}
+				else {
+					throw new MessagingException(message, e);
+				}
+			}
+		}
 	}
 
 	@Override // guarded by super#lifecycleLock

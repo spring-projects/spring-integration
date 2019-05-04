@@ -42,7 +42,8 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 	protected final BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getFactoryBeanClassName());
-		BeanComponentDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		BeanComponentDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element,
+				parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
 		boolean hasRef = StringUtils.hasText(ref);
@@ -50,38 +51,15 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		Element scriptElement = DomUtils.getChildElementByTagName(element, "script");
 		Element expressionElement = DomUtils.getChildElementByTagName(element, "expression");
 		if (innerDefinition != null) {
-			if (hasRef || hasExpression || expressionElement != null) {
-				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				return null;
-			}
-			builder.addPropertyValue("targetObject", innerDefinition);
+			innerDefinition(element, parserContext, source, builder, innerDefinition, hasRef, hasExpression,
+					expressionElement);
 		}
 		else if (scriptElement != null) {
-			if (hasRef || hasExpression || expressionElement != null) {
-				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner script element is configured on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				return null;
-			}
-			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement, builder.getBeanDefinition());
-			builder.addPropertyValue("targetObject", scriptBeanDefinition);
+			scriptElement(element, parserContext, source, builder, hasRef, hasExpression, scriptElement,
+					expressionElement);
 		}
 		else if (expressionElement != null) {
-			if (hasRef || hasExpression) {
-				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner 'expression' element is configured on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
-				return null;
-			}
-			BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					DynamicExpression.class);
-			String key = expressionElement.getAttribute("key");
-			String expressionSourceReference = expressionElement.getAttribute("source");
-			dynamicExpressionBuilder.addConstructorArgValue(key);
-			dynamicExpressionBuilder.addConstructorArgReference(expressionSourceReference);
-			builder.addPropertyValue("expression", dynamicExpressionBuilder.getBeanDefinition());
+			expressionElement(element, parserContext, source, builder, hasRef, hasExpression, expressionElement);
 		}
 		else if (hasRef && hasExpression) {
 			parserContext.getReaderContext().error(
@@ -107,6 +85,45 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		this.postProcess(builder, element, parserContext);
 		return builder;
+	}
+
+	private void innerDefinition(Element element, ParserContext parserContext, Object source,
+			BeanDefinitionBuilder builder, BeanComponentDefinition innerDefinition, boolean hasRef,
+			boolean hasExpression, Element expressionElement) {
+		if (hasRef || hasExpression || expressionElement != null) {
+			parserContext.getReaderContext().error(
+					"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
+				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+		}
+		builder.addPropertyValue("targetObject", innerDefinition);
+	}
+
+	private void scriptElement(Element element, ParserContext parserContext, Object source,
+			BeanDefinitionBuilder builder, boolean hasRef, boolean hasExpression, Element scriptElement,
+			Element expressionElement) {
+		if (hasRef || hasExpression || expressionElement != null) {
+			parserContext.getReaderContext().error(
+					"Neither 'ref' nor 'expression' are permitted when an inner script element is configured on element " +
+				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+		}
+		BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement, builder.getBeanDefinition());
+		builder.addPropertyValue("targetObject", scriptBeanDefinition);
+	}
+
+	private void expressionElement(Element element, ParserContext parserContext, Object source,
+			BeanDefinitionBuilder builder, boolean hasRef, boolean hasExpression, Element expressionElement) {
+		if (hasRef || hasExpression) {
+			parserContext.getReaderContext().error(
+					"Neither 'ref' nor 'expression' are permitted when an inner 'expression' element is configured on element " +
+				IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+		}
+		BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				DynamicExpression.class);
+		String key = expressionElement.getAttribute("key");
+		String expressionSourceReference = expressionElement.getAttribute("source");
+		dynamicExpressionBuilder.addConstructorArgValue(key);
+		dynamicExpressionBuilder.addConstructorArgReference(expressionSourceReference);
+		builder.addPropertyValue("expression", dynamicExpressionBuilder.getBeanDefinition());
 	}
 
 	private void methodAttribute(Element element, ParserContext parserContext, Object source,
