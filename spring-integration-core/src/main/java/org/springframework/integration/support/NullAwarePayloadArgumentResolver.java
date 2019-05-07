@@ -17,11 +17,11 @@
 package org.springframework.integration.support;
 
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
 import org.springframework.validation.Validator;
 
 /**
- * A {@link PayloadArgumentResolver} that treats KafkaNull payloads as null.
+ * A {@link PayloadMethodArgumentResolver} that treats KafkaNull payloads as null.
  * {@link org.springframework.messaging.handler.annotation.Payload @Paylaod}
  * annotation must have required = false.
  *
@@ -29,7 +29,7 @@ import org.springframework.validation.Validator;
  * @since 5.1
  *
  */
-public class NullAwarePayloadArgumentResolver extends PayloadArgumentResolver {
+public class NullAwarePayloadArgumentResolver extends PayloadMethodArgumentResolver {
 
 	public NullAwarePayloadArgumentResolver(MessageConverter messageConverter) {
 		super(messageConverter, null, false);
