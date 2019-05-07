@@ -358,7 +358,9 @@ project('spring-integration-amqp') {
 	description = 'Spring Integration AMQP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion")
+		compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
+			exclude group: 'org.springframework'
+		}
 
 		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion")
 		testCompile project(":spring-integration-stream")
