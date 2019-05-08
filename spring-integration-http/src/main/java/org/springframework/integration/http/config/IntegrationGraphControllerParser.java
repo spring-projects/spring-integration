@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.type.StandardAnnotationMetadata;
+import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 
 /**
  * The {@link BeanDefinitionParser} for the {@code <int-http:graph-controller>} component.
@@ -41,11 +41,11 @@ public class IntegrationGraphControllerParser implements BeanDefinitionParser {
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		if (HttpContextUtils.WEB_MVC_PRESENT) {
 			this.graphControllerRegistrar.registerBeanDefinitions(
-					new StandardAnnotationMetadata(IntegrationGraphControllerParser.class) {
+					new AnnotationMetadataAdapter() {
 
 						@Override
 						public Map<String, Object> getAnnotationAttributes(String annotationType) {
-							return Collections.<String, Object>singletonMap("value", element.getAttribute("path"));
+							return Collections.singletonMap("value", element.getAttribute("path"));
 						}
 
 					}, parserContext.getRegistry());

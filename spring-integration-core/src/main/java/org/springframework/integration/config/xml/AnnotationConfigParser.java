@@ -24,9 +24,9 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -41,31 +41,27 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		new IntegrationRegistrar().registerBeanDefinitions(new ExtendedAnnotationMetadata(Object.class, element),
+		new IntegrationRegistrar().registerBeanDefinitions(new ExtendedAnnotationMetadata(element),
 				parserContext.getRegistry());
 		return null;
 	}
 
-	private static final class ExtendedAnnotationMetadata extends StandardAnnotationMetadata {
+	private static final class ExtendedAnnotationMetadata extends AnnotationMetadataAdapter {
 
 		private final Element element;
 
-		ExtendedAnnotationMetadata(Class<?> introspectedClass, Element element) {
-			super(introspectedClass);
+		ExtendedAnnotationMetadata(Element element) {
 			this.element = element;
 		}
 
 		@Override
 		public Map<String, Object> getAnnotationAttributes(String annotationType) {
 			if (EnablePublisher.class.getName().equals(annotationType)) {
-				Element enablePublisherElement =
-						DomUtils.getChildElementByTagName(this.element, "enable-publisher");
+				Element enablePublisherElement = DomUtils.getChildElementByTagName(this.element, "enable-publisher");
 				if (enablePublisherElement != null) {
 					Map<String, Object> attributes = new HashMap<>();
-					attributes.put("defaultChannel",
-							enablePublisherElement.getAttribute("default-publisher-channel"));
-					attributes.put("proxyTargetClass",
-							enablePublisherElement.getAttribute("proxy-target-class"));
+					attributes.put("defaultChannel", enablePublisherElement.getAttribute("default-publisher-channel"));
+					attributes.put("proxyTargetClass", enablePublisherElement.getAttribute("proxy-target-class"));
 					attributes.put("order", enablePublisherElement.getAttribute("order"));
 					return attributes;
 				}
