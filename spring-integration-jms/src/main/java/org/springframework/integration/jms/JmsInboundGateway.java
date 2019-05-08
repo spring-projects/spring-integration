@@ -39,6 +39,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 
 	public JmsInboundGateway(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener) {
+
 		this.endpoint = new JmsMessageDrivenEndpoint(listenerContainer, listener);
 	}
 
@@ -138,11 +139,13 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		this.endpoint.start();
 	}
 
 	@Override
 	protected void doStop() {
+		super.doStop();
 		this.endpoint.stop();
 	}
 
