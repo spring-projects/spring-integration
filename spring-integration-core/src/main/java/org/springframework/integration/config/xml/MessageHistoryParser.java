@@ -24,8 +24,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.integration.config.MessageHistoryRegistrar;
+import org.springframework.integration.config.annotation.AnnotationMetadataAdapter;
 
 /**
  * The {@code <message-history/>} parser.
@@ -43,14 +43,16 @@ public class MessageHistoryParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		this.messageHistoryRegistrar.registerBeanDefinitions(new StandardAnnotationMetadata(MessageHistoryParser.class) {
+		this.messageHistoryRegistrar.registerBeanDefinitions(
+				new AnnotationMetadataAdapter() {
 
-			@Override
-			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return Collections.<String, Object>singletonMap("value", element.getAttribute("tracked-components"));
-			}
+					@Override
+					public Map<String, Object> getAnnotationAttributes(String annotationType) {
+						return Collections.singletonMap("value", element.getAttribute("tracked-components"));
+					}
 
-		}, parserContext.getRegistry());
+				}, parserContext.getRegistry());
 		return null;
 	}
+
 }

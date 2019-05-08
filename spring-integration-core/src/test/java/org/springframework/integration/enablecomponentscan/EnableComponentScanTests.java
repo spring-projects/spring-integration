@@ -30,7 +30,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.IntegrationComponentScanRegistrar;
@@ -42,6 +41,7 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 @RunWith(SpringRunner.class)
@@ -68,8 +68,8 @@ public class EnableComponentScanTests {
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 				BeanDefinitionRegistry registry) {
-			super.registerBeanDefinitions(new StandardAnnotationMetadata(
-					IntegrationComponentScanConfiguration.class, true), registry);
+			super.registerBeanDefinitions(
+					AnnotationMetadata.introspect(IntegrationComponentScanConfiguration.class), registry);
 		}
 
 		@Override
