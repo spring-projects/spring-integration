@@ -63,7 +63,7 @@ import com.rabbitmq.client.Channel;
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
 
-	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<AttributeAccessor>();
+	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
@@ -203,11 +203,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		this.messageListenerContainer.start();
 	}
 
 	@Override
 	protected void doStop() {
+		super.doStop();
 		this.messageListenerContainer.stop();
 	}
 
@@ -269,18 +271,18 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				org.springframework.messaging.Message<Object> converted = convert(message, channel);
 				if (converted != null) {
 					AmqpInboundGateway.this.retryTemplate.execute(context -> {
-							StaticMessageHeaderAccessor.getDeliveryAttempt(converted).incrementAndGet();
-							process(message, converted);
-							return null;
-						},
-						(RecoveryCallback<Object>) AmqpInboundGateway.this.recoveryCallback);
+								StaticMessageHeaderAccessor.getDeliveryAttempt(converted).incrementAndGet();
+								process(message, converted);
+								return null;
+							},
+							(RecoveryCallback<Object>) AmqpInboundGateway.this.recoveryCallback);
 				}
 			}
 		}
 
 		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
-			Map<String, Object> headers = null;
-			Object payload = null;
+			Map<String, Object> headers;
+			Object payload;
 			boolean isManualAck = AmqpInboundGateway.this.messageListenerContainer
 					.getAcknowledgeMode() == AcknowledgeMode.MANUAL;
 			try {
@@ -299,7 +301,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				if (errorChannel != null) {
 					setAttributesIfNecessary(message, null);
 					AmqpInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
-									EndpointUtils.errorMessagePayload(message, channel, isManualAck, e)));
+							EndpointUtils.errorMessagePayload(message, channel, isManualAck, e)));
 				}
 				else {
 					throw e;
@@ -307,9 +309,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				return null;
 			}
 			return getMessageBuilderFactory()
-						.withPayload(payload)
-						.copyHeaders(headers)
-						.build();
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
 		}
 
 		private void process(Message message, org.springframework.messaging.Message<Object> messagingMessage) {
