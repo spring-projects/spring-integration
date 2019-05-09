@@ -22,11 +22,14 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.core.codec.Decoder;
 import org.springframework.core.codec.Encoder;
+import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
@@ -76,7 +79,12 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	private final String[] path;
 
-	private RSocketStrategies rsocketStrategies = RSocketStrategies.builder().build();
+	private RSocketStrategies rsocketStrategies =
+			RSocketStrategies.builder()
+					.decoder(StringDecoder.allMimeTypes())
+					.encoder(CharSequenceEncoder.allMimeTypes())
+					.dataBufferFactory(new DefaultDataBufferFactory())
+					.build();
 
 	@Nullable
 	private AbstractRSocketConnector rsocketConnector;

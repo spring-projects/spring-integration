@@ -22,6 +22,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.core.codec.CharSequenceEncoder;
+import org.springframework.core.codec.StringDecoder;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -40,14 +44,28 @@ import org.springframework.util.MimeTypeUtils;
  *
  * @see IntegrationRSocketAcceptor
  */
-public class AbstractRSocketConnector
-		implements ApplicationContextAware, InitializingBean, DisposableBean, SmartInitializingSingleton {
+public abstract class AbstractRSocketConnector
+		implements ApplicationContextAware, InitializingBean, DisposableBean, SmartInitializingSingleton,
+		SmartLifecycle {
 
-	protected final IntegrationRSocketAcceptor rsocketAcceptor = new IntegrationRSocketAcceptor(); // NOSONAR - final
+	protected final IntegrationRSocketAcceptor rsocketAcceptor; // NOSONAR - final
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
-	private RSocketStrategies rsocketStrategies = RSocketStrategies.builder().build();
+	private RSocketStrategies rsocketStrategies =
+			RSocketStrategies.builder()
+					.decoder(StringDecoder.allMimeTypes())
+					.encoder(CharSequenceEncoder.allMimeTypes())
+					.dataBufferFactory(new DefaultDataBufferFactory())
+					.build();
+
+	private volatile boolean running;
+
+	private ApplicationContext applicationContext;
+
+	protected AbstractRSocketConnector(IntegrationRSocketAcceptor rsocketAcceptor) {
+		this.rsocketAcceptor = rsocketAcceptor;
+	}
 
 	public void setDataMimeType(MimeType dataMimeType) {
 		Assert.notNull(dataMimeType, "'dataMimeType' must not be null");
@@ -80,13 +98,19 @@ public class AbstractRSocketConnector
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 		this.rsocketAcceptor.setApplicationContext(applicationContext);
+	}
+
+	protected ApplicationContext getApplicationContext() {
+		return this.applicationContext;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
 		this.rsocketAcceptor.setDefaultDataMimeType(this.dataMimeType);
 		this.rsocketAcceptor.setRSocketStrategies(this.rsocketStrategies);
+		this.rsocketAcceptor.afterPropertiesSet();
 	}
 
 	@Override
@@ -95,8 +119,23 @@ public class AbstractRSocketConnector
 	}
 
 	@Override
-	public void destroy() {
+	public void start() {
+		if (!this.running) {
+			this.running = true;
+			doStart();
+		}
+	}
 
+	protected abstract void doStart();
+
+	@Override
+	public void stop() {
+		this.running = false;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
 	}
 
 }

@@ -21,7 +21,6 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -39,12 +38,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.StringUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.rsocket.AbstractRSocket;
-import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import reactor.core.publisher.Flux;
@@ -59,9 +55,6 @@ import reactor.core.publisher.MonoProcessor;
  * Essentially, this is an adapted for Spring Integration copy
  * of the {@link org.springframework.messaging.rsocket.MessagingRSocket} because
  * that one is not public.
- * <p>
- * Also this class doesn't delegate a {@link #handleConnectionSetupPayload}
- * into the target handler {@link Function} and emits a {@link RSocketConnectedEvent} instead.
  *
  * @author Artem Bilan
  *
@@ -80,9 +73,6 @@ class IntegrationRSocket extends AbstractRSocket {
 	@Nullable
 	private MimeType dataMimeType;
 
-	private ApplicationEventPublisher applicationEventPublisher;
-
-
 	IntegrationRSocket(Function<Message<?>, Mono<Void>> handler, RSocketRequester requester,
 			@Nullable MimeType defaultDataMimeType, DataBufferFactory bufferFactory) {
 
@@ -94,38 +84,12 @@ class IntegrationRSocket extends AbstractRSocket {
 		this.bufferFactory = bufferFactory;
 	}
 
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+	public void setDataMimeType(MimeType dataMimeType) {
+		this.dataMimeType = dataMimeType;
 	}
 
-	/**
-	 * Wrap the {@link ConnectionSetupPayload} with a {@link Message} and
-	 * delegate to {@link #handle(Payload)} for handling.
-	 * @param payload the connection payload
-	 * @return completion handle for success or error
-	 */
-	public Mono<Void> handleConnectionSetupPayload(ConnectionSetupPayload payload) {
-		if (StringUtils.hasText(payload.dataMimeType())) {
-			this.dataMimeType = MimeTypeUtils.parseMimeType(payload.dataMimeType());
-		}
-		// frameDecoder does not apply to connectionSetupPayload
-		// so retain here since handle expects it..
-		payload.retain();
-		String destination = getDestination(payload);
-		DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
-		int refCount = refCount(dataBuffer);
-		return Mono
-				.defer(() -> {
-					this.applicationEventPublisher.publishEvent(
-							new RSocketConnectedEvent(IntegrationRSocket.this, destination, dataBuffer,
-									this.requester));
-					return Mono.<Void>empty();
-				})
-				.doFinally((signal) -> {
-					if (refCount(dataBuffer) == refCount) {
-						DataBufferUtils.release(dataBuffer);
-					}
-				});
+	public RSocketRequester getRequester() {
+		return this.requester;
 	}
 
 	@Override
@@ -173,7 +137,7 @@ class IntegrationRSocket extends AbstractRSocket {
 				});
 	}
 
-	private int refCount(DataBuffer dataBuffer) {
+	static int refCount(DataBuffer dataBuffer) {
 		return dataBuffer instanceof NettyDataBuffer ?
 				((NettyDataBuffer) dataBuffer).getNativeBuffer().refCnt() : 1;
 	}
@@ -199,25 +163,8 @@ class IntegrationRSocket extends AbstractRSocket {
 						Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
 	}
 
-	private String getDestination(Payload payload) {
-		return payload.getMetadataUtf8();
-	}
-
 	private DataBuffer retainDataAndReleasePayload(Payload payload) {
-		try {
-			if (this.bufferFactory instanceof NettyDataBufferFactory) {
-				ByteBuf byteBuf = payload.sliceData().retain();
-				return ((NettyDataBufferFactory) this.bufferFactory).wrap(byteBuf);
-			}
-			else {
-				return this.bufferFactory.wrap(payload.getData());
-			}
-		}
-		finally {
-			if (payload.refCnt() > 0) {
-				payload.release();
-			}
-		}
+		return payloadToDataBuffer(payload, this.bufferFactory);
 	}
 
 	private MessageHeaders createHeaders(String destination, @Nullable MonoProcessor<?> replyMono) {
@@ -233,6 +180,27 @@ class IntegrationRSocket extends AbstractRSocket {
 		}
 		headers.setHeader(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER, this.bufferFactory);
 		return headers.getMessageHeaders();
+	}
+
+	static String getDestination(Payload payload) {
+		return payload.getMetadataUtf8();
+	}
+
+	static DataBuffer payloadToDataBuffer(Payload payload, DataBufferFactory bufferFactory) {
+		try {
+			if (bufferFactory instanceof NettyDataBufferFactory) {
+				ByteBuf byteBuf = payload.sliceData().retain();
+				return ((NettyDataBufferFactory) bufferFactory).wrap(byteBuf);
+			}
+			else {
+				return bufferFactory.wrap(payload.getData());
+			}
+		}
+		finally {
+			if (payload.refCnt() > 0) {
+				payload.release();
+			}
+		}
 	}
 
 }

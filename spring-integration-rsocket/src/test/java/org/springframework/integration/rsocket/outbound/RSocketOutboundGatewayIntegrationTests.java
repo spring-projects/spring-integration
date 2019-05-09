@@ -113,9 +113,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@Autowired
 	private TestController clientController;
 
-	@Autowired
-	private ClientRSocketConnector clientRSocketConnector;
-
 	private RSocketRequester serverRsocketRequester;
 
 	@BeforeAll

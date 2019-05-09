@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
 
@@ -49,7 +48,7 @@ import reactor.core.publisher.Mono;
  * @see RSocketFactory.ClientRSocketFactory
  * @see RSocketRequester
  */
-public class ClientRSocketConnector extends AbstractRSocketConnector implements SmartLifecycle {
+public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private final ClientTransport clientTransport;
 
@@ -59,11 +58,9 @@ public class ClientRSocketConnector extends AbstractRSocketConnector implements 
 
 	private String connectData = "";
 
-	private Mono<RSocket> rsocketMono;
-
-	private volatile boolean running;
-
 	private boolean autoConnect;
+
+	private Mono<RSocket> rsocketMono;
 
 	public ClientRSocketConnector(String host, int port) {
 		this(TcpClientTransport.create(host, port));
@@ -74,6 +71,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector implements 
 	}
 
 	public ClientRSocketConnector(ClientTransport clientTransport) {
+		super(new IntegrationRSocketAcceptor());
 		Assert.notNull(clientTransport, "'clientTransport' must not be null");
 		this.clientTransport = clientTransport;
 	}
@@ -114,31 +112,17 @@ public class ClientRSocketConnector extends AbstractRSocketConnector implements 
 	}
 
 	@Override
-	public void destroy() {
-		super.destroy();
-		this.rsocketMono
-				.doOnNext(Disposable::dispose)
-				.subscribe();
-	}
-
-	@Override
-	public void start() {
-		if (!this.running) {
-			this.running = true;
-			if (this.autoConnect) {
-				connect();
-			}
+	protected void doStart() {
+		if (this.autoConnect) {
+			connect();
 		}
 	}
 
 	@Override
-	public void stop() {
-		this.running = false;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.running;
+	public void destroy() {
+		this.rsocketMono
+				.doOnNext(Disposable::dispose)
+				.subscribe();
 	}
 
 	/**
