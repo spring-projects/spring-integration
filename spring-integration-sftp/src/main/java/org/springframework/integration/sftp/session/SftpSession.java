@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -51,11 +52,15 @@ public class SftpSession implements Session<LsEntry> {
 
 	private static final String SESSION_IS_NOT_CONNECTED = "session is not connected";
 
+	private static final Duration DEFAULT_CHANNEL_CONNECT_TIMEOUT = Duration.ofSeconds(5);
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final com.jcraft.jsch.Session jschSession;
 
 	private final JSchSessionWrapper wrapper;
+
+	private int channelConnectTimeout = (int) DEFAULT_CHANNEL_CONNECT_TIMEOUT.toMillis();
 
 	private volatile ChannelSftp channel;
 
@@ -72,6 +77,16 @@ public class SftpSession implements Session<LsEntry> {
 		Assert.notNull(wrapper, "wrapper must not be null");
 		this.jschSession = wrapper.getSession();
 		this.wrapper = wrapper;
+	}
+
+	/**
+	 * Set the connect timeout.
+	 * @param timeout the timeout to set.
+	 * @since 5.2
+	 */
+	public void setChannelConnectTimeout(Duration timeout) {
+		Assert.notNull(timeout, "'timeout' cannot be null");
+		this.channelConnectTimeout = (int) timeout.toMillis();
 	}
 
 	@Override
@@ -146,7 +161,7 @@ public class SftpSession implements Session<LsEntry> {
 	}
 
 	@Override
-	public boolean finalizeRaw() throws IOException {
+	public boolean finalizeRaw() {
 		return true;
 	}
 
@@ -258,7 +273,7 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.lstat(path);
 			return true;
 		}
-		catch (SftpException e) {
+		catch (@SuppressWarnings("unused") SftpException e) {
 			// ignore
 		}
 		return false;
@@ -271,7 +286,7 @@ public class SftpSession implements Session<LsEntry> {
 			}
 			this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 			if (this.channel != null && !this.channel.isConnected()) {
-				this.channel.connect();
+				this.channel.connect(this.channelConnectTimeout);
 			}
 		}
 		catch (JSchException e) {
@@ -295,7 +310,7 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.lstat(this.channel.getHome());
 			return true;
 		}
-		catch (Exception e) {
+		catch (@SuppressWarnings("unused") Exception e) {
 			return false;
 		}
 	}

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -380,7 +381,7 @@ public class SftpOutboundTests {
 	}
 
 	private void noopConnect(ChannelSftp channel1) throws JSchException {
-		doAnswer(invocation -> null).when(channel1).connect();
+		doNothing().when(channel1).connect(5000);
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {

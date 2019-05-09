@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.time.Duration;
 import java.util.Collections;
 
 import org.apache.sshd.server.SshServer;
@@ -153,8 +154,11 @@ public class SftpSessionFactoryTests {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
 			DefaultSftpSessionFactory f = createServerAndClient(server);
+			f.setChannelConnectTimeout(Duration.ofSeconds(6));
 			f.setAllowUnknownKeys(true);
-			f.getSession().close();
+			SftpSession session = f.getSession();
+			assertThat(TestUtils.getPropertyValue(session, "channelConnectTimeout", Integer.class)).isEqualTo(6_000);
+			session.close();
 		}
 		finally {
 			server.stop(true);

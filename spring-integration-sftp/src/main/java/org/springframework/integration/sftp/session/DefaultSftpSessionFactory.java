@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
@@ -107,6 +108,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	private UserInfo userInfo;
 
 	private boolean allowUnknownKeys = false;
+
+	private Duration channelConnectTimeout;
 
 	private volatile JSchSessionWrapper sharedJschSession;
 
@@ -353,6 +356,16 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		this.allowUnknownKeys = allowUnknownKeys;
 	}
 
+	/**
+	 * Set the connect timeout.
+	 * @param timeout the timeout to set.
+	 * @since 5.2
+	 */
+	public void setChannelConnectTimeout(Duration timeout) {
+		Assert.notNull(timeout, "'connectTimeout' cannot be null");
+		this.channelConnectTimeout = timeout;
+	}
+
 	@Override
 	public SftpSession getSession() {
 		JSchSessionWrapper jschSession = this.sharedJschSession;
@@ -367,6 +380,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				freshJschSession = true;
 			}
 			sftpSession = new SftpSession(jschSession);
+			JavaUtils.INSTANCE
+				.acceptIfNotNull(this.channelConnectTimeout, sftpSession::setChannelConnectTimeout);
 			sftpSession.connect();
 			if (this.isSharedSession && freshJschSession) {
 				this.sharedJschSession = jschSession;
