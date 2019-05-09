@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.annotation.MergedAnnotations;
@@ -25,7 +24,7 @@ import org.springframework.core.type.MethodMetadata;
 
 /**
  * An {@link AnnotationMetadata} implementation to expose a metadata
- * by the provided {@link Map} of attributes.
+ * by the provided {@link java.util.Map} of attributes.
  *
  * @author Artem Bilan
  *
