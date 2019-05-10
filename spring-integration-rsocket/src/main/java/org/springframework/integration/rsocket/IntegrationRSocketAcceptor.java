@@ -82,8 +82,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Functi
 					.values()
 					.stream()
 					.peek(this::addEndpoint)
-					.findAny()
-					.isPresent();
+					.count() > 0;
 		}
 		else {
 			return false;

@@ -148,10 +148,9 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		@Override
 		public Mono<RSocket> accept(ConnectionSetupPayload setupPayload, RSocket sendingRSocket) {
-			setupPayload.retain();
 			String destination = IntegrationRSocket.getDestination(setupPayload);
-			DataBuffer dataBuffer = IntegrationRSocket.payloadToDataBuffer(setupPayload,
-					getRSocketStrategies().dataBufferFactory());
+			DataBuffer dataBuffer =
+					IntegrationRSocket.payloadToDataBuffer(setupPayload, getRSocketStrategies().dataBufferFactory());
 			int refCount = IntegrationRSocket.refCount(dataBuffer);
 			return Mono.just(sendingRSocket)
 					.map(this::createRSocket)

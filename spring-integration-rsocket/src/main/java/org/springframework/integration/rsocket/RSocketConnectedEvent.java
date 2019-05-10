@@ -16,8 +16,6 @@
 
 package org.springframework.integration.rsocket;
 
-import java.util.Arrays;
-
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -67,7 +65,7 @@ public class RSocketConnectedEvent extends IntegrationEvent {
 	public String toString() {
 		return "RSocketConnectedEvent{" +
 				"destination='" + this.destination + '\'' +
-				", data=" + Arrays.toString(this.data.asByteBuffer().array()) +
+				", data length=" + this.data.asByteBuffer().array().length +
 				", requester=" + this.requester +
 				'}';
 	}

@@ -79,7 +79,7 @@ import reactor.test.StepVerifier;
  *
  * @since 5.2
  */
-@SpringJUnitConfig
+@SpringJUnitConfig(RSocketOutboundGatewayIntegrationTests.ClientConfig.class)
 @DirtiesContext
 public class RSocketOutboundGatewayIntegrationTests {
 

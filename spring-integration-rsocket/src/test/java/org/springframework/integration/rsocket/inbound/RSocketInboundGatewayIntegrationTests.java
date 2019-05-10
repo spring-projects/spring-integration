@@ -16,6 +16,8 @@
 
 package org.springframework.integration.rsocket.inbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
 
 import org.junit.jupiter.api.AfterAll;
@@ -32,12 +34,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.RSocketConnectedEvent;
 import org.springframework.integration.rsocket.ServerRSocketConnector;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,6 +52,7 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 import reactor.netty.tcp.TcpServer;
 import reactor.test.StepVerifier;
@@ -56,7 +62,7 @@ import reactor.test.StepVerifier;
  *
  * @since 5.2
  */
-@SpringJUnitConfig
+@SpringJUnitConfig(RSocketInboundGatewayIntegrationTests.ClientConfig.class)
 @DirtiesContext
 public class RSocketInboundGatewayIntegrationTests {
 
@@ -66,13 +72,15 @@ public class RSocketInboundGatewayIntegrationTests {
 
 	private static ServerConfig serverConfig;
 
-	private static FluxMessageChannel serverInputChannel;
+	private static PollableChannel serverFireAndForgetChannelChannel;
+
+	;
 
 	@Autowired
 	private ClientRSocketConnector clientRSocketConnector;
 
 	@Autowired
-	private FluxMessageChannel inputChannel;
+	private PollableChannel fireAndForgetChannelChannel;
 
 	private RSocketRequester serverRsocketRequester;
 
@@ -82,7 +90,7 @@ public class RSocketInboundGatewayIntegrationTests {
 	static void setup() {
 		serverContext = new AnnotationConfigApplicationContext(ServerConfig.class);
 		serverConfig = serverContext.getBean(ServerConfig.class);
-		serverInputChannel = serverContext.getBean("inputChannel", FluxMessageChannel.class);
+		serverFireAndForgetChannelChannel = serverContext.getBean("fireAndForgetChannelChannel", PollableChannel.class);
 	}
 
 	@AfterAll
@@ -103,28 +111,51 @@ public class RSocketInboundGatewayIntegrationTests {
 
 	@Test
 	void clientFireAndForget() {
-		fireAndForget(serverInputChannel, this.clientRsocketRequester);
+		fireAndForget(serverFireAndForgetChannelChannel, this.clientRsocketRequester);
 	}
 
 	@Test
 	void serverFireAndForget() {
-		fireAndForget(this.inputChannel, this.serverRsocketRequester);
+		fireAndForget(this.fireAndForgetChannelChannel, this.serverRsocketRequester);
 	}
 
-	private void fireAndForget(FluxMessageChannel inputChannel, RSocketRequester rsocketRequester) {
-		StepVerifier.create(
-				Flux.from(inputChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.then(() ->
-						rsocketRequester.route("receive")
-								.data("Hello")
-								.send()
-								.subscribe())
-				.expectNext("Hello")
-				.thenCancel()
-				.verify();
+	private void fireAndForget(PollableChannel inputChannel, RSocketRequester rsocketRequester) {
+		rsocketRequester.route("receive")
+				.data("Hello")
+				.send()
+				.subscribe();
+
+		Message<?> receive = inputChannel.receive(10_000);
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("Hello");
 	}
+
+	@Test
+	void clientEcho() {
+		echo(this.clientRsocketRequester);
+	}
+
+	@Test
+	void serverEcho() {
+		echo(this.serverRsocketRequester);
+	}
+
+	private void echo(RSocketRequester rsocketRequester) {
+		Flux<String> result =
+				Flux.range(1, 3)
+						.concatMap(i ->
+								rsocketRequester.route("echo")
+										.data("hello " + i)
+										.retrieveMono(String.class));
+
+		StepVerifier.create(result)
+				.expectNext("HELLO 1", "HELLO 2", "HELLO 3")
+				.expectComplete()
+				.verify(Duration.ofSeconds(10));
+	}
+
 
 	private abstract static class CommonConfig {
 
@@ -138,16 +169,34 @@ public class RSocketInboundGatewayIntegrationTests {
 		}
 
 		@Bean
-		public RSocketInboundGateway rsocketInboundGateway() {
+		public PollableChannel fireAndForgetChannelChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public RSocketInboundGateway rsocketInboundGatewayFireAndForget() {
 			RSocketInboundGateway rsocketInboundGateway = new RSocketInboundGateway("receive");
 			rsocketInboundGateway.setRSocketStrategies(rsocketStrategies());
-			rsocketInboundGateway.setRequestChannel(inputChannel());
+			rsocketInboundGateway.setRequestChannel(fireAndForgetChannelChannel());
 			return rsocketInboundGateway;
 		}
 
 		@Bean
-		public FluxMessageChannel inputChannel() {
+		public RSocketInboundGateway rsocketInboundGatewayRequestReply() {
+			RSocketInboundGateway rsocketInboundGateway = new RSocketInboundGateway("echo");
+			rsocketInboundGateway.setRSocketStrategies(rsocketStrategies());
+			rsocketInboundGateway.setRequestChannel(requestReplyChannel());
+			return rsocketInboundGateway;
+		}
+
+		@Bean
+		public FluxMessageChannel requestReplyChannel() {
 			return new FluxMessageChannel();
+		}
+
+		@Transformer(inputChannel = "requestReplyChannel")
+		public Mono<String> echoTransformation(Flux<String> payload) {
+			return payload.next().map(String::toUpperCase);
 		}
 
 	}

@@ -187,6 +187,7 @@ class IntegrationRSocket extends AbstractRSocket {
 	}
 
 	static DataBuffer payloadToDataBuffer(Payload payload, DataBufferFactory bufferFactory) {
+		payload.retain();
 		try {
 			if (bufferFactory instanceof NettyDataBufferFactory) {
 				ByteBuf byteBuf = payload.sliceData().retain();
