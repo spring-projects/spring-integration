@@ -65,7 +65,6 @@ public class RSocketConnectedEvent extends IntegrationEvent {
 	public String toString() {
 		return "RSocketConnectedEvent{" +
 				"destination='" + this.destination + '\'' +
-				", data length=" + this.data.asByteBuffer().array().length +
 				", requester=" + this.requester +
 				'}';
 	}
