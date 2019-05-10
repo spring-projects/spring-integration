@@ -17,7 +17,7 @@
 package org.springframework.integration.amqp.support;
 
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 
 import com.rabbitmq.client.Channel;
 
@@ -26,6 +26,7 @@ import com.rabbitmq.client.Channel;
  * Used for conversion errors when using manual acks.
  *
  * @author Gary Russell
+ *
  * @since 5.1.3
  *
  */

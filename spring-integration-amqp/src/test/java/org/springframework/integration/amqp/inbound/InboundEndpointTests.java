@@ -42,7 +42,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
-import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -100,7 +100,7 @@ public class InboundEndpointTests {
 		Object payload = new Foo("bar1");
 
 		Transformer objectToJsonTransformer = new ObjectToJsonTransformer();
-		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<Object>(payload));
+		Message<?> jsonMessage = objectToJsonTransformer.transform(new GenericMessage<>(payload));
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		amqpMessageProperties.setDeliveryTag(123L);
@@ -343,7 +343,8 @@ public class InboundEndpointTests {
 		assertThat(payload.getMessage()).contains("Dispatcher has no");
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
+						org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage).isNotNull();
 		assertThat(errors.receive(0)).isNull();
 	}
@@ -370,7 +371,8 @@ public class InboundEndpointTests {
 		assertThat(payload.getMessage()).contains("Dispatcher has no");
 		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get()).isEqualTo(3);
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
+						org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage).isNotNull();
 		assertThat(errors.receive(0)).isNull();
 	}

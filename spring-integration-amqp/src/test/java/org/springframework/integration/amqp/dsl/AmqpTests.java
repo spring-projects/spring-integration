@@ -36,7 +36,7 @@ import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,7 +168,7 @@ public class AmqpTests {
 	private MessageChannel amqpAsyncOutboundFlowInput;
 
 	@Test
-	public void testAmqpAsyncOutboundGatewayFlow() throws Exception {
+	public void testAmqpAsyncOutboundGatewayFlow() {
 		QueueChannel replyChannel = new QueueChannel();
 		this.amqpAsyncOutboundFlowInput.send(MessageBuilder.withPayload("async gateway")
 				.setReplyChannel(replyChannel)
