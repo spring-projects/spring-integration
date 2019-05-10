@@ -74,8 +74,6 @@ public class RSocketInboundGatewayIntegrationTests {
 
 	private static PollableChannel serverFireAndForgetChannelChannel;
 
-	;
-
 	@Autowired
 	private ClientRSocketConnector clientRSocketConnector;
 
