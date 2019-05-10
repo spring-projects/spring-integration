@@ -37,17 +37,17 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * The {@link AbstractRequestHandlerAdvice} implementation for caching
- * {@link AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)} results.
+ * {@code AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)} results.
  * Supports all the cache operations - cacheable, put, evict.
  * By default only cacheable is applied for the provided {@code cacheNames}.
  * The default cache {@code key} is {@code payload} of the request message.
@@ -56,16 +56,34 @@ import org.springframework.util.ReflectionUtils;
  *
  * @since 5.2
  *
- * @see AbstractReplyProducingMessageHandler.RequestHandler
  * @see CacheAspectSupport
  * @see CacheOperation
  */
 public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 		implements SmartInitializingSingleton {
 
-	private static final Method HANDLE_REQUEST_METHOD =
-			ReflectionUtils.findMethod(AbstractReplyProducingMessageHandler.RequestHandler.class,
-					"handleRequestMessage", Message.class);
+	private static final Method HANDLE_REQUEST_METHOD;
+
+	static {
+		Class<?> requestHandlerClass = null;
+		try {
+			requestHandlerClass = ClassUtils.forName(
+					"org.springframework.integration.handler.AbstractReplyProducingMessageHandler.RequestHandler",
+					null);
+		}
+		catch (ClassNotFoundException ex) {
+			throw new IllegalStateException(ex);
+		}
+		finally {
+			if (requestHandlerClass != null) {
+				HANDLE_REQUEST_METHOD =
+						ReflectionUtils.findMethod(requestHandlerClass, "handleRequestMessage", Message.class);
+			}
+			else {
+				HANDLE_REQUEST_METHOD = null;
+			}
+		}
+	}
 
 	private final IntegrationCacheAspect delegate = new IntegrationCacheAspect();
 
@@ -91,7 +109,7 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 
 	/**
 	 * Configure a set of {@link CacheOperation} which are going to be applied to the
-	 * {@link AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)}
+	 * {@code AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage(Message)}
 	 * method via {@link IntegrationCacheAspect}.
 	 * This is similar to the technique provided by the
 	 * {@link org.springframework.cache.annotation.Caching} annotation.
