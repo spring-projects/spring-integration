@@ -62,29 +62,57 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private Mono<RSocket> rsocketMono;
 
+	/**
+	 * Instantiate a connector based on the {@link TcpClientTransport}.
+	 * @param host the TCP host to connect.
+	 * @param port the TCP port to connect.
+	 * @see #ClientRSocketConnector(ClientTransport)
+	 */
 	public ClientRSocketConnector(String host, int port) {
 		this(TcpClientTransport.create(host, port));
 	}
 
+	/**
+	 * Instantiate a connector based on the {@link WebsocketClientTransport}.
+	 * @param uri the WebSocket URI to connect.
+	 * @see #ClientRSocketConnector(ClientTransport)
+	 */
 	public ClientRSocketConnector(URI uri) {
 		this(WebsocketClientTransport.create(uri));
 	}
 
+	/**
+	 * Instantiate a connector based on the provided {@link ClientTransport}.
+	 * @param clientTransport the {@link ClientTransport} to use.
+	 */
 	public ClientRSocketConnector(ClientTransport clientTransport) {
 		super(new IntegrationRSocketAcceptor());
 		Assert.notNull(clientTransport, "'clientTransport' must not be null");
 		this.clientTransport = clientTransport;
 	}
 
+	/**
+	 * Specify a {@link Consumer} for  configuring a {@link RSocketFactory.ClientRSocketFactory}.
+	 * @param factoryConfigurer the {@link Consumer} to configure the {@link RSocketFactory.ClientRSocketFactory}.
+	 */
 	public void setFactoryConfigurer(Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer) {
 		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
 		this.factoryConfigurer = factoryConfigurer;
 	}
 
+	/**
+	 * Configure a route for server RSocket endpoint.
+	 * @param connectRoute the route to connect to.
+	 */
 	public void setConnectRoute(String connectRoute) {
 		this.connectRoute = connectRoute;
 	}
 
+	/**
+	 * Configure a data for connect.
+	 * Defaults to empty string.
+	 * @param connectData the data for connect frame.
+	 */
 	public void setConnectData(String connectData) {
 		Assert.notNull(connectData, "'connectData' must not be null");
 		this.connectData = connectData;

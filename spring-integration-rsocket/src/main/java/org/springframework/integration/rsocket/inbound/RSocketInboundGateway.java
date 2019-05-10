@@ -55,6 +55,7 @@ import reactor.core.publisher.MonoProcessor;
 
 /**
  * The {@link MessagingGatewaySupport} implementation for the {@link IntegrationRSocketEndpoint}.
+ * Represents an inbound endpoint for RSocket requests.
  * <p>
  * May be configured with the {@link AbstractRSocketConnector} for mapping registration.
  * Or existing {@link AbstractRSocketConnector} bean(s) will perform detection automatically.
@@ -92,6 +93,10 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@Nullable
 	private ResolvableType requestElementType;
 
+	/**
+	 * Instantiate based on the provided path patterns to map this endpoint for incoming RSocket requests.
+	 * @param path the mapping patterns to use.
+	 */
 	public RSocketInboundGateway(String... path) {
 		Assert.notNull(path, "'path' must not be null");
 		this.path = path;

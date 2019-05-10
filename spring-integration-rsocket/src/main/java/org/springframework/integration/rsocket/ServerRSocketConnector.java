@@ -69,25 +69,49 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 	private Mono<? extends Closeable> serverMono;
 
+	/**
+	 * Instantiate a server connector based on the {@link TcpServerTransport}.
+	 * @param bindAddress the local address to bind TCP server onto.
+	 * @param port the local TCP port to bind.
+	 * @see #ServerRSocketConnector(ServerTransport)
+	 */
 	public ServerRSocketConnector(String bindAddress, int port) {
 		this(TcpServerTransport.create(bindAddress, port));
 	}
 
+	/**
+	 * Instantiate a server connector based on the {@link WebsocketServerTransport}.
+	 * @param server the {@link HttpServer} to use.
+	 * @see #ServerRSocketConnector(ServerTransport)
+	 */
 	public ServerRSocketConnector(HttpServer server) {
 		this(WebsocketServerTransport.create(server));
 	}
 
+	/**
+	 * Instantiate a server connector based on the provided {@link ServerTransport}.
+	 * @param serverTransport the {@link ServerTransport} to make server based on.
+	 */
 	public ServerRSocketConnector(ServerTransport<? extends Closeable> serverTransport) {
 		super(new ServerRSocketAcceptor());
 		Assert.notNull(serverTransport, "'serverTransport' must not be null");
 		this.serverTransport = serverTransport;
 	}
 
+	/**
+	 * Provide a {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
+	 * @param factoryConfigurer the {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
+	 */
 	public void setFactoryConfigurer(Consumer<RSocketFactory.ServerRSocketFactory> factoryConfigurer) {
 		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
 		this.factoryConfigurer = factoryConfigurer;
 	}
 
+	/**
+	 * Configure a strategy to determine a key for the client {@link RSocketRequester} connected.
+	 * Defaults to the {@code destination} the client is connected.
+	 * @param clientRSocketKeyStrategy the {@link BiFunction} to determine a key for client {@link RSocketRequester}s.
+	 */
 	public void setClientRSocketKeyStrategy(BiFunction<String, DataBuffer, Object> clientRSocketKeyStrategy) {
 		Assert.notNull(clientRSocketKeyStrategy, "'clientRSocketKeyStrategy' must not be null");
 		serverRSocketAcceptor().clientRSocketKeyStrategy = clientRSocketKeyStrategy;
