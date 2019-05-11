@@ -128,7 +128,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	 * @return the mapping path
 	 */
 	public String[] getPath() {
-		return this.path;
+		return Arrays.copyOf(this.path, this.path.length);
 	}
 
 	/**
@@ -156,9 +156,10 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.rsocketConnector != null) {
-			this.rsocketConnector.addEndpoint(this);
-			this.rsocketStrategies = this.rsocketConnector.getRSocketStrategies();
+		AbstractRSocketConnector rsocketConnectorToUse = this.rsocketConnector;
+		if (rsocketConnectorToUse != null) {
+			rsocketConnectorToUse.addEndpoint(this);
+			this.rsocketStrategies = rsocketConnectorToUse.getRSocketStrategies();
 		}
 	}
 

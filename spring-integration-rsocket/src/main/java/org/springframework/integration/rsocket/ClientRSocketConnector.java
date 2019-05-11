@@ -18,7 +18,6 @@ package org.springframework.integration.rsocket;
 
 import java.net.URI;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
@@ -37,7 +36,7 @@ import reactor.core.publisher.Mono;
 /**
  * A client {@link AbstractRSocketConnector} extension to the RSocket server.
  * <p>
- * Note: the {@link RSocketFactory.ClientRSocketFactory#acceptor(Function)}
+ * Note: the {@link RSocketFactory.ClientRSocketFactory#acceptor(java.util.function.Function)}
  * in the provided {@link #factoryConfigurer} is overridden with an internal {@link IntegrationRSocketAcceptor}
  * for the proper Spring Integration channel adapter mappings.
  *
