@@ -37,7 +37,6 @@ import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.MimeType;
 import org.springframework.util.ReflectionUtils;
 
-import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 
 /**
@@ -66,7 +65,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Functi
 	/**
 	 * Configure the default content type to use for data payloads.
 	 * <p>By default this is not set. However a server acceptor will use the
-	 * content type from the {@link ConnectionSetupPayload}, so this is typically
+	 * content type from the {@link io.rsocket.ConnectionSetupPayload}, so this is typically
 	 * required for clients but can also be used on servers as a fallback.
 	 * @param defaultDataMimeType the MimeType to use
 	 */

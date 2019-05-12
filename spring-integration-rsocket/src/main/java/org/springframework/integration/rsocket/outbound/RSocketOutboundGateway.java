@@ -197,8 +197,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 			requesterMono = this.rsocketRequesterMono;
 		}
 
-		Assert.notNull(requesterMono, () ->
-				"The 'RSocketRequester' must be configured via 'ClientRSocketConnector' or provided in the '" +
+		Assert.notNull(requesterMono,
+				() -> "The 'RSocketRequester' must be configured via 'ClientRSocketConnector' or provided in the '" +
 						RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER + "' request message headers.");
 
 		return requesterMono
@@ -207,13 +207,13 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
 	}
 
-	private RSocketRequester.RequestSpec createRequestSpec(RSocketRequester rSocketRequester,
+	private RSocketRequester.RequestSpec createRequestSpec(RSocketRequester rsocketRequester,
 			Message<?> requestMessage) {
 
 		String route = this.routeExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(route, () -> "The 'routeExpression' [" + this.routeExpression + "] must not evaluate to null");
 
-		return rSocketRequester.route(route);
+		return rsocketRequester.route(route);
 	}
 
 	private RSocketRequester.ResponseSpec createResponseSpec(RSocketRequester.RequestSpec requestSpec,
@@ -244,8 +244,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Mono<?> performRequest(RSocketRequester.ResponseSpec responseSpec, Message<?> requestMessage) {
 		Command command = this.commandExpression.getValue(this.evaluationContext, requestMessage, Command.class);
-		Assert.notNull(command, () -> "The 'commandExpression' [" + this.commandExpression +
-				"] must not evaluate to null");
+		Assert.notNull(command,
+				() -> "The 'commandExpression' [" + this.commandExpression + "] must not evaluate to null");
 
 		Object expectedResponseType = null;
 		if (!Command.fireAndForget.equals(command)) {

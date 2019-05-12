@@ -61,12 +61,14 @@ public abstract class AbstractRSocketConnector
 
 	private volatile boolean running;
 
-	private ApplicationContext applicationContext;
-
 	protected AbstractRSocketConnector(IntegrationRSocketAcceptor rsocketAcceptor) {
 		this.rsocketAcceptor = rsocketAcceptor;
 	}
 
+	/**
+	 * Configure a {@link MimeType} for data exchanging.
+	 * @param dataMimeType the {@link MimeType} to use.
+	 */
 	public void setDataMimeType(MimeType dataMimeType) {
 		Assert.notNull(dataMimeType, "'dataMimeType' must not be null");
 		this.dataMimeType = dataMimeType;
@@ -76,6 +78,10 @@ public abstract class AbstractRSocketConnector
 		return this.dataMimeType;
 	}
 
+	/**
+	 * Configure a {@link RSocketStrategies} for data encoding/decoding.
+	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
+	 */
 	public void setRSocketStrategies(RSocketStrategies rsocketStrategies) {
 		Assert.notNull(rsocketStrategies, "'rsocketStrategies' must not be null");
 		this.rsocketStrategies = rsocketStrategies;
@@ -85,6 +91,11 @@ public abstract class AbstractRSocketConnector
 		return this.rsocketStrategies;
 	}
 
+	/**
+	 * Configure {@link IntegrationRSocketEndpoint} instances for mapping nad handling requests.
+	 * @param endpoints the {@link IntegrationRSocketEndpoint} instances for handling inbound requests.
+	 * @see #addEndpoint(IntegrationRSocketEndpoint)
+	 */
 	public void setEndpoints(IntegrationRSocketEndpoint... endpoints) {
 		Assert.notNull(endpoints, "'endpoints' must not be null");
 		for (IntegrationRSocketEndpoint endpoint : endpoints) {
@@ -92,18 +103,17 @@ public abstract class AbstractRSocketConnector
 		}
 	}
 
+	/**
+	 * Add an {@link IntegrationRSocketEndpoint} for mapping and handling RSocket requests.
+	 * @param endpoint the {@link IntegrationRSocketEndpoint} to map.
+	 */
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
 		this.rsocketAcceptor.addEndpoint(endpoint);
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
 		this.rsocketAcceptor.setApplicationContext(applicationContext);
-	}
-
-	protected ApplicationContext getApplicationContext() {
-		return this.applicationContext;
 	}
 
 	@Override

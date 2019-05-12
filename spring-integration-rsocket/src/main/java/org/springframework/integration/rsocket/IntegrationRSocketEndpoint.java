@@ -33,6 +33,10 @@ import org.springframework.messaging.ReactiveMessageHandler;
  */
 public interface IntegrationRSocketEndpoint extends ReactiveMessageHandler {
 
+	/**
+	 * Obtain path patterns this {@link ReactiveMessageHandler} is going to be mapped onto.
+	 * @return the path patterns for mapping.
+	 */
 	String[] getPath();
 
 }

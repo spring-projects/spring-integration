@@ -42,13 +42,12 @@ import org.springframework.util.MimeType;
 import io.netty.buffer.ByteBuf;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
-import io.rsocket.RSocket;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 
 /**
- * Implementation of {@link RSocket} that wraps incoming requests with a
+ * Implementation of {@link io.rsocket.RSocket} that wraps incoming requests with a
  * {@link Message}, delegates to a {@link Function} for handling, and then
  * obtains the response from a "reply" header.
  * <p>
