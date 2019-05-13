@@ -31,7 +31,7 @@ See <<scripting>> for more information.
 The `JsonToObjectTransformer` now supports generics for the target object to deserialize into.
 See <<json-transformers>> for more information.
 
-RThe `splitter` now supports a `discardChannel` configuration option.
+The `splitter` now supports a `discardChannel` configuration option.
 See <<splitter>> for more information.
 
 [[x5.2-amqp]]

@@ -197,7 +197,7 @@ The following example shows how to configure a basic multicast inbound udp chann
 ----
 ====
 
-By default, reverse DNS lookups are done on inbound packets to convert IP addresses to hostnames for use in message headers.
+By default, reverse DNS lookups are done on inbound packets to convert IP addresses to host names for use in message headers.
 In environments where DNS is not configured, this can cause delays.
 You can override this default behavior by setting the `lookup-host` attribute to `false`.
 
@@ -233,8 +233,7 @@ public IntegrationFlow udpIn() {
 
 Starting with version 5.0.2, a `UdpServerListeningEvent` is emitted when an inbound adapter is started and has begun listening.
 This is useful when the adapter is configured to listen on port 0, meaning that the operating system chooses the port.
-It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will
-connect to the socket.
+It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will connect to the socket.
 
 ==== Advanced Outbound Configuration
 
@@ -427,8 +426,7 @@ The default maximum message size is 2048 bytes.
 You can increase it by setting the `maxMessageSize` property.
 If you use the default serializer or deserializer and wish to increase the maximum message size, you must declare the maximum message size as an explicit bean with the `maxMessageSize` property set and configure the connection factory to use that bean.
 
-The classes marked with ^*^ earlier in this section use an intermediate buffer and copy the decoded data to a final buffer of the correct
-size.
+The classes marked with ^*^ earlier in this section use an intermediate buffer and copy the decoded data to a final buffer of the correct size.
 Starting with version 4.3, you can configure these buffers by setting a `poolSize` property to let these raw buffers be reused instead of being allocated and discarded for each message, which is the default behavior.
 Setting the property to a negative value creates a pool that has no bounds.
 If the pool is bounded, you can also set the `poolWaitTimeout` property (in milliseconds), after which an exception is thrown if no buffer becomes available.
@@ -480,12 +478,12 @@ A server connection factory that uses `java.net.Socket` connections and uses Jav
 
 For full details of the attributes available on connection factories, see <<ip-annotation,the reference>> at the end of this section.
 
-By default, reverse DNS lookups are done on inbound packets to convert IP addresses to hostnames for use in message headers.
+By default, reverse DNS lookups are done on inbound packets to convert IP addresses to host names for use in message headers.
 In environments where DNS is not configured, this can cause connection delays.
 You can override this default behavior by setting the `lookup-host` attribute to `false`.
 
 NOTE: You can also modify the attributes of sockets and socket factories.
-See <<ssl-tls>>.
+See <<ssl-tls>> for more information.
 As noted there, such modifications are possible whether or not SSL is being used.
 
 ==== Custom Serializers and Deserializers
@@ -650,9 +648,7 @@ Applications can use a normal `ApplicationListener` or an `ApplicationEventListe
 Starting with versions 4.0.7 and 4.1.3, `TcpConnectionServerExceptionEvent` instances are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
 These events have a reference to the connection factory and the cause.
 
-Starting with version 4.2, `TcpConnectionFailedCorrelationEvent` instances are published whenever an endpoint (inbound gateway or
-collaborating outbound channel adapter) receives a message that cannot be routed to a connection because the
-`ip_connectionId` header is invalid.
+Starting with version 4.2, `TcpConnectionFailedCorrelationEvent` instances are published whenever an endpoint (inbound gateway or collaborating outbound channel adapter) receives a message that cannot be routed to a connection because the `ip_connectionId` header is invalid.
 Outbound gateways also publish this event when a late reply is received (the sender thread has timed out).
 The event contains the connection ID as well as an exception in the `cause` property, which contains the failed message.
 
@@ -740,15 +736,15 @@ In this case, the connection factory must be of type `client` and must have `sin
 
 Two additional attributes support this mechanism.
 The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
-`scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
+The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
 If you don't provide a scheduler, the framework's default <<namespace-taskscheduler, taskScheduler>> bean is used.
 
 For an outbound adapter, the connection is normally established when the first message is sent.
-`client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.
+The `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.
 By default, adapters are automatically started.
 Again, the connection factory must be of type `client` and have `single-use="false"`.
-`retry-interval` and `scheduler` are also supported.
+A `retry-interval` and `scheduler` are also supported.
 If a connection fails, it is re-established either by the scheduler or when the next message is sent.
 
 For both inbound and outbound, if the adapter is started, you can force the adapter to establish a connection by sending a `<control-bus />` command: `@adapter_id.retryConnection()`.
@@ -952,11 +948,11 @@ A message sent with the preceding configuration, with a payload of 'something' w
 ----
 ====
 
-[[note_nio]]
+[[note-nio]]
 === About Non-blocking I/O (NIO)
 
 Using NIO (see `using-nio` in <<ip-endpoint-reference>>) avoids dedicating a thread to read from each socket.
-For a small number of sockets, you are likely to find that not using NIO, together with an asynchronous handoff (such as to a `QueueChannel`), performs as well as or better than using NIO.
+For a small number of sockets, you are likely to find that not using NIO, together with an asynchronous hand-off (such as to a `QueueChannel`), performs as well as or better than using NIO.
 
 You should consider using NIO when handling a large number of connections.
 However, the use of NIO has some other ramifications.
@@ -968,7 +964,7 @@ Strict ordering of the messages arriving on the socket is not maintained.
 
 For some applications, this is not an issue.
 For others, it is a problem.
-If you require strict ordering, consider setting `using-nio` to `false` and using an asynchronous handoff.
+If you require strict ordering, consider setting `using-nio` to `false` and using an asynchronous hand-off.
 
 Alternatively, you can insert a resequencer downstream of the inbound endpoint to return the messages to their proper sequence.
 If you set `apply-sequence` to `true` on the connection factory, messages arriving on a TCP connection have `sequenceNumber` and `correlationId` headers set.
@@ -1113,7 +1109,7 @@ The default implementations of these interfaces provide for the simplest way to 
 Regardless of whether you use NIO, you need to configure the `ssl-context-support` attribute on the connection factory.
 This attribute references a <bean/> definition that describes the location and passwords for the required key stores.
 
-SSL/TLS peers require two keystores each:
+SSL/TLS peers require two key stores each:
 
 * A keystore that contains private and public key pairs to identify the peer
 * A truststore that contains the public keys for peers that are trusted.
@@ -1150,7 +1146,7 @@ The following example configures an SSL connection:
 ----
 ====
 
-The `DefaulTcpSSLContextSupport` class also has an optional `protocol` property, which can be `SSL` or `TLS` (the default).
+The `DefaultTcpSSLContextSupport` class also has an optional `protocol` property, which can be `SSL` or `TLS` (the default).
 
 The keystore file names (the first two constructor arguments) use the Spring `Resource` abstraction.
 By default, the files are located on the classpath, but you can override this by using the `file:` prefix (to find the files on the filesystem instead).
@@ -1304,7 +1300,7 @@ public interface TcpNetConnectionSupport {
 ====
 
 This interface is invoked to create objects of type `TcpNetConnection` (or its subclasses).
-The framework provides a single implementation (`DefatulTcpNetConnectionSupport`), which, by default, creates simple `TcpNetConnection` objects.
+The framework provides a single implementation (`DefaultTcpNetConnectionSupport`), which, by default, creates simple `TcpNetConnection` objects.
 It has two properties: `pushbackCapable` and `pushbackBufferSize`.
 When push back is enabled, the implementation returns a subclass that wraps the connection's `InputStream` in a `PushbackInputStream`.
 Aligned with the `PushbackInputStream` default, the buffer size defaults to 1.
@@ -1778,8 +1774,7 @@ One thread is dedicated to handling acknowledgments (if the `acknowledge` option
 
 | `destination-expression`
 | SpEL expression
-| A SpEL expression to be evaluated to determine which `SocketAddress` to use as a destination address for the
-outgoing UDP packets.
+| A SpEL expression to be evaluated to determine which `SocketAddress` to use as a destination address for the outgoing UDP packets.
 
 | `socket-expression`
 | SpEL expression
@@ -2023,18 +2018,16 @@ Described after this table.
 Note that, unlike the other header constants, this constant is in the `MessageHeaders` class, not the `IpHeaders` class.
 |===
 
-For inbound messages, `ip_hostname`, `ip_address`, `ip_tcp_remotePort`, and `ip_connectionId` are mapped by the default
-`TcpHeaderMapper`.
+For inbound messages, `ip_hostname`, `ip_address`, `ip_tcp_remotePort`, and `ip_connectionId` are mapped by the default `TcpHeaderMapper`.
 If you set the mapper's `addContentTypeHeader` property to `true`, the mapper sets the `contentType` header (`application/octet-stream;charset="UTF-8"`, by default).
 You can change the default by setting the `contentType` property.
 You can add additional headers by subclassing `TcpHeaderMapper` and overriding the `supplyCustomHeaders` method.
-For example, when you use SSL, you can add properties of the `SSLSession` by obtaining the session object from the
-`TcpConnection` object, which is provided as an argument to the `supplyCustomHeaders` method.
+For example, when you use SSL, you can add properties of the `SSLSession` by obtaining the session object from the `TcpConnection` object, which is provided as an argument to the `supplyCustomHeaders` method.
 
 For outbound messages, `String` payloads are converted to `byte[]` with the default (`UTF-8`) charset.
 Set the `charset` property to change the default.
 
-When customizing the mapper properties or subclassing, declare the mapper as a bean and provide an instance to the connection factory by using the `mapper` property
+When customizing the mapper properties or subclassing, declare the mapper as a bean and provide an instance to the connection factory by using the `mapper` property.
 
 [[ip-annotation]]
 === Annotation-Based Configuration
