@@ -39,6 +39,7 @@ import org.springframework.integration.ip.AbstractInternetProtocolReceivingChann
  *
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class SocketTestUtils {
@@ -78,14 +79,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -110,14 +113,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -149,14 +154,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -201,14 +208,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -241,7 +250,9 @@ public class SocketTestUtils {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -277,14 +288,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -311,8 +324,8 @@ public class SocketTestUtils {
 				}
 				socket.close();
 			}
-			catch (Exception e) {
-				e.printStackTrace();
+			catch (Exception ex) {
+				logger.error(ex);
 			}
 		});
 		thread.setDaemon(true);
@@ -331,8 +344,8 @@ public class SocketTestUtils {
 				outputStream.write(TEST_STRING.getBytes());
 				socket.close();
 			}
-			catch (Exception e) {
-				e.printStackTrace();
+			catch (Exception ex) {
+				logger.error(ex);
 			}
 		});
 		thread.setDaemon(true);
@@ -358,14 +371,16 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.error(e1);
 			}
 			finally {
 				if (socket != null) {
 					try {
 						socket.close();
 					}
-					catch (IOException e2) { }
+					catch (IOException e2) {
+
+					}
 				}
 			}
 		});
@@ -389,7 +404,9 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 				socket.close();
 			}
-			catch (Exception e) { }
+			catch (Exception e) {
+
+			}
 		});
 		thread.setDaemon(true);
 		thread.start();

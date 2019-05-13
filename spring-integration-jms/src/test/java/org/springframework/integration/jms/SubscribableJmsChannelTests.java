@@ -368,7 +368,9 @@ public class SubscribableJmsChannelTests extends ActiveMQMultiContextTests {
 				try {
 					Thread.sleep(100);
 				}
-				catch (InterruptedException e) { }
+				catch (InterruptedException e) {
+
+				}
 				timeout -= 100;
 			}
 			return false;

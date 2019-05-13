@@ -134,7 +134,9 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				try {
 					Thread.sleep(6000);
 				}
-				catch (Exception e2) { /*ignore*/ }
+				catch (Exception e2) {
+					/*ignore*/
+				}
 			}
 			try {
 				TextMessage replyMessage = session.createTextMessage();

@@ -207,7 +207,9 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				try {
 					gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));
 				}
-				catch (Exception e) { /*ignore*/ }
+				catch (Exception e) {
+					/*ignore*/
+				}
 
 			}
 
