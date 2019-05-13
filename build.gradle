@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.3.21'
+	ext.kotlinVersion = '1.3.31'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -13,7 +13,7 @@ buildscript {
 plugins {
 	id 'org.sonarqube' version '2.7'
 	id 'org.asciidoctor.convert' version '1.5.9.2'
-	id 'org.ajoberstar.grgit' version '3.0.0'
+	id 'org.ajoberstar.grgit' version '3.1.1'
 }
 
 description = 'Spring Integration'
@@ -89,11 +89,11 @@ subprojects { subproject ->
 	ext {
 		activeMqVersion = '5.15.9'
 		apacheSshdVersion = '2.2.0'
-		aspectjVersion = '1.9.2'
+		aspectjVersion = '1.9.4'
 		assertjVersion = '3.12.2'
-		assertkVersion = '0.13'
+		assertkVersion = '0.14'
 		boonVersion = '0.34'
-		commonsDbcp2Version = '2.5.0'
+		commonsDbcp2Version = '2.6.0'
 		commonsIoVersion = '2.6'
 		commonsNetVersion = '3.6'
 		curatorVersion = '4.0.1'
@@ -101,20 +101,20 @@ subprojects { subproject ->
 		eclipseLinkVersion = '2.7.4'
 		ftpServerVersion = '1.1.1'
 		googleJsr305Version = '3.0.2'
-		groovyVersion = '2.5.6'
+		groovyVersion = '2.5.7'
 		guavaVersion = '26.0-jre'
 		hamcrestVersion = '1.3'
-		hazelcastVersion = '3.11.2'
+		hazelcastVersion = '3.12'
 		hibernateVersion = '5.4.2.Final'
 		hsqldbVersion = '2.4.1'
-		h2Version = '1.4.197'
+		h2Version = '1.4.199'
 		jackson2Version = '2.9.8'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.2'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.2.1'
-		jrubyVersion = '9.2.6.0'
+		jrubyVersion = '9.2.7.0'
 		jschVersion = '0.1.55'
 		jsonpathVersion = '2.4.0'
 		junit4Version = '4.12'
@@ -124,26 +124,26 @@ subprojects { subproject ->
 		kryoShadedVersion = '4.0.2'
 		lettuceVersion = '5.1.6.RELEASE'
 		log4jVersion = '2.11.2'
-		micrometerVersion = '1.1.3'
+		micrometerVersion = '1.1.4'
 		mockitoVersion = '2.25.1'
-		mysqlVersion = '8.0.15'
+		mysqlVersion = '8.0.16'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.2.5'
-		reactorNettyVersion = '0.8.6.RELEASE'
-		reactorVersion = '3.2.8.RELEASE'
+		reactorNettyVersion = '0.8.8.RELEASE'
+		reactorVersion = '3.2.9.RELEASE'
 		romeToolsVersion = '1.9.0'
 		servletApiVersion = '4.0.0'
 		smackVersion = '4.3.3'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.5.RELEASE'
-		springDataJpaVersion = '2.1.6.RELEASE'
-		springDataMongoVersion = '2.1.6.RELEASE'
-		springDataRedisVersion = '2.1.6.RELEASE'
-		springGemfireVersion = '2.1.6.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.6.RELEASE'
+		springDataJpaVersion = '2.1.7.RELEASE'
+		springDataMongoVersion = '2.1.7.RELEASE'
+		springDataRedisVersion = '2.1.7.RELEASE'
+		springGemfireVersion = '2.1.7.RELEASE'
 		springSecurityVersion = '5.1.5.RELEASE'
 		springRetryVersion = '1.2.4.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.6.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.7.RELEASE'
 		springWsVersion = '3.0.7.RELEASE'
-		tomcatVersion = "9.0.17"
+		tomcatVersion = "9.0.19"
 		xstreamVersion = '1.4.11.1'
 	}
 
@@ -154,7 +154,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.8.2"
+		toolVersion = "0.8.3"
 	}
 
 	// dependencies that are common across all java projects
