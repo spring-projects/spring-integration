@@ -24,10 +24,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.Test;
 
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.batch.MessageBatch;
+import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -122,5 +126,40 @@ public class AmqpMessageSourceTests {
 		verify(channel).close();
 		verify(connection).close(30000);
 	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public void testBatch() throws Exception {
+		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		org.springframework.amqp.core.Message message =
+				new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties);
+		bs.addToBatch("foo", "bar", message);
+		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
+		MessageBatch batched = bs.addToBatch("foo", "bar", message);
+
+		Channel channel = mock(Channel.class);
+		willReturn(true).given(channel).isOpen();
+		Envelope envelope = new Envelope(123L, false, "ex", "rk");
+		BasicProperties props = new BasicProperties.Builder()
+				.headers(batched.getMessage().getMessageProperties().getHeaders())
+				.contentType("text/plain")
+				.build();
+		GetResponse getResponse = new GetResponse(envelope, props, batched.getMessage().getBody(), 0);
+		willReturn(getResponse).given(channel).basicGet("foo", false);
+		Connection connection = mock(Connection.class);
+		willReturn(true).given(connection).isOpen();
+		willReturn(channel).given(connection).createChannel();
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		willReturn(connection).given(connectionFactory).newConnection((ExecutorService) isNull(), anyString());
+
+		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
+		AmqpMessageSource source = new AmqpMessageSource(ccf, "foo");
+		Message<?> received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
+	}
+
 
 }

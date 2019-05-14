@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,8 @@ import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.batch.MessageBatch;
+import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -375,6 +378,54 @@ public class InboundEndpointTests {
 						org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage).isNotNull();
 		assertThat(errors.receive(0)).isNull();
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public void testBatchdAdapter() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
+		container.setDeBatchingEnabled(false);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel out = new QueueChannel();
+		adapter.setOutputChannel(out);
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		org.springframework.amqp.core.Message message =
+				new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties);
+		bs.addToBatch("foo", "bar", message);
+		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
+		MessageBatch batched = bs.addToBatch("foo", "bar", message);
+		listener.onMessage(batched.getMessage(), null);
+		Message<?> received = out.receive();
+		assertThat(received).isNotNull();
+		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public void testBatchGateway() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
+		container.setDeBatchingEnabled(false);
+		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
+		QueueChannel out = new QueueChannel();
+		adapter.setRequestChannel(out);
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
+		MessageProperties messageProperties = new MessageProperties();
+		messageProperties.setContentType("text/plain");
+		org.springframework.amqp.core.Message message =
+				new org.springframework.amqp.core.Message("test1".getBytes(), messageProperties);
+		bs.addToBatch("foo", "bar", message);
+		message = new org.springframework.amqp.core.Message("test2".getBytes(), messageProperties);
+		MessageBatch batched = bs.addToBatch("foo", "bar", message);
+		listener.onMessage(batched.getMessage(), null);
+		Message<?> received = out.receive();
+		assertThat(received).isNotNull();
+		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
 	}
 
 	public static class Foo {

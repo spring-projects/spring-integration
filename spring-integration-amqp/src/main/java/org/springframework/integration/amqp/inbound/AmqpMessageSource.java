@@ -18,12 +18,16 @@ package org.springframework.integration.amqp.inbound;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.batch.BatchingStrategy;
+import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.RabbitUtils;
@@ -70,6 +74,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 	private MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private boolean rawMessageHeader;
+
+	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
 	public AmqpMessageSource(ConnectionFactory connectionFactory, String queue) {
 		this(connectionFactory, new AmqpAckCallbackFactory(), queue);
@@ -151,6 +157,21 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		this.rawMessageHeader = rawMessageHeader;
 	}
 
+	protected BatchingStrategy getBatchingStrategy() {
+		return this.batchingStrategy;
+	}
+
+	/**
+	 * Set a batching strategy to use when de-batching messages.
+	 * Default is {@link SimpleBatchingStrategy}.
+	 * @param batchingStrategy the strategy.
+	 * @since 5.2
+	 */
+	public void setBatchingStrategy(BatchingStrategy batchingStrategy) {
+		Assert.notNull(batchingStrategy, "'batchingStrategy' cannot be null");
+		this.batchingStrategy = batchingStrategy;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "amqp:message-source";
@@ -174,7 +195,16 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 			messageProperties.setConsumerQueue(this.queue);
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
 			org.springframework.amqp.core.Message amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
-			Object payload = this.messageConverter.fromMessage(amqpMessage);
+			Object payload;
+			if (this.batchingStrategy.canDebatch(messageProperties)) {
+				List<Object> payloads = new ArrayList<>();
+				this.batchingStrategy.deBatch(amqpMessage, fragment -> payloads
+						.add(this.messageConverter.fromMessage(fragment)));
+				payload = payloads;
+			}
+			else {
+				payload = this.messageConverter.fromMessage(amqpMessage);
+			}
 			AbstractIntegrationMessageBuilder<Object> builder = getMessageBuilderFactory().withPayload(payload)
 					.copyHeaders(headers)
 					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, callback);
