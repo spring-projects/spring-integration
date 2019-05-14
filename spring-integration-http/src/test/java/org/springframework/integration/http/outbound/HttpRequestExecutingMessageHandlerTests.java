@@ -27,7 +27,11 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
@@ -763,7 +767,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		try {
 			handler.handleMessage(message);
 		}
-		catch (Exception ignored) { }
+		catch (Exception ignored) {
+		}
 		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://example.com?query=test-%C3%A4%C3%B6%C3%BC%26%25");
 	}
 
@@ -785,7 +790,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		try {
 			handler.handleMessage(message);
 		}
-		catch (Exception ignored) { }
+		catch (Exception ignored) {
+		}
 		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://example.com?query=test-äöü");
 	}
 
