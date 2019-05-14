@@ -301,7 +301,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 						: UriComponentsBuilder.fromUri((URI) uri);
 		UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 		try {
-			return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
+			return this.encodeUri ? uriComponents.encode().toUri() : new URI(uriComponents.toUriString());
 		}
 		catch (URISyntaxException e) {
 			throw new MessageHandlingException(requestMessage, "Invalid URI [" + uri + "]", e);
