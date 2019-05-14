@@ -73,6 +73,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ * @author Florian Schöffl
  *
  * @since 5.0
  */
