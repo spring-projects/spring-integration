@@ -16,11 +16,15 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.batch.BatchingStrategy;
+import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -69,6 +73,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private RecoveryCallback<? extends Object> recoveryCallback;
 
+	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
+
 	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
@@ -115,6 +121,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.recoveryCallback = recoveryCallback;
 	}
 
+	/**
+	 * Set a batching strategy to use when de-batching messages.
+	 * Default is {@link SimpleBatchingStrategy}.
+	 * @param batchingStrategy the strategy.
+	 * @since 5.2
+	 */
+	public void setBatchingStrategy(BatchingStrategy batchingStrategy) {
+		Assert.notNull(batchingStrategy, "'batchingStrategy' cannot be null");
+		this.batchingStrategy = batchingStrategy;
+	}
 
 	@Override
 	public String getComponentType() {
@@ -239,7 +255,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		}
 
 		private org.springframework.messaging.Message<Object> createMessage(Message message, Channel channel) {
-			Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
+			Object payload;
+			if (AmqpInboundChannelAdapter.this.batchingStrategy.canDebatch(message.getMessageProperties())) {
+				List<Object> payloads = new ArrayList<>();
+				AmqpInboundChannelAdapter.this.batchingStrategy.deBatch(message, fragment -> payloads
+						.add(AmqpInboundChannelAdapter.this.messageConverter.fromMessage(fragment)));
+				payload = payloads;
+			}
+			else {
+				payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
+			}
 			Map<String, Object> headers = AmqpInboundChannelAdapter.this.headerMapper
 					.toHeadersFromRequest(message.getMessageProperties());
 			if (isManualAck()) {

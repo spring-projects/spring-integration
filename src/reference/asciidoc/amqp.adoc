@@ -277,7 +277,21 @@ public class AmqpJavaApplication {
 ----
 ====
 
+[[amqp-debatching]]
+==== Batched Messages
+
+See https://docs.spring.io/spring-amqp/docs/current/reference/html/#template-batching[the Spring AMQP Documentation] for more information about batched messages.
+
+To produce batched messages with Spring Integration, simply configure the outbound endpoint with a `BatchingRabbitTemplate`.
+
+When receiving batched messages, by default, the listener containers extract each fragment message and the adapter will produce a `Message<?>` for each fragment.
+Starting with version 5.2, if the container's `deBatchingEnabled` property is set to `false`, the de-batching is performed by the adapter instead, and a single `Message<List<?>>` is produced with the payload being a list of the fragment payloads (after conversion if appropriate).
+
+The default `BatchingStrategy` is the `SimpleBatchingStrategy`, but this can be overridden on the adapter.
+
 === Polled Inbound Channel Adapter
+
+==== Overview
 
 Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
 See <<deferred-acks-message-source>> for more information.
@@ -314,6 +328,13 @@ public IntegrationFlow flow() {
 }
 ----
 ====
+
+[[amqp-polled-debatching]]
+==== Batched Messages
+
+See <<amqp-debatching>>.
+
+For the polled adapter, there is no listener container, batched messages are always debatched (if the `BatchingStrategy` supports doing so).
 
 [[amqp-inbound-gateway]]
 === Inbound Gateway
@@ -452,6 +473,11 @@ public class AmqpJavaApplication {
 }
 ----
 ====
+
+[[amqp-gatewway-debatching]]
+==== Batched Messages
+
+See <<amqp-debatching>>.
 
 [[amqp-inbound-ack]]
 === Inbound Endpoint Acknowledge Mode
