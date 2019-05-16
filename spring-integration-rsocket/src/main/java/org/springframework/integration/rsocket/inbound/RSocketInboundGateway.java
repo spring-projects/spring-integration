@@ -94,7 +94,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	private ResolvableType requestElementType;
 
 	/**
-	 * Instantiate based on the provided path patterns to map this endpoint for incoming RSocket requests.
+	 * Instantiate based on the provided Ant-style path patterns to map this endpoint for incoming RSocket requests.
 	 * @param path the mapping patterns to use.
 	 */
 	public RSocketInboundGateway(String... path) {

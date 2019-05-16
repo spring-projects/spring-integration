@@ -28,7 +28,8 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class RSocketNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-
+		registerBeanDefinitionParser("inbound-gateway", new RSocketInboundGatewayParser());
+		registerBeanDefinitionParser("outbound-gateway", new RSocketOutboundGatewayParser());
 	}
 
 }
