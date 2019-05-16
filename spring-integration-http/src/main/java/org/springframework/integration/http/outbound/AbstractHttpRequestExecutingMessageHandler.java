@@ -73,6 +73,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ * @author Florian Schöffl
  *
  * @since 5.0
  */
@@ -301,7 +302,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 						: UriComponentsBuilder.fromUri((URI) uri);
 		UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 		try {
-			return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
+			return this.encodeUri ? uriComponents.encode().toUri() : new URI(uriComponents.toUriString());
 		}
 		catch (URISyntaxException e) {
 			throw new MessageHandlingException(requestMessage, "Invalid URI [" + uri + "]", e);

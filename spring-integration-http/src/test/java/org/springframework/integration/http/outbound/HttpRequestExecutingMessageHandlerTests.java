@@ -73,6 +73,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Florian Schöffl
  */
 public class HttpRequestExecutingMessageHandlerTests {
 
@@ -744,6 +745,54 @@ public class HttpRequestExecutingMessageHandlerTests {
 		catch (Exception e) {
 		}
 		assertThat(restTemplate.actualUrl.get()).isEqualTo(theURL);
+	}
+
+	@Test
+	public void testUriEncoded() {
+		SpelExpressionParser parser = new SpelExpressionParser();
+		MockRestTemplate restTemplate = new MockRestTemplate();
+
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
+			"http://example.com?query={query}",
+			restTemplate
+		);
+
+		// This flag is set by default to true, but for sake of clarity for the reader we explicitly set it here again
+		handler.setEncodeUri(true);
+
+		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+		Message<?> message = new GenericMessage<>("test-äöü&%");
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception ignored) {
+		}
+		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://example.com?query=test-%C3%A4%C3%B6%C3%BC%26%25");
+	}
+
+	@Test
+	public void testUriEncodedDisabled() {
+		SpelExpressionParser parser = new SpelExpressionParser();
+		MockRestTemplate restTemplate = new MockRestTemplate();
+
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
+				"http://example.com?query={query}",
+				restTemplate
+		);
+
+		handler.setEncodeUri(false);
+		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+		Message<?> message = new GenericMessage<>("test-äöü");
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception ignored) {
+		}
+		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://example.com?query=test-äöü");
 	}
 
 	@Test
