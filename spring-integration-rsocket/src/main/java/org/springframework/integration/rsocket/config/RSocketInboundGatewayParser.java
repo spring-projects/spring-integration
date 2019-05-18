@@ -16,6 +16,9 @@
 
 package org.springframework.integration.rsocket.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -31,6 +34,12 @@ import org.springframework.integration.rsocket.inbound.RSocketInboundGateway;
  */
 public class RSocketInboundGatewayParser extends AbstractInboundGatewayParser {
 
+	private static final List<String> NON_ELIGIBLE_ATTRIBUTES =
+			Arrays.asList("path",
+					"rsocket-strategies",
+					"rsocket-connector",
+					"request-element-type");
+
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return RSocketInboundGateway.class;
@@ -38,11 +47,7 @@ public class RSocketInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("path")
-				&& !attributeName.equals("rsocket-strategies")
-				&& !attributeName.equals("rsocket-connector")
-				&& !attributeName.equals("request-element-type")
-				&& super.isEligibleAttribute(attributeName);
+		return !NON_ELIGIBLE_ATTRIBUTES.contains(attributeName) && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
