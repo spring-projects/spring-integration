@@ -630,18 +630,19 @@ This is independent of the `jms_correlationId` header, which is mapped to and fr
 The `JMSCorrelationID` is generally used to correlate requests and replies, whereas the `correlationId` is often used to combine related messages into a group (such as with an aggregator or a resequencer).
 
 Starting with version 5.1, the `DefaultJmsHeaderMapper` can be configured for mapping inbound `JMSDeliveryMode` and `JMSExpiration` properties:
- ====
- [source,java]
- ----
- @Bean
- public DefaultJmsHeaderMapper jmsHeaderMapper() {
-     DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
-     mapper.setMapInboundDeliveryMode(true)
-     mapper.setMapInboundExpiration(true)
-     return mapper;
- }
- ----
- ====
+
+====
+[source,java]
+----
+@Bean
+public DefaultJmsHeaderMapper jmsHeaderMapper() {
+    DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+    mapper.setMapInboundDeliveryMode(true)
+    mapper.setMapInboundExpiration(true)
+    return mapper;
+}
+----
+====
 
 These JMS properties are mapped to the `JmsHeaders.DELIVERY_MODE` and `JmsHeaders.EXPIRATION` Spring Message headers respectively.
 
