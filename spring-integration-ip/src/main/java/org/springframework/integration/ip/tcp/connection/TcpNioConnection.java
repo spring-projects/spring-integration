@@ -765,7 +765,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			super.close();
 			this.isClosed = true;
 			try {
-				this.buffers.offer(EOF, TcpNioConnection.this.pipeTimeout, TimeUnit.SECONDS);
+				this.buffers.offer(EOF, TcpNioConnection.this.pipeTimeout, TimeUnit.MILLISECONDS);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
