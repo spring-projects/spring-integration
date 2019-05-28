@@ -334,6 +334,10 @@ public class TcpNioConnectionTests {
 				logger.debug("Expected timeout", e);
 				throw (Exception) e.getCause();
 			}
+			finally {
+				connection.setPipeTimeout(15);
+				connection.close();
+			}
 			return null;
 		});
 		try {
