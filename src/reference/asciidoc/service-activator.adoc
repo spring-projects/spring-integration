@@ -28,7 +28,7 @@ The preceding configuration selects all the methods from the `exampleHandler` th
 The target method for invocation at runtime is selected for each request message by their `payload` type or as a fallback to the `Message<?>` type if such a method is present on target class.
 
 Starting with version 5.0, one service method can be marked with the `@org.springframework.integration.annotation.Default` as a fallback for all non-matching cases.
-This can be useful when using <<content-type-conversion, content-type conversion>> with the target method being invoked after conversion.
+This can be useful when using <<./endpoint.adoc#content-type-conversion,, content-type conversion>> with the target method being invoked after conversion.
 
 To delegate to an explicitly defined method of any object, you can add the `method` attribute, as the following example shows:
 
@@ -59,7 +59,7 @@ This is the technique used for request-reply messaging in Spring Integration, an
 
 If your method returns a result and you want to discard it and end the flow, you should configure the `output-channel` to send to a `NullChannel`.
 For convenience, the framework registers one with the name, `nullChannel`.
-See <<channel-special-channels>> for more information.
+See <<./channel.adoc#channel-special-channels,Special Channels>> for more information.
 
 The service activator is one of those components that is not required to produce a reply message.
 If your method returns `null` or has a `void` return type, the service activator exits after the method invocation, without any signals.
@@ -69,7 +69,7 @@ If the flag is set to `true` and the method returns null, a `ReplyRequiredExcept
 The argument in the service method could be either a message or an arbitrary type.
 If the latter, then it is assumed to be a message payload, which is extracted from the message and injected into the service method.
 We generally recommend this approach, as it follows and promotes a POJO model when working with Spring Integration.
-Arguments may also have `@Header` or `@Headers` annotations, as described in <<annotations>>.
+Arguments may also have `@Header` or `@Headers` annotations, as described in <<./configuration.adoc#annotations,Annotation Support>>.
 
 NOTE: The service method is not required to have any arguments, which means you can implement event-style service activators (where all you care about is an invocation of the service method) and not worry about the contents of the message.
 Think of it as a null JMS message.
@@ -147,7 +147,7 @@ For simple scenarios, your service activators need not reference a bean if all l
 In the preceding configuration, our service logic is to multiply the payload value by two.
 SpEL lets us handle it relatively easily.
 
-See <<java-dsl-handle>> in the Java DSL chapter for more information about configuring service activator.
+See <<./dsl.adoc#java-dsl-handle,Service Activators and the `.handle()` method>> in the Java DSL chapter for more information about configuring service activator.
 
 [[async-service-activator]]
 ==== Asynchronous Service Activator
@@ -172,7 +172,7 @@ In this case a new `Message<?>` object is created and all the headers from a req
 This works the same way for most Spring Integration `MessageHandler` implementations, when interaction is based on a POJO method invocation.
 
 A complete `Message<?>` object can also be returned from the method.
-However keep in mind that, unlike <<transformer, transformers>>, for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
+However keep in mind that, unlike <<./transformer.adoc#transformer,, transformers>>, for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
 So, if your method parameter is a `Message<?>` and you copy some, but not all, existing headers in your service method, they will reappear in the reply message.
 It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely-coupled principle, it is better to add a `HeaderFilter` in the integration flow.
 Alternatively, a Transformer can be used instead of a Service Activator but, in that case, when returning a full `Message<?>` the method is completely responsible for the message, including copying request message headers (if needed).

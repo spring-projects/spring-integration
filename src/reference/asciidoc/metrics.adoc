@@ -8,7 +8,7 @@ In recent versions, we have relied more on Micrometer (see https://micrometer.io
 ==== Configuring Metrics Capture
 
 NOTE: Prior to version 4.2, metrics were only available when JMX was enabled.
-See <<jmx>>.
+See <<./jmx.adoc#jmx,JMX Support>>.
 
 To enable `MessageSource`, `MessageChannel`, and `MessageHandler` metrics, add an `<int:management/>` bean to the application context (in XML) or annotate one of your `@Configuration` classes with `@EnableIntegrationManagement` (in Java).
 `MessageSource` instances maintain only counts, `MessageChannel` instances and `MessageHandler` instances maintain duration statistics in addition to counts.
@@ -87,7 +87,7 @@ At runtime, counts and statistics can be obtained by calling `getChannelMetrics`
 
 See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for complete information about these classes.
 
-When JMX is enabled (see <<jmx>>), `IntegrationMBeanExporter` also exposes these metrics.
+When JMX is enabled (see <<./jmx.adoc#jmx,JMX Support>>), `IntegrationMBeanExporter` also exposes these metrics.
 
 IMPORTANT:
 `defaultLoggingEnabled`, `defaultCountsEnabled`, and `defaultStatsEnabled` are applied only if you have not explicitly configured the corresponding setting in a bean definition.

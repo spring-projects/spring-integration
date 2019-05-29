@@ -1,3 +1,11 @@
+[[spring-integration-endpoints]]
+= Integration Endpoints
+
+[[spring-integration-adapters]]
+This section covers the various channel adapters and messaging gateways provided by Spring Integration to support message-based communication with external systems.
+
+Each system, from AMQP to Zookeeper, has its own integration requirements, and this section covers them.
+
 [[endpoint-summary]]
 == Endpoint Quick Reference Table
 
@@ -41,97 +49,97 @@ The following table summarizes the various endpoints with quick links to the app
 | Outbound Gateway
 
 | *AMQP*
-| <<amqp-inbound-channel-adapter>>
-| <<amqp-outbound-channel-adapter>>
-| <<amqp-inbound-gateway>>
-| <<amqp-outbound-gateway>>
+| <<./amqp.adoc#amqp-inbound-channel-adapter,Inbound Channel Adapter>>
+| <<./amqp.adoc#amqp-outbound-channel-adapter,Outbound Channel Adapter>>
+| <<./amqp.adoc#amqp-inbound-gateway,Inbound Gateway>>
+| <<./amqp.adoc#amqp-outbound-gateway,Outbound Gateway>>
 
 | *Events*
-| <<appevent-inbound>>
-| <<appevent-outbound>>
+| <<./event.adoc#appevent-inbound,Receiving Spring Application Events>>
+| <<./event.adoc#appevent-outbound,Sending Spring Application Events>>
 | N
 | N
 
 | *Feed*
-| <<feed-inbound-channel-adapter>>
+| <<./feed.adoc#feed-inbound-channel-adapter,Feed Inbound Channel Adapter>>
 | N
 | N
 | N
 
 | *File*
-| <<file-reading>> and <<file-tailing>>
-| <<file-writing>>
+| <<./file.adoc#file-reading,Reading Files>> and <<./file.adoc#file-tailing,'tail'ing Files>>
+| <<./file.adoc#file-writing,Writing files>>
 | N
-| <<file-writing>>
+| <<./file.adoc#file-writing,Writing files>>
 
 | *FTP(S)*
-| <<ftp-inbound>>
-| <<ftp-outbound>>
+| <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>>
+| <<./ftp.adoc#ftp-outbound,FTP Outbound Channel Adapter>>
 | N
-| <<ftp-outbound-gateway>>
+| <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>>
 
 | *Gemfire*
-| <<gemfire-inbound>> and <<gemfire-cq>>
-| <<gemfire-outbound>>
+| <<./gemfire.adoc#gemfire-inbound,Inbound Channel Adapter>> and <<./gemfire.adoc#gemfire-cq,Continuous Query Inbound Channel Adapter>>
+| <<./gemfire.adoc#gemfire-outbound,Outbound Channel Adapter>>
 | N
 | N
 
 | *HTTP*
-| <<http-namespace>>
-| <<http-namespace>>
-| <<http-inbound>>
-| <<http-outbound>>
+| <<./http.adoc#http-namespace,HTTP Namespace Support>>
+| <<./http.adoc#http-namespace,HTTP Namespace Support>>
+| <<./http.adoc#http-inbound,Http Inbound Components>>
+| <<./http.adoc#http-outbound,HTTP Outbound Components>>
 
 | *JDBC*
-| <<jdbc-inbound-channel-adapter>> and <<stored-procedure-inbound-channel-adapter>>
-| <<jdbc-outbound-channel-adapter>> and <<stored-procedure-outbound-channel-adapter>>
+| <<./jdbc.adoc#jdbc-inbound-channel-adapter,Inbound Channel Adapter>> and <<./jdbc.adoc#stored-procedure-inbound-channel-adapter,Stored Procedure Inbound Channel Adapter>>
+| <<./jdbc.adoc#jdbc-outbound-channel-adapter,Outbound Channel Adapter>> and <<./jdbc.adoc#stored-procedure-outbound-channel-adapter,Stored Procedure Outbound Channel Adapter>>
 | N
-| <<jdbc-outbound-gateway>> and <<stored-procedure-outbound-gateway>>
+| <<./jdbc.adoc#jdbc-outbound-gateway,Outbound Gateway>> and <<./jdbc.adoc#stored-procedure-outbound-gateway,Stored Procedure Outbound Gateway>>
 
 | *JMS*
-| <<jms-inbound-channel-adapter>> and <<jms-message-driven-channel-adapter>>
-| <<jms-outbound-channel-adapter>>
-| <<jms-inbound-gateway>>
-| <<jms-outbound-gateway>>
+| <<./jms.adoc#jms-inbound-channel-adapter,Inbound Channel Adapter>> and <<./jms.adoc#jms-message-driven-channel-adapter,Message-driven Channel Adapter>>
+| <<./jms.adoc#jms-outbound-channel-adapter,Outbound Channel Adapter>>
+| <<./jms.adoc#jms-inbound-gateway,Inbound Gateway>>
+| <<./jms.adoc#jms-outbound-gateway,Outbound Gateway>>
 
 | *JMX*
-| <<jmx-notification-listening-channel-adapter>> and <<jmx-attribute-polling-channel-adapter>> and <<tree-polling-channel-adapter>>
-| <<jmx-notification-publishing-channel-adapter>> and <<jmx-operation-invoking-channel-adapter>>
+| <<./jmx.adoc#jmx-notification-listening-channel-adapter,Notification-listening Channel Adapter>> and <<./jmx.adoc#jmx-attribute-polling-channel-adapter,Attribute-polling Channel Adapter>> and <<./jmx.adoc#tree-polling-channel-adapter,Tree-polling Channel Adapter>>
+| <<./jmx.adoc#jmx-notification-publishing-channel-adapter,Notification-publishing Channel Adapter>> and <<./jmx.adoc#jmx-operation-invoking-channel-adapter,Operation-invoking Channel Adapter>>
 | N
-| <<jmx-operation-invoking-outbound-gateway>>
+| <<./jmx.adoc#jmx-operation-invoking-outbound-gateway,Operation-invoking Outbound Gateway>>
 
 | *JPA*
-| <<jpa-inbound-channel-adapter>>
-| <<jpa-outbound-channel-adapter>>
+| <<./jpa.adoc#jpa-inbound-channel-adapter,Inbound Channel Adapter>>
+| <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound Channel Adapter>>
 | N
-| <<jpa-updating-outbound-gateway>> and <<jpa-retrieving-outbound-gateway>>
+| <<./jpa.adoc#jpa-updating-outbound-gateway,Updating Outbound Gateway>> and <<./jpa.adoc#jpa-retrieving-outbound-gateway,Retrieving Outbound Gateway>>
 
 | *Mail*
-| <<mail-inbound>>
-| <<mail-outbound>>
+| <<./mail.adoc#mail-inbound,Mail-receiving Channel Adapter>>
+| <<./mail.adoc#mail-outbound,Mail-sending Channel Adapter>>
 | N
 | N
 
 | *MongoDB*
-| <<mongodb-inbound-channel-adapter>>
-| <<mongodb-outbound-channel-adapter>>
+| <<./mongodb.adoc#mongodb-inbound-channel-adapter,MongoDB Inbound Channel Adapter>>
+| <<./mongodb.adoc#mongodb-outbound-channel-adapter,MongoDB Outbound Channel Adapter>>
 | N
 | N
 
 | *MQTT*
-| <<mqtt-inbound>>
-| <<mqtt-outbound>>
+| <<./mqtt.adoc#mqtt-inbound,Inbound (Message-driven) Channel Adapter>>
+| <<./mqtt.adoc#mqtt-outbound,Outbound Channel Adapter>>
 | N
 | N
 
 | *Redis*
-| <<redis-inbound-channel-adapter>> and <<redis-queue-inbound-channel-adapter>> and <<redis-store-inbound-channel-adapter>>
-| <<redis-outbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> and <<redis-store-outbound-channel-adapter>>
-| <<redis-queue-inbound-gateway>>
-| <<redis-outbound-gateway>> and <<redis-queue-outbound-gateway>>
+| <<./redis.adoc#redis-inbound-channel-adapter,Redis Inbound Channel Adapter>> and <<./redis.adoc#redis-queue-inbound-channel-adapter,Redis Queue Inbound Channel Adapter>> and <<./redis.adoc#redis-store-inbound-channel-adapter,Redis Store Inbound Channel Adapter>>
+| <<./redis.adoc#redis-outbound-channel-adapter,Redis Outbound Channel Adapter>> and <<./redis.adoc#redis-queue-outbound-channel-adapter,Redis Queue Outbound Channel Adapter>> and <<./redis.adoc#redis-store-outbound-channel-adapter,RedisStore Outbound Channel Adapter>>
+| <<./redis.adoc#redis-queue-inbound-gateway,Redis Queue Inbound Gateway>>
+| <<./redis.adoc#redis-outbound-gateway,Redis Outbound Command Gateway>> and <<./redis.adoc#redis-queue-outbound-gateway,Redis Queue Outbound Gateway>>
 
 | *Resource*
-| <<resource-inbound-channel-adapter>>
+| <<./resource.adoc#resource-inbound-channel-adapter,Resource Inbound Channel Adapter>>
 | N
 | N
 | N
@@ -139,68 +147,68 @@ The following table summarizes the various endpoints with quick links to the app
 | *RMI*
 | N
 | N
-| <<rmi-inbound>>
-| <<rmi-outbound>>
+| <<./rmi.adoc#rmi-inbound,Inbound RMI>>
+| <<./rmi.adoc#rmi-outbound,Outbound RMI>>
 
 
 | *SFTP*
-| <<sftp-inbound>>
-| <<sftp-outbound>>
+| <<./sftp.adoc#sftp-inbound,SFTP Inbound Channel Adapter>>
+| <<./sftp.adoc#sftp-outbound,SFTP Outbound Channel Adapter>>
 | N
-| <<sftp-outbound-gateway>>
+| <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>>
 
 | *STOMP*
-| <<stomp-inbound-adapter>>
-| <<stomp-outbound-adapter>>
+| <<./stomp.adoc#stomp-inbound-adapter,STOMP Inbound Channel Adapter>>
+| <<./stomp.adoc#stomp-outbound-adapter,STOMP Outbound Channel Adapter>>
 | N
 | N
 
 | *Stream*
-| <<stream-reading>>
-| <<stream-writing>>
+| <<./stream.adoc#stream-reading,Reading from Streams>>
+| <<./stream.adoc#stream-writing,Writing to Streams>>
 | N
 | N
 
 | *Syslog*
-| <<syslog-inbound-adapter>>
+| <<./syslog.adoc#syslog-inbound-adapter,Syslog Inbound Channel Adapter>>
 | N
 | N
 | N
 
 | *TCP*
-| <<tcp-adapters>>
-| <<tcp-adapters>>
-| <<tcp-gateways>>
-| <<tcp-gateways>>
+| <<./ip.adoc#tcp-adapters,TCP Adapters>>
+| <<./ip.adoc#tcp-adapters,TCP Adapters>>
+| <<./ip.adoc#tcp-gateways,TCP Gateways>>
+| <<./ip.adoc#tcp-gateways,TCP Gateways>>
 
 | *UDP*
-| <<udp-adapters>>
-| <<udp-adapters>>
+| <<./ip.adoc#udp-adapters,UDP Adapters>>
+| <<./ip.adoc#udp-adapters,UDP Adapters>>
 | N
 | N
 
 | *Web Services*
 | N
 | N
-| <<webservices-inbound>>
-| <<webservices-outbound>>
+| <<./ws.adoc#webservices-inbound,Inbound Web Service Gateways>>
+| <<./ws.adoc#webservices-outbound,Outbound Web Service Gateways>>
 
 | *Web Sockets*
-| <<web-socket-inbound-adapter>>
-| <<web-socket-outbound-adapter>>
+| <<./web-sockets.adoc#web-socket-inbound-adapter,WebSocket Inbound Channel Adapter>>
+| <<./web-sockets.adoc#web-socket-outbound-adapter,WebSocket Outbound Channel Adapter>>
 | N
 | N
 
 | *XMPP*
-| <<xmpp-messages>> and <<xmpp-presence>>
-| <<xmpp-messages>> and <<xmpp-presence>>
+| <<./xmpp.adoc#xmpp-messages,XMPP Messages>> and <<./xmpp.adoc#xmpp-presence,XMPP Presence>>
+| <<./xmpp.adoc#xmpp-messages,XMPP Messages>> and <<./xmpp.adoc#xmpp-presence,XMPP Presence>>
 | N
 | N
 |===
 
-In addition, as discussed in <<spring-integration-core-messaging>>, Spring Integration provides endpoints for interfacing with Plain Old Java Objects (POJOs).
-As discussed in <<channel-adapter>>, the `<int:inbound-channel-adapter>` element lets you poll a Java method for data.
+In addition, as discussed in <<./core.adoc#spring-integration-core-messaging,Core Messaging>>, Spring Integration provides endpoints for interfacing with Plain Old Java Objects (POJOs).
+As discussed in <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>, the `<int:inbound-channel-adapter>` element lets you poll a Java method for data.
 The `<int:outbound-channel-adapter>` element lets you send data to a `void` method.
-As discussed in <<gateway>>, the `<int:gateway>` element lets any Java program invoke a messaging flow.
+As discussed in <<./gateway.adoc#gateway,Messaging Gateways>>, the `<int:gateway>` element lets any Java program invoke a messaging flow.
 Each of these works without requiring any source-level dependencies on Spring Integration.
-The equivalent of an outbound gateway in this context is using a service activator (see <<service-activator>>) to invoke a method that returns an `Object` of some kind.
+The equivalent of an outbound gateway in this context is using a service activator (see <<./service-activator.adoc#service-activator,Service Activator>>) to invoke a method that returns an `Object` of some kind.

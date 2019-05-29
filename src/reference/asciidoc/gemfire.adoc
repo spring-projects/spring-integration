@@ -262,14 +262,14 @@ Another constructor requires a `Cache`, and the `Region` is created with `GLOBAL
 [[gemfire-metadata-store]]
 === Gemfire Metadata Store
 
-Version 4.0 introduced a new Gemfire-based `MetadataStore` (<<metadata-store>>) implementation.
+Version 4.0 introduced a new Gemfire-based `MetadataStore` (<<./meta-data-store.adoc#metadata-store,Metadata Store>>) implementation.
 You can use the `GemfireMetadataStore` to maintain metadata state across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
-* <<feed-inbound-channel-adapter>>
-* <<file-reading>>
-* <<ftp-inbound>>
-* <<sftp-inbound>>
+* <<./feed.adoc#feed-inbound-channel-adapter,Feed Inbound Channel Adapter>>
+* <<./file.adoc#file-reading,Reading Files>>
+* <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>>
+* <<./sftp.adoc#sftp-inbound,SFTP Inbound Channel Adapter>>
 
 To get these adapters to use the new `GemfireMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
 The feed inbound channel adapter automatically picks up and use the declared `GemfireMetadataStore`.

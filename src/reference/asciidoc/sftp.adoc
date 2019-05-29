@@ -356,7 +356,7 @@ You can also combine a pattern-based filter with other filters (such as an `Acce
 
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, consider using the `SftpPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see <<metadata-store>>).
+This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>).
 This filter matches on the filename and the remote modified time.
 
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
@@ -373,17 +373,17 @@ Unless your application removes files after processing, the adapter re-processes
 
 Also, if you configure the `filter` to use a `SftpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
 
-For more information about this filter, and how it is used, see <<remote-persistent-flf>>.
+For more information about this filter, and how it is used, see <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>>.
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
-This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see <<metadata-store>>) and detects changes to the local file modified time.
+This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see <<./meta-data-store.adoc#metadata-store,Metadata Store>>) and detects changes to the local file modified time.
 The default `MetadataStore` is a `SimpleMetadataStore` that stores state in memory.
 
 Since version 4.1.5, these filters have a new property called `flushOnUpdate`, which causes them to flush the
 metadata store on every update (if the store implements `Flushable`).
 
-IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<redis-metadata-store>> or <<gemfire-metadata-store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
+IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,Redis Metadata Store>> or <<./gemfire.adoc#gemfire-metadata-store,Gemfire Metadata Store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
 
 The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
 Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
@@ -475,7 +475,7 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 Also, you can now switch the `AbstractInboundFileSynchronizingMessageSource` to the `WatchService`-based `DirectoryScanner` by using `setUseWatchService()` option.
 It is also configured for all the `WatchEventType` instances to react for any modifications in local directory.
 The reprocessing sample shown earlier is based on the built-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner`, which uses `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
-See <<watch-service-directory-scanner>> for more information.
+See <<./file.adoc#watch-service-directory-scanner,`WatchServiceDirectoryScanner`>> for more information.
 
 ==== Configuring with Java Configuration
 
@@ -581,7 +581,7 @@ public class SftpJavaApplication {
 [[sftp-incomplete]]
 ==== Dealing With Incomplete Data
 
-See <<file-incomplete>>.
+See <<./file.adoc#file-incomplete,Dealing With Incomplete Data>>.
 
 The `SftpSystemMarkerFilePresentFileListFilter` is provided to filter remote files that don't have the corresponding marker file on the remote system.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/filters/SftpSystemMarkerFilePresentFileListFilter.html[Javadoc] for configuration information.
@@ -594,7 +594,7 @@ This adapter produces message with payloads of type `InputStream`, letting you f
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
-See <<file-splitter>> and <<stream-transformer>> for more information about these components.
+See <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>> for more information about these components.
 The following example shows how to configure an SFTP streaming inbound channel adapter:
 
 ====
@@ -624,7 +624,7 @@ If you need to allow duplicates, you can use the `AcceptAllFileListFilter`.
 You can handle any other use cases by using `CompositeFileListFilter` (or `ChainFileListFilter`).
 The Java configuration <<sftp-streaming-java-config,shown later>> shows one technique to remove the remote file after processing, avoiding duplicates.
 
-For more information about the `SftpPersistentAcceptOnceFileListFilter`, and how it is used, see <<remote-persistent-flf>>.
+For more information about the `SftpPersistentAcceptOnceFileListFilter`, and how it is used, see <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>>.
 
 You can use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.
@@ -704,7 +704,7 @@ Notice that, in this example, the message handler downstream of the transformer 
 
 Starting with _version 5.0.7_, the `RotatingServerAdvice` is available; when configured as a poller advice, the inbound adapters can poll multiple servers and directories.
 Configure the advice and add it to the poller's advice chain as normal.
-A `DelegatingSessionFactory` is used to select the server see <<ftp-dsf>> for more information.
+A `DelegatingSessionFactory` is used to select the server see <<./ftp.adoc#ftp-dsf,Delegating Session Factory>> for more information.
 The advice configuration consists of a list of `RotatingServerAdvice.KeyDirectory` objects.
 
 .Example
@@ -782,7 +782,7 @@ public IntegrationFlow flow() {
 }
 ----
 
-IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<conditional-pollers>> for more information.
+IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<./polling-consumer.adoc#conditional-pollers,Conditional Pollers for Message Sources>> for more information.
 
 [[sftp-max-fetch]]
 === Inbound Channel Adapters: Controlling Remote File Fetching
@@ -805,7 +805,7 @@ When all are consumed, the remote fetch is attempted again, to pick up any new f
 IMPORTANT: When you deploy multiple instances of an application, we recommend setting a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
 Another use for `max-fetch-size` is when you want to stop fetching remote files but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<control-bus, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<./control-bus.adoc#control-bus,, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<LsEntry>`.
@@ -1026,8 +1026,8 @@ The `file_remoteDirectory` header holds the remote directory, and the `file_remo
 
 The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
 If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
-For text files, a common use case is to combine this operation with a <<file-splitter,file splitter>> or a
-<<stream-transformer,stream transformer>>.
+For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,,file splitter>> or a
+<<./transformer.adoc#stream-transformer,,stream transformer>>.
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
@@ -1041,7 +1041,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components, such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>>,
+Framework components, such as the <<./file.adoc#file-splitter,,File Splitter>> and <<./transformer.adoc#stream-transformer,,Stream Transformer>>,
 automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:

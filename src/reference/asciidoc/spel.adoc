@@ -156,10 +156,10 @@ The following listing shows some usage examples:
 NOTE: Using this function requires the Jayway JsonPath library (`json-path.jar`) to be on the classpath.
 Otherwise the `#jsonPath` SpEL function is not registered.
 +
-For more information regarding JSON see 'JSON Transformers' in <<transformer>>.
+For more information regarding JSON see 'JSON Transformers' in <<./transformer.adoc#transformer,Transformer>>.
 
 * `#xpath`: To evaluate an 'xpath' on some provided object.
-For more information regarding XML and XPath, see <<xml>>.
+For more information regarding XML and XPath, see <<./xml.adoc#xml,XML Support - Dealing with XML Payloads>>.
 
 [[spel-property-accessors]]
 === Property Accessors

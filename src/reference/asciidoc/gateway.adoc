@@ -46,7 +46,7 @@ It lets you configure an interface as a service, as the following example shows:
 
 With this configuration defined, the `cafeService` can now be injected into other beans, and the code that invokes the methods on that proxied instance of the `Cafe` interface has no awareness of the Spring Integration API.
 The general approach is similar to that of Spring Remoting (RMI, HttpInvoker, and so on).
-See the <<samples,"`Samples`">> Appendix for an example that uses the `gateway` element (in the Cafe demo).
+See the <<./samples.adoc#samples,,"`Samples`">> Appendix for an example that uses the `gateway` element (in the Cafe demo).
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.
 If a reply timeout is not specified, the calling thread waits indefinitely for a reply.
@@ -79,7 +79,7 @@ By defining a `default-reply-channel` you can point to a channel of your choosin
 In this case, that is a `publish-subscribe-channel`.
 The gateway creates a bridge from it to the temporary, anonymous reply channel that is stored in the header.
 
-You might also want to explicitly provide a reply channel for monitoring or auditing through an interceptor (for example, <<channel-wiretap, wiretap>>).
+You might also want to explicitly provide a reply channel for monitoring or auditing through an interceptor (for example, <<./channel.adoc#channel-wiretap,, wiretap>>).
 To configure a channel interceptor, you need a named channel.
 
 [[gateway-configuration-annotations]]
@@ -311,12 +311,12 @@ IMPORTANT: Similarly to the XML version, when Spring Integration discovers these
 To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
 The standard `@ComponentScan` infrastructure does not deal with interfaces.
 Consequently, we introduced the custom `@IntegrationComponentScan` logic  to fine the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
-See also <<annotations>>.
+See also <<./configuration.adoc#annotations,Annotation Support>>.
 
 Along with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
 
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
-See <<configuration-enable-integration>> for more information.
+See <<./overview.adoc#configuration-enable-integration,Configuration and `@EnableIntegration`>> for more information.
 
 [[gateway-calling-no-argument-methods]]
 ==== Invoking No-Argument Methods
@@ -463,7 +463,7 @@ This can be useful in asynchronous situations when when you need to propagate an
 To do so, you can either return an `Exception` (as the `reply` from some service) or throw it.
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the downstream flow back to the gateway.
 The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
-It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<agg-and-group-to>>) and a `MessagingTimeoutException` reply on the discard flow.
+It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<./aggregator.adoc#agg-and-group-to,Aggregator and Group Timeout>>) and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
 ==== Gateway Timeouts
@@ -854,4 +854,4 @@ At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
-See <<java-dsl-gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.
+See <<./dsl.adoc#java-dsl-gateway,`IntegrationFlow` as Gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.

@@ -9,7 +9,7 @@ As mentioned in the overview, message endpoints are responsible for connecting t
 Over the next several chapters, we cover a number of different components that consume messages.
 Some of these are also capable of sending reply messages.
 Sending messages is quite straightforward.
-As shown earlier in <<channel>>, you can send a message to a message channel.
+As shown earlier in <<./channel.adoc#channel,Message Channels>>, you can send a message to a message channel.
 However, receiving is a bit more complicated.
 The main reason is that there are two types of consumers: https://www.enterpriseintegrationpatterns.com/PollingConsumer.html[polling consumers] and https://www.enterpriseintegrationpatterns.com/EventDrivenConsumer.html[event-driven consumers].
 
@@ -49,7 +49,7 @@ Spring Integration provides two endpoint implementations that host these callbac
 ==== Event-driven Consumer
 
 Because it is the simpler of the two, we cover the event-driven consumer endpoint first.
-You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in <<channel-interfaces-subscribablechannel>>).
+You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in <<./channel.adoc#channel-interfaces-subscribablechannel,`SubscribableChannel`>>).
 The following listing shows the definition of the `subscribe` method:
 
 ====
@@ -84,7 +84,7 @@ PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);
 ----
 ====
 
-NOTE: For more information regarding polling consumers, see <<polling-consumer>> and <<channel-adapter>>.
+NOTE: For more information regarding polling consumers, see <<./polling-consumer.adoc#polling-consumer,Poller>> and <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>.
 
 There are many other configuration options for the polling consumer.
 For example, the trigger is a required property.
@@ -231,7 +231,7 @@ If you do not use the `time-unit` attribute, the specified value is represented 
 If this attribute is set, none of the following attributes must be specified: `fixed-delay`, `trigger`, `cron`, and `ref`.
 <6> The ID referring to the poller's underlying bean-definition, which is of type `org.springframework.integration.scheduling.PollerMetadata`.
 The `id` attribute is required for a top-level poller element, unless it is the default poller (`default="true"`).
-<7> See <<channel-adapter-namespace-inbound>> for more information.
+<7> See <<./channel-adapter.adoc#channel-adapter-namespace-inbound,Configuring An Inbound Channel Adapter>> for more information.
 If not specified, the default value depends on the context.
 If you use a `PollingConsumer`, this attribute defaults to `-1`.
 However, if you use a `SourcePollingChannelAdapter`, the `max-messages-per-poll` attribute defaults to `1`.
@@ -349,7 +349,7 @@ The following example shows the available attributes:
 </int:poller>
 ----
 
-For more information, see <<transaction-poller>>.
+For more information, see <<./transactions.adoc#transaction-poller,Poller Transaction Support>>.
 
 [[aop-advice-chains]]
 ===== AOP Advice chains
@@ -379,7 +379,7 @@ An advice chain can also be applied on a poller that does not have any transacti
 
 IMPORTANT: When using an advice chain, the `<transactional/>` child element cannot be specified.
 Instead, declare a `<tx:advice/>` bean and add it to the `<advice-chain/>`.
-See <<transaction-poller>> for complete configuration details.
+See <<./transactions.adoc#transaction-poller,Poller Transaction Support>> for complete configuration details.
 
 [[taskexecutor-support]]
 ====== TaskExecutor Support
@@ -405,7 +405,7 @@ To enable concurrency for a polling endpoint that is configured with the XML nam
 ====
 
 If you do not provide a task-executor, the consumer's handler is invoked in the caller's thread.
-Note that the caller is usually the default `TaskScheduler` (see <<namespace-taskscheduler>>).
+Note that the caller is usually the default `TaskScheduler` (see <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>).
 You should also keep in mind that the `task-executor` attribute can provide a reference to any implementation of Spring's `TaskExecutor` interface by specifying the bean name.
 The `executor` element shown earlier is provided for convenience.
 
@@ -780,7 +780,7 @@ The component name is usually the bean name.
 Groups of endpoints can be started and stopped based on leadership being granted or revoked, respectively.
 This is useful in clustered scenarios where shared resources must be consumed by only a single instance.
 An example of this is a file inbound channel adapter that is polling a shared directory.
-(See <<file-reading>>).
+(See <<./file.adoc#file-reading,Reading Files>>).
 
 To participate in a leader election and be notified when elected leader, when leadership is revoked, or on failure to acquire the resources to become leader, an application creates a component in the application context called a "`leader initiator`".
 Normally, a leader initiator is a `SmartLifecycle`, so it starts (optionally) when the context starts and then publishes notifications when leadership changes.
@@ -825,4 +825,4 @@ If the lock registry is implemented correctly, there is only ever at most one le
 If the lock registry also provides locks that throw exceptions (ideally, `InterruptedException`) when they expire or are broken, the duration of the leaderless periods can be as short as is allowed by the inherent latency in the lock implementation.
 By default, the `busyWaitMillis` property adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect and you only know they expired when you try to obtain one again.
 
-See <<zk-leadership>> for more information about leadership election and events that use Zookeeper.
+See <<./zookeeper.adoc#zk-leadership,Zookeeper Leadership Event Handling>> for more information about leadership election and events that use Zookeeper.

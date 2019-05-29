@@ -25,7 +25,7 @@ You can find a description of the pattern on the https://www.enterpriseintegrati
 
 Spring Integration offers a second variation of the polling consumer pattern.
 When inbound channel adapters are used, these adapters are often wrapped by a `SourcePollingChannelAdapter`.
-For example, when retrieving messages from a remote FTP Server location, the adapter described in <<ftp-inbound>> is configured with a poller to periodically retrieve messages.
+For example, when retrieving messages from a remote FTP Server location, the adapter described in <<./ftp.adoc#ftp-inbound,FTP Inbound Channel Adapter>> is configured with a poller to periodically retrieve messages.
 So, when components are configured with pollers, the resulting instances are of one of the following types:
 
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html[`PollingConsumer`]
@@ -50,8 +50,8 @@ To resume polling, call `reset()`.
 Version 4.2 added more flexibility in this area.
 See <<conditional-pollers>>.
 
-This chapter is meant to only give a high-level overview of polling consumers and how they fit into the concept of message channels (see <<channel>>) and channel adapters (see <<channel-adapter>>).
-For more information regarding messaging endpoints in general and polling consumers in particular, see <<endpoint>>.
+This chapter is meant to only give a high-level overview of polling consumers and how they fit into the concept of message channels (see <<./channel.adoc#channel,Message Channels>>) and channel adapters (see <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>).
+For more information regarding messaging endpoints in general and polling consumers in particular, see <<./endpoint.adoc#endpoint,Message Endpoints>>.
 
 [[deferred-acks-message-source]]
 ==== Deferred Acknowledgment Pollable Message Source
@@ -59,7 +59,7 @@ For more information regarding messaging endpoints in general and polling consum
 Starting with version 5.0.1, certain modules provide `MessageSource` implementations that support deferring acknowledgment until the downstream flow completes (or hands off the message to another thread).
 This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the `spring-integration-kafka` https://github.com/spring-projects/spring-integration-kafka[extension project].
 
-With these message sources, the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header (see <<message-header-accessor>>) is added to the message.
+With these message sources, the `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>>) is added to the message.
 The value of the header is an instance of `AcknowledgmentCallback`, as the following example shows:
 
 [source, java]

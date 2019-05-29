@@ -370,7 +370,7 @@ Previously, `MessageSource`, `MessageChannel`, and `MessageHandler` metrics were
 The proxy was added when an integration MBean exporter was declared in the context.
 +
 Now, the statistics are captured by the beans themselves.
-See <<metrics-management>> for more information.
+See <<./metrics.adoc#metrics-management,Metrics and Management>> for more information.
 +
 WARNING: This change means that you no longer automatically get an MBean or statistics for custom `MessageHandler` implementations, unless those custom handlers extend `AbstractMessageHandler`.
 The simplest way to resolve this is to extend `AbstractMessageHandler`.
@@ -397,7 +397,7 @@ You can now control whether the statistics are enabled on an individual componen
 Further, you can capture simple counts on `MessageChannel` instances and `MessageHandler` instances instead of capturing the complete time-based statistics.
 This can have significant performance implications, because you can selectively configure where you need detailed statistics and enable and disable collection at runtime.
 +
-See <<metrics-management>>.
+See <<./metrics.adoc#metrics-management,Metrics and Management>>.
 
 @IntegrationManagedResource::
 Similar to the `@ManagedResource` annotation, the `@IntegrationManagedResource` marks a class as being eligible to be exported as an MBean.
@@ -459,4 +459,4 @@ public void stopActiveComponents(long howLong)
 ----
 ====
 
-Its use and operation are described in <<jmx-shutdown>>.
+Its use and operation are described in <<./shutdown.adoc#jmx-shutdown,Orderly Shutdown>>.
