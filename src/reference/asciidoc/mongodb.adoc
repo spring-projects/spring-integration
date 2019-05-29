@@ -123,9 +123,9 @@ The `MongoDbMessageStore` expands the `Message` as a Mongo document with all nes
 It is useful when you need to have access to the `payload` or `headers` for auditing or analytics -- for example, against stored messages.
 
 IMPORTANT: The `MongoDbMessageStore` uses a custom `MappingMongoConverter` implementation to store `Message` instances as MongoDB documents, and there are some limitations for the properties (`payload` and `header` values) of the `Message`.
-For example, there is no ability to configure custom converters for complex domain `payload` instances or `header` values.
-There is also no way to provide a custom `MongoTemplate` (or `MappingMongoConverter`).
-To achieve these capabilities, an alternative MongoDB `MessageStore` implementation has been introduced (we describe it next).
+
+Starting with version 5.1.6, the `MongoDbMessageStore` can be configured with custom converters which are propagated into an internal `MappingMongoConverter` implementation.
+See `MongoDbMessageStore.setCustomConverters(Object... customConverters)` JavaDocs for more information.
 
 Spring Integration 3.0 introduced the `ConfigurableMongoDbMessageStore`.
 It implements both the `MessageStore` and `MessageGroupStore` interfaces.
