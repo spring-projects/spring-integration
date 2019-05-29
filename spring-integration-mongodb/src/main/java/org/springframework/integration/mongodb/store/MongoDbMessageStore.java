@@ -17,7 +17,9 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -101,13 +103,13 @@ import com.mongodb.DBObject;
 public class MongoDbMessageStore extends AbstractMessageGroupStore
 		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
+	public static final String SEQUENCE_NAME = "messagesSequence";
+
 	private static final String HEADERS = "headers";
 
 	private static final String UNCHECKED = "unchecked";
 
 	private static final String GROUP_ID_MUST_NOT_BE_NULL = "'groupId' must not be null";
-
-	public static final String SEQUENCE_NAME = "messagesSequence";
 
 	private static final String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -132,12 +134,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private final String collectionName;
 
-	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	private ApplicationContext applicationContext;
 
 	private String[] whiteListPatterns;
-
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
@@ -178,7 +179,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 * @param patterns the patterns.
 	 */
 	public void addWhiteListPatterns(String... patterns) {
-		this.whiteListPatterns = patterns;
+		this.whiteListPatterns = patterns != null ? Arrays.copyOf(patterns, patterns.length) : null;
+	}
+
+	/**
+	 * Configure a set of converters to use in the {@link MappingMongoConverter}.
+	 * Must be instances of {@code org.springframework.core.convert.converter.Converter},
+	 * {@code org.springframework.core.convert.converter.ConverterFactory},
+	 * {@code org.springframework.core.convert.converter.GenericConverter} or
+	 * {@code org.springframework.data.convert.ConverterBuilder.ConverterAware}.
+	 * @param customConverters the converters to use.
+	 * @since 5.1.6
+	 */
+	public void setCustomConverters(Object... customConverters) {
+		this.converter.setCustomConverters(customConverters);
 	}
 
 	@Override
@@ -186,6 +200,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		if (this.applicationContext != null) {
 			this.converter.setApplicationContext(this.applicationContext);
 		}
+
 		this.converter.afterPropertiesSet();
 
 		IndexOperations indexOperations = this.template.indexOps(this.collectionName);
@@ -506,26 +521,38 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private static final String CLASS = "_class";
 
+		private Object[] customConverters;
+
 		MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
 
+		void setCustomConverters(Object... customConverters) {
+			this.customConverters =
+					customConverters != null ? Arrays.copyOf(customConverters, customConverters.length) : null;
+		}
+
 		@Override
 		public void afterPropertiesSet() {
-			List<Object> customConverters = new ArrayList<>();
-			customConverters.add(new MessageHistoryToDocumentConverter());
-			customConverters.add(new DocumentToGenericMessageConverter());
-			customConverters.add(new DocumentToMutableMessageConverter());
+			List<Object> converters = new ArrayList<>();
+			converters.add(new MessageHistoryToDocumentConverter());
+			converters.add(new DocumentToGenericMessageConverter());
+			converters.add(new DocumentToMutableMessageConverter());
 			DocumentToErrorMessageConverter docToErrorMessageConverter = new DocumentToErrorMessageConverter();
 			if (MongoDbMessageStore.this.whiteListPatterns != null) {
 				docToErrorMessageConverter.deserializingConverter
 						.addWhiteListPatterns(MongoDbMessageStore.this.whiteListPatterns);
 			}
-			customConverters.add(docToErrorMessageConverter);
-			customConverters.add(new DocumentToAdviceMessageConverter());
-			customConverters.add(new ThrowableToBytesConverter());
-			this.setCustomConversions(new MongoCustomConversions(customConverters));
+			converters.add(docToErrorMessageConverter);
+			converters.add(new DocumentToAdviceMessageConverter());
+			converters.add(new ThrowableToBytesConverter());
+
+			if (this.customConverters != null) {
+				Collections.addAll(converters, this.customConverters);
+			}
+
+			setCustomConversions(new MongoCustomConversions(converters));
 			super.afterPropertiesSet();
 		}
 
