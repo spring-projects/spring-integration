@@ -67,7 +67,7 @@ import com.rabbitmq.client.Channel;
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
 
-	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
+	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
@@ -75,9 +75,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private final boolean amqpTemplateExplicitlySet;
 
-	private volatile MessageConverter amqpMessageConverter = new SimpleMessageConverter();
+	private MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
-	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private Address defaultReplyTo;
 
@@ -244,12 +244,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
 		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
-			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
 			AttributeAccessor attributes = this.retryTemplate != null
 					? RetrySynchronizationManager.getContext()
-					: attributesHolder.get();
+					: ATTRIBUTES_HOLDER.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
@@ -259,7 +259,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.Message<?> message) {
-		AttributeAccessor attributes = attributesHolder.get();
+		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
 		}
@@ -281,7 +281,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					}
 				}
 				finally {
-					attributesHolder.remove();
+					ATTRIBUTES_HOLDER.remove();
 				}
 			}
 			else {
@@ -300,8 +300,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
 			Map<String, Object> headers;
 			Object payload;
-			boolean isManualAck = AmqpInboundGateway.this.messageListenerContainer
-					.getAcknowledgeMode() == AcknowledgeMode.MANUAL;
+			boolean isManualAck =
+					AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL;
 			try {
 				if (AmqpInboundGateway.this.batchingStrategy.canDebatch(message.getMessageProperties())) {
 					List<Object> payloads = new ArrayList<>();
@@ -325,8 +325,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				MessageChannel errorChannel = getErrorChannel();
 				if (errorChannel != null) {
 					setAttributesIfNecessary(message, null);
-					AmqpInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
-							EndpointUtils.errorMessagePayload(message, channel, isManualAck, e)));
+					AmqpInboundGateway.this.messagingTemplate.send(errorChannel,
+							buildErrorMessage(null,
+									EndpointUtils.errorMessagePayload(message, channel, isManualAck, e)));
 				}
 				else {
 					throw e;
@@ -383,8 +384,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								"and the `defaultReplyTo` hasn't been configured.");
 					}
 					else {
-						AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(),
-								messagePostProcessor);
+						AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(), messagePostProcessor);
 					}
 				}
 			}

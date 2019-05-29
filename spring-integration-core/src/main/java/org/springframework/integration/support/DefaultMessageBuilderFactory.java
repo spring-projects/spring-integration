@@ -23,6 +23,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -39,7 +40,7 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * @since 4.3.2
 	 */
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
-		this.readOnlyHeaders = Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length);
+		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 	}
 
 	/**

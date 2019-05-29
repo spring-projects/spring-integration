@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -76,7 +77,8 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	 * @param headerNames The header names.
 	 */
 	public void setHeaderNames(String... headerNames) {
-		this.headerNames = headerNames;
+		Assert.notEmpty(headerNames, "at least one header name is required");
+		this.headerNames = Arrays.copyOf(headerNames, headerNames.length);
 	}
 
 	/**
@@ -116,9 +118,9 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 	@Nullable
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> clazz) {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("payload", message.getPayload());
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		for (String headerName : this.headerNames) {
 			Object header = message.getHeaders().get(headerName);
 			if (header != null) {

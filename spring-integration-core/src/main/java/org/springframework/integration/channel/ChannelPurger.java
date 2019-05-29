@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.integration.core.MessageSelector;
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ChannelPurger {
 
@@ -58,18 +60,18 @@ public class ChannelPurger {
 			Assert.notNull(channels[0], "channel must not be null");
 		}
 		this.selector = selector;
-		this.channels = channels;
+		this.channels = Arrays.copyOf(channels, channels.length);
 	}
 
 
 	public final List<Message<?>> purge() {
-		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
+		List<Message<?>> purgedMessages = new ArrayList<>();
 		for (QueueChannel channel : this.channels) {
-			List<Message<?>> results = (this.selector == null) ?
-					channel.clear() : channel.purge(this.selector);
-			if (results != null) {
-				purgedMessages.addAll(results);
-			}
+			List<Message<?>> results =
+					this.selector == null
+							? channel.clear()
+							: channel.purge(this.selector);
+			purgedMessages.addAll(results);
 		}
 		return purgedMessages;
 	}

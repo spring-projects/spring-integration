@@ -95,11 +95,11 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	/**
 	 * Instantiate based on the provided Ant-style path patterns to map this endpoint for incoming RSocket requests.
-	 * @param path the mapping patterns to use.
+	 * @param pathArg the mapping patterns to use.
 	 */
-	public RSocketInboundGateway(String... path) {
-		Assert.notNull(path, "'path' must not be null");
-		this.path = path;
+	public RSocketInboundGateway(String... pathArg) {
+		Assert.notNull(pathArg, "'pathArg' must not be null");
+		this.path = Arrays.copyOf(pathArg, pathArg.length);
 	}
 
 	/**

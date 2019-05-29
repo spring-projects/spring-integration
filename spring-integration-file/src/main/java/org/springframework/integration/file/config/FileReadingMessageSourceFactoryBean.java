@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Comparator;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -26,6 +27,7 @@ import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.locking.AbstractFileLockerFilter;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -76,7 +78,8 @@ public class FileReadingMessageSourceFactoryBean extends AbstractFactoryBean<Fil
 	}
 
 	public void setWatchEvents(FileReadingMessageSource.WatchEventType... watchEvents) {
-		this.watchEvents = watchEvents;
+		Assert.notEmpty(watchEvents, "at least one watch event type is required");
+		this.watchEvents = Arrays.copyOf(watchEvents, watchEvents.length);
 	}
 
 	public void setFilter(FileListFilter<File> filter) {

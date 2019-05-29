@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.inbound;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -70,11 +71,13 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	public void setTopics(String... topics) {
-		this.topics = topics;
+		Assert.notEmpty(topics, "at least one topic is required");
+		this.topics = Arrays.copyOf(topics, topics.length);
 	}
 
 	public void setTopicPatterns(String... topicPatterns) {
-		this.topicPatterns = topicPatterns;
+		Assert.notEmpty(topicPatterns, "at least one topic pattern is required");
+		this.topicPatterns = Arrays.copyOf(topicPatterns, topicPatterns.length);
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -114,12 +117,12 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		Assert.state(hasTopics || hasPatterns, "at least one topic or topic pattern is required for subscription.");
 
 		if (this.messageConverter instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
+			((BeanFactoryAware) this.messageConverter).setBeanFactory(getBeanFactory());
 		}
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
 		adapter.setSerializer(this.serializer);
-		List<Topic> topicList = new ArrayList<Topic>();
+		List<Topic> topicList = new ArrayList<>();
 		if (hasTopics) {
 			for (String topic : this.topics) {
 				topicList.add(new ChannelTopic(topic));

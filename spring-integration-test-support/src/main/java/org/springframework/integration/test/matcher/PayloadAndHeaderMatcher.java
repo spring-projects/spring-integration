@@ -16,6 +16,7 @@
 
 package org.springframework.integration.test.matcher;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,7 +63,7 @@ public final class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
 	}
 
 	private PayloadAndHeaderMatcher(Message<T> expected, String... ignoreKeys) {
-		this.ignoreKeys = ignoreKeys;
+		this.ignoreKeys = ignoreKeys != null ? Arrays.copyOf(ignoreKeys, ignoreKeys.length) : null;
 		this.payload = expected.getPayload();
 		this.headers = extractHeadersToAssert(expected);
 	}
