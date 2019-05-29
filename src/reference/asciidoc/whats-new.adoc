@@ -1,3 +1,11 @@
+[[whats-new-part]]
+= What's New?
+
+[[spring-integration-intro-new]]
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.2.
+
+If you are interested in the changes and features that were introduced in earlier versions, see the <<history>>.
+
 [[whats-new]]
 
 == What's New in Spring Integration 5.2?

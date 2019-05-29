@@ -6,6 +6,7 @@ buildscript {
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+		classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"
 		classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.16'
 	}
 }
@@ -819,6 +820,12 @@ project("spring-integration-bom") {
 	}
 }
 
+apply plugin: "org.asciidoctor.convert"
+
+asciidoctorj {
+	version = '1.5.5'
+}
+
 configurations {
 	docs
 }
@@ -836,33 +843,52 @@ task prepareAsciidocBuild(type: Sync) {
 	into "$buildDir/asciidoc"
 }
 
-asciidoctor {
-	dependsOn 'prepareAsciidocBuild'
+task('makePDF', type: org.asciidoctor.gradle.AsciidoctorTask) {
+	dependsOn prepareAsciidocBuild
+	backends 'pdf'
 	sourceDir "$buildDir/asciidoc"
 	sources {
-		include 'index.adoc'
+		include 'index-single.adoc'
 	}
+	options doctype: 'book', eruby: 'erubis'
+	logDocuments = true
+	attributes 'icons': 'font',
+		'sectanchors': '',
+		'sectnums': '',
+		'toc': '',
+		'source-highlighter' : 'coderay',
+		revnumber: project.version
+}
+
+asciidoctor {
+	dependsOn makePDF
+	backends 'html5'
+	sourceDir "$buildDir/asciidoc"
 	resources {
 		from(sourceDir) {
-			include 'images/*', 'css/*', 'js/**'
+			include 'images/*', 'css/**', 'js/**'
 		}
 	}
-	backends = ['html5', 'pdf']
 	options doctype: 'book', eruby: 'erubis'
-	attributes  'icons': 'font',
-			'idprefix': '',
-			'idseparator': '-',
-			docinfo: 'shared',
-			sectanchors: '',
-			sectnums: '',
-			stylesdir: 'css/',
-			stylesheet: 'spring.css',
-			'linkcss': true,
-			'source-highlighter=highlight.js',
-			'highlightjsdir=js/highlight',
-			'highlightjs-theme=atom-one-dark-reasonable',
-			'project-version': project.version,
-			'allow-uri-read': ''
+	logDocuments = true
+	attributes 'docinfo': 'shared',
+		// use provided stylesheet
+		stylesdir: "css/",
+		stylesheet: 'spring.css',
+		'linkcss': true,
+		'icons': 'font',
+		'sectanchors': '',
+		// use provided highlighter
+		'source-highlighter=highlight.js',
+		'highlightjsdir=js/highlight',
+		'highlightjs-theme=atom-one-dark-reasonable',
+		'idprefix': '',
+		'idseparator': '-',
+		'spring-version': project.version,
+		'allow-uri-read': '',
+		'toc': 'left',
+		'toclevbels': '4',
+		revnumber: project.version
 }
 
 task reference(dependsOn: asciidoctor) {
@@ -953,8 +979,9 @@ task docsZip(type: Zip, dependsOn: reference) {
 	    }
 
 	    from ('build/asciidoc/pdf') {
-		     include 'index.pdf'
-		     into 'reference/pdf'
+			include "index-single.pdf"
+			rename  'index-single.pdf', 'spring-integration-reference.pdf'
+			into 'reference/pdf'
 	    }
 }
 

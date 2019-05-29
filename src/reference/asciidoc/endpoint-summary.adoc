@@ -1,3 +1,11 @@
+[[spring-integration-endpoints]]
+= Integration Endpoints
+
+[[spring-integration-adapters]]
+This section covers the various channel adapters and messaging gateways provided by Spring Integration to support message-based communication with external systems.
+
+Each system, from AMQP to Zookeeper, has its own integration requirements, and this section covers them.
+
 [[endpoint-summary]]
 == Endpoint Quick Reference Table
 
