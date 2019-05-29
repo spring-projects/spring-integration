@@ -196,7 +196,7 @@ public class WebSocketServerTests {
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
 			ClientWebSocketContainer clientWebSocketContainer =
 					new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
-			clientWebSocketContainer.setOrigin("http://www.foo.com/");
+			clientWebSocketContainer.setOrigin("https://www.example.com/");
 			return clientWebSocketContainer;
 		}
 
@@ -271,7 +271,7 @@ public class WebSocketServerTests {
 			return new ServerWebSocketContainer("/ws")
 					.setHandshakeHandler(handshakeHandler())
 					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
-					.setAllowedOrigins("http://www.foo.com/")
+					.setAllowedOrigins("https://www.example.com/")
 					.withSockJs();
 		}
 

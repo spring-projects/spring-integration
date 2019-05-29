@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -43,7 +44,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -146,7 +146,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateAllowAsCollectionOfString() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Allow", CollectionUtils.arrayToList(new String[] { "GET", "POST" }));
+		messageHeaders.put("Allow", Arrays.asList("GET", "POST"));
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -159,7 +159,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateAllowAsCollectionOfHttpMethods() {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Allow", CollectionUtils.arrayToList(new HttpMethod[] { HttpMethod.GET, HttpMethod.POST }));
+		messageHeaders.put("Allow", Arrays.asList(HttpMethod.GET, HttpMethod.POST));
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -277,11 +277,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateLocation() throws URISyntaxException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<>();
-		messageHeaders.put("Location", "http://www.foo.com/");
+		messageHeaders.put("Location", "https://www.example.com/");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
-		assertThat(headers.getLocation().toString()).isEqualTo(new URI("http://www.foo.com/").toString());
+		assertThat(headers.getLocation().toString()).isEqualTo(new URI("https://www.example.com/").toString());
 	}
 
 	// Transfer Encoding tests
@@ -406,7 +406,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	}
 
 	@Test
-	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() {
+	void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix("");
 		mapper.setOutboundHeaderNames("foo*", "HTTP_RESPONSE_HEADERS");
