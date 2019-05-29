@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationFilter;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.RepeatableContainers;
@@ -33,7 +34,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * SpEL {@link MethodFilter} to restrict method invocations to:
  * <ul>
- *     <li> {@link Pausable} components
+ *     <li> {@link Pausable} or {@link Lifecycle} components
  *     <li> {@code get}, {@code set} and {@code shutdown} methods of {@link CustomizableThreadCreator}
  *     <li> methods with {@link ManagedAttribute} and {@link ManagedOperation} annotations
  * </ul>
@@ -59,7 +60,7 @@ public class ControlBusMethodFilter implements MethodFilter {
 	private boolean accept(Method method) {
 		Class<?> declaringClass = method.getDeclaringClass();
 		String methodName = method.getName();
-		if (Pausable.class.isAssignableFrom(declaringClass)
+		if ((Pausable.class.isAssignableFrom(declaringClass) || Lifecycle.class.isAssignableFrom(declaringClass))
 				&& ReflectionUtils.findMethod(Pausable.class, methodName, method.getParameterTypes()) != null) {
 			return true;
 		}
