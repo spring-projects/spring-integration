@@ -16,6 +16,8 @@
 
 package org.springframework.integration.stomp;
 
+import java.util.Arrays;
+
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.util.Assert;
@@ -29,8 +31,9 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
  * @author Artem Bilan
  * @author Sean Mills
  *
- * @see WebSocketStompClient
  * @since 4.2
+ *
+ * @see WebSocketStompClient
  */
 public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
@@ -44,7 +47,7 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 		super(webSocketStompClient);
 		Assert.hasText(url, "'url' must not be empty.");
 		this.url = url;
-		this.uriVariables = uriVariables;
+		this.uriVariables = uriVariables != null ? Arrays.copyOf(uriVariables, uriVariables.length) : null;
 	}
 
 	public void setHandshakeHeaders(WebSocketHttpHeaders handshakeHeaders) {
@@ -53,8 +56,8 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return ((WebSocketStompClient) this.stompClient).connect(this.url, this.handshakeHeaders, getConnectHeaders(),
-				handler, this.uriVariables);
+		return ((WebSocketStompClient) this.stompClient)
+				.connect(this.url, this.handshakeHeaders, getConnectHeaders(), handler, this.uriVariables);
 	}
 
 }

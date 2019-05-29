@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.inbound;
 
+import java.util.Arrays;
+
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
@@ -24,26 +26,28 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * {@link org.springframework.web.bind.annotation.CrossOrigin}.
  *
  * @author Artem Bilan
+ *
  * @since 4.2
+ *
  * @see org.springframework.web.bind.annotation.CrossOrigin
  * @see IntegrationRequestMappingHandlerMapping
  */
 public class CrossOrigin {
 
-	private String[] origin = {"*"};
+	private String[] origin = { "*" };
 
-	private String[] allowedHeaders = {"*"};
+	private String[] allowedHeaders = { "*" };
 
-	private String[] exposedHeaders = {};
+	private String[] exposedHeaders = { };
 
-	private RequestMethod[] method = {};
+	private RequestMethod[] method = { };
 
 	private Boolean allowCredentials = true;
 
 	private long maxAge = 1800;
 
 	public void setOrigin(String... origin) {
-		this.origin = origin;
+		this.origin = Arrays.copyOf(origin, origin.length);
 	}
 
 	public String[] getOrigin() {
@@ -51,7 +55,7 @@ public class CrossOrigin {
 	}
 
 	public void setAllowedHeaders(String... allowedHeaders) {
-		this.allowedHeaders = allowedHeaders;
+		this.allowedHeaders = Arrays.copyOf(allowedHeaders, allowedHeaders.length);
 	}
 
 	public String[] getAllowedHeaders() {
@@ -59,7 +63,7 @@ public class CrossOrigin {
 	}
 
 	public void setExposedHeaders(String... exposedHeaders) {
-		this.exposedHeaders = exposedHeaders;
+		this.exposedHeaders = Arrays.copyOf(exposedHeaders, exposedHeaders.length);
 	}
 
 	public String[] getExposedHeaders() {
@@ -67,7 +71,7 @@ public class CrossOrigin {
 	}
 
 	public void setMethod(RequestMethod... method) {
-		this.method = method;
+		this.method = Arrays.copyOf(method, method.length);
 	}
 
 	public RequestMethod[] getMethod() {

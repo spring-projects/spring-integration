@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -309,7 +310,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
 	public MessageBuilder<T> readOnlyHeaders(String... readOnlyHeaders) {
-		this.readOnlyHeaders = readOnlyHeaders;
+		this.readOnlyHeaders = readOnlyHeaders != null ? Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length) : null;
 		this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
 		return this;
 	}

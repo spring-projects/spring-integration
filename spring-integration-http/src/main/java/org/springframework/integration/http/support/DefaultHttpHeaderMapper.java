@@ -405,77 +405,79 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String PRAGMA_LOWER = "pragma";
 
-	private static final String[] HTTP_REQUEST_HEADER_NAMES = new String[] {
-			HttpHeaders.ACCEPT,
-			HttpHeaders.ACCEPT_CHARSET,
-			HttpHeaders.ACCEPT_ENCODING,
-			HttpHeaders.ACCEPT_LANGUAGE,
-			HttpHeaders.ACCEPT_RANGES,
-			HttpHeaders.AUTHORIZATION,
-			HttpHeaders.CACHE_CONTROL,
-			HttpHeaders.CONNECTION,
-			HttpHeaders.CONTENT_LENGTH,
-			HttpHeaders.CONTENT_TYPE,
-			HttpHeaders.COOKIE,
-			HttpHeaders.DATE,
-			HttpHeaders.EXPECT,
-			HttpHeaders.FROM,
-			HttpHeaders.HOST,
-			HttpHeaders.IF_MATCH,
-			HttpHeaders.IF_MODIFIED_SINCE,
-			HttpHeaders.IF_NONE_MATCH,
-			HttpHeaders.IF_RANGE,
-			HttpHeaders.IF_UNMODIFIED_SINCE,
-			HttpHeaders.MAX_FORWARDS,
-			HttpHeaders.PRAGMA,
-			HttpHeaders.PROXY_AUTHORIZATION,
-			HttpHeaders.RANGE,
-			HttpHeaders.REFERER,
-			HttpHeaders.TE,
-			HttpHeaders.UPGRADE,
-			HttpHeaders.USER_AGENT,
-			HttpHeaders.VIA,
-			HttpHeaders.WARNING
-	};
+	private static final String[] HTTP_REQUEST_HEADER_NAMES =
+			{
+					HttpHeaders.ACCEPT,
+					HttpHeaders.ACCEPT_CHARSET,
+					HttpHeaders.ACCEPT_ENCODING,
+					HttpHeaders.ACCEPT_LANGUAGE,
+					HttpHeaders.ACCEPT_RANGES,
+					HttpHeaders.AUTHORIZATION,
+					HttpHeaders.CACHE_CONTROL,
+					HttpHeaders.CONNECTION,
+					HttpHeaders.CONTENT_LENGTH,
+					HttpHeaders.CONTENT_TYPE,
+					HttpHeaders.COOKIE,
+					HttpHeaders.DATE,
+					HttpHeaders.EXPECT,
+					HttpHeaders.FROM,
+					HttpHeaders.HOST,
+					HttpHeaders.IF_MATCH,
+					HttpHeaders.IF_MODIFIED_SINCE,
+					HttpHeaders.IF_NONE_MATCH,
+					HttpHeaders.IF_RANGE,
+					HttpHeaders.IF_UNMODIFIED_SINCE,
+					HttpHeaders.MAX_FORWARDS,
+					HttpHeaders.PRAGMA,
+					HttpHeaders.PROXY_AUTHORIZATION,
+					HttpHeaders.RANGE,
+					HttpHeaders.REFERER,
+					HttpHeaders.TE,
+					HttpHeaders.UPGRADE,
+					HttpHeaders.USER_AGENT,
+					HttpHeaders.VIA,
+					HttpHeaders.WARNING
+			};
 
 	private static final Set<String> HTTP_REQUEST_HEADER_NAMES_LOWER = new HashSet<>();
 
-	private static final String[] HTTP_RESPONSE_HEADER_NAMES = new String[] {
-			HttpHeaders.ACCEPT_RANGES,
-			HttpHeaders.AGE,
-			HttpHeaders.ALLOW,
-			HttpHeaders.CACHE_CONTROL,
-			HttpHeaders.CONNECTION,
-			HttpHeaders.CONTENT_ENCODING,
-			HttpHeaders.CONTENT_LANGUAGE,
-			HttpHeaders.CONTENT_LENGTH,
-			HttpHeaders.CONTENT_LOCATION,
-			CONTENT_MD5,
-			HttpHeaders.CONTENT_RANGE,
-			HttpHeaders.CONTENT_TYPE,
-			HttpHeaders.CONTENT_DISPOSITION,
-			HttpHeaders.TRANSFER_ENCODING,
-			HttpHeaders.DATE,
-			HttpHeaders.ETAG,
-			HttpHeaders.EXPIRES,
-			HttpHeaders.LAST_MODIFIED,
-			HttpHeaders.LOCATION,
-			HttpHeaders.PRAGMA,
-			HttpHeaders.PROXY_AUTHENTICATE,
-			REFRESH,
-			HttpHeaders.RETRY_AFTER,
-			HttpHeaders.SERVER,
-			HttpHeaders.SET_COOKIE,
-			HttpHeaders.TRAILER,
-			HttpHeaders.VARY,
-			HttpHeaders.VIA,
-			HttpHeaders.WARNING,
-			HttpHeaders.WWW_AUTHENTICATE
-	};
+	private static final String[] HTTP_RESPONSE_HEADER_NAMES =
+			{
+					HttpHeaders.ACCEPT_RANGES,
+					HttpHeaders.AGE,
+					HttpHeaders.ALLOW,
+					HttpHeaders.CACHE_CONTROL,
+					HttpHeaders.CONNECTION,
+					HttpHeaders.CONTENT_ENCODING,
+					HttpHeaders.CONTENT_LANGUAGE,
+					HttpHeaders.CONTENT_LENGTH,
+					HttpHeaders.CONTENT_LOCATION,
+					CONTENT_MD5,
+					HttpHeaders.CONTENT_RANGE,
+					HttpHeaders.CONTENT_TYPE,
+					HttpHeaders.CONTENT_DISPOSITION,
+					HttpHeaders.TRANSFER_ENCODING,
+					HttpHeaders.DATE,
+					HttpHeaders.ETAG,
+					HttpHeaders.EXPIRES,
+					HttpHeaders.LAST_MODIFIED,
+					HttpHeaders.LOCATION,
+					HttpHeaders.PRAGMA,
+					HttpHeaders.PROXY_AUTHENTICATE,
+					REFRESH,
+					HttpHeaders.RETRY_AFTER,
+					HttpHeaders.SERVER,
+					HttpHeaders.SET_COOKIE,
+					HttpHeaders.TRAILER,
+					HttpHeaders.VARY,
+					HttpHeaders.VIA,
+					HttpHeaders.WARNING,
+					HttpHeaders.WWW_AUTHENTICATE
+			};
 
 	private static final Set<String> HTTP_RESPONSE_HEADER_NAMES_LOWER = new HashSet<>();
 
-	private static final String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = new String[0];
+	private static final String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = { };
 
 	private static final String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS =
 			{ HttpHeaders.CONTENT_LENGTH, HttpHeaders.TRANSFER_ENCODING };
@@ -500,17 +502,17 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 	}
 
-	private volatile String[] outboundHeaderNames = new String[0];
+	private volatile String[] outboundHeaderNames = {};
 
-	private volatile String[] outboundHeaderNamesLowerWithContentType = new String[0];
+	private volatile String[] outboundHeaderNamesLowerWithContentType = {};
 
-	private volatile String[] inboundHeaderNames = new String[0];
+	private volatile String[] inboundHeaderNames = {};
 
-	private volatile String[] inboundHeaderNamesLower = new String[0];
+	private volatile String[] inboundHeaderNamesLower = {};
 
-	private volatile String[] excludedOutboundStandardRequestHeaderNames = new String[0];
+	private volatile String[] excludedOutboundStandardRequestHeaderNames = {};
 
-	private volatile String[] excludedInboundStandardResponseHeaderNames = new String[0];
+	private volatile String[] excludedInboundStandardResponseHeaderNames = {};
 
 	private volatile String userDefinedHeaderPrefix = "";
 
@@ -575,12 +577,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * will match the header name prefixed with the value specified by
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default for
 	 * that is an empty String.
-	 * @param inboundHeaderNames The inbound header names.
+	 * @param inboundHeaderNamesArg The inbound header names.
 	 */
-	public void setInboundHeaderNames(String... inboundHeaderNames) {
+	public void setInboundHeaderNames(String... inboundHeaderNamesArg) {
 		this.inboundHeaderNames =
-				inboundHeaderNames != null
-						? Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length)
+				inboundHeaderNamesArg != null
+						? Arrays.copyOf(inboundHeaderNamesArg, inboundHeaderNamesArg.length)
 						: new String[0];
 		this.inboundHeaderNamesLower = new String[this.inboundHeaderNames.length];
 		for (int i = 0; i < this.inboundHeaderNames.length; i++) {

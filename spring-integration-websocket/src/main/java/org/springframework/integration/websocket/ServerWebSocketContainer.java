@@ -70,7 +70,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	private int phase = 0;
 
 	public ServerWebSocketContainer(String... paths) {
-		this.paths = paths;
+		Assert.notEmpty(paths, "'paths' must not be empty");
+		this.paths = Arrays.copyOf(paths, paths.length);
 	}
 
 	public ServerWebSocketContainer setHandshakeHandler(HandshakeHandler handshakeHandler) {
@@ -110,7 +111,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 	 * @see WebSocketHandlerRegistration#setAllowedOrigins(String...)
 	 */
 	public ServerWebSocketContainer setAllowedOrigins(String... origins) {
-		this.origins = origins; //NOSONAR - fully delegated
+		Assert.notEmpty(origins, "'origins' must not be empty");
+		this.origins = Arrays.copyOf(origins, origins.length);
 		return this;
 	}
 
@@ -291,7 +293,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer
 		}
 
 		public SockJsServiceOptions setTransportHandlers(TransportHandler... transportHandlers) {
-			this.transportHandlers = transportHandlers;
+			Assert.notEmpty(transportHandlers, "'transportHandlers' must not be empty");
+			this.transportHandlers = Arrays.copyOf(transportHandlers, transportHandlers.length);
 			return this;
 		}
 

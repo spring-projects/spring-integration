@@ -112,7 +112,8 @@ public final class JacksonJsonUtils {
 
 		WhitelistTypeResolverBuilder(String... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL);
-			this.trustedPackages = trustedPackages;
+			this.trustedPackages =
+					trustedPackages != null ? Arrays.copyOf(trustedPackages, trustedPackages.length) : null;
 
 			init(JsonTypeInfo.Id.CLASS, null)
 					.inclusion(JsonTypeInfo.As.PROPERTY);

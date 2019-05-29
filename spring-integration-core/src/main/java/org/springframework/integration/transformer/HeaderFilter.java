@@ -45,7 +45,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 
 	public HeaderFilter(String... headersToRemove) {
 		Assert.notEmpty(headersToRemove, "At least one header name to remove is required.");
-		this.headersToRemove = headersToRemove;
+		this.headersToRemove = Arrays.copyOf(headersToRemove, headersToRemove.length);
 	}
 
 	public void setPatternMatch(boolean patternMatch) {
@@ -75,7 +75,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 
 	@Override
 	public Message<?> transform(Message<?> message) {
-		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().fromMessage(message);
+		AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().fromMessage(message);
 		if (this.patternMatch) {
 			builder.removeHeaders(this.headersToRemove);
 		}

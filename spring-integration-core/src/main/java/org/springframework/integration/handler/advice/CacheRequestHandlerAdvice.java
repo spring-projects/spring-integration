@@ -97,11 +97,11 @@ public class CacheRequestHandlerAdvice extends AbstractRequestHandlerAdvice
 	 * Create a {@link CacheRequestHandlerAdvice} instance based on the provided name of caches
 	 * and {@link CacheableOperation} as default one.
 	 * This can be overridden by the {@link #setCacheOperations}.
-	 * @param cacheNames the name of caches to use in the advice.
+	 * @param cacheNamesArg the name of caches to use in the advice.
 	 * @see #setCacheOperations
 	 */
-	public CacheRequestHandlerAdvice(String... cacheNames) {
-		this.cacheNames = cacheNames;
+	public CacheRequestHandlerAdvice(String... cacheNamesArg) {
+		this.cacheNames = cacheNamesArg != null ? Arrays.copyOf(cacheNamesArg, cacheNamesArg.length) : null;
 		CacheableOperation.Builder builder = new CacheableOperation.Builder();
 		builder.setName(toString());
 		this.cacheOperations.add(builder.build());

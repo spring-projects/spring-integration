@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.inbound;
 
+import java.util.Arrays;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * {@link org.springframework.web.bind.annotation.RequestMapping}.
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  * @see org.springframework.web.bind.annotation.RequestMapping
@@ -37,15 +40,15 @@ public class RequestMapping {
 
 	private String[] pathPatterns;
 
-	private HttpMethod[] methods = new HttpMethod[]{HttpMethod.GET, HttpMethod.POST};
+	private HttpMethod[] methods = { HttpMethod.GET, HttpMethod.POST };
 
-	private String[] params = new String[0];
+	private String[] params = { };
 
-	private String[] headers = new String[0];
+	private String[] headers = { };
 
-	private String[] consumes = new String[0];
+	private String[] consumes = { };
 
-	private String[] produces = new String[0];
+	private String[] produces = { };
 
 	public String getName() {
 		return this.name;
@@ -57,7 +60,7 @@ public class RequestMapping {
 
 	public void setPathPatterns(String... pathPatterns) {
 		Assert.notEmpty(pathPatterns, "at least one path pattern is required");
-		this.pathPatterns = pathPatterns;
+		this.pathPatterns = Arrays.copyOf(pathPatterns, pathPatterns.length);
 	}
 
 	public String[] getPathPatterns() {
@@ -66,7 +69,7 @@ public class RequestMapping {
 
 	public void setMethods(HttpMethod... supportedMethods) {
 		Assert.notEmpty(supportedMethods, "at least one supported methods is required");
-		this.methods = supportedMethods;
+		this.methods = Arrays.copyOf(supportedMethods, supportedMethods.length);
 	}
 
 	public HttpMethod[] getMethods() {
@@ -75,7 +78,7 @@ public class RequestMapping {
 
 	public void setParams(String... params) {
 		Assert.notEmpty(params, "at least one param is required");
-		this.params = params;
+		this.params = Arrays.copyOf(params, params.length);
 	}
 
 	public String[] getParams() {
@@ -84,7 +87,7 @@ public class RequestMapping {
 
 	public void setHeaders(String... headers) {
 		Assert.notEmpty(headers, "at least one header is required");
-		this.headers = headers;
+		this.headers = Arrays.copyOf(headers, headers.length);
 	}
 
 	public String[] getHeaders() {
@@ -93,7 +96,7 @@ public class RequestMapping {
 
 	public void setConsumes(String... consumes) {
 		Assert.notEmpty(consumes, "at least one consume value is required");
-		this.consumes = consumes;
+		this.consumes = Arrays.copyOf(consumes, consumes.length);
 	}
 
 	public String[] getConsumes() {
@@ -102,7 +105,7 @@ public class RequestMapping {
 
 	public void setProduces(String... produces) {
 		Assert.notEmpty(produces, "at least one produce value is required");
-		this.produces = produces;
+		this.produces = Arrays.copyOf(produces, produces.length);
 	}
 
 	public String[] getProduces() {

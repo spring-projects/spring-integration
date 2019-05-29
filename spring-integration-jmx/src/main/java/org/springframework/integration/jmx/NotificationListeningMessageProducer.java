@@ -33,16 +33,12 @@ import javax.management.NotificationListener;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * A JMX {@link NotificationListener} implementation that will send Messages
@@ -51,28 +47,26 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class NotificationListeningMessageProducer extends MessageProducerSupport
 		implements NotificationListener, ApplicationListener<ContextRefreshedEvent> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private final AtomicBoolean listenerRegisteredOnStartup = new AtomicBoolean();
 
-	private volatile MBeanServerConnection server;
+	private MBeanServerConnection server;
 
-	private volatile ObjectName[] mBeanObjectNames;
+	private ObjectName[] mBeanObjectNames;
 
-	private volatile NotificationFilter filter;
+	private NotificationFilter filter;
 
-	private volatile Object handback;
+	private Object handback;
 
 
 	/**
 	 * Provide a reference to the MBeanServer where the notification
 	 * publishing MBeans are registered.
-	 *
 	 * @param server the MBean server connection.
 	 */
 	public void setServer(MBeanServerConnection server) {
@@ -83,18 +77,16 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 * Specify the JMX ObjectNames (or patterns)
 	 * of the notification publisher
 	 * to which this notification listener should be subscribed.
-	 *
 	 * @param objectNames The object names.
 	 */
 	public void setObjectName(ObjectName... objectNames) {
-		Assert.isTrue(!ObjectUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
-		this.mBeanObjectNames = objectNames;
+		Assert.notEmpty(objectNames, "'objectNames' must contain at least one ObjectName");
+		this.mBeanObjectNames = Arrays.copyOf(objectNames, objectNames.length);
 	}
 
 	/**
 	 * Specify a {@link NotificationFilter} to be passed to the server
 	 * when registering this listener. The filter may be null.
-	 *
 	 * @param filter The filter.
 	 */
 	public void setFilter(NotificationFilter filter) {
@@ -104,7 +96,6 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	/**
 	 * Specify a handback object to provide context to the listener
 	 * upon notification. This object may be null.
-	 *
 	 * @param handback The object.
 	 */
 	public void setHandback(Object handback) {
@@ -122,12 +113,12 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("received notification: " + notification + ", and handback: " + handback);
 		}
-		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(notification);
+		AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().withPayload(notification);
 		if (handback != null) {
 			builder.setHeader(JmxHeaders.NOTIFICATION_HANDBACK, handback);
 		}
 		Message<?> message = builder.build();
-		this.sendMessage(message);
+		sendMessage(message);
 	}
 
 	@Override
@@ -156,13 +147,13 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			return;
 		}
 		this.logger.debug("Registering to receive notifications");
+		Assert.notNull(this.server, "MBeanServer is required.");
+		Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
 		try {
-			Assert.notNull(this.server, "MBeanServer is required.");
-			Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.size() < 1) {
 				this.logger.error("No MBeans found matching ObjectName pattern(s): " +
-						Arrays.asList(this.mBeanObjectNames));
+						Arrays.toString(this.mBeanObjectNames));
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
@@ -202,7 +193,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	protected Collection<ObjectName> retrieveMBeanNames() {
-		List<ObjectName> objectNames = new ArrayList<ObjectName>();
+		List<ObjectName> objectNames = new ArrayList<>();
 		for (ObjectName pattern : this.mBeanObjectNames) {
 			Set<ObjectInstance> mBeanInfos;
 			try {
@@ -212,11 +203,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 			}
 			if (mBeanInfos.size() == 0 && this.logger.isDebugEnabled()) {
-				this.logger.debug("No MBeans found matching pattern:" + pattern);
+				this.logger.debug("No MBeans found matching pattern: " + pattern);
 			}
 			for (ObjectInstance instance : mBeanInfos) {
 				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Found MBean:" + instance.getObjectName().toString());
+					this.logger.debug("Found MBean: " + instance.getObjectName().toString());
 				}
 				objectNames.add(instance.getObjectName());
 			}
