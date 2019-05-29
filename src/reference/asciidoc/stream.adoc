@@ -104,7 +104,7 @@ public static final CharacterStreamReadingMessageSource stdinPipe(String charset
 
 For target streams, you can use either of two implementations: `ByteStreamWritingMessageHandler` or `CharacterStreamWritingMessageHandler`.
 Each requires a single constructor argument (`OutputStream` for byte streams or `Writer` for character streams), and each provides a second constructor that adds the optional 'bufferSize'.
-Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in <<channel-adapter>>.
+Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in <<./channel-adapter.adoc#channel-adapter,Channel Adapter>>.
 
 ====
 [source,xml]

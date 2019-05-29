@@ -47,7 +47,7 @@ However, Spring Integration supports a few simple message mapping strategies.
 For example, if the message payload is a byte array, that is mapped to an attachment.
 For simple text-based emails, you can provide a string-based message payload.
 In that case, a `MailMessage` is created with that `String` as the text content.
-If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in <<transformer-namespace>> for more detail).
+If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in <<./transformer.adoc#transformer-namespace,Configuring a Transformer with XML>> for more detail).
 
 You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
 If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the from, the reply-to, and the subject.
@@ -118,7 +118,7 @@ This property now controls the rendering regardless of whether a header mapper i
 It now allows body-only rendering when a header mapper is provided.
 
 Starting with version 5.2, the `autoCloseFolder` option is provided on the mail receiver.
-Setting it to `false` doesn't close the folder automatically after a fetch, but instead an `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header (see <<message-header-accessor>> for more information) is populated into every message to producer from the channel adapter.
+Setting it to `false` doesn't close the folder automatically after a fetch, but instead an `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header (see <<./message.adoc#message-header-accessor,`MessageHeaderAccessor` API>> for more information) is populated into every message to producer from the channel adapter.
 It is the target application's responsibility to call the `close()` on this header whenever it is necessary in the downstream flow:
 
 ====
@@ -262,7 +262,7 @@ mail.smtp.port=587
 ----
 ====
 
-NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see <<endpoint-namespace>>).
+NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see <<./endpoint.adoc#endpoint-namespace,Endpoint Namespace Support>>).
 
 When you use the namespace support, you can also use a `header-enricher` message transformer.
 Doing so simplifies the application of the headers mentioned earlier to any message prior to sending to the mail outbound channel adapter.
@@ -515,7 +515,7 @@ In other words, while our adapter may peek at the email, it also lets the email 
 Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
 You can enable transaction synchronization by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
 Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
-For more information, see <<transaction-synchronization>>.
+For more information, see <<./transactions.adoc#transaction-synchronization,Transaction Synchronization>>.
 
 Because of the many different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
 You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.

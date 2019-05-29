@@ -4,7 +4,7 @@
 [[spring-integration-intro-new]]
 For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.2.
 
-If you are interested in the changes and features that were introduced in earlier versions, see the <<history>>.
+If you are interested in the changes and features that were introduced in earlier versions, see the <<./history.adoc#history,Change History>>.
 
 [[whats-new]]
 
@@ -19,61 +19,61 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 === Rate Limit Advice Support
 
 The `RateLimiterRequestHandlerAdvice` is now available for limiting requests rate on handlers.
-See <<rate-limiter-advice>> for more information.
+See <<./handler-advice.adoc#rate-limiter-advice,Rate Limiter Advice>> for more information.
 
 [[x5.2-cacheAdvice]]
 === Caching Advice Support
 
 The `CacheRequestHandlerAdvice` is now available for caching request results on handlers.
-See <<cache-advice>> for more information.
+See <<./handler-advice.adoc#cache-advice,Caching Advice>> for more information.
 
 [[x5.2-kotlinScripts]]
 === Kotlin Scripts Support
 
 The JSR223 scripting module now includes a support for Kotlin scripts.
-See <<scripting>> for more information.
+See <<./scripting.adoc#scripting,Scripting Support>> for more information.
 
 [[x5.2-general]]
 === General Changes
 
 The `JsonToObjectTransformer` now supports generics for the target object to deserialize into.
-See <<json-transformers>> for more information.
+See <<./transformer.adoc#json-transformers,JSON Transformers>> for more information.
 
 The `splitter` now supports a `discardChannel` configuration option.
-See <<splitter>> for more information.
+See <<./splitter.adoc#splitter,Splitter>> for more information.
 
 [[x5.2-amqp]]
 ==== AMQP Changes
 
 The outbound endpoints can now be configured to synthesize a "nack" if no publisher confirm is received within a timeout.
-See <<amqp-outbound-endpoints>> for more information.
+See <<./amqp.adoc#amqp-outbound-endpoints,Outbound Channel Adapter>> for more information.
 
 The inbound channel adapter can now receive batched messages as a `List<?>` payload instead of receiving a discrete message for each batch fragment.
-See <<amqp-debatching>> for more information.
+See <<./amqp.adoc#amqp-debatching,Batched Messages>> for more information.
 
 [[x5.2-file]]
 ==== File Changes
 
 Some improvements to filtering remote files have been made.
-See <<remote-persistent-flf>> for more information.
+See <<./file.adoc#remote-persistent-flf,Remote Persistent File List Filters>> for more information.
 
 [[x5.2-tcp]]
 ==== TCP Changes
 
 The length header used by the `ByteArrayLengthHeaderSerializer` can now include the length of the header in addition to the payload.
-See <<tcp-codecs>> for more information.
+See <<./ip.adoc#tcp-codecs,Message Demarcation (Serializers and Deserializers)>> for more information.
 
 When using a `TcpNioServerConnectionFactory`, priority is now given to accepting new connections over reading from existing connections, but it is configurable.
-See <<note-nio>> for more information.
+See <<./ip.adoc#note-nio,About Non-blocking I/O (NIO)>> for more information.
 
 [[x5.2-mail]]
 ==== Mail Changes
 
 The `AbstractMailReceiver` has now an `autoCloseFolder` option (`true` by default), to disable an automatic folder close after a fetch, but populate `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header instead for downstream interaction.
-See <<mail-inbound>> for more information.
+See <<./mail.adoc#mail-inbound,Mail-receiving Channel Adapter>> for more information.
 
 [[x5.2-webflux]]
 ==== WebFlux Changes
 
 The `WebFluxRequestExecutingMessageHandler` now supports a `Publisher`, `Resource` and `MultiValueMap` as a request message `payload`.
-See <<webflux>> for more information.
+See <<./webflux.adoc#webflux,WebFlux Support>> for more information.

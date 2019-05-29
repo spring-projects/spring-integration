@@ -110,7 +110,7 @@ Consequently, if there is a possibility of the header being omitted and you want
 
 The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.
 The default scheduler used by the delayer is the `ThreadPoolTaskScheduler` instance provided by Spring Integration on startup.
-See <<namespace-taskscheduler>>.
+See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
 If you want to delegate to a different scheduler, you can provide a reference through the delayer element's 'scheduler' attribute, as the following example shows:
 
 ====
@@ -186,7 +186,7 @@ Message<String> delayerReschedulingMessage =
 ----
 ====
 
-NOTE: For more information regarding the message store, JMX, and the control bus, see <<system-management-chapter>>.
+NOTE: For more information regarding the message store, JMX, and the control bus, see <<./system-management.adoc#system-management-chapter,System Management>>.
 
 [[delayer-release-failures]]
 ==== Release Failures

@@ -147,7 +147,7 @@ The `poller` element is not applicable for a message-driven channel adapter, as 
 For most scenarios, the message-driven approach is better, since the messages are passed along to the `MessageChannel` as soon as they are received from the underlying JMS consumer.
 
 Finally, the `<message-driven-channel-adapter>` element also accepts the 'error-channel' attribute.
-This provides the same basic functionality, as described in <<gateway-proxy>>.
+This provides the same basic functionality, as described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
 The following example shows how to set an error channel on a message-driven channel adapter:
 
 ====
@@ -274,7 +274,7 @@ You can use the error-channel attribute to configure such a channel, as the foll
 ----
 ====
 
-You might notice that this example looks very similar to that included within <<gateway-proxy>>.
+You might notice that this example looks very similar to that included within <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
 The same idea applies here: The `exceptionTransformer` could be a POJO that creates error-response objects, you could reference the `nullChannel` to suppress the errors, or you could leave 'error-channel' out to let the exception propagate.
 
 See <<jms-md-conversion-errors>>.

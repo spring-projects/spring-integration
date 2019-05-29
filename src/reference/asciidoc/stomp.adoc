@@ -98,7 +98,7 @@ For more information, see the https://docs.spring.io/spring-integration/api/[Jav
 
 Many STOMP operations are asynchronous, including error handling.
 For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding the `RECEIPT` header.
-To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see <<appevent-inbound>>).
+To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see <<./event.adoc#appevent-inbound,Receiving Spring Application Events>>).
 
 Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager` when a `stompSessionListenableFuture` receives `onFailure()` due to failure to connect to STOMP broker.
 Another example is the `StompMessageHandler`.

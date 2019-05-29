@@ -27,7 +27,7 @@ The `io.projectreactor.netty:reactor-netty` dependency must be included in case 
 
 The WebFlux support consists of the following gateway implementations: `WebFluxInboundEndpoint` and `WebFluxRequestExecutingMessageHandler`.
 The support is fully based on the Spring https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
-See <<http>> for more information, since many options are shared between reactive and regular HTTP components.
+See <<./http.adoc#http,HTTP Support>> for more information, since many options are shared between reactive and regular HTTP components.
 
 [[webflux-inbound]]
 === WebFlux Inbound Components
@@ -87,7 +87,7 @@ public IntegrationFlow sseFlow() {
 ----
 ====
 
-See <<http-request-mapping>> and <<http-cors>> for more possible configuration options.
+See <<./http.adoc#http-request-mapping,Request Mapping Support>> and <<./http.adoc#http-cors,Cross-origin Resource Sharing (CORS) Support>> for more possible configuration options.
 
 When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
 
@@ -132,7 +132,7 @@ Otherwise, it is treated as an `async` mode, and the `Mono` response is adapted 
 The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
 The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
 If `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element, and this `Flux` is sent as the payload downstream.
-Afterwards, you can use a <<splitter,splitter>> to iterate over this `Flux` in a reactive manner.
+Afterwards, you can use a <<./splitter.adoc#splitter,,splitter>> to iterate over this `Flux` in a reactive manner.
 
 In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of the `expectedResponseType` and `replyPayloadToFlux` properties.
 It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.
@@ -143,7 +143,7 @@ A respective `BodyInserter` is used internally to be populated into the `WebClie
 When the payload is a reactive `Publisher`, a configured `publisherElementType` or `publisherElementTypeExpression` can be used to determine a type for the publisher's element type.
 The expression must be resolved to a `Class<?>`, `String` which is resolved to the target `Class<?>` or `ParameterizedTypeReference`.
 
-See <<http-outbound>> for more possible configuration options.
+See <<./http.adoc#http-outbound,HTTP Outbound Components>> for more possible configuration options.
 
 [[webflux-namespace]]
 === WebFlux Namespace Support
@@ -338,4 +338,4 @@ public IntegrationFlow outboundReactive() {
 === WebFlux Header Mappings
 
 Since WebFlux components are fully based on the HTTP protocol, there is no difference in the HTTP headers mapping.
-See <<http-header-mapping>> for more possible options and components to use for mapping headers.
+See <<./http.adoc#http-header-mapping,HTTP Header Mappings>> for more possible options and components to use for mapping headers.

@@ -11,7 +11,7 @@ The following components are new in 5.1:
 [[x5.1-AmqpDedicatedChannelAdvice]]
 ===== `AmqpDedicatedChannelAdvice`
 
-See <<amqp-strict-ordering>>.
+See <<./amqp.adoc#amqp-strict-ordering,Strict Message Ordering>>.
 
 [[x5.1-Functions]]
 ===== Improved Function Support
@@ -19,14 +19,14 @@ See <<amqp-strict-ordering>>.
 The `java.util.function` interfaces now have improved integration support in the Framework components.
 Also Kotlin lambdas now can be used for handler and source methods.
 
-See <<functions-support>>.
+See <<./functions-support.adoc#functions-support,`java.util.function` Interfaces Support>>.
 
 [[x5.1-LongRunningTest]]
 ===== `@LongRunningTest`
 
 A JUnit 5 `@LongRunningTest` conditional annotation is provided to check the environment or system properties for the `RUN_LONG_INTEGRATION_TESTS` entry with the value of `true` to determine if test should be run or skipped.
 
-See <<test-junit-rules>>.
+See <<./testing.adoc#test-junit-rules,JUnit Rules and Conditions>>.
 
 [[x5.1-general]]
 ==== General Changes
@@ -90,7 +90,7 @@ Furthermore, the `PolledAmqpChannel` and `PolledJmsChannel` previously did not i
 
 A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
 
-See <<json-transformers>> for more information.
+See <<./transformer.adoc#json-transformers,JSON Transformers>> for more information.
 
 [[x5.1-integration-flows-generated-bean-names]]
 ===== Integration Flows: Generated Bean Names
@@ -98,7 +98,7 @@ See <<json-transformers>> for more information.
 Starting with version 5.0.5, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
 For example, if a flow bean were named `flowBean`, a generated bean might be named `flowBean.generatedBean`.
 
-See <<java-dsl-flows>> for more information.
+See <<./dsl.adoc#java-dsl-flows,Working With Message Flows>> for more information.
 
 [[x5.1-aggregator]]
 ===== Aggregator Changes
@@ -109,7 +109,7 @@ Only `null` is considered as a signal to do nothing for the current message.
 A new `popSequence` property has been introduced to allow (by default) to call a `MessageBuilder.popSequenceDetails()` for the output message.
 Also an `AbstractAggregatingMessageGroupProcessor` returns now an `AbstractIntegrationMessageBuilder` instead of the whole `Message` for optimization.
 
-See <<aggregator>> for more information.
+See <<./aggregator.adoc#aggregator,Aggregator>> for more information.
 
 [[x5.1-publisher]]
 ===== @Publisher annotation changes
@@ -117,7 +117,7 @@ See <<aggregator>> for more information.
 Starting with version 5.1, you must explicitly turn on the `@Publisher` AOP functionality by using `@EnablePublisher` or by using the `<int:enable-publisher>` child element on `<int:annotation-config>`.
 Also the `proxy-target-class` and `order` attributes have been added for tuning the `ProxyFactory` configuration.
 
-See <<publisher-annotation>> for more information.
+See <<./message-publishing.adoc#publisher-annotation,Annotation-driven Configuration with the `@Publisher` Annotation>> for more information.
 
 [[x5.1-files]]
 ==== Files Changes
@@ -129,20 +129,20 @@ This could be used to write a CSV header, for an example.
 The `FileReadingMessageSource` now doesn't check and create a directory until its `start()` is called.
 So, if an Inbound Channel Adapter for the `FileReadingMessageSource` has `autoStartup = false`, there are no failures against the file system during application start up.
 
-See <<files>> for more information.
+See <<./file.adoc#files,File Support>> for more information.
 
 [[x5.1-amqp]]
 ==== AMQP Changes
 
 We have made `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
-See the note near the bottom of <<amqp-message-headers>> for more information.
+See the note near the bottom of <<./amqp.adoc#amqp-message-headers,AMQP Message Headers>> for more information.
 
 The `contentType` header is now correctly mapped as an entry in the general headers map.
-See <<amqp-content-type>> for more information.
+See <<./amqp.adoc#amqp-content-type,contentType Header>> for more information.
 
 Starting with version 5.1.3, if a message conversion exception occurs when using manual acknowledgments, and an error channel is defined, the payload is a `ManualAckListenerExecutionFailedException` with additional `channel` and `deliveryTag` properties.
 This enables the error flow to ack/nack the original message.
-See <<amqp-conversion-inbound>> for more information.
+See <<./amqp.adoc#amqp-conversion-inbound,Inbound Message Conversion>> for more information.
 
 [[x5.1-jdbc]]
 ==== JDBC Changes
@@ -154,33 +154,33 @@ The `JdbcMessageHandler` supports now a `batchUpdate` functionality when the pay
 The indexes for the `INT_CHANNEL_MESSAGE` table (for the `JdbcChannelMessageStore`) have been optimized.
 If you have large message groups in such a store, you may wish to alter the indexes.
 
-See <<jdbc>> for more information.
+See <<./jdbc.adoc#jdbc,JDBC Support>> for more information.
 
 [[x5.1-ftp-sftp]]
 ==== FTP and SFTP Changes
 
 A `RotatingServerAdvice` is now available to poll multiple servers and directories with the inbound channel adapters.
-See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
+See <<./ftp.adoc#ftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> and <<./sftp.adoc#sftp-rotating-server-advice,Inbound Channel Adapters: Polling Multiple Servers and Directories>> for more information.
 
 Also, inbound adapter `localFilenameExpression` instances can contain the `#remoteDirectory` variable, which contains the remote directory being polled.
 The generic type of the comparators (used to sort the fetched file list for the streaming adapters) has changed from `Comparator<AbstractFileInfo<F>>` to `Comparator<F>`.
-See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+See <<./ftp.adoc#ftp-streaming,FTP Streaming Inbound Channel Adapter>> and <<./sftp.adoc#sftp-streaming,SFTP Streaming Inbound Channel Adapter>> for more information.
 
 In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`.
 This is useful when using `maxFetchSize` to limit the files retrieved.
 
 The `CachingSessionFactory` has a new property `testSession` which, when true, causes the factory to perform a `test()` operation on the `Session` when checking out an existing session from the cache.
 
-See <<sftp-session-caching>> and <<ftp-session-caching>> for more information.
+See <<./sftp.adoc#sftp-session-caching,SFTP Session Caching>> and <<./ftp.adoc#ftp-session-caching,FTP Session Caching>> for more information.
 
 The outbound gateway MPUT command now supports a message payload with a collection of files or strings.
-See <<sftp-outbound-gateway>> and <<ftp-outbound-gateway>> for more information.
+See <<./sftp.adoc#sftp-outbound-gateway,SFTP Outbound Gateway>> and <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> for more information.
 
 [[x51.-tcp]]
 ==== TCP Support
 
 When using SSL, host verification is now enabled, by default, to prevent man-in-the-middle attacks with a trusted certificate.
-See <<tcp-ssl-host-verification>> for more information.
+See <<./ip.adoc#tcp-ssl-host-verification,Host Verification>> for more information.
 
 In addition the key and trust store types can now be configured on the `DefaultTcpSSLContextSupport`.
 
@@ -198,14 +198,14 @@ The `DefaultJmsHeaderMapper` now allows to map inbound `JMSDeliveryMode` and `JM
 When a `JmsMessageDrivenEndpoint` or `JmsInboundGateway` is stopped, the associated listener container is now shut down; this closes its shared connection and any consumers.
 You can configure the endpoints to revert to the previous behavior.
 
-See <<jms>> for more information.
+See <<./jms.adoc#jms,JMS Support>> for more information.
 
 [[x51.-http]]
 ==== HTTP/WebFlux Support
 
 The `statusCodeExpression` (and `Function`) is now supplied with the `RequestEntity<?>` as a root object for evaluation context, so request headers, method, URI and body are available for target status code calculation.
 
-See <<http>> and <<webflux>> for more information.
+See <<./http.adoc#http,HTTP Support>> and <<./webflux.adoc#webflux,WebFlux Support>> for more information.
 
 [[x51.-jmx]]
 ==== JMX Changes
@@ -219,22 +219,22 @@ For example `org.springframework.integration:type=MessageChannel,` `name="input#
 ==== Micrometer Support Changes
 
 It is now simpler to customize the standard Micrometer meters created by the framework.
-See <<micrometer-integration>> for more information.
+See <<./metrics.adoc#micrometer-integration,Micrometer Integration>> for more information.
 
 [[x51.-integration-graph]]
 ==== Integration Graph Customization
 
 It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
-See <<integration-graph>> for more information.
+See <<./graph.adoc#integration-graph,Integration Graph>> for more information.
 
 [[x51.-global-properties]]
 ==== Integration Global Properties
 
 The Integration global properties (including defaults) can now be printed in the logs, when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
-See <<global-properties>> for more information.
+See <<./configuration.adoc#global-properties,Global Properties>> for more information.
 
 [[x51.-poller-annotation]]
 ==== The `receiveTimeout` for `@Poller`
 
 The `@Poller` annotation now provides a `receiveTimeout` option for convenience.
-See <<configuration-using-poller-annotation>> for more information.
+See <<./configuration.adoc#configuration-using-poller-annotation,Using the `@Poller` Annotation>> for more information.

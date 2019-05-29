@@ -293,7 +293,7 @@ NOTE: If you do not explicitly set a `SourceFactory`, the property on the `Unmar
 
 Starting with version 5.0, the `UnmarshallingTransformer` also supports an `org.springframework.ws.mime.MimeMessage` as the incoming payload.
 This can be useful when we receive a raw `WebServiceMessage` with MTOM attachments over SOAP .
-See <<mtom-support>> for more information.
+See <<./ws.adoc#mtom-support,MTOM Support>> for more information.
 
 The following example shows how to define an unmarshalling transformer:
 
@@ -764,7 +764,7 @@ This allows the "`streaming`" of split nodes in the downstream flow.
 With the `iterator` mode set to `true`, each node is transformed while iterating.
 When `false`, all entries are first transformed, before the split nodes start being sent to the output channel.
 (You can think of the difference as "`transform, send, transform, send`" versus "`transform, transform, send, send`".)
-See <<splitter>> for more information.
+See <<./splitter.adoc#splitter,Splitter>> for more information.
 
 [[xml-xpath-routing]]
 === Routing XML Messages with XPath
@@ -782,7 +782,7 @@ The following example shows how to create such a router:
 ----
 ====
 
-NOTE: For an overview of attributes that are common among Routers, see <<router-common-parameters>>.
+NOTE: For an overview of attributes that are common among Routers, see <<./router.adoc#router-common-parameters,Common Router Parameters>>.
 
 Internally, XPath expressions are evaluated as type `NODESET` and converted to a `List<String>` that represents channel names.
 Typically, such a list contains a single channel name.
@@ -933,7 +933,7 @@ Optional.
 The result of the XPath evaluation is converted to this type by `ConversionService`.
 This allows, for example, a `NUMBER_RESULT` (a double) to be converted to an `Integer`.
 The type can be declared as a primitive (such as `int`), but the result is always the equivalent wrapper class (such as `Integer`).
-The same integration `ConversionService` discussed in <<payload-type-conversion>> is used for the conversion, so conversion to custom types is supported by adding a custom converter to the service.
+The same integration `ConversionService` discussed in <<./endpoint.adoc#payload-type-conversion,Payload Type Conversion>> is used for the conversion, so conversion to custom types is supported by adding a custom converter to the service.
 Optional.
 <10> Boolean value to indicate whether this header value should overwrite an existing header value for the same name if already present on the input `Message`.
 <11> The XPath expression as a `String`.
@@ -948,7 +948,7 @@ You must set either this attribute or `xpath-expression`, but not both.
 This component defines an XPath-based message filter.
 Internally, this components uses a `MessageFilter` that wraps an instance of `AbstractXPathMessageSelector`.
 
-NOTE: See <<filter>> for further details.
+NOTE: See <<./filter.adoc#filter,Filter>> for further details.
 
 to use the XPath filter you must, at a minimum, provide an XPath expression either by declaring the `xpath-expression` element or by referencing an XPath Expression in the `xpath-expression-ref` attribute.
 
@@ -1041,7 +1041,7 @@ By default, the `#xpath` SpEL function returns a `String` representation of the 
 NOTE: To enable the `#xpath` SpEL function, you can add the `spring-integration-xml.jar` to the classpath.
 You need no declare any components from the Spring Integration XML Namespace.
 
-For more information, see "`<<spel>>.
+For more information, see "`<<./spel.adoc#spel,Spring Expression Language (SpEL)>>.
 
 [[xml-validating-filter]]
 === XML Validating Filter

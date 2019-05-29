@@ -54,7 +54,7 @@ If the associated connection factory is configured for single-use connections, a
 Otherwise, if the connection is in use, the calling thread blocks on the connection until either a response is received or a timeout or I/O error occurs.
 
 The TCP and UDP inbound channel adapters and the TCP inbound gateway support the `error-channel` attribute.
-This provides the same basic functionality as described in <<gateway-proxy>>.
+This provides the same basic functionality as described in <<./gateway.adoc#gateway-proxy,Enter the `GatewayProxyFactoryBean`>>.
 
 [[udp-adapters]]
 === UDP Adapters
@@ -631,7 +631,7 @@ The following example shows how to configure a connection interceptor factory ch
 === TCP Connection Events
 
 Beginning with version 3.0, changes to `TcpConnection` instances are reported by `TcpConnectionEvent` instances.
-`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext` -- for example <<appevent-inbound,an event inbound channel adapter>>.
+`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext` -- for example <<./event.adoc#appevent-inbound,,an event inbound channel adapter>>.
 
 `TcpConnectionEvents` have the following properties:
 
@@ -643,7 +643,7 @@ You can use this, for example, to determine the remote IP Address with `getHostA
 
 In addition, since version 4.0, the standard deserializers discussed in <<tcp-connection-factories>> now emit `TcpDeserializationExceptionEvent` instances when they encounter problems while decoding the data stream.
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point where the exception occurred.
-Applications can use a normal `ApplicationListener` or an `ApplicationEventListeningMessageProducer` (see <<appevent-inbound>>) to capture these events, allowing analysis of the problem.
+Applications can use a normal `ApplicationListener` or an `ApplicationEventListeningMessageProducer` (see <<./event.adoc#appevent-inbound,Receiving Spring Application Events>>) to capture these events, allowing analysis of the problem.
 
 Starting with versions 4.0.7 and 4.1.3, `TcpConnectionServerExceptionEvent` instances are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
 These events have a reference to the connection factory and the cause.
@@ -738,7 +738,7 @@ Two additional attributes support this mechanism.
 The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
 The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
-If you don't provide a scheduler, the framework's default <<namespace-taskscheduler, taskScheduler>> bean is used.
+If you don't provide a scheduler, the framework's default <<./configuration.adoc#namespace-taskscheduler,, taskScheduler>> bean is used.
 
 For an outbound adapter, the connection is normally established when the first message is sent.
 The `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.
@@ -1819,7 +1819,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<namespace-taskscheduler>>.
+See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP outbound channel adapters:
@@ -1857,7 +1857,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<namespace-taskscheduler>>.
+See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP inbound gateways:
@@ -1908,7 +1908,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See <<namespace-taskscheduler>>.
+See <<./configuration.adoc#namespace-taskscheduler,Configuring the Task Scheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP outbound gateways:
