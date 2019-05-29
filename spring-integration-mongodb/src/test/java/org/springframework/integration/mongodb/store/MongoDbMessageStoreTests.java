@@ -16,8 +16,18 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.messaging.support.GenericMessage;
 
 import com.mongodb.MongoClient;
 
@@ -30,11 +40,56 @@ import com.mongodb.MongoClient;
 public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Override
-	protected MessageStore getMessageStore() throws Exception {
+	protected MessageStore getMessageStore() {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
+	}
+
+	@Test
+	public void testCustomConverter() throws InterruptedException {
+		MongoDbMessageStore mongoDbMessageStore =
+				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
+		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
+		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
+		mongoDbMessageStore.afterPropertiesSet();
+
+		mongoDbMessageStore.addMessage(new GenericMessage<>(new Foo("foo")));
+
+		assertThat(fooToBytesConverter.called.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	private static class Foo {
+
+		String foo;
+
+		Foo(String foo) {
+			this.foo = foo;
+		}
+
+		@Override
+		public String toString() {
+			return foo;
+		}
+
+	}
+
+	@WritingConverter
+	private static class FooToBytesConverter implements Converter<Foo, byte[]> {
+
+		private CountDownLatch called = new CountDownLatch(1);
+
+		@Override
+		public byte[] convert(Foo source) {
+			try {
+				return source.toString().getBytes();
+			}
+			finally {
+				this.called.countDown();
+			}
+		}
+
 	}
 
 }
