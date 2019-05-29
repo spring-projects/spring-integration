@@ -188,7 +188,7 @@ See <<async-gateway>>.
 ===== Aggregator Advice Chain
 
 `Aggregator` and `Resequencer` now support `<expire-advice-chain/>` and `<expire-transactional/>` child elements to advise the `forceComplete` operation.
-See <<aggregator-config>> for more information.
+See <<aggregator-xml>> for more information.
 
 [[x4.1-script-outbound-channel-adapter]]
 ===== Outbound Channel Adapter and Scripts

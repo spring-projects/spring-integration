@@ -194,7 +194,7 @@ For more information see, <<chain>>.
 
 The `AbstractCorrelatingMessageHandler` provides a new property called `empty-group-min-timeout` to allow empty group expiry to run on a longer schedule than expiring partial groups.
 Empty groups are not removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
-For more information, see <<aggregator-config>>.
+For more information, see <<aggregator-xml>>.
 
 [[x3.0-filelistfilter]]
 ===== Persistent File List Filters (file, (S)FTP)

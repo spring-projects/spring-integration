@@ -214,7 +214,7 @@ For more information, see <<retry-config>>.
 
 We added the mutually exclusive `group-timeout` and `group-timeout-expression` attributes to `<int:aggregator>` and `<int:resequencer>`.
 These attributes allow forced completion of a partial `MessageGroup`, provided the `ReleaseStrategy` does not release a group and no further messages arrive within the time specified.
-For more information, see <<aggregator-config>>.
+For more information, see <<aggregator-xml>>.
 
 [[x4.0-redis-metadata]]
 ===== Redis Metadata Store

@@ -1467,7 +1467,7 @@ Defaults to `ByteArrayCrLfSerializer`
 | `true`, `false`
 | Whether or not connection uses NIO.
 Refer to the `java.nio` package for more information.
-See <<note_nio>>.
+See <<note-nio>>.
 Default: `false`.
 
 | `using-direct-buffers`
@@ -1484,7 +1484,7 @@ Must be `false` if `using-nio` is `false`.
 | `true`, `false`
 | When you use NIO, it may be necessary to resequence messages.
 When this attribute is set to `true`, `correlationId` and `sequenceNumber` headers are added to received messages.
-See <<note_nio>>.
+See <<note-nio>>.
 Default: `false`.
 
 | `so-timeout`

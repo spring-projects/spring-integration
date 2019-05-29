@@ -18,7 +18,7 @@ This guide includes many samples.
 ===== Conversion Service and Converter
 
 You can now benefit from the conversion service support provided with Spring while configuring many Spring Integration components, such as a https://www.enterpriseintegrationpatterns.com/DatatypeChannel.html[Datatype channel].
-See <<channel-implementations>> and <<service-activator-introduction>>.
+See <<channel-implementations>> and <<service-activator>>.
 Also, the SpEL support mentioned in the previous point also relies upon the conversion service.
 Therefore, you can register converters once and take advantage of them anywhere you use SpEL expressions.
 
