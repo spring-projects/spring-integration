@@ -769,7 +769,7 @@ project('spring-integration-xml') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile ("org.springframework.ws:spring-xml:$springWsVersion")
-		compile ("org.springframework.ws:spring-ws-core:$springWsVersion")
+		compile ("org.springframework.ws:spring-ws-core:$springWsVersion", optional)
 	}
 }
 

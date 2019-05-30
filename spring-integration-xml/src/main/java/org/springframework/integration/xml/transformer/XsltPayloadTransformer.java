@@ -53,7 +53,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerFactoryUtils;
@@ -110,12 +109,29 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	private String[] xsltParamHeaders;
 
-	private ClassLoader classLoader;
+	private static final Class<?> SERVLET_CONTEXT_RESOURCE_CLASS;
 
+	static {
+		Class<?> aClass = null;
+		try {
+			aClass =
+					ClassUtils.forName("org.springframework.web.context.support.ServletContextResource",
+							ClassUtils.getDefaultClassLoader());
+		}
+
+		catch (ClassNotFoundException e) {
+			// No 'ServletContextResource' class present - ignoring
+		}
+		finally {
+			SERVLET_CONTEXT_RESOURCE_CLASS = aClass;
+		}
+	}
 
 	public XsltPayloadTransformer(Templates templates) {
 		this(templates, null);
 	}
+
+	private ClassLoader classLoader;
 
 	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) {
 		Assert.notNull(templates, "'templates' must not be null.");
@@ -140,8 +156,11 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			String transformerFactoryClassName) {
 
 		Assert.notNull(xslResource, "'xslResource' must not be null.");
-		Assert.isTrue(xslResource instanceof ClassPathResource || xslResource instanceof FileSystemResource ||
-						xslResource instanceof ServletContextResource || xslResource instanceof VfsResource,
+		Assert.isTrue(xslResource instanceof ClassPathResource || // NOSONAR boolean complexity
+						xslResource instanceof FileSystemResource ||
+						xslResource instanceof VfsResource ||
+						(SERVLET_CONTEXT_RESOURCE_CLASS != null
+								&& SERVLET_CONTEXT_RESOURCE_CLASS.isInstance(xslResource)),
 				"Only 'ClassPathResource', 'FileSystemResource', 'ServletContextResource' or 'VfsResource'" +
 						" are supported directly in this transformer. For any other 'Resource' implementations" +
 						" consider to use a 'Templates'-based constructor instantiation.");
@@ -227,7 +246,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.templates == null) {
 			try {
-			TransformerFactory transformerFactory = createTransformerFactory();
+				TransformerFactory transformerFactory = createTransformerFactory();
 				this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
 			}
 			catch (ClassNotFoundException | TransformerConfigurationException | IOException e) {
