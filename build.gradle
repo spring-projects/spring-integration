@@ -883,6 +883,7 @@ task checkAsciidocLinks {
 				else {
 					if (!hasComma) {
 						throw new InvalidUserDataException("External anchor '" + anchor
+							+ "' in '" + file.name
 							+ "' should have a textual description (,...)")
 					}
 				}
