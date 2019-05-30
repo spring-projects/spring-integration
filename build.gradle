@@ -900,7 +900,6 @@ task('makePDF', type: org.asciidoctor.gradle.AsciidoctorTask) {
 		include 'index-single.adoc'
 	}
 	options doctype: 'book', eruby: 'erubis'
-	logDocuments = true
 	attributes 'icons': 'font',
 		'sectanchors': '',
 		'sectnums': '',
@@ -919,7 +918,6 @@ asciidoctor {
 		}
 	}
 	options doctype: 'book', eruby: 'erubis'
-	logDocuments = true
 	attributes 'docinfo': 'shared',
 		// use provided stylesheet
 		stylesdir: "css/",
