@@ -147,7 +147,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 			this.delegate = unmarshaller;
 		}
 
-		public Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
+		Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
 			if (payload instanceof org.springframework.ws.mime.MimeMessage) {
 				return org.springframework.ws.support.MarshallingUtils.unmarshal(this.delegate,
 						(org.springframework.ws.mime.MimeMessage) payload);
