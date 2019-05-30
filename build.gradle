@@ -1,6 +1,3 @@
-import java.util.regex.Pattern
-import java.util.regex.Matcher
-
 buildscript {
 	ext.kotlinVersion = '1.3.31'
 	repositories {
@@ -862,16 +859,14 @@ task checkAsciidocLinks {
 	dependsOn prepareAsciidocBuild
 	inputs.dir("$buildDir/asciidoc")
 	doLast {
-		Pattern anchorPattern = Pattern.compile("\\[\\[([^]]+)\\]\\]")
-		Pattern refPattern = Pattern.compile("<<([^>]+)>>")
 		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
 			def doc = file.text
 			Set<String> anchors = new HashSet<>()
-			Matcher matcher = anchorPattern.matcher(doc)
+			def matcher = (doc =~ /\[\[([^]]+)\]\]/)
 			while (matcher.find()) {
 				anchors.add(matcher.group(1))
 			}
-			matcher = refPattern.matcher(doc)
+			matcher = (doc =~ /<<([^>]+)>>/)
 			while (matcher.find()) {
 				String anchor = matcher.group(1);
 				def hasComma = anchor.contains(",")
