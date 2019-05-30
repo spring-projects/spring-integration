@@ -23,7 +23,7 @@ https://github.com/SpringSource/spring-integration-samples[https://github.com/Sp
 In order to check out or clone the samples, you must have a Git client installed on your system.
 There are several GUI-based products available for many platforms (such as https://eclipse.org/egit/[EGit] for the Eclipse IDE).
 A simple Google search can help you find them.
-You can also use the command line interface for <<https://git-scm.com/,Git>>.
+You can also use the command line interface for https://git-scm.com/[Git].
 
 NOTE: If you need more information on how to install or use Git, visit: https://git-scm.com/[https://git-scm.com/].
 
