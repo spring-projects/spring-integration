@@ -855,8 +855,45 @@ task prepareAsciidocBuild(type: Sync) {
 	into "$buildDir/asciidoc"
 }
 
-task('makePDF', type: org.asciidoctor.gradle.AsciidoctorTask) {
+task checkAsciidocLinks {
 	dependsOn prepareAsciidocBuild
+	inputs.dir("$buildDir/asciidoc")
+	doLast {
+		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
+			def doc = file.text
+			Set<String> anchors = new HashSet<>()
+			def matcher = (doc =~ /\[\[([^]]+)\]\]/)
+			while (matcher.find()) {
+				anchors.add(matcher.group(1))
+			}
+			matcher = (doc =~ /<<([^>]+)>>/)
+			while (matcher.find()) {
+				String anchor = matcher.group(1);
+				def hasComma = anchor.contains(",")
+				if (!anchor.startsWith("./")) {
+					if (hasComma) {
+						anchor = anchor.substring(0, anchor.indexOf(","));
+					}
+					if (!anchors.contains(anchor)) {
+						throw new InvalidUserDataException("Anchor '" + anchor
+							+ "' not found in '" + file.name
+							+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
+					}
+				}
+				else {
+					if (!hasComma) {
+						throw new InvalidUserDataException("External anchor '" + anchor
+							+ "' in '" + file.name
+							+ "' should have a textual description (,...)")
+					}
+				}
+			}
+		}
+	}
+}
+
+task('makePDF', type: org.asciidoctor.gradle.AsciidoctorTask) {
+	dependsOn checkAsciidocLinks
 	backends 'pdf'
 	sourceDir "$buildDir/asciidoc"
 	sources {
