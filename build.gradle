@@ -874,14 +874,21 @@ task checkAsciidocLinks {
 			matcher = refPattern.matcher(doc)
 			while (matcher.find()) {
 				String anchor = matcher.group(1);
+				def hasComma = anchor.contains(",")
 				if (!anchor.startsWith("./")) {
-					if (anchor.contains(",")) {
+					if (hasComma) {
 						anchor = anchor.substring(0, anchor.indexOf(","));
 					}
 					if (!anchors.contains(anchor)) {
 						throw new InvalidUserDataException("Anchor '" + anchor
 							+ "' not found in '" + file.name
 							+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
+					}
+				}
+				else {
+					if (!hasComma) {
+						throw new InvalidUserDataException("External anchor '" + anchor
+							+ "' should have a textual description (,...)")
 					}
 				}
 			}
