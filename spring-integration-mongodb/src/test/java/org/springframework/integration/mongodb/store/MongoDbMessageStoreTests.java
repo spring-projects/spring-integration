@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -48,6 +49,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testCustomConverter() throws InterruptedException {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
@@ -78,7 +80,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@WritingConverter
 	private static class FooToBytesConverter implements Converter<Foo, byte[]> {
 
-		private CountDownLatch called = new CountDownLatch(1);
+		private final CountDownLatch called = new CountDownLatch(1);
 
 		@Override
 		public byte[] convert(Foo source) {
