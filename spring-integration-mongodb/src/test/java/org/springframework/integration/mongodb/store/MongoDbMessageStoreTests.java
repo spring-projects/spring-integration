@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -47,6 +48,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testCustomConverter() throws Exception {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
