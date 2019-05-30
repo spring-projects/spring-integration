@@ -859,35 +859,40 @@ task checkAsciidocLinks {
 	dependsOn prepareAsciidocBuild
 	inputs.dir("$buildDir/asciidoc")
 	doLast {
+		def errors = new ArrayList<>();
+		errors.add("*** Anchor reference errors found:")
 		inputs.files.filter{ f -> f.path.endsWith('.adoc') }.each { file ->
 			def doc = file.text
-			Set<String> anchors = new HashSet<>()
+			def anchors = new HashSet<>()
 			def matcher = (doc =~ /\[\[([^]]+)\]\]/)
 			while (matcher.find()) {
 				anchors.add(matcher.group(1))
 			}
 			matcher = (doc =~ /<<([^>]+)>>/)
 			while (matcher.find()) {
-				String anchor = matcher.group(1);
+				def anchor = matcher.group(1);
 				def hasComma = anchor.contains(",")
 				if (!anchor.startsWith("./")) {
 					if (hasComma) {
 						anchor = anchor.substring(0, anchor.indexOf(","));
 					}
 					if (!anchors.contains(anchor)) {
-						throw new InvalidUserDataException("Anchor '" + anchor
+						errors.add("\nAnchor '" + anchor
 							+ "' not found in '" + file.name
 							+ "', if in another file, it needs to be qualified with './fileName.adoc#'")
 					}
 				}
 				else {
 					if (!hasComma) {
-						throw new InvalidUserDataException("External anchor '" + anchor
+						errors.add("\nExternal anchor '" + anchor
 							+ "' in '" + file.name
 							+ "' should have a textual description (,...)")
 					}
 				}
 			}
+		}
+		if (errors.size() > 1) {
+			throw new InvalidUserDataException(errors.toString())
 		}
 	}
 }
