@@ -16,14 +16,16 @@
 
 package org.springframework.integration.expression;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotationFilter;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.core.annotation.RepeatableContainers;
 import org.springframework.expression.MethodFilter;
+import org.springframework.integration.endpoint.Pausable;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.util.CustomizableThreadCreator;
@@ -32,7 +34,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * SpEL {@link MethodFilter} to restrict method invocations to:
  * <ul>
- *     <li> {@link Lifecycle} components
+ *     <li> {@link Pausable} or {@link Lifecycle} components
  *     <li> {@code get}, {@code set} and {@code shutdown} methods of {@link CustomizableThreadCreator}
  *     <li> methods with {@link ManagedAttribute} and {@link ManagedOperation} annotations
  * </ul>
@@ -40,14 +42,15 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
-* @since 4.0
-*/
+ *
+ * @since 4.0
+ */
 public class ControlBusMethodFilter implements MethodFilter {
 
 	public List<Method> filter(List<Method> methods) {
-		List<Method> supportedMethods = new ArrayList<Method>();
+		List<Method> supportedMethods = new ArrayList<>();
 		for (Method method : methods) {
-			if (this.accept(method)) {
+			if (accept(method)) {
 				supportedMethods.add(method);
 			}
 		}
@@ -56,23 +59,25 @@ public class ControlBusMethodFilter implements MethodFilter {
 
 	private boolean accept(Method method) {
 		Class<?> declaringClass = method.getDeclaringClass();
-		if (Lifecycle.class.isAssignableFrom(declaringClass)
-				&& ReflectionUtils.findMethod(Lifecycle.class, method.getName(), method.getParameterTypes()) != null) {
+		String methodName = method.getName();
+		if ((Pausable.class.isAssignableFrom(declaringClass) || Lifecycle.class.isAssignableFrom(declaringClass))
+				&& ReflectionUtils.findMethod(Pausable.class, methodName, method.getParameterTypes()) != null) {
 			return true;
 		}
+
 		if (CustomizableThreadCreator.class.isAssignableFrom(declaringClass)
-				&& (method.getName().startsWith("get")
-						|| method.getName().startsWith("set")
-						|| method.getName().startsWith("shutdown"))) {
+				&& (methodName.startsWith("get")
+				|| methodName.startsWith("set")
+				|| methodName.startsWith("shutdown"))) {
 			return true;
 		}
-		if (this.hasAnnotation(method, ManagedAttribute.class) || this.hasAnnotation(method, ManagedOperation.class)) {
-			return true;
-		}
-		return false;
+
+		MergedAnnotations mergedAnnotations =
+				MergedAnnotations.from(method, MergedAnnotations.SearchStrategy.EXHAUSTIVE,
+						RepeatableContainers.none(), AnnotationFilter.PLAIN);
+
+		return mergedAnnotations.get(ManagedAttribute.class).isPresent()
+				|| mergedAnnotations.get(ManagedOperation.class).isPresent();
 	}
 
-	private boolean hasAnnotation(Method method, Class<? extends Annotation> annotationType) {
-		return AnnotationUtils.findAnnotation(method, annotationType) != null;
-	}
 }

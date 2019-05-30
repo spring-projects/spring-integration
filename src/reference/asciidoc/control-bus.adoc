@@ -20,7 +20,7 @@ For example, you can specify an output channel if the result of the operation ha
 The control bus runs messages on the input channel as Spring Expression Language (SpEL) expressions.
 It takes a message, compiles the body to an expression, adds some context, and then runs it.
 The default context supports any method that has been annotated with `@ManagedAttribute` or `@ManagedOperation`.
-It also supports the methods on Spring's `Lifecycle` interface, and it supports methods that are used to configure several of Spring's `TaskExecutor` and `TaskScheduler` implementations.
+It also supports the methods on Spring's `Lifecycle` interface (and its `Pausable` extension since version 5.2), and it supports methods that are used to configure several of Spring's `TaskExecutor` and `TaskScheduler` implementations.
 The simplest way to ensure that your own methods are available to the control bus is to use the `@ManagedAttribute` or `@ManagedOperation` annotations.
 Since those annotations are also used for exposing methods to a JMX MBean registry, they offer a convenient by-product: Often, the same types of operations you want to expose to the control bus are reasonable for exposing through JMX).
 Resolution of any particular instance within the application context is achieved in the typical SpEL syntax.

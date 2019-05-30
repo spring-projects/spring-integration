@@ -94,6 +94,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.endpoint.Pausable;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -409,11 +410,16 @@ public class EnableIntegrationTests {
 		assertThat(message.getHeaders().get("foo")).isEqualTo("FOO");
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
-		assertThat(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class)).isEqualTo(false);
-		this.controlBusChannel.send(new GenericMessage<>("@lifecycle.start()"));
-		assertThat(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class)).isEqualTo(true);
-		this.controlBusChannel.send(new GenericMessage<>("@lifecycle.stop()"));
-		assertThat(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class)).isEqualTo(false);
+		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(false);
+		this.controlBusChannel.send(new GenericMessage<>("@pausable.start()"));
+		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(true);
+		this.controlBusChannel.send(new GenericMessage<>("@pausable.stop()"));
+		assertThat(messagingTemplate.convertSendAndReceive("@pausable.isRunning()", Boolean.class)).isEqualTo(false);
+		this.controlBusChannel.send(new GenericMessage<>("@pausable.pause()"));
+		Object pausable = this.context.getBean("pausable");
+		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isTrue();
+		this.controlBusChannel.send(new GenericMessage<>("@pausable.resume()"));
+		assertThat(TestUtils.getPropertyValue(pausable, "paused", Boolean.class)).isFalse();
 
 		Map<String, ServiceActivatingHandler> beansOfType =
 				this.context.getBeansOfType(ServiceActivatingHandler.class);
@@ -638,7 +644,7 @@ public class EnableIntegrationTests {
 	@Test
 	public void testMonoGateway() throws Exception {
 
-		final AtomicReference<List<Integer>> ref = new AtomicReference<List<Integer>>();
+		final AtomicReference<List<Integer>> ref = new AtomicReference<>();
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
 
 		Flux.just("1", "2", "3", "4", "5")
@@ -1035,10 +1041,12 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		public Lifecycle lifecycle() {
-			return new Lifecycle() {
+		public Pausable pausable() {
+			return new Pausable() {
 
 				private volatile boolean running;
+
+				private volatile boolean paused;
 
 				@Override
 				public void start() {
@@ -1053,6 +1061,16 @@ public class EnableIntegrationTests {
 				@Override
 				public boolean isRunning() {
 					return this.running;
+				}
+
+				@Override
+				public void pause() {
+					this.paused = true;
+				}
+
+				@Override
+				public void resume() {
+					this.paused = false;
 				}
 
 			};
