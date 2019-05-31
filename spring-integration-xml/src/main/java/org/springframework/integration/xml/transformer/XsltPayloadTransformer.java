@@ -156,9 +156,9 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			String transformerFactoryClassName) {
 
 		Assert.notNull(xslResource, "'xslResource' must not be null.");
-		Assert.isTrue(xslResource instanceof ClassPathResource || // NOSONAR boolean complexity
+		Assert.isTrue(xslResource instanceof ClassPathResource ||
 						xslResource instanceof FileSystemResource ||
-						xslResource instanceof VfsResource ||
+						xslResource instanceof VfsResource || // NOSONAR boolean complexity
 						(SERVLET_CONTEXT_RESOURCE_CLASS != null
 								&& SERVLET_CONTEXT_RESOURCE_CLASS.isInstance(xslResource)),
 				"Only 'ClassPathResource', 'FileSystemResource', 'ServletContextResource' or 'VfsResource'" +

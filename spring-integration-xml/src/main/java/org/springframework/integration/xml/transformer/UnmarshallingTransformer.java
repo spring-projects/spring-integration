@@ -19,6 +19,7 @@ package org.springframework.integration.xml.transformer;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
@@ -29,7 +30,6 @@ import org.w3c.dom.Document;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
-import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -96,8 +96,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	@Override
 	public Object transformPayload(Object payload) {
-		Source source = null;
-
+		Source source;
 		try {
 			if (this.mimeMessageUnmarshallerHelper != null) {
 				Object result = this.mimeMessageUnmarshallerHelper.maybeUnmarshalMimeMessage(payload);
@@ -127,15 +126,14 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 			else {
 				source = this.sourceFactory.createSource(payload);
 			}
-			if (source == null) {
-				throw new MessagingException(
-						"failed to transform message, payload not assignable from " + Source.class.getName()
-								+ "and no conversion possible");
-			}
+			Assert.state(source != null, () ->
+					"failed to transform message, payload not assignable from " + Source.class.getName()
+							+ "and no conversion possible");
+
 			return this.unmarshaller.unmarshal(source);
 		}
 		catch (IOException e) {
-			throw new MessagingException("failed to unmarshal payload", e);
+			throw new UncheckedIOException("failed to unmarshal payload", e);
 		}
 	}
 

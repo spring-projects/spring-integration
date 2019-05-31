@@ -71,12 +71,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 			}
 			else if (object instanceof DOMSource) {
 				Node node = ((DOMSource) object).getNode();
-				if (node instanceof Document) {
-					return (Document) node;
-				}
-				else {
-					return nodeToDocument(node);
-				}
+				return nodeToDocument(node);
 			}
 			else if (object instanceof Source) {
 				InputSource inputSource = sourceToInputSource((Source) object);
@@ -111,6 +106,9 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	}
 
 	protected Document nodeToDocument(Node node) {
+		if (node instanceof Document) {
+			return (Document) node;
+		}
 		Document document = getDocumentBuilder().newDocument();
 		document.appendChild(document.importNode(node, true));
 		return document;
