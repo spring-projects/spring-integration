@@ -59,6 +59,8 @@ public abstract class AbstractRSocketConnector
 					.dataBufferFactory(new DefaultDataBufferFactory())
 					.build();
 
+	private boolean autoStartup = true;
+
 	private volatile boolean running;
 
 	protected AbstractRSocketConnector(IntegrationRSocketAcceptor rsocketAcceptor) {
@@ -126,6 +128,15 @@ public abstract class AbstractRSocketConnector
 	@Override
 	public void afterSingletonsInstantiated() {
 		this.rsocketAcceptor.detectEndpoints();
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
 	}
 
 	@Override

@@ -161,7 +161,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	public Mono<RSocketRequester> getRSocketRequester() {
 		return this.rsocketMono
-				.map(rsocket -> RSocketRequester.wrap(rsocket, getDataMimeType(), getRSocketStrategies()))
+				.map((rsocket) -> RSocketRequester.wrap(rsocket, getDataMimeType(), getRSocketStrategies()))
 				.cache();
 	}
 

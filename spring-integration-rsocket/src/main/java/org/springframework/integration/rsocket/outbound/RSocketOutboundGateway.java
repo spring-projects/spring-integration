@@ -137,7 +137,6 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @see RSocketRequester.RequestSpec#data(Publisher, Class)
 	 */
 	public void setPublisherElementType(Class<?> publisherElementType) {
-		Assert.notNull(publisherElementType, "'publisherElementType' must not be null");
 		setPublisherElementTypeExpression(new ValueExpression<>(publisherElementType));
 
 	}
@@ -161,7 +160,6 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @see RSocketRequester.ResponseSpec#retrieveFlux
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
-		Assert.notNull(expectedResponseType, "'expectedResponseType' must not be null");
 		setExpectedResponseTypeExpression(new ValueExpression<>(expectedResponseType));
 	}
 
@@ -222,7 +220,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		Object payload = requestMessage.getPayload();
 		if (payload instanceof Publisher<?> && this.publisherElementTypeExpression != null) {
 			Object publisherElementType = evaluateExpressionForType(requestMessage, this.publisherElementTypeExpression,
-					"publisherElementTypeExpression");
+					"publisherElementType");
 			return responseSpecForPublisher(requestSpec, (Publisher<?>) payload, publisherElementType);
 		}
 		else {
@@ -245,12 +243,12 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	private Mono<?> performRequest(RSocketRequester.ResponseSpec responseSpec, Message<?> requestMessage) {
 		Command command = this.commandExpression.getValue(this.evaluationContext, requestMessage, Command.class);
 		Assert.notNull(command,
-				() -> "The 'commandExpression' [" + this.commandExpression + "] must not evaluate to null");
+				() -> "The 'command' [" + this.commandExpression + "] must not evaluate to null");
 
 		Object expectedResponseType = null;
 		if (!Command.fireAndForget.equals(command)) {
 			expectedResponseType = evaluateExpressionForType(requestMessage, this.expectedResponseTypeExpression,
-					"expectedResponseTypeExpression");
+					"expectedResponseType");
 		}
 
 		switch (command) {
