@@ -54,12 +54,17 @@ import reactor.core.publisher.Mono;
  * {@link org.springframework.integration.transformer.Transformer}s.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
-public abstract class Transformers {
+public final class Transformers {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private Transformers() {
+		super();
+	}
 
 	public static ObjectToStringTransformer objectToString() {
 		return objectToString(null);
