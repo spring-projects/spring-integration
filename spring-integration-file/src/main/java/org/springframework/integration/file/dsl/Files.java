@@ -17,22 +17,29 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
 import org.springframework.integration.file.transformer.FileToStringTransformer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * The Spring Integration File components Factory.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
-public abstract class Files {
+public final class Files {
+
+	private Files() {
+		super();
+	}
 
 	/**
 	 * Create a {@link FileInboundChannelAdapterSpec} builder for the {@code FileReadingMessageSource}.
@@ -224,6 +231,39 @@ public abstract class Files {
 		FileToByteArrayTransformer fileToByteArrayTransformer = new FileToByteArrayTransformer();
 		fileToByteArrayTransformer.setDeleteFiles(deleteFiles);
 		return fileToByteArrayTransformer;
+	}
+
+	/**
+	 * Create a {@link FileToStringTransformer} with {@link Charset#defaultCharset()}.
+	 * @return the transformer.
+	 * @since 5.2
+	 */
+	public static FileToStringTransformer fileToString() {
+		return fileToString(null);
+	}
+
+	/**
+	 * Create a {@link FileToStringTransformer} with the provided {@link Charset} (or
+	 * {@link Charset#defaultCharset()}, if null.
+	 * @param charset
+	 * @return the transformer.
+	 * @since 5.2
+	 */
+	public static FileToStringTransformer fileToString(@Nullable String charset) {
+		FileToStringTransformer transformer = new FileToStringTransformer();
+		if (charset != null) {
+			transformer.setCharset(charset);
+		}
+		return transformer;
+	}
+
+	/**
+	 * Create a {@link FileToByteArrayTransformer}.
+	 * @return the transformer.
+	 * @since 5.2
+	 */
+	public static FileToByteArrayTransformer fileToByteArray() {
+		return new FileToByteArrayTransformer();
 	}
 
 }
