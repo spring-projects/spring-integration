@@ -129,7 +129,7 @@ class IntegrationRSocket extends AbstractRSocket {
 		int refCount = refCount(dataBuffer);
 		Message<?> message = MessageBuilder.createMessage(dataBuffer, headers);
 		return Mono.defer(() -> this.handler.apply(message))
-				.doFinally(s -> {
+				.doFinally((signal) -> {
 					if (refCount(dataBuffer) == refCount) {
 						DataBufferUtils.release(dataBuffer);
 					}
@@ -147,19 +147,22 @@ class IntegrationRSocket extends AbstractRSocket {
 		MessageHeaders headers = createHeaders(destination, replyMono);
 
 		AtomicBoolean read = new AtomicBoolean();
-		Flux<DataBuffer> buffers = payloads.map(this::retainDataAndReleasePayload).doOnSubscribe(s -> read.set(true));
+		Flux<DataBuffer> buffers =
+				payloads.map(this::retainDataAndReleasePayload)
+						.doOnSubscribe((subscription) -> read.set(true));
 		Message<Flux<DataBuffer>> message = MessageBuilder.createMessage(buffers, headers);
 
 		return Mono.defer(() -> this.handler.apply(message))
-				.doFinally(s -> {
+				.doFinally((signal) -> {
 					// Subscription should have happened by now due to ChannelSendOperator
 					if (!read.get()) {
 						buffers.subscribe(DataBufferUtils::release);
 					}
 				})
-				.thenMany(Flux.defer(() -> replyMono.isTerminated() ?
-						replyMono.flatMapMany(Function.identity()) :
-						Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
+				.thenMany(Flux.defer(() ->
+						replyMono.isTerminated()
+								? replyMono.flatMapMany(Function.identity())
+								: Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
 	}
 
 	private DataBuffer retainDataAndReleasePayload(Payload payload) {

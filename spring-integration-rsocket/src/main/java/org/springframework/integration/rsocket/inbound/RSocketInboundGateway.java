@@ -104,7 +104,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	/**
 	 * Configure {@link RSocketStrategies} instead of a default one.
-	 * Note: if {@link AbstractRSocketConnector} ias provided, then its
+	 * Note: if {@link AbstractRSocketConnector} is provided, then its
 	 * {@link RSocketStrategies} have a precedence.
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
 	 * @see RSocketStrategies#builder
@@ -135,7 +135,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	 * Specify the type of payload to be generated when the inbound RSocket request
 	 * content is read by the encoders.
 	 * By default this value is null which means at runtime any "text" Content-Type will
-	 * result in String while all others default to <code>byte[].class</code>.
+	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestElementClass The payload type.
 	 */
 	public void setRequestElementClass(Class<?> requestElementClass) {
@@ -146,7 +146,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	 * Specify the type of payload to be generated when the inbound RSocket request
 	 * content is read by the converters/encoders.
 	 * By default this value is null which means at runtime any "text" Content-Type will
-	 * result in String while all others default to <code>byte[].class</code>.
+	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestElementType The payload type.
 	 */
 	public void setRequestElementType(ResolvableType requestElementType) {
@@ -233,6 +233,10 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		DataBufferFactory bufferFactory =
 				requestMessageHeaders.get(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER,
 						DataBufferFactory.class);
+
+		if (bufferFactory == null) {
+			bufferFactory = this.rsocketStrategies.dataBufferFactory();
+		}
 
 		MimeType mimeType = requestMessageHeaders.get(MessageHeaders.CONTENT_TYPE, MimeType.class);
 
