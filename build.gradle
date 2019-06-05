@@ -274,7 +274,7 @@ subprojects { subproject ->
 		}
 	}
 
-	task testAll(type: Test, dependsOn: ['check',":checkAsciidocLinks"])
+	task testAll(type: Test, dependsOn: [":checkAsciidocLinks",'check'])
 
 	gradle.taskGraph.whenReady { graph ->
 		if (graph.hasTask(testAll)) {
