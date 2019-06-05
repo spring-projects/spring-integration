@@ -18,8 +18,6 @@ package org.springframework.integration.rsocket.dsl;
 
 import java.util.function.Function;
 
-import org.reactivestreams.Publisher;
-
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
@@ -27,8 +25,6 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.outbound.RSocketOutboundGateway;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
 
 /**
  * The {@link MessageHandlerSpec} implementation for the {@link RSocketOutboundGateway}.
@@ -46,8 +42,6 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	/**
 	 * Configure a {@link ClientRSocketConnector} for client side requests based on the connection
 	 * provided by the {@link ClientRSocketConnector#getRSocketRequester()}.
-	 * In case of server side, an {@link RSocketRequester} must be provided in the
-	 * {@link RSocketRequesterMethodArgumentResolver#RSOCKET_REQUESTER_HEADER} header of request message.
 	 * @param clientRSocketConnector the {@link ClientRSocketConnector} to use.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setClientRSocketConnector(ClientRSocketConnector)
@@ -103,8 +97,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a type for a request {@link Publisher} elements.
-	 * @param publisherElementType the type of the request {@link Publisher} elements.
+	 * Configure a type for a request {@link org.reactivestreams.Publisher} elements.
+	 * @param publisherElementType the type of the request {@link org.reactivestreams.Publisher} elements.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setPublisherElementType(Class)
 	 */
@@ -113,10 +107,10 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a {@code Function} to evaluate a request {@link Publisher} elements type at runtime against
-	 * a request message.
+	 * Configure a {@code Function} to evaluate a request {@link org.reactivestreams.Publisher}
+	 * elements type at runtime against a request message.
 	 * @param publisherElementTypeFunction the {@code Function} to evaluate a type for the request
-	 * {@link Publisher} elements.
+	 * {@link org.reactivestreams.Publisher} elements.
 	 * @param <P> the expected request message payload type.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setPublisherElementTypeExpression(Expression)
@@ -126,10 +120,10 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a request {@link Publisher} elements type at runtime against
-	 * a request message.
+	 * Configure a SpEL expression to evaluate a request {@link org.reactivestreams.Publisher}
+	 * elements type at runtime against a request message.
 	 * @param publisherElementTypeExpression the expression to evaluate a type for the request
-	 * {@link Publisher} elements.
+	 * {@link org.reactivestreams.Publisher} elements.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setPublisherElementTypeExpression(Expression)
 	 */
@@ -138,10 +132,10 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a request {@link Publisher} elements type at runtime against
-	 * a request message.
+	 * Configure a SpEL expression to evaluate a request {@link org.reactivestreams.Publisher}
+	 * elements type at runtime against a request message.
 	 * @param publisherElementTypeExpression the expression to evaluate a type for the request
-	 * {@link Publisher} elements.
+	 * {@link org.reactivestreams.Publisher} elements.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setPublisherElementTypeExpression(Expression)
 	 */
