@@ -372,6 +372,8 @@ The following example shows a client connection factory that uses `java.net.Sock
 ----
 ====
 
+Starting with version 5.2, the client connection factories support the property `connectTimeout`, specified in seconds, which defaults to 60.
+
 [[tcp-codecs]]
 ==== Message Demarcation (Serializers and Deserializers)
 
