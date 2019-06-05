@@ -478,6 +478,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="close-stream-after-send" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Close the output stream after sending the message; this signals
+						EOF to the server while keeping the connection open to receive
+						the reply. Requires 'single-use' set to 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
@@ -789,6 +798,14 @@
 						The delay (in milliseconds) before retrying a read after the previous attempt
 						failed due to insufficient threads. Default 100.
 						Only applies when 'using-nio' is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connect-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						For client factories, the amount of time to wait for a connection to
+						be established.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

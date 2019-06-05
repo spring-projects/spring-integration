@@ -131,6 +131,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String SSL_HANDSHAKE_TIMEOUT = "ssl-handshake-timeout";
 
+	public static final String CONNECT_TIMEOUT = "connect-timeout";
+
 	private IpAdapterParserUtils() {
 	}
 

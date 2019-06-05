@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
@@ -37,13 +39,17 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionServerListeningEvent;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UdpServerListeningEvent;
@@ -66,6 +72,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class IpIntegrationTests {
+
+	@Autowired
+	private ConfigurableApplicationContext applicationContext;
 
 	@Autowired
 	private AbstractServerConnectionFactory server1;
@@ -162,6 +171,42 @@ public class IpIntegrationTests {
 				udpMulticastOutboundChannelAdapterSpec1.timeToLive(10);
 
 		assertThat(udpMulticastOutboundChannelAdapterSpec2.get()).isInstanceOf(MulticastSendingMessageHandler.class);
+	}
+
+	@Test
+	public void testCloseStream() throws InterruptedException {
+		IntegrationFlow server = IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(0)
+				.deserializer(new ByteArrayRawSerializer())))
+				.<byte[], String>transform(p -> "reply:" + new String(p).toUpperCase())
+				.get();
+		CountDownLatch latch = new CountDownLatch(1);
+		AtomicInteger port = new AtomicInteger();
+		class Listener implements ApplicationListener<TcpConnectionServerListeningEvent> {
+
+			@Override
+			public void onApplicationEvent(TcpConnectionServerListeningEvent event) {
+				port.set(event.getPort());
+				latch.countDown();
+			}
+
+		}
+		this.applicationContext.addApplicationListener(new Listener());
+		this.flowContext.registration(server)
+			.id("streamCloseServer")
+			.register();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		IntegrationFlow client = IntegrationFlows.from(MessageChannels.direct())
+			.handle(Tcp.outboundGateway(Tcp.netClient("localhost", port.get())
+					.singleUseConnections(true)
+					.serializer(new ByteArrayRawSerializer()))
+				.closeStreamAfterSend(true))
+			.transform(Transformers.objectToString())
+			.get();
+		IntegrationFlowRegistration clientRegistration = this.flowContext.registration(client)
+			.id("streamCloseClient")
+			.register();
+		assertThat(clientRegistration.getMessagingTemplate()
+				.convertSendAndReceive("foo", String.class)).isEqualTo("reply:FOO");
 	}
 
 	@Configuration

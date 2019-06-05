@@ -179,6 +179,7 @@
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
+		connect-timeout="70"
 		read-delay="10000"
 		/>
 
@@ -189,10 +190,6 @@
 		auto-startup="false"
 		phase="125"
 	/>
-
-	<bean id="mockClientCf" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory" />
-	</bean>
 
 	<int:channel id="tcpAdviceChannel">
 		<int:queue/>
@@ -261,6 +258,7 @@
 		request-channel="tcpAdviceGateChannel"
 		reply-channel="replyChannel"
 		remote-timeout-expression="4000"
+		close-stream-after-send="true"
 		connection-factory="mockClientCf">
 		<int:poller fixed-delay="100"/>
 		<ip:request-handler-advice-chain>

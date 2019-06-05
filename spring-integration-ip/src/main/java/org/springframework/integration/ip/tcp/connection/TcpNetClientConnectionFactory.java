@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.springframework.util.Assert;
@@ -88,7 +89,9 @@ public class TcpNetClientConnectionFactory extends
 	 * @throws IOException Any IOException.
 	 */
 	protected Socket createSocket(String host, int port) throws IOException {
-		return this.tcpSocketFactorySupport.getSocketFactory().createSocket(host, port);
+		Socket socket = this.tcpSocketFactorySupport.getSocketFactory().createSocket();
+		socket.connect(new InetSocketAddress(host, port), (int) getConnectTimeout().toMillis());
+		return socket;
 	}
 
 	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {

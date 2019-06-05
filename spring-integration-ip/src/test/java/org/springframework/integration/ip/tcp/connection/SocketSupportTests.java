@@ -18,20 +18,29 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,7 +78,7 @@ public class SocketSupportTests {
 		when(socket.getInputStream()).thenReturn(is);
 		InetAddress inetAddress = InetAddress.getLocalHost();
 		when(socket.getInetAddress()).thenReturn(inetAddress);
-		when(factory.createSocket("x", 0)).thenReturn(socket);
+		when(factory.createSocket()).thenReturn(socket);
 		TcpSocketSupport socketSupport = Mockito.mock(TcpSocketSupport.class);
 
 		TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory("x", 0);
@@ -83,25 +92,64 @@ public class SocketSupportTests {
 	}
 
 	@Test
-	public void testNetServer() throws Exception {
+	public void testNetClientSocketTimeout() throws Exception {
 		TcpSocketFactorySupport factorySupport = mock(TcpSocketFactorySupport.class);
-		ServerSocketFactory factory = mock(ServerSocketFactory.class);
-		when(factorySupport.getServerSocketFactory()).thenReturn(factory);
+		SocketFactory factory = Mockito.mock(SocketFactory.class);
+		when(factorySupport.getSocketFactory()).thenReturn(factory);
 		Socket socket = mock(Socket.class);
 		InputStream is = mock(InputStream.class);
 		when(is.read()).thenReturn(-1);
 		when(socket.getInputStream()).thenReturn(is);
 		InetAddress inetAddress = InetAddress.getLocalHost();
 		when(socket.getInetAddress()).thenReturn(inetAddress);
+		when(factory.createSocket()).thenReturn(socket);
+		doThrow(new SocketTimeoutException()).when(socket).connect(any(), eq(1000));
+		TcpSocketSupport socketSupport = Mockito.mock(TcpSocketSupport.class);
+
+		TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory("x", 0);
+		connectionFactory.setConnectTimeout(1);
+		connectionFactory.setTcpSocketFactorySupport(factorySupport);
+		connectionFactory.setTcpSocketSupport(socketSupport);
+		connectionFactory.start();
+		assertThatThrownBy(() -> connectionFactory.getConnection())
+			.isInstanceOf(UncheckedIOException.class)
+			.hasCauseInstanceOf(SocketTimeoutException.class);
+
+		connectionFactory.stop();
+	}
+
+	@Test
+	public void testNetServer() throws Exception {
+		TcpSocketFactorySupport factorySupport = mock(TcpSocketFactorySupport.class);
+		ServerSocketFactory factory = mock(ServerSocketFactory.class);
+		when(factorySupport.getServerSocketFactory()).thenReturn(factory);
+		Socket socket = mock(Socket.class);
+		Socket socket1 = mock(Socket.class);
+		InputStream is = mock(InputStream.class);
+		when(is.read()).thenReturn(-1);
+		when(socket.getInputStream()).thenReturn(is);
+		when(socket1.getInputStream()).thenReturn(is);
+		InetAddress inetAddress = InetAddress.getLocalHost();
+		when(socket.getInetAddress()).thenReturn(inetAddress);
+		when(socket1.getInetAddress()).thenReturn(inetAddress);
 		ServerSocket serverSocket = mock(ServerSocket.class);
+		AtomicBoolean closed = new AtomicBoolean();
+		doAnswer(invoc -> {
+			closed.set(true);
+			return null;
+		}).when(serverSocket).close();
 		when(serverSocket.getInetAddress()).thenReturn(inetAddress);
 		when(factory.createServerSocket(0, 5)).thenReturn(serverSocket);
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		when(serverSocket.accept()).thenReturn(socket).then(invocation -> {
+			if (closed.get()) {
+				throw new SocketException();
+			}
 			latch1.countDown();
 			latch2.await(10, TimeUnit.SECONDS);
-			return null;
+			Thread.sleep(50);
+			return socket1;
 		});
 		TcpSocketSupport socketSupport = mock(TcpSocketSupport.class);
 

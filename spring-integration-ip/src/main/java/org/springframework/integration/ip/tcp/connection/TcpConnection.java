@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
+
 import javax.net.ssl.SSLSession;
 
 import org.springframework.core.serializer.Deserializer;
@@ -131,5 +133,25 @@ public interface TcpConnection extends Runnable {
 	 * @since 4.3
 	 */
 	SocketInfo getSocketInfo();
+
+	/**
+	 * Set the connection's input stream to end of stream.
+	 * @throws IOException an IO Exception.
+	 * @since 5.2
+	 */
+	@SuppressWarnings("unused")
+	default void shutdownInput() throws IOException {
+		throw new UnsupportedOperationException("This connection does not support shutDownInput()");
+	}
+
+	/**
+	 * Disable the socket's output stream.
+	 * @throws IOException an IO Exception
+	 * @since 5.2
+	 */
+	@SuppressWarnings("unused")
+	default void shutdownOutput() throws IOException {
+		throw new UnsupportedOperationException("This connection does not support shutDownOutput()");
+	}
 
 }

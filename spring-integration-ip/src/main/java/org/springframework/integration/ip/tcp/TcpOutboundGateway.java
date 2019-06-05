@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -84,6 +85,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private int secondChanceDelay = DEFAULT_SECOND_CHANCE_DELAY;
 
+	private boolean closeStreamAfterSend;
+
 	/**
 	 * @param requestTimeout the requestTimeout to set
 	 */
@@ -117,6 +120,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		if (!this.evaluationContextSet) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		}
+		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
+				"Single use connection needed with closeStreamAfterSend");
 	}
 
 	/**
@@ -149,9 +154,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				logger.debug("Added pending reply " + connectionId);
 			}
 			connection.send(requestMessage);
+			if (this.closeStreamAfterSend) {
+				connection.shutdownOutput();
+			}
 			return getReply(requestMessage, connection, connectionId, reply);
 		}
-		catch (RuntimeException e) {
+		catch (RuntimeException | IOException e) {
 			logger.error("Tcp Gateway exception", e);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
@@ -303,6 +311,18 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public void setReplyChannelName(String replyChannel) {
 		this.setOutputChannelName(replyChannel);
+	}
+
+	/**
+	 * Set to true to close the connection ouput stream after sending without
+	 * closing the connection. Use to signal EOF to the server, such as when using
+	 * a {@link org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer}.
+	 * Requires a single-use connection factory.
+	 * @param closeStreamAfterSend true to close.
+	 * @since 5.2
+	 */
+	public void setCloseStreamAfterSend(boolean closeStreamAfterSend) {
+		this.closeStreamAfterSend = closeStreamAfterSend;
 	}
 
 	@Override

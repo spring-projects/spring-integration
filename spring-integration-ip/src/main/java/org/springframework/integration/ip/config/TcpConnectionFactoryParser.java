@@ -100,6 +100,8 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 				IpAdapterParserUtils.SSL_HANDSHAKE_TIMEOUT);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.READ_DELAY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.CONNECT_TIMEOUT);
 
 		return builder.getBeanDefinition();
 	}

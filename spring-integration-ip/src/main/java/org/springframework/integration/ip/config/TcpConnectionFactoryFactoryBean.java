@@ -59,73 +59,75 @@ import org.springframework.util.Assert;
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory>
 		implements Lifecycle, BeanNameAware, ApplicationEventPublisherAware {
 
-	private volatile AbstractConnectionFactory connectionFactory;
+	private AbstractConnectionFactory connectionFactory;
 
-	private volatile String type;
+	private String type;
 
-	private volatile String host;
+	private String host;
 
-	private volatile int port;
+	private int port;
 
-	private volatile int soTimeout;
+	private int soTimeout;
 
-	private volatile int soSendBufferSize;
+	private int soSendBufferSize;
 
-	private volatile int soReceiveBufferSize;
+	private int soReceiveBufferSize;
 
-	private volatile boolean soTcpNoDelay;
+	private boolean soTcpNoDelay;
 
-	private volatile int soLinger  = -1; // don't set by default
+	private int soLinger  = -1; // don't set by default
 
-	private volatile boolean soKeepAlive;
+	private boolean soKeepAlive;
 
-	private volatile int soTrafficClass = -1; // don't set by default
+	private int soTrafficClass = -1; // don't set by default
 
-	private volatile Executor taskExecutor;
+	private Executor taskExecutor;
 
-	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
+	private Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 
-	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
+	private Serializer<?> serializer = new ByteArrayCrLfSerializer();
 
-	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
+	private TcpMessageMapper mapper = new TcpMessageMapper();
 
-	private volatile boolean mapperSet;
+	private boolean mapperSet;
 
-	private volatile boolean singleUse;
+	private boolean singleUse;
 
-	private volatile int backlog = 5;
+	private int backlog = 5;
 
-	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+	private TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 
-	private volatile boolean lookupHost = true;
+	private boolean lookupHost = true;
 
-	private volatile String localAddress;
+	private String localAddress;
 
-	private volatile boolean usingNio;
+	private boolean usingNio;
 
-	private volatile boolean usingDirectBuffers;
+	private boolean usingDirectBuffers;
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile boolean applySequence;
+	private boolean applySequence;
 
-	private volatile Long readDelay;
+	private Long readDelay;
 
-	private volatile TcpSSLContextSupport sslContextSupport;
+	private TcpSSLContextSupport sslContextSupport;
 
-	private volatile Integer sslHandshakeTimeout;
+	private Integer sslHandshakeTimeout;
 
-	private volatile TcpSocketSupport socketSupport = new DefaultTcpSocketSupport();
+	private TcpSocketSupport socketSupport = new DefaultTcpSocketSupport();
 
-	private volatile TcpNioConnectionSupport nioConnectionSupport;
+	private TcpNioConnectionSupport nioConnectionSupport;
 
-	private volatile TcpNetConnectionSupport netConnectionSupport;
+	private TcpNetConnectionSupport netConnectionSupport;
 
-	private volatile TcpSocketFactorySupport socketFactorySupport;
+	private TcpSocketFactorySupport socketFactorySupport;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
+
+	private Integer connectTimeout;
 
 
 	public TcpConnectionFactoryFactoryBean() {
@@ -189,6 +191,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.setCommonAttributes(factory);
 				factory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
 				factory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
+				if (this.connectTimeout != null) {
+					factory.setConnectTimeout(this.connectTimeout);
+				}
 				this.connectionFactory = factory;
 			}
 		}
@@ -499,6 +504,10 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
 	}
 
 	/**

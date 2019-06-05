@@ -285,4 +285,24 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		}
 	}
 
+	/**
+	 * Set the socket's input stream to end of stream.
+	 * @throws IOException an IO Exception.
+	 * @since 5.2
+	 * @see Socket#shutdownInput()
+	 */
+	public void shutdownInput() throws IOException {
+		this.socket.shutdownInput();
+	}
+
+	/**
+	 * Disable the socket's output stream.
+	 * @throws IOException an IO Exception
+	 * @since 5.2
+	 * @see Socket#shutdownOutput()
+	 */
+	public void shutdownOutput() throws IOException {
+		this.socket.shutdownOutput();
+	}
+
 }
