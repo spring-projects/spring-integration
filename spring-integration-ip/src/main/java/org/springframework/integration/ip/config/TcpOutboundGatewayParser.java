@@ -55,6 +55,7 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.REPLY_TIMEOUT, "sendTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "close-stream-after-send");
 		return builder;
 	}
 

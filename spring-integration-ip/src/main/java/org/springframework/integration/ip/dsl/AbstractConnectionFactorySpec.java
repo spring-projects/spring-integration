@@ -219,4 +219,15 @@ public abstract class AbstractConnectionFactorySpec
 		return _this();
 	}
 
+	/**
+	 * This connection factory uses a new connection for each operation.
+	 * @param single true for a new connection for each operation.
+	 * @return the spec.
+	 * @since 5.2
+	 */
+	public S singleUseConnections(boolean single) {
+		this.target.setSingleUse(single);
+		return _this();
+	}
+
 }

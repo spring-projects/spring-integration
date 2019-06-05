@@ -89,6 +89,20 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 		return _this();
 	}
 
+	/**
+	 * Set to true to close the connection ouput stream after sending without
+	 * closing the connection. Use to signal EOF to the server, such as when using
+	 * a {@link org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer}.
+	 * Requires a single-use connection factory.
+	 * @param closeStreamAfterSend true to close.
+	 * @return the spec.
+	 * @since 5.2
+	 */
+	public TcpOutboundGatewaySpec closeStreamAfterSend(boolean closeStreamAfterSend) {
+		this.target.setCloseStreamAfterSend(closeStreamAfterSend);
+		return _this();
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return this.connectionFactory != null

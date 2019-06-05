@@ -69,6 +69,13 @@ See <<./ip.adoc#tcp-codecs,Message Demarcation (Serializers and Deserializers)>>
 When using a `TcpNioServerConnectionFactory`, priority is now given to accepting new connections over reading from existing connections, but it is configurable.
 See <<./ip.adoc#note-nio,About Non-blocking I/O (NIO)>> for more information.
 
+The outbound gateway has a new property `closeStreamAfterSend`; when used with a new connection for each request/reply it signals EOF to the server, without closing the connection.
+This is useful for servers that use the EOF to signal end of message instead of some delimiter in the data.
+See <<tcp-gateways>> for more information.
+
+The client connection factories now support `connectTimeout` which causes an exception to be thrown if the connection is not established in thst time.
+See <<tcp-connection-factory>> for more information.
+
 [[x5.2-mail]]
 ==== Mail Changes
 

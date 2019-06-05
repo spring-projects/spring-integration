@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
@@ -38,14 +39,20 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -282,6 +289,57 @@ public class TcpInboundGatewayTests {
 		assertThat(new String(bytes)).isEqualTo(errorMessage + "\r\n");
 		gateway.stop();
 		scf.stop();
+	}
+
+	@Test
+	public void testNetCloseStream() throws InterruptedException, IOException {
+		testCloseStream(new TcpNetServerConnectionFactory(0),
+				port -> new TcpNetClientConnectionFactory("localhost", port));
+	}
+
+	@Test
+	public void testNioCloseStream() throws InterruptedException, IOException {
+		testCloseStream(new TcpNioServerConnectionFactory(0),
+				port -> new TcpNioClientConnectionFactory("localhost", port));
+	}
+
+	private void testCloseStream(AbstractServerConnectionFactory scf,
+			Function<Integer, AbstractClientConnectionFactory> ccf) throws InterruptedException, IOException {
+
+		scf.setSingleUse(true);
+		scf.setDeserializer(new ByteArrayRawSerializer());
+		TcpInboundGateway gateway = new TcpInboundGateway();
+		gateway.setConnectionFactory(scf);
+		BeanFactory bf = mock(ConfigurableBeanFactory.class);
+		gateway.setBeanFactory(bf);
+		gateway.start();
+		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
+		final DirectChannel channel = new DirectChannel();
+		gateway.setRequestChannel(channel);
+		BridgeHandler bridge = new BridgeHandler();
+		bridge.setBeanFactory(bf);
+		bridge.afterPropertiesSet();
+		ConsumerEndpointFactoryBean consumer = new ConsumerEndpointFactoryBean();
+		consumer.setInputChannel(channel);
+		consumer.setBeanFactory(bf);
+		consumer.setHandler(bridge);
+		consumer.afterPropertiesSet();
+		consumer.start();
+		AbstractClientConnectionFactory client = ccf.apply(port);
+		CountDownLatch latch = new CountDownLatch(1);
+		client.registerListener(message -> {
+			latch.countDown();
+			return false;
+		});
+		client.afterPropertiesSet();
+		client.start();
+		TcpConnectionSupport connection = client.getConnection();
+		connection.send(new GenericMessage<>("foo"));
+		connection.shutdownOutput(); // signal EOF to server
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		gateway.stop();
+		client.stop();
 	}
 
 

@@ -17,19 +17,24 @@
 package org.springframework.integration.ip.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -42,6 +47,7 @@ import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
@@ -69,8 +75,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -79,8 +84,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ParserUnitTests {
 
@@ -427,6 +431,7 @@ public class ParserUnitTests {
 		assertThat((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence")).isFalse();
 		assertThat(TestUtils.getPropertyValue(cfC1, "readDelay")).isEqualTo(10000L);
+		assertThat(TestUtils.getPropertyValue(cfC1, "connectTimeout")).isEqualTo(Duration.ofSeconds(70));
 	}
 
 	@Test
@@ -476,6 +481,7 @@ public class ParserUnitTests {
 
 		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "remoteTimeoutExpression.expression"))
 				.isEqualTo("4000");
+		assertThat(TestUtils.getPropertyValue(outAdviceGateway, "closeStreamAfterSend")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test
@@ -675,4 +681,18 @@ public class ParserUnitTests {
 			super(connection, connectionFactoryName);
 		}
 	}
+
+	@Configuration
+	@ImportResource("org/springframework/integration/ip/config/ParserTests-context.xml")
+	public static class Config {
+
+		@Bean
+		AbstractClientConnectionFactory mockClientCf() {
+			AbstractClientConnectionFactory mock = mock(AbstractClientConnectionFactory.class);
+			given(mock.isSingleUse()).willReturn(true);
+			return mock;
+		}
+
+	}
+
 }

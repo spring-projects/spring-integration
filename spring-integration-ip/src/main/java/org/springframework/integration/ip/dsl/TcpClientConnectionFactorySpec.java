@@ -38,4 +38,15 @@ public class TcpClientConnectionFactorySpec
 		super(nio ? new TcpNioClientConnectionFactory(host, port) : new TcpNetClientConnectionFactory(host, port));
 	}
 
+	/**
+	 * Set the connection timeout in seconds. Defaults to 60.
+	 * @param connectTimeout the timeout.
+	 * @return the spec.
+	 * @since 5.2
+	 */
+	public TcpClientConnectionFactorySpec connectTimeout(int connectTimeout) {
+		this.target.setConnectTimeout(connectTimeout);
+		return _this();
+	}
+
 }

@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
+import java.time.Duration;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -33,11 +34,15 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
+	private static final long DEFAULT_CONNECT_TIMEOUT = 60L;
+
 	private final ReadWriteLock theConnectionLock = new ReentrantReadWriteLock();
 
-	private volatile TcpConnectionSupport theConnection;
+	private boolean manualListenerRegistration;
 
-	private volatile boolean manualListenerRegistration;
+	private Duration connectTimeout = Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT);
+
+	private volatile TcpConnectionSupport theConnection;
 
 	/**
 	 * Constructs a factory that will established connections to the host and port.
@@ -46,6 +51,19 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 */
 	public AbstractClientConnectionFactory(String host, int port) {
 		super(host, port);
+	}
+
+	/**
+	 * Set the connection timeout in seconds. Defaults to 60.
+	 * @param connectTimeout the timeout.
+	 * @since 5.2
+	 */
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = Duration.ofSeconds(connectTimeout);
+	}
+
+	protected Duration getConnectTimeout() {
+		return this.connectTimeout;
 	}
 
 	/**

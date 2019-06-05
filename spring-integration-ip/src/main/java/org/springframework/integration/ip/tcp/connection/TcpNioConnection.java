@@ -575,6 +575,26 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	/**
+	 * Set the socket's input stream to end of stream.
+	 * @throws IOException an IO Exception.
+	 * @since 5.2
+	 * @see SocketChannel#shutdownInput()
+	 */
+	public void shutdownInput() throws IOException {
+		this.socketChannel.shutdownInput();
+	}
+
+	/**
+	 * Disable the socket's output stream.
+	 * @throws IOException an IO Exception
+	 * @since 5.2
+	 * @see SocketChannel#shutdownOutput()
+	 */
+	public void shutdownOutput() throws IOException {
+		this.socketChannel.shutdownOutput();
+	}
+
+	/**
 	 * OutputStream to wrap a SocketChannel; implements timeout on write.
 	 *
 	 */
