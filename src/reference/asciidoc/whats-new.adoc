@@ -73,7 +73,7 @@ The outbound gateway has a new property `closeStreamAfterSend`; when used with a
 This is useful for servers that use the EOF to signal end of message instead of some delimiter in the data.
 See <<tcp-gateways>> for more information.
 
-The client connection factories now support `connectTimeout` which causes an exception to be thrown if the connection is not established in thst time.
+The client connection factories now support `connectTimeout` which causes an exception to be thrown if the connection is not established in that time.
 See <<tcp-connection-factory>> for more information.
 
 [[x5.2-mail]]

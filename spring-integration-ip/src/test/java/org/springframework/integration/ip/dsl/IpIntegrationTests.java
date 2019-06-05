@@ -42,6 +42,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
@@ -177,7 +178,6 @@ public class IpIntegrationTests {
 		IntegrationFlow server = IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(0)
 				.deserializer(new ByteArrayRawSerializer())))
 				.<byte[], String>transform(p -> "reply:" + new String(p).toUpperCase())
-				.bridge()
 				.get();
 		CountDownLatch latch = new CountDownLatch(1);
 		AtomicInteger port = new AtomicInteger();
@@ -202,11 +202,11 @@ public class IpIntegrationTests {
 				.closeStreamAfterSend(true))
 			.transform(Transformers.objectToString())
 			.get();
-		this.flowContext.registration(client)
+		IntegrationFlowRegistration clientRegistration = this.flowContext.registration(client)
 			.id("streamCloseClient")
 			.register();
-		MessagingTemplate messagingTemplate = new MessagingTemplate(client.getInputChannel());
-		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("reply:FOO");
+		assertThat(clientRegistration.getMessagingTemplate()
+				.convertSendAndReceive("foo", String.class)).isEqualTo("reply:FOO");
 	}
 
 	@Configuration

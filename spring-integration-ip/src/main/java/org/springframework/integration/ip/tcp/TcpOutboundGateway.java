@@ -120,7 +120,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		if (!this.evaluationContextSet) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		}
-		Assert.state(this.closeStreamAfterSend ? this.isSingleUse : true,
+		Assert.state(!this.closeStreamAfterSend || this.isSingleUse,
 				"Single use connection needed with closeStreamAfterSend");
 	}
 
