@@ -37,6 +37,7 @@ import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 import com.fasterxml.jackson.core.TreeNode;
 import reactor.core.publisher.Flux;
@@ -140,7 +141,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 		else if (result.getClass().isArray()) {
-			Object[] items = (Object[]) result;
+			Object[] items = ObjectUtils.toObjectArray(result);
 			sequenceSize = items.length;
 			if (reactive) {
 				flux = Flux.fromArray(items);
