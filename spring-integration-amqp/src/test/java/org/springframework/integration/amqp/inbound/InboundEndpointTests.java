@@ -98,6 +98,7 @@ public class InboundEndpointTests {
 
 		adapter.setOutputChannel(channel);
 		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBindSourceMessage(true);
 		adapter.afterPropertiesSet();
 
 		Object payload = new Foo("bar1");
@@ -120,6 +121,8 @@ public class InboundEndpointTests {
 
 		assertThat(result.getHeaders().get(AmqpHeaders.CHANNEL)).isSameAs(rabbitChannel);
 		assertThat(result.getHeaders().get(AmqpHeaders.DELIVERY_TAG)).isEqualTo(123L);
+		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(result);
+		assertThat(sourceData).isSameAs(amqpMessage);
 	}
 
 	@Test
@@ -153,6 +156,8 @@ public class InboundEndpointTests {
 		Message<?> result = new JsonToObjectTransformer().transform(receive);
 
 		assertThat(result.getPayload()).isEqualTo(payload);
+		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(result);
+		assertThat(sourceData).isNull();
 	}
 
 	@Test
@@ -409,10 +414,11 @@ public class InboundEndpointTests {
 	public void testBatchGateway() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(mock(ConnectionFactory.class));
 		container.setDeBatchingEnabled(false);
-		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
+		AmqpInboundGateway gateway = new AmqpInboundGateway(container);
 		QueueChannel out = new QueueChannel();
-		adapter.setRequestChannel(out);
-		adapter.afterPropertiesSet();
+		gateway.setRequestChannel(out);
+		gateway.setBindSourceMessage(true);
+		gateway.afterPropertiesSet();
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		SimpleBatchingStrategy bs = new SimpleBatchingStrategy(2, 10_000, 10_000L);
 		MessageProperties messageProperties = new MessageProperties();
@@ -426,6 +432,8 @@ public class InboundEndpointTests {
 		Message<?> received = out.receive();
 		assertThat(received).isNotNull();
 		assertThat(((List<String>) received.getPayload())).contains("test1", "test2");
+		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(received);
+		assertThat(sourceData).isSameAs(batched.getMessage());
 	}
 
 	public static class Foo {
