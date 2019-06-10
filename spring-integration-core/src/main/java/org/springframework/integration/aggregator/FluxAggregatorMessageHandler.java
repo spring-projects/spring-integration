@@ -157,9 +157,7 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 				((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(this.aggregatorFlux);
 			}
 			else {
-				this.aggregatorFlux
-						.doOnNext((messageToSend) -> produceOutput(messageToSend, messageToSend))
-						.subscribe();
+				this.aggregatorFlux.subscribe((messageToSend) -> produceOutput(messageToSend, messageToSend));
 			}
 		}
 
