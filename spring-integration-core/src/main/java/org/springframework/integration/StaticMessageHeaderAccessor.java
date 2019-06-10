@@ -107,4 +107,10 @@ public final class StaticMessageHeaderAccessor {
 				AcknowledgmentCallback.class);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public static <T> T getSourceData(Message<?> message) {
+		return (T) message.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA);
+	}
+
 }

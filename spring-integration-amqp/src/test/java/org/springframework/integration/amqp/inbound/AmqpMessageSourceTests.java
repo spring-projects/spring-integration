@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.inbound;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
@@ -46,6 +48,7 @@ import com.rabbitmq.client.GetResponse;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.1
  *
@@ -73,6 +76,8 @@ public class AmqpMessageSourceTests {
 		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE),
 				instanceOf(org.springframework.amqp.core.Message.class));
 		assertThat(received.getHeaders().get(AmqpHeaders.CONSUMER_QUEUE), equalTo("foo"));
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA),
+				sameInstance(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE)));
 		// make sure channel is not cached
 		org.springframework.amqp.rabbit.connection.Connection conn = ccf.createConnection();
 		Channel notCached = conn.createChannel(false); // should not have been "closed"

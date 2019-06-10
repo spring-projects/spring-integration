@@ -69,6 +69,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private RecoveryCallback<? extends Object> recoveryCallback;
 
+	private boolean bindSourceMessage;
+
 	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
@@ -115,6 +117,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.recoveryCallback = recoveryCallback;
 	}
 
+
+	/**
+	 * Set to true to bind the source message in the header named
+	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
+	 * @param bindSourceMessage true to bind.
+	 * @since 5.1.6
+	 */
+	public void setBindSourceMessage(boolean bindSourceMessage) {
+		this.bindSourceMessage = bindSourceMessage;
+	}
 
 	@Override
 	public String getComponentType() {
@@ -248,6 +260,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			}
 			if (AmqpInboundChannelAdapter.this.retryTemplate != null) {
 				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
+			}
+			if (AmqpInboundChannelAdapter.this.bindSourceMessage) {
+				headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, message);
 			}
 			final org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
 					.withPayload(payload)

@@ -81,6 +81,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private RecoveryCallback<? extends Object> recoveryCallback;
 
+	private boolean bindSourceMessage;
+
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
 	}
@@ -173,6 +175,16 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 */
 	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * Set to true to bind the source message in the header named
+	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
+	 * @param bindSourceMessage true to bind.
+	 * @since 5.1.6
+	 */
+	public void setBindSourceMessage(boolean bindSourceMessage) {
+		this.bindSourceMessage = bindSourceMessage;
 	}
 
 	@Override
@@ -294,6 +306,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				}
 				if (AmqpInboundGateway.this.retryTemplate != null) {
 					headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
+				}
+				if (AmqpInboundGateway.this.bindSourceMessage) {
+					headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, message);
 				}
 			}
 			catch (RuntimeException e) {

@@ -107,6 +107,7 @@ public class InboundEndpointTests {
 
 		adapter.setOutputChannel(channel);
 		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.setBindSourceMessage(true);
 		adapter.afterPropertiesSet();
 
 		Object payload = new Foo("bar1");
@@ -129,6 +130,8 @@ public class InboundEndpointTests {
 
 		assertSame(rabbitChannel, result.getHeaders().get(AmqpHeaders.CHANNEL));
 		assertEquals(123L, result.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
+		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(result);
+		assertThat(sourceData).isSameAs(amqpMessage);
 	}
 
 	@Test
@@ -162,6 +165,8 @@ public class InboundEndpointTests {
 		Message<?> result = new JsonToObjectTransformer().transform(receive);
 
 		assertEquals(payload, result.getPayload());
+		org.springframework.amqp.core.Message sourceData = StaticMessageHeaderAccessor.getSourceData(result);
+		assertThat(sourceData).isNull();
 	}
 
 	@Test
