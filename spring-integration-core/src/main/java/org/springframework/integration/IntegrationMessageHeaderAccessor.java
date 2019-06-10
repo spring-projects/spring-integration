@@ -67,6 +67,11 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String ACKNOWLEDGMENT_CALLBACK = "acknowledgmentCallback";
 
+	/**
+	 * Raw source message.
+	 */
+	public static final String SOURCE_DATA = "sourceData";
+
 	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
 			(name, trailer) -> "The '" + name + trailer;
 
@@ -151,6 +156,18 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	@Nullable
 	public AtomicInteger getDeliveryAttempt() {
 		return getHeader(DELIVERY_ATTEMPT, AtomicInteger.class);
+	}
+
+	/**
+	 * Get the source data header, if present.
+	 * @param <T> the data type.
+	 * @return the source header.
+	 * @since 5.1.6
+	 */
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public <T> T getSourceData() {
+		return (T) getHeader(SOURCE_DATA);
 	}
 
 	@SuppressWarnings("unchecked")

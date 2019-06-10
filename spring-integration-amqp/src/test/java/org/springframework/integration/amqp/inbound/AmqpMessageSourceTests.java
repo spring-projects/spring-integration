@@ -34,6 +34,7 @@ import org.springframework.amqp.rabbit.batch.MessageBatch;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
@@ -74,6 +75,8 @@ public class AmqpMessageSourceTests {
 		Message<?> received = source.receive();
 		assertThat(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE))
 				.isInstanceOf(org.springframework.amqp.core.Message.class);
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
+			.isSameAs(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
 		assertThat(received.getHeaders().get(AmqpHeaders.CONSUMER_QUEUE)).isEqualTo("foo");
 		// make sure channel is not cached
 		org.springframework.amqp.rabbit.connection.Connection conn = ccf.createConnection();

@@ -148,10 +148,11 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 	}
 
 	/**
-	 * Set to true to include the raw spring-amqp message as a header
-	 * with key {@link AmqpMessageHeaderErrorMessageStrategy#AMQP_RAW_MESSAGE},
-	 * enabling callers to have access to the message to process errors.
-	 * @param rawMessageHeader true to include the header.
+	 * Set to true to include the raw spring-amqp message as a header with key
+	 * {@link AmqpMessageHeaderErrorMessageStrategy#AMQP_RAW_MESSAGE}, enabling callers to
+	 * have access to the message to process errors. The raw message is also added to the
+	 * common header {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
+	 * @param rawMessageHeader true to include the headers.
 	 */
 	public void setRawMessageHeader(boolean rawMessageHeader) {
 		this.rawMessageHeader = rawMessageHeader;
@@ -210,6 +211,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, callback);
 			if (this.rawMessageHeader) {
 				builder.setHeader(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
+				builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, amqpMessage);
 			}
 			return builder;
 		}
