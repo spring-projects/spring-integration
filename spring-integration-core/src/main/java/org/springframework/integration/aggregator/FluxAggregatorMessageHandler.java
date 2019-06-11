@@ -165,20 +165,14 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	}
 
 	private Mono<Message<?>> messageForWindowFlux(Flux<Message<?>> messageFlux) {
-		return messageFlux
-				.switchOnFirst((signal, window) -> {
-					if (signal.hasValue()) {
-						return Flux.<Message<?>>just(
-								getMessageBuilderFactory()
-										.withPayload(window)
-										.copyHeaders(signal.get().getHeaders())
-										.build());
-					}
-					else {
-						return window.thenMany(Flux.empty());
-					}
-				})
-				.next();
+		Flux<Message<?>> window = messageFlux.publish().autoConnect();
+		return window
+				.next()
+				.map((first) ->
+						getMessageBuilderFactory()
+								.withPayload(Flux.concat(Mono.just(first), window))
+								.copyHeaders(first.getHeaders())
+								.build());
 	}
 
 	private static Integer sequenceSizeHeader(Message<?> message) {
