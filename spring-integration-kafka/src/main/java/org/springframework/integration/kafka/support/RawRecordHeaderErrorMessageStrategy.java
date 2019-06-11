@@ -16,10 +16,11 @@
 
 package org.springframework.integration.kafka.support;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -41,9 +42,13 @@ public class RawRecordHeaderErrorMessageStrategy implements ErrorMessageStrategy
 
 	@Override
 	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor context) {
-		Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		Map<String, Object> headers =
-				Collections.singletonMap(KafkaHeaders.RAW_DATA, context.getAttribute(KafkaHeaders.RAW_DATA));
+		Object inputMessage = null;
+		Map<String, Object> headers = new HashMap<>();
+		if (context != null) {
+			inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
+			headers.put(KafkaHeaders.RAW_DATA, context.getAttribute(KafkaHeaders.RAW_DATA));
+			headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, context.getAttribute(KafkaHeaders.RAW_DATA));
+		}
 		if (inputMessage instanceof Message) {
 			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);
 		}

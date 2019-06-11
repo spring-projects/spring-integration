@@ -96,6 +96,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
+	private boolean bindSourceRecord;
+
 	/**
 	 * Construct an instance with mode {@link ListenerMode#record}.
 	 * @param messageListenerContainer the container.
@@ -247,6 +249,17 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		this.onPartitionsAssignedSeekCallback = onPartitionsAssignedCallback;
 	}
 
+	/**
+	 * Set to true to bind the source consumer record in the header named
+	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
+	 * Does not apply to batch listeners.
+	 * @param bindSourceRecord true to bind.
+	 * @since 3.1.4
+	 */
+	public void setBindSourceRecord(boolean bindSourceRecord) {
+		this.bindSourceRecord = bindSourceRecord;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "kafka:message-driven-channel-adapter";
@@ -264,10 +277,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		if (this.mode.equals(ListenerMode.record)) {
 			MessageListener<K, V> listener = this.recordListener;
 
-			boolean filterInRetry = this.filterInRetry && this.retryTemplate != null
+			boolean doFilterInRetry = this.filterInRetry && this.retryTemplate != null
 					&& this.recordFilterStrategy != null;
 
-			if (filterInRetry) {
+			if (doFilterInRetry) {
 				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
 				listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
@@ -418,10 +431,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
-				message = toMessagingMessage(record, acknowledgment, consumer);
-				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
-					message = addDeliveryAttemptHeader(message);
-				}
+				message = enhanceHeaders(toMessagingMessage(record, acknowledgment, consumer), record);
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
@@ -432,18 +442,30 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			sendMessageIfAny(message, record);
 		}
 
-		private Message<?> addDeliveryAttemptHeader(Message<?> message) {
+		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
-			AtomicInteger deliveryAttempt =
-					new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
-				((KafkaMessageHeaders) message.getHeaders()).getRawHeaders()
-						.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
+				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
+					AtomicInteger deliveryAttempt =
+							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				}
+				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
+					rawHeaders.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
+				}
 			}
 			else {
-				messageToReturn = MessageBuilder.fromMessage(message)
-						.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt)
-						.build();
+				MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
+				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
+					AtomicInteger deliveryAttempt =
+							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				}
+				if (KafkaMessageDrivenChannelAdapter.this.bindSourceRecord) {
+					builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
+				}
+				messageToReturn = builder.build();
 			}
 			return messageToReturn;
 		}

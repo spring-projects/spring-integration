@@ -34,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
@@ -170,20 +171,20 @@ public class InboundGatewayTests {
 
 	@Test
 	public void testInboundErrorRecover() throws Exception {
-		EmbeddedKafkaBroker embeddedKafka = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
+		EmbeddedKafkaBroker broker = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", broker);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic4);
+		broker.consumeFromAnEmbeddedTopic(consumer, topic4);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", broker);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic3);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(broker);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic3);
@@ -215,6 +216,7 @@ public class InboundGatewayTests {
 
 		});
 		gateway.setReplyTimeout(30_000);
+		gateway.setBindSourceRecord(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		ContainerTestUtils.waitForAssignment(container, 2);
@@ -222,8 +224,11 @@ public class InboundGatewayTests {
 		template.sendDefault(0, 1487694048607L, 1, "foo");
 		ErrorMessage em = (ErrorMessage) errors.receive(30_000);
 		assertThat(em).isNotNull();
+		assertThat(em.getHeaders().get(KafkaHeaders.RAW_DATA)).isNotNull();
 		Message<?> failed = ((MessagingException) em.getPayload()).getFailedMessage();
 		assertThat(failed).isNotNull();
+		assertThat(failed.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
+			.isSameAs(em.getHeaders().get(KafkaHeaders.RAW_DATA));
 		MessageChannel reply = (MessageChannel) em.getHeaders().getReplyChannel();
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());
@@ -308,6 +313,7 @@ public class InboundGatewayTests {
 		assertThat(em).isNotNull();
 		Message<?> failed = ((MessagingException) em.getPayload()).getFailedMessage();
 		assertThat(failed).isNotNull();
+		assertThat(failed.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA)).isNull();
 		MessageChannel reply = (MessageChannel) em.getHeaders().getReplyChannel();
 		MessageHeaders headers = failed.getHeaders();
 		reply.send(MessageBuilder.withPayload("ERROR").copyHeaders(headers).build());

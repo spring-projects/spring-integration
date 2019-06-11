@@ -49,6 +49,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -238,14 +239,15 @@ public class MessageDrivenAdapterTests {
 		assertThat(received).isInstanceOf(ErrorMessage.class);
 		MessageHeaders headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RAW_DATA)).isNotNull();
-		received = ((ErrorMessage) received).getOriginalMessage();
-		assertThat(received).isNotNull();
-		headers = received.getHeaders();
+		Message<?> originalMessage = ((ErrorMessage) received).getOriginalMessage();
+		assertThat(originalMessage).isNotNull();
+		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA)).isNull();
+		headers = originalMessage.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic4);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
-		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(received).get()).isEqualTo(2);
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(originalMessage).get()).isEqualTo(2);
 
 		adapter.stop();
 	}
@@ -272,6 +274,7 @@ public class MessageDrivenAdapterTests {
 		adapter.setErrorChannel(errorChannel);
 		adapter.setRecoveryCallback(
 				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
+		adapter.setBindSourceRecord(true);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		ContainerTestUtils.waitForAssignment(container, 2);
@@ -286,9 +289,13 @@ public class MessageDrivenAdapterTests {
 		assertThat(received).isInstanceOf(ErrorMessage.class);
 		MessageHeaders headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RAW_DATA)).isNotNull();
-		received = ((ErrorMessage) received).getOriginalMessage();
-		assertThat(received).isNotNull();
-		headers = received.getHeaders();
+		assertThat(headers.get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
+			.isSameAs(headers.get(KafkaHeaders.RAW_DATA));
+		Message<?> originalMessage = ((ErrorMessage) received).getOriginalMessage();
+		assertThat(originalMessage).isNotNull();
+		assertThat(originalMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
+			.isSameAs(headers.get(KafkaHeaders.RAW_DATA));
+		headers = originalMessage.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
