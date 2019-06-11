@@ -16,12 +16,12 @@
 
 package org.springframework.integration.amqp.support;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.lang.Nullable;
@@ -49,8 +49,11 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor context) {
 		Object inputMessage = context == null ? null
 				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		Map<String, Object> headers = context == null ? new HashMap<String, Object>() :
-				Collections.singletonMap(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
+		Map<String, Object> headers = new HashMap<String, Object>();
+		if (context != null) {
+			headers.put(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
+			headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, context.getAttribute(AMQP_RAW_MESSAGE));
+		}
 		if (inputMessage instanceof Message) {
 			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);
 		}
