@@ -37,6 +37,7 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -53,6 +54,7 @@ import reactor.core.CoreSubscriber;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Amit Sadafule
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport
@@ -97,6 +99,11 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	@Override
 	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
 		this.metricsCaptor = metricsCaptor;
+	}
+
+	@Nullable
+	protected MetricsCaptor getMetricsCaptor() {
+		return this.metricsCaptor;
 	}
 
 	@Override
