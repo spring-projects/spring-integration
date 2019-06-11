@@ -51,6 +51,7 @@ import reactor.core.CoreSubscriber;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Amit Sadafule
  */
 @SuppressWarnings("deprecation")
 @IntegrationManagedResource
@@ -98,6 +99,11 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	@Override
 	public void registerMetricsCaptor(MetricsCaptor metricsCaptorToRegister) {
 		this.metricsCaptor = metricsCaptorToRegister;
+	}
+
+	@Nullable
+	protected MetricsCaptor getMetricsCaptor() {
+		return this.metricsCaptor;
 	}
 
 	@Override
