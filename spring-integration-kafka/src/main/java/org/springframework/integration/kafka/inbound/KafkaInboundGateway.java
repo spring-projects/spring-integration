@@ -83,6 +83,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 
 	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
+	private boolean bindSourceRecord;
+
 	/**
 	 * Construct an instance with the provided container.
 	 * @param messageListenerContainer the container.
@@ -153,6 +155,16 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	public void setOnPartitionsAssignedSeekCallback(
 			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
 		this.onPartitionsAssignedSeekCallback = onPartitionsAssignedCallback;
+	}
+
+	/**
+	 * Set to true to bind the source consumer record in the header named
+	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}.
+	 * @param bindSourceRecord true to bind.
+	 * @since 3.1.4
+	 */
+	public void setBindSourceRecord(boolean bindSourceRecord) {
+		this.bindSourceRecord = bindSourceRecord;
 	}
 
 	@Override
@@ -245,10 +257,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
-				message = toMessagingMessage(record, acknowledgment, consumer);
-				if (KafkaInboundGateway.this.retryTemplate != null) {
-					message = addDeliveryAttemptHeader(message);
-				}
+				message = enhanceHeaders(toMessagingMessage(record, acknowledgment, consumer), record);
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
@@ -277,18 +286,30 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 			}
 		}
 
-		private Message<?> addDeliveryAttemptHeader(Message<?> message) {
+		private Message<?> enhanceHeaders(Message<?> message, ConsumerRecord<K, V> record) {
 			Message<?> messageToReturn = message;
-			AtomicInteger deliveryAttempt =
-					new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
-				((KafkaMessageHeaders) message.getHeaders()).getRawHeaders()
-						.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
+				if (KafkaInboundGateway.this.retryTemplate != null) {
+					AtomicInteger deliveryAttempt =
+							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+					rawHeaders.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				}
+				if (KafkaInboundGateway.this.bindSourceRecord) {
+					rawHeaders.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
+				}
 			}
 			else {
-				messageToReturn = MessageBuilder.fromMessage(message)
-						.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt)
-						.build();
+				MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
+				if (KafkaInboundGateway.this.retryTemplate != null) {
+					AtomicInteger deliveryAttempt =
+							new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+					builder.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+				}
+				if (KafkaInboundGateway.this.bindSourceRecord) {
+					builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
+				}
+				messageToReturn = builder.build();
 			}
 			return messageToReturn;
 		}

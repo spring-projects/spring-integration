@@ -56,6 +56,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.test.util.TestUtils;
@@ -116,6 +117,8 @@ public class MessageSourceTests {
 		Message<?> received = source.receive();
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
+		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
+			.isSameAs(received.getHeaders().get(KafkaHeaders.RAW_DATA));
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
 				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();

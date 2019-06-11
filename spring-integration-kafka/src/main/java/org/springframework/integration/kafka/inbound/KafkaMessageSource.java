@@ -310,9 +310,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	/**
-	 * Set to true to include the raw {@link ConsumerRecord} as a header
-	 * with key {@link KafkaHeaders#RAW_DATA},
-	 * enabling callers to have access to the record to process errors.
+	 * Set to true to include the raw {@link ConsumerRecord} as headers with keys
+	 * {@link KafkaHeaders#RAW_DATA} and
+	 * {@link IntegrationMessageHeaderAccessor#SOURCE_DATA}. enabling callers to have
+	 * access to the record to process errors.
 	 * @param rawMessageHeader true to include the header.
 	 */
 	public void setRawMessageHeader(boolean rawMessageHeader) {
@@ -458,6 +459,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 			rawHeaders.put(REMAINING_RECORDS, this.remainingCount.get());
 			if (this.rawMessageHeader) {
 				rawHeaders.put(KafkaHeaders.RAW_DATA, record);
+				rawHeaders.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
 			}
 			return message;
 		}
@@ -467,6 +469,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 					.setHeader(REMAINING_RECORDS, this.remainingCount.get());
 			if (this.rawMessageHeader) {
 				builder.setHeader(KafkaHeaders.RAW_DATA, record);
+				builder.setHeader(IntegrationMessageHeaderAccessor.SOURCE_DATA, record);
 			}
 			return builder;
 		}
