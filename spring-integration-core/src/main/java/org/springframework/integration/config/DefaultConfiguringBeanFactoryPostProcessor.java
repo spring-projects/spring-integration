@@ -32,6 +32,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -172,18 +174,21 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerNullChannel() {
 		if (this.beanFactory.containsBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 			BeanDefinition nullChannelDefinition = null;
-			if (this.beanFactory.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-				nullChannelDefinition =
-						this.beanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-			}
-			else {
-				BeanDefinitionRegistry parentBeanFactory =
-						(BeanDefinitionRegistry) this.beanFactory.getParentBeanFactory();
-				if (parentBeanFactory != null) {
-					nullChannelDefinition =
-							parentBeanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			BeanFactory beanFactory = this.beanFactory;
+			do {
+				if (beanFactory instanceof ConfigurableListableBeanFactory) {
+					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactory;
+					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+						nullChannelDefinition = listable
+								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+					}
 				}
-			}
+				// don't think it will hurt to always find the parent
+				if (beanFactory instanceof HierarchicalBeanFactory) {
+					beanFactory = ((HierarchicalBeanFactory) beanFactory).getParentBeanFactory();
+				}
+				// will definitely be found as containsBean returned true - but also want to be defensive in case of NPE
+			} while (nullChannelDefinition == null && beanFactory != null); // not sure if beanFactroy not null is necessary
 
 			if (nullChannelDefinition != null &&
 					!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {

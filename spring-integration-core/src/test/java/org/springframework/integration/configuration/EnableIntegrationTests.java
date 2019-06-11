@@ -470,6 +470,28 @@ public class EnableIntegrationTests {
 		assertThat(this.asyncAnnotationProcessThread.get()).isNotSameAs(Thread.currentThread());
 	}
 
+	/**
+	 * Just creates an interim context to confirm that the DefaultConfiguringBeanFactoryPostProcessor 
+	 * does not fail when there is an extra application context in the hierarchy.
+	 */
+	@Test
+	public void testDoubleParentChildAnnotationConfiguration() {
+		AnnotationConfigApplicationContext parent;
+		parent = new AnnotationConfigApplicationContext();
+		parent.register(ChildConfiguration.class);
+		parent.setParent(this.context);
+		parent.refresh();
+
+		AnnotationConfigApplicationContext child;
+		child = new AnnotationConfigApplicationContext();
+		child.register(ChildConfiguration.class);
+		child.setParent(parent);
+		child.refresh();
+
+		parent.close();
+		child.close();
+	}
+	
 	@Test
 	public void testParentChildAnnotationConfiguration() {
 		AnnotationConfigApplicationContext child = new AnnotationConfigApplicationContext();
