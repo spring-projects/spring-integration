@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +33,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.aggregator.FluxAggregatorMessageHandler;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
+import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -40,6 +43,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.support.MessageBuilder;
@@ -52,6 +56,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -165,6 +171,36 @@ public class CorrelationHandlerTests {
 				.element(0)
 				.asList()
 				.hasSize(0);
+	}
+
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
+
+	@Test
+	public void testFluxAggregator() {
+		IntegrationFlow testFlow = (flow) ->
+				flow.split()
+						.channel(MessageChannels.flux())
+						.handle(new FluxAggregatorMessageHandler());
+
+		IntegrationFlowContext.IntegrationFlowRegistration registration =
+				this.integrationFlowContext.registration(testFlow)
+						.register();
+
+		@SuppressWarnings("unchecked")
+		Flux<Message<?>> window =
+				registration.getMessagingTemplate()
+						.convertSendAndReceive(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
+
+		assertThat(window).isNotNull();
+
+		StepVerifier.create(
+				window.map(Message::getPayload)
+						.cast(Integer.class))
+				.expectNextSequence(IntStream.range(0, 10).boxed().collect(Collectors.toList()))
+				.verifyComplete();
+
+		registration.destroy();
 	}
 
 	@Configuration

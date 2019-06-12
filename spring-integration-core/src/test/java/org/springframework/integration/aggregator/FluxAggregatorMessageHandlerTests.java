@@ -209,7 +209,7 @@ class FluxAggregatorMessageHandlerTests {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
 		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
-		fluxAggregatorMessageHandler.setBoundaryTrigger((message -> "terminate".equals(message.getPayload())));
+		fluxAggregatorMessageHandler.setBoundaryTrigger((message) -> "terminate".equals(message.getPayload()));
 
 		for (int i = 0; i < 3; i++) {
 			Message<?> messageToAggregate =
@@ -240,6 +240,42 @@ class FluxAggregatorMessageHandlerTests {
 				.expectNext("0", "1", "2")
 				.expectNext("terminate")
 				.verifyComplete();
+	}
+
+
+	@Test
+	void testCustomWindow() {
+		QueueChannel resultChannel = new QueueChannel();
+		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
+		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
+		fluxAggregatorMessageHandler.setWindowConfigurer((group) ->
+				group.windowWhile((message) ->
+						message.getPayload() instanceof Integer));
+
+		for (int i = 0; i < 3; i++) {
+			Message<?> messageToAggregate =
+					MessageBuilder.withPayload(i)
+							.setCorrelationId("1")
+							.build();
+			fluxAggregatorMessageHandler.handleMessage(messageToAggregate);
+		}
+
+		fluxAggregatorMessageHandler.handleMessage(
+				MessageBuilder.withPayload("terminate")
+						.setCorrelationId("1")
+						.build());
+
+		Message<?> result = resultChannel.receive(10_000);
+		assertThat(result).isNotNull();
+
+		Flux<Message<?>> window = (Flux<Message<?>>) result.getPayload();
+
+		StepVerifier.create(
+				window.map(Message::getPayload)
+						.cast(Integer.class))
+				.expectNext(0, 1, 2)
+				.verifyComplete();
+
 	}
 
 }
