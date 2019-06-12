@@ -35,6 +35,17 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
 /**
+ * The {@link AbstractMessageProducingHandler} implementation for aggregation logic based on the
+ * Reactor's {@link Flux#groupBy} and {@link Flux#window} operators.
+ * <p>
+ * The incoming messages are emitted into a {@link FluxSink} provided by the {@link Flux#create}
+ * initialized in the constructor.
+ * <p>
+ * The resulting windows for groups are wrapped into the {@link Message}s for downstream consumption.
+ * <p>
+ * If the {@link #getOutputChannel()} is not a {@link ReactiveStreamsSubscribableChannel} instance,
+ * a subscription for the whole aggregating {@link Flux} is happened in the {@link #start()} method.
+ *
  * @author Artem Bilan
  *
  * @since 5.2
@@ -62,6 +73,10 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	private volatile Disposable subscription;
 
+	/**
+	 * Create an instance with a {@link Flux#create} and apply {@link Flux#groupBy} and {@link Flux#window}
+	 * transformation into it.
+	 */
 	public FluxAggregatorMessageHandler() {
 		this.aggregatorFlux =
 				Flux.<Message<?>>create(emitter -> this.sink = emitter, FluxSink.OverflowStrategy.BUFFER)
@@ -117,40 +132,86 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 				});
 	}
 
+	/**
+	 * Configure a {@link CorrelationStrategy} to determine a group key from the incoming messages.
+	 * By default a {@link HeaderAttributeCorrelationStrategy} is used against a
+	 * {@link IntegrationMessageHeaderAccessor#CORRELATION_ID} header value.
+	 * @param correlationStrategy the {@link CorrelationStrategy} to use.
+	 */
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
 		Assert.notNull(correlationStrategy, "'correlationStrategy' must not be null");
 		this.correlationStrategy = correlationStrategy;
 	}
 
+	/**
+	 * Configure a transformation {@link Function} to apply for a {@link Flux} window to emit.
+	 * Requires a {@link Mono} result with a {@link Message} as value as a combination result
+	 * of the incoming {@link Flux} for window.
+	 * By default a {@link Flux} for window is fully wrapped into a message with headers copied
+	 * from the first message in window. Such a {@link Flux} in the payload has to be subscribed
+	 * and consumed downstream.
+	 * @param combineFunction the {@link Function} to use for result windows transformation.
+	 */
 	public void setCombineFunction(Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction) {
 		Assert.notNull(combineFunction, "'combineFunction' must not be null");
 		this.combineFunction = combineFunction;
 	}
 
-	public void setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer) {
-		this.windowConfigurer = windowConfigurer;
-	}
-
+	/**
+	 * Configure a {@link Predicate} for messages to determine a window boundary in the
+	 * {@link Flux#windowUntil} operator.
+	 * Has a precedence over any other window configuration options.
+	 * @param boundaryTrigger the {@link Predicate} to use for window boundary.
+	 * @see Flux#windowUntil(Predicate)
+	 */
 	public void setBoundaryTrigger(Predicate<Message<?>> boundaryTrigger) {
 		this.boundaryTrigger = boundaryTrigger;
 	}
 
+	/**
+	 * Specify a size for windows to close.
+	 * Can be combined with the {@link #setWindowTimespan(Duration)}.
+	 * @param windowSize the size for window to use.
+	 * @see Flux#window(int)
+	 * @see Flux#windowTimeout(int, Duration)
+	 */
 	public void setWindowSize(int windowSize) {
 		setWindowSizeFunction((message) -> windowSize);
 	}
 
+	/**
+	 * Specify a {@link Function} to determine a size for windows to close against the first message in group.
+	 * Tne result of the function can be combined with the {@link #setWindowTimespan(Duration)}.
+	 * By default an {@link IntegrationMessageHeaderAccessor#SEQUENCE_SIZE} header is consulted.
+	 * @param windowSizeFunction the {@link Function} to use to determine a window size
+	 * against a first message in the group.
+	 * @see Flux#window(int)
+	 * @see Flux#windowTimeout(int, Duration)
+	 */
 	public void setWindowSizeFunction(Function<Message<?>, Integer> windowSizeFunction) {
 		Assert.notNull(windowSizeFunction, "'windowSizeFunction' must not be null");
 		this.windowSizeFunction = windowSizeFunction;
 	}
 
+	/**
+	 * Configure a {@link Duration} for closing windows periodically.
+	 * Can be combined with the {@link #setWindowSize(int)} or {@link #setWindowSizeFunction(Function)}.
+	 * @param windowTimespan the {@link Duration} to use for windows to close periodically.
+	 * @see Flux#window(Duration)
+	 * @see Flux#windowTimeout(int, Duration)
+	 */
 	public void setWindowTimespan(Duration windowTimespan) {
 		this.windowTimespan = windowTimespan;
 	}
 
-	@Override
-	protected boolean shouldCopyRequestHeaders() {
-		return false;
+	/**
+	 * Configure a {@link Function} to apply a transformation into the grouping {@link Flux}
+	 * for any arbitrary {@link Flux#window} options not covered by the simple options.
+	 * Has a precedence over any other window configuration options.
+	 * @param windowConfigurer the {@link Function} to apply any custom window transformation.
+	 */
+	public void setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer) {
+		this.windowConfigurer = windowConfigurer;
 	}
 
 	@Override
@@ -181,7 +242,15 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
+		Assert.state(isRunning(),
+				"The 'FluxAggregatorMessageHandler' has not been started to accept incoming messages");
+
 		this.sink.next(message);
+	}
+
+	@Override
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
 	}
 
 	private Mono<Message<?>> messageForWindowFlux(Flux<Message<?>> messageFlux) {
