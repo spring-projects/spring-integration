@@ -34,6 +34,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
+import org.springframework.util.ObjectUtils;
 
 import com.fasterxml.jackson.core.TreeNode;
 import reactor.core.publisher.Flux;
@@ -62,7 +63,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
-		Object result = this.splitMessage(message);
+		Object result = splitMessage(message);
 		// return null if 'null'
 		if (result == null) {
 			return null;
@@ -87,7 +88,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 		else if (result.getClass().isArray()) {
-			Object[] items = (Object[]) result;
+			Object[] items = ObjectUtils.toObjectArray(result);;
 			sequenceSize = items.length;
 			if (reactive) {
 				flux = Flux.fromArray(items);
