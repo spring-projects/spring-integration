@@ -85,6 +85,7 @@ import org.springframework.util.ClassUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Michael Wiles
  *
  * @see IntegrationContextUtils
  */
@@ -183,12 +184,11 @@ class DefaultConfiguringBeanFactoryPostProcessor
 								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 					}
 				}
-				// don't think it will hurt to always find the parent
 				if (beanFactory instanceof HierarchicalBeanFactory) {
 					beanFactory = ((HierarchicalBeanFactory) beanFactory).getParentBeanFactory();
 				}
-				// will definitely be found as containsBean returned true - but also want to be defensive in case of NPE
-			} while (nullChannelDefinition == null && beanFactory != null); // not sure if beanFactroy not null is necessary
+			}
+			while (nullChannelDefinition == null);
 
 			if (nullChannelDefinition != null &&
 					!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
