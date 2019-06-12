@@ -50,6 +50,7 @@ class FluxAggregatorMessageHandlerTests {
 		QueueChannel resultChannel = new QueueChannel();
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
 		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
+		fluxAggregatorMessageHandler.start();
 
 		for (int i = 0; i < 20; i++) {
 			Message<?> messageToAggregate =
@@ -101,6 +102,8 @@ class FluxAggregatorMessageHandlerTests {
 								.mapToObj(Objects::toString)
 								.collect(Collectors.toList()))
 				.verifyComplete();
+
+		fluxAggregatorMessageHandler.stop();
 	}
 
 	@Test
@@ -115,6 +118,7 @@ class FluxAggregatorMessageHandlerTests {
 								.map(Message::getPayload)
 								.collectList()
 								.map(GenericMessage::new));
+		fluxAggregatorMessageHandler.start();
 
 		for (int i = 0; i < 20; i++) {
 			Message<?> messageToAggregate =
@@ -149,6 +153,8 @@ class FluxAggregatorMessageHandlerTests {
 								.limit(10)
 								.boxed()
 								.toArray());
+
+		fluxAggregatorMessageHandler.stop();
 	}
 
 	@Test
@@ -157,6 +163,7 @@ class FluxAggregatorMessageHandlerTests {
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
 		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
 		fluxAggregatorMessageHandler.setWindowTimespan(Duration.ofMillis(100));
+		fluxAggregatorMessageHandler.start();
 
 		Executors.newSingleThreadExecutor()
 				.submit(() -> {
@@ -202,6 +209,8 @@ class FluxAggregatorMessageHandlerTests {
 				.isNotEmpty()
 				.hasSizeLessThan(10)
 				.doesNotContain(0, 1);
+
+		fluxAggregatorMessageHandler.stop();
 	}
 
 	@Test
@@ -210,6 +219,7 @@ class FluxAggregatorMessageHandlerTests {
 		FluxAggregatorMessageHandler fluxAggregatorMessageHandler = new FluxAggregatorMessageHandler();
 		fluxAggregatorMessageHandler.setOutputChannel(resultChannel);
 		fluxAggregatorMessageHandler.setBoundaryTrigger((message) -> "terminate".equals(message.getPayload()));
+		fluxAggregatorMessageHandler.start();
 
 		for (int i = 0; i < 3; i++) {
 			Message<?> messageToAggregate =
@@ -240,6 +250,8 @@ class FluxAggregatorMessageHandlerTests {
 				.expectNext("0", "1", "2")
 				.expectNext("terminate")
 				.verifyComplete();
+
+		fluxAggregatorMessageHandler.stop();
 	}
 
 
@@ -251,6 +263,7 @@ class FluxAggregatorMessageHandlerTests {
 		fluxAggregatorMessageHandler.setWindowConfigurer((group) ->
 				group.windowWhile((message) ->
 						message.getPayload() instanceof Integer));
+		fluxAggregatorMessageHandler.start();
 
 		for (int i = 0; i < 3; i++) {
 			Message<?> messageToAggregate =
@@ -276,6 +289,7 @@ class FluxAggregatorMessageHandlerTests {
 				.expectNext(0, 1, 2)
 				.verifyComplete();
 
+		fluxAggregatorMessageHandler.stop();
 	}
 
 }

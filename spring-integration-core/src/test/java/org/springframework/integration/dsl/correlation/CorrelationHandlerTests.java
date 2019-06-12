@@ -35,7 +35,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.FluxAggregatorMessageHandler;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
-import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;

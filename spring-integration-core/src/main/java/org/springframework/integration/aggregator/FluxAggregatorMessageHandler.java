@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -28,6 +29,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
@@ -37,7 +39,7 @@ import reactor.core.publisher.Mono;
  *
  * @since 5.2
  */
-public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandler {
+public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandler implements Lifecycle {
 
 	private final AtomicBoolean subscribed = new AtomicBoolean();
 
@@ -57,6 +59,8 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	private Function<Flux<Message<?>>, Mono<Message<?>>> combineFunction = this::messageForWindowFlux;
 
 	private FluxSink<Message<?>> sink;
+
+	private volatile Disposable subscription;
 
 	public FluxAggregatorMessageHandler() {
 		this.aggregatorFlux =
@@ -150,17 +154,33 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) {
+	public void start() {
 		if (this.subscribed.compareAndSet(false, true)) {
 			MessageChannel outputChannel = getOutputChannel();
 			if (outputChannel instanceof ReactiveStreamsSubscribableChannel) {
 				((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(this.aggregatorFlux);
 			}
 			else {
-				this.aggregatorFlux.subscribe((messageToSend) -> produceOutput(messageToSend, messageToSend));
+				this.subscription =
+						this.aggregatorFlux.subscribe((messageToSend) -> produceOutput(messageToSend, messageToSend));
 			}
 		}
+	}
 
+	@Override
+	public void stop() {
+		if (this.subscribed.compareAndSet(true, false) && this.subscription != null) {
+			this.subscription.dispose();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.subscribed.get();
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) {
 		this.sink.next(message);
 	}
 
