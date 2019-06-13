@@ -54,7 +54,7 @@ import reactor.test.StepVerifier;
 public class DefaultSplitterTests {
 
 	@Test
-	public void splitMessageWithArrayPayload() throws Exception {
+	public void splitMessageWithArrayPayload() {
 		String[] payload = new String[] { "x", "y", "z" };
 		Message<String[]> message = MessageBuilder.withPayload(payload).build();
 		QueueChannel replyChannel = new QueueChannel();
@@ -75,7 +75,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitMessageWithCollectionPayload() throws Exception {
+	public void splitMessageWithCollectionPayload() {
 		List<String> payload = Arrays.asList("x", "y", "z");
 		Message<List<String>> message = MessageBuilder.withPayload(payload).build();
 		QueueChannel replyChannel = new QueueChannel();
@@ -163,20 +163,20 @@ public class DefaultSplitterTests {
 
 	@Test
 	public void splitArrayPayloadReactive() {
-		Message<?> message = new GenericMessage<>(new String[] { "x", "y", "z" });
+		Message<?> message = new GenericMessage<>(new int[] { 0, 1, 2 });
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
 		splitter.setOutputChannel(replyChannel);
 
 		splitter.handleMessage(message);
 
-		Flux<String> testFlux =
+		Flux<Integer> testFlux =
 				Flux.from(replyChannel)
 						.map(Message::getPayload)
-						.cast(String.class);
+						.cast(Integer.class);
 
 		StepVerifier.create(testFlux)
-				.expectNext("x", "y", "z")
+				.expectNext(0, 1, 2)
 				.then(() ->
 						((Subscriber<?>) TestUtils.getPropertyValue(replyChannel, "subscribers", List.class).get(0))
 								.onComplete())
