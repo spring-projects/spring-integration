@@ -90,6 +90,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -136,6 +137,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Michael Wiles
  *
  * @since 4.0
  */
@@ -468,6 +470,36 @@ public class EnableIntegrationTests {
 		this.testGateway.sendAsync("foo");
 		assertThat(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.asyncAnnotationProcessThread.get()).isNotSameAs(Thread.currentThread());
+	}
+
+	/**
+	 * Just creates an interim context to confirm that the
+	 * DefaultConfiguringBeanFactoryPostProcessor does not fail when there is an extra
+	 * application context in the hierarchy.
+	 */
+	@Test
+	public void testDoubleParentChildAnnotationConfiguration() {
+
+		assertThat(this.context.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)).isTrue();
+
+		AnnotationConfigApplicationContext parent;
+		parent = new AnnotationConfigApplicationContext();
+		parent.register(ChildConfiguration.class);
+		parent.setParent(this.context);
+		parent.refresh();
+
+		assertThat(parent.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)).isFalse();
+
+		AnnotationConfigApplicationContext child;
+		child = new AnnotationConfigApplicationContext();
+		child.register(ChildConfiguration.class);
+		child.setParent(parent);
+		child.refresh();
+
+		assertThat(child.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)).isFalse();
+
+		parent.close();
+		child.close();
 	}
 
 	@Test
