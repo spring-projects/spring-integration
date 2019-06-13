@@ -88,7 +88,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 		else if (result.getClass().isArray()) {
-			Object[] items = ObjectUtils.toObjectArray(result);;
+			Object[] items = ObjectUtils.toObjectArray(result);
 			sequenceSize = items.length;
 			if (reactive) {
 				flux = Flux.fromArray(items);
