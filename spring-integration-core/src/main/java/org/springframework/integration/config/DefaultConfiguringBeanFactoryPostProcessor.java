@@ -32,6 +32,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -79,6 +81,7 @@ import org.springframework.util.ClassUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Michael Wiles
  *
  * @see IntegrationContextUtils
  */
@@ -151,18 +154,20 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerNullChannel() {
 		if (this.beanFactory.containsBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 			BeanDefinition nullChannelDefinition = null;
-			if (this.beanFactory.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-				nullChannelDefinition =
-						this.beanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-			}
-			else {
-				BeanDefinitionRegistry parentBeanFactory =
-						(BeanDefinitionRegistry) this.beanFactory.getParentBeanFactory();
-				if (parentBeanFactory != null) {
-					nullChannelDefinition =
-							parentBeanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			BeanFactory beanFactory = this.beanFactory;
+			do {
+				if (beanFactory instanceof ConfigurableListableBeanFactory) {
+					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactory;
+					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+						nullChannelDefinition = listable
+								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+					}
+				}
+				if (beanFactory instanceof HierarchicalBeanFactory) {
+					beanFactory = ((HierarchicalBeanFactory) beanFactory).getParentBeanFactory();
 				}
 			}
+			while (nullChannelDefinition == null);
 
 			if (nullChannelDefinition != null &&
 					!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {

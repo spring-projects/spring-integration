@@ -104,6 +104,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -149,6 +150,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Michael Wiles
  *
  * @since 4.0
  */
@@ -475,6 +477,30 @@ public class EnableIntegrationTests {
 		this.testGateway.sendAsync("foo");
 		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
 		assertThat(this.asyncAnnotationProcessThread.get(), not(sameInstance(Thread.currentThread())));
+	}
+
+	@Test
+	public void testDoubleParentChildAnnotationConfiguration() {
+		assertTrue(this.context.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
+
+		AnnotationConfigApplicationContext parent;
+		parent = new AnnotationConfigApplicationContext();
+		parent.register(ChildConfiguration.class);
+		parent.setParent(this.context);
+		parent.refresh();
+
+		assertFalse(parent.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
+
+		AnnotationConfigApplicationContext child;
+		child = new AnnotationConfigApplicationContext();
+		child.register(ChildConfiguration.class);
+		child.setParent(parent);
+		child.refresh();
+
+		assertFalse(child.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
+
+		parent.close();
+		child.close();
 	}
 
 	@Test
