@@ -177,8 +177,9 @@ public class CorrelationHandlerTests {
 
 	@Test
 	public void testFluxAggregator() {
-		IntegrationFlow testFlow = (flow) ->
-				flow.split()
+		IntegrationFlow testFlow =
+				(flow) -> flow
+						.split()
 						.channel(MessageChannels.flux())
 						.handle(new FluxAggregatorMessageHandler());
 
@@ -189,7 +190,7 @@ public class CorrelationHandlerTests {
 		@SuppressWarnings("unchecked")
 		Flux<Message<?>> window =
 				registration.getMessagingTemplate()
-						.convertSendAndReceive(new Integer[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
+						.convertSendAndReceive(new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, Flux.class);
 
 		assertThat(window).isNotNull();
 
