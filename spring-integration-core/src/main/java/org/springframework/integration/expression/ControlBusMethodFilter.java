@@ -25,7 +25,7 @@ import org.springframework.core.annotation.AnnotationFilter;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.RepeatableContainers;
 import org.springframework.expression.MethodFilter;
-import org.springframework.integration.endpoint.Pausable;
+import org.springframework.integration.core.Pausable;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.util.CustomizableThreadCreator;
