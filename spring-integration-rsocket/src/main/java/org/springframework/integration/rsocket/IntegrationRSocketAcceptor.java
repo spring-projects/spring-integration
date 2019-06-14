@@ -19,7 +19,7 @@ package org.springframework.integration.rsocket;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import org.springframework.context.ApplicationContext;
@@ -34,9 +34,13 @@ import org.springframework.messaging.handler.invocation.reactive.SyncHandlerMeth
 import org.springframework.messaging.rsocket.RSocketMessageHandler;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
+import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 
 /**
@@ -54,13 +58,16 @@ import io.rsocket.RSocket;
  *
  * @see org.springframework.messaging.rsocket.MessageHandlerAcceptor
  */
-class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Function<RSocket, RSocket> {
+class IntegrationRSocketAcceptor extends RSocketMessageHandler
+		implements BiFunction<ConnectionSetupPayload, RSocket, RSocket> {
 
 	private static final Method HANDLE_MESSAGE_METHOD =
 			ReflectionUtils.findMethod(ReactiveMessageHandler.class, "handleMessage", Message.class);
 
 	@Nullable
 	private MimeType defaultDataMimeType;
+
+	private MimeType defaultMetadataMimeType = IntegrationRSocket.COMPOSITE_METADATA;
 
 	/**
 	 * Configure the default content type to use for data payloads.
@@ -71,6 +78,17 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Functi
 	 */
 	public void setDefaultDataMimeType(@Nullable MimeType defaultDataMimeType) {
 		this.defaultDataMimeType = defaultDataMimeType;
+	}
+
+	/**
+	 * Configure the default {@code MimeType} for payload data if the
+	 * {@code SETUP} frame did not specify one.
+	 * <p>By default this is set to {@code "message/x.rsocket.composite-metadata.v0"}
+	 * @param mimeType the MimeType to use
+	 */
+	public void setDefaultMetadataMimeType(MimeType mimeType) {
+		Assert.notNull(mimeType, "'metadataMimeType' is required");
+		this.defaultMetadataMimeType = mimeType;
 	}
 
 	public boolean detectEndpoints() {
@@ -91,7 +109,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Functi
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
-						new DestinationPatternsMessageCondition(endpoint.getPath(), getPathMatcher())));
+						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher())));
 	}
 
 	@Override
@@ -105,16 +123,26 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler implements Functi
 	}
 
 	@Override
-	public RSocket apply(RSocket sendingRSocket) {
-		return createRSocket(sendingRSocket);
+	public RSocket apply(ConnectionSetupPayload setupPayload, RSocket sendingRSocket) {
+		return createRSocket(setupPayload, sendingRSocket);
 	}
 
-	protected IntegrationRSocket createRSocket(RSocket rsocket) {
+	protected IntegrationRSocket createRSocket(ConnectionSetupPayload setupPayload, RSocket rsocket) {
 		RSocketStrategies rsocketStrategies = getRSocketStrategies();
-		return new IntegrationRSocket(this::handleMessage,
-				RSocketRequester.wrap(rsocket, this.defaultDataMimeType, rsocketStrategies),
-				this.defaultDataMimeType,
-				rsocketStrategies.dataBufferFactory());
+		MimeType dataMimeType =
+				StringUtils.hasText(setupPayload.dataMimeType())
+						? MimeTypeUtils.parseMimeType(setupPayload.dataMimeType())
+						: this.defaultDataMimeType;
+		Assert.notNull(dataMimeType, "No `dataMimeType` in the ConnectionSetupPayload and no default value");
+
+		MimeType metadataMimeType =
+				StringUtils.hasText(setupPayload.dataMimeType())
+						? MimeTypeUtils.parseMimeType(setupPayload.metadataMimeType())
+						: this.defaultMetadataMimeType;
+		Assert.notNull(dataMimeType, "No `metadataMimeType` in the ConnectionSetupPayload and no default value");
+		return new IntegrationRSocket(this::handleMessage, getRouteMatcher(),
+				RSocketRequester.wrap(rsocket, dataMimeType, metadataMimeType, rsocketStrategies),
+				dataMimeType, metadataMimeType, rsocketStrategies.dataBufferFactory());
 	}
 
 	private static final class MessageHandlerMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {

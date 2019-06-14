@@ -47,6 +47,7 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.MimeType;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.frame.decoder.PayloadDecoder;
@@ -218,6 +219,7 @@ public class RSocketInboundGatewayIntegrationTests {
 			ServerRSocketConnector serverRSocketConnector =
 					new ServerRSocketConnector(TcpServerTransport.create(tcpServer));
 			serverRSocketConnector.setRSocketStrategies(rsocketStrategies());
+			serverRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
 			serverRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			return serverRSocketConnector;
 		}
@@ -231,6 +233,7 @@ public class RSocketInboundGatewayIntegrationTests {
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
 			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
+			clientRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			clientRSocketConnector.setConnectRoute("clientConnect");

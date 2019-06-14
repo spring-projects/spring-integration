@@ -16,6 +16,9 @@
 
 package org.springframework.integration.rsocket;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -38,10 +41,12 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.util.RouteMatcher;
 
 import io.netty.buffer.ByteBuf;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
+import io.rsocket.metadata.CompositeMetadata;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -63,28 +68,44 @@ import reactor.core.publisher.MonoProcessor;
  */
 class IntegrationRSocket extends AbstractRSocket {
 
+	static final MimeType COMPOSITE_METADATA = new MimeType("message", "x.rsocket.composite-metadata.v0");
+
+	static final MimeType ROUTING = new MimeType("message", "x.rsocket.routing.v0");
+
+	static final List<MimeType> METADATA_MIME_TYPES = Arrays.asList(COMPOSITE_METADATA, ROUTING);
+
+
 	private final Function<Message<?>, Mono<Void>> handler;
+
+	private final RouteMatcher routeMatcher;
 
 	private final RSocketRequester requester;
 
 	private final DataBufferFactory bufferFactory;
 
-	@Nullable
-	private MimeType dataMimeType;
+	private final MimeType dataMimeType;
 
-	IntegrationRSocket(Function<Message<?>, Mono<Void>> handler, RSocketRequester requester,
-			@Nullable MimeType defaultDataMimeType, DataBufferFactory bufferFactory) {
+	private final MimeType metadataMimeType;
+
+	IntegrationRSocket(Function<Message<?>, Mono<Void>> handler, RouteMatcher routeMatcher,
+			RSocketRequester requester, MimeType dataMimeType, MimeType metadataMimeType,
+			DataBufferFactory bufferFactory) {
 
 		Assert.notNull(handler, "'handler' is required");
+		Assert.notNull(routeMatcher, "'routeMatcher' is required");
 		Assert.notNull(requester, "'requester' is required");
-		this.handler = handler;
-		this.requester = requester;
-		this.dataMimeType = defaultDataMimeType;
-		this.bufferFactory = bufferFactory;
-	}
+		Assert.notNull(dataMimeType, "'dataMimeType' is required");
+		Assert.notNull(metadataMimeType, "'metadataMimeType' is required");
 
-	public void setDataMimeType(MimeType dataMimeType) {
+		Assert.isTrue(METADATA_MIME_TYPES.contains(metadataMimeType),
+				() -> "Unexpected metadatata mime type: '" + metadataMimeType + "'");
+
+		this.handler = handler;
+		this.routeMatcher = routeMatcher;
+		this.requester = requester;
 		this.dataMimeType = dataMimeType;
+		this.metadataMimeType = metadataMimeType;
+		this.bufferFactory = bufferFactory;
 	}
 
 	public RSocketRequester getRequester() {
@@ -165,6 +186,24 @@ class IntegrationRSocket extends AbstractRSocket {
 								: Mono.error(new IllegalStateException("Something went wrong: reply Mono not set"))));
 	}
 
+	String getDestination(Payload payload) {
+		if (this.metadataMimeType.equals(COMPOSITE_METADATA)) {
+			CompositeMetadata metadata = new CompositeMetadata(payload.metadata(), false);
+			for (CompositeMetadata.Entry entry : metadata) {
+				String mimeType = entry.getMimeType();
+				if (ROUTING.toString().equals(mimeType)) {
+					return entry.getContent().toString(StandardCharsets.UTF_8);
+				}
+			}
+			return "";
+		}
+		else if (this.metadataMimeType.equals(ROUTING)) {
+			return payload.getMetadataUtf8();
+		}
+		// Should not happen (given constructor assertions)
+		throw new IllegalArgumentException("Unexpected metadata MimeType");
+	}
+
 	private DataBuffer retainDataAndReleasePayload(Payload payload) {
 		return payloadToDataBuffer(payload, this.bufferFactory);
 	}
@@ -172,20 +211,15 @@ class IntegrationRSocket extends AbstractRSocket {
 	private MessageHeaders createHeaders(String destination, @Nullable MonoProcessor<?> replyMono) {
 		MessageHeaderAccessor headers = new MessageHeaderAccessor();
 		headers.setLeaveMutable(true);
-		headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, destination);
-		if (this.dataMimeType != null) {
-			headers.setContentType(this.dataMimeType);
-		}
+		RouteMatcher.Route route = this.routeMatcher.parseRoute(destination);
+		headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, route);
+		headers.setContentType(this.dataMimeType);
 		headers.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, this.requester);
 		if (replyMono != null) {
 			headers.setHeader(RSocketPayloadReturnValueHandler.RESPONSE_HEADER, replyMono);
 		}
 		headers.setHeader(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER, this.bufferFactory);
 		return headers.getMessageHeaders();
-	}
-
-	static String getDestination(Payload payload) {
-		return payload.getMetadataUtf8();
 	}
 
 	static DataBuffer payloadToDataBuffer(Payload payload, DataBufferFactory bufferFactory) {

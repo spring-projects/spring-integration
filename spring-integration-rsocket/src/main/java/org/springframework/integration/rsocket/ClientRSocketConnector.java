@@ -122,7 +122,8 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 		super.afterPropertiesSet();
 		RSocketFactory.ClientRSocketFactory clientFactory =
 				RSocketFactory.connect()
-						.dataMimeType(getDataMimeType().toString());
+						.dataMimeType(getDataMimeType().toString())
+						.metadataMimeType(getMetadataMimeType().toString());
 		this.factoryConfigurer.accept(clientFactory);
 		clientFactory.acceptor(this.rsocketAcceptor);
 		Payload connectPayload = EmptyPayload.INSTANCE;
@@ -161,7 +162,9 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	public Mono<RSocketRequester> getRSocketRequester() {
 		return this.rsocketMono
-				.map((rsocket) -> RSocketRequester.wrap(rsocket, getDataMimeType(), getRSocketStrategies()))
+				.map((rsocket) ->
+						RSocketRequester
+								.wrap(rsocket, getDataMimeType(), getMetadataMimeType(), getRSocketStrategies()))
 				.cache();
 	}
 

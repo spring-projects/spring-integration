@@ -52,6 +52,8 @@ public abstract class AbstractRSocketConnector
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
+	private MimeType metadataMimeType = IntegrationRSocket.COMPOSITE_METADATA;
+
 	private RSocketStrategies rsocketStrategies =
 			RSocketStrategies.builder()
 					.decoder(StringDecoder.allMimeTypes())
@@ -78,6 +80,20 @@ public abstract class AbstractRSocketConnector
 
 	protected MimeType getDataMimeType() {
 		return this.dataMimeType;
+	}
+
+	/**
+	 * Configure a {@link MimeType} for metadata exchanging.
+	 * Default to {@code "message/x.rsocket.composite-metadata.v0"}.
+	 * @param metadataMimeType the {@link MimeType} to use.
+	 */
+	public void setMetadataMimeType(MimeType metadataMimeType) {
+		Assert.notNull(metadataMimeType, "'metadataMimeType' must not be null");
+		this.metadataMimeType = metadataMimeType;
+	}
+
+	protected MimeType getMetadataMimeType() {
+		return this.metadataMimeType;
 	}
 
 	/**
@@ -121,6 +137,7 @@ public abstract class AbstractRSocketConnector
 	@Override
 	public void afterPropertiesSet() {
 		this.rsocketAcceptor.setDefaultDataMimeType(this.dataMimeType);
+		this.rsocketAcceptor.setDefaultMetadataMimeType(this.metadataMimeType);
 		this.rsocketAcceptor.setRSocketStrategies(this.rsocketStrategies);
 		this.rsocketAcceptor.afterPropertiesSet();
 	}

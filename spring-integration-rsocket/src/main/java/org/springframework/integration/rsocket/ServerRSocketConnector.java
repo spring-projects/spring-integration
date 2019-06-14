@@ -32,8 +32,6 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.StringUtils;
 
 import io.rsocket.Closeable;
 import io.rsocket.ConnectionSetupPayload;
@@ -162,7 +160,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 	private static class ServerRSocketAcceptor extends IntegrationRSocketAcceptor implements SocketAcceptor {
 
-		private static final Log LOGGER = LogFactory.getLog(IntegrationRSocket.class);
+		private static final Log LOGGER = LogFactory.getLog(ServerRSocketAcceptor.class);
 
 		private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 
@@ -172,16 +170,12 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		@Override
 		public Mono<RSocket> accept(ConnectionSetupPayload setupPayload, RSocket sendingRSocket) {
-			String destination = IntegrationRSocket.getDestination(setupPayload);
 			DataBuffer dataBuffer =
 					IntegrationRSocket.payloadToDataBuffer(setupPayload, getRSocketStrategies().dataBufferFactory());
 			int refCount = IntegrationRSocket.refCount(dataBuffer);
-			return Mono.just(sendingRSocket)
-					.map(this::createRSocket)
+			return Mono.just(createRSocket(setupPayload, sendingRSocket))
 					.doOnNext((rsocket) -> {
-						if (StringUtils.hasText(setupPayload.dataMimeType())) {
-							rsocket.setDataMimeType(MimeTypeUtils.parseMimeType(setupPayload.dataMimeType()));
-						}
+						String destination = rsocket.getDestination(setupPayload);
 						Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(destination, dataBuffer);
 						this.clientRSocketRequesters.put(rsocketRequesterKey, rsocket.getRequester());
 						RSocketConnectedEvent rSocketConnectedEvent =

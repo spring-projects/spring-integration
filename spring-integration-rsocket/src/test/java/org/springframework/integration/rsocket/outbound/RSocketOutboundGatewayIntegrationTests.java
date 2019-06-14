@@ -532,6 +532,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 			return RSocketFactory.connect()
 					.setupPayload(DefaultPayload.create("", "clientConnect"))
 					.dataMimeType("text/plain")
+					.metadataMimeType("message/x.rsocket.routing.v0")
 					.frameDecoder(PayloadDecoder.ZERO_COPY)
 					.acceptor(clientAcceptor())
 					.transport(TcpClientTransport.create("localhost", port))
