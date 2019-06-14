@@ -132,7 +132,7 @@ subprojects { subproject ->
 		junitPlatformVersion = '1.4.1'
 		jythonVersion = '2.7.0'
 		kryoShadedVersion = '4.0.2'
-		lettuceVersion = '5.1.6.RELEASE'
+		lettuceVersion = '5.1.7.RELEASE'
 		log4jVersion = '2.11.2'
 		micrometerVersion = '1.1.4'
 		mockitoVersion = '2.26.0'
