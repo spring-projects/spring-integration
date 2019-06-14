@@ -30,6 +30,7 @@ In addition you need to add a script engine implementation, e.g. JRuby, Jython.
 Starting with version 5.2, Spring Integration provides a Kotlin Jsr223 support.
 You need to add these dependencies into your project to make it working:
 
+====
 [source, groovy]
 ----
 runtime 'org.jetbrains.kotlin:kotlin-script-util'

@@ -20,23 +20,29 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.2-new-components]]
 === New Components
 
-[[x5.2-rateLimitAdvice]]
+[[x5.2-rate-limit-advice]]
 === Rate Limit Advice Support
 
 The `RateLimiterRequestHandlerAdvice` is now available for limiting requests rate on handlers.
 See <<./handler-advice.adoc#rate-limiter-advice,Rate Limiter Advice>> for more information.
 
-[[x5.2-cacheAdvice]]
+[[x5.2-cache-advice]]
 === Caching Advice Support
 
 The `CacheRequestHandlerAdvice` is now available for caching request results on handlers.
 See <<./handler-advice.adoc#cache-advice,Caching Advice>> for more information.
 
-[[x5.2-kotlinScripts]]
+[[x5.2-kotlin-scripts]]
 === Kotlin Scripts Support
 
 The JSR223 scripting module now includes a support for Kotlin scripts.
 See <<./scripting.adoc#scripting,Scripting Support>> for more information.
+
+[[x5.2-flux-aggregator]]
+=== Flux Aggregator Support
+
+The `FluxAggregatorMessageHandler` is now available for grouping and windowing messages logic based on the Project Reactor `Flux` operators.
+See <<./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
 [[x5.2-general]]
 === General Changes
