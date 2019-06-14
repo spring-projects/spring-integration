@@ -12,6 +12,11 @@ If you are interested in the changes and features that were introduced in earlie
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.2 development process.
 
+[[x5.2-package-clas]]
+=== Package and Class Changes
+
+`Pausable` has been moved from `o.s.i.endpoint` to `o.s.i.core`.
+
 [[x5.2-new-components]]
 === New Components
 
