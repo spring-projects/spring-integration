@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.outbound;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
@@ -427,7 +428,7 @@ public class KafkaProducerMessageHandlerTests {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		given(pf.transactionCapable()).willReturn(true);
 		Producer producer = mock(Producer.class);
-		given(pf.createProducer()).willReturn(producer);
+		given(pf.createProducer(isNull())).willReturn(producer);
 		ListenableFuture future = mock(ListenableFuture.class);
 		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
 		KafkaTemplate template = new KafkaTemplate(pf);
@@ -481,7 +482,7 @@ public class KafkaProducerMessageHandlerTests {
 		willAnswer(i -> {
 			transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
 			return producer;
-		}).given(pf).createProducer();
+		}).given(pf).createProducer(isNull());
 		KafkaTransactionManager tm = new KafkaTransactionManager(pf);
 		PlatformTransactionManager ptm = tm;
 		ContainerProperties props = new ContainerProperties("foo");
@@ -515,7 +516,7 @@ public class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).commitTransaction();
 		inOrder.verify(producer).close();
 		container.stop();
-		verify(pf, times(2)).createProducer();
+		verify(pf, times(2)).createProducer(isNull());
 		verifyNoMoreInteractions(producer);
 		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
 		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");

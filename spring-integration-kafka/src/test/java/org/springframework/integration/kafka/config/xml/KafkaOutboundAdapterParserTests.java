@@ -18,6 +18,8 @@ package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.Executors;
@@ -38,6 +40,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.KafkaProducerException;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -102,7 +105,10 @@ public class KafkaOutboundAdapterParserTests {
 					}
 
 				};
-		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(() -> mockProducer);
+		@SuppressWarnings("unchecked")
+		ProducerFactory<Integer, String> pf = mock(ProducerFactory.class);
+		given(pf.createProducer(isNull())).willReturn(mockProducer);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
