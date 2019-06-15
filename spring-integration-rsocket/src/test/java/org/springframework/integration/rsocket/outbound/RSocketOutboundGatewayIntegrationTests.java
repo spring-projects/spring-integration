@@ -43,6 +43,7 @@ import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -528,6 +529,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		}
 
 		@Bean(destroyMethod = "dispose")
+		@Nullable
 		public RSocket rsocketForServerRequests() {
 			return RSocketFactory.connect()
 					.setupPayload(DefaultPayload.create("", "clientConnect"))

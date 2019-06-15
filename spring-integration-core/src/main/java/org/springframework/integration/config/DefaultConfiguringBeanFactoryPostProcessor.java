@@ -175,23 +175,22 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private void registerNullChannel() {
 		if (this.beanFactory.containsBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 			BeanDefinition nullChannelDefinition = null;
-			BeanFactory beanFactory = this.beanFactory;
+			BeanFactory beanFactoryToUse = this.beanFactory;
 			do {
-				if (beanFactory instanceof ConfigurableListableBeanFactory) {
-					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactory;
+				if (beanFactoryToUse instanceof ConfigurableListableBeanFactory) {
+					ConfigurableListableBeanFactory listable = (ConfigurableListableBeanFactory) beanFactoryToUse;
 					if (listable.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 						nullChannelDefinition = listable
 								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 					}
 				}
-				if (beanFactory instanceof HierarchicalBeanFactory) {
-					beanFactory = ((HierarchicalBeanFactory) beanFactory).getParentBeanFactory();
+				if (beanFactoryToUse instanceof HierarchicalBeanFactory) {
+					beanFactoryToUse = ((HierarchicalBeanFactory) beanFactoryToUse).getParentBeanFactory();
 				}
 			}
 			while (nullChannelDefinition == null);
 
-			if (nullChannelDefinition != null &&
-					!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
+			if (!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
 				throw new IllegalStateException("The bean name '" + IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME
 						+ "' is reserved.");
 			}
