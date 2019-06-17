@@ -49,6 +49,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
@@ -144,6 +145,14 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		MessageDeliveryException messageDeliveryException = (MessageDeliveryException) cause;
 		Message<?> failedMessage = messageDeliveryException.getFailedMessage();
 		assertThat((String) failedMessage.getPayload(), containsString("preSend intentional Exception"));
+
+		receive = this.stompEvents.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(StompConnectionFailedEvent.class));
+
+		receive = this.stompEvents.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(StompSessionConnectedEvent.class));
 
 		receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
