@@ -65,7 +65,7 @@ You can configure the SFTP session factory with a regular bean definition, as th
 ====
 
 Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is created.
-Under the covers, the SFTP Session Factory relies on the https://github.com/is/jsch[JSch] library to provide the SFTP capabilities.
+Under the covers, the SFTP Session Factory relies on the http://www.jcraft.com/jsch[JSch] library to provide the SFTP capabilities.
 
 However, Spring Integration also supports the caching of SFTP sessions.
 See <<sftp-session-caching>> for more information.

@@ -7,7 +7,7 @@ buildscript {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
 		classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.18'
-		classpath 'io.spring.nohttp:nohttp-gradle:0.0.2.RELEASE'
+		classpath 'io.spring.nohttp:nohttp-gradle:0.0.3.RELEASE'
 	}
 }
 
@@ -21,6 +21,7 @@ if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
 	apply plugin: 'io.spring.nohttp'
 
 	nohttp {
+		whitelistFile = file('src/nohttp/whitelist.lines')
 		source.include '**/src/**'
 		source.exclude '**/*.gif', '**/*.jpg', '**/*.png', '**/*.svg', '**/*.ks'
 	}
@@ -134,7 +135,7 @@ subprojects { subproject ->
 		kryoShadedVersion = '4.0.2'
 		lettuceVersion = '5.1.7.RELEASE'
 		log4jVersion = '2.11.2'
-		micrometerVersion = '1.1.4'
+		micrometerVersion = '1.1.5'
 		mockitoVersion = '2.26.0'
 		mysqlVersion = '8.0.16'
 		pahoMqttClientVersion = '1.2.0'
