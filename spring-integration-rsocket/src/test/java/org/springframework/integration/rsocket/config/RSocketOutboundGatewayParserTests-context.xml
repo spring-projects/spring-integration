@@ -9,6 +9,7 @@
 
 	<bean id="clientRSocketConnector" class="org.springframework.integration.rsocket.ClientRSocketConnector">
 		<constructor-arg value="https://example.org"/>
+		<property name="autoStartup" value="false"/>
 	</bean>
 
 	<int:channel id="requestChannel"/>

@@ -136,7 +136,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 		Assert.notNull(dataMimeType, "No `dataMimeType` in the ConnectionSetupPayload and no default value");
 
 		MimeType metadataMimeType =
-				StringUtils.hasText(setupPayload.dataMimeType())
+				StringUtils.hasText(setupPayload.metadataMimeType())
 						? MimeTypeUtils.parseMimeType(setupPayload.metadataMimeType())
 						: this.defaultMetadataMimeType;
 		Assert.notNull(dataMimeType, "No `metadataMimeType` in the ConnectionSetupPayload and no default value");
