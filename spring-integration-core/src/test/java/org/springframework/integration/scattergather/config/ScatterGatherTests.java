@@ -16,10 +16,8 @@
 
 package org.springframework.integration.scattergather.config;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -32,16 +30,19 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class ScatterGatherTests {
 
 	@Autowired
@@ -61,36 +62,50 @@ public class ScatterGatherTests {
 
 	@Test
 	public void testAuction() {
-		this.inputAuction.send(new GenericMessage<String>("foo"));
+		this.inputAuction.send(new GenericMessage<>("foo"));
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
-		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(bestQuoteMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSizeGreaterThanOrEqualTo(1);
 	}
 
 	@Test
 	public void testDistribution() {
-		this.inputDistribution.send(new GenericMessage<String>("foo"));
+		this.inputDistribution.send(new GenericMessage<>("foo"));
 		Message<?> bestQuoteMessage = this.output.receive(10000);
-		assertNotNull(bestQuoteMessage);
-		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		assertThat(bestQuoteMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSizeGreaterThanOrEqualTo(1);
 	}
 
 	@Test
 	public void testGatewayScatterGather() {
-		Message<?> bestQuoteMessage = this.gateway.exchange(new GenericMessage<String>("foo"));
-		assertNotNull(bestQuoteMessage);
-		Object payload = bestQuoteMessage.getPayload();
-		assertThat(payload, instanceOf(List.class));
-		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		Message<?> bestQuoteMessage = this.gateway.exchange(new GenericMessage<>("foo"));
+		assertThat(bestQuoteMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSizeGreaterThanOrEqualTo(1);
+
+		bestQuoteMessage = this.gateway.exchange(new GenericMessage<>("bar"));
+		assertThat(bestQuoteMessage)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isInstanceOf(List.class)
+				.asList()
+				.hasSizeGreaterThanOrEqualTo(1);
 	}
 
 	@Test
 	public void testWithinChain() {
-		this.scatterGatherWithinChain.send(new GenericMessage<String>("foo"));
+		this.scatterGatherWithinChain.send(new GenericMessage<>("foo"));
 		for (int i = 0; i < 3; i++) {
 			Message<?> result = this.output.receive(10000);
 			assertNotNull(result);
