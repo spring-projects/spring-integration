@@ -118,7 +118,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		else {
 			Assert.isInstanceOf(ChannelInterceptorAware.class, this.gatherChannel,
 					() -> "An injected 'gatherChannel' '" + this.gatherChannel +
-							"' must be an 'InterceptableChannel' instance.");
+							"' must be an 'ChannelInterceptorAware' instance.");
 			((ChannelInterceptorAware) this.gatherChannel)
 					.addInterceptor(0,
 							new ChannelInterceptor() {
