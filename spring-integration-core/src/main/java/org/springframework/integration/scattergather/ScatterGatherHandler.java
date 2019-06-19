@@ -55,6 +55,10 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
 
+	private static final String ORIGINAL_REPLY_CHANNEL = "originalReplyChannel";
+
+	private static final String ORIGINAL_ERROR_CHANNEL = "originalErrorChannel";
+
 	private final MessageChannel scatterChannel;
 
 	private final MessageHandler gatherer;
@@ -107,9 +111,24 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	protected void doInit() {
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.gatherChannel == null) {
-			this.gatherChannel = new FixedSubscriberChannel(this.gatherer);
+			this.gatherChannel =
+					new FixedSubscriberChannel((message) ->
+							this.gatherer.handleMessage(enhanceScatterReplyMessage(message)));
 		}
 		else {
+			Assert.isInstanceOf(InterceptableChannel.class, this.gatherChannel,
+					() -> "An injected 'gatherChannel' '" + this.gatherChannel +
+							"' must be an 'InterceptableChannel' instance.");
+			((InterceptableChannel) this.gatherChannel)
+					.addInterceptor(0,
+							new ChannelInterceptor() {
+
+								@Override
+								public Message<?> preSend(Message<?> message, MessageChannel channel) {
+									return enhanceScatterReplyMessage(message);
+								}
+
+							});
 			if (this.gatherChannel instanceof SubscribableChannel) {
 				this.gatherEndpoint = new EventDrivenConsumer((SubscribableChannel) this.gatherChannel, this.gatherer);
 			}
@@ -121,7 +140,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 				this.gatherEndpoint = new ReactiveStreamsConsumer(this.gatherChannel, this.gatherer);
 			}
 			else {
-				throw new BeanInitializationException("Unsupported 'replyChannel' type '" +
+				throw new BeanInitializationException("Unsupported 'gatherChannel' type '" +
 						this.gatherChannel.getClass() + "'. " +
 						"'SubscribableChannel', 'PollableChannel' or 'ReactiveStreamsSubscribableChannel' " +
 						"types are supported.");
@@ -131,7 +150,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		}
 
 		((MessageProducer) this.gatherer)
-				.setOutputChannel(new FixedSubscriberChannel(message -> {
+				.setOutputChannel(new FixedSubscriberChannel((message) -> {
 					MessageHeaders headers = message.getHeaders();
 					MessageChannel gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL, MessageChannel.class);
 					if (gatherResultChannel != null) {
@@ -144,53 +163,34 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 				}));
 	}
 
+	private Message<?> enhanceScatterReplyMessage(Message<?> message) {
+		MessageHeaders headers = message.getHeaders();
+		return getMessageBuilderFactory()
+				.fromMessage(message)
+				.setHeader(MessageHeaders.REPLY_CHANNEL, headers.get(ORIGINAL_REPLY_CHANNEL))
+				.setHeader(MessageHeaders.ERROR_CHANNEL, headers.get(ORIGINAL_ERROR_CHANNEL))
+				.removeHeaders(ORIGINAL_REPLY_CHANNEL, ORIGINAL_ERROR_CHANNEL)
+				.build();
+	}
+
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
 		PollableChannel gatherResultChannel = new QueueChannel();
-
-		MessageChannel replyChannel = this.gatherChannel;
-
-		if (replyChannel instanceof InterceptableChannel) {
-			((InterceptableChannel) replyChannel)
-					.addInterceptor(0,
-							new ChannelInterceptor() {
-
-								@Override
-								public Message<?> preSend(Message<?> message, MessageChannel channel) {
-									return enhanceScatterReplyMessage(message, gatherResultChannel, requestMessage);
-								}
-
-							});
-		}
-		else {
-			replyChannel =
-					new FixedSubscriberChannel(message ->
-							this.messagingTemplate.send(this.gatherChannel,
-									enhanceScatterReplyMessage(message, gatherResultChannel, requestMessage)));
-		}
 
 		Message<?> scatterMessage =
 				getMessageBuilderFactory()
 						.fromMessage(requestMessage)
-						.setReplyChannel(replyChannel)
+						.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannel)
+						.setHeader(ORIGINAL_REPLY_CHANNEL, requestMessageHeaders.getReplyChannel())
+						.setHeader(ORIGINAL_ERROR_CHANNEL, requestMessageHeaders.getErrorChannel())
+						.setReplyChannel(this.gatherChannel)
 						.setErrorChannelName(this.errorChannelName)
 						.build();
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
 		return gatherResultChannel.receive(this.gatherTimeout);
-	}
-
-	private Message<?> enhanceScatterReplyMessage(Message<?> message, PollableChannel gatherResultChannel,
-			Message<?> requestMessage) {
-
-		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
-		return getMessageBuilderFactory()
-				.fromMessage(message)
-				.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannel)
-				.setHeader(MessageHeaders.REPLY_CHANNEL, requestMessageHeaders.getReplyChannel())
-				.setHeader(MessageHeaders.ERROR_CHANNEL, requestMessageHeaders.getErrorChannel())
-				.build();
 	}
 
 	@Override
