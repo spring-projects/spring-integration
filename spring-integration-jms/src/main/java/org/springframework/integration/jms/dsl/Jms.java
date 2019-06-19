@@ -221,10 +221,10 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */
-	public static JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer>
+	public static JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterDefaultListenerContainerSpec
 	messageDrivenChannelAdapter(ConnectionFactory connectionFactory) {
 		try {
-			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterListenerContainerSpec<>(
+			return new JmsMessageDrivenChannelAdapterSpec.JmsMessageDrivenChannelAdapterDefaultListenerContainerSpec(
 					new JmsDefaultListenerContainerSpec()
 							.connectionFactory(connectionFactory));
 		}

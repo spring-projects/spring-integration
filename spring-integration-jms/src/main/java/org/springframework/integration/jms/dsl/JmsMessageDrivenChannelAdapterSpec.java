@@ -28,7 +28,9 @@ import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsHeaderMapper;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 /**
@@ -91,6 +93,23 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	public S shutdownContainerOnStop(boolean shutdown) {
 		this.target.setShutdownContainerOnStop(shutdown);
 		return _this();
+	}
+
+	public static class JmsMessageDrivenChannelAdapterDefaultListenerContainerSpec extends
+	JmsMessageDrivenChannelAdapterListenerContainerSpec<JmsDefaultListenerContainerSpec, DefaultMessageListenerContainer> {
+
+		private final JmsDefaultListenerContainerSpec spec;
+
+		JmsMessageDrivenChannelAdapterDefaultListenerContainerSpec(JmsDefaultListenerContainerSpec spec) {
+			super(spec);
+			this.spec = spec;
+		}
+
+		public JmsMessageDrivenChannelAdapterDefaultListenerContainerSpec transactionManager(PlatformTransactionManager transactionManager) {
+			this.spec.transactionManager(transactionManager);
+			return this;
+		}
+
 	}
 
 	/**
