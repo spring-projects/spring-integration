@@ -134,7 +134,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	/**
 	 * Configure a type for a request {@link Publisher} elements.
 	 * @param publisherElementType the type of the request {@link Publisher} elements.
-	 * @see RSocketRequester.RequestSpec#data(Publisher, Class)
+	 * @see RSocketRequester.RequestSpec#data(Object, Class)
 	 */
 	public void setPublisherElementType(Class<?> publisherElementType) {
 		setPublisherElementTypeExpression(new ValueExpression<>(publisherElementType));

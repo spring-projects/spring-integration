@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;
@@ -69,6 +68,10 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 
 	private MimeType defaultMetadataMimeType = IntegrationRSocket.COMPOSITE_METADATA;
 
+	IntegrationRSocketAcceptor() {
+		setHandlerPredicate((clazz) -> false);
+	}
+
 	/**
 	 * Configure the default content type to use for data payloads.
 	 * <p>By default this is not set. However a server acceptor will use the
@@ -115,11 +118,6 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
 		return Collections.singletonList(new MessageHandlerMethodArgumentResolver());
-	}
-
-	@Override
-	protected Predicate<Class<?>> initHandlerPredicate() {
-		return (clazz) -> false;
 	}
 
 	@Override

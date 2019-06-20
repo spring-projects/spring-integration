@@ -50,7 +50,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.rsocket.MessageHandlerAcceptor;
+import org.springframework.messaging.rsocket.RSocketMessageHandler;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
 import org.springframework.messaging.rsocket.RSocketStrategies;
@@ -124,7 +124,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.doOnBound(server -> port = server.port());
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
-				.acceptor(serverContext.getBean(MessageHandlerAcceptor.class))
+				.acceptor(serverContext.getBean(RSocketMessageHandler.class).serverAcceptor())
 				.transport(TcpServerTransport.create(tcpServer))
 				.start()
 				.block();
@@ -521,11 +521,11 @@ public class RSocketOutboundGatewayIntegrationTests {
 	public static class ClientConfig extends CommonConfig {
 
 		@Bean
-		public MessageHandlerAcceptor clientAcceptor() {
-			MessageHandlerAcceptor acceptor = new MessageHandlerAcceptor();
-			acceptor.setHandlers(Collections.singletonList(controller()));
-			acceptor.setRSocketStrategies(rsocketStrategies());
-			return acceptor;
+		public RSocketMessageHandler messageHandler() {
+			RSocketMessageHandler handler = new RSocketMessageHandler();
+			handler.setRSocketStrategies(rsocketStrategies());
+			handler.setHandlers(Collections.singletonList(controller()));
+			return handler;
 		}
 
 		@Bean(destroyMethod = "dispose")
@@ -536,7 +536,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 					.dataMimeType("text/plain")
 					.metadataMimeType("message/x.rsocket.routing.v0")
 					.frameDecoder(PayloadDecoder.ZERO_COPY)
-					.acceptor(clientAcceptor())
+					.acceptor(messageHandler().clientAcceptor())
 					.transport(TcpClientTransport.create("localhost", port))
 					.start()
 					.block();
@@ -565,10 +565,10 @@ public class RSocketOutboundGatewayIntegrationTests {
 	static class ServerConfig extends CommonConfig {
 
 		@Bean
-		public MessageHandlerAcceptor serverAcceptor() {
-			MessageHandlerAcceptor acceptor = new MessageHandlerAcceptor();
-			acceptor.setRSocketStrategies(rsocketStrategies());
-			return acceptor;
+		public RSocketMessageHandler messageHandler() {
+			RSocketMessageHandler handler = new RSocketMessageHandler();
+			handler.setRSocketStrategies(rsocketStrategies());
+			return handler;
 		}
 
 	}
