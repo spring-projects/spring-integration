@@ -308,12 +308,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		}
 	}
 
-	@Override
-	public void stop(Runnable runnable) {
-		stop();
-		runnable.run();
-	}
-
 	/**
 	 * Stop the registration of the {@link #candidate} for leader election. If the
 	 * candidate is currently leader, its leadership will be revoked.

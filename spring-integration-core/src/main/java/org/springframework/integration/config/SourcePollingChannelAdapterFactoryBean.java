@@ -157,11 +157,6 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		return SourcePollingChannelAdapter.class;
 	}
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
 	private void initializeAdapter() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {

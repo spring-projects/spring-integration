@@ -208,12 +208,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	}
 
 	@Override
-	public void stop(Runnable callback) {
-		stop();
-		callback.run();
-	}
-
-	@Override
 	public boolean isRunning() {
 		return this.running;
 	}

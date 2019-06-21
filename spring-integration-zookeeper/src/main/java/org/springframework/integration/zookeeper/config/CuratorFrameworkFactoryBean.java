@@ -130,12 +130,6 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	}
 
 	@Override
-	public void stop(Runnable runnable) {
-		stop();
-		runnable.run();
-	}
-
-	@Override
 	public CuratorFramework getObject() {
 		return this.client;
 	}
@@ -143,11 +137,6 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	@Override
 	public Class<?> getObjectType() {
 		return CuratorFramework.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
 	}
 
 }

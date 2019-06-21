@@ -96,15 +96,18 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	private volatile boolean running;
 
-	/** Base path in a zookeeper */
+	/**
+	 * Base path in a zookeeper
+	 */
 	private final String namespace;
 
-	/** Leader event publisher if set */
+	/**
+	 * Leader event publisher if set
+	 */
 	private volatile LeaderEventPublisher leaderEventPublisher;
 
 	/**
 	 * Construct a {@link LeaderInitiator}.
-	 *
 	 * @param client     Curator client
 	 * @param candidate  leadership election candidate
 	 */
@@ -114,7 +117,6 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	/**
 	 * Construct a {@link LeaderInitiator}.
-	 *
 	 * @param client     Curator client
 	 * @param candidate  leadership election candidate
 	 * @param namespace  namespace base path in zookeeper
@@ -199,15 +201,8 @@ public class LeaderInitiator implements SmartLifecycle {
 		}
 	}
 
-	@Override
-	public void stop(Runnable runnable) {
-		stop();
-		runnable.run();
-	}
-
 	/**
 	 * Sets the {@link LeaderEventPublisher}.
-	 *
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
@@ -230,13 +225,12 @@ public class LeaderInitiator implements SmartLifecycle {
 	 * @return the ZooKeeper path used for leadership election by Curator
 	 */
 	private String buildLeaderPath() {
-
 		String ns = StringUtils.hasText(this.namespace) ? this.namespace : DEFAULT_NAMESPACE;
 		if (!ns.startsWith("/")) {
-			ns = "/" + ns;
+			ns = '/' + ns;
 		}
 		if (!ns.endsWith("/")) {
-			ns = ns + "/";
+			ns = ns + '/';
 		}
 		return ns + this.candidate.getRole();
 	}
@@ -283,6 +277,7 @@ public class LeaderInitiator implements SmartLifecycle {
 				}
 			}
 		}
+
 	}
 
 	/**

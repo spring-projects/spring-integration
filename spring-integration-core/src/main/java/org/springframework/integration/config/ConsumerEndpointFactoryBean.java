@@ -247,11 +247,6 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
-	@Override
 	public AbstractEndpoint getObject() {
 		if (!this.initialized) {
 			this.initializeEndpoint();
@@ -302,8 +297,9 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	private void eventDrivenConsumer(MessageChannel channel) {
-		Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
-				+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
+		Assert.isNull(this.pollerMetadata,
+				() -> "A poller should not be specified for endpoint '" + this.beanName
+						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 		this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 		if (logger.isWarnEnabled()
 				&& Boolean.FALSE.equals(this.autoStartup)
@@ -316,8 +312,9 @@ public class ConsumerEndpointFactoryBean
 		PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
 		if (this.pollerMetadata == null) {
 			this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
-			Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
-					+ "', and no default poller is available within the context.");
+			Assert.notNull(this.pollerMetadata,
+					() -> "No poller has been defined for endpoint '" + this.beanName
+							+ "', and no default poller is available within the context.");
 		}
 		pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 		pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
