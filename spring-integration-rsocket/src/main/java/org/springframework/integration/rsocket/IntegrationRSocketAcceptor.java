@@ -30,9 +30,9 @@ import org.springframework.messaging.handler.CompositeMessageCondition;
 import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.reactive.SyncHandlerMethodArgumentResolver;
-import org.springframework.messaging.rsocket.RSocketMessageHandler;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -79,6 +79,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 	 * required for clients but can also be used on servers as a fallback.
 	 * @param defaultDataMimeType the MimeType to use
 	 */
+	@Override
 	public void setDefaultDataMimeType(@Nullable MimeType defaultDataMimeType) {
 		this.defaultDataMimeType = defaultDataMimeType;
 	}
@@ -89,6 +90,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 	 * <p>By default this is set to {@code "message/x.rsocket.composite-metadata.v0"}
 	 * @param mimeType the MimeType to use
 	 */
+	@Override
 	public void setDefaultMetadataMimeType(MimeType mimeType) {
 		Assert.notNull(mimeType, "'metadataMimeType' is required");
 		this.defaultMetadataMimeType = mimeType;
@@ -138,7 +140,7 @@ class IntegrationRSocketAcceptor extends RSocketMessageHandler
 						? MimeTypeUtils.parseMimeType(setupPayload.metadataMimeType())
 						: this.defaultMetadataMimeType;
 		Assert.notNull(dataMimeType, "No `metadataMimeType` in the ConnectionSetupPayload and no default value");
-		return new IntegrationRSocket(this::handleMessage, getRouteMatcher(),
+		return new IntegrationRSocket(this, getRouteMatcher(),
 				RSocketRequester.wrap(rsocket, dataMimeType, metadataMimeType, rsocketStrategies),
 				dataMimeType, metadataMimeType, rsocketStrategies.dataBufferFactory());
 	}

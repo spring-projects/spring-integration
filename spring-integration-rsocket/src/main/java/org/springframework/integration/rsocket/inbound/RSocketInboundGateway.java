@@ -41,8 +41,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodReturnValueHandler;
-import org.springframework.messaging.rsocket.RSocketPayloadReturnValueHandler;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 

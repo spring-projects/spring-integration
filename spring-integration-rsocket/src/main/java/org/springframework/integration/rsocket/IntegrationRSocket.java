@@ -32,11 +32,12 @@ import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodReturnValueHandler;
-import org.springframework.messaging.rsocket.RSocketPayloadReturnValueHandler;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
+import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
+import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
@@ -57,14 +58,14 @@ import reactor.core.publisher.MonoProcessor;
  * obtains the response from a "reply" header.
  * <p>
  * Essentially, this is an adapted for Spring Integration copy
- * of the {@link org.springframework.messaging.rsocket.MessagingRSocket} because
+ * of the {@link org.springframework.messaging.rsocket.annotation.support.MessagingRSocket} because
  * that one is not public.
  *
  * @author Artem Bilan
  *
  * @since 5.2
  *
- * @see org.springframework.messaging.rsocket.MessagingRSocket
+ * @see org.springframework.messaging.rsocket.annotation.support.MessagingRSocket
  */
 class IntegrationRSocket extends AbstractRSocket {
 
@@ -75,7 +76,7 @@ class IntegrationRSocket extends AbstractRSocket {
 	static final List<MimeType> METADATA_MIME_TYPES = Arrays.asList(COMPOSITE_METADATA, ROUTING);
 
 
-	private final Function<Message<?>, Mono<Void>> handler;
+	private final ReactiveMessageHandler handler;
 
 	private final RouteMatcher routeMatcher;
 
@@ -87,7 +88,7 @@ class IntegrationRSocket extends AbstractRSocket {
 
 	private final MimeType metadataMimeType;
 
-	IntegrationRSocket(Function<Message<?>, Mono<Void>> handler, RouteMatcher routeMatcher,
+	IntegrationRSocket(ReactiveMessageHandler handler, RouteMatcher routeMatcher,
 			RSocketRequester requester, MimeType dataMimeType, MimeType metadataMimeType,
 			DataBufferFactory bufferFactory) {
 
@@ -149,7 +150,7 @@ class IntegrationRSocket extends AbstractRSocket {
 		DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
 		int refCount = refCount(dataBuffer);
 		Message<?> message = MessageBuilder.createMessage(dataBuffer, headers);
-		return Mono.defer(() -> this.handler.apply(message))
+		return Mono.defer(() -> this.handler.handleMessage(message))
 				.doFinally((signal) -> {
 					if (refCount(dataBuffer) == refCount) {
 						DataBufferUtils.release(dataBuffer);
@@ -173,7 +174,7 @@ class IntegrationRSocket extends AbstractRSocket {
 						.doOnSubscribe((subscription) -> read.set(true));
 		Message<Flux<DataBuffer>> message = MessageBuilder.createMessage(buffers, headers);
 
-		return Mono.defer(() -> this.handler.apply(message))
+		return Mono.defer(() -> this.handler.handleMessage(message))
 				.doFinally((signal) -> {
 					// Subscription should have happened by now due to ChannelSendOperator
 					if (!read.get()) {

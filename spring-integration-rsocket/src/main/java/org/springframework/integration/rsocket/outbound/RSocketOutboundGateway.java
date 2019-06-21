@@ -28,7 +28,7 @@ import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketRequesterMethodArgumentResolver;
+import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
