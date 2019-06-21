@@ -40,6 +40,7 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.MimeType;
 import org.springframework.util.StopWatch;
 
 /**
@@ -341,6 +342,18 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertThat(headers.getContentType().getType()).isEqualTo("text");
 		assertThat(headers.getContentType().getSubtype()).isEqualTo("html");
+	}
+
+	@Test
+	public void validateContentTypeAsMimeType() {
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<>();
+		messageHeaders.put(MessageHeaders.CONTENT_TYPE, new MimeType("text", "plain"));
+		HttpHeaders headers = new HttpHeaders();
+
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertThat(headers.getContentType().getType()).isEqualTo("text");
+		assertThat(headers.getContentType().getSubtype()).isEqualTo("plain");
 	}
 
 	// Date test
