@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
 @IntegrationManagedResource
 public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware, DestructionAwareBeanPostProcessor {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final static Log logger = LogFactory.getLog(MessageHistoryConfigurer.class);
 
 	private final Set<TrackableComponent> currentlyTrackedComponents = ConcurrentHashMap.newKeySet();
 
@@ -228,12 +228,6 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 				this.running = false;
 			}
 		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.stop();
-		callback.run();
 	}
 
 	private static Collection<TrackableComponent> getTrackableComponents(ListableBeanFactory beanFactory) {

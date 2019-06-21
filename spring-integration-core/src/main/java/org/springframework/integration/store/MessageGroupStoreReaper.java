@@ -39,19 +39,19 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 
 	private static Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
 
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
+
 	private MessageGroupStore messageGroupStore;
 
 	private boolean expireOnDestroy = false;
 
 	private long timeout = -1;
 
+	private int phase = 0;
+
+	private boolean autoStartup = true;
+
 	private volatile boolean running;
-
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
-
-	private volatile int phase = 0;
-
-	private volatile boolean autoStartup = true;
 
 	public MessageGroupStoreReaper(MessageGroupStore messageGroupStore) {
 		this.messageGroupStore = messageGroupStore;
@@ -63,7 +63,6 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	/**
 	 * Flag to indicate that the stores should be expired when this component is destroyed (i.e. usually when its
 	 * enclosing {@link org.springframework.context.ApplicationContext} is closed).
-	 *
 	 * @param expireOnDestroy the flag value to set
 	 */
 	public void setExpireOnDestroy(boolean expireOnDestroy) {
@@ -73,7 +72,6 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	/**
 	 * Timeout in milliseconds (default -1). If negative then no groups ever time out. If greater than zero then all
 	 * groups older than that value are expired when this component is {@link #run()}.
-	 *
 	 * @param timeout the timeout to set
 	 */
 	public void setTimeout(long timeout) {
@@ -82,7 +80,6 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 
 	/**
 	 * A message group store to expire according the other configurations.
-	 *
 	 * @param messageGroupStore the {@link MessageGroupStore} to set
 	 */
 	public void setMessageGroupStore(MessageGroupStore messageGroupStore) {
@@ -185,18 +182,6 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.lifecycleLock.lock();
-		try {
-			this.stop();
-			callback.run();
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
 	}
 
 }
