@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel>
@@ -64,83 +65,83 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
 
-	private volatile AbstractMessageListenerContainer listenerContainer;
+	private AbstractMessageListenerContainer listenerContainer;
 
-	private volatile Class<? extends AbstractMessageListenerContainer> containerType;
+	private Class<? extends AbstractMessageListenerContainer> containerType;
 
-	private volatile boolean acceptMessagesWhileStopping;
+	private boolean acceptMessagesWhileStopping;
 
-	private volatile boolean autoStartup = true;
+	private boolean autoStartup = true;
 
-	private volatile String cacheLevelName;
+	private String cacheLevelName;
 
-	private volatile Integer cacheLevel;
+	private Integer cacheLevel;
 
-	private volatile String clientId;
+	private String clientId;
 
-	private volatile String concurrency;
+	private String concurrency;
 
-	private volatile Integer concurrentConsumers;
+	private Integer concurrentConsumers;
 
-	private volatile ConnectionFactory connectionFactory;
+	private ConnectionFactory connectionFactory;
 
-	private volatile Destination destination;
+	private Destination destination;
 
-	private volatile String destinationName;
+	private String destinationName;
 
-	private volatile DestinationResolver destinationResolver;
+	private DestinationResolver destinationResolver;
 
-	private volatile String durableSubscriptionName;
+	private String durableSubscriptionName;
 
-	private volatile ErrorHandler errorHandler;
+	private ErrorHandler errorHandler;
 
-	private volatile ExceptionListener exceptionListener;
+	private ExceptionListener exceptionListener;
 
-	private volatile Boolean exposeListenerSession;
+	private Boolean exposeListenerSession;
 
-	private volatile Integer idleTaskExecutionLimit;
+	private Integer idleTaskExecutionLimit;
 
-	private volatile Integer maxConcurrentConsumers;
+	private Integer maxConcurrentConsumers;
 
-	private volatile Integer maxMessagesPerTask;
+	private Integer maxMessagesPerTask;
 
-	private volatile String messageSelector;
+	private String messageSelector;
 
-	private volatile Integer phase;
+	private Integer phase;
 
-	private volatile Boolean pubSubDomain;
+	private Boolean pubSubDomain;
 
-	private volatile boolean pubSubNoLocal;
+	private boolean pubSubNoLocal;
 
-	private volatile Long receiveTimeout;
+	private Long receiveTimeout;
 
-	private volatile Long recoveryInterval;
+	private Long recoveryInterval;
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile boolean subscriptionShared;
+	private boolean subscriptionShared;
 
 	/**
 	 * This value differs from the container implementations' default (which is AUTO_ACKNOWLEDGE)
 	 */
-	private volatile int sessionAcknowledgeMode = Session.SESSION_TRANSACTED;
+	private int sessionAcknowledgeMode = Session.SESSION_TRANSACTED;
 
 	/**
 	 * This value differs from the container implementations' default (which is false).
 	 */
-	private volatile boolean sessionTransacted = true;
+	private boolean sessionTransacted = true;
 
-	private volatile boolean subscriptionDurable;
+	private boolean subscriptionDurable;
 
-	private volatile Executor taskExecutor;
+	private Executor taskExecutor;
 
-	private volatile PlatformTransactionManager transactionManager;
+	private PlatformTransactionManager transactionManager;
 
-	private volatile String transactionName;
+	private String transactionName;
 
-	private volatile Integer transactionTimeout;
+	private Integer transactionTimeout;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private int maxSubscribers = Integer.MAX_VALUE;
 
 
 	public JmsChannelFactoryBean() {
@@ -204,8 +205,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setCacheLevelName(String cacheLevelName) {
 		Assert.isTrue(this.messageDriven, "'cacheLevelName' is allowed only in case of 'messageDriven = true'");
-		Assert.state(this.cacheLevel == null,
-				"'cacheLevelName' and 'cacheLevel' are mutually exclusive");
+		Assert.state(this.cacheLevel == null, "'cacheLevelName' and 'cacheLevel' are mutually exclusive");
 		this.cacheLevelName = cacheLevelName;
 	}
 
@@ -376,7 +376,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
 			this.listenerContainer = createContainer();
-			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.listenerContainer, this.jmsTemplate);
+			SubscribableJmsChannel subscribableJmsChannel =
+					new SubscribableJmsChannel(this.listenerContainer, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
 			this.channel = subscribableJmsChannel;
 		}
@@ -557,9 +558,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	@Override
 	protected void destroyInstance(AbstractJmsChannel instance) throws Exception {
-		if (instance instanceof SubscribableJmsChannel) {
-			((SubscribableJmsChannel) this.channel).destroy();
-		}
+		instance.destroy();
 	}
 
 }

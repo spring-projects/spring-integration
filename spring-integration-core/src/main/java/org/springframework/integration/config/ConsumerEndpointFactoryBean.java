@@ -243,11 +243,6 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
-	@Override
 	public AbstractEndpoint getObject() throws Exception {
 		if (!this.initialized) {
 			this.initializeEndpoint();
@@ -335,7 +330,6 @@ public class ConsumerEndpointFactoryBean
 			this.initialized = true;
 		}
 	}
-
 
 	/*
 	 * SmartLifecycle implementation (delegates to the created endpoint)

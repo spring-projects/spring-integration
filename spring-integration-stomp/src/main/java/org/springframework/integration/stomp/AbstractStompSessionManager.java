@@ -306,16 +306,6 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	@Override
-	public void stop(Runnable callback) {
-		synchronized (this.lifecycleMonitor) {
-			stop();
-			if (callback != null) {
-				callback.run();
-			}
-		}
-	}
-
-	@Override
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (isRunning()) {

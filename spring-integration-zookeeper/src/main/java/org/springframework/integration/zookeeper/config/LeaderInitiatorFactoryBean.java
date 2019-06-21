@@ -166,9 +166,4 @@ public class LeaderInitiatorFactoryBean
 		return LeaderInitiator.class;
 	}
 
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
 }

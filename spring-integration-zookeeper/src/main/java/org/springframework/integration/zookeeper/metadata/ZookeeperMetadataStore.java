@@ -16,6 +16,7 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -62,7 +63,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private volatile String root = "/SpringIntegration-MetadataStore";
 
-	private volatile String encoding = "UTF-8";
+	private String encoding = StandardCharsets.UTF_8.name();
 
 	private volatile PathChildrenCache cache;
 
@@ -302,12 +303,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				}
 			}
 		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		stop();
-		callback.run();
 	}
 
 	@Override

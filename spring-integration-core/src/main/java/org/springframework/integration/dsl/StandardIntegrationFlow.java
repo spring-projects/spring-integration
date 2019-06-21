@@ -127,16 +127,21 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@Override
 	public void stop(Runnable callback) {
-		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
-		ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-		while (iterator.hasPrevious()) {
-			SmartLifecycle lifecycle = iterator.previous();
-			if (lifecycle.isRunning()) {
-				lifecycle.stop(aggregatingCallback);
+		if (this.lifecycles.size() > 0) {
+			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
+			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
+			while (iterator.hasPrevious()) {
+				SmartLifecycle lifecycle = iterator.previous();
+				if (lifecycle.isRunning()) {
+					lifecycle.stop(aggregatingCallback);
+				}
+				else {
+					aggregatingCallback.run();
+				}
 			}
-			else {
-				aggregatingCallback.run();
-			}
+		}
+		else {
+			callback.run();
 		}
 		this.running = false;
 	}
