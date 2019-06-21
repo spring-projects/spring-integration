@@ -55,6 +55,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeType;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -740,15 +741,16 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		if (!CollectionUtils.isEmpty(valuesToAccept)) {
 			List<MediaType> acceptableMediaTypes = new ArrayList<>();
 			for (Object type : valuesToAccept) {
-				if (type instanceof MediaType) {
-					acceptableMediaTypes.add((MediaType) type);
+				if (type instanceof MimeType) {
+					acceptableMediaTypes.add(MediaType.asMediaType((MimeType) type));
 				}
 				else if (type instanceof String) {
 					acceptableMediaTypes.addAll(MediaType.parseMediaTypes((String) type));
 				}
 				else {
 					throwIllegalArgumentForUnexpectedValue(
-							"Expected MediaType or String value for 'Accept' header value, but received: ", type);
+							"Expected org.springframework.util.MimeType " +
+									"or String value for 'Accept' header value, but received: ", type);
 
 				}
 			}
@@ -841,15 +843,16 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private void setContentType(HttpHeaders target, Object value) {
-		if (value instanceof MediaType) {
-			target.setContentType((MediaType) value);
+		if (value instanceof MimeType) {
+			target.setContentType(MediaType.asMediaType((MimeType) value));
 		}
 		else if (value instanceof String) {
 			target.setContentType(MediaType.parseMediaType((String) value));
 		}
 		else {
 			throwIllegalArgumentForUnexpectedValue(
-					"Expected MediaType or String value for 'Content-Type' header value, but received: ", value);
+					"Expected org.springframework.util.MimeType " +
+							"or String value for 'Content-Type' header value, but received: ", value);
 		}
 	}
 
