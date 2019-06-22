@@ -520,7 +520,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	@Override
 	protected void destroyInstance(AbstractJmsChannel instance) {
-		instance.destroy();
+		this.channel.destroy();
 	}
 
 }
