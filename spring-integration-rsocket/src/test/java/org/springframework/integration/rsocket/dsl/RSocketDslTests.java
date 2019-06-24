@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -44,12 +43,10 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.util.NetUtil;
 import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.transport.netty.client.TcpClientTransport;
-import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.tcp.InetSocketAddressUtil;
 import reactor.netty.tcp.TcpClient;
-import reactor.netty.tcp.TcpServer;
 
 /**
  * @author Artem Bilan
@@ -73,8 +70,6 @@ public class RSocketDslTests {
 	@EnableIntegration
 	public static class TestConfiguration {
 
-		private volatile int port;
-
 		@Bean
 		public RSocketStrategies rsocketStrategies() {
 			return RSocketStrategies.builder()
@@ -86,12 +81,7 @@ public class RSocketDslTests {
 
 		@Bean
 		public ServerRSocketConnector serverRSocketConnector() {
-			TcpServer tcpServer =
-					TcpServer.create()
-							.port(0)
-							.doOnBound((server) -> this.port = server.port());
-			ServerRSocketConnector serverRSocketConnector =
-					new ServerRSocketConnector(TcpServerTransport.create(tcpServer));
+			ServerRSocketConnector serverRSocketConnector = new ServerRSocketConnector("localhost", 0);
 			serverRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			serverRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			return serverRSocketConnector;
@@ -99,15 +89,15 @@ public class RSocketDslTests {
 
 
 		@Bean
-		@DependsOn("serverRSocketConnector")
-		public ClientRSocketConnector clientRSocketConnector() {
+		public ClientRSocketConnector clientRSocketConnector(ServerRSocketConnector serverRSocketConnector) {
 			ClientRSocketConnector clientRSocketConnector =
 					new ClientRSocketConnector(
 							TcpClientTransport.create(
 									TcpClient.create()
 											.addressSupplier(() ->
 													InetSocketAddressUtil.createUnresolved(
-															NetUtil.LOCALHOST.getHostAddress(), this.port))
+															NetUtil.LOCALHOST.getHostAddress(),
+															serverRSocketConnector.getBoundPort().block()))
 							));
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
@@ -116,13 +106,13 @@ public class RSocketDslTests {
 		}
 
 		@Bean
-		public IntegrationFlow rsocketUpperCaseRequestFlow() {
+		public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector clientRSocketConnector) {
 			return IntegrationFlows
 					.from(Function.class)
 					.handle(RSockets.outboundGateway("/uppercase")
 							.command((message) -> RSocketOutboundGateway.Command.requestResponse)
 							.expectedResponseType("T(java.lang.String)")
-							.clientRSocketConnector(clientRSocketConnector()))
+							.clientRSocketConnector(clientRSocketConnector))
 					.get();
 		}
 

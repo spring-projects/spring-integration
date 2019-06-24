@@ -72,7 +72,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 import reactor.core.publisher.ReplayProcessor;
-import reactor.netty.tcp.TcpServer;
 import reactor.test.StepVerifier;
 
 /**
@@ -89,8 +88,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private static final String COMMAND_HEADER = "rsocket_command";
 
 	private static AnnotationConfigApplicationContext serverContext;
-
-	private static int port;
 
 	private static CloseableChannel server;
 
@@ -119,13 +116,10 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@BeforeAll
 	static void setup() {
 		serverContext = new AnnotationConfigApplicationContext(ServerConfig.class);
-		TcpServer tcpServer =
-				TcpServer.create().port(0)
-						.doOnBound(server -> port = server.port());
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
 				.acceptor(serverContext.getBean(RSocketMessageHandler.class).serverAcceptor())
-				.transport(TcpServerTransport.create(tcpServer))
+				.transport(TcpServerTransport.create("localhost", 0))
 				.start()
 				.block();
 
@@ -537,14 +531,15 @@ public class RSocketOutboundGatewayIntegrationTests {
 					.metadataMimeType("message/x.rsocket.routing.v0")
 					.frameDecoder(PayloadDecoder.ZERO_COPY)
 					.acceptor(messageHandler().clientAcceptor())
-					.transport(TcpClientTransport.create("localhost", port))
+					.transport(TcpClientTransport.create("localhost", server.address().getPort()))
 					.start()
 					.block();
 		}
 
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
-			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
+			ClientRSocketConnector clientRSocketConnector =
+					new ClientRSocketConnector("localhost", server.address().getPort());
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			return clientRSocketConnector;

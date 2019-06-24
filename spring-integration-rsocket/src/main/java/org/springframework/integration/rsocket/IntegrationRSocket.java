@@ -46,6 +46,7 @@ import org.springframework.util.RouteMatcher;
 
 import io.netty.buffer.ByteBuf;
 import io.rsocket.AbstractRSocket;
+import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.Payload;
 import io.rsocket.metadata.CompositeMetadata;
 import reactor.core.publisher.Flux;
@@ -109,8 +110,23 @@ class IntegrationRSocket extends AbstractRSocket {
 		this.bufferFactory = bufferFactory;
 	}
 
-	public RSocketRequester getRequester() {
-		return this.requester;
+	/**
+	 * Wrap the {@link ConnectionSetupPayload} with a {@link Message} and
+	 * delegate to {@link #handle(Payload)} for handling.
+	 * @param payload the connection payload
+	 * @return completion handle for success or error
+	 */
+	Mono<Message<DataBuffer>> handleConnectionSetupPayload(ConnectionSetupPayload payload) {
+		String destination = getDestination(payload);
+		MessageHeaders headers = createHeaders(destination, null);
+		DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
+		int refCount = refCount(dataBuffer);
+		return Mono.just(MessageBuilder.createMessage(dataBuffer, headers))
+				.doFinally(s -> {
+					if (refCount(dataBuffer) == refCount) {
+						DataBufferUtils.release(dataBuffer);
+					}
+				});
 	}
 
 	@Override

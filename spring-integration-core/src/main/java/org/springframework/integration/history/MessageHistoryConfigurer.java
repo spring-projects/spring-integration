@@ -154,8 +154,8 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 		component.setShouldTrack(shouldTrack);
 		if (shouldTrack) {
 			this.currentlyTrackedComponents.add(component);
-			if (this.LOGGER.isInfoEnabled()) {
-				this.LOGGER.info("Enabling MessageHistory tracking for component '" + componentName + "'");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Enabling MessageHistory tracking for component '" + componentName + "'");
 			}
 		}
 	}
@@ -217,8 +217,8 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 			if (this.running) {
 				this.currentlyTrackedComponents.forEach(component -> {
 					component.setShouldTrack(false);
-					if (this.LOGGER.isInfoEnabled()) {
-						this.LOGGER.info("Disabling MessageHistory tracking for component '"
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("Disabling MessageHistory tracking for component '"
 								+ component.getComponentName() + "'");
 					}
 				});

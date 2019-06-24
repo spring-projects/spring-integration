@@ -37,7 +37,8 @@ import reactor.core.publisher.Mono;
  * A client {@link AbstractRSocketConnector} extension to the RSocket server.
  * <p>
  * Note: the {@link RSocketFactory.ClientRSocketFactory#acceptor(java.util.function.Function)}
- * in the provided {@link #factoryConfigurer} is overridden with an internal {@link IntegrationRSocketAcceptor}
+ * in the provided {@link #factoryConfigurer} is overridden with an internal
+ * {@link IntegrationRSocketMessageHandler#clientAcceptor()}
  * for the proper Spring Integration channel adapter mappings.
  *
  * @author Artem Bilan
@@ -85,7 +86,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	 * @param clientTransport the {@link ClientTransport} to use.
 	 */
 	public ClientRSocketConnector(ClientTransport clientTransport) {
-		super(new IntegrationRSocketAcceptor());
+		super(new IntegrationRSocketMessageHandler());
 		Assert.notNull(clientTransport, "'clientTransport' must not be null");
 		this.clientTransport = clientTransport;
 	}
@@ -125,7 +126,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 						.dataMimeType(getDataMimeType().toString())
 						.metadataMimeType(getMetadataMimeType().toString());
 		this.factoryConfigurer.accept(clientFactory);
-		clientFactory.acceptor(this.rsocketAcceptor);
+		clientFactory.acceptor(this.rSocketMessageHandler.clientAcceptor());
 		Payload connectPayload = EmptyPayload.INSTANCE;
 		if (this.connectRoute != null) {
 			connectPayload = DefaultPayload.create(this.connectData, this.connectRoute);
@@ -136,7 +137,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		this.autoConnect = this.rsocketAcceptor.detectEndpoints();
+		this.autoConnect = this.rSocketMessageHandler.detectEndpoints();
 	}
 
 	@Override

@@ -51,11 +51,9 @@ import org.springframework.util.MimeType;
 
 import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.frame.decoder.PayloadDecoder;
-import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
-import reactor.netty.tcp.TcpServer;
 import reactor.test.StepVerifier;
 
 /**
@@ -68,8 +66,6 @@ import reactor.test.StepVerifier;
 public class RSocketInboundGatewayIntegrationTests {
 
 	private static AnnotationConfigApplicationContext serverContext;
-
-	private static int port;
 
 	private static ServerConfig serverConfig;
 
@@ -213,11 +209,7 @@ public class RSocketInboundGatewayIntegrationTests {
 
 		@Bean
 		public ServerRSocketConnector serverRSocketConnector() {
-			TcpServer tcpServer =
-					TcpServer.create().port(0)
-							.doOnBound(server -> port = server.port());
-			ServerRSocketConnector serverRSocketConnector =
-					new ServerRSocketConnector(TcpServerTransport.create(tcpServer));
+			ServerRSocketConnector serverRSocketConnector = new ServerRSocketConnector("localhost", 0);
 			serverRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			serverRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
 			serverRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
@@ -232,7 +224,9 @@ public class RSocketInboundGatewayIntegrationTests {
 
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
-			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
+			ClientRSocketConnector clientRSocketConnector =
+					new ClientRSocketConnector("localhost",
+							serverConfig.serverRSocketConnector().getBoundPort().block());
 			clientRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());

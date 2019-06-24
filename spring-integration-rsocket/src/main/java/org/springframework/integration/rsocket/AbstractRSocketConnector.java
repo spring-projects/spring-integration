@@ -35,20 +35,20 @@ import org.springframework.util.MimeTypeUtils;
  * A base connector container for common RSocket client and server functionality.
  * <p>
  * It accepts {@link IntegrationRSocketEndpoint} instances for mapping registration via an internal
- * {@link IntegrationRSocketAcceptor} or performs an auto-detection otherwise, when all bean are ready
+ * {@link IntegrationRSocketMessageHandler} or performs an auto-detection otherwise, when all bean are ready
  * in the application context.
  *
  * @author Artem Bilan
  *
  * @since 5.2
  *
- * @see IntegrationRSocketAcceptor
+ * @see IntegrationRSocketMessageHandler
  */
 public abstract class AbstractRSocketConnector
 		implements ApplicationContextAware, InitializingBean, DisposableBean, SmartInitializingSingleton,
 		SmartLifecycle {
 
-	protected final IntegrationRSocketAcceptor rsocketAcceptor; // NOSONAR - final
+	protected final IntegrationRSocketMessageHandler rSocketMessageHandler; // NOSONAR - final
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
@@ -65,8 +65,8 @@ public abstract class AbstractRSocketConnector
 
 	private volatile boolean running;
 
-	protected AbstractRSocketConnector(IntegrationRSocketAcceptor rsocketAcceptor) {
-		this.rsocketAcceptor = rsocketAcceptor;
+	protected AbstractRSocketConnector(IntegrationRSocketMessageHandler rSocketMessageHandler) {
+		this.rSocketMessageHandler = rSocketMessageHandler;
 	}
 
 	/**
@@ -126,25 +126,25 @@ public abstract class AbstractRSocketConnector
 	 * @param endpoint the {@link IntegrationRSocketEndpoint} to map.
 	 */
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
-		this.rsocketAcceptor.addEndpoint(endpoint);
+		this.rSocketMessageHandler.addEndpoint(endpoint);
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.rsocketAcceptor.setApplicationContext(applicationContext);
+		this.rSocketMessageHandler.setApplicationContext(applicationContext);
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		this.rsocketAcceptor.setDefaultDataMimeType(this.dataMimeType);
-		this.rsocketAcceptor.setDefaultMetadataMimeType(this.metadataMimeType);
-		this.rsocketAcceptor.setRSocketStrategies(this.rsocketStrategies);
-		this.rsocketAcceptor.afterPropertiesSet();
+		this.rSocketMessageHandler.setDefaultDataMimeType(this.dataMimeType);
+		this.rSocketMessageHandler.setDefaultMetadataMimeType(this.metadataMimeType);
+		this.rSocketMessageHandler.setRSocketStrategies(this.rsocketStrategies);
+		this.rSocketMessageHandler.afterPropertiesSet();
 	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		this.rsocketAcceptor.detectEndpoints();
+		this.rSocketMessageHandler.detectEndpoints();
 	}
 
 	public void setAutoStartup(boolean autoStartup) {

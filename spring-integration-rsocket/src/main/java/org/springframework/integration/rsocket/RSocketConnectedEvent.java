@@ -31,7 +31,7 @@ import org.springframework.messaging.rsocket.RSocketRequester;
  *
  * @since 5.2
  *
- * @see IntegrationRSocketAcceptor
+ * @see IntegrationRSocketMessageHandler
  */
 @SuppressWarnings("serial")
 public class RSocketConnectedEvent extends IntegrationEvent {
