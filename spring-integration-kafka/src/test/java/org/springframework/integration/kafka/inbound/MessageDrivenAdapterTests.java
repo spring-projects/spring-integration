@@ -54,6 +54,7 @@ import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
+import org.springframework.integration.kafka.dsl.Kafka;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
@@ -92,6 +93,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Biju Kunjummen
+ * @author Cameron Mayfield
  *
  * @since 2.0
  *
@@ -108,9 +110,11 @@ public class MessageDrivenAdapterTests {
 
 	private static String topic5 = "testTopic5";
 
+	private static String topic6 = "testTopic6";
+
 	@ClassRule
 	public static EmbeddedKafkaRule embeddedKafkaRule =
-			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5);
+			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5,  topic6);
 
 	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
 
@@ -390,7 +394,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundJson() throws Exception {
+	public void testInboundJson() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -428,17 +432,46 @@ public class MessageDrivenAdapterTests {
 		assertThat(headers.get("foo")).isEqualTo("bar");
 		assertThat(received.getPayload()).isInstanceOf(Map.class);
 
-		adapter.setPayloadType(Foo.class);
+		adapter.stop();
+	}
+
+	@Test
+	public void testInboundJsonWithPayload() {
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic6);
+		KafkaMessageListenerContainer<Integer, Foo> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+
+		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = Kafka.messageDrivenChannelAdapter(container, ListenerMode.record)
+				.recordMessageConverter(new StringJsonMessageConverter())
+				.payloadType(Foo.class)
+				.get();
+		QueueChannel out = new QueueChannel();
+		adapter.setOutputChannel(out);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 2);
+
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		template.setDefaultTopic(topic6);
+		Headers kHeaders = new RecordHeaders();
+		MessageHeaders siHeaders = new MessageHeaders(Collections.singletonMap("foo", "bar"));
+		new DefaultKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
+
 		template.sendDefault(1, "{\"bar\":\"baz\"}");
 
-		received = out.receive(10000);
+		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
 
-		headers = received.getHeaders();
+		MessageHeaders headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic3);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic6);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
-		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(1L);
+		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat((Long) headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isGreaterThan(0L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
 

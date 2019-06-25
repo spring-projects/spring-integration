@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Cameron Mayfield
  *
  * @since 3.0
  */
@@ -138,6 +139,18 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 */
 	public S recoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.target.setRecoveryCallback(recoveryCallback);
+		return _this();
+	}
+
+	/**
+	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
+	 * set the payload type the converter should create. Defaults to {@link Object}.
+	 * @param payloadType the type.
+	 * @return the spec
+	 * @since 3.2.0
+	 */
+	public S payloadType(Class payloadType) {
+		this.target.setPayloadType(payloadType);
 		return _this();
 	}
 
