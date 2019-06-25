@@ -125,9 +125,16 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	public Object getPayload() {
+		InputStream inputStream;
+		try {
+			inputStream = inputStream();
+		}
+		catch (IOException e1) {
+			throw new UncheckedIOException(new SoftEndOfStreamException("Socket closed when getting input stream", e1));
+		}
 		try {
 			return getDeserializer()
-					.deserialize(inputStream());
+					.deserialize(inputStream);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

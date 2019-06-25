@@ -17,28 +17,38 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
+import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
@@ -135,6 +145,33 @@ public class TcpNetConnectionTests {
 		assertThat(inboundMessage.get()).isNotNull();
 		assertThat(inboundMessage.get().getPayload()).isEqualTo("foo");
 		assertThat(inboundMessage.get().getHeaders().get("bar")).isEqualTo("baz");
+	}
+
+	@Test
+	public void socketClosedNextRead() throws InterruptedException, IOException {
+		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		AtomicInteger port = new AtomicInteger();
+		CountDownLatch latch = new CountDownLatch(1);
+		ApplicationEventPublisher publisher = ev -> {
+			if (ev instanceof TcpConnectionServerListeningEvent) {
+				port.set(((TcpConnectionServerListeningEvent) ev).getPort());
+				latch.countDown();
+			}
+		};
+		server.setApplicationEventPublisher(publisher);
+		server.registerListener(message -> {
+			return false;
+		});
+		server.afterPropertiesSet();
+		server.start();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port.get());
+		TcpNetConnection connection = new TcpNetConnection(socket, false, false, publisher, "socketClosedNextRead");
+		socket.close();
+		assertThatThrownBy(() -> connection.getPayload())
+			.isInstanceOf(UncheckedIOException.class)
+			.hasCauseExactlyInstanceOf(SoftEndOfStreamException.class);
+		server.stop();
 	}
 
 }
