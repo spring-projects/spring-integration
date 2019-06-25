@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.UncheckedIOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -169,8 +168,7 @@ public class TcpNetConnectionTests {
 		TcpNetConnection connection = new TcpNetConnection(socket, false, false, publisher, "socketClosedNextRead");
 		socket.close();
 		assertThatThrownBy(() -> connection.getPayload())
-			.isInstanceOf(UncheckedIOException.class)
-			.hasCauseExactlyInstanceOf(SoftEndOfStreamException.class);
+			.isInstanceOf(SoftEndOfStreamException.class);
 		server.stop();
 	}
 

@@ -498,6 +498,8 @@ To implement a custom serializer and deserializer pair, implement the `org.sprin
 When the deserializer detects a closed input stream between messages, it must throw a `SoftEndOfStreamException`; this is a signal to the framework to indicate that the close was "normal".
 If the stream is closed while decoding a message, some other exception should be thrown instead.
 
+Starting with version 5.2, `SoftEndOfStreamException` is now a `RuntimeException` instead of extending `IOException`.
+
 [[caching-cf]]
 ==== TCP Caching Client Connection Factory
 

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ip.tcp.serializer;
 
-import java.io.IOException;
-
 /**
  * Used to communicate that a stream has closed, but between logical
  * messages.
@@ -26,9 +24,9 @@ import java.io.IOException;
  * @since 2.0
  *
  */
-public class SoftEndOfStreamException extends IOException {
+public class SoftEndOfStreamException extends RuntimeException {
 
-	private static final long serialVersionUID = 7309907445617226978L;
+	private static final long serialVersionUID = -2209857413498073058L;
 
 	/**
 	 * Default constructor.
