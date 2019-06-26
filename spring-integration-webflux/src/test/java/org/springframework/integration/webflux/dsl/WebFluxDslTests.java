@@ -22,10 +22,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import java.security.Principal;
+import java.time.Duration;
 import java.util.Collections;
 
 import javax.annotation.Resource;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,8 +83,12 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -135,7 +141,7 @@ public class WebFluxDslTests {
 				WebTestClient.bindToApplicationContext(this.wac)
 						.apply(SecurityMockServerConfigurers.springSecurity())
 						.configureClient()
-//						.responseTimeout(Duration.ofSeconds(600))
+						.responseTimeout(Duration.ofSeconds(600))
 						.build();
 	}
 
@@ -237,7 +243,9 @@ public class WebFluxDslTests {
 				.headers(headers -> headers.setBasicAuth("guest", "guest"))
 				.body(Mono.just("foo\nbar\nbaz"), String.class)
 				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY);
+				.expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
+				.expectBody(String.class)
+				.value(Matchers.containsString("errorTest"));
 	}
 
 	@Test
@@ -256,7 +264,7 @@ public class WebFluxDslTests {
 	}
 
 	@Test
-	public void testDynamicHttpEndpoint() throws Exception {
+	public void testDynamicHttpEndpoint() {
 		IntegrationFlow flow =
 				IntegrationFlows.from(WebFlux.inboundGateway("/dynamic")
 						.requestMapping(r -> r.params("name"))
@@ -282,12 +290,48 @@ public class WebFluxDslTests {
 				.isNotFound();
 	}
 
+	@Autowired
+	private Validator validator;
+
+	@Test
+	public void testValidation() {
+		IntegrationFlow flow =
+				IntegrationFlows.from(
+						WebFlux.inboundGateway("/validation")
+								.requestMapping((mapping) -> mapping
+										.methods(HttpMethod.POST)
+										.consumes(MediaType.APPLICATION_JSON_VALUE))
+								.requestPayloadType(
+										ResolvableType.forClassWithGenerics(Flux.class, TestModel.class))
+								.validator(this.validator))
+						.bridge()
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.webTestClient.post().uri("/validation")
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.syncBody("{\"name\": \"\"}")
+				.exchange()
+				.expectStatus().isBadRequest();
+
+		flowRegistration.destroy();
+	}
+
+
 	@Configuration
 	@EnableWebFlux
 	@EnableWebSecurity
 	@EnableWebFluxSecurity
 	@EnableIntegration
-	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
+	public static class ContextConfiguration extends WebSecurityConfigurerAdapter implements WebFluxConfigurer {
+
+		@Override
+		public Validator getValidator() {
+			return webFluxValidator();
+		}
 
 		@Bean
 		public UserDetails userDetails() {
@@ -409,6 +453,42 @@ public class WebFluxDslTests {
 		@Bean
 		public AccessDecisionManager accessDecisionManager() {
 			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
+		}
+
+		@Bean
+		public Validator webFluxValidator() {
+			return new TestModelValidator();
+		}
+
+	}
+
+	public static class TestModel {
+
+		private String name;
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+	}
+
+	private static class TestModelValidator implements Validator {
+
+		@Override
+		public boolean supports(Class<?> clazz) {
+			return TestModel.class.isAssignableFrom(clazz);
+		}
+
+		@Override
+		public void validate(Object target, Errors errors) {
+			TestModel testModel = (TestModel) target;
+			if (!StringUtils.hasText(testModel.getName())) {
+				errors.rejectValue("name", "Must not be empty");
+			}
 		}
 
 	}

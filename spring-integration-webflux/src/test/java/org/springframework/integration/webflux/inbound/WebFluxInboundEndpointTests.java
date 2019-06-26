@@ -69,8 +69,7 @@ public class WebFluxInboundEndpointTests {
 
 		this.webTestClient.get().uri("/test")
 				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-				.expectBody(String.class).isEqualTo("Endpoint is stopped");
+				.expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
 	}
 
 	@Test
