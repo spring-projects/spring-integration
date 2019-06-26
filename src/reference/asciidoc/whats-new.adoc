@@ -87,6 +87,8 @@ See <<./ip.adoc#tcp-gateways, TCP Gateways>> for more information.
 The client connection factories now support `connectTimeout` which causes an exception to be thrown if the connection is not established in that time.
 See <<./ip.adoc#tcp-connection-factory, TCP Connection Factories>> for more information.
 
+`SoftEndOfStreamException` is now a `RuntimeException` instead of extending `IOException`.
+
 [[x5.2-mail]]
 ==== Mail Changes
 

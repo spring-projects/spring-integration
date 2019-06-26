@@ -282,8 +282,7 @@ public class TcpOutboundGatewayTests {
 					fail("Unexpected " + e.getMessage());
 				}
 				else {
-					assertThat(e.getCause()).isNotNull();
-					assertThat(e.getCause() instanceof MessageTimeoutException).isTrue();
+					assertThat(e.getCause()).isInstanceOf(MessageTimeoutException.class);
 				}
 				timeouts++;
 				continue;
