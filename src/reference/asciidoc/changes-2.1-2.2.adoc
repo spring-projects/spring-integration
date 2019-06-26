@@ -27,10 +27,10 @@ For more information, see <<./mongodb.adoc#mongodb-outbound-channel-adapter,Mong
 Spring Integration now includes components for the Java Persistence API (JPA) for retrieving and persisting JPA entity objects.
 The JPA Adapter includes the following components:
 
-* <<./jpa.adoc#jpa-inbound-channel-adapter,,Inbound channel adapter>>
-* <<./jpa.adoc#jpa-outbound-channel-adapter,,Outbound channel adapter>>
-* <<./jpa.adoc#jpa-updating-outbound-gateway,,Updating outbound gateway>>
-* <<./jpa.adoc#jpa-retrieving-outbound-gateway,,Retrieving outbound gateway>>
+* <<./jpa.adoc#jpa-inbound-channel-adapter,Inbound channel adapter>>
+* <<./jpa.adoc#jpa-outbound-channel-adapter,Outbound channel adapter>>
+* <<./jpa.adoc#jpa-updating-outbound-gateway,Updating outbound gateway>>
+* <<./jpa.adoc#jpa-retrieving-outbound-gateway,Retrieving outbound gateway>>
 
 For more information, see <<./jpa.adoc#jpa,JPA Support>>.
 

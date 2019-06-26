@@ -340,7 +340,7 @@ There is one special case where a third bean is created: For architectural reaso
 This wrapper supports request handler advice handling and emits the normal 'produced no reply' debug log messages.
 Its bean name is the handler bean name plus `.wrapper` (when there is an `@EndpointId` -- otherwise, it is the normal generated handler name).
 
-Similarly <<./polling-consumer.adoc#pollable-message-source,, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
+Similarly <<./polling-consumer.adoc#pollable-message-source, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
 
 Consider the following XML configuration:
 

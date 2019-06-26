@@ -354,7 +354,7 @@ The default `MetadataStore` is a `SimpleMetadataStore`, which stores state in me
 Since version 4.1.5, these filters have a new property (`flushOnUpdate`) that causes them to flush the
 metadata store on every update (if the store implements `Flushable`).
 
-IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,,Redis>> or <<./gemfire.adoc#gemfire-metadata-store,,GemFire>>), you can have multiple instances of the same adapter or application and be sure that each file is processed only once.
+IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<./redis.adoc#redis-metadata-store,Redis>> or <<./gemfire.adoc#gemfire-metadata-store,GemFire>>), you can have multiple instances of the same adapter or application and be sure that each file is processed only once.
 
 The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
 Files are downloaded with this suffix (the default is `.writing`), and the file is renamed to its final name when the transfer is complete, making it 'visible' to the filter.
@@ -805,7 +805,7 @@ When all files are consumed, the remote fetch is attempted again, to pick up any
 IMPORTANT: When you deploy multiple instances of an application, we recommend a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
 Another use for `max-fetch-size` is if you want to stop fetching remote files but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a <<./control-bus.adoc#control-bus,,control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, with JMX, or with a <<./control-bus.adoc#control-bus,control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<FTPFile>`.
@@ -1068,10 +1068,10 @@ The `file_remoteDirectory` header provides the remote directory name, and the `f
 
 The message payload resulting from a `get` operation is a `File` object that represents the retrieved file or an `InputStream` when you use the `-stream` option.
 The `-stream` option allows retrieving the file as a stream.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,,file splitter>> or a <<./transformer.adoc#stream-transformer,,stream transformer>>.
+For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a <<./transformer.adoc#stream-transformer,stream transformer>>.
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, which you can access with a convenience method on `IntegrationMessageHeaderAccessor`
-The following example shows how to do use the covenience method:
+The following example shows how to use the convenience method:
 
 ====
 [source, java]
@@ -1083,7 +1083,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components such as the <<./file.adoc#file-splitter,,file splitter>> and the <<./transformer.adoc#stream-transformer,,stream transformer>> automatically close the session after the data is transferred.
+Framework components such as the <<./file.adoc#file-splitter,file splitter>> and the <<./transformer.adoc#stream-transformer,stream transformer>> automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:
 

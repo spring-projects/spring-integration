@@ -244,13 +244,13 @@ This can be useful when you would like do not populate some out-of-the-box heade
 
 When you try to build a new message using `MessageBuilder`, this kind of header is ignored and a particular `INFO` message is emitted to logs.
 
-Starting with version 5.0, <<./gateway.adoc#gateway,,Messaging Gateway>>, <<./content-enrichment.adoc#header-enricher,,Header Enricher>>, <<./content-enrichment.adoc#payload-enricher,,Content Enricher>> and <<./transformer.adoc#header-filter,,Header Filter>> do not let you configure the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used, and they throw `BeanInitializationException`.
+Starting with version 5.0, <<./gateway.adoc#gateway,Messaging Gateway>>, <<./content-enrichment.adoc#header-enricher,Header Enricher>>, <<./content-enrichment.adoc#payload-enricher,Content Enricher>> and <<./transformer.adoc#header-filter,Header Filter>> do not let you configure the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used, and they throw `BeanInitializationException`.
 
 [[header-propagation]]
 ===== Header Propagation
 
-When messages are processed (and modified) by message-producing endpoints (such as a <<./service-activator.adoc#service-activator,,service activator>>), in general, inbound headers are propagated to the outbound message.
-One exception to this is a <<./transformer.adoc#transformer,,transformer>>, when a complete message is returned to the framework.
+When messages are processed (and modified) by message-producing endpoints (such as a <<./service-activator.adoc#service-activator,service activator>>), in general, inbound headers are propagated to the outbound message.
+One exception to this is a <<./transformer.adoc#transformer,transformer>>, when a complete message is returned to the framework.
 In that case, the user code is responsible for the entire outbound message.
 When a transformer just returns the payload, the inbound headers are propagated.
 Also, a header is only propagated if it does not already exist in the outbound message, letting you change header values as needed.
@@ -268,7 +268,7 @@ In that case, the service activator behaves the same way as a transformer and an
 The `notPropagatedHeaders()` option is available in the `ConsumerEndpointSpec` for the Java DSL
 It is also available for XML configuration of the `<service-activator>` component as a `not-propagated-headers` attribute.
 
-IMPORTANT: Header propagation suppression does not apply to those endpoints that do not modify the message, such as <<./bridge.adoc#bridge,,bridges>> and <<./router.adoc#router,,routers>>.
+IMPORTANT: Header propagation suppression does not apply to those endpoints that do not modify the message, such as <<./bridge.adoc#bridge,bridges>> and <<./router.adoc#router,routers>>.
 
 [[message-implementations]]
 ==== Message Implementations

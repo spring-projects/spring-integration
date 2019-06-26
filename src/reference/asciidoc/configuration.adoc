@@ -152,7 +152,7 @@ The next section describes what happens if exceptions occur within the asynchron
 [[namespace-errorhandler]]
 === Error Handling
 
-As described in the <<./overview.adoc#overview,,overview>> at the very beginning of this manual, one of the main motivations behind a message-oriented framework such as Spring Integration is to promote loose coupling between components.
+As described in the <<./overview.adoc#overview,overview>> at the very beginning of this manual, one of the main motivations behind a message-oriented framework such as Spring Integration is to promote loose coupling between components.
 The message channel plays an important role, in that producers and consumers do not have to know about each other.
 However, the advantages also have some drawbacks.
 Some things become more complicated in a loosely coupled environment, and one example is error handling.
@@ -210,7 +210,7 @@ Starting with version 4.3.10, Spring Integration provides the `ErrorMessagePubli
 You can use them as a general mechanism for publishing `ErrorMessage` instances.
 You can call or extend them in any error handling scenarios.
 The `ErrorMessageSendingRecoverer` extends this class as a `RecoveryCallback` implementation that can be used with retry, such as the
-<<./handler-advice.adoc#retry-advice,, `RequestHandlerRetryAdvice`>>.
+<<./handler-advice.adoc#retry-advice,`RequestHandlerRetryAdvice`>>.
 The `ErrorMessageStrategy` is used to build an `ErrorMessage` based on the provided exception and an `AttributeAccessor` context.
 It can be injected into any `MessageProducerSupport` or `MessagingGatewaySupport`.
 The `requestMessage` is stored under `ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY` in the `AttributeAccessor` context.
@@ -415,7 +415,7 @@ The processing of these annotations creates the same beans as the corresponding 
 See <<annotations_on_beans>>.
 The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`
 (for example, for the preceding example the bean name is `thingService.otherThing.serviceActivator`) for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
-The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by <<./message-history.adoc#message-history,, the message history>>.
+The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by <<./message-history.adoc#message-history,the message history>>.
 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
 They default to `true` and `0`, respectively.

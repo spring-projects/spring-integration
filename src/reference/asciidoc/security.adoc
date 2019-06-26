@@ -159,7 +159,7 @@ This means that, when the thread that processes the handed-off message finishes 
 
 [NOTE]
 ====
-When working with an <<./gateway.adoc#async-gateway,,asynchronous gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security https://docs.spring.io/spring-security/site/docs/current/reference/html/servlet-webclient.html#concurrency[Concurrency Support], to let security context propagation be ensured over gateway invocation.
+When working with an <<./gateway.adoc#async-gateway,asynchronous gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security https://docs.spring.io/spring-security/site/docs/current/reference/html/servlet-webclient.html#concurrency[Concurrency Support], to let security context propagation be ensured over gateway invocation.
 The following example shows how to do so:
 
 

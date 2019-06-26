@@ -636,7 +636,7 @@ The following example shows how to configure a connection interceptor factory ch
 === TCP Connection Events
 
 Beginning with version 3.0, changes to `TcpConnection` instances are reported by `TcpConnectionEvent` instances.
-`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext` -- for example <<./event.adoc#appevent-inbound,,an event inbound channel adapter>>.
+`TcpConnectionEvent` is a subclass of `ApplicationEvent` and can thus be received by any `ApplicationListener` defined in the `ApplicationContext` -- for example <<./event.adoc#appevent-inbound,an event inbound channel adapter>>.
 
 `TcpConnectionEvents` have the following properties:
 
@@ -743,7 +743,7 @@ Two additional attributes support this mechanism.
 The `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
 The `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
-If you don't provide a scheduler, the framework's default <<./configuration.adoc#namespace-taskscheduler,, taskScheduler>> bean is used.
+If you don't provide a scheduler, the framework's default <<./configuration.adoc#namespace-taskscheduler,taskScheduler>> bean is used.
 
 For an outbound adapter, the connection is normally established when the first message is sent.
 The `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.

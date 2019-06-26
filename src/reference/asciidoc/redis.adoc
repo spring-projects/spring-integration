@@ -426,10 +426,10 @@ You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` 
 You can use this new `MetadataStore` implementation with adapters such as:
 
 
-* <<./feed.adoc#feed-inbound-channel-adapter,,Feed>>
-* <<./file.adoc#file-reading,,File>>
-* <<./ftp.adoc#ftp-inbound,,FTP>>
-* <<./sftp.adoc#sftp-inbound,,SFTP>>
+* <<./feed.adoc#feed-inbound-channel-adapter,Feed>>
+* <<./file.adoc#file-reading,File>>
+* <<./ftp.adoc#ftp-inbound,FTP>>
+* <<./sftp.adoc#sftp-inbound,SFTP>>
 
 To instruct these adapters to use the new `RedisMetadataStore`, declare a Spring bean named `metadataStore`.
 The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `RedisMetadataStore`.

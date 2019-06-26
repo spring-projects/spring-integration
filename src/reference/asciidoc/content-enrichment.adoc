@@ -11,9 +11,9 @@ The Spring Integration `Core` module includes two enrichers:
 
 It also includes three adapter-specific header enrichers:
 
-* <<./xml.adoc#xml-xpath-header-enricher,,XPath Header Enricher (XML Module)>>
-* <<./mail.adoc#mail-namespace,,Mail Header Enricher (Mail Module)>>
-* <<./xmpp.adoc#xmpp-message-outbound-channel-adapter,,XMPP Header Enricher (XMPP Module)>>
+* <<./xml.adoc#xml-xpath-header-enricher,XPath Header Enricher (XML Module)>>
+* <<./mail.adoc#mail-namespace,Mail Header Enricher (Mail Module)>>
+* <<./xmpp.adoc#xmpp-message-outbound-channel-adapter,XMPP Header Enricher (XMPP Module)>>
 
 See the adapter-specific sections of this reference manual to learn more about those adapters.
 

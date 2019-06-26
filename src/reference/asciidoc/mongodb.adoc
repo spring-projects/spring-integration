@@ -181,10 +181,10 @@ You can use the `MongoDbMetadataStore` to maintain metadata state across applica
 You can use this new `MetadataStore` implementation with adapters such as:
 
 
-* <<./feed.adoc#feed-inbound-channel-adapter,,Feed>>
-* <<./file.adoc#file-reading,,File>>
-* <<./ftp.adoc#ftp-inbound,,FTP>>
-* <<./sftp.adoc#sftp-inbound,,SFTP>>
+* <<./feed.adoc#feed-inbound-channel-adapter,Feed>>
+* <<./file.adoc#file-reading,File>>
+* <<./ftp.adoc#ftp-inbound,FTP>>
+* <<./sftp.adoc#sftp-inbound,SFTP>>
 
 To instruct these adapters to use the new `MongoDbMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
 The feed inbound channel adapter automatically picks up and use the declared `MongoDbMetadataStore`.

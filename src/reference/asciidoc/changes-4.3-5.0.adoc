@@ -129,7 +129,7 @@ See <<./jms.adoc#jms,JMS Support>> for more information.
 ===== Mail Changes
 
 Some inconsistencies with rendering IMAP mail content have been resolved.
-See <<./mail.adoc#imap-format-important,,the note in the "`Mail-receiving Channel Adapter`" section>> for more information.
+See <<./mail.adoc#imap-format-important,the note in the "`Mail-receiving Channel Adapter`" section>> for more information.
 
 ===== Feed Changes
 

@@ -137,7 +137,7 @@ Otherwise, it is treated as an `async` mode, and the `Mono` response is adapted 
 The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
 The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
 If `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element, and this `Flux` is sent as the payload downstream.
-Afterwards, you can use a <<./splitter.adoc#splitter,,splitter>> to iterate over this `Flux` in a reactive manner.
+Afterwards, you can use a <<./splitter.adoc#splitter,splitter>> to iterate over this `Flux` in a reactive manner.
 
 In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of the `expectedResponseType` and `replyPayloadToFlux` properties.
 It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.

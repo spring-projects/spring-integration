@@ -805,7 +805,7 @@ When all are consumed, the remote fetch is attempted again, to pick up any new f
 IMPORTANT: When you deploy multiple instances of an application, we recommend setting a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
 Another use for `max-fetch-size` is when you want to stop fetching remote files but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<./control-bus.adoc#control-bus,, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<./control-bus.adoc#control-bus, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change takes effect on the next poll.
 
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<LsEntry>`.
@@ -1026,8 +1026,8 @@ The `file_remoteDirectory` header holds the remote directory, and the `file_remo
 
 The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
 If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
-For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,,file splitter>> or a
-<<./transformer.adoc#stream-transformer,,stream transformer>>.
+For text files, a common use case is to combine this operation with a <<./file.adoc#file-splitter,file splitter>> or a
+<<./transformer.adoc#stream-transformer,stream transformer>>.
 When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
 For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
@@ -1041,7 +1041,7 @@ if (closeable != null) {
 ----
 ====
 
-Framework components, such as the <<./file.adoc#file-splitter,,File Splitter>> and <<./transformer.adoc#stream-transformer,,Stream Transformer>>,
+Framework components, such as the <<./file.adoc#file-splitter,File Splitter>> and <<./transformer.adoc#stream-transformer,Stream Transformer>>,
 automatically close the session after the data is transferred.
 
 The following example shows how to consume a file as a stream:

@@ -22,7 +22,7 @@ Spring Integration provides the following routers:
 * <<router-implementations-payloadtyperouter,Payload Type Router>>
 * <<router-implementations-headervaluerouter,Header Value Router>>
 * <<router-implementations-recipientlistrouter,Recipient List Router>>
-* <<./xml.adoc#xml-xpath-routing,,XPath Router (part of the XML module)>>
+* <<./xml.adoc#xml-xpath-routing,XPath Router (part of the XML module)>>
 * <<router-implementations-exception-router,Error Message Exception Type Router>>
 * <<router-namespace,(Generic) Router>>
 

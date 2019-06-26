@@ -608,7 +608,7 @@ By default, they append `.writing` to the file name and remove it when the trans
 Another common technique is to write a second "`marker`" file to indicate that the file transfer is complete.
 In this scenario, you should not consider `somefile.txt` (for example) to be available for use until `somefile.txt.complete` is also present.
 Spring Integration version 5.0 introduced new filters to support this mechanism.
-Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), <<./ftp.adoc#ftp-incomplete,, FTP>> and <<./sftp.adoc#sftp-incomplete,, SFTP>>.
+Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), <<./ftp.adoc#ftp-incomplete,FTP>> and <<./sftp.adoc#sftp-incomplete,SFTP>>.
 They are configurable such that the marker file can have any name, although it is usually related to the file being transferred.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/FileSystemMarkerFilePresentFileListFilter.html[Javadoc] for more information.
 
@@ -950,7 +950,7 @@ It is often better to use a sequence of transformers than to put all transformat
 In that case the `File` to `byte[]` conversion might be a logical first step.
 
 `FileToStringTransformer` extends `AbstractFilePayloadTransformer` convert a `File` object to a `String`.
-If nothing else, this can be useful for debugging (consider using it with a <<./channel.adoc#channel-wiretap,,wire tap>>).
+If nothing else, this can be useful for debugging (consider using it with a <<./channel.adoc#channel-wiretap,wire tap>>).
 
 To configure file-specific transformers, you can use the appropriate elements from the file namespace, as the following example shows:
 
@@ -1057,7 +1057,7 @@ This line is not included in the sequence header (if `applySequence` is true) no
 If a file contains only the header line, the file is treated as empty and, therefore, only `FileMarker` instances are emitted during splitting (if markers are enabled -- otherwise, no messages are emitted).
 By default (if no header name is set), the first line is considered to be data and becomes the payload of the first emitted message.
 
-If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  <<./content-enrichment.adoc#header-enricher,, header enricher>> ahead of the `FileSplitter`.
+If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  <<./content-enrichment.adoc#header-enricher,header enricher>> ahead of the `FileSplitter`.
 Note that the lines that have been moved to the headers might be filtered downstream from the normal content process.
 
 ==== Configuring with Java Configuration
