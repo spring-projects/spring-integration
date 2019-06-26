@@ -33,11 +33,15 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
+import org.springframework.integration.http.support.IntegrationWebExchangeBindException;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
 
 /**
  * The {@link MessagingGatewaySupport} extension for HTTP Inbound endpoints
@@ -64,6 +68,8 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	protected final AtomicInteger activeCount = new AtomicInteger(); // NOSONAR
 
 	private final boolean expectReply;
+
+	private Validator validator;
 
 	private ResolvableType requestPayloadType = null;
 
@@ -253,6 +259,19 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		return this.statusCodeExpression;
 	}
 
+	/**
+	 * Specify a {@link Validator} to validate a converted payload from request.
+	 * @param validator the {@link Validator} to use.
+	 * @since 5.2
+	 */
+	public void setValidator(Validator validator) {
+		this.validator = validator;
+	}
+
+	protected Validator getValidator() {
+		return this.validator;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -332,6 +351,14 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 */
 	protected boolean isReadable(HttpMethod httpMethod) {
 		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, httpMethod));
+	}
+
+	protected void validate(Object value) {
+		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(value, "requestPayload");
+		ValidationUtils.invokeValidator(this.validator, value, errors);
+		if (errors.hasErrors()) {
+			throw new IntegrationWebExchangeBindException(getComponentName(), value, errors);
+		}
 	}
 
 }

@@ -32,8 +32,7 @@ The `javax.servlet:javax.servlet-api` dependency must be provided on the target 
 
 To receive messages over HTTP, you need to use an HTTP inbound channel adapter or an HTTP inbound gateway.
 To support the HTTP inbound adapters, they need to be deployed within a servlet container such as https://tomcat.apache.org/[Apache Tomcat] or https://www.eclipse.org/jetty/[Jetty].
-The easiest way to do this is to use Spring's
-https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[`HttpRequestHandlerServlet`], by providing the following servlet definition in the `web.xml` file:
+The easiest way to do this is to use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[`HttpRequestHandlerServlet`], by providing the following servlet definition in the `web.xml` file:
 
 ====
 [source,xml]
@@ -46,9 +45,7 @@ https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/c
 ====
 
 Notice that the servlet name matches the bean name.
-For more information on using the `HttpRequestHandlerServlet`, see
-https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring],
-which is part of the Spring Framework Reference documentation.
+For more information on using the `HttpRequestHandlerServlet`, see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring], which is part of the Spring Framework Reference documentation.
 
 If you are running within a Spring MVC application, then the aforementioned explicit servlet definition is not necessary.
 In that case, the bean name for your gateway can be matched against the URL path as you would for a Spring MVC Controller bean.
@@ -79,8 +76,7 @@ An additional flag (`mergeWithDefaultConverters`) can be set along with the list
 By default, this flag is set to `false`, meaning that the custom converters replace the default list.
 
 The message conversion process uses the (optional) `requestPayloadType` property and the incoming `Content-Type` header.
-Starting with version 4.3, if a request has no content type header, `application/octet-stream` is assumed, as
-recommended by `RFC 2616`.
+Starting with version 4.3, if a request has no content type header, `application/octet-stream` is assumed, as recommended by `RFC 2616`.
 Previously, the body of such messages was ignored.
 
 Spring Integration 2.0 implemented multipart file support.
@@ -146,10 +142,17 @@ The preceding example also shows how to customize the HTTP methods accepted by t
 The reply message is available in the model map.
 By default, the key for that map entry is 'reply', but you can override this default by setting the 'replyKey' property on the endpoint's configuration.
 
+[[http-validation]]
+==== Payload Validation
+
+Starting with version 5.2, the HTTP inbound endpoints can be supplied with a `Validator` to check a payload before sending into the channel.
+This payload is already a result of conversion and extraction after `payloadExpression` to narrow a validation scope in regards to the valuable data.
+The validation failure handling is fully the same what we have in Spring MVC https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-exceptionhandlers[Error Handling].
+
 [[http-outbound]]
 === HTTP Outbound Components
 
-This section describes Spring Integration's HTTP outbound components
+This section describes Spring Integration's HTTP outbound components.
 
 ==== Using `HttpRequestExecutingMessageHandler`
 
@@ -205,8 +208,7 @@ If `transfer-cookies` is `false`, any `Set-Cookie` header received remains as `S
 HTTP is a request-response protocol.
 However, the response may not have a body, only headers.
 In this case, the `HttpRequestExecutingMessageHandler` produces a reply `Message` with the payload being an `org.springframework.http.ResponseEntity`, regardless of any provided `expected-response-type`.
-According to the https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html[HTTP RFC Status Code Definitions], there are many statuses that mandate that a response must not contain a message-body (for example,
-`204 No Content`).
+According to the https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html[HTTP RFC Status Code Definitions], there are many statuses that mandate that a response must not contain a message-body (for example, `204 No Content`).
 There are also cases where calls to the same URL might or might not return a response body.
 For example, the first request to an HTTP resource returns content, but the second does not (returning a `304 Not Modified`).
 In all cases, however, the `http_statusCode` message header is populated.
@@ -350,8 +352,7 @@ For more information regarding handler mappings, see https://docs.spring.io/spri
 [[http-cors]]
 ==== Cross-origin Resource Sharing (CORS) Support
 
-Starting with version 4.2, you can configure the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` with
-a `<cross-origin>` element.
+Starting with version 4.2, you can configure the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` with a `<cross-origin>` element.
 It represents the same options as Spring MVC's `@CrossOrigin` for `@Controller` annotations and allows the configuration of cross-origin resource sharing (CORS) for Spring Integration HTTP endpoints:
 
 * `origin`: List of allowed origins.
@@ -376,8 +377,7 @@ This property controls the value of the `Access-Control-Max-Age` header in the p
 A value of `-1` means undefined.
 The default value is 1800 seconds (30 minutes).
 
-The CORS Java Configuration is represented by the `org.springframework.integration.http.inbound.CrossOrigin` class,
-instances of which can be injected into the `HttpRequestHandlingEndpointSupport` beans.
+The CORS Java Configuration is represented by the `org.springframework.integration.http.inbound.CrossOrigin` class, instances of which can be injected into the `HttpRequestHandlingEndpointSupport` beans.
 
 [[http-response-statuscode]]
 ==== Response Status Code
@@ -403,8 +403,7 @@ The following example shows how to set the status code to `ACCEPTED`:
 ====
 
 The `<http:inbound-gateway>` resolves the 'status code' from the `http_statusCode` header of the reply `Message`.
-Starting with version 4.2, the default response status code when no reply is received within the `reply-timeout`
-is `500 Internal Server Error`.
+Starting with version 4.2, the default response status code when no reply is received within the `reply-timeout` is `500 Internal Server Error`.
 There are two ways to modify this behavior:
 
 * Add a `reply-timeout-status-code-expression`.
@@ -427,8 +426,7 @@ The payload of the `ErrorMessage` is a `MessageTimeoutException`.
 It must be transformed to something that can be converted by the gateway, such as a `String`.
 A good candidate is the exception's message property, which is the value used when you use the `expression` technique.
 
-If the error flow times out after a main flow timeout, `500 Internal Server Error` is returned, or, if the
-`reply-timeout-status-code-expression` is present, it is evaluated.
+If the error flow times out after a main flow timeout, `500 Internal Server Error` is returned, or, if the `reply-timeout-status-code-expression` is present, it is evaluated.
 
 NOTE: Previously, the default status code for a timeout was `200 OK`.
 To restore that behavior, set `reply-timeout-status-code-expression="200"`.
@@ -655,7 +653,7 @@ The `uriVariablesExpression` property provides a very powerful mechanism for eva
 We anticipate that people mostly use simple expressions, such as the preceding example.
 However, you can also configure something such as `"@uriVariablesBean.populate(#root)"` with an expression in the returned map being `variables.put("thing1", EXPRESSION_PARSER.parseExpression(message.getHeaders().get("thing2", String.class)));`, where the expression is dynamically provided in the message header named `thing2`.
 Since the header may come from an untrusted source, the HTTP outbound endpoints use `SimpleEvaluationContext` when evaluating these expressions.
-`SimpleEvaluationContext` uses only a subset of SpEL features.
+The `SimpleEvaluationContext` uses only a subset of SpEL features.
 If you trust your message sources and wish to use the restricted SpEL constructs, set the `trustedSpel` property of the outbound endpoint to `true`.
 ====
 
@@ -830,8 +828,7 @@ image::images/http-outbound-gateway.png[align="center"]
 //TODO These images are too small, and the text within them is much too small.
 
 You may want to configure the HTTP related timeout behavior, when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
-In those instances, these two components use Spring's
-https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[`RestTemplate`] support to execute HTTP requests.
+In those instances, these two components use Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[`RestTemplate`] support to execute HTTP requests.
 
 To configure timeouts for the HTTP outbound gateway and the HTTP outbound channel adapter, you can either reference a `RestTemplate` bean directly (by using the `rest-template` attribute) or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
 Spring provides the following implementations of the `ClientHttpRequestFactory` interface:

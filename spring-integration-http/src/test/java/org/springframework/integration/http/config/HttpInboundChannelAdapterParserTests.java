@@ -17,6 +17,10 @@
 package org.springframework.integration.http.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyChar;
+import static org.mockito.BDDMockito.willReturn;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -51,8 +55,10 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.Validator;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -65,8 +71,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTests {
 
@@ -112,8 +117,12 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Autowired
 	private MessageChannel autoChannel;
 
-	@Autowired @Qualifier("autoChannel.adapter")
+	@Autowired
+	@Qualifier("autoChannel.adapter")
 	private HttpRequestHandlingMessagingGateway autoChannelAdapter;
+
+	@Autowired
+	private Validator validator;
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -128,6 +137,7 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 		this.defaultAdapter.start();
 		response = new MockHttpServletResponse();
+		willReturn(true).given(this.validator).supports(any());
 		this.defaultAdapter.handleRequest(request, response);
 		assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_SWITCHING_PROTOCOLS);
 		Message<?> message = requests.receive(0);
@@ -140,12 +150,13 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		assertThat(map.get("foo").size()).isEqualTo(1);
 		assertThat(map.getFirst("foo")).isEqualTo("bar");
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel")).isNotNull();
+		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "validator")).isSameAs(this.validator);
 	}
 
 	@Test
-	public void getRequestWithHeaders() throws Exception {
+	public void getRequestWithHeaders() {
 		DefaultHttpHeaderMapper headerMapper =
-			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
+				TestUtils.getPropertyValue(withMappedHeaders, "headerMapper", DefaultHttpHeaderMapper.class);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
@@ -187,19 +198,18 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	}
 
 	@Test
-	public void getRequestNotAllowed() throws Exception {
+	public void getRequestNotAllowed() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
 		request.setRequestURI("/postOnly");
-		try {
-			this.integrationRequestMappingHandlerMapping.getHandler(request);
-		}
-		catch (HttpRequestMethodNotSupportedException e) {
-			assertThat(e.getMethod()).isEqualTo("GET");
-			assertThat(e.getSupportedMethods()).isEqualTo(new String[] { "POST" });
-		}
 
+		assertThatExceptionOfType(HttpRequestMethodNotSupportedException.class)
+				.isThrownBy(() -> this.integrationRequestMappingHandlerMapping.getHandler(request))
+				.satisfies((ex) -> {
+					assertThat(ex.getMethod()).isEqualTo("GET");
+					assertThat(ex.getSupportedMethods()).containsExactly("POST");
+				});
 	}
 
 	@Test
@@ -222,7 +232,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		assertThat(message.getPayload()).isEqualTo("test");
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void postRequestWithSerializedObjectContentOk() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
@@ -244,15 +255,15 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 
 
 	@Test
-	public void putOrDeleteMethodsSupported() throws Exception {
+	public void putOrDeleteMethodsSupported() {
 		HttpMethod[] supportedMethods =
 				TestUtils.getPropertyValue(putOrDeleteAdapter, "requestMapping.methods", HttpMethod[].class);
 		assertThat(supportedMethods.length).isEqualTo(2);
-		assertThat(supportedMethods).isEqualTo(new HttpMethod[] { HttpMethod.PUT, HttpMethod.DELETE });
+		assertThat(supportedMethods).containsExactly(HttpMethod.PUT, HttpMethod.DELETE);
 	}
 
 	@Test
-	public void testController() throws Exception {
+	public void testController() {
 		String errorCode = TestUtils.getPropertyValue(inboundController, "errorCode", String.class);
 		assertThat(errorCode).isEqualTo("oops");
 		Expression viewExpression = TestUtils.getPropertyValue(inboundController, "viewExpression", Expression.class);
@@ -269,8 +280,9 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	}
 
 	@Test
-	public void testInt2717ControllerWithViewExpression() throws Exception {
-		Expression viewExpression = TestUtils.getPropertyValue(inboundControllerViewExp, "viewExpression", Expression.class);
+	public void testInt2717ControllerWithViewExpression() {
+		Expression viewExpression = TestUtils
+				.getPropertyValue(inboundControllerViewExp, "viewExpression", Expression.class);
 		assertThat(viewExpression.getExpressionString()).isEqualTo("'foo'");
 	}
 
@@ -282,7 +294,8 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	public void testInboundAdapterWithMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterWithDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters = TestUtils
+				.getPropertyValue(adapterWithCustomConverterWithDefaults, "messageConverters", List.class);
 		assertThat(messageConverters.size() > 1)
 				.as("There should be more than 1 message converter. The customized one and the defaults.").isTrue();
 
@@ -293,17 +306,19 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	public void testInboundAdapterWithNoMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterNoDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters = TestUtils
+				.getPropertyValue(adapterWithCustomConverterNoDefaults, "messageConverters", List.class);
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0)).isInstanceOf(SerializingHttpMessageConverter.class);
-		assertThat(messageConverters.size() == 1).as("There should be only the customized messageconverter registered.")
-				.isTrue();
+		assertThat(messageConverters).as("There should be only the customized MessageConverter registered.")
+				.hasSize(1);
 	}
 
 	@Test
 	public void testInboundAdapterWithNoMessageConverterNoDefaults() {
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters = TestUtils
+				.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters", List.class);
 		assertThat(messageConverters.size() > 1).as("There should be more than 1 message converter. The defaults.")
 				.isTrue();
 	}
@@ -316,6 +331,7 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		TestObject(String text) {
 			this.text = text;
 		}
+
 	}
 
 }

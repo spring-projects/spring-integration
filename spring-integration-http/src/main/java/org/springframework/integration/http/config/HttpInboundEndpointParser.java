@@ -107,12 +107,13 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
 
 		if (!CollectionUtils.isEmpty(headerElements)) {
-			ManagedMap<String, Object> headerElementsMap = new ManagedMap<String, Object>();
+			ManagedMap<String, Object> headerElementsMap = new ManagedMap<>();
 			for (Element headerElement : headerElements) {
 				String name = headerElement.getAttribute(NAME_ATTRIBUTE);
 				BeanDefinition headerExpressionDef =
-						IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE,
-								headerElement);
+						IntegrationNamespaceUtils
+								.createExpressionDefIfAttributeDefined(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE,
+										headerElement);
 				if (headerExpressionDef != null) {
 					headerElementsMap.put(name, headerExpressionDef);
 				}
@@ -133,8 +134,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		}
 
 		BeanDefinition expressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("view-name", "view-expression",
-						parserContext, element, false);
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("view-name",
+						"view-expression", parserContext, element, false);
 		if (expressionDef != null) {
 			builder.addPropertyValue("viewExpression", expressionDef);
 		}
@@ -154,13 +155,16 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 		if (StringUtils.hasText(headerMapper)) {
 			if (hasMappedRequestHeaders || hasMappedResponseHeaders) {
-				parserContext.getReaderContext().error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
-						"attributes are allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
+				parserContext.getReaderContext()
+						.error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
+								"attributes are allowed when a 'header-mapper' has been specified.",
+								parserContext.extractSource(element));
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
 		else {
-			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultHttpHeaderMapper.class);
+			BeanDefinitionBuilder headerMapperBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultHttpHeaderMapper.class);
 			headerMapperBuilder.setFactoryMethod("inboundMapper");
 
 			if (hasMappedRequestHeaders) {
@@ -181,7 +185,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		if (crossOriginElement != null) {
 			BeanDefinitionBuilder crossOriginBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(CrossOrigin.class);
-			String[] attributes = {"origin", "allowed-headers", "exposed-headers", "max-age", "method"};
+			String[] attributes = { "origin", "allowed-headers", "exposed-headers", "max-age", "method" };
 			for (String crossOriginAttribute : attributes) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(crossOriginBuilder, crossOriginElement,
 						crossOriginAttribute);
@@ -191,7 +195,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			builder.addPropertyValue("crossOrigin", crossOriginBuilder.getBeanDefinition());
 		}
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type", "requestPayloadTypeClass");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"request-payload-type", "requestPayloadTypeClass");
 
 		BeanDefinition statusCodeExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("status-code-expression", element);
@@ -205,6 +210,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "validator");
 	}
 
 	private String getInputChannelAttributeName() {
@@ -212,7 +218,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 	}
 
 	private BeanDefinition createRequestMapping(Element element) {
-		BeanDefinitionBuilder requestMappingDefBuilder = BeanDefinitionBuilder.genericBeanDefinition(RequestMapping.class);
+		BeanDefinitionBuilder requestMappingDefBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(RequestMapping.class);
 
 		String methods = element.getAttribute("supported-methods");
 		if (StringUtils.hasText(methods)) {
@@ -224,7 +231,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		Element requestMappingElement = DomUtils.getChildElementByTagName(element, "request-mapping");
 
 		if (requestMappingElement != null) {
-			for (String requestMappingAttribute : new String[]{"params", "headers", "consumes", "produces"}) {
+			for (String requestMappingAttribute : new String[] { "params", "headers", "consumes", "produces" }) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(requestMappingDefBuilder, requestMappingElement,
 						requestMappingAttribute);
 			}

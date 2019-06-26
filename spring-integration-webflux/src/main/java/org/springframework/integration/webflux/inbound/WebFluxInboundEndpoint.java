@@ -48,15 +48,11 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
-import org.springframework.integration.http.support.IntegrationWebExchangeBindException;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.accept.HeaderContentTypeResolver;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
@@ -94,8 +90,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	private ReactiveAdapterRegistry adapterRegistry = new ReactiveAdapterRegistry();
 
-	private Validator validator;
-
 	public WebFluxInboundEndpoint() {
 		this(true);
 	}
@@ -131,15 +125,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	public void setReactiveAdapterRegistry(ReactiveAdapterRegistry adapterRegistry) {
 		Assert.notNull(adapterRegistry, "'adapterRegistry' must not be null");
 		this.adapterRegistry = adapterRegistry;
-	}
-
-	/**
-	 * Specify a {@link Validator} to validate a converted payload from request.
-	 * @param validator the {@link Validator} to use.
-	 * @since 5.2
-	 */
-	public void setValidator(Validator validator) {
-		this.validator = validator;
 	}
 
 	@Override
@@ -244,14 +229,14 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		Map<String, Object> readHints = Collections.emptyMap();
 		if (adapter != null && adapter.isMultiValue()) {
 			Flux<?> flux = httpMessageReader.read(bodyType, elementType, request, response, readHints);
-			if (this.validator != null) {
+			if (getValidator() != null) {
 				flux = flux.doOnNext(this::validate);
 			}
 			return Mono.just(adapter.fromPublisher(flux));
 		}
 		else {
 			Mono<?> mono = httpMessageReader.readMono(bodyType, elementType, request, response, readHints);
-			if (this.validator != null) {
+			if (getValidator() != null) {
 				mono = mono.doOnNext(this::validate);
 			}
 			if (adapter != null) {
@@ -260,14 +245,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			else {
 				return mono;
 			}
-		}
-	}
-
-	private void validate(Object value) {
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(value, "requestPayload");
-		ValidationUtils.invokeValidator(this.validator, value, errors);
-		if (errors.hasErrors()) {
-			throw new IntegrationWebExchangeBindException(getComponentName(), value, errors);
 		}
 	}
 
