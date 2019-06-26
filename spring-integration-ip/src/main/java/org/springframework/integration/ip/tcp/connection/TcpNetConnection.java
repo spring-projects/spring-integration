@@ -17,6 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
@@ -82,7 +84,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		try {
 			this.socket.close();
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+		}
 		super.close();
 	}
 
@@ -117,7 +120,15 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	public Object getPayload() throws Exception {
-		return this.getDeserializer().deserialize(this.socket.getInputStream());
+		InputStream inputStream;
+		try {
+			inputStream = this.socket.getInputStream();
+		}
+		catch (IOException e1) {
+			throw new SoftEndOfStreamException("Socket closed when getting input stream", e1);
+		}
+		return getDeserializer()
+				.deserialize(inputStream);
 	}
 
 	@Override
@@ -184,9 +195,9 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 				catch (NoListenerException nle) { // could also be thrown by an interceptor
 					if (logger.isWarnEnabled()) {
 						logger.warn("Unexpected message - no endpoint registered with connection interceptor: "
-										+ getConnectionId()
-										+ " - "
-										+ message);
+								+ getConnectionId()
+								+ " - "
+								+ message);
 					}
 				}
 				catch (Exception e2) {
@@ -230,24 +241,24 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					if (noReadErrorOnClose) {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Read exception " +
-									 this.getConnectionId(), e);
+									this.getConnectionId(), e);
 						}
 						else if (logger.isDebugEnabled()) {
 							logger.debug("Read exception " +
-									 this.getConnectionId() + " " +
-									 e.getClass().getSimpleName() +
-								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
+									this.getConnectionId() + " " +
+									e.getClass().getSimpleName() +
+									":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 						}
 					}
 					else if (logger.isTraceEnabled()) {
 						logger.error("Read exception " +
-								 this.getConnectionId(), e);
+								this.getConnectionId(), e);
 					}
 					else {
 						logger.error("Read exception " +
-									 this.getConnectionId() + " " +
-									 e.getClass().getSimpleName() +
-								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
+								this.getConnectionId() + " " +
+								e.getClass().getSimpleName() +
+								":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 					}
 				}
 				this.sendExceptionToListener(e);
