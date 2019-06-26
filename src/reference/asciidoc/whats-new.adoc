@@ -97,7 +97,9 @@ See <<./mail.adoc#mail-inbound,Mail-receiving Channel Adapter>> for more informa
 ==== WebFlux Changes
 
 The `WebFluxRequestExecutingMessageHandler` now supports a `Publisher`, `Resource` and `MultiValueMap` as a request message `payload`.
+The `WebFluxInboundEndpoint` now supports a request payload validation.
 See <<./webflux.adoc#webflux,WebFlux Support>> for more information.
+
 [[x5.2-mongodb]]
 ==== MongoDb Changes
 

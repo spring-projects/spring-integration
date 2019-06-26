@@ -48,15 +48,20 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
+import org.springframework.integration.http.support.IntegrationWebExchangeBindException;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.accept.HeaderContentTypeResolver;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 import org.springframework.web.server.NotAcceptableStatusException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 import org.springframework.web.server.WebHandler;
@@ -88,6 +93,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	private RequestedContentTypeResolver requestedContentTypeResolver = new HeaderContentTypeResolver();
 
 	private ReactiveAdapterRegistry adapterRegistry = new ReactiveAdapterRegistry();
+
+	private Validator validator;
 
 	public WebFluxInboundEndpoint() {
 		this(true);
@@ -126,6 +133,15 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		this.adapterRegistry = adapterRegistry;
 	}
 
+	/**
+	 * Specify a {@link Validator} to validate a converted payload from request.
+	 * @param validator the {@link Validator} to use.
+	 * @since 5.2
+	 */
+	public void setValidator(Validator validator) {
+		this.validator = validator;
+	}
+
 	@Override
 	public String getComponentType() {
 		return super.getComponentType().replaceFirst("http", "webflux");
@@ -138,7 +154,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				return doHandle(exchange);
 			}
 			else {
-				return serviceUnavailableResponse(exchange);
+				return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Endpoint is stopped"))
+						.then();
 			}
 		});
 	}
@@ -146,8 +163,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	private Mono<Void> doHandle(ServerWebExchange exchange) {
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
-				.cast(Object.class)
-				.switchIfEmpty(Mono.just(exchange.getRequest().getQueryParams()))
 				.map(body ->
 						new RequestEntity<>(body, exchange.getRequest().getHeaders(),
 								exchange.getRequest().getMethod(), exchange.getRequest().getURI()))
@@ -168,10 +183,12 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	private Mono<?> extractRequestBody(ServerWebExchange exchange) {
 		if (isReadable(exchange.getRequest().getMethod())) {
-			return extractReadableRequestBody(exchange);
+			return extractReadableRequestBody(exchange)
+					.cast(Object.class)
+					.switchIfEmpty(queryParams(exchange));
 		}
 		else {
-			return Mono.just(exchange.getRequest().getQueryParams());
+			return queryParams(exchange);
 		}
 	}
 
@@ -227,16 +244,30 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		Map<String, Object> readHints = Collections.emptyMap();
 		if (adapter != null && adapter.isMultiValue()) {
 			Flux<?> flux = httpMessageReader.read(bodyType, elementType, request, response, readHints);
+			if (this.validator != null) {
+				flux = flux.doOnNext(this::validate);
+			}
 			return Mono.just(adapter.fromPublisher(flux));
 		}
 		else {
 			Mono<?> mono = httpMessageReader.readMono(bodyType, elementType, request, response, readHints);
+			if (this.validator != null) {
+				mono = mono.doOnNext(this::validate);
+			}
 			if (adapter != null) {
 				return Mono.just(adapter.fromPublisher(mono));
 			}
 			else {
 				return mono;
 			}
+		}
+	}
+
+	private void validate(Object value) {
+		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(value, "requestPayload");
+		ValidationUtils.invokeValidator(this.validator, value, errors);
+		if (errors.hasErrors()) {
+			throw new IntegrationWebExchangeBindException(getComponentName(), value, errors);
 		}
 	}
 
@@ -435,18 +466,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return Mono.error(new NotAcceptableStatusException(producibleMediaTypes));
 	}
 
-	private ResolvableType getElementType(ReactiveAdapter adapter, ResolvableType genericType) {
-		if (adapter.isNoValue()) {
-			return ResolvableType.forClass(Void.class);
-		}
-		else if (genericType != ResolvableType.NONE) {
-			return genericType;
-		}
-		else {
-			return ResolvableType.forClass(Object.class);
-		}
-	}
-
 	private List<MediaType> getProducibleMediaTypes(ResolvableType elementType) {
 		return this.codecConfigurer.getWriters()
 				.stream()
@@ -488,20 +507,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return (mediaTypes.isEmpty() ? Collections.singletonList(MediaType.ALL) : mediaTypes);
 	}
 
-	private List<MediaType> getProducibleTypes(ServerWebExchange exchange,
-			Supplier<List<MediaType>> producibleTypesSupplier) {
-
-		Set<MediaType> mediaTypes = exchange.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
-		return (mediaTypes != null ? new ArrayList<>(mediaTypes) : producibleTypesSupplier.get());
-	}
-
-	private MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {
-		MediaType producibleToUse = producible.copyQualityValue(acceptable);
-		Comparator<MediaType> comparator = MediaType.SPECIFICITY_COMPARATOR;
-		return (comparator.compare(acceptable, producibleToUse) <= 0 ? acceptable : producibleToUse);
-	}
-
-
 	private Mono<Void> setStatusCode(ServerWebExchange exchange, RequestEntity<?> requestEntity) {
 		ServerHttpResponse response = exchange.getResponse();
 		if (getStatusCodeExpression() != null) {
@@ -510,19 +515,36 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				response.setStatusCode(httpStatus);
 			}
 		}
-
 		return response.setComplete();
 	}
 
-	private Mono<Void> serviceUnavailableResponse(ServerWebExchange exchange) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Endpoint is stopped; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
+	private static ResolvableType getElementType(ReactiveAdapter adapter, ResolvableType genericType) {
+		if (adapter.isNoValue()) {
+			return ResolvableType.forClass(Void.class);
 		}
-		ServerHttpResponse response = exchange.getResponse();
-		response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
-		return response.writeWith(
-				Mono.just(response.bufferFactory()
-						.wrap("Endpoint is stopped".getBytes())));
+		else if (genericType != ResolvableType.NONE) {
+			return genericType;
+		}
+		else {
+			return ResolvableType.forClass(Object.class);
+		}
+	}
+
+	private static List<MediaType> getProducibleTypes(ServerWebExchange exchange,
+			Supplier<List<MediaType>> producibleTypesSupplier) {
+
+		Set<MediaType> mediaTypes = exchange.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
+		return (mediaTypes != null ? new ArrayList<>(mediaTypes) : producibleTypesSupplier.get());
+	}
+
+	private static Mono<?> queryParams(ServerWebExchange exchange) {
+		return Mono.just(exchange.getRequest().getQueryParams());
+	}
+
+	private static MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {
+		MediaType producibleToUse = producible.copyQualityValue(acceptable);
+		Comparator<MediaType> comparator = MediaType.SPECIFICITY_COMPARATOR;
+		return (comparator.compare(acceptable, producibleToUse) <= 0 ? acceptable : producibleToUse);
 	}
 
 }
