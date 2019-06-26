@@ -19,7 +19,6 @@ package org.springframework.integration.http.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyChar;
 import static org.mockito.BDDMockito.willReturn;
 
 import java.io.ByteArrayOutputStream;
@@ -53,8 +52,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
