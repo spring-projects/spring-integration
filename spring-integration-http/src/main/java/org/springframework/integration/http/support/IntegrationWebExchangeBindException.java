@@ -16,9 +16,6 @@
 
 package org.springframework.integration.http.support;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.support.WebExchangeBindException;
