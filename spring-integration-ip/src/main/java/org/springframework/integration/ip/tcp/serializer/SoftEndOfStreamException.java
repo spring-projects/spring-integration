@@ -30,12 +30,29 @@ public class SoftEndOfStreamException extends IOException {
 
 	private static final long serialVersionUID = 7309907445617226978L;
 
+	/**
+	 * Default constructor.
+	 */
 	public SoftEndOfStreamException() {
 		super();
 	}
 
+	/**
+	 * Construct an instance with the message.
+	 * @param message the message.
+	 */
 	public SoftEndOfStreamException(String message) {
 		super(message);
+	}
+
+	/**
+	 * Construct an instance with the message and cause.
+	 * @param message the message.
+	 * @param cause the cause.
+	 * @since 4.3.21.
+	 */
+	public SoftEndOfStreamException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 }
