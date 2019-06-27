@@ -29,12 +29,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.RouteMatcher;
 
 import io.rsocket.RSocketFactory;
 import io.rsocket.SocketAcceptor;
@@ -181,17 +177,10 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 			return (setupPayload, sendingRSocket) -> {
 				IntegrationRSocket rsocket = createRSocket(setupPayload, sendingRSocket);
 				return rsocket.handleConnectionSetupPayload(setupPayload)
-						.doOnNext((message) -> {
-							MessageHeaders messageHeaders = message.getHeaders();
-							DataBuffer dataBuffer = message.getPayload();
-							String destination =
-									messageHeaders.get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER,
-											RouteMatcher.Route.class)
-											.value();
+						.doOnNext((dataBuffer) -> {
+							String destination = rsocket.getDestination(setupPayload);
 							Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(destination, dataBuffer);
-							RSocketRequester rsocketRequester =
-									messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
-											RSocketRequester.class);
+							RSocketRequester rsocketRequester = rsocket.getRequester();
 							this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
 							RSocketConnectedEvent rSocketConnectedEvent =
 									new RSocketConnectedEvent(rsocket, destination, dataBuffer, rsocketRequester);
