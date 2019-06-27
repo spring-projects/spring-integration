@@ -40,13 +40,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.util.NetUtil;
 import io.rsocket.frame.decoder.PayloadDecoder;
-import io.rsocket.transport.netty.client.TcpClientTransport;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.netty.tcp.InetSocketAddressUtil;
-import reactor.netty.tcp.TcpClient;
 
 /**
  * @author Artem Bilan
@@ -87,18 +83,10 @@ public class RSocketDslTests {
 			return serverRSocketConnector;
 		}
 
-
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector(ServerRSocketConnector serverRSocketConnector) {
-			ClientRSocketConnector clientRSocketConnector =
-					new ClientRSocketConnector(
-							TcpClientTransport.create(
-									TcpClient.create()
-											.addressSupplier(() ->
-													InetSocketAddressUtil.createUnresolved(
-															NetUtil.LOCALHOST.getHostAddress(),
-															serverRSocketConnector.getBoundPort().block()))
-							));
+			int port = serverRSocketConnector.getBoundPort().block();
+			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			clientRSocketConnector.setAutoStartup(false);
