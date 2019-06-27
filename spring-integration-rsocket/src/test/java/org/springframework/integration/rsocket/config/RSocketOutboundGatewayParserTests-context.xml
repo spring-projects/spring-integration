@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<bean id="clientRSocketConnector" class="org.springframework.integration.rsocket.ClientRSocketConnector">
-		<constructor-arg value="https://example.org"/>
+		<constructor-arg value="http://example.org"/>
 		<property name="autoStartup" value="false"/>
 	</bean>
 

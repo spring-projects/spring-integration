@@ -615,8 +615,6 @@ project('spring-integration-rsocket') {
 	description = 'Spring Integration RSocket Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("io.projectreactor.netty:reactor-netty:$reactorNettyVersion")
-		compile("io.rsocket:rsocket-core:$rsocketVersion")
 		compile("io.rsocket:rsocket-transport-netty:$rsocketVersion")
 
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
