@@ -113,6 +113,7 @@ public class SimpleMessageListenerContainerSpec extends
 	 * @see SimpleMessageListenerContainer#setBatchSize(int)
 	 * @deprecated since 5.2 in favor of {@link #batchSize(int)}
 	 */
+	@Deprecated
 	public SimpleMessageListenerContainerSpec txSize(int txSize) {
 		return batchSize(txSize);
 	}
