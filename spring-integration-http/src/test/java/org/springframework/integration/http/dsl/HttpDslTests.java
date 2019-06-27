@@ -21,6 +21,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -71,6 +73,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
@@ -199,6 +204,37 @@ public class HttpDslTests {
 								}));
 	}
 
+	@Autowired
+	private Validator validator;
+
+	@Test
+	public void testValidation() throws Exception {
+		IntegrationFlow flow =
+				IntegrationFlows.from(
+						Http.inboundChannelAdapter("/validation")
+								.requestMapping((mapping) -> mapping
+										.methods(HttpMethod.POST)
+										.consumes(MediaType.APPLICATION_JSON_VALUE))
+								.requestPayloadType(TestModel.class)
+								.validator(this.validator))
+						.bridge()
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.mockMvc.perform(
+				post("/validation")
+						.with(httpBasic("user", "user"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"name\": \"\"}"))
+				.andExpect(status().isBadRequest())
+				.andExpect(status().reason("Validation failure"));
+
+		flowRegistration.destroy();
+	}
+
+
 	@Configuration
 	@EnableWebSecurity
 	@EnableIntegration
@@ -309,6 +345,11 @@ public class HttpDslTests {
 			return channelSecurityInterceptor;
 		}
 
+		@Bean
+		public Validator customValidator() {
+			return new TestModelValidator();
+		}
+
 	}
 
 	public static class HttpProxyResponseErrorHandler extends DefaultResponseErrorHandler {
@@ -318,6 +359,37 @@ public class HttpDslTests {
 			Charset charset = getCharset(response);
 			String content = "Error";
 			return charset != null ? content.getBytes(charset) : content.getBytes();
+		}
+
+	}
+
+	public static class TestModel {
+
+		private String name;
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+	}
+
+	private static class TestModelValidator implements Validator {
+
+		@Override
+		public boolean supports(Class<?> clazz) {
+			return TestModel.class.isAssignableFrom(clazz);
+		}
+
+		@Override
+		public void validate(Object target, Errors errors) {
+			TestModel testModel = (TestModel) target;
+			if (!StringUtils.hasText(testModel.getName())) {
+				errors.rejectValue("name", "Must not be empty");
+			}
 		}
 
 	}

@@ -37,6 +37,7 @@ import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 
 /**
@@ -71,6 +72,9 @@ public class WebFluxInboundChannelAdapterParserTests {
 	@Autowired
 	private ReactiveAdapterRegistry reactiveAdapterRegistry;
 
+	@Autowired
+	private Validator validator;
+
 	@Test
 	public void reactiveMinimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
@@ -88,6 +92,7 @@ public class WebFluxInboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("requestedContentTypeResolver"))
 				.isNotSameAs(this.requestedContentTypeResolver);
 		assertThat(endpointAccessor.getPropertyValue("adapterRegistry")).isNotSameAs(this.reactiveAdapterRegistry);
+		assertThat(endpointAccessor.getPropertyValue("validator")).isSameAs(this.validator);
 	}
 
 	@Test

@@ -37,6 +37,7 @@ import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
@@ -45,7 +46,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
  *
  * @since 5.0
  */
-public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpointSupportSpec<S, E>, E extends BaseHttpInboundEndpoint>
+public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpointSupportSpec<S, E>,
+		E extends BaseHttpInboundEndpoint>
 		extends MessagingGatewaySpec<S, E>
 		implements ComponentsRegistration {
 
@@ -93,7 +95,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * Specify a SpEL expression to evaluate in order to generate the Message payload.
 	 * @param payloadExpression The payload expression.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setPayloadExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setPayloadExpression(Expression)
 	 */
 	public S payloadExpression(String payloadExpression) {
 		return payloadExpression(PARSER.parseExpression(payloadExpression));
@@ -103,7 +105,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * Specify a SpEL expression to evaluate in order to generate the Message payload.
 	 * @param payloadExpression The payload expression.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setPayloadExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setPayloadExpression(Expression)
 	 */
 	public S payloadExpression(Expression payloadExpression) {
 		this.target.setPayloadExpression(payloadExpression);
@@ -115,7 +117,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * @param payloadFunction The payload {@link Function}.
 	 * @param <P> the expected HTTP request body type.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setPayloadExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setPayloadExpression(Expression)
 	 */
 	public <P> S payloadFunction(Function<HttpEntity<P>, ?> payloadFunction) {
 		return payloadExpression(new FunctionExpression<>(payloadFunction));
@@ -125,7 +127,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * Specify a Map of SpEL expressions to evaluate in order to generate the Message headers.
 	 * @param expressions The {@link Map} of SpEL expressions for headers.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
+	 * @see BaseHttpInboundEndpoint#setHeaderExpressions(Map)
 	 */
 	public S headerExpressions(Map<String, Expression> expressions) {
 		Assert.notNull(expressions, "'headerExpressions' must not be null");
@@ -139,7 +141,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * @param header the header name to populate.
 	 * @param expression the SpEL expression for the header.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
+	 * @see BaseHttpInboundEndpoint#setHeaderExpressions(Map)
 	 */
 	public S headerExpression(String header, String expression) {
 		return headerExpression(header, PARSER.parseExpression(expression));
@@ -150,7 +152,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * @param header the header name to populate.
 	 * @param expression the SpEL expression for the header.
 	 * @return the spec
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
+	 * @see BaseHttpInboundEndpoint#setHeaderExpressions(Map)
 	 */
 	public S headerExpression(String header, Expression expression) {
 		this.headerExpressions.put(header, expression);
@@ -163,7 +165,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * @param headerFunction the function to evaluate the header value against {@link HttpEntity}.
 	 * @param <P> the expected HTTP body type.
 	 * @return the current Spec.
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setHeaderExpressions(Map)
+	 * @see BaseHttpInboundEndpoint#setHeaderExpressions(Map)
 	 */
 	public <P> S headerFunction(String header, Function<HttpEntity<P>, ?> headerFunction) {
 		return headerExpression(header, new FunctionExpression<>(headerFunction));
@@ -251,7 +253,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
 	 * @param statusCodeExpression The status code Expression.
 	 * @return the current Spec.
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setStatusCodeExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setStatusCodeExpression(Expression)
 	 */
 	public S statusCodeExpression(String statusCodeExpression) {
 		this.target.setStatusCodeExpressionString(statusCodeExpression);
@@ -263,7 +265,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
 	 * @param statusCodeExpression The status code Expression.
 	 * @return the current Spec.
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setStatusCodeExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setStatusCodeExpression(Expression)
 	 */
 	public S statusCodeExpression(Expression statusCodeExpression) {
 		this.target.setStatusCodeExpression(statusCodeExpression);
@@ -275,10 +277,21 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
 	 * @param statusCodeFunction The status code {@link Function}.
 	 * @return the current Spec.
-	 * @see org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport#setStatusCodeExpression(Expression)
+	 * @see BaseHttpInboundEndpoint#setStatusCodeExpression(Expression)
 	 */
 	public S statusCodeFunction(Function<RequestEntity<?>, ?> statusCodeFunction) {
 		return statusCodeExpression(new FunctionExpression<>(statusCodeFunction));
+	}
+
+	/**
+	 * Specify a {@link Validator} to validate a converted payload from request.
+	 * @param validator the {@link Validator} to use.
+	 * @return the spec
+	 * @since 5.2
+	 */
+	public S validator(Validator validator) {
+		this.target.setValidator(validator);
+		return _this();
 	}
 
 	@Override

@@ -20,7 +20,6 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.integration.http.dsl.HttpInboundEndpointSupportSpec;
 import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 
 /**
@@ -51,17 +50,6 @@ public class WebFluxInboundEndpointSpec
 
 	public WebFluxInboundEndpointSpec reactiveAdapterRegistry(ReactiveAdapterRegistry adapterRegistry) {
 		this.target.setReactiveAdapterRegistry(adapterRegistry);
-		return this;
-	}
-
-	/**
-	 * Specify a {@link Validator} to validate a converted payload from request.
-	 * @param validator the {@link Validator} to use.
-	 * @return the spec
-	 * @since 5.2
-	 */
-	public WebFluxInboundEndpointSpec validator(Validator validator) {
-		this.target.setValidator(validator);
 		return this;
 	}
 

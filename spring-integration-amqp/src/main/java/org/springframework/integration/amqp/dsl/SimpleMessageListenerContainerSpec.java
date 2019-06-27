@@ -22,6 +22,8 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
  * Spec for a {@link SimpleMessageListenerContainer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -108,10 +110,22 @@ public class SimpleMessageListenerContainerSpec extends
 	/**
 	 * @param txSize the txSize.
 	 * @return the spec.
-	 * @see SimpleMessageListenerContainer#setTxSize(int)
+	 * @see SimpleMessageListenerContainer#setBatchSize(int)
+	 * @deprecated since 5.2 in favor of {@link #batchSize(int)}
 	 */
 	public SimpleMessageListenerContainerSpec txSize(int txSize) {
-		this.listenerContainer.setTxSize(txSize);
+		return batchSize(txSize);
+	}
+
+	/**
+	 * The batch size to use.
+	 * @param batchSize the batchSize.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setBatchSize(int)
+	 * @since 5.2
+	 */
+	public SimpleMessageListenerContainerSpec batchSize(int batchSize) {
+		this.listenerContainer.setBatchSize(batchSize);
 		return this;
 	}
 

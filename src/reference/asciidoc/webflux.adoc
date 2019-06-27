@@ -91,8 +91,14 @@ See <<./http.adoc#http-request-mapping,Request Mapping Support>> and <<./http.ad
 
 When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
 
+[[webflux-validation]]
+==== Payload Validation
+
 Starting with version 5.2, the `WebFluxInboundEndpoint` can be configured with a `Validator`.
-It is used to validate elements in the `Publisher` to which a request has been converted by the `HttpMessageReader`.
+Unlike the MVC validation in the <<./http.adoc#http-validation,HTTP Support>>, it is used to validate elements in the `Publisher` to which a request has been converted by the `HttpMessageReader`, before performing a fallback and `payloadExpression` functions.
+The Framework can't assume how complex the `Publisher` object can be after building the final payload.
+If there is a requirements to restrict validation visibility for exactly final payload (or its `Publisher` elements), the validation should go downstream instead of WebFlux endpoint.
+See more information in the Spring WebFlux https://docs.spring.io/spring/docs/5.1.8.RELEASE/spring-framework-reference/web-reactive.html#webflux-fn-handler-validation[documentation].
 An invalid payload is rejected with an `IntegrationWebExchangeBindException` (a `WebExchangeBindException` extension), containing all the validation `Errors`.
 See more in Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation[Reference Manual] about validation.
 

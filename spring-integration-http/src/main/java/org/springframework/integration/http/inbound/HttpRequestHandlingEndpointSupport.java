@@ -319,6 +319,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 		AbstractIntegrationMessageBuilder<?> messageBuilder;
 
+		if (getValidator() != null) {
+			validate(payload);
+		}
+
 		if (payload instanceof Message<?>) {
 			messageBuilder =
 					getMessageBuilderFactory()

@@ -327,6 +327,18 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="validator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.validation.Validator" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					A 'Validator' bean reference to validate a payload converted from the HTTP request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:element name="outbound-channel-adapter">

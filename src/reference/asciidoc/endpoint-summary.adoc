@@ -90,6 +90,12 @@ The following table summarizes the various endpoints with quick links to the app
 | <<./http.adoc#http-inbound,Http Inbound Components>>
 | <<./http.adoc#http-outbound,HTTP Outbound Components>>
 
+| *WebFlux*
+| <<./webflux.adoc#webflux-namespace,WebFlux Namespace Support>>
+| <<./webflux.adoc#webflux-namespace,WebFlux Namespace Support>>
+| <<./webflux.adoc#webflux-inbound,WebFlux Inbound Components>>
+| <<./webflux.adoc#webflux-outbound,WebFlux Outbound Components>>
+
 | *JDBC*
 | <<./jdbc.adoc#jdbc-inbound-channel-adapter,Inbound Channel Adapter>> and <<./jdbc.adoc#stored-procedure-inbound-channel-adapter,Stored Procedure Inbound Channel Adapter>>
 | <<./jdbc.adoc#jdbc-outbound-channel-adapter,Outbound Channel Adapter>> and <<./jdbc.adoc#stored-procedure-outbound-channel-adapter,Stored Procedure Outbound Channel Adapter>>

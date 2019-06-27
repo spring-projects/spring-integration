@@ -10,7 +10,11 @@
 
 	<si:channel id="requests"/>
 
-	<inbound-channel-adapter id="reactiveMinimalConfig" channel="requests"/>
+	<beans:bean id="validator" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.validation.Validator"/>
+	</beans:bean>
+
+	<inbound-channel-adapter id="reactiveMinimalConfig" channel="requests" validator="validator"/>
 
 	<inbound-channel-adapter id="reactiveFullConfig" channel="requests"
 							 path="test1"

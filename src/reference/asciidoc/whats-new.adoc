@@ -95,6 +95,12 @@ See <<./ip.adoc#tcp-connection-factory, TCP Connection Factories>> for more info
 The `AbstractMailReceiver` has now an `autoCloseFolder` option (`true` by default), to disable an automatic folder close after a fetch, but populate `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header instead for downstream interaction.
 See <<./mail.adoc#mail-inbound,Mail-receiving Channel Adapter>> for more information.
 
+[[x5.2-http]]
+==== HTTP Changes
+
+The HTTP inbound endpoint now support a request payload validation.
+See <<./http.adoc#http,HTTP Support>> for more information.
+
 [[x5.2-webflux]]
 ==== WebFlux Changes
 

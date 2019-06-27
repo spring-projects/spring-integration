@@ -330,7 +330,7 @@ public class WebFluxDslTests {
 
 		@Override
 		public Validator getValidator() {
-			return webFluxValidator();
+			return new TestModelValidator();
 		}
 
 		@Bean
@@ -453,11 +453,6 @@ public class WebFluxDslTests {
 		@Bean
 		public AccessDecisionManager accessDecisionManager() {
 			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
-		}
-
-		@Bean
-		public Validator webFluxValidator() {
-			return new TestModelValidator();
 		}
 
 	}
