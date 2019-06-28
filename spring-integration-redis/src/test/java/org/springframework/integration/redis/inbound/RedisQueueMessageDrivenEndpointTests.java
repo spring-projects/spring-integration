@@ -69,8 +69,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Gunnar Hillert
@@ -80,8 +80,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
@@ -101,7 +100,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testInt3014Default() {
-
 		String queueName = "si.test.redisQueueInboundChannelAdapterTests";
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
@@ -124,6 +122,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		RedisQueueMessageDrivenEndpoint endpoint =
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(10);
 		endpoint.afterPropertiesSet();
@@ -144,8 +143,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testInt3014ExpectMessageTrue() {
-
-		final String queueName = "si.test.redisQueueInboundChannelAdapterTests2";
+		String queueName = "si.test.redisQueueInboundChannelAdapterTests2";
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
@@ -167,6 +165,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		RedisQueueMessageDrivenEndpoint endpoint =
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setBeanClassLoader(null);
 		endpoint.setExpectMessage(true);
 		endpoint.setOutputChannel(channel);
 		endpoint.setErrorChannel(errorChannel);
@@ -195,7 +194,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testInt3017IntegrationInbound() {
-
 		String payload = new Date().toString();
 
 		RedisTemplate<String, String> redisTemplate = new StringRedisTemplate();
@@ -229,9 +227,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testInt3442ProperlyStop() throws Exception {
-		final String queueName = "si.test.testInt3442ProperlyStopTest";
+		String queueName = "si.test.testInt3442ProperlyStopTest";
 
-		final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -264,9 +262,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		redisTemplate.boundListOps(queueName).leftPush("foo");
 
-		final CountDownLatch stopLatch = new CountDownLatch(1);
+		CountDownLatch stopLatch = new CountDownLatch(1);
 
-		endpoint.stop(() -> stopLatch.countDown());
+		endpoint.stop(stopLatch::countDown);
 
 		executorService.shutdown();
 		assertTrue(executorService.awaitTermination(20, TimeUnit.SECONDS));
@@ -315,7 +313,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		((InitializingBean) this.connectionFactory).afterPropertiesSet();
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.getConnectionFactoryForTest());
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -337,7 +335,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testInt3932ReadFromLeft() {
-
 		String queueName = "si.test.redisQueueInboundChannelAdapterTests3932";
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
@@ -360,6 +357,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		RedisQueueMessageDrivenEndpoint endpoint =
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(10);
 		endpoint.setRightPop(false);
