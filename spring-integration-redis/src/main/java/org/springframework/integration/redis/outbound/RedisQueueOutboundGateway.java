@@ -43,19 +43,19 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
 
-	private final static RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	private static final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	private final RedisTemplate<String, Object> template;
 
 	private final BoundListOperations<String, Object> boundListOps;
 
-	private volatile boolean extractPayload = true;
+	private boolean extractPayload = true;
 
-	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer<?> serializer;
 
-	private volatile boolean serializerExplicitlySet;
+	private boolean serializerExplicitlySet;
 
-	private volatile int receiveTimeout = TIMEOUT;
+	private int receiveTimeout = TIMEOUT;
 
 	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
@@ -66,6 +66,14 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.template.setKeySerializer(new StringRedisSerializer());
 		this.template.afterPropertiesSet();
 		this.boundListOps = this.template.boundListOps(queueName);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		super.setBeanClassLoader(beanClassLoader);
+		if (!this.serializerExplicitlySet) {
+			this.serializer = new JdkSerializationRedisSerializer(beanClassLoader);
+		}
 	}
 
 	public void setReceiveTimeout(int timeout) {

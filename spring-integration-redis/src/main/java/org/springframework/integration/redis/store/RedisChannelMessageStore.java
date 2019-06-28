@@ -19,6 +19,7 @@ package org.springframework.integration.redis.store;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -41,16 +42,20 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
-public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAware, InitializingBean {
+public class RedisChannelMessageStore
+		implements ChannelMessageStore, BeanNameAware, InitializingBean, BeanClassLoaderAware {
 
 	private final RedisTemplate<Object, Message<?>> redisTemplate;
 
-	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
-
 	private String beanName;
+
+	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
+
+	private boolean valueSerializerExplicitlySet;
 
 	/**
 	 * Construct a message store that uses Java Serialization for messages.
@@ -65,6 +70,13 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 		this.redisTemplate.afterPropertiesSet();
 	}
 
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		if (!this.valueSerializerExplicitlySet) {
+			this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer(classLoader));
+		}
+	}
+
 	/**
 	 * Use a different serializer (default {@link JdkSerializationRedisSerializer} for
 	 * the {@link Message}.
@@ -74,6 +86,7 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.redisTemplate.setValueSerializer(valueSerializer);
+		this.valueSerializerExplicitlySet = true;
 	}
 
 	/**

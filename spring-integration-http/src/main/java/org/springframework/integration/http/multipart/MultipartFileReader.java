@@ -23,7 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Strategy for reading {@link MultipartFile} content.
  *
- * @author mark Fisher
+ * @author Mark Fisher
+ *
  * @since 2.0
  */
 public interface MultipartFileReader<T> {

@@ -19,6 +19,7 @@ package org.springframework.integration.redis.inbound;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -52,7 +53,8 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class RedisQueueInboundGateway extends MessagingGatewaySupport implements ApplicationEventPublisherAware {
+public class RedisQueueInboundGateway extends MessagingGatewaySupport
+		implements ApplicationEventPublisherAware, BeanClassLoaderAware {
 
 	private static final String QUEUE_NAME_SUFFIX = ".reply";
 
@@ -66,23 +68,23 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile boolean serializerExplicitlySet;
+	private boolean serializerExplicitlySet;
 
-	private volatile Executor taskExecutor;
+	private Executor taskExecutor;
 
-	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer<?> serializer;
 
-	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private boolean extractPayload = true;
 
 	private volatile boolean active;
 
 	private volatile boolean listening;
-
-	private volatile boolean extractPayload = true;
 
 	private volatile Runnable stopCallback;
 
@@ -110,11 +112,17 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	@Override
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		if (!this.serializerExplicitlySet) {
+			this.serializer = new JdkSerializationRedisSerializer(beanClassLoader);
+		}
+	}
+
 	public void setSerializer(RedisSerializer<?> serializer) {
 		this.serializer = serializer;
 		this.serializerExplicitlySet = true;
 	}
-
 
 	/**
 	 * This timeout (milliseconds) is used when retrieving elements from the queue
@@ -157,11 +165,11 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'extractPayload == false'.");
 		}
 		if (this.taskExecutor == null) {
-			String beanName = this.getComponentName();
+			String beanName = getComponentName();
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-")
-					+ this.getComponentType());
+					+ getComponentType());
 		}
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && this.getBeanFactory() != null) {
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && getBeanFactory() != null) {
 			MessagePublishingErrorHandler errorHandler =
 					new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
 			errorHandler.setDefaultErrorChannel(getErrorChannel());
@@ -179,8 +187,8 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		if (this.active) {
 			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
 					+ " milliseconds.", e);
-			this.publishException(e);
-			this.sleepBeforeRecoveryAttempt();
+			publishException(e);
+			sleepBeforeRecoveryAttempt();
 		}
 		else {
 			logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
@@ -189,7 +197,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	@SuppressWarnings("unchecked")
 	private void receiveAndReply() {
-		byte[] value = null;
+		byte[] value;
 		try {
 			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		}
