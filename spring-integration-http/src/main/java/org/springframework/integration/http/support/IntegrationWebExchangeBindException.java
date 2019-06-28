@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.support;
 
+import java.util.Objects;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.support.WebExchangeBindException;
@@ -60,6 +62,27 @@ public class IntegrationWebExchangeBindException extends WebExchangeBindExceptio
 			sb.append("[").append(error).append("] ");
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof IntegrationWebExchangeBindException)) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		IntegrationWebExchangeBindException that = (IntegrationWebExchangeBindException) o;
+		return Objects.equals(this.endpointId, that.endpointId) &&
+				Objects.equals(this.failedPayload, that.failedPayload);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), this.endpointId, this.failedPayload);
 	}
 
 }
