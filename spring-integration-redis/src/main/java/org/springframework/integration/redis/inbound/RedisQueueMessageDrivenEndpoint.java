@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -40,7 +41,6 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
@@ -57,7 +57,8 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport implements ApplicationEventPublisherAware {
+public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
+		implements ApplicationEventPublisherAware, BeanClassLoaderAware {
 
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
@@ -65,27 +66,27 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile MessageChannel errorChannel;
+	private Executor taskExecutor;
 
-	private volatile Executor taskExecutor;
+	private RedisSerializer<?> serializer;
 
-	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
+	private boolean serializerExplicitlySet;
 
-	private volatile boolean expectMessage = false;
+	private boolean expectMessage = false;
 
-	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private boolean rightPop = true;
 
 	private volatile boolean active;
 
 	private volatile boolean listening;
 
 	private volatile Runnable stopCallback;
-
-	private volatile boolean rightPop = true;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -94,7 +95,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	public RedisQueueMessageDrivenEndpoint(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		RedisTemplate<String, byte[]> template = new RedisTemplate<String, byte[]>();
+		RedisTemplate<String, byte[]> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.setKeySerializer(new StringRedisSerializer());
@@ -107,8 +108,16 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	@Override
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		if (!this.serializerExplicitlySet) {
+			this.serializer = new JdkSerializationRedisSerializer(beanClassLoader);
+		}
+	}
+
 	public void setSerializer(RedisSerializer<?> serializer) {
 		this.serializer = serializer;
+		this.serializerExplicitlySet = true;
 	}
 
 	/**
@@ -116,8 +125,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	 * just the payload for a Message, or does the data represent a serialized
 	 * {@link Message}?. {@code expectMessage} defaults to false. This means
 	 * the retrieved data will be used as the payload for a new Spring Integration
-	 * Message. Otherwise, the data is deserialized as Spring Integration
-	 * Message.
+	 * Message. Otherwise, the data is deserialized as Spring Integration Message.
 	 * @param expectMessage Defaults to false
 	 */
 	public void setExpectMessage(boolean expectMessage) {
@@ -142,12 +150,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
-	}
-
-	@Override
-	public void setErrorChannel(MessageChannel errorChannel) {
-		super.setErrorChannel(errorChannel);
-		this.errorChannel = errorChannel;
 	}
 
 	public void setRecoveryInterval(long recoveryInterval) {
@@ -178,7 +180,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && beanFactory != null) {
 			MessagePublishingErrorHandler errorHandler =
 					new MessagePublishingErrorHandler(ChannelResolverUtils.getChannelResolver(beanFactory));
-			errorHandler.setDefaultErrorChannel(this.errorChannel);
+			errorHandler.setDefaultErrorChannel(getErrorChannel());
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
 	}
