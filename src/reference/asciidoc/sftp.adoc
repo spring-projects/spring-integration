@@ -1212,7 +1212,7 @@ It is particularly useful for mget (for example: `local-directory-expression="'/
 This attribute is mutually exclusive with the `local-directory` attribute.
 
 For all commands, the 'expression' property of the gateway holds the path on which the command acts.
-For the `mget` command, the expression might evaluate to '*', meaning to retrieve all files, 'somedirectory/*', and other values that end with `*`.
+For the `mget` command, the expression might evaluate to `*`, meaning to retrieve all files, `somedirectory/*`, and other values that end with `*`.
 
 The following example shows a gateway configured for an `ls` command:
 

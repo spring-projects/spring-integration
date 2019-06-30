@@ -610,7 +610,7 @@ On the other hand, the `ConsumerEndpointFactoryBean` delegates to an another fir
 The goal of the implementation of this interface is to handle the message consumed by the endpoint from the channel.
 All EIP components in Spring Integration are `MessageHandler` implementations (for example, `AggregatingMessageHandler`, `MessageTransformingHandler`, `AbstractMessageSplitter`, and others).
 The target protocol outbound adapters (`FileWritingMessageHandler`, `HttpRequestExecutingMessageHandler`, `AbstractMqttMessageHandler`, and others) are also `MessageHandler` implementations.
-When you develop Spring Integration applications with Java configuration, you should look into the Spring Integration module to find an appropriate `MessageHandler` implementation to use for the `@ServiceActivator`\ configuration.
+When you develop Spring Integration applications with Java configuration, you should look into the Spring Integration module to find an appropriate `MessageHandler` implementation to use for the `@ServiceActivator` configuration.
 For example, to send an XMPP message (see <<./xmpp.adoc#xmpp,XMPP Support>>) you should configure something like the following:
 
 ====

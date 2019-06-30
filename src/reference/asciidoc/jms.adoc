@@ -417,11 +417,10 @@ The message selector is:
 +
 The responding system is expected to return the inbound `myCorrelationHeader` in the reply `myCorrelationHeader`.
 
-. A `reply-destination*` property is provided, no `<reply-listener/>` is provided, and `correlation-key="JMSCorrelationID*"`::
+. A `reply-destination*` property is provided, no `<reply-listener/>` is provided, and `correlation-key="JMSCorrelationID*"`
 (Note the `*` in the correlation key.)
 +
-The gateway uses the value in the `jms_correlationId` header (if present) from the request message and inserts it in
-the `JMSCorrelationID` header.
+The gateway uses the value in the `jms_correlationId` header (if present) from the request message and inserts it in the `JMSCorrelationID` header.
 The message selector is:
 +
 `messageSelector = "JMSCorrelationID = '" + headers['jms_correlationId'] + "'"`
@@ -470,7 +469,7 @@ The responding system is expected to return the inbound `myCorrelationHeader` in
 Since each gateway has a unique ID, each instance only gets its own replies.
 The complete correlation data is used to route the reply to the correct requesting thread.
 
-. A `reply-destination*` property is provided, a `<reply-listener/>` is provided, and `correlation-key="JMSCorrelationID*"`*
+. A `reply-destination*` property is provided, a `<reply-listener/>` is provided, and `correlation-key="JMSCorrelationID*"`
 +
 (Note the `*` in the correlation key)
 +

@@ -356,19 +356,19 @@ Starting with version 4.2, you can configure the `<http:inbound-channel-adapter>
 It represents the same options as Spring MVC's `@CrossOrigin` for `@Controller` annotations and allows the configuration of cross-origin resource sharing (CORS) for Spring Integration HTTP endpoints:
 
 * `origin`: List of allowed origins.
-`*` means that all origins are allowed.
+The `pass:[*]` means that all origins are allowed.
 These values are placed in the `Access-Control-Allow-Origin` header of both the pre-flight and actual responses.
-The default value is `*`.
+The default value is `pass:[*]`.
 * `allowed-headers`: Indicates which request headers can be used during the actual request.
-`*` means that all headers requested by the client are allowed.
+The `pass:[*]` means that all headers requested by the client are allowed.
 This property controls the value of the pre-flight response's `Access-Control-Allow-Headers` header.
-The default value is `*`.
+The default value is `pass:[*]`.
 * `exposed-headers`: List of response headers that the user-agent lets the client access.
 This property controls the value of the actual response's `Access-Control-Expose-Headers` header.
 * `method`: The HTTP request methods to allow: `GET`, `POST`, `HEAD`, `OPTIONS`, `PUT`, `PATCH`, `DELETE`, `TRACE`.
 Methods specified here overrides those in `supported-methods`.
 * `allow-credentials`: Set to `true` if the the browser should include any cookies associated to the domain of the request or `false` if it should not.
-An empty string ('""') means undefined.
+An empty string ("") means undefined.
 If `true`, the pre-flight response includes the `Access-Control-Allow-Credentials=true` header.
 The default value is `true`.
 * `max-age`: Controls the cache duration for pre-flight responses.

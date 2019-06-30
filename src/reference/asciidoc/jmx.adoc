@@ -229,7 +229,7 @@ However, if the message flow was started by manually creating a Spring Integrati
 [[jmx-mbean-exporter]]
 ==== MBean Exporter
 
-Spring Integration components may  themselvesbe exposed as MBeans when the `IntegrationMBeanExporter` is configured.
+Spring Integration components may themselves be exposed as MBeans when the `IntegrationMBeanExporter` is configured.
 To create an instance of the `IntegrationMBeanExporter`, define a bean and provide a reference to an `MBeanServer` and a domain name (if desired).
 You can leave out the domain, in which case the default domain is `org.springframework.integration`.
 The following example shows how to declare an instance of an `IntegrationMBeanExporter` and an associated `MBeanServer` instance:
@@ -347,7 +347,7 @@ public class Namer implements ObjectNamingStrategy {
 ====
 
 The `beanKey` argument is a `String` that contain the standard object name, beginning with the `default-domain` and including any additional static properties.
-The preceding example moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`"my.domain:type=Integration,*`.
+The preceding example moves the standard `type` part to `componentType` and sets the `type` to 'Integration', enabling selection of all Integration MBeans in one query:`my.domain:type=Integration,*`.
 Doing so also groups the beans under one tree entry under the domain in such tools as VisualVM.
 
 NOTE: The default naming strategy is a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html[`MetadataNamingStrategy`].
@@ -443,7 +443,7 @@ The `\!thing` pattern matches a bean named `!thing`.
 
 IntegrationMBeanExporter changes::
 The `IntegrationMBeanExporter` no longer implements `SmartLifecycle`.
-This means that `start()` and `stop()` operations are no longer available to registerand unregister MBeans.
+This means that `start()` and `stop()` operations are no longer available to register and unregister MBeans.
 The MBeans are now registered during context initialization and unregistered when the context is destroyed.
 
 [[jmx-mbean-shutdown]]

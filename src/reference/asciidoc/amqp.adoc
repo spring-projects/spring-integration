@@ -1378,7 +1378,7 @@ See the <<header-copy-caution,caution>> that appears later in this section for w
 To override the default and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
 `STANDARD_REPLY_HEADERS` in the properties.
 
-TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as 'thing*' or `*thing`) to be matched.
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such as `thing*` or `*thing`) to be matched.
 `*` matches all headers.
 
 Starting with version 4.1, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) lets the `NON_STANDARD_HEADERS` token be configured for the `requestHeaderNames` and `replyHeaderNames` properties (in addition to the existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
