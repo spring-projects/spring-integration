@@ -21,7 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.junit.jupiter.api.condition.EnabledIf;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 /**
  * JUnit Jupiter condition to prevent long running tests from running on every build;
@@ -33,11 +33,7 @@ import org.junit.jupiter.api.condition.EnabledIf;
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@EnabledIf(LongRunningTest.LONG_RUNNING_SCRIPT)
+@EnabledIf("#{environment['RUN_LONG_INTEGRATION_TESTS'] == 'true'}")
 public @interface LongRunningTest {
-
-	String LONG_RUNNING_SCRIPT =
-			"systemEnvironment.get('RUN_LONG_INTEGRATION_TESTS') == 'true' ||" +
-					" systemProperty.get('RUN_LONG_INTEGRATION_TESTS') == 'true'";
 
 }

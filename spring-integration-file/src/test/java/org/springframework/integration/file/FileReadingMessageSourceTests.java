@@ -17,6 +17,7 @@
 package org.springframework.integration.file;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Comparator;
 
 import org.junit.Before;
@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.messaging.Message;
 
 /**
@@ -58,32 +59,30 @@ public class FileReadingMessageSourceTests {
 	@Mock
 	private Comparator<File> comparator;
 
-	public void prepResource() throws Exception {
-		when(inputDirectoryMock.isDirectory()).thenReturn(true);
-		when(inputDirectoryMock.exists()).thenReturn(true);
-		when(inputDirectoryMock.canRead()).thenReturn(true);
+	public void prepResource() {
 		when(inputDirectoryMock.getAbsolutePath()).thenReturn("foo/bar");
 		when(fileMock.getAbsolutePath()).thenReturn("foo/bar/fileMock");
 		when(locker.lock(isA(File.class))).thenReturn(true);
 	}
 
 	@Before
-	public void initialize() throws Exception {
+	public void initialize() {
 		prepResource();
 		this.source = new FileReadingMessageSource(comparator);
 		this.source.setDirectory(inputDirectoryMock);
 		this.source.setLocker(locker);
+		this.source.setBeanFactory(mock(BeanFactory.class));
 		this.source.afterPropertiesSet();
 	}
 
 	@Test
-	public void straightProcess() throws Exception {
+	public void straightProcess() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		assertThat(source.receive().getPayload()).isEqualTo(fileMock);
 	}
 
 	@Test
-	public void requeueOnFailure() throws Exception {
+	public void requeueOnFailure() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertThat(received).isNotNull();
@@ -93,7 +92,7 @@ public class FileReadingMessageSourceTests {
 	}
 
 	@Test
-	public void scanEachPoll() throws Exception {
+	public void scanEachPoll() {
 		File anotherFileMock = mock(File.class);
 		when(anotherFileMock.getAbsolutePath()).thenReturn("foo/bar/anotherFileMock");
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock, anotherFileMock });
@@ -105,7 +104,7 @@ public class FileReadingMessageSourceTests {
 	}
 
 	@Test
-	public void noDuplication() throws Exception {
+	public void noDuplication() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertThat(received).isNotNull();
@@ -114,13 +113,14 @@ public class FileReadingMessageSourceTests {
 		verify(inputDirectoryMock, times(2)).listFiles();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void nullFilter() throws Exception {
-		source.setFilter(null);
+	@Test
+	public void nullFilter() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> source.setFilter(null));
 	}
 
 	@Test
-	public void lockIsAcquired() throws IOException {
+	public void lockIsAcquired() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertThat(received).isNotNull();
@@ -129,7 +129,7 @@ public class FileReadingMessageSourceTests {
 	}
 
 	@Test
-	public void lockedFilesAreIgnored() throws IOException {
+	public void lockedFilesAreIgnored() {
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		when(locker.lock(fileMock)).thenReturn(false);
 		Message<File> received = source.receive();
@@ -138,7 +138,7 @@ public class FileReadingMessageSourceTests {
 	}
 
 	@Test
-	public void orderedReception() throws Exception {
+	public void orderedReception() {
 		File file1 = mock(File.class);
 		when(file1.getAbsolutePath()).thenReturn("foo/bar/file1");
 		File file2 = mock(File.class);
@@ -151,7 +151,7 @@ public class FileReadingMessageSourceTests {
 		when(comparator.compare(file1, file3)).thenReturn(1);
 		when(comparator.compare(file3, file2)).thenReturn(-1);
 
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{file2, file3, file1});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { file2, file3, file1 });
 		assertThat(source.receive().getPayload()).isSameAs(file3);
 		assertThat(source.receive().getPayload()).isSameAs(file2);
 		assertThat(source.receive().getPayload()).isSameAs(file1);
