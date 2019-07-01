@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -89,7 +90,13 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	private PollableChannel fromChannel;
 
 	@Autowired
+	private Lifecycle fromChannelEndpoint;
+
+	@Autowired
 	private MessageChannel symmetricalInputChannel;
+
+	@Autowired
+	private Lifecycle symmetricalRedisChannelEndpoint;
 
 	@Autowired
 	private PollableChannel symmetricalOutputChannel;
@@ -106,6 +113,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
 
 		String payload = "testing";
 
@@ -135,6 +143,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertEquals(payload2, receive.getPayload());
 
 		endpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	@Test
@@ -149,6 +158,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
 
 		Message<?> message = MessageBuilder.withPayload("testing").build();
 
@@ -187,16 +197,21 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				Matchers.containsString("java.lang.String cannot be cast to org.springframework.messaging.Message"));
 
 		endpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testInt3017IntegrationInbound() throws Exception {
-		String payload = new Date().toString();
-
+		String queueName = "si.test.redisQueueInboundChannelAdapterTests2";
 		RedisTemplate<String, String> redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
+
+		this.fromChannelEndpoint.start();
+		String payload = new Date().toString();
+
 
 		redisTemplate.boundListOps("si.test.Int3017IntegrationInbound")
 				.leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
@@ -204,14 +219,22 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		Message<?> receive = this.fromChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
+		this.fromChannelEndpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	@Test
 	@RedisAvailable
 	public void testInt3017IntegrationSymmetrical() throws Exception {
+		String queueName = "si.test.Int3017IntegrationSymmetrical";
+		RedisTemplate<String, String> redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
+		this.symmetricalRedisChannelEndpoint.start();
 		UUID payload = UUID.randomUUID();
 		Message<UUID> message = MessageBuilder.withPayload(payload)
-				.setHeader("redis_queue", "si.test.Int3017IntegrationSymmetrical")
+				.setHeader("redis_queue", queueName)
 				.build();
 
 		this.symmetricalInputChannel.send(message);
@@ -219,6 +242,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		Message<?> receive = this.symmetricalOutputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
+		this.symmetricalRedisChannelEndpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	@Test
@@ -233,6 +258,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
 
 		while (redisTemplate.boundListOps(queueName).rightPop() != null) {
 			// drain
@@ -277,6 +303,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertTrue(stopLatch.await(21, TimeUnit.SECONDS));
 
 		Mockito.verify(boundListOperations, atLeastOnce()).rightPush(Mockito.any(byte[].class));
+		redisTemplate.delete(queueName);
 	}
 
 
@@ -292,7 +319,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		final CountDownLatch exceptionsLatch = new CountDownLatch(2);
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
+				this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
@@ -345,6 +373,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertEquals(payload, receive.getPayload());
 
 		endpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	@Test
@@ -359,6 +388,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete(queueName);
 
 		String payload = "testing";
 
@@ -389,6 +419,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertEquals(payload2, receive.getPayload());
 
 		endpoint.stop();
+		redisTemplate.delete(queueName);
 	}
 
 	private void waitListening(RedisQueueMessageDrivenEndpoint endpoint) throws InterruptedException {

@@ -18,10 +18,11 @@
 		<int:queue/>
 	</int:channel>
 
-	<int-redis:queue-inbound-channel-adapter queue="si.test.Int3017IntegrationInbound"
-											  channel="fromChannel"
-											  expect-message="true"
-											  serializer="testSerializer"/>
+	<int-redis:queue-inbound-channel-adapter id="fromChannelEndpoint" queue="si.test.Int3017IntegrationInbound"
+											 channel="fromChannel"
+											 expect-message="true"
+											 auto-startup="false"
+											 serializer="testSerializer"/>
 
 	<bean id="testSerializer" class="org.springframework.integration.redis.util.CustomJsonSerializer"/>
 
@@ -30,9 +31,11 @@
 		<int-redis:queue-outbound-channel-adapter queue-expression="headers.redis_queue"/>
 	</int:chain>
 
-	<int-redis:queue-inbound-channel-adapter queue="si.test.Int3017IntegrationSymmetrical"
-											  channel="symmetricalRedisChannel"
-											  serializer=""/>
+	<int-redis:queue-inbound-channel-adapter id="symmetricalRedisChannelEndpoint"
+											 queue="si.test.Int3017IntegrationSymmetrical"
+											 channel="symmetricalRedisChannel"
+											 auto-startup="false"
+											 serializer=""/>
 
 
 	<int:payload-deserializing-transformer input-channel="symmetricalRedisChannel" output-channel="symmetricalOutputChannel"/>
