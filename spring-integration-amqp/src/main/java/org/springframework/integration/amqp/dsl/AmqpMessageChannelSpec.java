@@ -39,11 +39,12 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends AmqpPollableMessageChannelSpec<S> {
 
-	private final List<Advice> adviceChain = new LinkedList<Advice>();
+	private final List<Advice> adviceChain = new LinkedList<>();
 
 	AmqpMessageChannelSpec(ConnectionFactory connectionFactory) {
 		super(new AmqpChannelFactoryBean(true), connectionFactory);
@@ -205,16 +206,28 @@ public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends
 	 * Configure the txSize.
 	 * @param txSize the txSize.
 	 * @return the spec.
-	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setTxSize(int)
+	 * @deprecated since 5.2 in favor of {@link #batchSize(int)}
 	 */
+	@Deprecated
 	public S txSize(int txSize) {
-		this.amqpChannelFactoryBean.setTxSize(txSize);
+		return batchSize(txSize);
+	}
+
+	/**
+	 * Configure the batch size.
+	 * @param batchSize the batchSize.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#setBatchSize(int)
+	 */
+	public S batchSize(int batchSize) {
+		this.amqpChannelFactoryBean.setBatchSize(batchSize);
 		return _this();
 	}
 
 	@Override
 	protected AbstractAmqpChannel doGet() {
-		this.amqpChannelFactoryBean.setAdviceChain(this.adviceChain.toArray(new Advice[this.adviceChain.size()]));
+		this.amqpChannelFactoryBean.setAdviceChain(this.adviceChain.toArray(new Advice[0]));
 		return super.doGet();
 	}
 

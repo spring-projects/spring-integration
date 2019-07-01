@@ -70,73 +70,73 @@ import org.springframework.util.ErrorHandler;
 public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel>
 		implements SmartLifecycle, BeanNameAware {
 
-	private volatile AbstractAmqpChannel channel;
-
-	private volatile List<ChannelInterceptor> interceptors;
+	private final AmqpTemplate amqpTemplate = new RabbitTemplate();
 
 	private final boolean messageDriven;
 
-	private final AmqpTemplate amqpTemplate = new RabbitTemplate();
+	private AbstractAmqpChannel channel;
 
-	private volatile AmqpAdmin amqpAdmin;
+	private List<ChannelInterceptor> interceptors;
 
-	private volatile FanoutExchange exchange;
+	private AmqpAdmin amqpAdmin;
 
-	private volatile String queueName;
+	private FanoutExchange exchange;
 
-	private volatile boolean autoStartup = true;
+	private String queueName;
 
-	private volatile Advice[] adviceChain;
+	private boolean autoStartup = true;
 
-	private volatile Integer concurrentConsumers;
+	private Advice[] adviceChain;
 
-	private volatile Integer consumersPerQueue;
+	private Integer concurrentConsumers;
 
-	private volatile ConnectionFactory connectionFactory;
+	private Integer consumersPerQueue;
 
-	private volatile MessagePropertiesConverter messagePropertiesConverter;
+	private ConnectionFactory connectionFactory;
 
-	private volatile ErrorHandler errorHandler;
+	private MessagePropertiesConverter messagePropertiesConverter;
 
-	private volatile Boolean exposeListenerChannel;
+	private ErrorHandler errorHandler;
 
-	private volatile Integer phase;
+	private Boolean exposeListenerChannel;
 
-	private volatile Integer prefetchCount;
+	private Integer phase;
 
-	private volatile boolean isPubSub;
+	private Integer prefetchCount;
 
-	private volatile Long receiveTimeout;
+	private boolean isPubSub;
 
-	private volatile Long recoveryInterval;
+	private Long receiveTimeout;
 
-	private volatile Long shutdownTimeout;
+	private Long recoveryInterval;
 
-	private volatile String beanName;
+	private Long shutdownTimeout;
 
-	private volatile AcknowledgeMode acknowledgeMode;
+	private String beanName;
 
-	private volatile boolean channelTransacted;
+	private AcknowledgeMode acknowledgeMode;
 
-	private volatile Executor taskExecutor;
+	private boolean channelTransacted;
 
-	private volatile PlatformTransactionManager transactionManager;
+	private Executor taskExecutor;
 
-	private volatile TransactionAttribute transactionAttribute;
+	private PlatformTransactionManager transactionManager;
 
-	private volatile Integer txSize;
+	private TransactionAttribute transactionAttribute;
 
-	private volatile Integer maxSubscribers;
+	private Integer batchSize;
 
-	private volatile Boolean missingQueuesFatal;
+	private Integer maxSubscribers;
 
-	private volatile MessageDeliveryMode defaultDeliveryMode;
+	private Boolean missingQueuesFatal;
 
-	private volatile Boolean extractPayload;
+	private MessageDeliveryMode defaultDeliveryMode;
 
-	private volatile AmqpHeaderMapper outboundHeaderMapper = DefaultAmqpHeaderMapper.outboundMapper();
+	private Boolean extractPayload;
 
-	private volatile AmqpHeaderMapper inboundHeaderMapper = DefaultAmqpHeaderMapper.inboundMapper();
+	private AmqpHeaderMapper outboundHeaderMapper = DefaultAmqpHeaderMapper.outboundMapper();
+
+	private AmqpHeaderMapper inboundHeaderMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private boolean headersLast;
 
@@ -314,8 +314,18 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.transactionManager = transactionManager;
 	}
 
+	/**
+	 * Specify a batch size for consumer.
+	 * @param txSize the batch size to use
+	 * @deprecated since 5.2 in favor of {@link #setBatchSize(Integer)}
+	 */
+	@Deprecated
 	public void setTxSize(int txSize) {
-		this.txSize = txSize;
+		setBatchSize(txSize);
+	}
+
+	public void setBatchSize(Integer batchSize) {
+		this.batchSize = batchSize;
 	}
 
 	public void setMaxSubscribers(int maxSubscribers) {
@@ -360,18 +370,20 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			}
 			if (this.isPubSub) {
 				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
-						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
+						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper,
+						this.inboundHeaderMapper);
 				JavaUtils.INSTANCE
-					.acceptIfNotNull(this.exchange, pubsub::setExchange)
-					.acceptIfNotNull(this.maxSubscribers, pubsub::setMaxSubscribers);
+						.acceptIfNotNull(this.exchange, pubsub::setExchange)
+						.acceptIfNotNull(this.maxSubscribers, pubsub::setMaxSubscribers);
 				this.channel = pubsub;
 			}
 			else {
 				PointToPointSubscribableAmqpChannel p2p = new PointToPointSubscribableAmqpChannel(
-						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
+						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper,
+						this.inboundHeaderMapper);
 				JavaUtils.INSTANCE
-					.acceptIfHasText(this.queueName, p2p::setQueueName)
-					.acceptIfNotNull(this.maxSubscribers, p2p::setMaxSubscribers);
+						.acceptIfHasText(this.queueName, p2p::setQueueName)
+						.acceptIfNotNull(this.maxSubscribers, p2p::setMaxSubscribers);
 				this.channel = p2p;
 			}
 		}
@@ -380,17 +392,17 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate,
 					this.outboundHeaderMapper, this.inboundHeaderMapper);
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.amqpAdmin, pollable::setAmqpAdmin)
-				.acceptIfHasText(this.queueName, pollable::setQueueName);
+					.acceptIfNotNull(this.amqpAdmin, pollable::setAmqpAdmin)
+					.acceptIfHasText(this.queueName, pollable::setQueueName);
 			this.channel = pollable;
 		}
 		JavaUtils.INSTANCE
-			.acceptIfNotEmpty(this.interceptors, this.channel::setInterceptors);
+				.acceptIfNotEmpty(this.interceptors, this.channel::setInterceptors);
 		this.channel.setBeanName(this.beanName);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(getBeanFactory(), this.channel::setBeanFactory)
-			.acceptIfNotNull(this.defaultDeliveryMode, this.channel::setDefaultDeliveryMode)
-			.acceptIfNotNull(this.extractPayload, this.channel::setExtractPayload);
+				.acceptIfNotNull(getBeanFactory(), this.channel::setBeanFactory)
+				.acceptIfNotNull(this.defaultDeliveryMode, this.channel::setDefaultDeliveryMode)
+				.acceptIfNotNull(this.extractPayload, this.channel::setExtractPayload);
 		this.channel.setHeadersMappedLast(this.headersLast);
 		this.channel.afterPropertiesSet();
 		return this.channel;
@@ -401,9 +413,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		if (this.consumersPerQueue == null) {
 			SimpleMessageListenerContainer smlc = new SimpleMessageListenerContainer();
 			JavaUtils.INSTANCE
-				.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers)
-				.acceptIfNotNull(this.receiveTimeout, smlc::setReceiveTimeout)
-				.acceptIfNotNull(this.txSize, smlc::setTxSize);
+					.acceptIfNotNull(this.concurrentConsumers, smlc::setConcurrentConsumers)
+					.acceptIfNotNull(this.receiveTimeout, smlc::setReceiveTimeout)
+					.acceptIfNotNull(this.batchSize, smlc::setBatchSize);
 			container = smlc;
 		}
 		else {
@@ -412,24 +424,24 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			container = dmlc;
 		}
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.acknowledgeMode, container::setAcknowledgeMode)
-			.acceptIfNotEmpty(this.adviceChain, container::setAdviceChain);
+				.acceptIfNotNull(this.acknowledgeMode, container::setAcknowledgeMode)
+				.acceptIfNotEmpty(this.adviceChain, container::setAdviceChain);
 		container.setAutoStartup(this.autoStartup);
 		container.setChannelTransacted(this.channelTransacted);
 		container.setConnectionFactory(this.connectionFactory);
 
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
-			.acceptIfNotNull(this.exposeListenerChannel, container::setExposeListenerChannel)
-			.acceptIfNotNull(this.messagePropertiesConverter, container::setMessagePropertiesConverter)
-			.acceptIfNotNull(this.phase, container::setPhase)
-			.acceptIfNotNull(this.prefetchCount, container::setPrefetchCount)
-			.acceptIfNotNull(this.recoveryInterval, container::setRecoveryInterval)
-			.acceptIfNotNull(this.shutdownTimeout, container::setShutdownTimeout)
-			.acceptIfNotNull(this.taskExecutor, container::setTaskExecutor)
-			.acceptIfNotNull(this.transactionAttribute, container::setTransactionAttribute)
-			.acceptIfNotNull(this.transactionManager, container::setTransactionManager)
-			.acceptIfNotNull(this.missingQueuesFatal, container::setMissingQueuesFatal);
+				.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
+				.acceptIfNotNull(this.exposeListenerChannel, container::setExposeListenerChannel)
+				.acceptIfNotNull(this.messagePropertiesConverter, container::setMessagePropertiesConverter)
+				.acceptIfNotNull(this.phase, container::setPhase)
+				.acceptIfNotNull(this.prefetchCount, container::setPrefetchCount)
+				.acceptIfNotNull(this.recoveryInterval, container::setRecoveryInterval)
+				.acceptIfNotNull(this.shutdownTimeout, container::setShutdownTimeout)
+				.acceptIfNotNull(this.taskExecutor, container::setTaskExecutor)
+				.acceptIfNotNull(this.transactionAttribute, container::setTransactionAttribute)
+				.acceptIfNotNull(this.transactionManager, container::setTransactionManager)
+				.acceptIfNotNull(this.missingQueuesFatal, container::setMissingQueuesFatal);
 		return container;
 	}
 
