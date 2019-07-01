@@ -134,6 +134,7 @@ public class OutboundEndpointTests {
 	public void testHeaderMapperWinsGateway() {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		TestRabbitTemplate amqpTemplate = spy(new TestRabbitTemplate(connectionFactory));
+		amqpTemplate.setUseTemporaryReplyQueues(true);
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
 		endpoint.setHeadersMappedLast(true);
 		endpoint.setExpectReply(true);
