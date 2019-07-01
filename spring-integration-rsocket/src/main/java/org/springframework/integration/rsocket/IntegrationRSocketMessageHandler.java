@@ -31,6 +31,7 @@ import org.springframework.messaging.handler.DestinationPatternsMessageCondition
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.reactive.SyncHandlerMethodArgumentResolver;
 import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -123,18 +124,23 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	}
 
 	protected IntegrationRSocket createRSocket(ConnectionSetupPayload setupPayload, RSocket rsocket) {
-		String s = setupPayload.dataMimeType();
-		MimeType dataMimeType = StringUtils.hasText(s) ? MimeTypeUtils.parseMimeType(s) : this.defaultDataMimeType;
+		String mimeType = setupPayload.dataMimeType();
+		MimeType dataMimeType =
+				StringUtils.hasText(mimeType)
+						? MimeTypeUtils.parseMimeType(mimeType)
+						: this.defaultDataMimeType;
 		Assert.notNull(dataMimeType, "No `dataMimeType` in ConnectionSetupPayload and no default value");
-
-		s = setupPayload.metadataMimeType();
-		MimeType metaMimeType = StringUtils.hasText(s) ? MimeTypeUtils.parseMimeType(s) : this.defaultMetadataMimeType;
+		mimeType = setupPayload.metadataMimeType();
+		MimeType metaMimeType =
+				StringUtils.hasText(mimeType)
+						? MimeTypeUtils.parseMimeType(mimeType)
+						: this.defaultMetadataMimeType;
 		Assert.notNull(dataMimeType, "No `metadataMimeType` in ConnectionSetupPayload and no default value");
-
-		RSocketRequester requester = RSocketRequester.wrap(rsocket, dataMimeType, metaMimeType, getRSocketStrategies());
-
+		RSocketStrategies rSocketStrategies = getRSocketStrategies();
+		Assert.notNull(rSocketStrategies, "No `rSocketStrategies` provided");
+		RSocketRequester requester = RSocketRequester.wrap(rsocket, dataMimeType, metaMimeType, rSocketStrategies);
 		return new IntegrationRSocket(this, getRouteMatcher(), requester, dataMimeType, metaMimeType,
-				getRSocketStrategies().dataBufferFactory());
+				rSocketStrategies.dataBufferFactory());
 	}
 
 	private static final class MessageHandlerMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {
