@@ -12,13 +12,17 @@
 	<util:constant id="redisConnectionFactory"
 				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
 
+	<util:constant id="TEST_QUEUE"
+				   static-field="org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpointTests.TEST_QUEUE"/>
+
 	<int:channel id="fromChannel">
 		<int:queue/>
 	</int:channel>
 
-	<int-redis:queue-inbound-channel-adapter queue="si.test.Int3017IntegrationInbound"
+	<int-redis:queue-inbound-channel-adapter id="fromChannelEndpoint" queue="#{TEST_QUEUE}"
 											 channel="fromChannel"
 											 expect-message="true"
+											 auto-startup="false"
 											 serializer="testSerializer"/>
 
 	<bean id="testSerializer" class="org.springframework.integration.redis.util.CustomJsonSerializer"/>
@@ -28,8 +32,9 @@
 		<int-redis:queue-outbound-channel-adapter queue-expression="headers.redis_queue"/>
 	</int:chain>
 
-	<int-redis:queue-inbound-channel-adapter queue="si.test.Int3017IntegrationSymmetrical"
+	<int-redis:queue-inbound-channel-adapter id="symmetricalRedisChannelEndpoint" queue="#{TEST_QUEUE}"
 											 channel="symmetricalRedisChannel"
+											 auto-startup="false"
 											 serializer=""/>
 
 
