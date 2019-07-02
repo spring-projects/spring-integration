@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -141,9 +142,10 @@ public class CorrelationHandlerTests {
 	public void testSubscriberAggregateFlow() {
 		this.subscriberAggregateFlowInput.send(new GenericMessage<>("test"));
 
-		Message<?> receive1 = this.subscriberAggregateResult.receive(10000);
-		assertThat(receive1).isNotNull();
-		assertThat(receive1.getPayload()).isEqualTo("Hello World!");
+		Message<?> receive = this.subscriberAggregateResult.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("Hello World!");
+		assertThat(receive.getHeaders().get("foo")).isEqualTo("bar");
 	}
 
 
@@ -274,10 +276,13 @@ public class CorrelationHandlerTests {
 		@Bean
 		public IntegrationFlow publishSubscribeAggregateFlow() {
 			return flow -> flow
-					.aggregate(a -> a.outputProcessor(g -> g.getMessages()
-							.stream()
-							.map(m -> (String) m.getPayload())
-							.collect(Collectors.joining(" "))))
+					.aggregate(a -> a
+							.outputProcessor((group) -> group
+									.getMessages()
+									.stream()
+									.map(m -> (String) m.getPayload())
+									.collect(Collectors.joining(" ")))
+							.headersFunction((group) -> Collections.singletonMap("foo", "bar")))
 					.channel(MessageChannels.queue("subscriberAggregateResult"));
 		}
 

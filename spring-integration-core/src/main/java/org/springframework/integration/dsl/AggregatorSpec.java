@@ -16,11 +16,17 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
+import org.springframework.integration.aggregator.DelegatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
+import org.springframework.integration.store.MessageGroup;
 
 /**
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
@@ -30,6 +36,8 @@ import org.springframework.integration.aggregator.MethodInvokingMessageGroupProc
  * @since 5.0
  */
 public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, AggregatingMessageHandler> {
+
+	private Function<MessageGroup, Map<String, Object>> headersFunction;
 
 	AggregatorSpec() {
 		super(new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor()));
@@ -59,9 +67,9 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 */
 	public AggregatorSpec processor(Object target, String methodName) {
 		super.processor(target);
-		return this.outputProcessor(methodName != null
-									? new MethodInvokingMessageGroupProcessor(target, methodName)
-									: new MethodInvokingMessageGroupProcessor(target));
+		return outputProcessor(methodName != null
+				? new MethodInvokingMessageGroupProcessor(target, methodName)
+				: new MethodInvokingMessageGroupProcessor(target));
 	}
 
 	/**
@@ -71,7 +79,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @return the aggregator spec.
 	 */
 	public AggregatorSpec outputExpression(String expression) {
-		return this.outputProcessor(new ExpressionEvaluatingMessageGroupProcessor(expression));
+		return outputProcessor(new ExpressionEvaluatingMessageGroupProcessor(expression));
 	}
 
 	/**
@@ -93,6 +101,35 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	public AggregatorSpec expireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.handler.setExpireGroupsUponCompletion(expireGroupsUponCompletion);
 		return _this();
+	}
+
+	/**
+	 * Configure a {@link Function} to merge and compute headers for reply
+	 * based on the completed {@link MessageGroup}.
+	 * @param headersFunction the {@link Function} to merge and compute headers for reply
+	 * based on the completed {@link MessageGroup}.
+	 * @return the aggregator spec.
+	 * @since 5.2
+	 */
+	public AggregatorSpec headersFunction(Function<MessageGroup, Map<String, Object>> headersFunction) {
+		this.headersFunction = headersFunction;
+		return _this();
+	}
+
+
+	@Override
+	public Map<Object, String> getComponentsToRegister() {
+		if (this.headersFunction != null) {
+			MessageGroupProcessor outputProcessor = this.handler.getOutputProcessor();
+			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor) {
+				((AbstractAggregatingMessageGroupProcessor) outputProcessor).setHeadersFunction(this.headersFunction);
+			}
+			else {
+				this.handler.setOutputProcessor(
+						new DelegatingMessageGroupProcessor(outputProcessor, this.headersFunction));
+			}
+		}
+		return super.getComponentsToRegister();
 	}
 
 }

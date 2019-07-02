@@ -158,9 +158,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			this.notPropagatedHeaders = headerPatterns.toArray(new String[0]);
 		}
 
-		boolean hasAsterisk = headerPatterns.contains("*");
-
-		if (hasAsterisk) {
+		if (headerPatterns.contains("*")) {
 			this.notPropagatedHeaders = new String[] { "*" };
 			this.noHeadersPropagation = true;
 		}
@@ -240,12 +238,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	protected void produceOutput(Object replyArg, final Message<?> requestMessage) {
-		final MessageHeaders requestHeaders = requestMessage.getHeaders();
-
+		MessageHeaders requestHeaders = requestMessage.getHeaders();
 		Object reply = replyArg;
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
-			Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+			Map<?, ?> routingSlipHeader = obtainRoutingSlipHeader(requestHeaders, reply);
 			if (routingSlipHeader != null) {
 				Assert.isTrue(routingSlipHeader.size() == 1,
 						"The RoutingSlip header value must be a SingletonMap");
@@ -260,18 +257,45 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 					reply = addRoutingSlipHeader(reply, routingSlip, routingSlipIndex);
 				}
 			}
-
 			if (replyChannel == null) {
-				replyChannel = requestHeaders.getReplyChannel();
-				if (replyChannel == null && reply instanceof Message) {
-					replyChannel = ((Message<?>) reply).getHeaders().getReplyChannel();
-				}
+				replyChannel = obtainReplyChannel(requestHeaders, reply);
 			}
 		}
 		doProduceOutput(requestMessage, requestHeaders, reply, replyChannel);
 	}
 
-	private void doProduceOutput(final Message<?> requestMessage, final MessageHeaders requestHeaders, Object reply,
+	@Nullable
+	private Map<?, ?> obtainRoutingSlipHeader(MessageHeaders requestHeaders, Object reply) {
+		Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+		if (routingSlipHeader == null) {
+			if (reply instanceof Message) {
+				routingSlipHeader = ((Message<?>) reply).getHeaders()
+						.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+			}
+			else if (reply instanceof AbstractIntegrationMessageBuilder<?>) {
+				routingSlipHeader = ((AbstractIntegrationMessageBuilder<?>) reply)
+						.getHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+			}
+		}
+		return routingSlipHeader;
+	}
+
+	@Nullable
+	private Object obtainReplyChannel(MessageHeaders requestHeaders, Object reply) {
+		Object replyChannel = requestHeaders.getReplyChannel();
+		if (replyChannel == null) {
+			if (reply instanceof Message) {
+				replyChannel = ((Message<?>) reply).getHeaders().getReplyChannel();
+			}
+			else if (reply instanceof AbstractIntegrationMessageBuilder<?>) {
+				replyChannel = ((AbstractIntegrationMessageBuilder<?>) reply)
+						.getHeader(MessageHeaders.REPLY_CHANNEL, Object.class);
+			}
+		}
+		return replyChannel;
+	}
+
+	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
 			Object replyChannel) {
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
@@ -296,19 +320,22 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	private AbstractIntegrationMessageBuilder<?> addRoutingSlipHeader(Object reply, List<?> routingSlip,
 			AtomicInteger routingSlipIndex) {
 
-		//TODO Migrate to the SF MessageBuilder
-		AbstractIntegrationMessageBuilder<?> builder = null;
+		return messageBuilderForReply(reply)
+				.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+						Collections.singletonMap(routingSlip, routingSlipIndex.get()));
+	}
+
+	protected AbstractIntegrationMessageBuilder<?> messageBuilderForReply(Object reply) {
+		AbstractIntegrationMessageBuilder<?> builder;
 		if (reply instanceof Message) {
-			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) reply);
+			builder = getMessageBuilderFactory().fromMessage((Message<?>) reply);
 		}
 		else if (reply instanceof AbstractIntegrationMessageBuilder) {
 			builder = (AbstractIntegrationMessageBuilder<?>) reply;
 		}
 		else {
-			builder = this.getMessageBuilderFactory().withPayload(reply);
+			builder = getMessageBuilderFactory().withPayload(reply);
 		}
-		builder.setHeader(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
-				Collections.singletonMap(routingSlip, routingSlipIndex.get()));
 		return builder;
 	}
 

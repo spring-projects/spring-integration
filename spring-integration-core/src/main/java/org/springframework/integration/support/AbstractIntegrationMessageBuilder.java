@@ -176,6 +176,9 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 
 	public abstract Map<String, Object> getHeaders();
 
+	@Nullable
+	public abstract <V> V getHeader(String key, Class<V> type);
+
 	/**
 	 * Set the value for the given header name. If the provided value is <code>null</code>, the header will be removed.
 	 * @param headerName The header name.

@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Dave Syer
  * @author Stefan Ferstl
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 
@@ -49,6 +50,7 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 				parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorFactoryBean.class);
+		String headersFunction = element.getAttribute("headers-function");
 		BeanMetadataElement processor = null;
 
 		if (innerHandlerDefinition != null || StringUtils.hasText(ref)) {
@@ -59,18 +61,25 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 				processor = new RuntimeBeanReference(ref);
 			}
 			builder.addPropertyValue("processorBean", processor);
+			if (StringUtils.hasText(headersFunction)) {
+				builder.addPropertyReference("headersFunction", headersFunction);
+			}
 		}
 		else {
+			BeanDefinitionBuilder groupProcessorBuilder;
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
 				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-						.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
-				adapterBuilder.addConstructorArgValue(expression);
-				builder.addPropertyValue("processorBean", adapterBuilder.getBeanDefinition());
+				groupProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
+				groupProcessorBuilder.addConstructorArgValue(expression);
 			}
 			else {
-				builder.addPropertyValue("processorBean", BeanDefinitionBuilder
-						.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class).getBeanDefinition());
+				groupProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class);
+			}
+			builder.addPropertyValue("processorBean", groupProcessorBuilder.getBeanDefinition());
+			if (StringUtils.hasText(headersFunction)) {
+				groupProcessorBuilder.addPropertyReference("headersFunction", headersFunction);
 			}
 		}
 
@@ -79,7 +88,7 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 			builder.addPropertyValue("methodName", method);
 		}
 
-		this.doParse(builder, element, processor, parserContext);
+		doParse(builder, element, processor, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
 

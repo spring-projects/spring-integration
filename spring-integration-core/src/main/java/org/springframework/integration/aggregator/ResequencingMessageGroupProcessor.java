@@ -18,11 +18,10 @@ package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.Message;
 
@@ -32,6 +31,8 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ResequencingMessageGroupProcessor implements MessageGroupProcessor {
@@ -42,9 +43,9 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 		Collection<Message<?>> messages = group.getMessages();
 
 		if (messages.size() > 0) {
-			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
-			Collections.sort(sorted, this.comparator);
-			ArrayList<Message<?>> partialSequence = new ArrayList<Message<?>>();
+			List<Message<?>> sorted = new ArrayList<>(messages);
+			sorted.sort(this.comparator);
+			ArrayList<Message<?>> partialSequence = new ArrayList<>();
 			int previousSequence = extractSequenceNumber(sorted.get(0));
 			int currentSequence = previousSequence;
 			for (Message<?> message : sorted) {
@@ -63,6 +64,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 	}
 
 	private Integer extractSequenceNumber(Message<?> message) {
-		return new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
+		return StaticMessageHeaderAccessor.getSequenceNumber(message);
 	}
+
 }

@@ -17,11 +17,14 @@
 package org.springframework.integration.file.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.File;
 
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -39,8 +42,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -49,9 +52,12 @@ import org.springframework.util.FileCopyUtils;
  * @author Artem Bilan
  * @author Tony Falabella
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class FileOutboundGatewayParserTests {
+
+	@ClassRule
+	public static final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Autowired
 	private EventDrivenConsumer ordered;
@@ -83,6 +89,11 @@ public class FileOutboundGatewayParserTests {
 
 	private static volatile int adviceCalled;
 
+	@Before
+	public void setup() {
+		tempFolder.delete();
+	}
+
 	@Test
 	public void checkOrderedGateway() {
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(ordered);
@@ -109,7 +120,7 @@ public class FileOutboundGatewayParserTests {
 		FileWritingMessageHandler handler =
 				TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertThat(TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
-				.getExpressionString()).isEqualTo("'build/foo'");
+				.getExpressionString()).isEqualTo("temporaryFolder.root");
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertThat(adviceCalled).isEqualTo(1);
 	}
@@ -129,11 +140,7 @@ public class FileOutboundGatewayParserTests {
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
 
 		final String expectedFileContent = "Initial File Content:";
-		final File testFile = new File("test/fileToAppend.txt");
-
-		if (testFile.exists()) {
-			testFile.delete();
-		}
+		final File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
@@ -165,29 +172,16 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "Initial File Content:";
 
-		File testFile = new File("test/fileToAppend.txt");
-
-		if (testFile.exists()) {
-			testFile.delete();
-		}
+		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
 		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 
-		try {
-
-			messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
-
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).startsWith("The destination file already exists at '");
-			return;
-		}
-
-		fail("Was expecting a MessageHandlingException to be thrown.");
-
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> messagingTemplate.sendAndReceive(new GenericMessage<>("String content:")))
+				.withMessageStartingWith("The destination file already exists at '");
 	}
 
 	/**
@@ -200,35 +194,21 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithFailModeLowercase() throws Exception {
-
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeLowercaseChannel);
 
 		String expectedFileContent = "Initial File Content:";
 
-		File testFile = new File("test/fileToAppend.txt");
-
-		if (testFile.exists()) {
-			testFile.delete();
-		}
+		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
 		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertThat(actualFileContent).isEqualTo(expectedFileContent);
 
-		try {
-
-			messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
-
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).startsWith("The destination file already exists at '");
-			return;
-		}
-
-		fail("Was expecting a MessageHandlingException to be thrown.");
-
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> messagingTemplate.sendAndReceive(new GenericMessage<>("String content:")))
+				.withMessageStartingWith("The destination file already exists at '");
 	}
 
 	/**
@@ -243,17 +223,12 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithAppendMode() throws Exception {
-
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithAppendModeChannel);
 
 		String expectedFileContent = "Initial File Content:String content:";
 
-		File testFile = new File("test/fileToAppend.txt");
-
-		if (testFile.exists()) {
-			testFile.delete();
-		}
+		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
@@ -280,7 +255,6 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithReplaceMode() throws Exception {
-
 		assertThat(TestUtils.getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply", Boolean.class))
 				.isFalse();
 
@@ -289,11 +263,7 @@ public class FileOutboundGatewayParserTests {
 
 		String expectedFileContent = "String content:";
 
-		File testFile = new File("test/fileToAppend.txt");
-
-		if (testFile.exists()) {
-			testFile.delete();
-		}
+		File testFile = new File(tempFolder.getRoot(), "fileToAppend.txt");
 
 		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));

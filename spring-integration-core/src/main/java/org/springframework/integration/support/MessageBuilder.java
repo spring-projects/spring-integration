@@ -64,7 +64,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	/**
 	 * Private constructor to be invoked from the static factory methods only.
 	 */
-	private MessageBuilder(T payload, Message<T> originalMessage) {
+	private MessageBuilder(T payload, @Nullable Message<T> originalMessage) {
 		Assert.notNull(payload, "payload must not be null");
 		this.payload = payload;
 		this.originalMessage = originalMessage;
@@ -84,6 +84,12 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		return this.headerAccessor.toMap();
 	}
 
+	@Nullable
+	@Override
+	public <V> V getHeader(String key, Class<V> type) {
+		return this.headerAccessor.getHeader(key, type);
+	}
+
 	/**
 	 * Create a builder for a new {@link Message} instance pre-populated with all of the headers copied from the
 	 * provided message. The payload of the provided Message will also be used as the payload for the new message.
@@ -94,23 +100,21 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
-		return new MessageBuilder<T>(message.getPayload(), message);
+		return new MessageBuilder<>(message.getPayload(), message);
 	}
 
 	/**
 	 * Create a builder for a new {@link Message} instance with the provided payload.
-	 *
 	 * @param payload the payload for the new message
 	 * @param <T> The type of the payload.
 	 * @return A MessageBuilder.
 	 */
 	public static <T> MessageBuilder<T> withPayload(T payload) {
-		return new MessageBuilder<T>(payload, null);
+		return new MessageBuilder<>(payload, null);
 	}
 
 	/**
 	 * Set the value for the given header name. If the provided value is <code>null</code>, the header will be removed.
-	 *
 	 * @param headerName The header name.
 	 * @param headerValue The header value.
 	 * @return this MessageBuilder.
@@ -123,7 +127,6 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 
 	/**
 	 * Set the value for the given header name only if the header name is not already associated with a value.
-	 *
 	 * @param headerName The header name.
 	 * @param headerValue The header value.
 	 * @return this MessageBuilder.
@@ -138,7 +141,6 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * Removes all headers provided via array of 'headerPatterns'. As the name suggests the array
 	 * may contain simple matching patterns for header names. Supported pattern styles are:
 	 * "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
-	 *
 	 * @param headerPatterns The header patterns.
 	 * @return this MessageBuilder.
 	 */
@@ -168,10 +170,8 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * Copy the name-value pairs from the provided Map. This operation will overwrite any existing values. Use {
 	 * {@link #copyHeadersIfAbsent(Map)} to avoid overwriting values. Note that the 'id' and 'timestamp' header values
 	 * will never be overwritten.
-	 *
 	 * @param headersToCopy The headers to copy.
 	 * @return this MessageBuilder.
-	 *
 	 * @see MessageHeaders#ID
 	 * @see MessageHeaders#TIMESTAMP
 	 */
@@ -183,7 +183,6 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 
 	/**
 	 * Copy the name-value pairs from the provided Map. This operation will <em>not</em> overwrite any existing values.
-	 *
 	 * @param headersToCopy The headers to copy.
 	 * @return this MessageBuilder.
 	 */
@@ -225,8 +224,8 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 
 	/*
 	 * The following overrides (delegating to super) are provided to ease the
-	 *  pain for existing applications that use the builder API and expect
-	 *  a MessageBuilder to be returned.
+	 * pain for existing applications that use the builder API and expect
+	 * a MessageBuilder to be returned.
 	 */
 	@Override
 	public MessageBuilder<T> pushSequenceDetails(Object correlationId, int sequenceNumber, int sequenceSize) {
@@ -320,12 +319,13 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	public Message<T> build() {
 		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null
 				&& !containsReadOnly(this.originalMessage.getHeaders())) {
+
 			return this.originalMessage;
 		}
 		if (this.payload instanceof Throwable) {
 			return (Message<T>) new ErrorMessage((Throwable) this.payload, this.headerAccessor.toMap());
 		}
-		return new GenericMessage<T>(this.payload, this.headerAccessor.toMap());
+		return new GenericMessage<>(this.payload, this.headerAccessor.toMap());
 	}
 
 	private boolean containsReadOnly(MessageHeaders headers) {
@@ -338,6 +338,5 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		}
 		return false;
 	}
-
 
 }
