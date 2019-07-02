@@ -59,6 +59,7 @@ import org.springframework.messaging.Message;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class ExpressionEvaluatingRoutingSlipRouteStrategy
@@ -98,8 +99,7 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 
 	@Override
 	public Object getNextPath(Message<?> requestMessage, Object reply) {
-		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply),
-				String.class);
+		return this.expression.getValue(this.evaluationContext, new RequestAndReply(requestMessage, reply));
 	}
 
 	@Override

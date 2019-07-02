@@ -217,6 +217,15 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.outputProcessor = outputProcessor;
 	}
 
+	/**
+	 * Return a configured {@link MessageGroupProcessor}.
+	 * @return the configured {@link MessageGroupProcessor}
+	 * @since 5.2
+	 */
+	public MessageGroupProcessor getOutputProcessor() {
+		return this.outputProcessor;
+	}
+
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		Assert.notNull(discardChannel, "'discardChannel' cannot be null");
 		this.discardChannel = discardChannel;
@@ -370,10 +379,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected Map<UUID, ScheduledFuture<?>> getExpireGroupScheduledFutures() {
 		return this.expireGroupScheduledFutures;
-	}
-
-	protected MessageGroupProcessor getOutputProcessor() {
-		return this.outputProcessor;
 	}
 
 	protected CorrelationStrategy getCorrelationStrategy() {

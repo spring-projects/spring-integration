@@ -83,7 +83,7 @@
 	<channel id="fooChannel"/>
 
 	<header-enricher input-channel="routingSlipInput">
-		<routing-slip value="fooChannel; barExpression; bazRoutingSlip"/>
+		<routing-slip value="request.headers.replyChannel; fooChannel; barExpression; bazRoutingSlip"/>
 	</header-enricher>
 
 	<header-enricher input-channel="payloadExpressionInput">

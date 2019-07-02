@@ -263,16 +263,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,
 			Object correlationId, int sequenceNumber, int sequenceSize) {
 
-		AbstractIntegrationMessageBuilder<?> builder;
-		if (item instanceof Message) {
-			builder = getMessageBuilderFactory().fromMessage((Message<?>) item);
-		}
-		else if (item instanceof AbstractIntegrationMessageBuilder) {
-			builder = (AbstractIntegrationMessageBuilder<?>) item;
-		}
-		else {
-			builder = getMessageBuilderFactory().withPayload(item);
-		}
+		AbstractIntegrationMessageBuilder<?> builder = messageBuilderForReply(item);
 		builder.copyHeadersIfAbsent(headers);
 		if (this.applySequence) {
 			builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);

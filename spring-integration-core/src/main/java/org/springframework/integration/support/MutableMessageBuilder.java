@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -74,6 +75,21 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	@Override
 	public Map<String, Object> getHeaders() {
 		return this.headers;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	@Override
+	public <V> V getHeader(String key, Class<V> type) {
+		Object value = this.headers.get(key);
+		if (value == null) {
+			return null;
+		}
+		if (!type.isAssignableFrom(value.getClass())) {
+			throw new IllegalArgumentException("Incorrect type specified for header '" + key + "'. Expected [" + type
+					+ "] but actual type is [" + value.getClass() + "]");
+		}
+		return (V) value;
 	}
 
 	/**
@@ -143,7 +159,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 
 	@Override
 	public AbstractIntegrationMessageBuilder<T> removeHeaders(String... headerPatterns) {
-		List<String> headersToRemove = new ArrayList<String>();
+		List<String> headersToRemove = new ArrayList<>();
 		for (String pattern : headerPatterns) {
 			if (StringUtils.hasLength(pattern)) {
 				if (pattern.contains("*")) {
@@ -161,7 +177,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	private List<String> getMatchingHeaderNames(String pattern, Map<String, Object> headers) {
-		List<String> matchingHeaderNames = new ArrayList<String>();
+		List<String> matchingHeaderNames = new ArrayList<>();
 		if (headers != null) {
 			for (Map.Entry<String, Object> header : headers.entrySet()) {
 				if (PatternMatchUtils.simpleMatch(pattern, header.getKey())) {

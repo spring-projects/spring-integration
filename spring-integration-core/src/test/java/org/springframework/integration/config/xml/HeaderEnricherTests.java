@@ -270,9 +270,10 @@ public class HeaderEnricherTests {
 		@SuppressWarnings("unchecked")
 		List<Object> routingSlipPath = (List<Object>) ((Map<?, ?>) routingSlip).keySet().iterator().next();
 
-		assertThat(routingSlipPath.get(0)).isEqualTo("fooChannel");
-		assertThat(routingSlipPath.get(1)).isInstanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class);
-		assertThat(routingSlipPath.get(2)).isEqualTo("bazRoutingSlip");
+		assertThat(routingSlipPath.get(0)).isInstanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class);
+		assertThat(routingSlipPath.get(1)).isEqualTo("fooChannel");
+		assertThat(routingSlipPath.get(2)).isInstanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class);
+		assertThat(routingSlipPath.get(3)).isEqualTo("bazRoutingSlip");
 	}
 
 

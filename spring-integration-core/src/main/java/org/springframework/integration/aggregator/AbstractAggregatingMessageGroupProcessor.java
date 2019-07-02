@@ -16,12 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,14 +25,12 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -56,6 +50,8 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR - final
 
+	private Function<MessageGroup, Map<String, Object>> headersFunction = new DefaultAggregateHeadersFunction();
+
 	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private boolean messageBuilderFactorySet;
@@ -65,6 +61,20 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	/**
+	 * Specify a {@link Function} to map {@link MessageGroup} into composed headers for output message.
+	 * @param headersFunction the {@link Function} to use.
+	 * @since 5.2
+	 */
+	public void setHeadersFunction(Function<MessageGroup, Map<String, Object>> headersFunction) {
+		Assert.notNull(headersFunction, "'headersFunction' must not be null");
+		this.headersFunction = headersFunction;
+	}
+
+	protected Function<MessageGroup, Map<String, Object>> getHeadersFunction() {
+		return this.headersFunction;
 	}
 
 	protected MessageBuilderFactory getMessageBuilderFactory() {
@@ -81,7 +91,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Map<String, Object> headers = aggregateHeaders(group);
-		Object payload = this.aggregatePayloads(group, headers);
+		Object payload = aggregatePayloads(group, headers);
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (payload instanceof Message<?>) {
 			builder = getMessageBuilderFactory().fromMessage((Message<?>) payload);
@@ -104,40 +114,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	 * @return The aggregated headers.
 	 */
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
-		Map<String, Object> aggregatedHeaders = new HashMap<>();
-		Set<String> conflictKeys = doAggregateHeaders(group, aggregatedHeaders);
-		for (String keyToRemove : conflictKeys) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
-						+ "in MessageGroup with correlation key: " + group.getGroupId());
-			}
-			aggregatedHeaders.remove(keyToRemove);
-		}
-		return aggregatedHeaders;
-	}
-
-	private Set<String> doAggregateHeaders(MessageGroup group, Map<String, Object> aggregatedHeaders) {
-		Set<String> conflictKeys = new HashSet<>();
-		for (Message<?> message : group.getMessages()) {
-			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
-				String key = entry.getKey();
-				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
-						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(key)
-						|| IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(key)) {
-					continue;
-				}
-				Object value = entry.getValue();
-				if (!aggregatedHeaders.containsKey(key)) {
-					aggregatedHeaders.put(key, value);
-				}
-				else {
-					if (!Objects.equals(value, aggregatedHeaders.get(key))) {
-						conflictKeys.add(key);
-					}
-				}
-			}
-		}
-		return conflictKeys;
+		return getHeadersFunction().apply(group);
 	}
 
 	protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);

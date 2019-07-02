@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.function.Function;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -92,6 +94,7 @@ public class AggregatorIntegrationTests {
 		Message<?> receive = output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(1 + 2 + 3 + 4);
+		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(0);
 	}
 
 	@Test
@@ -245,6 +248,18 @@ public class AggregatorIntegrationTests {
 	}
 
 	// configured in context associated with this test
+	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correlationId) {
+		Map<String, Object> headers = new HashMap<>();
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
+		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
+		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
+		return headers;
+	}
+
+	public static Function<MessageGroup, Map<String, Object>> firstMessageHeaders() {
+		return (messageGroup) -> messageGroup.getOne().getHeaders();
+	}
+
 	public static class SummingAggregator {
 		public Integer sum(List<Integer> numbers) {
 			int result = 0;
@@ -255,12 +270,6 @@ public class AggregatorIntegrationTests {
 		}
 	}
 
-	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correlationId) {
-		Map<String, Object> headers = new HashMap<>();
-		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
-		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
-		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
-		return headers;
-	}
+
 
 }

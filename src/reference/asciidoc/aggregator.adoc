@@ -67,6 +67,17 @@ public abstract class AbstractAggregatingMessageGroupProcessor
 ----
 ====
 
+See `DefaultAggregatingMessageGroupProcessor`, `ExpressionEvaluatingMessageGroupProcessor` and `MethodInvokingMessageGroupProcessor` as out-of-the-box implementations of the `AbstractAggregatingMessageGroupProcessor`.
+
+Starting with version 5.2, a `Function<MessageGroup, Map<String, Object>>` strategy is available for the `AbstractAggregatingMessageGroupProcessor` to merge and compute (aggregate) headers for an output message.
+The `DefaultAggregateHeadersFunction` implementation is available with logic that returns all headers that have no conflicts among the group; an absent header on one or more messages within the group is not considered a conflict.
+Conflicting headers are omitted.
+Along with the newly introduced `DelegatingMessageGroupProcessor`, this function is used for any arbitrary (non-`AbstractAggregatingMessageGroupProcessor`) `MessageGroupProcessor` implementation.
+Essentially, the framework injects a provided function into an `AbstractAggregatingMessageGroupProcessor` instance and wraps all other implementations into a `DelegatingMessageGroupProcessor`.
+The difference in logic between the `AbstractAggregatingMessageGroupProcessor` and the `DelegatingMessageGroupProcessor` that the latter doesn't compute headers in advance, before calling the delegate strategy, and doesn't invoke the function if the delegate returns a `Message` or `AbstractIntegrationMessageBuilder`.
+In that case, the framework assumes that the target implementation has taken care of producing a proper set of headers populated into the returned result.
+The `Function<MessageGroup, Map<String, Object>>` strategy is available as the `headers-function` reference attribute for XML configuration, as the `AggregatorSpec.headersFunction()` option for the Java DSL and as `AggregatorFactoryBean.setHeadersFunction()` for plain Java configuration.
+
 The `CorrelationStrategy` is owned by the `AbstractCorrelatingMessageHandler` and  has a default value based on the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header, as the following example shows:
 
 ====

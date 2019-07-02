@@ -3724,6 +3724,19 @@
 						<xsd:union memberTypes="xsd:boolean xsd:string" />
 					</xsd:simpleType>
 				</xsd:attribute>
+				<xsd:attribute name="headers-function" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.util.function.Function" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to the 'Function' for merging and computing message headers for reply
+							based on the 'MessageGroup' to release.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

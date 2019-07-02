@@ -11,7 +11,12 @@
 		<queue capacity="5" />
 	</channel>
 
-	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output" expression="">
+	<beans:bean id="headersFunction"
+				class="org.springframework.integration.aggregator.integration.AggregatorIntegrationTests"
+				factory-method="firstMessageHeaders"/>
+
+	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output" expression=""
+				headers-function="headersFunction">
 		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" />
 	</aggregator>
 

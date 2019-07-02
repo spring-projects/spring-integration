@@ -17,15 +17,20 @@
 package org.springframework.integration.config;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.aggregator.AbstractAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.DelegatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
@@ -91,6 +96,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private Boolean popSequence;
 
 	private Boolean releaseLockBeforeSend;
+
+	private Function<MessageGroup, Map<String, Object>> headersFunction;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
@@ -181,6 +188,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.releaseLockBeforeSend = releaseLockBeforeSend;
 	}
 
+	public void setHeadersFunction(Function<MessageGroup, Map<String, Object>> headersFunction) {
+		this.headersFunction = headersFunction;
+	}
+
 	@Override
 	protected AggregatingMessageHandler createHandler() {
 		MessageGroupProcessor outputProcessor;
@@ -195,28 +206,38 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 				outputProcessor = new MethodInvokingMessageGroupProcessor(this.processorBean, this.methodName);
 			}
 		}
+
+		if (this.headersFunction != null) {
+			if (outputProcessor instanceof AbstractAggregatingMessageGroupProcessor) {
+				((AbstractAggregatingMessageGroupProcessor) outputProcessor).setHeadersFunction(this.headersFunction);
+			}
+			else {
+				outputProcessor = new DelegatingMessageGroupProcessor(outputProcessor, this.headersFunction);
+			}
+		}
+
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(outputProcessor);
 		JavaUtils.INSTANCE
-			.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
-			.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
-			.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
-			.acceptIfNotNull(this.metrics, aggregator::configureMetrics)
-			.acceptIfNotNull(this.statsEnabled, aggregator::setStatsEnabled)
-			.acceptIfNotNull(this.countsEnabled, aggregator::setCountsEnabled)
-			.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
-			.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
-			.acceptIfNotNull(this.correlationStrategy, aggregator::setCorrelationStrategy)
-			.acceptIfNotNull(this.releaseStrategy, aggregator::setReleaseStrategy)
-			.acceptIfNotNull(this.groupTimeoutExpression, aggregator::setGroupTimeoutExpression)
-			.acceptIfNotNull(this.forceReleaseAdviceChain, aggregator::setForceReleaseAdviceChain)
-			.acceptIfNotNull(this.taskScheduler, aggregator::setTaskScheduler)
-			.acceptIfNotNull(this.discardChannel, aggregator::setDiscardChannel)
-			.acceptIfNotNull(this.discardChannelName, aggregator::setDiscardChannelName)
-			.acceptIfNotNull(this.sendPartialResultOnExpiry, aggregator::setSendPartialResultOnExpiry)
-			.acceptIfNotNull(this.minimumTimeoutForEmptyGroups, aggregator::setMinimumTimeoutForEmptyGroups)
-			.acceptIfNotNull(this.expireGroupsUponTimeout, aggregator::setExpireGroupsUponTimeout)
-			.acceptIfNotNull(this.popSequence, aggregator::setPopSequence)
-			.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend);
+				.acceptIfNotNull(this.expireGroupsUponCompletion, aggregator::setExpireGroupsUponCompletion)
+				.acceptIfNotNull(this.sendTimeout, aggregator::setSendTimeout)
+				.acceptIfNotNull(this.outputChannelName, aggregator::setOutputChannelName)
+				.acceptIfNotNull(this.metrics, aggregator::configureMetrics)
+				.acceptIfNotNull(this.statsEnabled, aggregator::setStatsEnabled)
+				.acceptIfNotNull(this.countsEnabled, aggregator::setCountsEnabled)
+				.acceptIfNotNull(this.lockRegistry, aggregator::setLockRegistry)
+				.acceptIfNotNull(this.messageStore, aggregator::setMessageStore)
+				.acceptIfNotNull(this.correlationStrategy, aggregator::setCorrelationStrategy)
+				.acceptIfNotNull(this.releaseStrategy, aggregator::setReleaseStrategy)
+				.acceptIfNotNull(this.groupTimeoutExpression, aggregator::setGroupTimeoutExpression)
+				.acceptIfNotNull(this.forceReleaseAdviceChain, aggregator::setForceReleaseAdviceChain)
+				.acceptIfNotNull(this.taskScheduler, aggregator::setTaskScheduler)
+				.acceptIfNotNull(this.discardChannel, aggregator::setDiscardChannel)
+				.acceptIfNotNull(this.discardChannelName, aggregator::setDiscardChannelName)
+				.acceptIfNotNull(this.sendPartialResultOnExpiry, aggregator::setSendPartialResultOnExpiry)
+				.acceptIfNotNull(this.minimumTimeoutForEmptyGroups, aggregator::setMinimumTimeoutForEmptyGroups)
+				.acceptIfNotNull(this.expireGroupsUponTimeout, aggregator::setExpireGroupsUponTimeout)
+				.acceptIfNotNull(this.popSequence, aggregator::setPopSequence)
+				.acceptIfNotNull(this.releaseLockBeforeSend, aggregator::setReleaseLockBeforeSend);
 
 		return aggregator;
 	}
