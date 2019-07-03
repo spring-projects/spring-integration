@@ -67,6 +67,16 @@ public abstract class AbstractAggregatingMessageGroupProcessor
 ----
 ====
 
+See `DefaultAggregatingMessageGroupProcessor`, `ExpressionEvaluatingMessageGroupProcessor` and `MethodInvokingMessageGroupProcessor` as out-of-the-box implementations of the `AbstractAggregatingMessageGroupProcessor`.
+
+Starting with version 5.2, a `Function<MessageGroup, Map<String, Object>>` strategy is available for the `AbstractAggregatingMessageGroupProcessor` to merge and compute (aggregate) headers for an output message.
+The `DefaultAggregateHeadersFunction` implementation is available with the logic like: return all headers that have no conflicts among the group; an absent header on one or more messages within the group is not considered a conflict.
+Alongside with newly introduced `DelegatingMessageGroupProcessor`, this function is used for any arbitrary (non-`AbstractAggregatingMessageGroupProcessor`) `MessageGroupProcessor` implementation.
+Essentially, the framework injects a provided function into an `AbstractAggregatingMessageGroupProcessor` instance and wraps all other implementations into a `DelegatingMessageGroupProcessor`.
+The difference in logic between `AbstractAggregatingMessageGroupProcessor` and `DelegatingMessageGroupProcessor` that the last one doesn't compute headers in advance before calling delegate strategy and doesn't do that if delegate returns a `Message` or `AbstractIntegrationMessageBuilder`.
+In that case the framework assumes that target implementation has taken care about a proper set of headers population into the returned result.
+The `Function<MessageGroup, Map<String, Object>>` strategy is available as a `headers-function` reference attribute for XML configuration, as an `AggregatorSpec.headersFunction()` option for Java DSL and as an `AggregatorFactoryBean.setHeadersFunction()` for plain Java configuration.
+
 The `CorrelationStrategy` is owned by the `AbstractCorrelatingMessageHandler` and  has a default value based on the `IntegrationMessageHeaderAccessor.CORRELATION_ID` message header, as the following example shows:
 
 ====

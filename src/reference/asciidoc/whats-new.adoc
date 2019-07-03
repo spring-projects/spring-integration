@@ -56,6 +56,9 @@ See <<./splitter.adoc#splitter,Splitter>> for more information.
 The Control Bus can now handle `Pausable` (extension of `Lifecycle`) operations.
 See <<./control-bus.adoc#control-bus,Control Bus>> for more information.
 
+The `Function<MessageGroup, Map<String, Object>>` strategy has been introduced for the aggregator component to merge and compute headers for output message.
+See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
+
 [[x5.2-amqp]]
 ==== AMQP Changes
 
