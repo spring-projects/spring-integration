@@ -32,9 +32,15 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
+ * The {@link Function} implementation for a default headers merging in the aggregator
+ * component. It takes all the unique headers from all the messages in group and removes
+ * those which are conflicted: have different values from different messages.
+ *
  * @author Artem Bilan
  *
  * @since 5.2
+ *
+ * @see AbstractAggregatingMessageGroupProcessor
  */
 public class DefaultAggregateHeadersFunction implements Function<MessageGroup, Map<String, Object>> {
 
