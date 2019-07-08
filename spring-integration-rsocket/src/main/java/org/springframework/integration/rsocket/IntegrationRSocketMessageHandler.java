@@ -32,6 +32,8 @@ import org.springframework.messaging.handler.invocation.reactive.HandlerMethodAr
 import org.springframework.messaging.handler.invocation.reactive.SyncHandlerMethodArgumentResolver;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.annotation.support.DefaultMetadataExtractor;
+import org.springframework.messaging.rsocket.annotation.support.MetadataExtractor;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -63,6 +65,8 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 
 	private MimeType defaultMetadataMimeType = IntegrationRSocket.COMPOSITE_METADATA;
 
+	private MetadataExtractor metadataExtractor;
+
 	IntegrationRSocketMessageHandler() {
 		setHandlerPredicate((clazz) -> false);
 	}
@@ -76,6 +80,7 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	 */
 	@Override
 	public void setDefaultDataMimeType(@Nullable MimeType defaultDataMimeType) {
+		super.setDefaultDataMimeType(defaultDataMimeType);
 		this.defaultDataMimeType = defaultDataMimeType;
 	}
 
@@ -88,8 +93,23 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	 */
 	@Override
 	public void setDefaultMetadataMimeType(MimeType mimeType) {
-		Assert.notNull(mimeType, "'metadataMimeType' is required");
+		super.setDefaultMetadataMimeType(mimeType);
 		this.defaultMetadataMimeType = mimeType;
+	}
+
+	/**
+	 * Configure a {@link MetadataExtractor} to extract the route and possibly
+	 * other metadata from the first payload of incoming requests.
+	 * <p>By default this is a {@link DefaultMetadataExtractor} with the
+	 * configured {@link RSocketStrategies} (and decoders), extracting a route
+	 * from {@code "message/x.rsocket.routing.v0"} or {@code "text/plain"}
+	 * metadata entries.
+	 * @param extractor the extractor to use
+	 */
+	@Override
+	public void setMetadataExtractor(MetadataExtractor extractor) {
+		super.setMetadataExtractor(extractor);
+		this.metadataExtractor = extractor;
 	}
 
 	@Override
@@ -123,6 +143,16 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 		return Collections.singletonList(new MessageHandlerMethodArgumentResolver());
 	}
 
+	@Override
+	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
+		if (this.metadataExtractor == null) {
+			DefaultMetadataExtractor extractor = new DefaultMetadataExtractor(getRSocketStrategies()); // NOSONAR
+			extractor.metadataToExtract(MimeTypeUtils.TEXT_PLAIN, String.class, MetadataExtractor.ROUTE_KEY);
+			this.metadataExtractor = extractor;
+		}
+	}
+
 	protected IntegrationRSocket createRSocket(ConnectionSetupPayload setupPayload, RSocket rsocket) {
 		String mimeType = setupPayload.dataMimeType();
 		MimeType dataMimeType =
@@ -140,7 +170,7 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 		Assert.notNull(rSocketStrategies, "No `rSocketStrategies` provided");
 		RSocketRequester requester = RSocketRequester.wrap(rsocket, dataMimeType, metaMimeType, rSocketStrategies);
 		return new IntegrationRSocket(this, getRouteMatcher(), requester, dataMimeType, metaMimeType,
-				rSocketStrategies.dataBufferFactory());
+				this.metadataExtractor, rSocketStrategies.dataBufferFactory());
 	}
 
 	private static final class MessageHandlerMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {

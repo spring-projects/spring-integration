@@ -16,9 +16,7 @@
 
 package org.springframework.integration.rsocket;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -28,14 +26,15 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodReturnValueHandler;
+import org.springframework.messaging.rsocket.PayloadUtils;
 import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.messaging.rsocket.annotation.support.MetadataExtractor;
 import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.messaging.support.MessageBuilder;
@@ -44,11 +43,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.RouteMatcher;
 
-import io.netty.buffer.ByteBuf;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.Payload;
-import io.rsocket.metadata.CompositeMetadata;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -72,11 +69,6 @@ class IntegrationRSocket extends AbstractRSocket {
 
 	static final MimeType COMPOSITE_METADATA = new MimeType("message", "x.rsocket.composite-metadata.v0");
 
-	static final MimeType ROUTING = new MimeType("message", "x.rsocket.routing.v0");
-
-	static final List<MimeType> METADATA_MIME_TYPES = Arrays.asList(COMPOSITE_METADATA, ROUTING);
-
-
 	private final ReactiveMessageHandler handler;
 
 	private final RouteMatcher routeMatcher;
@@ -89,9 +81,11 @@ class IntegrationRSocket extends AbstractRSocket {
 
 	private final MimeType metadataMimeType;
 
+	private final MetadataExtractor metadataExtractor;
+
 	IntegrationRSocket(ReactiveMessageHandler handler, RouteMatcher routeMatcher,
 			RSocketRequester requester, MimeType dataMimeType, MimeType metadataMimeType,
-			DataBufferFactory bufferFactory) {
+			MetadataExtractor metadataExtractor, DataBufferFactory bufferFactory) {
 
 		Assert.notNull(handler, "'handler' is required");
 		Assert.notNull(routeMatcher, "'routeMatcher' is required");
@@ -99,14 +93,12 @@ class IntegrationRSocket extends AbstractRSocket {
 		Assert.notNull(dataMimeType, "'dataMimeType' is required");
 		Assert.notNull(metadataMimeType, "'metadataMimeType' is required");
 
-		Assert.isTrue(METADATA_MIME_TYPES.contains(metadataMimeType),
-				() -> "Unexpected metadatata mime type: '" + metadataMimeType + "'");
-
 		this.handler = handler;
 		this.routeMatcher = routeMatcher;
 		this.requester = requester;
 		this.dataMimeType = dataMimeType;
 		this.metadataMimeType = metadataMimeType;
+		this.metadataExtractor = metadataExtractor;
 		this.bufferFactory = bufferFactory;
 	}
 
@@ -163,8 +155,7 @@ class IntegrationRSocket extends AbstractRSocket {
 
 
 	private Mono<Void> handle(Payload payload) {
-		String destination = getDestination(payload);
-		MessageHeaders headers = createHeaders(destination, null);
+		MessageHeaders headers = createHeaders(payload, null);
 		DataBuffer dataBuffer = retainDataAndReleasePayload(payload);
 		int refCount = refCount(dataBuffer);
 		Message<?> message = MessageBuilder.createMessage(dataBuffer, headers);
@@ -176,15 +167,9 @@ class IntegrationRSocket extends AbstractRSocket {
 				});
 	}
 
-	static int refCount(DataBuffer dataBuffer) {
-		return dataBuffer instanceof NettyDataBuffer ?
-				((NettyDataBuffer) dataBuffer).getNativeBuffer().refCnt() : 1;
-	}
-
 	private Flux<Payload> handleAndReply(Payload firstPayload, Flux<Payload> payloads) {
 		MonoProcessor<Flux<Payload>> replyMono = MonoProcessor.create();
-		String destination = getDestination(firstPayload);
-		MessageHeaders headers = createHeaders(destination, replyMono);
+		MessageHeaders headers = createHeaders(firstPayload, replyMono);
 
 		AtomicBoolean read = new AtomicBoolean();
 		Flux<DataBuffer> buffers =
@@ -206,57 +191,48 @@ class IntegrationRSocket extends AbstractRSocket {
 	}
 
 	String getDestination(Payload payload) {
-		if (this.metadataMimeType.equals(COMPOSITE_METADATA)) {
-			CompositeMetadata metadata = new CompositeMetadata(payload.metadata(), false);
-			for (CompositeMetadata.Entry entry : metadata) {
-				String mimeType = entry.getMimeType();
-				if (ROUTING.toString().equals(mimeType)) {
-					return entry.getContent().toString(StandardCharsets.UTF_8);
-				}
-			}
+		Map<String, Object> metadataValues = this.metadataExtractor.extract(payload, this.metadataMimeType);
+		Object routingKey = metadataValues.get(MetadataExtractor.ROUTE_KEY);
+		if (routingKey != null) {
+			RouteMatcher.Route route = this.routeMatcher.parseRoute(routingKey.toString());
+			return route.value();
+		}
+		else {
 			return "";
 		}
-		else if (this.metadataMimeType.equals(ROUTING)) {
-			return payload.getMetadataUtf8();
-		}
-		// Should not happen (given constructor assertions)
-		throw new IllegalArgumentException("Unexpected metadata MimeType");
 	}
 
 	private DataBuffer retainDataAndReleasePayload(Payload payload) {
-		return payloadToDataBuffer(payload, this.bufferFactory);
+		payload.retain();
+		return PayloadUtils.retainDataAndReleasePayload(payload, this.bufferFactory);
 	}
 
-	private MessageHeaders createHeaders(String destination, @Nullable MonoProcessor<?> replyMono) {
+	private MessageHeaders createHeaders(Payload payload, @Nullable MonoProcessor<?> replyMono) {
 		MessageHeaderAccessor headers = new MessageHeaderAccessor();
 		headers.setLeaveMutable(true);
-		RouteMatcher.Route route = this.routeMatcher.parseRoute(destination);
-		headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, route);
+
+		Map<String, Object> metadataValues = this.metadataExtractor.extract(payload, this.metadataMimeType);
+		metadataValues.putIfAbsent(MetadataExtractor.ROUTE_KEY, "");
+		for (Map.Entry<String, Object> entry : metadataValues.entrySet()) {
+			if (entry.getKey().equals(MetadataExtractor.ROUTE_KEY)) {
+				RouteMatcher.Route route = this.routeMatcher.parseRoute((String) entry.getValue());
+				headers.setHeader(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER, route);
+			}
+			else {
+				headers.setHeader(entry.getKey(), entry.getValue());
+			}
+		}
+
 		headers.setContentType(this.dataMimeType);
 		headers.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, this.requester);
-		if (replyMono != null) {
-			headers.setHeader(RSocketPayloadReturnValueHandler.RESPONSE_HEADER, replyMono);
-		}
 		headers.setHeader(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER, this.bufferFactory);
+		headers.setHeader(RSocketPayloadReturnValueHandler.RESPONSE_HEADER, replyMono);
+
 		return headers.getMessageHeaders();
 	}
 
-	static DataBuffer payloadToDataBuffer(Payload payload, DataBufferFactory bufferFactory) {
-		payload.retain();
-		try {
-			if (bufferFactory instanceof NettyDataBufferFactory) {
-				ByteBuf byteBuf = payload.sliceData().retain();
-				return ((NettyDataBufferFactory) bufferFactory).wrap(byteBuf);
-			}
-			else {
-				return bufferFactory.wrap(payload.getData());
-			}
-		}
-		finally {
-			if (payload.refCnt() > 0) {
-				payload.release();
-			}
-		}
+	private static int refCount(DataBuffer dataBuffer) {
+		return dataBuffer instanceof NettyDataBuffer ? ((NettyDataBuffer) dataBuffer).getNativeBuffer().refCnt() : 1;
 	}
 
 }

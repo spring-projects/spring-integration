@@ -144,7 +144,7 @@ subprojects { subproject ->
 		reactorVersion = '3.3.0.BUILD-SNAPSHOT'
 		resilience4jVersion = '0.14.1'
 		romeToolsVersion = '1.12.0'
-		rsocketVersion = '1.0.0-RC1-SNAPSHOT'
+		rsocketVersion = '0.12.2-RC4'
 		servletApiVersion = '4.0.1'
 		smackVersion = '4.3.3'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.BUILD-SNAPSHOT'
