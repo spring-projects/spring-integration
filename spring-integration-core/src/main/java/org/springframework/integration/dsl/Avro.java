@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dsl;
 
-import org.apache.avro.specific.SpecificRecord;
+import org.apache.avro.generic.GenericContainer;
 
 import org.springframework.integration.transformer.SimpleFromAvroTransformer;
 import org.springframework.integration.transformer.SimpleToAvroTransformer;
@@ -34,7 +34,7 @@ public final class Avro {
 		return new SimpleToAvroTransformer();
 	}
 
-	public static SimpleFromAvroTransformer fromAvro(Class<? extends SpecificRecord> type) {
+	public static SimpleFromAvroTransformer fromAvro(Class<? extends GenericContainer> type) {
 		return new SimpleFromAvroTransformer(type);
 	}
 
