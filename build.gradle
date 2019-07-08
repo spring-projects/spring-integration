@@ -101,6 +101,7 @@ subprojects { subproject ->
 	ext {
 		activeMqVersion = '5.15.9'
 		apacheSshdVersion = '2.2.0'
+		avroVersion = '1.8.2'
 		aspectjVersion = '1.9.4'
 		assertjVersion = '3.12.2'
 		assertkVersion = '0.17'
@@ -397,6 +398,7 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 		compile("io.micrometer:micrometer-core:$micrometerVersion", optional)
 		compile("io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion", optional)
+		compile("org.apache.avro:avro:$avroVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"

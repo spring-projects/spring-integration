@@ -1,0 +1,14 @@
+{
+  "type" : "record",
+  "name" : "AvroTestClass",
+  "namespace" : "org.springframework.integration.transformer",
+  "fields" : [ {
+    "name" : "bar",
+    "type" : [ "null", "string" ]
+  },
+  {
+    "name" : "qux",
+    "type" : [ "null", "string" ],
+    "default" : null
+  } ]
+}
