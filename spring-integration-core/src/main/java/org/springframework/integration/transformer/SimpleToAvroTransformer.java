@@ -26,6 +26,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 
+import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -55,7 +56,10 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-		return out.toByteArray();
+		return getMessageBuilderFactory().withPayload(out.toByteArray())
+				.copyHeaders(message.getHeaders())
+				.setHeader(AvroHeaders.TYPE, specific.getClass().getName())
+				.build();
 	}
 
 }

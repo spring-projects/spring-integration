@@ -462,20 +462,9 @@ They are unsophisticated in that there is no schema registry; the transformers s
 
 Messages sent to the `SimpleToAvroTransformer` must have a payload that implements `SpecificRecord`; the transformer can handle multiple types.
 The `SimpleFromAvroTransformer` must be configured with a `SpecificRecord` class which is used as the default type to deserialize.
-You can also specify typeMapping and a SpEL expression to determine the key to lookup the type to deserialize.
-The default SpEL expression is `headers[avro_typeId]` (`AvroHeaders.TYPE_ID`).
-A fluent API is provided to create the transformer.
-
-====
-[source, java]
-----
-SimpleFromAvroTransformer transformer = 
-    new SimpleFromAvroTransformer(AvroTestClass1.class)
-            .typeMapping("#2", AvroTestClass2.class)
-            .typeMapping("#3", AvroTestClass3.class)
-            .typeIdExpression("headers[someOtherHeader]");
-----
-====
+You can also specify a SpEL expression to determine the type to deserialize.
+The default SpEL expression is `headers[avro_type]` (`AvroHeaders.TYPE`).
+If the expression returns `null`, the `defaultType` is used.
 
 [[transformer-annotation]]
 ==== Configuring a Transformer with Annotations
