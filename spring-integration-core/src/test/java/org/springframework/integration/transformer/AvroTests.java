@@ -26,9 +26,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.dsl.Avro;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -43,8 +43,8 @@ public class AvroTests {
 
 	@Test
 	void testTransformers(@Autowired Config config) {
-		AvroTestClass test = new AvroTestClass("baz", "fiz");
-		config.in().send(new GenericMessage<>(test));
+		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
+		config.in1().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
@@ -56,23 +56,54 @@ public class AvroTests {
 			.isNotSameAs(test);
 	}
 
+	@Test
+	void testMultiTypeTransformers(@Autowired Config config) {
+		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
+		config.in2().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isInstanceOf(byte[].class);
+		assertThat(config.out().receive(0))
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isNotEqualTo(test)
+			.isInstanceOf(AvroTestClass2.class);
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
 
-
 		@Bean
-		public IntegrationFlow flow() {
-			return IntegrationFlows.from(in())
-					.transform(Avro.toAvro())
+		public IntegrationFlow flow1() {
+			return IntegrationFlows.from(in1())
+					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
-					.transform(Avro.fromAvro(AvroTestClass.class))
+					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class))
 					.channel(out())
 					.get();
 		}
 
 		@Bean
-		public DirectChannel in() {
+		public IntegrationFlow flow2() {
+			return IntegrationFlows.from(in2())
+					.transform(new SimpleToAvroTransformer())
+					.wireTap(tapped())
+					.enrichHeaders(h -> h.header(AvroHeaders.TYPE_ID, "#2"))
+					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
+							.typeMapping("#2", AvroTestClass2.class))
+					.channel(out())
+					.get();
+		}
+
+		@Bean
+		public DirectChannel in1() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public DirectChannel in2() {
 			return new DirectChannel();
 		}
 

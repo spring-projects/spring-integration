@@ -116,3 +116,9 @@ See <<./webflux.adoc#webflux,WebFlux Support>> for more information.
 
 The `MongoDbMessageStore` can now be configured with custom converters.
 See <<./mongodb.adoc#mongodb, MongoDB Support>> for more information.
+
+[[x5.2-avro]]
+==== Avro Transformers
+
+Simple Apache Avro transformers are now provided.
+See <<./transformers.adoc#avro-transformers, Avro Transformers>> for more information.

@@ -18,17 +18,23 @@ package org.springframework.integration.transformer;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecord;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An avro transformer to create generated {@link SpecificRecord} objects
+ * An Apache Avro transformer to create generated {@link SpecificRecord} objects
  * from {@code byte[]}.
  *
  * @author Gary Russell
@@ -37,18 +43,94 @@ import org.springframework.util.Assert;
  */
 public class SimpleFromAvroTransformer extends AbstractTransformer {
 
-	private final Class<? extends SpecificRecord> type;
+	private final Class<? extends SpecificRecord> defaultType;
+
+	private final Map<String, Class<? extends SpecificRecord>> typeMappings = new HashMap<>();
 
 	private final DecoderFactory decoderFactory = new DecoderFactory();
 
-	public SimpleFromAvroTransformer(Class<? extends SpecificRecord> type) {
-		this.type = type;
+	private Expression typeIdExpression =
+			EXPRESSION_PARSER.parseExpression("headers['" + AvroHeaders.TYPE_ID + "']");
+
+	private EvaluationContext evaluationContext;
+
+	/**
+	 * Construct an instance with the supplied default type to create.
+	 * @param defaultType the type.
+	 */
+	public SimpleFromAvroTransformer(Class<? extends SpecificRecord> defaultType) {
+		Assert.notNull(defaultType, "'defaultType' must not be null");
+		this.defaultType = defaultType;
+	}
+
+	/**
+	 * Set type mappings.
+	 * @param typesToMap the types to map.
+	 * @return the transformer.
+	 * @see #typeIdExpression
+	 */
+	public SimpleFromAvroTransformer typeMappings(Map<String, Class<? extends SpecificRecord>> typesToMap) {
+		Assert.notNull(typesToMap, "'typeMappings' must not be null");
+		this.typeMappings.putAll(typesToMap);
+		return this;
+	}
+
+	/**
+	 * Add an individual type mapping.
+	 * @param typeId the type id.
+	 * @param clazz the type.
+	 * @return the transformer.
+	 */
+	public SimpleFromAvroTransformer typeMapping(String typeId, Class<? extends SpecificRecord> clazz) {
+		Assert.notNull(typeId, "'typeId' must not be null");
+		Assert.notNull(clazz, "'clazz' must not be null");
+		this.typeMappings.put(typeId, clazz);
+		return this;
+	}
+
+	/**
+	 * Set the expression to evaluate against the message to determine the type id.
+	 * Default {@code headers['avro_typeId']}.
+	 * @param expression the expression.
+	 * @return the transformer
+	 * @see #typeMappings
+	 */
+	public SimpleFromAvroTransformer typeIdExpression(Expression expression) {
+		Assert.notNull(expression, "'expression' must not be null");
+		this.typeIdExpression = expression;
+		return this;
+	}
+
+	/**
+	 * Set the expression to evaluate against the message to determine the type id.
+	 * Default {@code headers['avro_typeId']}.
+	 * @param expression the expression.
+	 * @return the transformer
+	 * @see #typeMappings
+	 */
+	public SimpleFromAvroTransformer typeIdExpression(String expression) {
+		Assert.notNull(expression, "'expression' must not be null");
+		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
+		return this;
+	}
+
+	@Override
+	protected void onInit() {
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 	}
 
 	@Override
 	protected Object doTransform(Message<?> message) {
 		Assert.state(message.getPayload() instanceof byte[], "Payload must be a byte[]");
-		DatumReader<?> reader = new SpecificDatumReader<>(this.type);
+		Class<? extends SpecificRecord> type = null;
+		String typeId = this.typeIdExpression.getValue(this.evaluationContext, message, String.class);
+		if (typeId != null) {
+			type = this.typeMappings.get(typeId);
+		}
+		if (type == null) {
+			type = this.defaultType;
+		}
+		DatumReader<?> reader = new SpecificDatumReader<>(type);
 		try {
 			return reader.read(null, this.decoderFactory.binaryDecoder((byte[]) message.getPayload(), null));
 		}

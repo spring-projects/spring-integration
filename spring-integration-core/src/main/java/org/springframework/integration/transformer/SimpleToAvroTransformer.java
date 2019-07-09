@@ -30,7 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An avro transformer for generated {@link SpecificRecord} objects.
+ * An Apache Avro transformer for generated {@link SpecificRecord} objects.
  *
  * @author Gary Russell
  * @since 5.2

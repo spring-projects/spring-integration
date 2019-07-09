@@ -12,23 +12,23 @@ import org.apache.avro.message.SchemaStore;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
-public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 389393217217690928L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AvroTestClass\",\"namespace\":\"org.springframework.integration.transformer\",\"fields\":[{\"name\":\"bar\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]},{\"name\":\"qux\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"default\":null}]}");
+public class AvroTestClass1 extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
+  private static final long serialVersionUID = 72441923701471492L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AvroTestClass1\",\"namespace\":\"org.springframework.integration.transformer\",\"fields\":[{\"name\":\"bar\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]},{\"name\":\"qux\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}],\"default\":null}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
 
-  private static final BinaryMessageEncoder<AvroTestClass> ENCODER =
-      new BinaryMessageEncoder<AvroTestClass>(MODEL$, SCHEMA$);
+  private static final BinaryMessageEncoder<AvroTestClass1> ENCODER =
+      new BinaryMessageEncoder<AvroTestClass1>(MODEL$, SCHEMA$);
 
-  private static final BinaryMessageDecoder<AvroTestClass> DECODER =
-      new BinaryMessageDecoder<AvroTestClass>(MODEL$, SCHEMA$);
+  private static final BinaryMessageDecoder<AvroTestClass1> DECODER =
+      new BinaryMessageDecoder<AvroTestClass1>(MODEL$, SCHEMA$);
 
   /**
    * Return the BinaryMessageDecoder instance used by this class.
    */
-  public static BinaryMessageDecoder<AvroTestClass> getDecoder() {
+  public static BinaryMessageDecoder<AvroTestClass1> getDecoder() {
     return DECODER;
   }
 
@@ -36,17 +36,17 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
    * Create a new BinaryMessageDecoder instance for this class that uses the specified {@link SchemaStore}.
    * @param resolver a {@link SchemaStore} used to find schemas by fingerprint
    */
-  public static BinaryMessageDecoder<AvroTestClass> createDecoder(SchemaStore resolver) {
-    return new BinaryMessageDecoder<AvroTestClass>(MODEL$, SCHEMA$, resolver);
+  public static BinaryMessageDecoder<AvroTestClass1> createDecoder(SchemaStore resolver) {
+    return new BinaryMessageDecoder<AvroTestClass1>(MODEL$, SCHEMA$, resolver);
   }
 
-  /** Serializes this AvroTestClass to a ByteBuffer. */
+  /** Serializes this AvroTestClass1 to a ByteBuffer. */
   public java.nio.ByteBuffer toByteBuffer() throws java.io.IOException {
     return ENCODER.encode(this);
   }
 
-  /** Deserializes a AvroTestClass from a ByteBuffer. */
-  public static AvroTestClass fromByteBuffer(
+  /** Deserializes a AvroTestClass1 from a ByteBuffer. */
+  public static AvroTestClass1 fromByteBuffer(
       java.nio.ByteBuffer b) throws java.io.IOException {
     return DECODER.decode(b);
   }
@@ -59,14 +59,14 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
    * to their default values from the schema.  If that is desired then
    * one should use <code>newBuilder()</code>.
    */
-  public AvroTestClass() {}
+  public AvroTestClass1() {}
 
   /**
    * All-args constructor.
    * @param bar The new value for bar
    * @param qux The new value for qux
    */
-  public AvroTestClass(java.lang.String bar, java.lang.String qux) {
+  public AvroTestClass1(java.lang.String bar, java.lang.String qux) {
     this.bar = bar;
     this.qux = qux;
   }
@@ -124,36 +124,36 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
   }
 
   /**
-   * Creates a new AvroTestClass RecordBuilder.
-   * @return A new AvroTestClass RecordBuilder
+   * Creates a new AvroTestClass1 RecordBuilder.
+   * @return A new AvroTestClass1 RecordBuilder
    */
-  public static org.springframework.integration.transformer.AvroTestClass.Builder newBuilder() {
-    return new org.springframework.integration.transformer.AvroTestClass.Builder();
+  public static org.springframework.integration.transformer.AvroTestClass1.Builder newBuilder() {
+    return new org.springframework.integration.transformer.AvroTestClass1.Builder();
   }
 
   /**
-   * Creates a new AvroTestClass RecordBuilder by copying an existing Builder.
+   * Creates a new AvroTestClass1 RecordBuilder by copying an existing Builder.
    * @param other The existing builder to copy.
-   * @return A new AvroTestClass RecordBuilder
+   * @return A new AvroTestClass1 RecordBuilder
    */
-  public static org.springframework.integration.transformer.AvroTestClass.Builder newBuilder(org.springframework.integration.transformer.AvroTestClass.Builder other) {
-    return new org.springframework.integration.transformer.AvroTestClass.Builder(other);
+  public static org.springframework.integration.transformer.AvroTestClass1.Builder newBuilder(org.springframework.integration.transformer.AvroTestClass1.Builder other) {
+    return new org.springframework.integration.transformer.AvroTestClass1.Builder(other);
   }
 
   /**
-   * Creates a new AvroTestClass RecordBuilder by copying an existing AvroTestClass instance.
+   * Creates a new AvroTestClass1 RecordBuilder by copying an existing AvroTestClass1 instance.
    * @param other The existing instance to copy.
-   * @return A new AvroTestClass RecordBuilder
+   * @return A new AvroTestClass1 RecordBuilder
    */
-  public static org.springframework.integration.transformer.AvroTestClass.Builder newBuilder(org.springframework.integration.transformer.AvroTestClass other) {
-    return new org.springframework.integration.transformer.AvroTestClass.Builder(other);
+  public static org.springframework.integration.transformer.AvroTestClass1.Builder newBuilder(org.springframework.integration.transformer.AvroTestClass1 other) {
+    return new org.springframework.integration.transformer.AvroTestClass1.Builder(other);
   }
 
   /**
-   * RecordBuilder for AvroTestClass instances.
+   * RecordBuilder for AvroTestClass1 instances.
    */
-  public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<AvroTestClass>
-    implements org.apache.avro.data.RecordBuilder<AvroTestClass> {
+  public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<AvroTestClass1>
+    implements org.apache.avro.data.RecordBuilder<AvroTestClass1> {
 
     private java.lang.String bar;
     private java.lang.String qux;
@@ -167,7 +167,7 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.springframework.integration.transformer.AvroTestClass.Builder other) {
+    private Builder(org.springframework.integration.transformer.AvroTestClass1.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.bar)) {
         this.bar = data().deepCopy(fields()[0].schema(), other.bar);
@@ -180,10 +180,10 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
     }
 
     /**
-     * Creates a Builder by copying an existing AvroTestClass instance
+     * Creates a Builder by copying an existing AvroTestClass1 instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.springframework.integration.transformer.AvroTestClass other) {
+    private Builder(org.springframework.integration.transformer.AvroTestClass1 other) {
             super(SCHEMA$);
       if (isValidValue(fields()[0], other.bar)) {
         this.bar = data().deepCopy(fields()[0].schema(), other.bar);
@@ -208,7 +208,7 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
       * @param value The value of 'bar'.
       * @return This builder.
       */
-    public org.springframework.integration.transformer.AvroTestClass.Builder setBar(java.lang.String value) {
+    public org.springframework.integration.transformer.AvroTestClass1.Builder setBar(java.lang.String value) {
       validate(fields()[0], value);
       this.bar = value;
       fieldSetFlags()[0] = true;
@@ -228,7 +228,7 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
       * Clears the value of the 'bar' field.
       * @return This builder.
       */
-    public org.springframework.integration.transformer.AvroTestClass.Builder clearBar() {
+    public org.springframework.integration.transformer.AvroTestClass1.Builder clearBar() {
       bar = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -247,7 +247,7 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
       * @param value The value of 'qux'.
       * @return This builder.
       */
-    public org.springframework.integration.transformer.AvroTestClass.Builder setQux(java.lang.String value) {
+    public org.springframework.integration.transformer.AvroTestClass1.Builder setQux(java.lang.String value) {
       validate(fields()[1], value);
       this.qux = value;
       fieldSetFlags()[1] = true;
@@ -267,7 +267,7 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
       * Clears the value of the 'qux' field.
       * @return This builder.
       */
-    public org.springframework.integration.transformer.AvroTestClass.Builder clearQux() {
+    public org.springframework.integration.transformer.AvroTestClass1.Builder clearQux() {
       qux = null;
       fieldSetFlags()[1] = false;
       return this;
@@ -275,9 +275,9 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
 
     @Override
     @SuppressWarnings("unchecked")
-    public AvroTestClass build() {
+    public AvroTestClass1 build() {
       try {
-        AvroTestClass record = new AvroTestClass();
+        AvroTestClass1 record = new AvroTestClass1();
         record.bar = fieldSetFlags()[0] ? this.bar : (java.lang.String) defaultValue(fields()[0]);
         record.qux = fieldSetFlags()[1] ? this.qux : (java.lang.String) defaultValue(fields()[1]);
         return record;
@@ -288,8 +288,8 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumWriter<AvroTestClass>
-    WRITER$ = (org.apache.avro.io.DatumWriter<AvroTestClass>)MODEL$.createDatumWriter(SCHEMA$);
+  private static final org.apache.avro.io.DatumWriter<AvroTestClass1>
+    WRITER$ = (org.apache.avro.io.DatumWriter<AvroTestClass1>)MODEL$.createDatumWriter(SCHEMA$);
 
   @Override public void writeExternal(java.io.ObjectOutput out)
     throws java.io.IOException {
@@ -297,8 +297,8 @@ public class AvroTestClass extends org.apache.avro.specific.SpecificRecordBase i
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumReader<AvroTestClass>
-    READER$ = (org.apache.avro.io.DatumReader<AvroTestClass>)MODEL$.createDatumReader(SCHEMA$);
+  private static final org.apache.avro.io.DatumReader<AvroTestClass1>
+    READER$ = (org.apache.avro.io.DatumReader<AvroTestClass1>)MODEL$.createDatumReader(SCHEMA$);
 
   @Override public void readExternal(java.io.ObjectInput in)
     throws java.io.IOException {
