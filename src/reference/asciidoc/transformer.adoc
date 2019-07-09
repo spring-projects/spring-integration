@@ -373,7 +373,7 @@ public class Thing1 {
 ----
 ====
 
-NOTE: The Boon support has been deprecated since version 5.2.
+NOTE: Boon support has been deprecated since version 5.2.
 
 You may wish to consider using a `FactoryBean` or a factory method to create the `JsonObjectMapper` with the required characteristics.
 The following example shows how to use such a factory:
@@ -452,6 +452,19 @@ Beginning with version 5.1, the `resultType` can be configured as `BYTES` to pro
 Starting with version 5.2, the `JsonToObjectTransformer` can be configured with a `ResolvableType` to support generics during deserialization with the target JSON processor.
 Also this component now consults request message headers first for the presence of the `JsonHeaders.RESOLVABLE_TYPE` or `JsonHeaders.TYPE_ID` and falls back to the configured type otherwise.
 The `ObjectToJsonTransformer` now also populates a `JsonHeaders.RESOLVABLE_TYPE` header based on the request message payload for any possible downstream scenarios.
+
+[[Avro-transformers]]
+===== Apache Avro Transformers
+
+Version 5.2 added simple transformers to transform to/from Apache Avro.
+
+They are unsophisticated in that there is no schema registry; the transformers simply use the schema embedded in the `SpecificRecord` implementation generated from the Avro schema.
+
+Messages sent to the `SimpleToAvroTransformer` must have a payload that implements `SpecificRecord`; the transformer can handle multiple types.
+The `SimpleFromAvroTransformer` must be configured with a `SpecificRecord` class which is used as the default type to deserialize.
+You can also specify a SpEL expression to determine the type to deserialize.
+The default SpEL expression is `headers[avro_type]` (`AvroHeaders.TYPE`).
+If the expression returns `null`, the `defaultType` is used.
 
 [[transformer-annotation]]
 ==== Configuring a Transformer with Annotations
