@@ -20,18 +20,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An avro transformer for generated {@link GenericContainer} objects.
+ * An avro transformer for generated {@link SpecificRecord} objects.
  *
  * @author Gary Russell
  * @since 5.2
@@ -45,7 +45,7 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 	protected Object doTransform(Message<?> message) {
 		Assert.state(message.getPayload() instanceof SpecificRecordBase,
 				"Payload must be a subclass of 'SpecificRecordBase'");
-		GenericContainer specific = (SpecificRecordBase) message.getPayload();
+		SpecificRecord specific = (SpecificRecord) message.getPayload();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		BinaryEncoder encoder = this.encoderFactory.directBinaryEncoder(out, null);
 		DatumWriter<Object> writer = new SpecificDatumWriter<>(specific.getSchema());

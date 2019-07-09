@@ -19,16 +19,16 @@ package org.springframework.integration.transformer;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificRecord;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An avro transformer to create generated {@link GenericContainer} objects
+ * An avro transformer to create generated {@link SpecificRecord} objects
  * from {@code byte[]}.
  *
  * @author Gary Russell
@@ -37,11 +37,11 @@ import org.springframework.util.Assert;
  */
 public class SimpleFromAvroTransformer extends AbstractTransformer {
 
-	private final Class<? extends GenericContainer> type;
+	private final Class<? extends SpecificRecord> type;
 
 	private final DecoderFactory decoderFactory = new DecoderFactory();
 
-	public SimpleFromAvroTransformer(Class<? extends GenericContainer> type) {
+	public SimpleFromAvroTransformer(Class<? extends SpecificRecord> type) {
 		this.type = type;
 	}
 
