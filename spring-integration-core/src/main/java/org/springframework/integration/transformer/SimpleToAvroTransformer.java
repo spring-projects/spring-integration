@@ -58,7 +58,7 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 		}
 		return getMessageBuilderFactory().withPayload(out.toByteArray())
 				.copyHeaders(message.getHeaders())
-				.setHeader(AvroHeaders.TYPE, specific.getClass().getName())
+				.setHeader(AvroHeaders.TYPE, specific.getClass())
 				.build();
 	}
 
