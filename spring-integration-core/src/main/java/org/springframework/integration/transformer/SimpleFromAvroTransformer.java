@@ -18,8 +18,6 @@ package org.springframework.integration.transformer;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
@@ -49,8 +47,6 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	private final Class<? extends SpecificRecord> defaultType;
 
 	private final DecoderFactory decoderFactory = new DecoderFactory();
-
-	private final Map<String, Class<? extends SpecificRecord>> typeCache = new ConcurrentHashMap<>();
 
 	private Expression typeIdExpression = new FunctionExpression<Message<?>>(
 			msg -> msg.getHeaders().get(AvroHeaders.TYPE));
@@ -132,17 +128,11 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 			type = (Class<? extends SpecificRecord>) value;
 		}
 		else if (value instanceof String) {
-			if (this.typeCache.containsKey(value)) {
-				type = this.typeCache.get(value);
+			try {
+				type = (Class<? extends SpecificRecord>) ClassUtils.forName((String) value, this.beanClassLoader);
 			}
-			else {
-				try {
-					type = (Class<? extends SpecificRecord>) ClassUtils.forName((String) value, this.beanClassLoader);
-					this.typeCache.put((String) value, type);
-				}
-				catch (ClassNotFoundException | LinkageError e) {
-					throw new IllegalStateException(e);
-				}
+			catch (ClassNotFoundException | LinkageError e) {
+				throw new IllegalStateException(e);
 			}
 		}
 		if (type == null) {

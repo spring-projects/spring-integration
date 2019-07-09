@@ -54,17 +54,6 @@ public class AvroTests {
 			.extracting(msg -> msg.getPayload())
 			.isEqualTo(test)
 			.isNotSameAs(test);
-		// test the cache
-		config.in1().send(new GenericMessage<>(test));
-		assertThat(config.tapped().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isInstanceOf(byte[].class);
-		assertThat(config.out().receive(0))
-			.isNotNull()
-			.extracting(msg -> msg.getPayload())
-			.isEqualTo(test)
-			.isNotSameAs(test);
 	}
 
 	@Test
