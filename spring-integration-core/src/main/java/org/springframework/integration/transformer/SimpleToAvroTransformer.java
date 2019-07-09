@@ -25,7 +25,6 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
-import org.apache.avro.specific.SpecificRecordBase;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -43,8 +42,8 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 
 	@Override
 	protected Object doTransform(Message<?> message) {
-		Assert.state(message.getPayload() instanceof SpecificRecordBase,
-				"Payload must be a subclass of 'SpecificRecordBase'");
+		Assert.state(message.getPayload() instanceof SpecificRecord,
+				"Payload must be an implementation of 'SpecificRecord'");
 		SpecificRecord specific = (SpecificRecord) message.getPayload();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		BinaryEncoder encoder = this.encoderFactory.directBinaryEncoder(out, null);
