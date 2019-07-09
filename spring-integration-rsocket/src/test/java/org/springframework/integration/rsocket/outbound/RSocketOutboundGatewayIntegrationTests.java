@@ -52,6 +52,7 @@ import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.annotation.ConnectMapping;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.messaging.support.ErrorMessage;
@@ -627,7 +628,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 			return Mono.delay(Duration.ofMillis(10)).then(Mono.empty());
 		}
 
-		@MessageMapping("clientConnect")
+		@ConnectMapping("clientConnect")
 		void clientConnect(RSocketRequester requester) {
 			this.clientRequester.onNext(requester);
 		}
