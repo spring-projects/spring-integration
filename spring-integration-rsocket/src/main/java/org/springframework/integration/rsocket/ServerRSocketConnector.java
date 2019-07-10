@@ -22,15 +22,20 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.handler.CompositeMessageCondition;
+import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.messaging.rsocket.annotation.support.RSocketFrameTypeMessageCondition;
+import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.RouteMatcher;
 
 import io.rsocket.RSocketFactory;
 import io.rsocket.SocketAcceptor;
@@ -162,9 +167,13 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 				.subscribe();
 	}
 
-	private static class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandler {
+	@Override
+	public void afterSingletonsInstantiated() {
+		super.afterSingletonsInstantiated();
+		serverRSocketMessageHandler().registerHandleConnectionSetupMethod();
+	}
 
-		private static final Log LOGGER = LogFactory.getLog(ServerRSocketMessageHandler.class);
+	private static class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandler {
 
 		private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 
@@ -172,29 +181,41 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		private ApplicationEventPublisher applicationEventPublisher;
 
-		@Override
-		public SocketAcceptor serverAcceptor() {
-			return (setupPayload, sendingRSocket) -> {
-				IntegrationRSocket rsocket = createRSocket(setupPayload, sendingRSocket);
-				return rsocket.handleConnectionSetupPayload(setupPayload)
-						.doOnNext((dataBuffer) -> {
-							String destination = rsocket.getDestination(setupPayload);
-							Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(destination, dataBuffer);
-							RSocketRequester rsocketRequester = rsocket.getRequester();
-							this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
-							RSocketConnectedEvent rSocketConnectedEvent =
-									new RSocketConnectedEvent(rsocket, destination, dataBuffer, rsocketRequester);
-							if (this.applicationEventPublisher != null) {
-								this.applicationEventPublisher.publishEvent(rSocketConnectedEvent);
-							}
-							else {
-								if (LOGGER.isInfoEnabled()) {
-									LOGGER.info("The RSocket has been connected: " + rSocketConnectedEvent);
-								}
-							}
-						})
-						.thenReturn(rsocket);
-			};
+		private void registerHandleConnectionSetupMethod() {
+			registerHandlerMethod(this,
+					ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", // NOSONAR
+							Message.class),
+					new CompositeMessageCondition(
+							RSocketFrameTypeMessageCondition.CONNECT_CONDITION,
+							new DestinationPatternsMessageCondition(new String[] { "*" }, getRouteMatcher())));
+		}
+
+		private void handleConnectionSetup(Message<DataBuffer> connectMessage) {
+			DataBuffer dataBuffer = connectMessage.getPayload();
+			MessageHeaders messageHeaders = connectMessage.getHeaders();
+			String destination = "";
+			RouteMatcher.Route route =
+					messageHeaders.get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER,
+							RouteMatcher.Route.class);
+			if (route != null) {
+				destination = route.value();
+			}
+
+			Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(destination, dataBuffer);
+			RSocketRequester rsocketRequester =
+					messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
+							RSocketRequester.class);
+			this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
+			RSocketConnectedEvent rSocketConnectedEvent =
+					new RSocketConnectedEvent(this, destination, dataBuffer, rsocketRequester); // NOSONAR
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(rSocketConnectedEvent);
+			}
+			else {
+				if (logger.isInfoEnabled()) {
+					logger.info("The RSocket has been connected: " + rSocketConnectedEvent);
+				}
+			}
 		}
 
 	}

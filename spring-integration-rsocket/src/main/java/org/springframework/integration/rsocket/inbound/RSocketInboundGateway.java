@@ -28,9 +28,7 @@ import org.springframework.core.codec.Encoder;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
-import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
@@ -41,14 +39,13 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.reactive.HandlerMethodReturnValueHandler;
+import org.springframework.messaging.rsocket.PayloadUtils;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketPayloadReturnValueHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
 import io.rsocket.Payload;
-import io.rsocket.util.ByteBufPayload;
-import io.rsocket.util.DefaultPayload;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -184,11 +181,9 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		if (replyMono != null) {
 			return requestMono
 					.flatMap(this::sendAndReceiveMessageReactive)
-					.doOnNext(replyMessage -> {
-						replyMono.onNext(createReply(replyMessage.getPayload(), requestMessage));
-						replyMono.onComplete();
-					})
-					.then();
+					.flatMap((replyMessage) ->
+							new ChannelSendOperator<>(createReply(replyMessage.getPayload(), requestMessage),
+									(publisher) -> sendReply(publisher, replyMono)));
 		}
 		else {
 			return requestMono
@@ -218,7 +213,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 		Object payload = requestMessage.getPayload();
 
-		// The IntegrationRSocket logic ensures that we can have only a single DataBuffer payload or Flux<DataBuffer>.
+		// The MessagingRSocket logic ensures that we can have only a single DataBuffer payload or Flux<DataBuffer>.
 		Decoder<Object> decoder = this.rsocketStrategies.decoder(elementType, mimeType);
 		if (payload instanceof DataBuffer) {
 			return decoder.decode((DataBuffer) payload, elementType, mimeType, null);
@@ -228,7 +223,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		}
 	}
 
-	private Flux<Payload> createReply(Object reply, Message<?> requestMessage) {
+	private Flux<DataBuffer> createReply(Object reply, Message<?> requestMessage) {
 		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
 		DataBufferFactory bufferFactory =
 				requestMessageHeaders.get(HandlerMethodReturnValueHandler.DATA_BUFFER_FACTORY_HEADER,
@@ -240,8 +235,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 		MimeType mimeType = requestMessageHeaders.get(MessageHeaders.CONTENT_TYPE, MimeType.class);
 
-		return encodeContent(reply, ResolvableType.forInstance(reply), bufferFactory, mimeType)
-				.map(RSocketInboundGateway::createPayload);
+		return encodeContent(reply, ResolvableType.forInstance(reply), bufferFactory, mimeType);
 	}
 
 	private Flux<DataBuffer> encodeContent(Object content, ResolvableType returnValueType,
@@ -269,24 +263,18 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 		return encoder.encodeValue(element, bufferFactory, elementType, mimeType, null);
 	}
 
+	private Mono<Void> sendReply(Publisher<DataBuffer> reply, MonoProcessor<Flux<Payload>> replyMono) {
+		replyMono.onNext(Flux.from(reply).map(PayloadUtils::createPayload));
+		replyMono.onComplete();
+		return Mono.empty();
+	}
+
 	@Nullable
 	@SuppressWarnings("unchecked")
 	private static MonoProcessor<Flux<Payload>> getReplyMono(Message<?> message) {
 		Object headerValue = message.getHeaders().get(RSocketPayloadReturnValueHandler.RESPONSE_HEADER);
 		Assert.state(headerValue == null || headerValue instanceof MonoProcessor, "Expected MonoProcessor");
 		return (MonoProcessor<Flux<Payload>>) headerValue;
-	}
-
-	private static Payload createPayload(DataBuffer data) {
-		if (data instanceof NettyDataBuffer) {
-			return ByteBufPayload.create(((NettyDataBuffer) data).getNativeBuffer());
-		}
-		else if (data instanceof DefaultDataBuffer) {
-			return DefaultPayload.create(((DefaultDataBuffer) data).getNativeBuffer());
-		}
-		else {
-			return DefaultPayload.create(data.asByteBuffer());
-		}
 	}
 
 }

@@ -53,7 +53,7 @@ public abstract class AbstractRSocketConnector
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
-	private MimeType metadataMimeType = IntegrationRSocket.COMPOSITE_METADATA;
+	private MimeType metadataMimeType = new MimeType("message", "x.rsocket.composite-metadata.v0");
 
 	private RSocketStrategies rsocketStrategies =
 			RSocketStrategies.builder()
