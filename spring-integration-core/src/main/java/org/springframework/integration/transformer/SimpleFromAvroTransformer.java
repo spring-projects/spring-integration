@@ -39,6 +39,8 @@ import org.springframework.util.ClassUtils;
  * from {@code byte[]}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -48,8 +50,8 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 
 	private final DecoderFactory decoderFactory = new DecoderFactory();
 
-	private Expression typeIdExpression = new FunctionExpression<Message<?>>(
-			msg -> msg.getHeaders().get(AvroHeaders.TYPE));
+	private Expression typeIdExpression =
+			new FunctionExpression<Message<?>>((message) -> message.getHeaders().get(AvroHeaders.TYPE));
 
 	private EvaluationContext evaluationContext;
 
@@ -76,9 +78,13 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * @return the transformer
 	 */
 	public SimpleFromAvroTransformer typeExpression(Expression expression) {
-		Assert.notNull(expression, "'expression' must not be null");
+		assertExpressionNotNull(expression);
 		this.typeIdExpression = expression;
 		return this;
+	}
+
+	private void assertExpressionNotNull(Object expression) {
+		Assert.notNull(expression, "'expression' must not be null");
 	}
 
 	/**
@@ -88,7 +94,7 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * @return the transformer
 	 */
 	public SimpleFromAvroTransformer typeExpression(String expression) {
-		Assert.notNull(expression, "'expression' must not be null");
+		assertExpressionNotNull(expression);
 		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
 		return this;
 	}
@@ -99,7 +105,7 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * @param expression the expression.
 	 */
 	public void setTypeExpression(Expression expression) {
-		Assert.notNull(expression, "'expression' must not be null");
+		assertExpressionNotNull(expression);
 		this.typeIdExpression = expression;
 	}
 
@@ -109,7 +115,7 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * @param expression the expression.
 	 */
 	public void setTypeExpression(String expression) {
-		Assert.notNull(expression, "'expression' must not be null");
+		assertExpressionNotNull(expression);
 		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
 	}
 
@@ -146,6 +152,5 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 			throw new UncheckedIOException(e);
 		}
 	}
-
 
 }

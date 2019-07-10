@@ -66,10 +66,10 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @return the handler spec.
 	 */
 	public AggregatorSpec processor(Object target, String methodName) {
-		super.processor(target);
-		return outputProcessor(methodName != null
-				? new MethodInvokingMessageGroupProcessor(target, methodName)
-				: new MethodInvokingMessageGroupProcessor(target));
+		return super.processor(target)
+				.outputProcessor(methodName != null
+						? new MethodInvokingMessageGroupProcessor(target, methodName)
+						: new MethodInvokingMessageGroupProcessor(target));
 	}
 
 	/**

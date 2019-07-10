@@ -20,6 +20,8 @@ package org.springframework.integration.transformer.support;
  * Pre-defined names and prefixes for Apache Avro related headers.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  */
 public final class AvroHeaders {
@@ -28,11 +30,14 @@ public final class AvroHeaders {
 		super();
 	}
 
-	public static final String PREFIX = "avro";
+	/**
+	 * The prefix for Apache Avro specific message headers.
+	 */
+	public static final String PREFIX = "avro_";
 
 	/**
 	 * The {@code SpecificRecord} type.
 	 */
-	public static final String TYPE = PREFIX + "_type";
+	public static final String TYPE = PREFIX + "type";
 
 }

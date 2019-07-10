@@ -27,7 +27,6 @@ import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.messaging.rsocket.RSocketStrategies;
-import org.springframework.messaging.rsocket.annotation.support.DefaultMetadataExtractor;
 import org.springframework.messaging.rsocket.annotation.support.MetadataExtractor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -126,8 +125,9 @@ public abstract class AbstractRSocketConnector
 	/**
 	 * Configure a {@link MetadataExtractor} to extract the route and possibly
 	 * other metadata from the first payload of incoming requests.
-	 * <p>By default this is a {@link DefaultMetadataExtractor} with the
-	 * configured {@link RSocketStrategies} (and decoders), extracting a route
+	 * <p>By default this is a
+	 * {@link org.springframework.messaging.rsocket.annotation.support.DefaultMetadataExtractor}
+	 * with the configured {@link RSocketStrategies} (and decoders), extracting a route
 	 * from {@code "message/x.rsocket.routing.v0"} or {@code "text/plain"}
 	 * metadata entries.
 	 * @param extractor the extractor to use
