@@ -63,6 +63,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Urs Keller
  *
  * @since 3.0.2
  *
@@ -281,8 +282,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 				}
 			}
 			else {
-				KafkaInboundGateway.this.logger.debug("Converter returned a null message for: "
-						+ record);
+				KafkaInboundGateway.this.logger.debug("Converter returned a null message for: " + record);
 			}
 		}
 
@@ -345,7 +345,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (KafkaInboundGateway.this.recoveryCallback != null) {
+			if (KafkaInboundGateway.this.retryTemplate != null) {
 				attributesHolder.set(context);
 			}
 			return true;
@@ -354,6 +354,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 		@Override
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
+
 			attributesHolder.remove();
 		}
 
