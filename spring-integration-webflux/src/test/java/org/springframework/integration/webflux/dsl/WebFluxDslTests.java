@@ -313,7 +313,7 @@ public class WebFluxDslTests {
 		this.webTestClient.post().uri("/validation")
 				.headers(headers -> headers.setBasicAuth("guest", "guest"))
 				.contentType(MediaType.APPLICATION_JSON)
-				.syncBody("{\"name\": \"\"}")
+				.body("{\"name\": \"\"}")
 				.exchange()
 				.expectStatus().isBadRequest();
 

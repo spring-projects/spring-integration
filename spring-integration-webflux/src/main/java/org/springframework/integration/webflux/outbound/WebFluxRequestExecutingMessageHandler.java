@@ -340,7 +340,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private BodyInserters.FormInserter<?> buildBodyInserterForMultiValueMap(
+	private static BodyInserters.FormInserter<?> buildBodyInserterForMultiValueMap(
 			MultiValueMap<?, ?> requestBody, MediaType contentType) {
 
 		if (MediaType.APPLICATION_FORM_URLENCODED.equals(contentType)) {
