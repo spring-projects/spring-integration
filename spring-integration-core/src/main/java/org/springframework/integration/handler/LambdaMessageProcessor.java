@@ -30,9 +30,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -111,7 +109,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(
-					"error occurred during processing message in 'LambdaMessageProcessor' [" + this + "]", e);
+					"error occurred during processing message in 'LambdaMessageProcessor' for method [" +
+							this.method + "]", e);
 		}
 	}
 

@@ -322,7 +322,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	@Override
 	public String toString() {
-		return (this.beanName != null) ? "bean '" + this.beanName + "' for " + getBeanDescription(): super.toString();
+		return (this.beanName != null) ? "bean '" + this.beanName + "' for " + getBeanDescription() : super.toString();
 	}
 
 	@SuppressWarnings("unchecked")
