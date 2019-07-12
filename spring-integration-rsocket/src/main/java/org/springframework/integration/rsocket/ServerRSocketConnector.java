@@ -16,6 +16,7 @@
 
 package org.springframework.integration.rsocket;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +39,6 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.RouteMatcher;
 
 import io.rsocket.RSocketFactory;
-import io.rsocket.SocketAcceptor;
 import io.rsocket.transport.ServerTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
@@ -50,7 +50,7 @@ import reactor.netty.http.server.HttpServer;
 /**
  * A server {@link AbstractRSocketConnector} extension to accept and manage client RSocket connections.
  * <p>
- * Note: the {@link RSocketFactory.ServerRSocketFactory#acceptor(SocketAcceptor)}
+ * Note: the {@link RSocketFactory.ServerRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
  * in the provided {@link #factoryConfigurer} is overridden with an internal
  * {@link ServerRSocketMessageHandler#serverAcceptor()}
  * for the proper Spring Integration channel adapter mappings.
@@ -175,6 +175,10 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 	private static class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandler {
 
+		private static final Method HANDLE_CONNECTION_SETUP_METHOD =
+				ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", Message.class);
+
+
 		private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 
 		private BiFunction<String, DataBuffer, Object> clientRSocketKeyStrategy = (destination, data) -> destination;
@@ -182,9 +186,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 		private ApplicationEventPublisher applicationEventPublisher;
 
 		private void registerHandleConnectionSetupMethod() {
-			registerHandlerMethod(this,
-					ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", // NOSONAR
-							Message.class),
+			registerHandlerMethod(this, HANDLE_CONNECTION_SETUP_METHOD,
 					new CompositeMessageCondition(
 							RSocketFrameTypeMessageCondition.CONNECT_CONDITION,
 							new DestinationPatternsMessageCondition(new String[] { "*" }, getRouteMatcher())));
