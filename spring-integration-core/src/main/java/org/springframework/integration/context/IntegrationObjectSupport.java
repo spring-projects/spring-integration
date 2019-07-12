@@ -87,7 +87,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private String componentName;
 
-	private ConfigurableListableBeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	private TaskScheduler taskScheduler;
 
@@ -142,8 +142,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		String description = null;
 		Object source = null;
 
-		if (this.beanFactory.containsBeanDefinition(this.beanName)) {
-			BeanDefinition beanDefinition = this.beanFactory.getBeanDefinition(this.beanName);
+		if (this.beanFactory instanceof ConfigurableListableBeanFactory &&
+				((ConfigurableListableBeanFactory) this.beanFactory).containsBeanDefinition(this.beanName)) {
+			BeanDefinition beanDefinition =
+					((ConfigurableListableBeanFactory) this.beanFactory).getBeanDefinition(this.beanName);
 			description = beanDefinition.getResourceDescription();
 			source = beanDefinition.getSource();
 		}
@@ -162,7 +164,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.beanFactory = beanFactory;
 	}
 
 	@Override

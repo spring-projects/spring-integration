@@ -225,6 +225,7 @@ public interface IntegrationFlowContext {
 		 * a messaging exception happens at runtime.
 		 * @param source the configuration source representation.
 		 * @return the current builder instance
+		 * @since 5.2
 		 */
 		IntegrationFlowRegistrationBuilder setSource(Object source);
 
