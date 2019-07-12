@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl.flows;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.Serializable;
@@ -40,7 +41,6 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -233,15 +233,11 @@ public class IntegrationFlowTests {
 		assertThat(this.beanFactory.containsBean("bridgeFlow2.channel#0")).isTrue();
 		assertThat(this.beanFactory.getBean("bridgeFlow2.channel#0")).isInstanceOf(FixedSubscriberChannel.class);
 
-		try {
-			this.bridgeFlow2Input.send(message);
-			fail("Expected MessageDispatchingException");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(MessageDispatchingException.class);
-			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.bridgeFlow2Input.send(message))
+				.withCauseInstanceOf(MessageDispatchingException.class)
+				.withMessageContaining("Dispatcher has no subscribers");
+
 		this.controlBus.send("@bridge.start()");
 		this.bridgeFlow2Input.send(message);
 		reply = this.bridgeFlow2Output.receive(10000);
@@ -252,21 +248,10 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testWrongLastMessageChannel() {
-		ConfigurableApplicationContext context = null;
-		try {
-			context = new AnnotationConfigApplicationContext(InvalidLastMessageChannelFlowContext.class);
-			fail("BeanCreationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanCreationException.class);
-			assertThat(e.getMessage()).contains("'.fixedSubscriberChannel()' " +
-					"can't be the last EIP-method in the 'IntegrationFlow' definition");
-		}
-		finally {
-			if (context != null) {
-				context.close();
-			}
-		}
+		assertThatExceptionOfType(BeanCreationException.class)
+				.isThrownBy(() -> new AnnotationConfigApplicationContext(InvalidLastMessageChannelFlowContext.class))
+				.withMessageContaining("'.fixedSubscriberChannel()' " +
+						"can't be the last EIP-method in the 'IntegrationFlow' definition");
 	}
 
 	@Test

@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -39,6 +40,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -103,7 +105,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			builder.addConstructorArgReference(listenerContainerRef);
 		}
 		else {
-			BeanDefinition listenerContainerBeanDef = this.buildListenerContainer(element, parserContext);
+			BeanDefinition listenerContainerBeanDef = buildListenerContainer(element, parserContext);
 			builder.addConstructorArgValue(listenerContainerBeanDef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
@@ -117,10 +119,11 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
-		this.configureChannels(element, parserContext, builder);
+		configureChannels(element, parserContext, builder);
+		AbstractBeanDefinition adapterBeanDefinition = builder.getRawBeanDefinition();
+		adapterBeanDefinition.setResource(parserContext.getReaderContext().getResource());
+		adapterBeanDefinition.setSource(IntegrationNamespaceUtils.createElementDescription(element));
 	}
-
-	protected abstract void configureChannels(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 
 	private BeanDefinition buildListenerContainer(Element element, ParserContext parserContext) {
 		if (!element.hasAttribute("queue-names")) {
@@ -163,7 +166,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 
 	private void assertNoContainerAttributes(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
-		List<String> allContainerAttributes = new ArrayList<String>(Arrays.asList(CONTAINER_VALUE_ATTRIBUTES));
+		List<String> allContainerAttributes = new ArrayList<>(Arrays.asList(CONTAINER_VALUE_ATTRIBUTES));
 		allContainerAttributes.addAll(Arrays.asList(CONTAINER_REFERENCE_ATTRIBUTES));
 		for (String attributeName : allContainerAttributes) {
 			if (StringUtils.hasText(element.getAttribute(attributeName))) {
@@ -172,5 +175,8 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			}
 		}
 	}
+
+	protected abstract void configureChannels(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder);
 
 }

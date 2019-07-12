@@ -177,7 +177,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 				this.messagingTemplate.send(channel, message);
 			}
 			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message, "MessageFilter '" + getBeanName() + "' rejected Message");
+				throw new MessageRejectedException(message, "message has been rejected in filter: " + this);
 			}
 		}
 		return result;

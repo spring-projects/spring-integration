@@ -112,7 +112,8 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			if (e instanceof MessageTransformationException) {
 				throw (MessageTransformationException) e;
 			}
-			throw new MessageTransformationException(message, "Failed to transform Message", e);
+			throw new MessageTransformationException(message,
+					"Failed to transform Message in " + this, e);
 		}
 	}
 

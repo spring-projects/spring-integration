@@ -100,17 +100,18 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		}
 		catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof ClassCastException) {
-				LOGGER.error("Could not invoke the method due to a class cast exception, " +
+				LOGGER.error("Could not invoke the method '" + this.method + "' due to a class cast exception, " +
 						"if using a lambda in the DSL, consider using an overloaded EIP method " +
 						"that takes a Class<?> argument to explicitly  specify the type. " +
 						"An example of when this often occurs is if the lambda is configured to " +
 						"receive a Message<?> argument.", e.getCause());
 			}
-			throw new MessageHandlingException(message, e.getCause()); // NOSONAR lost stack trace
+			throw new IllegalStateException(
+					"Could not invoke the method '" + this.method + "'", e.getCause()); // NOSONAR lost stack trace
 		}
 		catch (Exception e) {
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "error occurred during processing message in 'LambdaMessageProcessor' [" + this + "]", e);
+			throw new IllegalStateException(
+					"error occurred during processing message in 'LambdaMessageProcessor' [" + this + "]", e);
 		}
 	}
 
