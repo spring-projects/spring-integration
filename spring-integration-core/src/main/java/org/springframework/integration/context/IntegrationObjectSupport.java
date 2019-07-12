@@ -150,8 +150,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			source = beanDefinition.getSource();
 		}
 
-		StringBuilder sb = new StringBuilder("component '")
-				.append(getComponentName()).append("'");
+		StringBuilder sb = new StringBuilder("bean '")
+				.append(this.beanName).append("'");
+		if (!this.beanName.equals(getComponentName())) {
+			sb.append("for component '").append(getComponentName()).append("'");
+		}
 		if (description != null) {
 			sb.append("; defined in: '").append(description).append("'");
 		}
@@ -322,7 +325,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	@Override
 	public String toString() {
-		return (this.beanName != null) ? "bean '" + this.beanName + "' for " + getBeanDescription() : super.toString();
+		return (this.beanName != null) ? getBeanDescription() : super.toString();
 	}
 
 	@SuppressWarnings("unchecked")

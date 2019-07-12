@@ -31,7 +31,6 @@ import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -61,12 +60,12 @@ public class LambdaMessageProcessorTests {
 		LambdaMessageProcessor lmp = new LambdaMessageProcessor(
 				new GenericTransformer<Message<?>, Message<?>>() { // Must not be lambda
 
-			@Override
-			public Message<?> transform(Message<?> source) {
-				return messageTransformer(source);
-			}
+					@Override
+					public Message<?> transform(Message<?> source) {
+						return messageTransformer(source);
+					}
 
-		}, null);
+				}, null);
 		lmp.setBeanFactory(mock(BeanFactory.class));
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
 		Object result = lmp.processMessage(testMessage);
@@ -79,7 +78,7 @@ public class LambdaMessageProcessorTests {
 				(GenericTransformer<Message<?>, Message<?>>) this::messageTransformer, null);
 		lmp.setBeanFactory(mock(BeanFactory.class));
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
-		assertThatExceptionOfType(MessageHandlingException.class)
+		assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> lmp.processMessage(testMessage))
 				.withCauseInstanceOf(ClassCastException.class);
 	}

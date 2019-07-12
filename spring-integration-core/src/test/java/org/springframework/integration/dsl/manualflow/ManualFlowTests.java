@@ -538,6 +538,8 @@ public class ManualFlowTests {
 				.withRootCauseInstanceOf(ClassCastException.class)
 				.withMessageContaining("from source: '" + source + "'")
 				.withStackTraceContaining("java.util.Date cannot be cast to java.lang.String");
+
+		flowRegistration.destroy();
 	}
 
 	@Configuration

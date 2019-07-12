@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.BaseHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -35,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -54,28 +56,27 @@ public class ChannelIntegrationTests {
 	@Autowired
 	private IntegrationMBeanExporter messageChannelsMonitor;
 
-	@SuppressWarnings("deprecation")
 	@Test
-	public void testMessageChannelStatistics() throws Exception {
+	public void testMessageChannelStatistics() {
+		this.requests.send(new GenericMessage<>("foo"));
 
-		requests.send(new GenericMessage<String>("foo"));
-
-		String intermediateChannelName = "" + intermediate;
+		String intermediateChannelName = ((NamedComponent) this.intermediate).getBeanName();
 
 		assertThat(messageChannelsMonitor.getChannelSendCount(intermediateChannelName)).isEqualTo(1);
 
-		double rate = messageChannelsMonitor.getChannelSendRate("" + requests).getMean();
-		assertThat(rate >= 0).as("No statistics for requests channel").isTrue();
+		double rate =
+				messageChannelsMonitor.getChannelSendRate(((NamedComponent) this.requests).getBeanName()).getMean();
+		assertThat(rate).as("No statistics for requests channel").isGreaterThanOrEqualTo(0);
 
 		rate = messageChannelsMonitor.getChannelSendRate(intermediateChannelName).getMean();
-		assertThat(rate >= 0).as("No statistics for intermediate channel").isTrue();
+		assertThat(rate).as("No statistics for intermediate channel").isGreaterThanOrEqualTo(0);
 
 		assertThat(intermediate.receive(100L)).isNotNull();
 		assertThat(messageChannelsMonitor.getChannelReceiveCount(intermediateChannelName)).isEqualTo(1);
 
-		requests.send(new GenericMessage<String>("foo"));
+		requests.send(new GenericMessage<>("foo"));
 		try {
-			requests.send(new GenericMessage<String>("foo"));
+			requests.send(new GenericMessage<>("foo"));
 		}
 		catch (@SuppressWarnings("unused") MessageDeliveryException e) {
 		}
@@ -94,9 +95,8 @@ public class ChannelIntegrationTests {
 
 		assertThat(this.sourceChannel.receive(10000)).isNotNull();
 
-		assertThat(messageChannelsMonitor.getSourceMessageCount("source") > 0).isTrue();
-		assertThat(messageChannelsMonitor.getSourceMetrics("source").getMessageCount() > 0).isTrue();
-
+		assertThat(messageChannelsMonitor.getSourceMessageCount("source")).isGreaterThan(0);
+		assertThat(messageChannelsMonitor.getSourceMetrics("source").getMessageCount()).isGreaterThan(0);
 	}
 
 }

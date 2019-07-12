@@ -240,7 +240,7 @@ public class ConnectionFactoryTests {
 		assertThat(n < 200).as("Stop was not invoked in time").isTrue();
 		latch2.countDown();
 		assertThat(latch3.await(10, TimeUnit.SECONDS)).as("missing debug log").isTrue();
-		String expected = "foo, port=" + factory.getPort() + message;
+		String expected = "bean 'foo', port=" + factory.getPort() + message;
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger, atLeast(1)).debug(captor.capture());
 		assertThat(captor.getAllValues()).contains(expected);

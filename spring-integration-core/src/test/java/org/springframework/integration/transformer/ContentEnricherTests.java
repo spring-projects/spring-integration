@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
@@ -143,7 +144,8 @@ public class ContentEnricherTests {
 		}
 		catch (ReplyRequiredException e) {
 			assertThat(e.getMessage())
-					.isEqualTo("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.");
+					.isEqualTo("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to " +
+							"true.");
 			return;
 		}
 		finally {
@@ -174,14 +176,11 @@ public class ContentEnricherTests {
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 
-		try {
-			enricher.handleMessage(requestMessage);
-		}
-		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage()).isEqualToIgnoringCase("failed to send message to channel '" + requestChannelName
-					+ "' within timeout: " + requestTimeout);
-		}
-
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> enricher.handleMessage(requestMessage))
+				.withMessageContaining("Failed to send message to channel")
+				.withMessageContaining(requestChannelName)
+				.withMessageContaining("within timeout: " + requestTimeout);
 	}
 
 	@Test
@@ -189,6 +188,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -199,7 +199,7 @@ public class ContentEnricherTests {
 		enricher.setRequestChannel(requestChannel);
 
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> propertyExpressions = new HashMap<>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
 		enricher.setBeanFactory(mock(BeanFactory.class));
@@ -308,6 +308,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -337,6 +338,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -367,6 +369,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -400,6 +403,7 @@ public class ContentEnricherTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -450,6 +454,7 @@ public class ContentEnricherTests {
 
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Source("John", "Doe");
@@ -483,6 +488,7 @@ public class ContentEnricherTests {
 
 		final DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				throw new RuntimeException();
@@ -492,6 +498,7 @@ public class ContentEnricherTests {
 
 		final DirectChannel errorChannel = new DirectChannel();
 		errorChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new Target("failed");

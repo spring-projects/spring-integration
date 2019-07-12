@@ -1017,7 +1017,13 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		 * Short hack to makes sure object names are unique if more than one endpoint has the same input
 		 * channel
 		 */
-		return messageChannel + (total > 1 ? "#" + total : "");
+
+		String channelName =
+				messageChannel instanceof NamedComponent
+						? ((NamedComponent) messageChannel).getBeanName()
+						: messageChannel.toString();
+
+		return channelName + (total > 1 ? "#" + total : "");
 	}
 
 	/**

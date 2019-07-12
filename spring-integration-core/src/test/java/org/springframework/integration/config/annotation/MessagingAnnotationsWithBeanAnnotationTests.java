@@ -156,9 +156,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			assertThat(receive).isInstanceOf(ErrorMessage.class);
 			assertThat(receive.getPayload()).isInstanceOf(MessageRejectedException.class);
 			MessageRejectedException exception = (MessageRejectedException) receive.getPayload();
-			assertThat(exception.getMessage()).contains("MessageFilter " +
-					"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'" +
-					" rejected Message");
+			assertThat(exception.getMessage())
+					.contains("message has been rejected in filter: bean " +
+							"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'");
 
 		}
 		for (Message<?> message : this.collector) {
@@ -166,12 +166,12 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			MessageHistory messageHistory = MessageHistory.read(message);
 			assertThat(messageHistory).isNotNull();
 			String messageHistoryString = messageHistory.toString();
-			assertThat(messageHistoryString).contains("routerChannel");
-			assertThat(messageHistoryString).contains("filterChannel");
-			assertThat(messageHistoryString).contains("aggregatorChannel");
-			assertThat(messageHistoryString).contains("splitterChannel");
-			assertThat(messageHistoryString).contains("serviceChannel");
-			assertThat(messageHistoryString).doesNotContain("discardChannel");
+			assertThat(messageHistoryString).contains("routerChannel")
+					.contains("filterChannel")
+					.contains("aggregatorChannel")
+					.contains("splitterChannel")
+					.contains("serviceChannel")
+					.doesNotContain("discardChannel");
 		}
 
 		assertThat(this.skippedServiceActivator).isNull();

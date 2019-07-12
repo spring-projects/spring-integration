@@ -46,7 +46,6 @@ class HeaderEnricherParserTests {
 
 
 	@Test
-		// INT-1154
 	void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
@@ -54,7 +53,6 @@ class HeaderEnricherParserTests {
 	}
 
 	@Test
-		// INT-1154
 	void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
@@ -62,7 +60,6 @@ class HeaderEnricherParserTests {
 	}
 
 	@Test
-		// INT-1167
 	void shouldSkipNullsDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		Boolean shouldSkipNulls = TestUtils
@@ -71,7 +68,6 @@ class HeaderEnricherParserTests {
 	}
 
 	@Test
-		// INT-1167
 	void shouldSkipNullsFalseConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
 		Boolean shouldSkipNulls = TestUtils
@@ -80,7 +76,6 @@ class HeaderEnricherParserTests {
 	}
 
 	@Test
-		// INT-1167
 	void shouldSkipNullsTrueConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
 		Boolean shouldSkipNulls = TestUtils
@@ -97,8 +92,8 @@ class HeaderEnricherParserTests {
 		assertThatExceptionOfType(MessageTransformationException.class)
 				.isThrownBy(() -> messageHandler.handleMessage(message))
 				.withMessageContaining(
-						"; defined in class path resource " +
-								"[org/springframework/integration/config/xml/HeaderEnricherParserTests-context.xml]");
+						"; defined in: 'class path resource " +
+								"[org/springframework/integration/config/xml/HeaderEnricherParserTests-context.xml]'");
 	}
 
 	@Test

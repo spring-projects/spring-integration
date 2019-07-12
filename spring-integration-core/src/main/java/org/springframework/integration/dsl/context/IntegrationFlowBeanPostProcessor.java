@@ -432,7 +432,7 @@ public class IntegrationFlowBeanPostProcessor
 				.applyCustomizers(customizers)
 				.getRawBeanDefinition();
 
-		if (parentName != null) {
+		if (parentName != null && this.beanFactory.containsBeanDefinition(parentName)) {
 			AbstractBeanDefinition parentBeanDefinition =
 					(AbstractBeanDefinition) this.beanFactory.getBeanDefinition(parentName);
 			beanDefinition.setResource(parentBeanDefinition.getResource());

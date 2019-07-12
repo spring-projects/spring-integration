@@ -94,7 +94,6 @@ public class AggregatorIntegrationTests {
 		Message<?> receive = output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo(1 + 2 + 3 + 4);
-		assertThat(receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER)).isEqualTo(0);
 	}
 
 	@Test
@@ -187,7 +186,8 @@ public class AggregatorIntegrationTests {
 
 	@Test
 	public void testGroupTimeoutExpressionScheduling() {
-		// Since group-timeout-expression="size() >= 2 ? 100 : null". The first message won't be scheduled to 'forceComplete'
+		// Since group-timeout-expression="size() >= 2 ? 100 : null". The first message won't be scheduled to
+		// 'forceComplete'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(1, stubHeaders(1, 6, 1)));
 		assertThat(this.output.receive(0)).isNull();
 		assertThat(this.discard.receive(0)).isNull();
@@ -239,7 +239,9 @@ public class AggregatorIntegrationTests {
 			ErrorMessage em = (ErrorMessage) this.errors.receive(10000);
 			assertThat(em).isNotNull();
 			assertThat(em.getPayload().getMessage().toLowerCase())
-					.contains("failed to send message to channel 'output' within timeout: 10");
+					.contains("failed to send message to channel")
+					.contains("output")
+					.contains("within timeout: 10");
 		}
 		finally {
 			this.output.purge(null);
@@ -261,6 +263,7 @@ public class AggregatorIntegrationTests {
 	}
 
 	public static class SummingAggregator {
+
 		public Integer sum(List<Integer> numbers) {
 			int result = 0;
 			for (Integer number : numbers) {
@@ -268,8 +271,8 @@ public class AggregatorIntegrationTests {
 			}
 			return result;
 		}
-	}
 
+	}
 
 
 }
