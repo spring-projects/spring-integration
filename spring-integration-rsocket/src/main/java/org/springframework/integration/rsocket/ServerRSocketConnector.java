@@ -52,7 +52,7 @@ import reactor.netty.http.server.HttpServer;
  * <p>
  * Note: the {@link RSocketFactory.ServerRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
  * in the provided {@link #factoryConfigurer} is overridden with an internal
- * {@link ServerRSocketMessageHandler#serverAcceptor()}
+ * {@link ServerRSocketMessageHandler#serverResponder()}
  * for the proper Spring Integration channel adapter mappings.
  *
  * @author Artem Bilan
@@ -131,7 +131,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		this.serverMono =
 				serverFactory
-						.acceptor(serverRSocketMessageHandler().serverAcceptor())
+						.acceptor(serverRSocketMessageHandler().serverResponder())
 						.transport(this.serverTransport)
 						.start()
 						.cache();
