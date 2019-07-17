@@ -17,9 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -30,68 +30,77 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class HeaderEnricherParserTests {
+@SpringJUnitConfig
+class HeaderEnricherParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 
-	@Test // INT-1154
-	public void sendTimeoutDefault() {
+	@Test
+	void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
 		assertThat(sendTimeout).isEqualTo(-1L);
 	}
 
-	@Test // INT-1154
-	public void sendTimeoutConfigured() {
+	@Test
+	void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
 		assertThat(sendTimeout).isEqualTo(1234L);
 	}
 
-	@Test // INT-1167
-	public void shouldSkipNullsDefault() {
+	@Test
+	void shouldSkipNullsDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
-		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		Boolean shouldSkipNulls = TestUtils
+				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
 		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
-	}
-
-	@Test // INT-1167
-	public void shouldSkipNullsFalseConfigured() {
-		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
-		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
-		assertThat(shouldSkipNulls).isEqualTo(Boolean.FALSE);
-	}
-
-	@Test // INT-1167
-	public void shouldSkipNullsTrueConfigured() {
-		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
-		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
-		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
-	}
-
-	@Test(expected = MessageTransformationException.class)
-	public void testStringPriorityHeader() {
-		MessageHandler messageHandler =
-				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsString"), "handler", MessageHandler.class);
-		Message<?> message = new GenericMessage<String>("hello");
-		messageHandler.handleMessage(message);
 	}
 
 	@Test
-	public void testStringPriorityHeaderWithType() {
+	void shouldSkipNullsFalseConfigured() {
+		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
+		Boolean shouldSkipNulls = TestUtils
+				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		assertThat(shouldSkipNulls).isEqualTo(Boolean.FALSE);
+	}
+
+	@Test
+	void shouldSkipNullsTrueConfigured() {
+		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
+		Boolean shouldSkipNulls = TestUtils
+				.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		assertThat(shouldSkipNulls).isEqualTo(Boolean.TRUE);
+	}
+
+	@Test
+	void testStringPriorityHeader() {
 		MessageHandler messageHandler =
-				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"), "handler", MessageHandler.class);
+				TestUtils.getPropertyValue(this.context.getBean("headerEnricherWithPriorityAsString"),
+						"handler", MessageHandler.class);
+		Message<?> message = new GenericMessage<>("hello");
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> messageHandler.handleMessage(message))
+				.withMessageContaining(
+						"; defined in: 'class path resource " +
+								"[org/springframework/integration/config/xml/HeaderEnricherParserTests-context.xml]'");
+	}
+
+	@Test
+	void testStringPriorityHeaderWithType() {
+		MessageHandler messageHandler =
+				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"),
+						"handler", MessageHandler.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 		messageHandler.handleMessage(message);

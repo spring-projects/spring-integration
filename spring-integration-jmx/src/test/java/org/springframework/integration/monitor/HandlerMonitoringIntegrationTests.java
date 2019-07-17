@@ -38,7 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class HandlerMonitoringIntegrationTests {
 
-	private static Log logger = LogFactory.getLog(HandlerMonitoringIntegrationTests.class);
+	private static final Log logger = LogFactory.getLog(HandlerMonitoringIntegrationTests.class);
 
 	private MessageChannel channel;
 

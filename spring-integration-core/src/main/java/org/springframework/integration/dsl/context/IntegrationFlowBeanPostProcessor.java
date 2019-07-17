@@ -49,6 +49,7 @@ import org.springframework.context.MessageSourceAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.io.DescriptiveResource;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -426,16 +427,25 @@ public class IntegrationFlowBeanPostProcessor
 	private void registerComponent(Object component, String beanName, String parentName,
 			BeanDefinitionCustomizer... customizers) {
 
-		BeanDefinition beanDefinition =
+		AbstractBeanDefinition beanDefinition =
 				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) component.getClass(), () -> component)
-						.applyCustomizers(customizers)
-						.getRawBeanDefinition();
+				.applyCustomizers(customizers)
+				.getRawBeanDefinition();
+
+		if (parentName != null && this.beanFactory.containsBeanDefinition(parentName)) {
+			AbstractBeanDefinition parentBeanDefinition =
+					(AbstractBeanDefinition) this.beanFactory.getBeanDefinition(parentName);
+			beanDefinition.setResource(parentBeanDefinition.getResource());
+			Object source = parentBeanDefinition.getSource();
+			if (source instanceof MethodMetadata) {
+				source = "bean method " + ((MethodMetadata) source).getMethodName();
+			}
+			beanDefinition.setSource(source);
+			this.beanFactory.registerDependentBean(parentName, beanName);
+		}
 
 		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
 
-		if (parentName != null) {
-			this.beanFactory.registerDependentBean(parentName, beanName);
-		}
 
 		this.beanFactory.getBean(beanName);
 	}

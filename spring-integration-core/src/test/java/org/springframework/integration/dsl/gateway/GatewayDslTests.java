@@ -78,7 +78,12 @@ public class GatewayDslTests {
 		assertThat(receive).isNotNull();
 		assertThat(receive).isInstanceOf(ErrorMessage.class);
 		assertThat(receive.getPayload()).isInstanceOf(MessageRejectedException.class);
-		assertThat(((Exception) receive.getPayload()).getMessage()).contains("' rejected Message");
+		String exceptionMessage = ((Exception) receive.getPayload()).getMessage();
+		assertThat(exceptionMessage)
+				.contains("message has been rejected in filter")
+				.contains("defined in: " +
+						"'org.springframework.integration.dsl.gateway.GatewayDslTests$ContextConfiguration'; " +
+						"from source: 'bean method gatewayRequestFlow'");
 	}
 
 	@Autowired
@@ -89,7 +94,7 @@ public class GatewayDslTests {
 	void testNestedGatewayErrorPropagation() {
 		assertThatExceptionOfType(RuntimeException.class)
 				.isThrownBy(() -> this.nestedGatewayErrorPropagationFlowInput.send(new GenericMessage<>("test")))
-				.withMessageContaining("intentional");
+				.withStackTraceContaining("intentional");
 	}
 
 	@Configuration

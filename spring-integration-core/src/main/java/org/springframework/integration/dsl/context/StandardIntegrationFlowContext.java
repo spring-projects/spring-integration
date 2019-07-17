@@ -27,10 +27,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
@@ -105,7 +106,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
 			}
 
-			integrationFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
+			integrationFlow = registerFlowBean(integrationFlow, flowId, builder.source);
 		}
 		finally {
 			if (registerBeanLock != null) {
@@ -124,24 +125,38 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		this.registry.put(flowId, builder.integrationFlowRegistration);
 	}
 
+	private IntegrationFlow registerFlowBean(IntegrationFlow flow, String flowId, @Nullable Object source) {
+		AbstractBeanDefinition beanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(IntegrationFlow.class, () -> flow)
+						.getRawBeanDefinition();
+		beanDefinition.setSource(source);
+		this.beanDefinitionRegistry.registerBeanDefinition(flowId, beanDefinition);
+		return this.beanFactory.getBean(flowId, IntegrationFlow.class);
+	}
+
 	@SuppressWarnings("unchecked")
-	private Object registerBean(Object bean, @Nullable String beanNameArg, String parentName) {
+	private void registerBean(Object bean, @Nullable String beanNameArg, String parentName) {
 		String beanName = beanNameArg;
 		if (beanName == null) {
 			beanName = generateBeanName(bean, parentName);
 		}
 
-		BeanDefinition beanDefinition =
+		AbstractBeanDefinition beanDefinition =
 				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) bean.getClass(), () -> bean)
 						.getRawBeanDefinition();
 
-		this.beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinition);
-
 		if (parentName != null) {
+			AbstractBeanDefinition parentBeanDefinition =
+					(AbstractBeanDefinition) this.beanFactory.getBeanDefinition(parentName);
+			Object source = parentBeanDefinition.getSource();
+			if (source instanceof MethodMetadata) {
+				source = "bean method " + ((MethodMetadata) source).getMethodName();
+			}
+			beanDefinition.setSource(source);
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
-
-		return this.beanFactory.getBean(beanName);
+		this.beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinition);
+		this.beanFactory.getBean(beanName);
 	}
 
 	/**
@@ -247,6 +262,9 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		private boolean idAsPrefix;
 
+		@Nullable
+		private Object source;
+
 		StandardIntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlowRegistration = new StandardIntegrationFlowRegistration(integrationFlow);
 			this.integrationFlowRegistration.setBeanFactory(StandardIntegrationFlowContext.this.beanFactory);
@@ -303,6 +321,12 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		@Override
 		public StandardIntegrationFlowRegistrationBuilder addBean(String name, Object bean) {
 			this.additionalBeans.put(bean, name);
+			return this;
+		}
+
+		@Override
+		public IntegrationFlowRegistrationBuilder setSource(Object source) {
+			this.source = source;
 			return this;
 		}
 

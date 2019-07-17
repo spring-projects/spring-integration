@@ -220,6 +220,16 @@ public interface IntegrationFlowContext {
 		IntegrationFlowRegistrationBuilder addBean(String name, Object bean);
 
 		/**
+		 * Set the configuration source {@code Object} for this manual Integration flow definition.
+		 * Can be any arbitrary object which could easily lead to a source code for the flow when
+		 * a messaging exception happens at runtime.
+		 * @param source the configuration source representation.
+		 * @return the current builder instance
+		 * @since 5.2
+		 */
+		IntegrationFlowRegistrationBuilder setSource(Object source);
+
+		/**
 		 * Invoke this method to prefix bean names in the flow with the (required) flow id
 		 * and a period. This is useful if you wish to register the same flow multiple times
 		 * while retaining the ability to reference beans within the flow; adding the unique

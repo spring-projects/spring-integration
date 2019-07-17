@@ -30,7 +30,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -48,7 +50,7 @@ public class MessageChannelsMonitorIntegrationTests {
 
 	private static Log logger = LogFactory.getLog(MessageChannelsMonitorIntegrationTests.class);
 
-	private MessageChannel channel;
+	private AbstractMessageChannel channel;
 
 	private Service service;
 
@@ -75,7 +77,7 @@ public class MessageChannelsMonitorIntegrationTests {
 	@Test
 	public void testRates() throws Exception {
 		try (ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml")) {
-			this.channel = context.getBean("anonymous", MessageChannel.class);
+			this.channel = context.getBean("anonymous", AbstractMessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(50);
 			service.setLatch(latch);
@@ -87,9 +89,9 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertThat(service.getCounter()).isEqualTo(before + 50);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
+			int sends = messageChannelsMonitor.getChannelSendRate(this.channel.getBeanName()).getCount();
 			assertThat(sends).as("No send statistics for input channel").isEqualTo(50);
-			long sendsLong = messageChannelsMonitor.getChannelSendRate("" + channel).getCountLong();
+			long sendsLong = messageChannelsMonitor.getChannelSendRate(this.channel.getBeanName()).getCountLong();
 			assertThat(sends).as("No send statistics for input channel").isEqualTo(sendsLong);
 
 		}
@@ -98,7 +100,7 @@ public class MessageChannelsMonitorIntegrationTests {
 	@Test
 	public void testErrors() throws Exception {
 		try (ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml")) {
-			this.channel = context.getBean("anonymous", MessageChannel.class);
+			this.channel = context.getBean("anonymous", AbstractMessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(10);
 			service.setLatch(latch);
@@ -120,9 +122,9 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertThat(service.getCounter()).isEqualTo(before + 10);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
+			int sends = messageChannelsMonitor.getChannelSendRate(this.channel.getBeanName()).getCount();
 			assertThat(sends).as("No send statistics for input channel").isEqualTo(11);
-			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
+			int errors = messageChannelsMonitor.getChannelErrorRate(this.channel.getBeanName()).getCount();
 			assertThat(errors).as("No error statistics for input channel").isEqualTo(1);
 		}
 	}
@@ -130,7 +132,7 @@ public class MessageChannelsMonitorIntegrationTests {
 	@Test
 	public void testQueues() throws Exception {
 		try (ClassPathXmlApplicationContext context = createContext("queue-channel.xml")) {
-			this.channel = context.getBean("queue", MessageChannel.class);
+			this.channel = context.getBean("queue", AbstractMessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(10);
 			service.setLatch(latch);
@@ -152,18 +154,18 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertThat(service.getCounter()).isEqualTo(before + 10);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
+			int sends = messageChannelsMonitor.getChannelSendRate(this.channel.getBeanName()).getCount();
 			assertThat(sends).as("No send statistics for input channel").isEqualTo(11);
-			int receives = messageChannelsMonitor.getChannelReceiveCount("" + channel);
+			int receives = messageChannelsMonitor.getChannelReceiveCount(this.channel.getBeanName());
 			assertThat(receives).as("No send statistics for input channel").isEqualTo(11);
-			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
+			int errors = messageChannelsMonitor.getChannelErrorRate(this.channel.getBeanName()).getCount();
 			assertThat(errors).as("Expect no errors for input channel (handler fails)").isEqualTo(0);
 		}
 	}
 
 	private void doTest(String config, String channelName) throws Exception {
 		try (ClassPathXmlApplicationContext context = createContext(config)) {
-			this.channel = context.getBean(channelName, MessageChannel.class);
+			MessageChannel channel = context.getBean(channelName, MessageChannel.class);
 			int before = service.getCounter();
 			CountDownLatch latch = new CountDownLatch(1);
 			service.setLatch(latch);
@@ -172,7 +174,7 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertThat(service.getCounter()).isEqualTo(before + 1);
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
+			int sends = messageChannelsMonitor.getChannelSendRate(((NamedComponent) channel).getBeanName()).getCount();
 			assertThat(sends).as("No statistics for input channel").isEqualTo(1);
 
 			assertThat(channel).isInstanceOf(InterceptableChannel.class);

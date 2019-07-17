@@ -123,7 +123,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setComponentName(componentName);
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 
 		// no advice
 		handler.handleMessage(message);
@@ -142,7 +142,7 @@ public class AdvisedMessageHandlerTests {
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
-		final AtomicReference<String> compName = new AtomicReference<String>();
+		final AtomicReference<String> compName = new AtomicReference<>();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
 			@Override
@@ -229,7 +229,7 @@ public class AdvisedMessageHandlerTests {
 		};
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
@@ -293,7 +293,7 @@ public class AdvisedMessageHandlerTests {
 		};
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
@@ -375,7 +375,7 @@ public class AdvisedMessageHandlerTests {
 		advice.setThreshold(2);
 		advice.setHalfOpenAfter(1000);
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -402,7 +402,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
 			assertThat(((MessagingException) e).getFailedMessage()).isSameAs(message);
 		}
 
@@ -426,7 +426,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
 		}
 
 		// Simulate some timeout in between requests
@@ -454,7 +454,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for baz");
+			assertThat(e.getMessage()).isEqualTo("Circuit Breaker is Open for bean 'baz'");
 		}
 	}
 
@@ -475,7 +475,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -937,7 +937,7 @@ public class AdvisedMessageHandlerTests {
 		MessageFilter filter = new MessageFilter(message -> false);
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
 
@@ -1017,7 +1017,7 @@ public class AdvisedMessageHandlerTests {
 
 		RetryTemplate retryTemplate = new RetryTemplate();
 
-		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
 		retryableExceptions.put(MyException.class, retryForMyException);
 
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions, true));

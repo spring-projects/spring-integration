@@ -28,6 +28,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
@@ -134,6 +136,32 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public String getComponentType() {
 		return null;
+	}
+
+	public String getBeanDescription() {
+		String description = null;
+		Object source = null;
+
+		if (this.beanFactory instanceof ConfigurableListableBeanFactory &&
+				((ConfigurableListableBeanFactory) this.beanFactory).containsBeanDefinition(this.beanName)) {
+			BeanDefinition beanDefinition =
+					((ConfigurableListableBeanFactory) this.beanFactory).getBeanDefinition(this.beanName);
+			description = beanDefinition.getResourceDescription();
+			source = beanDefinition.getSource();
+		}
+
+		StringBuilder sb = new StringBuilder("bean '")
+				.append(this.beanName).append("'");
+		if (!this.beanName.equals(getComponentName())) {
+			sb.append("for component '").append(getComponentName()).append("'");
+		}
+		if (description != null) {
+			sb.append("; defined in: '").append(description).append("'");
+		}
+		if (source != null) {
+			sb.append("; from source: '").append(source).append("'");
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -297,7 +325,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	@Override
 	public String toString() {
-		return (this.beanName != null) ? this.beanName : super.toString();
+		return (this.beanName != null) ? getBeanDescription() : super.toString();
 	}
 
 	@SuppressWarnings("unchecked")

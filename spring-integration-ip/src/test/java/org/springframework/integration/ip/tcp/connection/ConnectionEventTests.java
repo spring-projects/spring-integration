@@ -289,7 +289,7 @@ public class ConnectionEventTests {
 		String actual = theEvent.toString();
 		assertThat(actual).contains("cause=java.net.BindException");
 		assertThat(actual).contains("source="
-				+ "sf, port=" + factory.getPort());
+				+ "bean 'sf', port=" + factory.getPort());
 
 		ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);

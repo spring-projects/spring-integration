@@ -58,6 +58,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		String id = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(id)) {
 			id = element.getAttribute("name");
@@ -103,10 +104,12 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
-		String inputChannelAttributeName = this.getInputChannelAttributeName();
+		handlerBeanDefinition.setResource(parserContext.getReaderContext().getResource());
+		String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
+		handlerBeanDefinition.setSource(elementDescription);
+		String inputChannelAttributeName = getInputChannelAttributeName();
 		boolean hasInputChannelAttribute = element.hasAttribute(inputChannelAttributeName);
 		if (parserContext.isNested()) {
-			String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 			if (hasInputChannelAttribute) {
 				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
 						+ "' attribute isn't allowed for a nested (e.g. inside a <chain/>) endpoint element: "
@@ -122,7 +125,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		else {
 			if (!hasInputChannelAttribute) {
-				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
 						+ "' attribute is required for the top-level endpoint element: "
 						+ elementDescription + ".", element);
@@ -135,9 +137,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			builder.addPropertyValue("adviceChain", adviceChain);
 		}
 
-		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
+		String handlerBeanName =
+				BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
 		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
+		parserContext.registerBeanComponent(
+				new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
 
 		builder.addPropertyReference("handler", handlerBeanName);
 
@@ -157,7 +161,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.ROLE);
 
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
-		String beanName = this.resolveId(element, beanDefinition, parserContext);
+		String beanName = resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		return null;
 	}
@@ -187,12 +191,13 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 			@SuppressWarnings("unchecked")
 			Collection<String> channelCandidateNames =
-					(Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue(); // NOSONAR see comment above
+					(Collection<String>) caValues.getArgumentValue(0, Collection.class)
+							.getValue(); // NOSONAR see comment above
 			channelCandidateNames.add(inputChannelName); // NOSONAR
 		}
 		else {
 			parserContext.getReaderContext().error("Failed to locate '" +
-					IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'",
+							IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'",
 					parserContext.getRegistry());
 		}
 	}

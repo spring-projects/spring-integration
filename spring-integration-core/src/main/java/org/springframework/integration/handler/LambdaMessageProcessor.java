@@ -30,9 +30,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -100,17 +98,19 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		}
 		catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof ClassCastException) {
-				LOGGER.error("Could not invoke the method due to a class cast exception, " +
+				LOGGER.error("Could not invoke the method '" + this.method + "' due to a class cast exception, " +
 						"if using a lambda in the DSL, consider using an overloaded EIP method " +
 						"that takes a Class<?> argument to explicitly  specify the type. " +
 						"An example of when this often occurs is if the lambda is configured to " +
 						"receive a Message<?> argument.", e.getCause());
 			}
-			throw new MessageHandlingException(message, e.getCause()); // NOSONAR lost stack trace
+			throw new IllegalStateException(
+					"Could not invoke the method '" + this.method + "'", e.getCause()); // NOSONAR lost stack trace
 		}
 		catch (Exception e) {
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "error occurred during processing message in 'LambdaMessageProcessor' [" + this + "]", e);
+			throw new IllegalStateException(
+					"error occurred during processing message in 'LambdaMessageProcessor' for method [" +
+							this.method + "]", e);
 		}
 	}
 

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -73,6 +74,7 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
@@ -86,6 +88,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.ReflectionUtils;
 
 import reactor.core.publisher.Flux;
 
@@ -519,6 +522,24 @@ public class ManualFlowTests {
 				.isExactlyInstanceOf(BeanCreationException.class)
 				.withCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
 				.withMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
+	}
+
+	@Test
+	public void testBeanDefinitionInfoInTheException() {
+		IntegrationFlow testFlow = f -> f.<String, String>transform(String::toUpperCase);
+		Method source = ReflectionUtils.findMethod(ManualFlowTests.class, "testBeanDefinitionInfoInTheException");
+		IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(testFlow)
+						.setSource(source)
+						.register();
+		assertThatExceptionOfType(MessageTransformationException.class)
+				.isThrownBy(() -> flowRegistration.getInputChannel().send(new GenericMessage<>(new Date())))
+				.withCauseExactlyInstanceOf(IllegalStateException.class)
+				.withRootCauseInstanceOf(ClassCastException.class)
+				.withMessageContaining("from source: '" + source + "'")
+				.withStackTraceContaining("java.util.Date cannot be cast to java.lang.String");
+
+		flowRegistration.destroy();
 	}
 
 	@Configuration
