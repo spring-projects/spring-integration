@@ -123,8 +123,7 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 	 * @param <R> the reply value type.
 	 */
 	public static class KafkaInboundGatewayListenerContainerSpec<K, V, R> extends
-			KafkaInboundGatewaySpec<K, V, R, KafkaInboundGatewayListenerContainerSpec<K, V, R>>
-			implements ComponentsRegistration {
+			KafkaInboundGatewaySpec<K, V, R, KafkaInboundGatewayListenerContainerSpec<K, V, R>> {
 
 		private final KafkaMessageListenerContainerSpec<K, V> containerSpec;
 

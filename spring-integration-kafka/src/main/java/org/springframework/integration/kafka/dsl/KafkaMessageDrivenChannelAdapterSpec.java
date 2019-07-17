@@ -149,7 +149,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * @return the spec
 	 * @since 3.2.0
 	 */
-	public S payloadType(Class payloadType) {
+	public S payloadType(Class<?> payloadType) {
 		this.target.setPayloadType(payloadType);
 		return _this();
 	}
@@ -199,8 +199,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * @param <V> the value type.
 	 */
 	public static class KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> extends
-			KafkaMessageDrivenChannelAdapterSpec<K, V, KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>>
-			implements ComponentsRegistration {
+			KafkaMessageDrivenChannelAdapterSpec<K, V, KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>> {
 
 		private final KafkaMessageListenerContainerSpec<K, V> spec;
 

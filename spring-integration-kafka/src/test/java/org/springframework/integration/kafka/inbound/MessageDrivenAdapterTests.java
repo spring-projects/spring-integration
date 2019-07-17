@@ -69,7 +69,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
-import org.springframework.kafka.support.TopicPartitionInitialOffset;
+import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.BatchMessagingMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
@@ -119,7 +119,7 @@ public class MessageDrivenAdapterTests {
 	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
 
 	@Test
-	public void testInboundRecord() throws Exception {
+	public void testInboundRecord() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -204,7 +204,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundRecordRetryRecover() throws Exception {
+	public void testInboundRecordRetryRecover() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -257,7 +257,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundRecordNoRetryRecover() throws Exception {
+	public void testInboundRecordNoRetryRecover() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test5", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -515,8 +515,8 @@ public class MessageDrivenAdapterTests {
 			resumeLatch.countDown();
 			return null;
 		}).given(consumer).resume(records.keySet());
-		TopicPartitionInitialOffset[] topicPartition = new TopicPartitionInitialOffset[] {
-				new TopicPartitionInitialOffset("foo", 0) };
+		TopicPartitionOffset[] topicPartition = new TopicPartitionOffset[] {
+				new TopicPartitionOffset("foo", 0) };
 		ContainerProperties containerProps = new ContainerProperties(topicPartition);
 		containerProps.setAckMode(ContainerProperties.AckMode.RECORD);
 		containerProps.setClientId("clientId");
