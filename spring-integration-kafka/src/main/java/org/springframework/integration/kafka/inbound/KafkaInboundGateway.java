@@ -170,13 +170,13 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	@Override
 	protected void onInit() {
 		super.onInit();
-		MessageListener<K, V> listener = this.listener;
+		MessageListener<K, V> kafkaListener = this.listener;
 		if (this.retryTemplate != null) {
-			listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
+			kafkaListener = new RetryingMessageListenerAdapter<>(kafkaListener, this.retryTemplate,
 					this.recoveryCallback);
 			this.retryTemplate.registerListener(this.listener);
 		}
-		this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+		this.messageListenerContainer.getContainerProperties().setMessageListener(kafkaListener);
 	}
 
 	@Override

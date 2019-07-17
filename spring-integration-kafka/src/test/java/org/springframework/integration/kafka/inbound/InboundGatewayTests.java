@@ -96,22 +96,22 @@ public class InboundGatewayTests {
 
 	@Test
 	public void testInbound() throws Exception {
-		EmbeddedKafkaBroker embeddedKafka = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
+		EmbeddedKafkaBroker embedded = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
 		Map<String, Object> consumerProps =
-				KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
+				KafkaTestUtils.consumerProps("replyHandler1", "false", embedded);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic2);
+		embedded.consumeFromAnEmbeddedTopic(consumer, topic2);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embedded);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
 		containerProps.setIdleEventInterval(100L);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embedded);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic1);
@@ -127,8 +127,9 @@ public class InboundGatewayTests {
 
 			@Override
 			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> consumer, Type type) {
-				Message<?> message = super.toMessage(record, acknowledgment, consumer, type);
+					Consumer<?, ?> con, Type type) {
+
+				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
 						.setHeader(KafkaHeaders.REPLY_TOPIC, topic2)
@@ -170,7 +171,7 @@ public class InboundGatewayTests {
 	}
 
 	@Test
-	public void testInboundErrorRecover() throws Exception {
+	public void testInboundErrorRecover() {
 		EmbeddedKafkaBroker broker = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", broker);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -205,8 +206,8 @@ public class InboundGatewayTests {
 
 			@Override
 			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> consumer, Type type) {
-				Message<?> message = super.toMessage(record, acknowledgment, consumer, type);
+					Consumer<?, ?> con, Type type) {
+				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
 						.setHeader(KafkaHeaders.REPLY_TOPIC, topic4)
@@ -250,21 +251,21 @@ public class InboundGatewayTests {
 	}
 
 	@Test
-	public void testInboundRetryErrorRecover() throws Exception {
-		EmbeddedKafkaBroker embeddedKafka = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
+	public void testInboundRetryErrorRecover() {
+		EmbeddedKafkaBroker embedded = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embedded);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic6);
+		embedded.consumeFromAnEmbeddedTopic(consumer, topic6);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embeddedKafka);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embedded);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic5);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embedded);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic5);
@@ -285,8 +286,8 @@ public class InboundGatewayTests {
 
 			@Override
 			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
-					Consumer<?, ?> consumer, Type type) {
-				Message<?> message = super.toMessage(record, acknowledgment, consumer, type);
+					Consumer<?, ?> con, Type type) {
+				Message<?> message = super.toMessage(record, acknowledgment, con, type);
 				return MessageBuilder.fromMessage(message)
 						.setHeader("testHeader", "testValue")
 						.setHeader(KafkaHeaders.REPLY_TOPIC, topic6)

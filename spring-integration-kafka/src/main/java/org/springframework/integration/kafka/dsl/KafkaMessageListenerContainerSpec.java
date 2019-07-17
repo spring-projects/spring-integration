@@ -30,7 +30,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ErrorHandler;
 import org.springframework.kafka.listener.GenericErrorHandler;
-import org.springframework.kafka.support.TopicPartitionInitialOffset;
+import org.springframework.kafka.support.TopicPartitionOffset;
 
 /**
  * A helper class in the Builder pattern style to delegate options to the
@@ -54,7 +54,7 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	}
 
 	KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory,
-			TopicPartitionInitialOffset... topicPartitions) {
+			TopicPartitionOffset... topicPartitions) {
 
 		this(consumerFactory, new ContainerProperties(topicPartitions));
 	}
