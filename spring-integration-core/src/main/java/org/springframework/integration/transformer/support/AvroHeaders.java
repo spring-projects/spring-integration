@@ -36,7 +36,8 @@ public final class AvroHeaders {
 	public static final String PREFIX = "avro_";
 
 	/**
-	 * The {@code SpecificRecord} type.
+	 * The {@code SpecificRecord} type. By default it's the fully qualified
+	 * SpecificRecord type but can be a key that is mapped to the actual type.
 	 */
 	public static final String TYPE = PREFIX + "type";
 

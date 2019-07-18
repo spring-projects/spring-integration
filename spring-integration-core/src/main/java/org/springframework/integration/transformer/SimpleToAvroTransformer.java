@@ -26,6 +26,10 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -40,6 +44,64 @@ import org.springframework.util.Assert;
 public class SimpleToAvroTransformer extends AbstractTransformer {
 
 	private final EncoderFactory encoderFactory = new EncoderFactory();
+
+	private Expression typeIdExpression =
+			new FunctionExpression<Message<?>>((message) -> message.getPayload().getClass());
+
+	private EvaluationContext evaluationContext;
+
+	/**
+	 * Set the expression to evaluate against the message to determine the value
+	 * for the {@link AvroHeaders#TYPE} header.
+	 * @param expression the expression.
+	 * @return the transformer
+	 */
+	public SimpleToAvroTransformer typeExpression(Expression expression) {
+		assertExpressionNotNull(expression);
+		this.typeIdExpression = expression;
+		return this;
+	}
+
+	/**
+	 * Set the expression to evaluate against the message to determine the value
+	 * for the {@link AvroHeaders#TYPE} header.
+	 * @param expression the expression.
+	 * @return the transformer
+	 */
+	public SimpleToAvroTransformer typeExpression(String expression) {
+		assertExpressionNotNull(expression);
+		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
+		return this;
+	}
+
+	/**
+	 * Set the expression to evaluate against the message to determine the value
+	 * for the {@link AvroHeaders#TYPE} header.
+	 * @param expression the expression.
+	 */
+	public void setTypeExpression(Expression expression) {
+		assertExpressionNotNull(expression);
+		this.typeIdExpression = expression;
+	}
+
+	/**
+	 * Set the expression to evaluate against the message to determine the value
+	 * for the {@link AvroHeaders#TYPE} header.
+	 * @param expression the expression.
+	 */
+	public void setTypeExpression(String expression) {
+		assertExpressionNotNull(expression);
+		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
+	}
+
+	private void assertExpressionNotNull(Object expression) {
+		Assert.notNull(expression, "'expression' must not be null");
+	}
+
+	@Override
+	protected void onInit() {
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
+	}
 
 	@Override
 	protected Object doTransform(Message<?> message) {
@@ -58,7 +120,7 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 		}
 		return getMessageBuilderFactory().withPayload(out.toByteArray())
 				.copyHeaders(message.getHeaders())
-				.setHeader(AvroHeaders.TYPE, specific.getClass())
+				.setHeader(AvroHeaders.TYPE, this.typeIdExpression.getValue(this.evaluationContext, message))
 				.build();
 	}
 

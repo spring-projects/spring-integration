@@ -29,6 +29,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.transformer.support.AvroHeaders;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -49,11 +50,13 @@ public class AvroTests {
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isInstanceOf(byte[].class);
-		assertThat(config.out().receive(0))
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isEqualTo(test)
 			.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
 	}
 
 	@Test
@@ -64,11 +67,13 @@ public class AvroTests {
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isInstanceOf(byte[].class);
-		assertThat(config.out().receive(0))
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isNotEqualTo(test)
 			.isInstanceOf(AvroTestClass2.class);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow2");
 	}
 
 	@Test
@@ -79,11 +84,13 @@ public class AvroTests {
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isInstanceOf(byte[].class);
-		assertThat(config.out().receive(0))
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isNotEqualTo(test)
 			.isInstanceOf(AvroTestClass2.class);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow3");
 	}
 
 	@Test
@@ -94,11 +101,47 @@ public class AvroTests {
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isInstanceOf(byte[].class);
-		assertThat(config.out().receive(0))
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
 			.isNotNull()
 			.extracting(msg -> msg.getPayload())
 			.isEqualTo(test)
 			.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow4");
+	}
+
+	@Test
+	void testTransformWithTypeMappingExpressions(@Autowired Config config) {
+		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
+		config.in5().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isNotEqualTo(test)
+			.isInstanceOf(AvroTestClass2.class);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow5");
+	}
+
+	@Test
+	void testTransformersFallbackWhenNoTypeMappingMatch(@Autowired Config config) {
+		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
+		config.in6().send(new GenericMessage<>(test));
+		assertThat(config.tapped().receive(0))
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isInstanceOf(byte[].class);
+		Message<?> received = config.out().receive(0);
+		assertThat(received)
+			.isNotNull()
+			.extracting(msg -> msg.getPayload())
+			.isEqualTo(test)
+			.isNotSameAs(test);
+		assertThat(received.getHeaders().get("flow")).isEqualTo("flow6");
 	}
 
 	@Configuration
@@ -110,7 +153,8 @@ public class AvroTests {
 			return IntegrationFlows.from(in1())
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
-					.transform(transformer())
+					.transform(fromTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow1"))
 					.channel(out())
 					.get();
 		}
@@ -121,7 +165,8 @@ public class AvroTests {
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, AvroTestClass2.class, true))
-					.transform(transformer())
+					.transform(fromTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow2"))
 					.channel(out())
 					.get();
 		}
@@ -132,7 +177,8 @@ public class AvroTests {
 					.transform(new SimpleToAvroTransformer())
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, AvroTestClass2.class.getName(), true))
-					.transform(transformer())
+					.transform(fromTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow3"))
 					.channel(out())
 					.get();
 		}
@@ -144,13 +190,40 @@ public class AvroTests {
 					.wireTap(tapped())
 					.enrichHeaders(h -> h.header(AvroHeaders.TYPE, null, true)
 							.shouldSkipNulls(false))
-					.transform(transformer())
+					.transform(fromTransformer())
+					.enrichHeaders(h -> h.header("flow", "flow4"))
 					.channel(out())
 					.get();
 		}
 
 		@Bean
-		public SimpleFromAvroTransformer transformer() {
+		public IntegrationFlow flow5() {
+			return IntegrationFlows.from(in5())
+					.transform(new SimpleToAvroTransformer().typeExpression("'avroTest'"))
+					.wireTap(tapped())
+					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
+							.typeExpression("'avroTest' == headers[avro_type] ? '"
+												+ AvroTestClass2.class.getName() + "' : null"))
+					.enrichHeaders(h -> h.header("flow", "flow5"))
+					.channel(out())
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow flow6() {
+			return IntegrationFlows.from(in6())
+					.transform(new SimpleToAvroTransformer().typeExpression("'wontFindThisHeader'"))
+					.wireTap(tapped())
+					.transform(new SimpleFromAvroTransformer(AvroTestClass1.class)
+							.typeExpression("'avroTest' == headers[avro_type] ? '"
+												+ AvroTestClass2.class.getName() + "' : null"))
+					.enrichHeaders(h -> h.header("flow", "flow6"))
+					.channel(out())
+					.get();
+		}
+
+		@Bean
+		public SimpleFromAvroTransformer fromTransformer() {
 			return new SimpleFromAvroTransformer(AvroTestClass1.class);
 		}
 
@@ -171,6 +244,16 @@ public class AvroTests {
 
 		@Bean
 		public DirectChannel in4() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public DirectChannel in5() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public DirectChannel in6() {
 			return new DirectChannel();
 		}
 
