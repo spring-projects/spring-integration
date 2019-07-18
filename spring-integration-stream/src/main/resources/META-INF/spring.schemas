@@ -1,2 +1,5 @@
 http\://www.springframework.org/schema/integration/stream/spring-integration-stream-5.2.xsd=org/springframework/integration/stream/config/spring-integration-stream-5.2.xsd
 http\://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd=org/springframework/integration/stream/config/spring-integration-stream-5.2.xsd
+https\://www.springframework.org/schema/integration/stream/spring-integration-stream-5.2.xsd=org/springframework/integration/stream/config/spring-integration-stream-5.2.xsd
+https\://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd=org/springframework/integration/stream/config/spring-integration-stream-5.2.xsd
+

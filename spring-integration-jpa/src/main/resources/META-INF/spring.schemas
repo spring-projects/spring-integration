@@ -1,2 +1,4 @@
 http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa-5.2.xsd=org/springframework/integration/jpa/config/spring-integration-jpa-5.2.xsd
 http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd=org/springframework/integration/jpa/config/spring-integration-jpa-5.2.xsd
+https\://www.springframework.org/schema/integration/jpa/spring-integration-jpa-5.2.xsd=org/springframework/integration/jpa/config/spring-integration-jpa-5.2.xsd
+https\://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd=org/springframework/integration/jpa/config/spring-integration-jpa-5.2.xsd

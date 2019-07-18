@@ -1,2 +1,4 @@
 http\://www.springframework.org/schema/integration/ws/spring-integration-ws-5.2.xsd=org/springframework/integration/ws/config/spring-integration-ws-5.2.xsd
 http\://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd=org/springframework/integration/ws/config/spring-integration-ws-5.2.xsd
+https\://www.springframework.org/schema/integration/ws/spring-integration-ws-5.2.xsd=org/springframework/integration/ws/config/spring-integration-ws-5.2.xsd
+https\://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd=org/springframework/integration/ws/config/spring-integration-ws-5.2.xsd
