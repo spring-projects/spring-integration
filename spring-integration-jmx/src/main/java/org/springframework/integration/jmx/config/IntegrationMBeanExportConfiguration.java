@@ -58,10 +58,13 @@ import org.springframework.util.StringUtils;
  *
  * @since 4.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class IntegrationMBeanExportConfiguration implements ImportAware, EnvironmentAware, BeanFactoryAware {
 
-	private static final String MBEAN_EXPORTER_NAME = "integrationMbeanExporter";
+	/**
+	 * A name for default {@link IntegrationMBeanExporter} bean.
+	 */
+	public static final String MBEAN_EXPORTER_NAME = "integrationMbeanExporter";
 
 	private AnnotationAttributes attributes;
 
@@ -95,7 +98,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableIntegrationMBeanExport.class.getName());
 		this.attributes = AnnotationAttributes.fromMap(map);
-		Assert.notNull(this.attributes,
+		Assert.notNull(this.attributes, () ->
 				"@EnableIntegrationMBeanExport is not present on importing class " + importMetadata.getClassName());
 	}
 
@@ -121,7 +124,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	private void setupDomain(IntegrationMBeanExporter exporter) {
 		String defaultDomain = this.attributes.getString("defaultDomain");
-		if (defaultDomain != null && this.environment != null) {
+		if (this.environment != null) {
 			defaultDomain = this.environment.resolvePlaceholders(defaultDomain);
 		}
 		if (StringUtils.hasText(defaultDomain)) {
@@ -131,11 +134,11 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	private void setupServer(IntegrationMBeanExporter exporter) {
 		String server = this.attributes.getString("server");
-		if (server != null && this.environment != null) {
+		if (this.environment != null) {
 			server = this.environment.resolvePlaceholders(server);
 		}
 		if (StringUtils.hasText(server)) {
-			MBeanServer bean = null;
+			MBeanServer bean;
 			if (server.startsWith("#{") && server.endsWith("}")) {
 				bean = (MBeanServer) this.resolver.evaluate(server, this.expressionContext);
 			}
@@ -159,7 +162,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
 			patterns.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(pattern)));
 		}
-		exporter.setComponentNamePatterns(patterns.toArray(new String[patterns.size()]));
+		exporter.setComponentNamePatterns(patterns.toArray(new String[0]));
 	}
 
 }
