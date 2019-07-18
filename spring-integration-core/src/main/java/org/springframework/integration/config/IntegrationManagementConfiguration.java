@@ -60,7 +60,7 @@ public class IntegrationManagementConfiguration implements ImportAware, Environm
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		Map<String, Object> map = importMetadata.getAnnotationAttributes(EnableIntegrationManagement.class.getName());
 		this.attributes = AnnotationAttributes.fromMap(map);
-		Assert.notNull(this.attributes, ()->
+		Assert.notNull(this.attributes, () ->
 				"@EnableIntegrationManagement is not present on importing class " + importMetadata.getClassName());
 	}
 
