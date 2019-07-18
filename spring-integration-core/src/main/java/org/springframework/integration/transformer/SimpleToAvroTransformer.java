@@ -89,7 +89,7 @@ public class SimpleToAvroTransformer extends AbstractTransformer {
 	 * for the {@link AvroHeaders#TYPE} header.
 	 * @param expression the expression.
 	 */
-	public void setTypeExpression(String expression) {
+	public void setTypeExpressionString(String expression) {
 		assertExpressionNotNull(expression);
 		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
 	}

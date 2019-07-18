@@ -110,7 +110,7 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * Default {@code headers['avro_type']}.
 	 * @param expression the expression.
 	 */
-	public void setTypeExpression(String expression) {
+	public void setTypeExpressionString(String expression) {
 		assertExpressionNotNull(expression);
 		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
 	}
