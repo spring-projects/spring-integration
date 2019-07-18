@@ -1,2 +1,4 @@
 http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog-4.3.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-4.3.xsd
 http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-4.3.xsd
+https\://www.springframework.org/schema/integration/syslog/spring-integration-syslog-4.3.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-4.3.xsd
+https\://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-4.3.xsd
