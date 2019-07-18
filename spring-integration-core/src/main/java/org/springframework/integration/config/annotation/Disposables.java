@@ -29,6 +29,8 @@ import org.springframework.beans.factory.DisposableBean;
  * case, the container does not automatically dispose of them.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.1
  *
  */
@@ -36,21 +38,20 @@ class Disposables implements DisposableBean {
 
 	private final List<DisposableBean> disposables = new ArrayList<>();
 
-	@SafeVarargs
-	@SuppressWarnings("varargs")
 	public final void add(DisposableBean... disposablesToAdd) {
 		this.disposables.addAll(Arrays.asList(disposablesToAdd));
 	}
 
 	@Override
 	public void destroy() {
-		this.disposables.forEach(d -> {
+		this.disposables.forEach((disposable) -> {
 			try {
-				d.destroy();
+				disposable.destroy();
 			}
-			catch (@SuppressWarnings("unused") Exception e) {
+			catch (@SuppressWarnings("unused") Exception ex) {
 				// NOSONAR
 			}
 		});
 	}
+
 }

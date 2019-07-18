@@ -104,8 +104,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 						"An example of when this often occurs is if the lambda is configured to " +
 						"receive a Message<?> argument.", e.getCause());
 			}
-			throw new IllegalStateException(
-					"Could not invoke the method '" + this.method + "'", e.getCause()); // NOSONAR lost stack trace
+			throw new IllegalStateException( // NOSONAR lost stack trace
+					"Could not invoke the method '" + this.method + "'", e.getCause());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(
