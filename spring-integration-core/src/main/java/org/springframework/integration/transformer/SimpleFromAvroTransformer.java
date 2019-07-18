@@ -83,10 +83,6 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 		return this;
 	}
 
-	private void assertExpressionNotNull(Object expression) {
-		Assert.notNull(expression, "'expression' must not be null");
-	}
-
 	/**
 	 * Set the expression to evaluate against the message to determine the type id.
 	 * Default {@code headers['avro_type']}.
@@ -114,9 +110,13 @@ public class SimpleFromAvroTransformer extends AbstractTransformer implements Be
 	 * Default {@code headers['avro_type']}.
 	 * @param expression the expression.
 	 */
-	public void setTypeExpression(String expression) {
+	public void setTypeExpressionString(String expression) {
 		assertExpressionNotNull(expression);
 		this.typeIdExpression = EXPRESSION_PARSER.parseExpression(expression);
+	}
+
+	private void assertExpressionNotNull(Object expression) {
+		Assert.notNull(expression, "'expression' must not be null");
 	}
 
 	@Override
