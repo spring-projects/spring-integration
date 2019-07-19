@@ -26,12 +26,12 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 
+import org.springframework.integration.xml.TransformerFactoryUtils;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
-import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * {@link SourceFactory} implementation which supports creation of a {@link StringSource}
