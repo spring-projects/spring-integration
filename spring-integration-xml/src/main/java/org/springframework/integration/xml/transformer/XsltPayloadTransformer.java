@@ -43,6 +43,7 @@ import org.springframework.core.io.VfsResource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.xml.TransformerFactoryUtils;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -56,7 +57,6 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
-import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Thread safe XSLT transformer implementation which returns a transformed

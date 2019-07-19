@@ -26,10 +26,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.springframework.integration.xml.TransformerFactoryUtils;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringResult;
-import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Converts the passed {@link Result} to an instance of {@link String}.
