@@ -39,7 +39,7 @@ import org.springframework.messaging.MessagingException;
  */
 public class NioFileLocker extends AbstractFileLockerFilter {
 
-	private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
+	private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<>();
 
 	@Override
 	public boolean lock(File fileToLock) {
@@ -67,7 +67,7 @@ public class NioFileLocker extends AbstractFileLockerFilter {
 
 	@Override
 	public void unlock(File fileToUnlock) {
-		FileLock fileLock = this.lockCache.get(fileToUnlock);
+		FileLock fileLock = this.lockCache.remove(fileToUnlock);
 		try {
 			if (fileLock != null) {
 				fileLock.release();
