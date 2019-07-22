@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 final class FileChannelCache {
 
-	private static ConcurrentMap<File, FileChannel> channelCache = new ConcurrentHashMap<File, FileChannel>();
+	private static ConcurrentMap<File, FileChannel> channelCache = new ConcurrentHashMap<>();
 
 
 	private FileChannelCache() {
