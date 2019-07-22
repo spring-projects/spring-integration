@@ -154,11 +154,10 @@ public class CacheListeningMessageProducerTests {
 		producer.stop();
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void setRegionAttributes(GenericRegionFactoryBean<String, String> regionFactoryBean)
 			throws Exception {
 
-		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
+		RegionAttributesFactoryBean<String, String> attributesFactoryBean = new RegionAttributesFactoryBean<>();
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 	}

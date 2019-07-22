@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.3.31'
+	ext.kotlinVersion = '1.3.40'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -100,11 +100,11 @@ subprojects { subproject ->
 
 	ext {
 		activeMqVersion = '5.15.9'
-		apacheSshdVersion = '2.2.0'
-		avroVersion = '1.8.2'
+		apacheSshdVersion = '2.3.0'
+		avroVersion = '1.9.0'
 		aspectjVersion = '1.9.4'
 		assertjVersion = '3.12.2'
-		assertkVersion = '0.17'
+		assertkVersion = '0.19'
 		awaitilityVersion = '3.1.6'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.6.0'
@@ -116,9 +116,9 @@ subprojects { subproject ->
 		googleJsr305Version = '3.0.2'
 		groovyVersion = '2.5.7'
 		hamcrestVersion = '2.1'
-		hazelcastVersion = '3.12'
-		hibernateVersion = '5.4.2.Final'
-		hsqldbVersion = '2.4.1'
+		hazelcastVersion = '3.12.1'
+		hibernateVersion = '5.4.3.Final'
+		hsqldbVersion = '2.5.0'
 		h2Version = '1.4.199'
 		jackson2Version = '2.9.9'
 		javaxActivationVersion = '1.2.0'
@@ -130,24 +130,24 @@ subprojects { subproject ->
 		jschVersion = '0.1.55'
 		jsonpathVersion = '2.4.0'
 		junit4Version = '4.12'
-		junitJupiterVersion = '5.5.0'
-		junitPlatformVersion = '1.5.0'
+		junitJupiterVersion = '5.5.1'
+		junitPlatformVersion = '1.5.1'
 		jythonVersion = '2.7.0'
 		kryoShadedVersion = '4.0.2'
 		lettuceVersion = '5.1.7.RELEASE'
-		log4jVersion = '2.11.2'
-		micrometerVersion = '1.1.5'
-		mockitoVersion = '2.28.2'
+		log4jVersion = '2.12.0'
+		micrometerVersion = '1.2.0'
+		mockitoVersion = '3.0.0'
 		mysqlVersion = '8.0.16'
 		pahoMqttClientVersion = '1.2.0'
-		postgresVersion = '42.2.5'
+		postgresVersion = '42.2.6'
 		reactorNettyVersion = '0.9.0.BUILD-SNAPSHOT'
 		reactorVersion = '3.3.0.BUILD-SNAPSHOT'
-		resilience4jVersion = '0.14.1'
-		romeToolsVersion = '1.12.0'
+		resilience4jVersion = '0.16.0'
+		romeToolsVersion = '1.12.1'
 		rsocketVersion = '0.12.2-RC4'
 		servletApiVersion = '4.0.1'
-		smackVersion = '4.3.3'
+		smackVersion = '4.3.4'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '2.2.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '2.2.0.BUILD-SNAPSHOT'
@@ -168,7 +168,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.8.3"
+		toolVersion = "0.8.4"
 	}
 
 	// dependencies that are common across all java projects
@@ -374,8 +374,11 @@ project('spring-integration-amqp') {
 			exclude group: 'org.springframework'
 		}
 
-		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion")
+		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion") {
+					exclude group: 'org.springframework'
+				}
 		testCompile project(":spring-integration-stream")
+		compile "org.springframework:spring-web:$springVersion"
 	}
 }
 
@@ -389,7 +392,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile ("org.springframework.retry:spring-retry:$springRetryVersion") {
-			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework'
 		}
 		compile "io.projectreactor:reactor-core:$reactorVersion"
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
@@ -519,9 +522,6 @@ project('spring-integration-jdbc') {
 		testCompile "org.apache.commons:commons-dbcp2:$commonsDbcp2Version"
 
 	}
-
-	// suppress derby localization jar path warnings during test compilation
-	compileTestJava.options.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-jms') {
@@ -553,10 +553,10 @@ project('spring-integration-jpa') {
 		compile "org.springframework:spring-orm:$springVersion"
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
-		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion")
-
+		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion") {
+			exclude group: 'org.springframework'
+		}
 		testCompile "com.h2database:h2:$h2Version"
-
 		testCompile "org.hibernate:hibernate-entitymanager:$hibernateVersion"
 
 		testRuntime "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
@@ -573,16 +573,15 @@ project('spring-integration-mail') {
 		compile("com.sun.mail:javax.mail:$javaxMailVersion", provided);
 		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
 	}
-
-	// suppress javax.activation path warnings
-	[compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-mongodb') {
 	description = 'Spring Integration MongoDB Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion")
+		compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -600,7 +599,9 @@ project('spring-integration-redis') {
 	description = 'Spring Integration Redis Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion")
+		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
+			exclude group: 'org.springframework'
+		}
 
 		testCompile "io.lettuce:lettuce-core:$lettuceVersion"
 	}
@@ -634,6 +635,7 @@ project('spring-integration-scripting') {
 		testCompile("org.codehaus.groovy:groovy:$groovyVersion")
 		testCompile("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
 		testCompile("org.python:jython-standalone:$jythonVersion")
+
 		testRuntime 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable'
 	}
 }
@@ -671,7 +673,6 @@ project('spring-integration-stomp') {
 	description = 'Spring Integration STOMP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-
 		compile ("org.springframework:spring-websocket:$springVersion", optional)
 		compile ("io.projectreactor.netty:reactor-netty:$reactorNettyVersion" , optional)
 
@@ -731,7 +732,6 @@ project('spring-integration-websocket') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-websocket:$springVersion"
-
 		compile ("org.springframework:spring-webmvc:$springVersion", optional)
 
 		testCompile project(":spring-integration-event")
@@ -745,10 +745,14 @@ project('spring-integration-ws') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-oxm:$springVersion"
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile ("org.springframework.ws:spring-ws-core:$springWsVersion")
+		compile ("org.springframework.ws:spring-ws-core:$springWsVersion")  {
+			exclude group: 'org.springframework'
+		}
 
 		testCompile "com.thoughtworks.xstream:xstream:$xstreamVersion"
-		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion")
+		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
+			exclude group: 'org.springframework'
+		}
 		testCompile ("org.springframework:spring-jms:$springVersion")
 		testCompile "javax.jms:javax.jms-api:$jmsApiVersion"
 		testCompile "org.igniterealtime.smack:smack-tcp:$smackVersion"
@@ -766,8 +770,13 @@ project('spring-integration-xml') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-oxm:$springVersion"
-		compile ("org.springframework.ws:spring-xml:$springWsVersion")
-		compile ("org.springframework.ws:spring-ws-core:$springWsVersion", optional)
+		compile ("org.springframework.ws:spring-xml:$springWsVersion") {
+			exclude group: 'org.springframework'
+		}
+		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
+			optional(it)
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -788,7 +797,6 @@ project('spring-integration-zookeeper') {
 	description = 'Spring Integration Zookeeper Support'
 	dependencies {
 		compile project(":spring-integration-core")
-
 		compile("org.apache.curator:curator-recipes:$curatorVersion")
 
 		testCompile "org.apache.curator:curator-test:$curatorVersion"
