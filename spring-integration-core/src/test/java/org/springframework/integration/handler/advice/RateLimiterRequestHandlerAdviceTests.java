@@ -72,7 +72,7 @@ public class RateLimiterRequestHandlerAdviceTests {
 
 		long howLongToWait =
 				this.rateLimiterRequestHandlerAdvice.getRateLimiter()
-						.reservePermission(Duration.ofSeconds(10));
+						.reservePermission();
 
 		TimeUnit.NANOSECONDS.sleep(howLongToWait + REFRESH_PERIOD.toNanos());
 
