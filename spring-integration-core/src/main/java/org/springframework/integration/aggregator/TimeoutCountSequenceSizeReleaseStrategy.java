@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
  *
  * @author Dave Syer
  * @author Gary Russell
+ * @author Peter Uhlenbruck
  *
  * @since 2.0
  */
@@ -79,9 +80,6 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 			Long timestamp = message.getHeaders().getTimestamp();
 			if (timestamp != null && timestamp < result) {
 				result = timestamp;
-			}
-			else {
-				return Long.MAX_VALUE; // can't release based on time if there is no timestamp
 			}
 		}
 		return result;
