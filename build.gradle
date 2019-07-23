@@ -378,7 +378,7 @@ project('spring-integration-amqp') {
 					exclude group: 'org.springframework'
 				}
 		testCompile project(":spring-integration-stream")
-		compile "org.springframework:spring-web:$springVersion"
+		testCompile "org.springframework:spring-web:$springVersion"
 	}
 }
 
