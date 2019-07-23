@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Dave Syer
  * @author Artme Bilan
+ * @author Peter Uhlenbruck
  */
 public class TimeoutCountSequenceSizeReleaseStrategyTests {
 
@@ -51,6 +52,21 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 				new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD,
 						-100);
 		assertTrue(releaseStrategy.canRelease(messages));
+	}
+
+	@Test
+	public void testIncompleteListWithTimeoutForMultipleMessages() {
+		Message<String> message1 = MessageBuilder.withPayload("test1")
+				.setSequenceSize(3).build();
+		Message<String> message2 = MessageBuilder.withPayload("test2")
+				.setSequenceSize(3).build();
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
+		messages.add(message1);
+		messages.add(message2);
+		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy =
+				new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD,
+						-100);
+		assertThat(releaseStrategy.canRelease(messages)).isTrue();
 	}
 
 	@Test
