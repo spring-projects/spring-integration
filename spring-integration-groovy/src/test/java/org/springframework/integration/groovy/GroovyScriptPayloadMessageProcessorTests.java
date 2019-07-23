@@ -17,7 +17,7 @@
 package org.springframework.integration.groovy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,7 +83,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 		assertThat(result.toString()).isEqualTo("spam is bucket foo is bar");
 	}
 
-	@Test //INT-2567
+	@Test
 	public void testBindingOverwrite() {
 		Binding binding = new Binding() {
 
@@ -94,16 +94,12 @@ public class GroovyScriptPayloadMessageProcessorTests {
 		};
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		processor = new GroovyCommandMessageProcessor(binding);
-		try {
-			processor.processMessage(message);
-			fail("Expected RuntimeException");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-		}
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> processor.processMessage(message))
+				.withMessage("intentional");
 	}
 
-	@Test //INT-2567
+	@Test
 	public void testBindingOverwriteWithContext() {
 		final String defaultValue = "default";
 		Binding binding = new Binding() {

@@ -23,8 +23,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
-import org.springframework.remoting.RemoteAccessException;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
@@ -75,19 +73,15 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 	@Override
 	public final Object handleRequestMessage(Message<?> requestMessage) {
 		if (!(requestMessage.getPayload() instanceof Serializable)) {
-			throw new MessageHandlingException(requestMessage,
-					this.getComponentName() + " expects a Serializable payload type " +
+			throw new IllegalStateException(
+					"Expected a Serializable payload type " +
 							"but encountered [" + requestMessage.getPayload().getClass().getName() + "]");
 		}
 		try {
 			return this.proxy.exchange(requestMessage);
 		}
-		catch (MessagingException e) {
-			throw new MessageHandlingException(requestMessage, e);
-		}
-		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(requestMessage,
-					"Remote failure in RmiOutboundGateway: " + getComponentName(), e);
+		catch (Exception ex) {
+			throw new MessageHandlingException(requestMessage, "Remote failure in the [" + this + ']', ex);
 		}
 	}
 

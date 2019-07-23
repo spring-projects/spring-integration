@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -107,10 +106,8 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 				payload = resultMap.values().iterator().next();
 			}
 			else if (this.expectSingleResult && resultMap.size() > 1) {
-
-				throw new MessageHandlingException(requestMessage,
-						"Stored Procedure/Function call returned more than "
-								+ "1 result object and expectSingleResult was 'true'. ");
+				throw new IllegalStateException("Stored Procedure/Function call returned more than "
+						+ "1 result object and expectSingleResult was 'true'.");
 			}
 			else {
 				payload = resultMap;
@@ -119,7 +116,6 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
 		return payload;
 	}
-
 
 
 }

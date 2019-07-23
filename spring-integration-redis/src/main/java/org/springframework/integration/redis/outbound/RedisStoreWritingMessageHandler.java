@@ -316,7 +316,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		}
 		catch (Exception ex) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "Failed to store Message data in Redis collection", ex);
+					() -> "Failed to store Message data into Redis collection in the [" + this + ']', ex);
 		}
 	}
 

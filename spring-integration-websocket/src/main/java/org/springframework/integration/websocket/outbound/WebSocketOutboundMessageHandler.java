@@ -71,9 +71,9 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
 	private final boolean client;
 
-	private volatile List<MessageConverter> messageConverters;
+	private List<MessageConverter> messageConverters;
 
-	private volatile boolean mergeWithDefaultConverters = false;
+	private boolean mergeWithDefaultConverters = false;
 
 	public WebSocketOutboundMessageHandler(IntegrationWebSocketContainer webSocketContainer) {
 		this(webSocketContainer, new SubProtocolHandlerRegistry(new PassThruSubProtocolHandler()));
@@ -168,7 +168,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 			}
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to handle", e);
+			throw new MessageHandlingException(message, "Failed to handle message in the [" + this + ']', e);
 		}
 	}
 

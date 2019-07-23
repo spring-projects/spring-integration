@@ -289,7 +289,7 @@ public class UnicastSendingMessageHandler extends
 				closeSocketIfNeeded();
 			}
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "Failed to send UDP packet", ex);
+					() -> "Failed to send UDP packet in the [" + this + ']', ex);
 		}
 		finally {
 			if (countdownLatch != null) {

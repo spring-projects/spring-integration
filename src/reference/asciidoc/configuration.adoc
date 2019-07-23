@@ -217,6 +217,13 @@ The `requestMessage` is stored under `ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KE
 The `ErrorMessageStrategy` can use that `requestMessage` as the `originalMessage` property of the `ErrorMessage` it creates.
 The `DefaultErrorMessageStrategy` does exactly that.
 
+Starting with version 5.2, all the `MessageHandlingException` instances thrown by the framework components, includes a component `BeanDefinition` resource and source to determine a configuration point form the exception.
+In case of XML configuration, a resource is an XML file path and source an XML tag with its `id` attribute.
+With Java & Annotation configuration, a resource is a `@Configuration` class and source is a `@Bean` method.
+In most case the target integration flow solution is based on the out-of-the-box components and their configuration options.
+When an exception happens at runtime, there is no any end-user code involved in stack trace because an execution is against beans, not their configuration.
+Including a resource and source of the bean definition helps to determine possible configuration mistakes and provides better developer experience.
+
 [[global-properties]]
 === Global Properties
 

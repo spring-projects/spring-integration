@@ -180,7 +180,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 				filePath = (String) payload;
 			}
 			catch (FileNotFoundException e) {
-				throw new MessageHandlingException(message, "failed to read file [" + payload + "]", e);
+				throw new MessageHandlingException(message,
+						"Error handing message in the [" + this + "]. Failed to read file [" + payload + "]", e);
 			}
 		}
 		else if (payload instanceof File) {

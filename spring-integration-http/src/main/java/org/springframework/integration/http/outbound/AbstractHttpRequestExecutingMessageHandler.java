@@ -19,6 +19,7 @@ package org.springframework.integration.http.outbound;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -92,25 +93,25 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private boolean trustedSpel;
 
-	private volatile boolean encodeUri = true;
+	private boolean encodeUri = true;
 
-	private volatile Expression httpMethodExpression = new ValueExpression<>(HttpMethod.POST);
+	private Expression httpMethodExpression = new ValueExpression<>(HttpMethod.POST);
 
-	private volatile boolean expectReply = true;
+	private boolean expectReply = true;
 
-	private volatile Expression expectedResponseTypeExpression;
+	private Expression expectedResponseTypeExpression;
 
-	private volatile boolean extractPayload = true;
+	private boolean extractPayload = true;
 
-	private volatile boolean extractPayloadExplicitlySet = false;
+	private boolean extractPayloadExplicitlySet = false;
 
-	private volatile Charset charset = Charset.forName("UTF-8");
+	private Charset charset = StandardCharsets.UTF_8;
 
-	private volatile boolean transferCookies = false;
+	private boolean transferCookies = false;
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
+	private HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
-	private volatile Expression uriVariablesExpression;
+	private Expression uriVariablesExpression;
 
 	public AbstractHttpRequestExecutingMessageHandler(Expression uriExpression) {
 		Assert.notNull(uriExpression, "URI Expression is required");
@@ -166,7 +167,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * @param charset The charset.
 	 */
 	public void setCharset(String charset) {
-		Assert.isTrue(Charset.isSupported(charset), "unsupported charset '" + charset + "'");
+		Assert.isTrue(Charset.isSupported(charset), () -> "unsupported charset '" + charset + "'");
 		this.charset = Charset.forName(charset);
 	}
 
@@ -293,7 +294,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private URI generateUri(Message<?> requestMessage) {
 		Object uri = this.uriExpression.getValue(this.evaluationContext, requestMessage);
 		Assert.state(uri instanceof String || uri instanceof URI,
-				"'uriExpression' evaluation must result in a 'String' or 'URI' instance, not: "
+				() -> "'uriExpression' evaluation must result in a 'String' or 'URI' instance, not: "
 						+ (uri == null ? "null" : uri.getClass()));
 		Map<String, ?> uriVariables = determineUriVariables(requestMessage);
 		UriComponentsBuilder uriComponentsBuilder =
@@ -305,7 +306,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			return this.encodeUri ? uriComponents.encode().toUri() : new URI(uriComponents.toUriString());
 		}
 		catch (URISyntaxException e) {
-			throw new MessageHandlingException(requestMessage, "Invalid URI [" + uri + "]", e);
+			throw new MessageHandlingException(requestMessage, "Invalid URI [" + uri + "] in the [" + this + ']', e);
 		}
 	}
 
@@ -351,8 +352,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			Object cookies = headers.remove(keyName);
 			headers.put(HttpHeaders.COOKIE, cookies);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Converted Set-Cookie header to Cookie for: "
-						+ cookies);
+				logger.debug("Converted Set-Cookie header to Cookie for: " + cookies);
 			}
 		}
 	}

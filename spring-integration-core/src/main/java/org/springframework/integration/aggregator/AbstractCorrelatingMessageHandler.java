@@ -454,7 +454,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(message, "Interrupted getting lock", e);
+			throw new MessageHandlingException(message, "Interrupted getting lock in the [" + this + ']', e);
 		}
 		try {
 			noOutput = processMessageForGroup(message, correlationKey, groupIdUuid, lock);

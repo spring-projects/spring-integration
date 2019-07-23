@@ -181,7 +181,7 @@ public class FileOutboundGatewayParserTests {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> messagingTemplate.sendAndReceive(new GenericMessage<>("String content:")))
-				.withMessageStartingWith("The destination file already exists at '");
+				.withMessageContaining("The destination file already exists at '");
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class FileOutboundGatewayParserTests {
 
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> messagingTemplate.sendAndReceive(new GenericMessage<>("String content:")))
-				.withMessageStartingWith("The destination file already exists at '");
+				.withMessageContaining("The destination file already exists at '");
 	}
 
 	/**

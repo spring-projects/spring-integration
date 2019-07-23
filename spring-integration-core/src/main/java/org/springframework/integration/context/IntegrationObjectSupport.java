@@ -153,7 +153,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		StringBuilder sb = new StringBuilder("bean '")
 				.append(this.beanName).append("'");
 		if (!this.beanName.equals(getComponentName())) {
-			sb.append("for component '").append(getComponentName()).append("'");
+			sb.append(" for component '").append(getComponentName()).append("'");
 		}
 		if (description != null) {
 			sb.append("; defined in: '").append(description).append("'");

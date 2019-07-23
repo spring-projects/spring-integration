@@ -28,7 +28,6 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
@@ -44,7 +43,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
 	private static final MessageProcessor<String> DEFAULT_TOPIC_PROCESSOR =
-			m -> m.getHeaders().get(MqttHeaders.TOPIC, String.class);
+			(message) -> message.getHeaders().get(MqttHeaders.TOPIC, String.class);
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -262,7 +261,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		String topic = this.topicProcessor.processMessage(message);
 		if (topic == null && this.defaultTopic == null) {
-			throw new MessageHandlingException(message,
+			throw new IllegalStateException(
 					"No topic could be determined from the message and no default topic defined");
 		}
 		publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);

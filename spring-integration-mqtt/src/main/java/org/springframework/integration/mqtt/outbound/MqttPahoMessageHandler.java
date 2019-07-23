@@ -47,6 +47,9 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		implements MqttCallback, ApplicationEventPublisherAware {
 
+	/**
+	 * The default completion timeout in milliseconds.
+	 */
 	public static final long DEFAULT_COMPLETION_TIMEOUT = 30000L;
 
 	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
@@ -174,9 +177,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				incrementClientInstance();
 				this.client.setCallback(this);
 				this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Client connected");
-				}
+				logger.debug("Client connected");
 			}
 			catch (MqttException e) {
 				if (this.client != null) {
@@ -191,7 +192,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	@Override
 	protected void publish(String topic, Object mqttMessage, Message<?> message) {
-		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
+		Assert.isInstanceOf(MqttMessage.class, mqttMessage, "The 'mqttMessage' must be an instance of 'MqttMessage'");
 		try {
 			IMqttDeliveryToken token = checkConnection()
 					.publish(topic, (MqttMessage) mqttMessage);
@@ -205,7 +206,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			}
 		}
 		catch (MqttException e) {
-			throw new MessageHandlingException(message, "Failed to publish to MQTT", e);
+			throw new MessageHandlingException(message, "Failed to publish to MQTT in the [" + this + ']', e);
 		}
 	}
 

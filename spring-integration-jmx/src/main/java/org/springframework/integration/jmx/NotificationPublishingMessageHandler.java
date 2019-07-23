@@ -38,7 +38,6 @@ import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -136,12 +135,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		try {
-			this.delegate.publish(this.notificationMapper.fromMessage(message));
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to handle", e);
-		}
+		this.delegate.publish(this.notificationMapper.fromMessage(message));
 	}
 
 

@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.selector;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
@@ -30,7 +31,6 @@ import org.springframework.integration.xml.AggregatedXmlMessageValidationExcepti
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -65,7 +65,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	}
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private static final Log LOGGER = LogFactory.getLog(XmlValidatingMessageSelector.class);
 
 	private final XmlValidator xmlValidator;
 
@@ -110,7 +110,6 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	/**
 	 * Specify the Converter to use when converting payloads prior to validation.
-	 *
 	 * @param converter The payload converter.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
@@ -120,21 +119,22 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	@Override
 	public boolean accept(Message<?> message) {
-		SAXParseException[] validationExceptions = null;
+		SAXParseException[] validationExceptions;
 		try {
 			validationExceptions = this.xmlValidator.validate(this.converter.convertToSource(message.getPayload()));
 		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess) {
+			String exceptionMessage = "Message was rejected due to XML Validation errors";
 			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors",
+				throw new MessageRejectedException(message, exceptionMessage,
 						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
 			}
-			else if (this.logger.isInfoEnabled()) {
-				this.logger.info("Message was rejected due to XML Validation errors",
+			else if (LOGGER.isInfoEnabled()) {
+				LOGGER.info(exceptionMessage,
 						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
 			}
 		}
