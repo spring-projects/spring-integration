@@ -494,6 +494,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				}
 				dataInputStream = new ByteArrayInputStream(bytes);
 			}
+			else if (payload instanceof InputStream) {
+				dataInputStream = (InputStream) payload;
+				name = "InputStream payload";
+			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
 							"java.io.File, java.lang.String, and byte[]");

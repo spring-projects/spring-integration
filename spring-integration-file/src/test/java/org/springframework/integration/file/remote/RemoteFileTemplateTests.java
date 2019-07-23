@@ -23,7 +23,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.hamcrest.Matchers;
@@ -115,6 +117,14 @@ public class RemoteFileTemplateTests {
 		when(session.exists(Mockito.anyString())).thenReturn(false);
 		this.template.send(new GenericMessage<File>(this.file), FileExistsMode.IGNORE);
 		verify(this.session).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+
+	@Test
+	public void testStream() throws IOException {
+		ByteArrayInputStream stream = new ByteArrayInputStream("foo".getBytes());
+		this.template.send(new GenericMessage<InputStream>(stream),
+				FileExistsMode.IGNORE);
+		verify(this.session).write(Mockito.eq(stream), Mockito.any());
 	}
 
 }
