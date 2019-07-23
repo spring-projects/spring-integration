@@ -240,7 +240,7 @@ public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewa
 	 * priority header.
 	 * @param priority the priority.
 	 * @return the current {@link JmsOutboundGatewaySpec}.
-	 * @see JmsOutboundGateway#setPriority(int)
+	 * @see JmsOutboundGateway#setDefaultPriority(int)
 	 */
 	public JmsOutboundGatewaySpec priority(int priority) {
 		this.target.setDefaultPriority(priority);

@@ -475,7 +475,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 			catch (Exception e) {
 				Exception exceptionToLog =
-						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage, () -> null, e);
+						IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage,
+								() -> "failed to send error message in the [" + this + ']', e);
 				logger.error("Failed to send async reply", exceptionToLog);
 			}
 		}

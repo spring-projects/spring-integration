@@ -543,9 +543,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				payload = session.readRaw(remoteFilePath);
 			}
 			catch (IOException e) {
-				throw new MessageHandlingException(requestMessage, "Failed to get the remote file ["
-						+ remoteFilePath
-						+ "] as a stream", e);
+				throw new MessageHandlingException(requestMessage,
+						"Error handling message in the [" + this
+								+ "]. Failed to get the remote file [" + remoteFilePath + "] as a stream", e);
 			}
 		}
 		else {
@@ -984,7 +984,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		else if (!FileExistsMode.IGNORE.equals(existsMode)) {
-			throw new MessageHandlingException(message, "Local file " + localFile + " already exists");
+			throw new MessageHandlingException(message,
+					"Error handling message in the [" + this + "]. Local file " + localFile + " already exists");
 		}
 		else {
 			if (logger.isDebugEnabled()) {

@@ -44,13 +44,14 @@ import org.springframework.util.StringUtils;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
 	private static final Pattern XML_PATTERN = Pattern.compile("<(\\S[^>\\s]*)[^>]*>[^<]*</\\1>");
 
-	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
+	private XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
 	private ExtensionElementProvider<? extends ExtensionElement> extensionProvider;
 
@@ -85,7 +86,8 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.isTrue(isInitialized(), getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(isInitialized(),
+				() -> getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		try {
 			Object payload = message.getPayload();
 			org.jivesoftware.smack.packet.Message xmppMessage = null;
@@ -94,7 +96,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			}
 			else {
 				String to = message.getHeaders().get(XmppHeaders.TO, String.class);
-				Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
+				Assert.state(StringUtils.hasText(to), () -> "The '" + XmppHeaders.TO + "' header must not be null");
 				xmppMessage = buildXmppMessage(message, payload, to);
 			}
 
@@ -109,10 +111,10 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(message, "Interrupted", e);
+			throw new MessageHandlingException(message, "Thread interrupted in the [" + this + ']', e);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to handle", e);
+			throw new MessageHandlingException(message, "Failed to handle message in the [" + this + ']', e);
 		}
 	}
 
@@ -144,7 +146,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			}
 		}
 		else {
-			throw new MessageHandlingException(message,
+			throw new IllegalStateException(
 					"Only payloads of type java.lang.String, org.jivesoftware.smack.packet.Message " +
 							"or org.jivesoftware.smack.packet.ExtensionElement " +
 							"are supported. Received [" + payload.getClass().getName() +

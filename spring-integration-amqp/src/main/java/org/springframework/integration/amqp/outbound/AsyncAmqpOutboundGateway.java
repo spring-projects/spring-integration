@@ -64,7 +64,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 	@Override
 	protected RabbitTemplate getRabbitTemplate() {
-		return  this.template.getRabbitTemplate();
+		return this.template.getRabbitTemplate();
 	}
 
 	@Override
@@ -112,7 +112,8 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 			catch (Exception e) {
 				Exception exceptionToLogAndSend = e;
 				if (!(e instanceof MessagingException)) {
-					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, e);
+					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage,
+							"failed to handle a message in the [" + AsyncAmqpOutboundGateway.this + ']', e);
 					if (replyMessageBuilder != null) {
 						exceptionToLogAndSend =
 								new MessagingException(replyMessageBuilder.build(), exceptionToLogAndSend);

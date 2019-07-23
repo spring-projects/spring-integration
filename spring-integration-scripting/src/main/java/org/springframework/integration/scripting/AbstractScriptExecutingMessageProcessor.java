@@ -23,7 +23,6 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
@@ -85,14 +84,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T>
 	@Override
 	@Nullable
 	public final T processMessage(Message<?> message) {
-		try {
-			ScriptSource source = getScriptSource(message);
-			Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
-			return executeScript(source, variables);
-		}
-		catch (Exception e) {
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message, () -> "Failed to execute script.", e);
-		}
+		ScriptSource source = getScriptSource(message);
+		Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
+		return executeScript(source, variables);
 	}
 
 	/**

@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.gateway;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +40,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
@@ -63,6 +63,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	 */
 	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory,
 			MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+
 		this(new FtpRemoteFileTemplate(sessionFactory), messageSessionCallback);
 		((FtpRemoteFileTemplate) getRemoteFileTemplate()).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
 	}
@@ -75,6 +76,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	 */
 	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+
 		super(remoteFileTemplate, messageSessionCallback);
 	}
 
@@ -179,7 +181,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	@Override
 	protected List<AbstractFileInfo<FTPFile>> asFileInfoList(Collection<FTPFile> files) {
-		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<AbstractFileInfo<FTPFile>>();
+		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<>();
 		for (FTPFile file : files) {
 			canonicalFiles.add(new FtpFileInfo(file));
 		}
@@ -200,19 +202,18 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	@Override
 	protected List<?> ls(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
-		return doInWorkingDirectory(message, session,
-				() -> super.ls(message, session, dir));
+		return doInWorkingDirectory(message, session, () -> super.ls(message, session, dir));
 	}
 
 	@Override
 	protected List<String> nlst(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
-		return doInWorkingDirectory(message, session,
-				() -> super.nlst(message, session, dir));
+		return doInWorkingDirectory(message, session, () -> super.nlst(message, session, dir));
 	}
 
 	@Override
 	protected File get(Message<?> message, Session<FTPFile> session, String remoteDir, String remoteFilePath,
 			String remoteFilename, FTPFile fileInfoParam) throws IOException {
+
 		return doInWorkingDirectory(message, session,
 				() -> super.get(message, session, remoteDir, remoteFilePath, remoteFilename, fileInfoParam));
 	}
@@ -220,19 +221,20 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	@Override
 	protected List<File> mGet(Message<?> message, Session<FTPFile> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
+
 		return doInWorkingDirectory(message, session,
 				() -> super.mGet(message, session, remoteDirectory, remoteFilename));
 	}
 
 	@Override
 	protected boolean rm(Message<?> message, Session<FTPFile> session, String remoteFilePath) throws IOException {
-		return doInWorkingDirectory(message, session,
-				() -> super.rm(message, session, remoteFilePath));
+		return doInWorkingDirectory(message, session, () -> super.rm(message, session, remoteFilePath));
 	}
 
 	@Override
 	protected boolean mv(Message<?> message, Session<FTPFile> session, String remoteFilePath, String remoteFileNewPath)
 			throws IOException {
+
 		return doInWorkingDirectory(message, session,
 				() -> super.mv(message, session, remoteFilePath, remoteFileNewPath));
 	}
@@ -244,7 +246,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 					() -> super.put(message, session, subDirectory));
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException(message, "Cannot handle PUT command", e);
+			throw new UncheckedIOException(e);
 		}
 	}
 
@@ -255,12 +257,13 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 					() -> super.mPut(message, session, localDir));
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException(message, "Cannot handle MPUT command", e);
+			throw new UncheckedIOException(e);
 		}
 	}
 
 	private <V> V doInWorkingDirectory(Message<?> message, Session<FTPFile> session, Callable<V> task)
 			throws IOException {
+
 		Expression workDirExpression = this.workingDirExpression;
 		FTPClient ftpClient = (FTPClient) session.getClientInstance();
 		String currentWorkingDirectory = null;

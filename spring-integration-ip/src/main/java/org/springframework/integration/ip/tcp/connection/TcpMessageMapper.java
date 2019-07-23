@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
@@ -37,7 +38,6 @@ import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.InvalidMimeTypeException;
@@ -268,13 +268,13 @@ public class TcpMessageMapper implements
 				bytes = ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new MessageHandlingException(message, e);
+				throw new UncheckedIOException(e);
 			}
 		}
 		else {
-			throw new MessageHandlingException(message,
+			throw new IllegalArgumentException(
 					"When using a byte array serializer, the socket mapper expects " +
-					"either a byte array or String payload, but received: " + payload.getClass());
+							"either a byte array or String payload, but received: " + payload.getClass());
 		}
 		return bytes;
 	}

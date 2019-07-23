@@ -69,7 +69,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(URI uri) {
-		this(new ValueExpression<URI>(uri));
+		this(new ValueExpression<>(uri));
 	}
 
 	/**
@@ -159,12 +159,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 						(ParameterizedTypeReference<?>) expectedResponseType);
 			}
 			else {
-				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
+				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
+						(Class<?>) expectedResponseType);
 			}
 			return getReply(httpResponse);
 		}
 		catch (RestClientException e) {
-			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + uri + "]", e);
+			throw new MessageHandlingException(requestMessage,
+					"HTTP request execution failed for URI [" + uri + "] in the [" + this + ']', e);
 		}
 	}
 

@@ -79,6 +79,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	private Expression remoteTimeoutExpression = new ValueExpression<>(DEFAULT_REMOTE_TIMEOUT);
 
 	private long requestTimeout = 10000;
+
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	private boolean evaluationContextSet;
@@ -168,7 +169,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(requestMessage, "Interrupted", e);
+			throw new MessageHandlingException(requestMessage, "Interrupted in the [" + this + ']', e);
 		}
 		finally {
 			cleanUp(haveSemaphore, connection, connectionId);
@@ -232,9 +233,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		if (haveSemaphore) {
 			this.semaphore.release();
-			if (logger.isDebugEnabled()) {
-				logger.debug("released semaphore");
-			}
+			logger.debug("released semaphore");
 		}
 	}
 
@@ -377,7 +376,6 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		/**
 		 * Sender blocks here until the reply is received, or we time out
 		 * @return The return message or null if we time out
-		 * @throws Exception
 		 */
 		public Message<?> getReply() {
 			try {
@@ -397,7 +395,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					 */
 					logger.debug("second chance");
 					try {
-						this.secondChanceLatch.await(TcpOutboundGateway.this.secondChanceDelay, TimeUnit.SECONDS); // NOSONAR
+						this.secondChanceLatch
+								.await(TcpOutboundGateway.this.secondChanceDelay, TimeUnit.SECONDS); // NOSONAR
 					}
 					catch (@SuppressWarnings("unused") InterruptedException e) {
 						Thread.currentThread().interrupt();

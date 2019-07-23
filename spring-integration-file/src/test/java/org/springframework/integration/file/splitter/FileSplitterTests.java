@@ -162,7 +162,7 @@ public class FileSplitterTests {
 		}
 		catch (Exception e) {
 			assertThat(e.getCause()).isInstanceOf(FileNotFoundException.class);
-			assertThat(e.getMessage()).contains("failed to read file [bar]");
+			assertThat(e.getMessage()).contains("Failed to read file [bar]");
 		}
 		this.input2.send(new GenericMessage<>(new Date()));
 		receive = this.output.receive(10000);

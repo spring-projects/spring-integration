@@ -29,7 +29,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -91,7 +90,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	@SuppressWarnings("unchecked")
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
-		MailMessage mailMessage = null;
+		MailMessage mailMessage;
 		Object payload = message.getPayload();
 		if (payload instanceof MimeMessage) {
 			mailMessage = new MimeMailMessage((MimeMessage) payload);
@@ -100,12 +99,12 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			mailMessage = (MailMessage) payload;
 		}
 		else if (payload instanceof byte[]) {
-			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
+			mailMessage = createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
 		else if (payload instanceof String) {
 			String contentType = (String) message.getHeaders().get(MailHeaders.CONTENT_TYPE);
 			if (StringUtils.hasText(contentType)) {
-				mailMessage = this.createMailMessageWithContentType((Message<String>) message, contentType);
+				mailMessage = createMailMessageWithContentType((Message<String>) message, contentType);
 			}
 			else {
 				mailMessage = new SimpleMailMessage();
@@ -113,11 +112,11 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			}
 		}
 		else {
-			throw new MessageHandlingException(message, "Unable to create MailMessage from payload type ["
+			throw new IllegalArgumentException("Unable to create MailMessage from payload type ["
 					+ message.getPayload().getClass().getName() + "], " +
 					"expected MimeMessage, MailMessage, byte array or String.");
 		}
-		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
+		applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
 	}
 
@@ -131,8 +130,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			return new MimeMailMessage(mimeMessage);
 		}
 		catch (Exception e) {
-			throw new org.springframework.messaging.MessagingException("Failed to create MimeMessage with contentType: "
-					+ contentType, e);
+			throw new IllegalStateException("Failed to create MimeMessage with contentType: " + contentType, e);
 		}
 	}
 
@@ -166,7 +164,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		if (subject != null) {
 			mailMessage.setSubject(subject);
 		}
-		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
+		String[] to = retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
 		if (to != null) {
 			mailMessage.setTo(to);
 		}
@@ -174,11 +172,11 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			Assert.state(!ObjectUtils.isEmpty(((SimpleMailMessage) mailMessage).getTo()),
 					"No recipient has been provided on the MailMessage or the 'MailHeaders.TO' header.");
 		}
-		String[] cc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);
+		String[] cc = retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);
 		if (cc != null) {
 			mailMessage.setCc(cc);
 		}
-		String[] bcc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.BCC);
+		String[] bcc = retrieveHeaderValueAsStringArray(headers, MailHeaders.BCC);
 		if (bcc != null) {
 			mailMessage.setBcc(bcc);
 		}

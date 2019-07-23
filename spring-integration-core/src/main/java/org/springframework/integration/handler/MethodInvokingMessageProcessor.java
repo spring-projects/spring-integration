@@ -109,8 +109,8 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 		}
 		catch (Exception ex) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this +
-							"]", ex);
+					() -> "error occurred during processing message in 'MethodInvokingMessageProcessor' [" + this + ']',
+					ex);
 		}
 	}
 

@@ -116,6 +116,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 
 	public WebSocketInboundChannelAdapter(IntegrationWebSocketContainer webSocketContainer,
 			SubProtocolHandlerRegistry protocolHandlerRegistry) {
+
 		Assert.notNull(webSocketContainer, "'webSocketContainer' must not be null");
 		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
@@ -128,7 +129,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 					}
 					catch (Exception e) {
 						throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-								() -> "Failed to handle and process message.", e);
+								() -> "Failed to handle and process message in the ["
+										+ WebSocketInboundChannelAdapter.this + ']', e);
 					}
 				});
 	}
@@ -241,6 +243,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	@Override
 	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus)
 			throws Exception { // NOSONAR Thrown from the delegate
+
 		if (isActive()) {
 			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
@@ -250,6 +253,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	@Override
 	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage)
 			throws Exception { // NOSONAR Thrown from the delegate
+
 		if (isActive()) {
 			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
@@ -350,7 +354,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 		catch (Exception e) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "Error sending connect ack message", e);
+					() -> "Error sending connect ack message in the [" + this + ']', e);
 		}
 	}
 

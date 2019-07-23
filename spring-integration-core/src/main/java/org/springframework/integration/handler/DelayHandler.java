@@ -46,7 +46,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
@@ -381,7 +380,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					}
 				}
 				else {
-					throw new MessageHandlingException(message, "Error occurred during 'delay' value determination",
+					throw new IllegalStateException("Error occurred during 'delay' value determination",
 							delayValueException);
 				}
 			}

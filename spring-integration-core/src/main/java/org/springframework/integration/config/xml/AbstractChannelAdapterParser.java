@@ -48,6 +48,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 	@Override
 	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		String id = element.getAttribute(ID_ATTRIBUTE);
 		if (!element.hasAttribute("channel")) {
 			// the created channel will get the 'id', so the adapter's bean name includes a suffix
@@ -82,6 +83,8 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 				propertyValues.add("role", new TypedStringValue(role));
 			}
 		}
+		beanDefinition.setResource(parserContext.getReaderContext().getResource());
+		beanDefinition.setSource(IntegrationNamespaceUtils.createElementDescription(element));
 		return beanDefinition;
 	}
 
@@ -89,14 +92,12 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		if (parserContext.isNested()) {
 			return null;
 		}
-
 		return IntegrationNamespaceUtils.createDirectChannel(element, parserContext);
 	}
 
 	/**
 	 * Subclasses must implement this method to parse the adapter element.
 	 * The name of the MessageChannel bean is provided.
-	 *
 	 * @param element The element.
 	 * @param parserContext The parser context.
 	 * @param channelName The channel name.

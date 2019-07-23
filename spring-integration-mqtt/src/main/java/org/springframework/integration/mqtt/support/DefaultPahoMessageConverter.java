@@ -272,8 +272,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 				return this.bytesMessageMapper.fromMessage(message);
 			}
 			catch (Exception e) {
-				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-						() -> "Failed to map outbound message", e);
+				throw new IllegalStateException("Failed to map outbound message", e);
 			}
 		}
 		else {

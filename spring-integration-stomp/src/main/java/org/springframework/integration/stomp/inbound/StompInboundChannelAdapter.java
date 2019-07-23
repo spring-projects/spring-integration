@@ -282,7 +282,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
 				Throwable exception) {
 
-			String exceptionMessage = "STOMP Frame handling error.";
+			String exceptionMessage = "STOMP Frame handling error in the [" + StompInboundChannelAdapter.this + ']';
 
 			MessageChannel errorChannel = getErrorChannel();
 

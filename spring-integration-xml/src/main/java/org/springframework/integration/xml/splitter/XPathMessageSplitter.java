@@ -210,13 +210,13 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	protected Object splitMessage(Message<?> message) {
 		try {
 			Object payload = message.getPayload();
-			Object result = null;
+			Object result;
 			if (payload instanceof Node) {
 				result = splitNode((Node) payload);
 			}
 			else {
 				Document document = this.xmlPayloadConverter.convertToDocument(payload);
-				Assert.notNull(document, "unsupported payload type [" + payload.getClass().getName() + "]");
+				Assert.notNull(document, () -> "unsupported payload type [" + payload.getClass().getName() + "]");
 				result = splitDocument(document);
 			}
 			return result;
@@ -226,7 +226,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		}
 		catch (Exception ex) {
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "Failed to split Message payload", ex);
+					() -> "Failed to split Message payload in the [" + this + ']', ex);
 		}
 	}
 
@@ -369,9 +369,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		private final Iterator<Node> delegate;
 
-		TransformFunctionIterator(Iterator<Node> delegate,
-				Function<? super Node, ? extends String> function) {
-
+		TransformFunctionIterator(Iterator<Node> delegate, Function<? super Node, ? extends String> function) {
 			super(null, delegate, function);
 			this.delegate = delegate;
 		}

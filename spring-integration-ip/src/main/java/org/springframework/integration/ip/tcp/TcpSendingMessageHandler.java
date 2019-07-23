@@ -36,6 +36,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -86,7 +87,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 		catch (Exception e) {
 			logger.error("Error creating connection", e);
-			throw new MessageHandlingException(message, "Failed to obtain a connection", e);
+			throw new MessageHandlingException(message, "Failed to obtain a connection in the [" + this + ']', e);
 		}
 		return connection;
 	}
@@ -121,7 +122,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				logger.error("Error sending message", ex);
 				connection.close();
 				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-						() -> "Error sending message", ex);
+						() -> "Error sending message in the [" + this + ']', ex);
 			}
 			finally {
 				if (this.isSingleUse) { // close after replying
@@ -132,7 +133,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		else {
 			logger.error("Unable to find outbound socket for " + message);
 			MessageHandlingException messageHandlingException =
-					new MessageHandlingException(message, "Unable to find outbound socket");
+					new MessageHandlingException(message, "Unable to find outbound socket in the [" + this + ']');
 			publishNoConnectionEvent(messageHandlingException, connectionId);
 			throw messageHandlingException;
 		}
@@ -190,7 +191,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			}
 
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "Failed to handle message using " + connectionId, ex);
+					() -> "Failed to handle message in the [" + this + "] using " + connectionId, ex);
 		}
 		return connection;
 	}
@@ -265,8 +266,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					ClientModeConnectionManager manager =
 							new ClientModeConnectionManager(this.clientConnectionFactory);
 					this.clientModeConnectionManager = manager;
-					Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
-					this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+					TaskScheduler taskScheduler = getTaskScheduler();
+					Assert.state(taskScheduler != null, "Client mode requires a task scheduler");
+					this.scheduledFuture = taskScheduler.scheduleAtFixedRate(manager, this.retryInterval);
 				}
 			}
 		}

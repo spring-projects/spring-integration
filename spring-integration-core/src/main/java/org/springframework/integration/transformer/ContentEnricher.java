@@ -62,50 +62,52 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<>();
+	private Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<>();
 
-	private volatile Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions =
-			new HashMap<>();
+	private Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions = new HashMap<>();
 
-	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<>();
+	private Map<Expression, Expression> propertyExpressions = new HashMap<>();
 
-	private volatile Map<String, HeaderValueMessageProcessor<?>> headerExpressions =
-			new HashMap<>();
+	private Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<>();
 
 	private EvaluationContext sourceEvaluationContext;
 
 	private EvaluationContext targetEvaluationContext;
 
-	private volatile boolean shouldClonePayload = false;
+	private boolean shouldClonePayload = false;
 
 	private Expression requestPayloadExpression;
 
-	private volatile MessageChannel requestChannel;
+	private MessageChannel requestChannel;
 
-	private volatile String requestChannelName;
+	private String requestChannelName;
 
-	private volatile MessageChannel replyChannel;
+	private MessageChannel replyChannel;
 
-	private volatile String replyChannelName;
+	private String replyChannelName;
 
-	private volatile MessageChannel errorChannel;
+	private MessageChannel errorChannel;
 
-	private volatile String errorChannelName;
+	private String errorChannelName;
 
-	private volatile Gateway gateway = null;
+	private Gateway gateway;
 
-	private volatile Long requestTimeout;
+	private Long requestTimeout;
 
-	private volatile Long replyTimeout;
+	private Long replyTimeout;
 
 	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
-		Map<Expression, Expression> localMap = new HashMap<>(nullResultPropertyExpressions.size());
-		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
+		this.nullResultPropertyExpressions = convertExpressions(nullResultPropertyExpressions);
+	}
+
+	private Map<Expression, Expression> convertExpressions(Map<String, Expression> expressions) {
+		Map<Expression, Expression> localMap = new HashMap<>(expressions.size());
+		for (Map.Entry<String, Expression> entry : expressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
 			localMap.put(this.parser.parseExpression(key), value);
 		}
-		this.nullResultPropertyExpressions = localMap;
+		return localMap;
 	}
 
 	public void setNullResultHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions) {
@@ -122,13 +124,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		Assert.notEmpty(propertyExpressions, "propertyExpressions must not be empty");
 		Assert.noNullElements(propertyExpressions.keySet().toArray(), "propertyExpressions keys must not be empty");
 		Assert.noNullElements(propertyExpressions.values().toArray(), "propertyExpressions values must not be empty");
-		Map<Expression, Expression> localMap = new HashMap<>(propertyExpressions.size());
-		for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
-			String key = entry.getKey();
-			Expression value = entry.getValue();
-			localMap.put(this.parser.parseExpression(key), value);
-		}
-		this.propertyExpressions = localMap;
+		this.propertyExpressions = convertExpressions(propertyExpressions);
 	}
 
 	/**
@@ -337,7 +333,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				}
 			}
 
-			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions.entrySet()) {
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry :
+					this.nullResultHeaderExpressions.entrySet()) {
 				if (checkReadOnlyHeaders &&
 						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
 					throw new BeanInitializationException(
@@ -362,7 +359,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				targetPayload = ReflectionUtils.invokeMethod(cloneMethod, requestPayload);
 			}
 			catch (Exception e) {
-				throw new MessageHandlingException(requestMessage, "Failed to clone payload object", e);
+				throw new MessageHandlingException(requestMessage,
+						"Failed to clone payload object in the [" + this + ']', e);
 			}
 		}
 		else {
@@ -400,7 +398,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 					return targetPayload;
 				}
 				else {
-					Map<String, Object> targetHeaders = new HashMap<String, Object>(
+					Map<String, Object> targetHeaders = new HashMap<>(
 							this.nullResultHeaderExpressions.size());
 					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions
 							.entrySet()) {

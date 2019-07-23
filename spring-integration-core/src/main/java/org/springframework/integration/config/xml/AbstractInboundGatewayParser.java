@@ -57,6 +57,14 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 	}
 
 	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
+		AbstractBeanDefinition beanDefinition = builder.getRawBeanDefinition();
+		beanDefinition.setResource(parserContext.getReaderContext().getResource());
+		beanDefinition.setSource(IntegrationNamespaceUtils.createElementDescription(element));
+	}
+
+	@Override
 	protected final void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String requestChannelRef = element.getAttribute("request-channel");
 		Assert.hasText(requestChannelRef, "a 'request-channel' reference is required");
@@ -69,7 +77,7 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 		if (StringUtils.hasText(errorChannel)) {
 			builder.addPropertyValue("errorChannelName", errorChannel);
 		}
-		this.doPostProcess(builder, element);
+		doPostProcess(builder, element);
 	}
 
 	/**

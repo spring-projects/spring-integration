@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.udp;
 
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
@@ -37,7 +38,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -85,10 +85,10 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private volatile boolean messageBuilderFactorySet;
 
 	private static Pattern udpHeadersPattern =
-		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
-				"=" + "([^;]*);" +
-				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
-				"=" + "([^;]*);");
+			Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
+					"=" + "([^;]*);" +
+					RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
+					"=" + "([^;]*);");
 
 	private BeanFactory beanFactory;
 
@@ -197,11 +197,11 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 				bytes = ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new MessageHandlingException(message, e);
+				throw new UncheckedIOException(e);
 			}
 		}
 		else {
-			throw new MessageHandlingException(message, "The datagram packet mapper expects " +
+			throw new IllegalArgumentException("The datagram packet mapper expects " +
 					"either a byte array or String payload, but received: " + payload.getClass());
 		}
 		return bytes;

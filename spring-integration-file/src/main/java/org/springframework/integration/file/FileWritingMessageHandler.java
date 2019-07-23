@@ -503,7 +503,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		boolean exists = resultFile.exists();
 		if (exists && FileExistsMode.FAIL.equals(this.fileExistsMode)) {
 			throw new MessageHandlingException(requestMessage,
-					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
+					"Failed to process message in the [" + this
+							+ "]. The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
 
 		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
@@ -528,7 +529,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			catch (Exception e) {
 				throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(requestMessage,
-						() -> "failed to write Message payload to file", e);
+						() -> "failed to write Message payload to file in the [" + this + ']', e);
 			}
 		}
 

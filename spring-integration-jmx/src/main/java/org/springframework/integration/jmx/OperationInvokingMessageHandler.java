@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -141,13 +142,13 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 			}
 			return result;
 		}
-		catch (JMException e) {
+		catch (JMException ex) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
 					operation + "' on MBean [" + objectName + "]" + " with " +
-					paramsFromMessage.size() + " parameters: " + paramsFromMessage, e);
+					paramsFromMessage.size() + " parameters [" + paramsFromMessage + "] in the [" + this + ']', ex);
 		}
-		catch (IOException e) {
-			throw new MessageHandlingException(requestMessage, "IOException on MBeanServerConnection", e);
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 

@@ -31,9 +31,10 @@ import org.springframework.util.Assert;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler  {
+public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
 	public PresenceSendingMessageHandler() {
 		super();
@@ -50,10 +51,11 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
-		Assert.state(isInitialized(), getComponentName() + " must be initialized");
+		Assert.state(isInitialized(), () -> getComponentName() + " must be initialized");
 		Object payload = message.getPayload();
 		Assert.state(payload instanceof Presence,
-				"Payload must be of type 'org.jivesoftware.smack.packet.Presence', was: " + payload.getClass().getName());
+				() -> "Payload must be of type 'org.jivesoftware.smack.packet.Presence', was: " +
+						payload.getClass().getName());
 		try {
 			XMPPConnection xmppConnection = getXmppConnection();
 			if (!xmppConnection.isConnected() && xmppConnection instanceof AbstractXMPPConnection) {
@@ -63,10 +65,10 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(message, "Interrupted", e);
+			throw new MessageHandlingException(message, "Thread interrupted in the [" + this + ']', e);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to handle", e);
+			throw new MessageHandlingException(message, "Failed to handle message in the [" + this + ']', e);
 		}
 	}
 

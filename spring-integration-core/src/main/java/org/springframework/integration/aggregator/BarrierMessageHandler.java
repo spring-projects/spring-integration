@@ -169,7 +169,8 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(requestMessage, "Interrupted while waiting for release", e);
+			throw new MessageHandlingException(requestMessage,
+					"Interrupted while waiting for release in the [" + this + ']', e);
 		}
 		finally {
 			this.inProcess.remove(key);

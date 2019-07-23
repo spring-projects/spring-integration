@@ -59,6 +59,9 @@ See <<./control-bus.adoc#control-bus,Control Bus>> for more information.
 The `Function<MessageGroup, Map<String, Object>>` strategy has been introduced for the aggregator component to merge and compute headers for output messages.
 See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
 
+All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
+See <<./configuration.adoc#namespace-errorhandler,Error Handling>> for more information.
+
 [[x5.2-amqp]]
 ==== AMQP Changes
 
