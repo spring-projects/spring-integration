@@ -25,13 +25,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -117,6 +120,14 @@ public class RemoteFileTemplateTests {
 		when(session.exists(anyString())).thenReturn(false);
 		this.template.send(new GenericMessage<>(this.file), FileExistsMode.IGNORE);
 		verify(this.session).write(any(InputStream.class), anyString());
+	}
+
+	@Test
+	public void testStream() throws IOException {
+		ByteArrayInputStream stream = new ByteArrayInputStream("foo".getBytes());
+		this.template.send(new GenericMessage<InputStream>(stream),
+				FileExistsMode.IGNORE);
+		verify(this.session).write(Mockito.eq(stream), Mockito.any());
 	}
 
 }
