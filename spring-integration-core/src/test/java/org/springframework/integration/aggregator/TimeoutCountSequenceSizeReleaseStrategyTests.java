@@ -66,7 +66,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy =
 				new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD,
 						-100);
-		assertThat(releaseStrategy.canRelease(messages)).isTrue();
+		assertTrue(releaseStrategy.canRelease(messages));
 	}
 
 	@Test
