@@ -25,12 +25,15 @@ import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
 public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSubscribeSpec> {
 
 	private final Map<Object, String> subscriberFlows = new LinkedHashMap<>();
+
+	private int order;
 
 	PublishSubscribeSpec() {
 		super();
@@ -50,7 +53,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 
 		IntegrationFlowBuilder flowBuilder =
 				IntegrationFlows.from(this.channel)
-						.bridge();
+						.bridge(consumer -> consumer.order(this.order++));
 
 		MessageChannel subFlowInput = subFlow.getInputChannel();
 

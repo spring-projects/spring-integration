@@ -31,6 +31,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
@@ -52,10 +54,26 @@ public class PublishSubscribeTests {
 	@Autowired
 	private List<Integer> subscribersOrderedCall;
 
+	@Autowired
+	private PubSubBugTestContext config;
+
+	@Autowired
+	private IntegrationFlowContext context;
+
 	@Test
 	public void executeFirstFlow() {
+		this.subscribersOrderedCall.clear();
 		this.inputChannel.send(new GenericMessage<>("Test"));
 		assertThat(this.subscribersOrderedCall).containsExactly(0, 1, 2, 3, 4, 5);
+	}
+
+	@Test
+	public void dynamicFlow() {
+		this.subscribersOrderedCall.clear();
+		IntegrationFlowRegistration reg = this.context.registration(this.config.flow()).register();
+		reg.getInputChannel().send(new GenericMessage<>("Test"));
+		assertThat(this.subscribersOrderedCall).containsExactly(0, 1, 2, 3, 4, 5);
+		this.context.remove(reg.getId());
 	}
 
 	@Configuration
@@ -79,6 +97,10 @@ public class PublishSubscribeTests {
 
 		@Bean
 		public IntegrationFlow pubSubFlow() {
+			return flow();
+		}
+
+		IntegrationFlow flow() {
 			return f -> f
 					.publishSubscribeChannel(c -> c
 							.subscribe(sf -> sf
