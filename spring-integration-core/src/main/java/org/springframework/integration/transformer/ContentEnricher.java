@@ -279,7 +279,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 		if (this.requestChannel != null || this.requestChannelName != null) {
 			this.gateway = new Gateway();
-			this.gateway.setRequestChannel(this.requestChannel);
+			if (this.requestChannel != null) {
+				this.gateway.setRequestChannel(this.requestChannel);
+			}
 			if (this.requestChannelName != null) {
 				this.gateway.setRequestChannelName(this.requestChannelName);
 			}

@@ -47,7 +47,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -294,9 +293,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * Specify the default JMS priority to use when sending request Messages with
-	 * no {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
-	 * The value should be within the range of 0-9.
+	 * Specify the default JMS priority to use when sending request Messages with no
+	 * {@link org.springframework.integration.IntegrationMessageHeaderAccessor#PRIORITY}
+	 * header. The value should be within the range of 0-9.
 	 * @param priority The priority.
 	 * @since 5.1.2
 	 */

@@ -97,7 +97,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			else {
 				String to = message.getHeaders().get(XmppHeaders.TO, String.class);
 				Assert.state(StringUtils.hasText(to), () -> "The '" + XmppHeaders.TO + "' header must not be null");
-				xmppMessage = buildXmppMessage(message, payload, to);
+				xmppMessage = buildXmppMessage(payload, to);
 			}
 
 			if (this.headerMapper != null) {
@@ -118,7 +118,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		}
 	}
 
-	private org.jivesoftware.smack.packet.Message buildXmppMessage(Message<?> message, Object payload, String to)
+	private org.jivesoftware.smack.packet.Message buildXmppMessage(Object payload, String to)
 			throws Exception { // NOSONAR Smack throws it
 
 		org.jivesoftware.smack.packet.Message xmppMessage;
