@@ -38,6 +38,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -517,6 +518,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
 			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
 					createMessageHandlerMethodFactoryBeanDefinition(false);
+			// TODO: https://github.com/spring-projects/spring-framework/issues/23352
+			messageHandlerMethodFactoryBuilder.setScope(ConfigurableBeanFactory.SCOPE_PROTOTYPE);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
 					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
@@ -526,6 +529,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME)) {
 			BeanDefinitionBuilder messageHandlerMethodFactoryBuilder =
 					createMessageHandlerMethodFactoryBeanDefinition(true);
+			// TODO: https://github.com/spring-projects/spring-framework/issues/23352
+			messageHandlerMethodFactoryBuilder.setScope(ConfigurableBeanFactory.SCOPE_PROTOTYPE);
 			this.registry.registerBeanDefinition(IntegrationContextUtils.LIST_MESSAGE_HANDLER_FACTORY_BEAN_NAME,
 					messageHandlerMethodFactoryBuilder.getBeanDefinition());
 		}
