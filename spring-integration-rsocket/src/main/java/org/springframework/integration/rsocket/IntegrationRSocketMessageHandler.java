@@ -68,8 +68,6 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	}
 
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
-		// TODO temporary until routeMatcher initialization is moved to aPS()
-		setRouteMatcher(getRSocketStrategies().routeMatcher());
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
 						RSocketFrameTypeMessageCondition.REQUEST_CONDITION,

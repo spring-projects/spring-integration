@@ -24,7 +24,6 @@ import java.util.Collections;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -83,7 +82,6 @@ import reactor.test.StepVerifier;
  */
 @SpringJUnitConfig(RSocketOutboundGatewayIntegrationTests.ClientConfig.class)
 @DirtiesContext
-@Disabled // TODO temporary until routeMatcher initialization is moved to aPS()
 public class RSocketOutboundGatewayIntegrationTests {
 
 	private static final String ROUTE_HEADER = "rsocket_route";
