@@ -71,7 +71,7 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
 						RSocketFrameTypeMessageCondition.REQUEST_CONDITION,
-						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher())));
+						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher()))); // NOSONAR
 	}
 
 	@Override

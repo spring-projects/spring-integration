@@ -189,9 +189,10 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 			registerHandlerMethod(this, HANDLE_CONNECTION_SETUP_METHOD,
 					new CompositeMessageCondition(
 							RSocketFrameTypeMessageCondition.CONNECT_CONDITION,
-							new DestinationPatternsMessageCondition(new String[] { "*" }, getRouteMatcher())));
+							new DestinationPatternsMessageCondition(new String[] { "*" }, getRouteMatcher()))); // NOSONAR
 		}
 
+		@SuppressWarnings("unused")
 		private void handleConnectionSetup(Message<DataBuffer> connectMessage) {
 			DataBuffer dataBuffer = connectMessage.getPayload();
 			MessageHeaders messageHeaders = connectMessage.getHeaders();
