@@ -29,6 +29,7 @@ import org.junit.BeforeClass;
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.server.ApacheMinaSftpEventListener;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -46,6 +47,8 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 
 	private static SshServer server;
 
+	private static ApacheMinaSftpEventListener eventListener = new ApacheMinaSftpEventListener();
+
 	@Override
 	public String getTargetLocalDirectoryName() {
 		return targetLocalDirectory.getAbsolutePath() + File.separator;
@@ -62,7 +65,12 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		server.setPasswordAuthenticator((username, password, session) -> true);
 		server.setPort(0);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
-		server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+		SftpSubsystemFactory sftpFactory = new SftpSubsystemFactory();
+		eventListener.setApplicationEventPublisher((ev) -> {
+			// no-op
+		});
+		sftpFactory.addSftpEventListener(eventListener);
+		server.setSubsystemFactories(Collections.singletonList(sftpFactory));
 		server.setFileSystemFactory(new VirtualFileSystemFactory(remoteTemporaryFolder.getRoot().toPath()));
 		server.start();
 		port = server.getPort();
@@ -76,6 +84,10 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		factory.setPassword("foo");
 		factory.setAllowUnknownKeys(true);
 		return new CachingSessionFactory<>(factory);
+	}
+
+	public static ApacheMinaSftpEventListener eventListener() {
+		return eventListener;
 	}
 
 	@AfterClass

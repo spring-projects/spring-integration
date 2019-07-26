@@ -661,10 +661,11 @@ project('spring-integration-sftp') {
 		compile project(":spring-integration-stream")
 		compile "com.jcraft:jsch:$jschVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
+		compile ("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
+		compile ("org.apache.sshd:sshd-sftp:$apacheSshdVersion", optional)
 
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
-		testCompile "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
+		testCompile project(":spring-integration-event")
 		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
 }
