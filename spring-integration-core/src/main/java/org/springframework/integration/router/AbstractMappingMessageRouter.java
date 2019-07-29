@@ -74,6 +74,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private boolean resolutionRequired = true;
 
+	private boolean channelKeyFallback = true;
+
 	private volatile Map<String, String> channelMappings = new LinkedHashMap<>();
 
 
@@ -114,6 +116,20 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 */
 	public void setResolutionRequired(boolean resolutionRequired) {
 		this.resolutionRequired = resolutionRequired;
+	}
+
+	/**
+	 * When true (default), if a resolved channel key does not exist in the channel map,
+	 * the key itself is used as the channel name, which we will attempt to resolve to a
+	 * channel. Set to false to disable this feature. This could be useful to prevent
+	 * malicious actors from generating a message that could cause the message to be
+	 * routed to an unexpected channel, such as one upstream of the router, which would
+	 * cause a stack overflow.
+	 * @param channelKeyFallback false to disable the fall back.
+	 * @since 5.2
+	 */
+	public void setChannelKeyFallback(boolean channelKeyFallback) {
+		this.channelKeyFallback = channelKeyFallback;
 	}
 
 	/**
@@ -241,23 +257,25 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 		// if the channelMappings contains a mapping, we'll use the mapped value
 		// otherwise, the String-based channelKey itself will be used as the channel name
-		String channelName = channelKey;
+		String channelName = this.channelKeyFallback ? channelKey : null;
 		boolean mapped = false;
 		if (this.channelMappings.containsKey(channelKey)) {
 			channelName = this.channelMappings.get(channelKey);
 			mapped = true;
 		}
-		if (this.prefix != null) {
-			channelName = this.prefix + channelName;
-		}
-		if (this.suffix != null) {
-			channelName = channelName + this.suffix;
-		}
-		MessageChannel channel = resolveChannelForName(channelName, message);
-		if (channel != null) {
-			channels.add(channel);
-			if (!mapped && this.dynamicChannels.get(channelName) == null) {
-				this.dynamicChannels.put(channelName, channel);
+		if (channelName != null) {
+			if (this.prefix != null) {
+				channelName = this.prefix + channelName;
+			}
+			if (this.suffix != null) {
+				channelName = channelName + this.suffix;
+			}
+			MessageChannel channel = resolveChannelForName(channelName, message);
+			if (channel != null) {
+				channels.add(channel);
+				if (!mapped && this.dynamicChannels.get(channelName) == null) {
+					this.dynamicChannels.put(channelName, channel);
+				}
 			}
 		}
 	}

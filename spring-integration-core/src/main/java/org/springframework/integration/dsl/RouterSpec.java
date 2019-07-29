@@ -110,6 +110,21 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	}
 
 	/**
+	 * By default, if a resolved channel key does not exist in the channel map, the key
+	 * itself is used as the channel name, which we will attempt to resolve to a channel.
+	 * Invoke this method to disable this feature. This could be useful to prevent
+	 * malicious actors from generating a message that could cause the message to be
+	 * routed to an unexpected channel, such as one upstream of the router, which would
+	 * cause a stack overflow.
+	 * @return the router spec.
+	 * @since 5.2
+	 */
+	public RouterSpec<K, R> noChannelKeyFallback() {
+		this.handler.setChannelKeyFallback(false);
+		return _this();
+	}
+
+	/**
 	 * @param key the key.
 	 * @param channelName the channelName.
 	 * @return the router spec.
