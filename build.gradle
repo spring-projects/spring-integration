@@ -446,9 +446,9 @@ project('spring-integration-ftp') {
 		compile project(":spring-integration-file")
 		compile "commons-net:commons-net:$commonsNetVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
+		compile ("javax.activation:javax.activation-api:$javaxActivationVersion", optional)
+		compile ("org.apache.ftpserver:ftpserver-core:$ftpServerVersion", optional)
 
-		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
 }

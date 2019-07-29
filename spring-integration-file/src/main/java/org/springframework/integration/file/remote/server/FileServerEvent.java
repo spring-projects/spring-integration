@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.server;
+package org.springframework.integration.file.remote.server;
 
-import org.apache.sshd.server.session.ServerSession;
-
-import org.springframework.integration.file.remote.server.FileServerEvent;
+import org.springframework.integration.events.IntegrationEvent;
 
 /**
- * {@code ApplicationEvent} generated from Apache Mina sftp events.
+ * Base class for file server events.
  *
  * @author Gary Russell
  * @since 5.2
  *
  */
-public abstract class ApacheMinaSftpEvent extends FileServerEvent {
+@SuppressWarnings("serial")
+public abstract class FileServerEvent extends IntegrationEvent {
 
-	private static final long serialVersionUID = 1L;
-
-	public ApacheMinaSftpEvent(Object source) {
+	public FileServerEvent(Object source) {
 		super(source);
 	}
 
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
+	public FileServerEvent(Object source, Throwable cause) {
 		super(source, cause);
-	}
-
-	public ServerSession getSession() {
-		return (ServerSession) source;
 	}
 
 }

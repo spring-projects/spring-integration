@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.server;
+package org.springframework.integration.ftp.server;
 
-import org.apache.sshd.server.session.ServerSession;
+import org.apache.ftpserver.ftplet.FtpSession;
 
 import org.springframework.integration.file.remote.server.FileServerEvent;
 
@@ -27,20 +27,20 @@ import org.springframework.integration.file.remote.server.FileServerEvent;
  * @since 5.2
  *
  */
-public abstract class ApacheMinaSftpEvent extends FileServerEvent {
+public abstract class ApacheMinaFtpEvent extends FileServerEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public ApacheMinaSftpEvent(Object source) {
+	public ApacheMinaFtpEvent(Object source) {
 		super(source);
 	}
 
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
+	public ApacheMinaFtpEvent(Object source, Throwable cause) {
 		super(source, cause);
 	}
 
-	public ServerSession getSession() {
-		return (ServerSession) source;
+	public FtpSession getSession() {
+		return (FtpSession) source;
 	}
 
 }

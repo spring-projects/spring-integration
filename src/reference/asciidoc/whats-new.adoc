@@ -45,10 +45,10 @@ The `FluxAggregatorMessageHandler` is now available for grouping and windowing m
 See <<./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
 [[x5.2-sftp-events]]
-==== SFTP Event Publisher
+==== FTP/SFTP Event Publisher
 
-The SFTP module now provides an event listener for certain Apache Mina SFTP server events.
-See <<./sftp.adoc#sftp-server-events, Apache Mina SFTP Server Events>> for more information.
+The FTP and SFTP modules now provide an event listener for certain Apache Mina FTP/SFTP server events.
+See <<./ftp.adoc#ftp-server-events, Apache Mina FTP Server Events>> and <<./sftp.adoc#sftp-server-events, Apache Mina SFTP Server Events>> for more information.
 
 [[x5.2-general]]
 === General Changes

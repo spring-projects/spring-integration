@@ -28,11 +28,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 
@@ -47,7 +50,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
@@ -58,10 +63,18 @@ import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Option;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.server.ApacheMinaFtpEvent;
+import org.springframework.integration.ftp.server.DirectoryCreatedEvent;
+import org.springframework.integration.ftp.server.FileWrittenEvent;
+import org.springframework.integration.ftp.server.PathMovedEvent;
+import org.springframework.integration.ftp.server.PathRemovedEvent;
+import org.springframework.integration.ftp.server.SessionClosedEvent;
+import org.springframework.integration.ftp.server.SessionOpenedEvent;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
@@ -70,6 +83,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -143,7 +157,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	private DirectChannel inboundNlst;
 
 	@Autowired
+	private SessionFactory<FTPFile> sessionFactory;
+
+	@Autowired
 	private SourcePollingChannelAdapter ftpInbound;
+
+	@Autowired
+	private FtpRemoteFileTemplate template;
 
 	@Autowired
 	private Config config;
@@ -673,6 +693,65 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		this.ftpInbound.stop();
 	}
 
+	@Test
+	public void allEvents() throws InterruptedException {
+		resetSessionCache();
+		this.config.events.clear();
+		this.config.latch = new CountDownLatch(1);
+		this.template.execute(session -> {
+			assertThat(session.mkdir("/ftpTarget/allEventsDir")).isTrue();
+			session.write(new ByteArrayInputStream("foo".getBytes()), "/ftpTarget/allEventsDir/file.txt");
+			session.append(new ByteArrayInputStream("bar".getBytes()), "/ftpTarget/allEventsDir/file.txt");
+			session.rename("/ftpTarget/allEventsDir/file.txt", "/ftpTarget/allEventsDir/file2.txt");
+			assertThat(session.remove("/ftpTarget/allEventsDir/file2.txt")).isTrue();
+			session.rename("/ftpTarget/allEventsDir", "/ftpTarget/allEventsDir2");
+			session.rmdir("/ftpTarget/allEventsDir2");
+			return null;
+		});
+		resetSessionCache();
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.events).hasSize(11);
+		assertThat(this.config.events.get(0)).isInstanceOf(SessionOpenedEvent.class);
+		assertThat(this.config.events.get(1)).isInstanceOf(DirectoryCreatedEvent.class);
+		DirectoryCreatedEvent dce = (DirectoryCreatedEvent) this.config.events.get(1);
+		assertThat(dce.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir");
+		assertThat(this.config.events.get(2)).isInstanceOf(FileWrittenEvent.class);
+		FileWrittenEvent fwe = (FileWrittenEvent) this.config.events.get(2);
+		assertThat(fwe.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir/file.txt");
+		assertThat(this.config.events.get(3)).isInstanceOf(FileWrittenEvent.class);
+		fwe = (FileWrittenEvent) this.config.events.get(3);
+		assertThat(fwe.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir/file.txt");
+		assertThat(this.config.events.get(4)).isInstanceOf(PathRemovedEvent.class);
+		PathRemovedEvent pre = (PathRemovedEvent) this.config.events.get(4);
+		assertThat(pre.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir/file2.txt");
+		assertThat(pre.isDirectory()).isFalse(); // implicit DELE before RNTO
+		assertThat(this.config.events.get(5)).isInstanceOf(PathMovedEvent.class);
+		PathMovedEvent pme = (PathMovedEvent) this.config.events.get(5);
+		assertThat(pme.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir/file2.txt");
+		assertThat(this.config.events.get(6)).isInstanceOf(PathRemovedEvent.class);
+		pre = (PathRemovedEvent) this.config.events.get(6);
+		assertThat(pre.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir/file2.txt");
+		assertThat(pre.isDirectory()).isFalse();
+		assertThat(this.config.events.get(7)).isInstanceOf(PathRemovedEvent.class);
+		pre = (PathRemovedEvent) this.config.events.get(7);
+		assertThat(pre.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir2");
+		assertThat(pre.isDirectory()).isFalse(); // implicit DELE before RNTO
+		assertThat(this.config.events.get(8)).isInstanceOf(PathMovedEvent.class);
+		pme = (PathMovedEvent) this.config.events.get(8);
+		assertThat(pme.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir2");
+		assertThat(this.config.events.get(9)).isInstanceOf(PathRemovedEvent.class);
+		pre = (PathRemovedEvent) this.config.events.get(9);
+		assertThat(pre.getRequest().getArgument()).isEqualTo("/ftpTarget/allEventsDir2");
+		assertThat(pre.isDirectory()).isTrue();
+		assertThat(this.config.events.get(10)).isInstanceOf(SessionClosedEvent.class);
+		this.config.events.clear();
+		this.config.latch = null;
+	}
+
+	private void resetSessionCache() {
+		((CachingSessionFactory<?>) this.sessionFactory).resetCache();
+	}
+
 	public static class SortingFileListFilter implements FileListFilter<File> {
 
 		@Override
@@ -705,17 +784,40 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	}
 
+	@Component
 	public static class Config {
+
+		final List<ApacheMinaFtpEvent> events = new ArrayList<>();
 
 		private volatile String targetLocalDirectoryName;
 
+		private volatile CountDownLatch latch;
+
 		@Bean
-		public SessionFactory<FTPFile> ftpSessionFactory() {
+		public SessionFactory<FTPFile> ftpSessionFactory(ApplicationContext context) {
+			FtpServerOutboundTests.ftplet().setApplicationEventPublisher(context);
 			return FtpServerOutboundTests.sessionFactory();
 		}
 
 		public String getTargetLocalDirectoryName() {
 			return this.targetLocalDirectoryName;
+		}
+
+		@Bean
+		public FtpRemoteFileTemplate template(SessionFactory<FTPFile> sf) {
+			return new FtpRemoteFileTemplate(sf);
+		}
+
+		@EventListener
+		public void handleEvent(ApacheMinaFtpEvent event) {
+			if (this.latch != null) {
+				if (this.events.size() > 0 || event instanceof SessionOpenedEvent) {
+					this.events.add(event);
+					if (event instanceof SessionClosedEvent) {
+						this.latch.countDown();
+					}
+				}
+			}
 		}
 
 	}

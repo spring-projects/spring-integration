@@ -14,33 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.server;
+package org.springframework.integration.ftp.server;
 
-import org.apache.sshd.server.session.ServerSession;
-
-import org.springframework.integration.file.remote.server.FileServerEvent;
+import org.apache.ftpserver.ftplet.FtpRequest;
+import org.apache.ftpserver.ftplet.FtpSession;
 
 /**
- * {@code ApplicationEvent} generated from Apache Mina sftp events.
+ * An event emitted when a file or directory is removed.
  *
  * @author Gary Russell
  * @since 5.2
  *
  */
-public abstract class ApacheMinaSftpEvent extends FileServerEvent {
+public class PathRemovedEvent extends FtpRequestEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public ApacheMinaSftpEvent(Object source) {
-		super(source);
+	private final boolean isDirectory;
+
+	public PathRemovedEvent(FtpSession source, FtpRequest request, boolean isDirectory) {
+		super(source, request);
+		this.isDirectory = isDirectory;
 	}
 
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
-		super(source, cause);
+	public boolean isDirectory() {
+		return this.isDirectory;
 	}
 
-	public ServerSession getSession() {
-		return (ServerSession) source;
+	@Override
+	public String toString() {
+		return "PathRemovedEvent [isDirectory=" + this.isDirectory + ", request=" + this.request + ", clientAddress="
+				+ getSession().getClientAddress() + "]";
 	}
 
 }

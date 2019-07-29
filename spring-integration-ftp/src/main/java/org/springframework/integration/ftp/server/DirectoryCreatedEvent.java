@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.server;
+package org.springframework.integration.ftp.server;
 
-import org.apache.sshd.server.session.ServerSession;
-
-import org.springframework.integration.file.remote.server.FileServerEvent;
+import org.apache.ftpserver.ftplet.FtpRequest;
+import org.apache.ftpserver.ftplet.FtpSession;
 
 /**
- * {@code ApplicationEvent} generated from Apache Mina sftp events.
+ * An event emitted when a directory is created.
  *
  * @author Gary Russell
  * @since 5.2
  *
  */
-public abstract class ApacheMinaSftpEvent extends FileServerEvent {
+public class DirectoryCreatedEvent extends FtpRequestEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public ApacheMinaSftpEvent(Object source) {
-		super(source);
-	}
-
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
-		super(source, cause);
-	}
-
-	public ServerSession getSession() {
-		return (ServerSession) source;
+	public DirectoryCreatedEvent(FtpSession source, FtpRequest request) {
+		super(source, request);
 	}
 
 }

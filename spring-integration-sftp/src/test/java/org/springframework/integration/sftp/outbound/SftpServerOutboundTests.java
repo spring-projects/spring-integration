@@ -470,7 +470,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	}
 
 	private void resetSessionCache() {
-		((CachingSessionFactory<LsEntry>) this.sessionFactory).resetCache();
+		((CachingSessionFactory<?>) this.sessionFactory).resetCache();
 	}
 
 	@Test

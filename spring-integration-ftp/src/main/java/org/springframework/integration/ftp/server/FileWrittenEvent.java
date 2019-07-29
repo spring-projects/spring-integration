@@ -14,33 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.server;
+package org.springframework.integration.ftp.server;
 
-import org.apache.sshd.server.session.ServerSession;
-
-import org.springframework.integration.file.remote.server.FileServerEvent;
+import org.apache.ftpserver.ftplet.FtpRequest;
+import org.apache.ftpserver.ftplet.FtpSession;
 
 /**
- * {@code ApplicationEvent} generated from Apache Mina sftp events.
+ * An event that is emitted when a file is written.
  *
  * @author Gary Russell
  * @since 5.2
  *
  */
-public abstract class ApacheMinaSftpEvent extends FileServerEvent {
+public class FileWrittenEvent extends FtpRequestEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	public ApacheMinaSftpEvent(Object source) {
-		super(source);
+	private final boolean append;
+
+	public FileWrittenEvent(FtpSession source, FtpRequest request, boolean append) {
+		super(source, request);
+		this.append = append;
 	}
 
-	public ApacheMinaSftpEvent(Object source, Throwable cause) {
-		super(source, cause);
+	public boolean isAppend() {
+		return this.append;
 	}
 
-	public ServerSession getSession() {
-		return (ServerSession) source;
+	@Override
+	public String toString() {
+		return "FileWrittenEvent [append=" + this.append + ", request=" + this.request + ", clientAddress="
+				+ getSession().getClientAddress() + "]";
 	}
 
 }
