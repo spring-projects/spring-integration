@@ -110,6 +110,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	}
 
 	@Override
+	@Nullable
 	protected Message<?> doReceive(long timeout) {
 		try {
 			if (timeout > 0) {
