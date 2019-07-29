@@ -167,7 +167,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 			((BlockingQueue<Message<?>>) this.queue).drainTo(clearedMessages);
 		}
 		else {
-			Message<?> message = null;
+			Message<?> message;
 			while ((message = this.queue.poll()) != null) {
 				clearedMessages.add(message);
 			}
