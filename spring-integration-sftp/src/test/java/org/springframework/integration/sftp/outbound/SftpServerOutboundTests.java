@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -40,17 +41,28 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.server.ApacheMinaSftpEvent;
+import org.springframework.integration.sftp.server.DirectoryCreatedEvent;
+import org.springframework.integration.sftp.server.FileWrittenEvent;
+import org.springframework.integration.sftp.server.PathMovedEvent;
+import org.springframework.integration.sftp.server.PathRemovedEvent;
+import org.springframework.integration.sftp.server.SessionClosedEvent;
+import org.springframework.integration.sftp.server.SessionOpenedEvent;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -117,6 +129,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Autowired
 	private Config config;
+
+	@Autowired
+	private SftpRemoteFileTemplate template;
 
 	@Before
 	public void setup() {
@@ -352,6 +367,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	public void testInt3088MPutNotRecursive() throws Exception {
+		resetSessionCache();
+		this.config.events.clear();
+		this.config.latch = new CountDownLatch(1);
 		Session<?> session = sessionFactory.getSession();
 		session.close();
 		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
@@ -373,8 +391,86 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
 		assertThat(out.getPayload().get(1))
 				.isIn("sftpTarget/localSource1.txt", "sftpTarget/localSource2.txt");
-		verify(channel).chmod(384, "sftpTarget/localSource1.txt"); // 384 = 600 octal
-		verify(channel).chmod(384, "sftpTarget/localSource2.txt");
+		verify(channel).chmod(0600, "sftpTarget/localSource1.txt");
+		verify(channel).chmod(0600, "sftpTarget/localSource2.txt");
+		resetSessionCache();
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.events).hasSize(6);
+		assertThat(this.config.events.get(0)).isInstanceOf(SessionOpenedEvent.class);
+		assertThat(this.config.events.get(1)).isInstanceOf(FileWrittenEvent.class);
+		assertThat(((FileWrittenEvent) this.config.events.get(1)).getFile().toString())
+				.matches("/sftpTarget/localSource(1|2).txt.writing");
+		assertThat(this.config.events.get(2)).isInstanceOf(PathMovedEvent.class);
+		assertThat(((PathMovedEvent) this.config.events.get(2)).getSrcPath().toString())
+				.matches("/sftpTarget/localSource(1|2).txt.writing");
+		assertThat(((PathMovedEvent) this.config.events.get(2)).getDstPath().toString())
+				.matches("/sftpTarget/localSource(1|2).txt");
+		assertThat(this.config.events.get(3)).isInstanceOf(FileWrittenEvent.class);
+		assertThat(((FileWrittenEvent) this.config.events.get(3)).getFile().toString())
+				.matches("/sftpTarget/localSource(1|2).txt.writing");
+		assertThat(this.config.events.get(4)).isInstanceOf(PathMovedEvent.class);
+		assertThat(((PathMovedEvent) this.config.events.get(4)).getSrcPath().toString())
+				.matches("/sftpTarget/localSource(1|2).txt.writing");
+		assertThat(((PathMovedEvent) this.config.events.get(4)).getDstPath().toString())
+				.matches("/sftpTarget/localSource(1|2).txt");
+		assertThat(this.config.events.get(5)).isInstanceOf(SessionClosedEvent.class);
+		this.config.events.clear();
+		this.config.latch = null;
+	}
+
+	@Test
+	public void allEvents() throws InterruptedException {
+		resetSessionCache();
+		this.config.events.clear();
+		this.config.latch = new CountDownLatch(1);
+		this.template.execute(session -> {
+			assertThat(session.mkdir("/sftpTarget/allEventsDir")).isTrue();
+			session.write(new ByteArrayInputStream("foo".getBytes()), "/sftpTarget/allEventsDir/file.txt");
+			session.append(new ByteArrayInputStream("bar".getBytes()), "/sftpTarget/allEventsDir/file.txt");
+			session.rename("/sftpTarget/allEventsDir/file.txt", "/sftpTarget/allEventsDir/file2.txt");
+			assertThat(session.remove("/sftpTarget/allEventsDir/file2.txt")).isTrue();
+			session.rename("/sftpTarget/allEventsDir", "/sftpTarget/allEventsDir2");
+			session.rmdir("/sftpTarget/allEventsDir2");
+			return null;
+		});
+		resetSessionCache();
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.events).hasSize(9);
+		assertThat(this.config.events.get(0)).isInstanceOf(SessionOpenedEvent.class);
+		assertThat(this.config.events.get(1)).isInstanceOf(DirectoryCreatedEvent.class);
+		DirectoryCreatedEvent dce = (DirectoryCreatedEvent) this.config.events.get(1);
+		assertThat(dce.getPath().toString()).isEqualTo("/sftpTarget/allEventsDir");
+		assertThat(this.config.events.get(2)).isInstanceOf(FileWrittenEvent.class);
+		FileWrittenEvent fwe = (FileWrittenEvent) this.config.events.get(2);
+		assertThat(fwe.getFile().toString()).isEqualTo("/sftpTarget/allEventsDir/file.txt");
+		assertThat(fwe.getDataLen()).isEqualTo(3);
+		assertThat(this.config.events.get(3)).isInstanceOf(FileWrittenEvent.class);
+		fwe = (FileWrittenEvent) this.config.events.get(3);
+		assertThat(fwe.getFile().toString()).isEqualTo("/sftpTarget/allEventsDir/file.txt");
+		assertThat(fwe.getDataLen()).isEqualTo(3);
+		assertThat(this.config.events.get(4)).isInstanceOf(PathMovedEvent.class);
+		PathMovedEvent pme = (PathMovedEvent) this.config.events.get(4);
+		assertThat(pme.getSrcPath().toString()).isEqualTo("/sftpTarget/allEventsDir/file.txt");
+		assertThat(pme.getDstPath().toString()).isEqualTo("/sftpTarget/allEventsDir/file2.txt");
+		assertThat(this.config.events.get(5)).isInstanceOf(PathRemovedEvent.class);
+		PathRemovedEvent pre = (PathRemovedEvent) this.config.events.get(5);
+		assertThat(pre.getPath().toString()).isEqualTo("/sftpTarget/allEventsDir/file2.txt");
+		assertThat(pre.isDirectory()).isFalse();
+		assertThat(this.config.events.get(6)).isInstanceOf(PathMovedEvent.class);
+		pme = (PathMovedEvent) this.config.events.get(6);
+		assertThat(pme.getSrcPath().toString()).isEqualTo("/sftpTarget/allEventsDir");
+		assertThat(pme.getDstPath().toString()).isEqualTo("/sftpTarget/allEventsDir2");
+		assertThat(this.config.events.get(7)).isInstanceOf(PathRemovedEvent.class);
+		pre = (PathRemovedEvent) this.config.events.get(7);
+		assertThat(pre.getPath().toString()).isEqualTo("/sftpTarget/allEventsDir2");
+		assertThat(pre.isDirectory()).isTrue();
+		assertThat(this.config.events.get(8)).isInstanceOf(SessionClosedEvent.class);
+		this.config.events.clear();
+		this.config.latch = null;
+	}
+
+	private void resetSessionCache() {
+		((CachingSessionFactory<?>) this.sessionFactory).resetCache();
 	}
 
 	@Test
@@ -488,17 +584,49 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	public static class Config {
 
+		final List<ApacheMinaSftpEvent> events = new ArrayList<>();
+
 		private volatile String targetLocalDirectoryName;
 
+		private volatile CountDownLatch latch;
+
 		@Bean
-		public SessionFactory<LsEntry> sftpSessionFactory() {
+		public SessionFactory<LsEntry> sftpSessionFactory(ApplicationContext context) {
+			SftpServerOutboundTests.eventListener().setApplicationEventPublisher(context);
 			return SftpServerOutboundTests.sessionFactory();
+		}
+
+		@Bean
+		public SftpRemoteFileTemplate template(SessionFactory<LsEntry> sf) {
+			return new SftpRemoteFileTemplate(sf);
 		}
 
 		public String getTargetLocalDirectoryName() {
 			return this.targetLocalDirectoryName;
 		}
 
+		@Bean
+		public ApplicationEventListeningMessageProducer events() {
+			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
+			producer.setEventTypes(ApacheMinaSftpEvent.class);
+			producer.setOutputChannel(eventChannel());
+			return producer;
+		}
+
+		@Bean
+		public MessageChannel eventChannel() {
+			return (msg, timeout) -> {
+				if (this.latch != null) {
+					if (this.events.size() > 0 || msg.getPayload() instanceof SessionOpenedEvent) {
+						this.events.add((ApacheMinaSftpEvent) msg.getPayload());
+						if (msg.getPayload() instanceof SessionClosedEvent) {
+							this.latch.countDown();
+						}
+					}
+				}
+				return true;
+			};
+		}
 	}
 
 }

@@ -17,6 +17,8 @@
 package org.springframework.integration.ftp;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -39,6 +41,7 @@ import org.junit.BeforeClass;
 import org.springframework.integration.file.remote.RemoteFileTestSupport;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.ftp.server.ApacheMinaFtplet;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 
 /**
@@ -51,6 +54,8 @@ import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
  */
 public class FtpTestSupport extends RemoteFileTestSupport {
 
+	private static final ApacheMinaFtplet FTPLET = new ApacheMinaFtplet();
+
 	private static volatile FtpServer server;
 
 	@BeforeClass
@@ -61,7 +66,10 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 		ListenerFactory factory = new ListenerFactory();
 		factory.setPort(0);
 		serverFactory.addListener("default", factory.createListener());
-
+		serverFactory.setFtplets(new HashMap<>(Collections.singletonMap("springFtplet", FTPLET)));
+		FTPLET.setApplicationEventPublisher(ev -> {
+			// no-op
+		});
 		server = serverFactory.createServer();
 		server.start();
 
@@ -92,6 +100,10 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 		sf.setPassword("foo");
 		sf.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
 		return sf;
+	}
+
+	protected static ApacheMinaFtplet ftplet() {
+		return FTPLET;
 	}
 
 	private static class TestUserManager implements UserManager {

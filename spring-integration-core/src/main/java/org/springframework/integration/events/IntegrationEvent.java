@@ -17,6 +17,7 @@
 package org.springframework.integration.events;
 
 import org.springframework.context.ApplicationEvent;
+import org.springframework.lang.Nullable;
 
 
 /**
@@ -32,14 +33,13 @@ import org.springframework.context.ApplicationEvent;
 @SuppressWarnings("serial")
 public abstract class IntegrationEvent extends ApplicationEvent {
 
-	private final Throwable cause;
+	protected final Throwable cause; // NOSONAR protected final
 
 	public IntegrationEvent(Object source) {
-		super(source);
-		this.cause = null;
+		this(source, null);
 	}
 
-	public IntegrationEvent(Object source, Throwable cause) {
+	public IntegrationEvent(Object source, @Nullable Throwable cause) {
 		super(source);
 		this.cause = cause;
 	}

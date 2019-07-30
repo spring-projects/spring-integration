@@ -55,6 +55,51 @@ In the preceding example, all application context events that match one of the t
 If a downstream component throws an exception, a `MessagingException` that contains the failed message and exception is sent to the channel named 'eventErrorChannel'.
 If no `error-channel` is specified and the downstream channels are synchronous, the exception is propagated to the caller.
 
+Using Java to configure the same adapter:
+
+====
+[source, java]
+----
+@Bean
+public ApplicationEventListeningMessageProducer eventsAdapter(
+            MessageChannel eventChannel, MessageChannel eventErrorChannel) {
+
+    ApplicationEventListeningMessageProducer producer =
+        new ApplicationEventListeningMessageProducer();
+    producer.setEventTypes(example.FooEvent.class, example.BarEvent.class, java.util.Date.class);
+    producer.setOutputChannel(eventChannel);
+    producer.setErrorChannel(eventErrorChannel);
+    return producer;
+}
+----
+====
+
+With the Java DSL:
+
+====
+[source, java]
+----
+@Bean
+public ApplicationEventListeningMessageProducer eventsAdapter() {
+
+    ApplicationEventListeningMessageProducer producer =
+        new ApplicationEventListeningMessageProducer();
+    producer.setEventTypes(example.FooEvent.class, example.BarEvent.class, java.util.Date.class);
+    return producer;
+}
+
+@Bean
+public IntegrationFlow eventFlow(ApplicationEventListeningMessageProducer eventsAdapter,
+        MessageChannel eventErrorChannel) {
+
+    return IntegrationFlows.from(eventsAdapter, e -> e.errorChannel(eventErrorChannel))
+        .handle(...)
+        ...
+        .get();
+}
+----
+====
+
 [[appevent-outbound]]
 === Sending Spring Application Events
 
@@ -72,7 +117,7 @@ For convenience, namespace support is provided to configure an `ApplicationEven
 ----
 ====
 
-If you use a `PollableChannel` (such as a `Queue`), you can also provide `poller` as a child element of the `outbound-channel-adapter` element.
+If you use a `PollableChannel` (such as a `QueueChannel`), you can also provide a `poller` child element of the `outbound-channel-adapter` element.
 You can also optionally provide a `task-executor` reference for that poller.
 The following example demonstrates both:
 
@@ -96,3 +141,40 @@ If the payload of the message is an `ApplicationEvent`, it is passed as-is.
 Otherwise, the message itself is wrapped in a `MessagingEvent` instance.
 
 Starting with version 4.2, you can configure the `ApplicationEventPublishingMessageHandler` (`<int-event:outbound-channel-adapter>`) with the `publish-payload` boolean attribute to publish to the application context `payload` as is, instead of wrapping it to a `MessagingEvent` instance.
+
+To configure the adapter using Java configuration:
+
+====
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "eventChannel")
+public ApplicationEventPublishingMessageHandler eventHandler() {
+    ApplicationEventPublishingMessageHandler handler =
+            new ApplicationEventPublishingMessageHandler();
+    handler.setPublishPayload(true);
+    return handler;
+}
+----
+====
+
+With the Java DSL:
+
+====
+[source, java]
+----
+@Bean
+public ApplicationEventPublishingMessageHandler eventHandler() {
+    ApplicationEventPublishingMessageHandler handler =
+            new ApplicationEventPublishingMessageHandler();
+    handler.setPublishPayload(true);
+    return handler;
+}
+
+@Bean
+// MessageChannel is "eventsFlow.input"
+public IntegrationFlow eventsOutFlow(ApplicationEventPublishingMessageHandler eventHandler) {
+    return f -> f.handle(eventHandler);
+}
+----
+====

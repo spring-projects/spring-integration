@@ -49,6 +49,12 @@ See <<./scripting.adoc#scripting,Scripting Support>> for more information.
 The `FluxAggregatorMessageHandler` is now available for grouping and windowing messages logic based on the Project Reactor `Flux` operators.
 See <<./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
+[[x5.2-sftp-events]]
+==== FTP/SFTP Event Publisher
+
+The FTP and SFTP modules now provide an event listener for certain Apache Mina FTP/SFTP server events.
+See <<./ftp.adoc#ftp-server-events, Apache Mina FTP Server Events>> and <<./sftp.adoc#sftp-server-events, Apache Mina SFTP Server Events>> for more information.
+
 [[x5.2-general]]
 === General Changes
 
