@@ -43,11 +43,13 @@ import org.springframework.messaging.Message;
  * another {@link Matcher}.
  *
  * <pre class="code">
+ * {@code
  * ANY_PAYLOAD = new BigDecimal("1.123");
  * Message<BigDecimal> message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
  * assertThat(message, PayloadMatcher.hasPayload(is(BigDecimal.class)));
  * assertThat(message, PayloadMatcher.hasPayload(notNullValue()));
  * assertThat(message, not((PayloadMatcher.hasPayload(is(String.class))))); *
+ * }
  * </pre>
  *
  *
