@@ -33,9 +33,4 @@ public class SessionClosedEvent extends ApacheMinaFtpEvent {
 		super(session);
 	}
 
-	@Override
-	public String toString() {
-		return "SessionClosedEvent [clientAddress=" + getSession().getClientAddress() + "]";
-	}
-
 }

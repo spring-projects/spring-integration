@@ -22,6 +22,7 @@ import org.apache.ftpserver.ftplet.FtpSession;
 /**
  * An event emitted when a path is moved.
  * @author Gary Russell
+ *
  * @since 5.2
  *
  */

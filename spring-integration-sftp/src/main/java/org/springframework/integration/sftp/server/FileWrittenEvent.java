@@ -56,15 +56,13 @@ public class FileWrittenEvent extends ApacheMinaSftpEvent {
 		return this.dataLen;
 	}
 
-	public Throwable getThrown() {
-		return getCause();
-	}
-
 	@Override
 	public String toString() {
-		return "FileWrittenEvent [remoteHandle=" + this.remoteHandle + ", file=" + this.file + ", dataLen="
-				+ this.dataLen + ", cause=" + this.cause + ", clientAddress="
-				+ getSession().getClientAddress() + "]";
+		return "FileWrittenEvent [remoteHandle=" + this.remoteHandle
+				+ ", file=" + this.file
+				+ ", dataLen=" + this.dataLen
+				+ (this.cause == null ? "" : ", cause=" + this.cause)
+				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }

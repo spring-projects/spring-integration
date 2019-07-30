@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.util.Assert;
 
 /**
- * A listener for SFTP events emitted by an Apache Mina sshd/sftp server.
+ * A listener for FTP events emitted by an Apache Mina ftp server.
  * It emits selected events as Spring Framework {@code ApplicationEvent}s
  * which are subclasses of {@link ApacheMinaFtpEvent}.
  *

@@ -50,8 +50,9 @@ public class DirectoryCreatedEvent extends ApacheMinaSftpEvent {
 
 	@Override
 	public String toString() {
-		return "DirectoryCreatedEvent [path=" + this.path + ", attrs=" + this.attrs + ", clientAddress="
-				+ getSession().getClientAddress() + "]";
+		return "DirectoryCreatedEvent [path=" + this.path
+				+ ", attrs=" + this.attrs
+				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }

@@ -49,13 +49,11 @@ public class PathRemovedEvent extends ApacheMinaSftpEvent {
 		return this.isDirectory;
 	}
 
-	public Throwable getThrown() {
-		return getCause();
-	}
-
 	@Override
 	public String toString() {
-		return "PathRemovedEvent [path=" + this.path + ", isDirectory=" + this.isDirectory + ", thrown=" + this.cause
+		return "PathRemovedEvent [path=" + this.path
+				+ ", isDirectory=" + this.isDirectory
+				+ (this.cause == null ? "" : ", cause=" + this.cause)
 				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 

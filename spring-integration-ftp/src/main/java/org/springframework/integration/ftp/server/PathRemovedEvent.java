@@ -43,8 +43,9 @@ public class PathRemovedEvent extends FtpRequestEvent {
 
 	@Override
 	public String toString() {
-		return "PathRemovedEvent [isDirectory=" + this.isDirectory + ", request=" + this.request + ", clientAddress="
-				+ getSession().getClientAddress() + "]";
+		return "PathRemovedEvent [isDirectory=" + this.isDirectory
+				+ ", request=" + this.request
+				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }

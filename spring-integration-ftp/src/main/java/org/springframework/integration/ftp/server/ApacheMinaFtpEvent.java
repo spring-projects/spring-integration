@@ -21,7 +21,7 @@ import org.apache.ftpserver.ftplet.FtpSession;
 import org.springframework.integration.file.remote.server.FileServerEvent;
 
 /**
- * {@code ApplicationEvent} generated from Apache Mina sftp events.
+ * {@code ApplicationEvent} generated from Apache Mina ftp events.
  *
  * @author Gary Russell
  * @since 5.2
@@ -41,6 +41,11 @@ public abstract class ApacheMinaFtpEvent extends FileServerEvent {
 
 	public FtpSession getSession() {
 		return (FtpSession) source;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }

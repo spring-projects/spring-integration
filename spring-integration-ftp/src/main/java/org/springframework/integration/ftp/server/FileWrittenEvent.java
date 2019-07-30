@@ -43,8 +43,9 @@ public class FileWrittenEvent extends FtpRequestEvent {
 
 	@Override
 	public String toString() {
-		return "FileWrittenEvent [append=" + this.append + ", request=" + this.request + ", clientAddress="
-				+ getSession().getClientAddress() + "]";
+		return "FileWrittenEvent [append=" + this.append
+				+ ", request=" + this.request
+				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }

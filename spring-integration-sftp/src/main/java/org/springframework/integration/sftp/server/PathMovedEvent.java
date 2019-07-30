@@ -23,6 +23,7 @@ import org.springframework.lang.Nullable;
 /**
  * An event emitted when a path is moved.
  * @author Gary Russell
+ *
  * @since 5.2
  *
  */
@@ -48,13 +49,11 @@ public class PathMovedEvent extends ApacheMinaSftpEvent {
 		return this.dstPath;
 	}
 
-	public Throwable getThrown() {
-		return getCause();
-	}
-
 	@Override
 	public String toString() {
-		return "PathMovedEvent [srcPath=" + this.srcPath + ", dstPath=" + this.dstPath + ", cause=" + this.cause
+		return "PathMovedEvent [srcPath=" + this.srcPath
+				+ ", dstPath=" + this.dstPath
+				+ (this.cause == null ? "" : ", cause=" + this.cause)
 				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 

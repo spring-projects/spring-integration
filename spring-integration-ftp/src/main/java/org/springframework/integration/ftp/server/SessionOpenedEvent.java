@@ -33,9 +33,4 @@ public class SessionOpenedEvent extends ApacheMinaFtpEvent {
 		super(session);
 	}
 
-	@Override
-	public String toString() {
-		return "SessionOpenedEvent [source=" + ", clientAddress=" + getSession().getClientAddress() + "]";
-	}
-
 }

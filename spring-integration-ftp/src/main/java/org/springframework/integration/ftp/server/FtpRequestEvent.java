@@ -20,6 +20,8 @@ import org.apache.ftpserver.ftplet.FtpRequest;
 import org.apache.ftpserver.ftplet.FtpSession;
 
 /**
+ * Base class for all events having an {@link FtpRequest}.
+ *
  * @author Gary Russell
  * @since 5.2
  *
@@ -41,8 +43,8 @@ public abstract class FtpRequestEvent extends ApacheMinaFtpEvent {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [request=" + this.request + ", clientAddress="
-				+ getSession().getClientAddress() + "]";
+		return getClass().getSimpleName() + " [request=" + this.request
+				+ ", clientAddress=" + getSession().getClientAddress() + "]";
 	}
 
 }
