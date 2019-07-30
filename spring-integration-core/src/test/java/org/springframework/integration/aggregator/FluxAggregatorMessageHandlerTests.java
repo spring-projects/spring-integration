@@ -31,7 +31,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.publisher.Flux;
@@ -65,7 +64,7 @@ class FluxAggregatorMessageHandlerTests {
 		assertThat(result).isNotNull()
 				.extracting(Message::getHeaders)
 				.satisfies((headers) ->
-						assertThat((MessageHeaders) headers)
+						assertThat(headers)
 								.containsEntry(IntegrationMessageHeaderAccessor.CORRELATION_ID, 0));
 
 		Object payload = result.getPayload();
@@ -87,7 +86,7 @@ class FluxAggregatorMessageHandlerTests {
 		assertThat(result).isNotNull()
 				.extracting(Message::getHeaders)
 				.satisfies((headers) ->
-						assertThat((MessageHeaders) headers)
+						assertThat(headers)
 								.containsEntry(IntegrationMessageHeaderAccessor.CORRELATION_ID, 1));
 
 		payload = result.getPayload();

@@ -99,7 +99,7 @@ public class TransformerTests {
 		TestPojo result = (TestPojo) payload;
 		assertThat(result.getName()).isEqualTo("Bar Bar");
 		assertThat(result.getDate()).isNotNull();
-		assertThat(new Date()).isAfterOrEqualsTo(result.getDate());
+		assertThat(new Date()).isAfterOrEqualTo(result.getDate());
 
 		this.enricherInput.send(new GenericMessage<>(new TestPojo("junk")));
 
@@ -122,7 +122,7 @@ public class TransformerTests {
 		TestPojo result = (TestPojo) payload;
 		assertThat(result.getName()).isEqualTo("Bar Bar");
 		assertThat(result.getDate()).isNotNull();
-		assertThat(new Date()).isAfterOrEqualsTo(result.getDate());
+		assertThat(new Date()).isAfterOrEqualTo(result.getDate());
 	}
 
 	@Test

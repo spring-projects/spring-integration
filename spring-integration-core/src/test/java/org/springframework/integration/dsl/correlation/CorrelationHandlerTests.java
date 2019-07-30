@@ -56,6 +56,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -168,7 +169,7 @@ public class CorrelationHandlerTests {
 				.isNotNull()
 				.extracting(Message::getPayload)
 				.isInstanceOf(ArrayNode.class)
-				.extracting("_children")
+				.extracting(new String[] { "_children" })
 				.element(0)
 				.asList()
 				.hasSize(0);
