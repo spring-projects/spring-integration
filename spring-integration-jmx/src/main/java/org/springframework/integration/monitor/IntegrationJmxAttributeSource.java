@@ -59,7 +59,7 @@ public class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource 
 	@Override
 	public ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
 		MergedAnnotation<IntegrationManagedResource> ann =
-				MergedAnnotations.from(beanClass, MergedAnnotations.SearchStrategy.EXHAUSTIVE)
+				MergedAnnotations.from(beanClass, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY)
 						.get(IntegrationManagedResource.class)
 						.withNonMergedAttributes();
 		if (!ann.isPresent()) {

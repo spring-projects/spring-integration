@@ -42,11 +42,13 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.0
  */
 public class ControlBusMethodFilter implements MethodFilter {
 
+	@Override
 	public List<Method> filter(List<Method> methods) {
 		List<Method> supportedMethods = new ArrayList<>();
 		for (Method method : methods) {
@@ -73,7 +75,7 @@ public class ControlBusMethodFilter implements MethodFilter {
 		}
 
 		MergedAnnotations mergedAnnotations =
-				MergedAnnotations.from(method, MergedAnnotations.SearchStrategy.EXHAUSTIVE,
+				MergedAnnotations.from(method, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY,
 						RepeatableContainers.none(), AnnotationFilter.PLAIN);
 
 		return mergedAnnotations.get(ManagedAttribute.class).isPresent()

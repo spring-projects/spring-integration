@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Gareth Chapman
  * @author Cameron Mayfield
  * @author Chengchen Ji
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -97,7 +98,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 				method1 -> {
 					Expression payloadExpression = null;
 					MergedAnnotation<Payload> payloadMergedAnnotation =
-							MergedAnnotations.from(method, MergedAnnotations.SearchStrategy.EXHAUSTIVE)
+							MergedAnnotations.from(method, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY)
 									.get(Payload.class);
 					if (payloadMergedAnnotation.isPresent()) {
 						String payloadExpressionString = payloadMergedAnnotation.getString("expression");
@@ -170,7 +171,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	@Nullable
 	private String getAnnotationValue(AnnotatedElement element, String attributeName) {
 		MergedAnnotations mergedAnnotations =
-				MergedAnnotations.from(element, MergedAnnotations.SearchStrategy.EXHAUSTIVE);
+				MergedAnnotations.from(element, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY);
 		String value = null;
 		for (Class<? extends Annotation> annotationType : this.annotationTypes) {
 			MergedAnnotation<? extends Annotation> mergedAnnotation = mergedAnnotations.get(annotationType);
