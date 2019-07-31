@@ -33,7 +33,7 @@ public class FileWrittenEvent extends ApacheMinaSftpEvent {
 
 	private final String remoteHandle;
 
-	private final Path file;
+	private transient Path file;
 
 	private final int dataLen;
 
@@ -48,6 +48,7 @@ public class FileWrittenEvent extends ApacheMinaSftpEvent {
 		return this.remoteHandle;
 	}
 
+	@Nullable
 	public Path getFile() {
 		return this.file;
 	}

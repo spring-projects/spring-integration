@@ -31,9 +31,9 @@ public class PathMovedEvent extends ApacheMinaSftpEvent {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Path srcPath;
+	private transient Path srcPath;
 
-	private final Path dstPath;
+	private transient Path dstPath;
 
 	public PathMovedEvent(Object source, Path srcPath, Path dstPath, @Nullable Throwable thrown) {
 		super(source, thrown);
@@ -41,10 +41,12 @@ public class PathMovedEvent extends ApacheMinaSftpEvent {
 		this.dstPath = dstPath;
 	}
 
+	@Nullable
 	public Path getSrcPath() {
 		return this.srcPath;
 	}
 
+	@Nullable
 	public Path getDstPath() {
 		return this.dstPath;
 	}

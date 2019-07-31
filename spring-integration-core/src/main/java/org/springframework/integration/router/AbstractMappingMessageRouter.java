@@ -264,18 +264,25 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			mapped = true;
 		}
 		if (channelName != null) {
-			if (this.prefix != null) {
-				channelName = this.prefix + channelName;
-			}
-			if (this.suffix != null) {
-				channelName = channelName + this.suffix;
-			}
-			MessageChannel channel = resolveChannelForName(channelName, message);
-			if (channel != null) {
-				channels.add(channel);
-				if (!mapped && this.dynamicChannels.get(channelName) == null) {
-					this.dynamicChannels.put(channelName, channel);
-				}
+			addChannel(channels, message, channelName, mapped);
+		}
+	}
+
+	private void addChannel(Collection<MessageChannel> channels, Message<?> message, String channelNameArg,
+			boolean mapped) {
+
+		String channelName = channelNameArg;
+		if (this.prefix != null) {
+			channelName = this.prefix + channelName;
+		}
+		if (this.suffix != null) {
+			channelName = channelName + this.suffix;
+		}
+		MessageChannel channel = resolveChannelForName(channelName, message);
+		if (channel != null) {
+			channels.add(channel);
+			if (!mapped && this.dynamicChannels.get(channelName) == null) {
+				this.dynamicChannels.put(channelName, channel);
 			}
 		}
 	}
