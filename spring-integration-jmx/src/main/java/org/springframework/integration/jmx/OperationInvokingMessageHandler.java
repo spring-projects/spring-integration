@@ -32,7 +32,6 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.jmx.support.ObjectNameManager;
@@ -64,7 +63,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @since 2.0
  */
-public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private final MBeanServerConnection server;
 

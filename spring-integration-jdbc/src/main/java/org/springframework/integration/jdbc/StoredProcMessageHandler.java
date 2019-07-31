@@ -18,7 +18,6 @@ package org.springframework.integration.jdbc;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -45,9 +44,10 @@ import org.springframework.util.Assert;
  * feature request at https://jira.springsource.org.
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  */
-public class StoredProcMessageHandler extends AbstractMessageHandler implements InitializingBean {
+public class StoredProcMessageHandler extends AbstractMessageHandler {
 
 	private final StoredProcExecutor executor;
 

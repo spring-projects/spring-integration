@@ -17,7 +17,6 @@
 package org.springframework.integration.jms;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -36,8 +35,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsMessageDrivenEndpoint extends MessageProducerSupport
-		implements DisposableBean, OrderlyShutdownCapable {
+public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements OrderlyShutdownCapable {
 
 	private final AbstractMessageListenerContainer listenerContainer;
 

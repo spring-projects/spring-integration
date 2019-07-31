@@ -55,8 +55,7 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 		return new StaticBeanPropertySqlParameterSource(input, this.staticParameters);
 	}
 
-	private static final class StaticBeanPropertySqlParameterSource extends AbstractSqlParameterSource implements
-			SqlParameterSource {
+	private static final class StaticBeanPropertySqlParameterSource extends AbstractSqlParameterSource {
 
 		private final BeanPropertySqlParameterSource input;
 

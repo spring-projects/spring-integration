@@ -23,7 +23,6 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
@@ -38,8 +37,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
-public abstract class AbstractAmqpChannel extends AbstractMessageChannel
-		implements DisposableBean, ConnectionListener {
+public abstract class AbstractAmqpChannel extends AbstractMessageChannel implements ConnectionListener {
 
 	private final AmqpTemplate amqpTemplate;
 

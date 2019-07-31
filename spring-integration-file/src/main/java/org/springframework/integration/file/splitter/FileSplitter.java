@@ -440,7 +440,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		private static final long serialVersionUID = 8514605438145748406L;
 
-		public enum Mark implements Serializable {
+		public enum Mark {
 			START,
 			END
 		}

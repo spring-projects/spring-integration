@@ -23,9 +23,7 @@ import javax.management.Notification;
 import javax.management.ObjectName;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -52,8 +50,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public class NotificationPublishingMessageHandler extends AbstractMessageHandler
-		implements BeanFactoryAware, InitializingBean {
+public class NotificationPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final PublisherDelegate delegate = new PublisherDelegate();
 

@@ -17,7 +17,6 @@
 package org.springframework.integration.jms;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -33,7 +32,7 @@ import org.springframework.messaging.MessageChannel;
  *
  * @since 5.0
  */
-public class JmsInboundGateway extends MessagingGatewaySupport implements DisposableBean, OrderlyShutdownCapable {
+public class JmsInboundGateway extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
 	private final JmsMessageDrivenEndpoint endpoint;
 

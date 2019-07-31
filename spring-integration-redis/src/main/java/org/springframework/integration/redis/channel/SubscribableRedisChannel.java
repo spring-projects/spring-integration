@@ -20,7 +20,6 @@ import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -56,7 +55,7 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("rawtypes")
 public class SubscribableRedisChannel extends AbstractMessageChannel
-		implements SubscribableChannel, SmartLifecycle, DisposableBean {
+		implements SubscribableChannel, SmartLifecycle {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 

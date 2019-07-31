@@ -22,7 +22,6 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,10 +35,11 @@ import org.springframework.util.StringUtils;
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
-public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final JdbcMessageHandler handler;
 

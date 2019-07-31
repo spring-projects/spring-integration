@@ -21,7 +21,6 @@ import javax.jms.MessageListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.context.IntegrationProperties;
@@ -49,7 +48,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class SubscribableJmsChannel extends AbstractJmsChannel
-		implements SubscribableChannel, SmartLifecycle, DisposableBean {
+		implements SubscribableChannel, SmartLifecycle {
 
 	private final AbstractMessageListenerContainer container;
 
