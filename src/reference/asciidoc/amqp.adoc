@@ -547,12 +547,12 @@ The following example shows the available properties for an AMQP outbound channe
                                confirm-ack-channel=""            <11>
                                confirm-nack-channel=""           <12>
                                confirm-timeout=""                <13>
-                               return-channel=""                 <14>
-                               error-message-strategy=""         <15>
-                               header-mapper=""                  <16>
-                               mapped-request-headers=""         <17>
-                               lazy-connect="true" />            <18>
-
+                               wait-for-confirm=""               <14>
+                               return-channel=""                 <15>
+                               error-message-strategy=""         <16>
+                               header-mapper=""                  <17>
+                               mapped-request-headers=""         <18>
+                               lazy-connect="true" />            <19>
 ----
 
 <1> The unique ID for this adapter.
@@ -609,21 +609,26 @@ Optional (the default is `nullChannel`).
 <13> When set, the adapter will synthesize a negative acknowledgment (nack) if a publisher confirm is not received within this time in milliseconds.
 Pending confirms are checked every 50% of this value, so the actual time a nack is sent will be between 1x and 1.5x this value.
 Default none (nacks will not be generated).
-<14> The channel to which returned messages are sent.
+<14> When set to true, the calling thread will block, waiting for a publisher confirmation.
+This requires a `RabbitTemplate` configured for confirms as well as a `confirm-correlation-expression`.
+The thread will block for up to `confirm-timeout` (or 5 seconds by default).
+If a timeout occurs, a `MessageTimeoutException` will be thrown.
+If returns are enabled and a message is returned, or any other exception occurs while awaiting the confirm, a `MessageHandlingException` will be thrown, with an appropriate message.
+<15> The channel to which returned messages are sent.
 When provided, the underlying AMQP template is configured to return undeliverable messages to the adapter.
 When there is no `ErrorMessageStrategy` configured, the message is constructed from the data received from AMQP, with the following additional headers: `amqp_returnReplyCode`, `amqp_returnReplyText`, `amqp_returnExchange`, `amqp_returnRoutingKey`.
 When there is an `ErrorMessageStrategy`, the message is an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
 Optional.
-<15> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
-<16> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
+<16> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` instances when sending returned or negatively acknowledged messages.
+<17> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
 By default, only standard AMQP properties (such as `contentType`) are copied to the Spring Integration `MessageHeaders`.
 Any user-defined headers is not copied to the message by the default`DefaultAmqpHeaderMapper`.
 Not allowed if 'request-header-names' is provided.
 Optional.
-<17> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
+<18> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
 Not allowed if the 'header-mapper' reference is provided.
 The values in this list can also be simple patterns to be matched against the header names (e.g. `"\*"` or `"thing1*, thing2"` or `"*thing1"`).
-<18> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
+<19> When set to `false`, the endpoint attempts to connect to the broker during application context initialization.
 This allows "`fail fast`" detection of bad configuration but also causes initialization to fail if the broker is down.
 When `true` (the default), the connection is established (if it does not already exist because some other component established it) when the first message is sent.
 ====
