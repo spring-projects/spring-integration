@@ -34,6 +34,7 @@ import javax.xml.transform.Source;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -535,7 +536,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 							"evaluation resulted in a " + typeClass + ".");
 			if (type instanceof String && StringUtils.hasText((String) type)) {
 				try {
-					type = ClassUtils.forName((String) type, getApplicationContext().getClassLoader());
+					ApplicationContext applicationContext = getApplicationContext();
+					type = ClassUtils.forName((String) type,
+							applicationContext == null ? null : applicationContext.getClassLoader());
 				}
 				catch (ClassNotFoundException e) {
 					throw new IllegalStateException("Cannot load class for name: " + type, e);
