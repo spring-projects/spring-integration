@@ -102,12 +102,12 @@ public QueueChannel(int capacity)
 ----
 ====
 
-A channel that has not reached its capacity limit storeS messages in its internal queue, and the `send()` method returns immediately, even if no receiver is ready to handle the message.
-If the queue has reached capacity, the sender blocks until room is available.
-Alternatively, if you use the send call that accepts a timeout, the queue blocks until either room is available or the timeout period elapses, whichever occurs first.
-Similarly, a `receive` call returns immediately if a message is available on the queue, but, if the queue is empty, then a receive call may block until either a message is available or the timeout elapses.
+A channel that has not reached its capacity limit stores messages in its internal queue, and the `send(Message<?>)` method returns immediately, even if no receiver is ready to handle the message.
+If the queue has reached capacity, the sender blocks until room is available in the queue.
+Alternatively, if you use the send method that has an additional timeout parameter, the queue blocks until either room is available or the timeout period elapses, whichever occurs first.
+Similarly, a `receive()` call returns immediately if a message is available on the queue, but, if the queue is empty, then a receive call may block until either a message is available or the timeout, if provided, elapses.
 In either case, it is possible to force an immediate return regardless of the queue's state by passing a timeout value of 0.
-Note, however, that calls to the no-arg versions of `send()` and `receive()` block indefinitely.
+Note, however, that calls to the versions of `send()` and `receive()` with no `timeout` parameter block indefinitely.
 
 [[channel-implementations-prioritychannel]]
 ===== `PriorityChannel`
