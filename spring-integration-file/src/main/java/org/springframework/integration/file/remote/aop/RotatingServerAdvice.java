@@ -16,12 +16,7 @@
 
 package org.springframework.integration.file.remote.aop;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.core.MessageSource;
@@ -37,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Michael Forstner
  * @author Artem Bilan
+ * @author David Turanski
  *
  * @since 5.0.7
  *
@@ -88,167 +84,28 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		return result;
 	}
 
-	/**
-	 * Implementations can reconfigure the message source before and/or after
-	 * a poll.
-	 */
-	public interface RotationPolicy {
+	public static class StandardRotationPolicy extends AbstractStandardRotationPolicy {
 
-		/**
-		 * Invoked before the message source receive() method.
-		 * @param source the message source.
-		 */
-		void beforeReceive(MessageSource<?> source);
-
-		/**
-		 * Invoked after the message source receive() method.
-		 * @param messageReceived true if a message was received.
-		 * @param source the message source.
-		 */
-		void afterReceive(boolean messageReceived, MessageSource<?> source);
-
-	}
-
-	/**
-	 * Standard rotation policy; iterates over key/directory pairs; when the end
-	 * is reached, starts again at the beginning. If the fair option is true
-	 * the rotation occurs on every poll, regardless of result. Otherwise rotation
-	 * occurs when the current pair returns no message.
-	 */
-	public static class StandardRotationPolicy implements RotationPolicy {
-
-		protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
-
-		protected final DelegatingSessionFactory<?> factory; // NOSONAR final
-
-		private final List<KeyDirectory> keyDirectories = new ArrayList<>();
-
-		private final boolean fair;
-
-		private volatile Iterator<KeyDirectory> iterator;
-
-		private volatile KeyDirectory current;
-
-		private volatile boolean initialized;
 
 		public StandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
 				boolean fair) {
-
-			Assert.notNull(factory, "factory cannot be null");
-			Assert.notNull(keyDirectories, "keyDirectories cannot be null");
-			Assert.isTrue(keyDirectories.size() > 0, "At least one KeyDirectory is required");
-			this.factory = factory;
-			this.keyDirectories.addAll(keyDirectories);
-			this.fair = fair;
-			this.iterator = this.keyDirectories.iterator();
+			super(factory, keyDirectories, fair);
 		}
 
-		protected Iterator<KeyDirectory> getIterator() {
-			return this.iterator;
-		}
-
-		protected void setIterator(Iterator<KeyDirectory> iterator) {
-			this.iterator = iterator;
-		}
-
-		protected boolean isInitialized() {
-			return this.initialized;
-		}
-
-		protected void setInitialized(boolean initialized) {
-			this.initialized = initialized;
-		}
-
-		protected DelegatingSessionFactory<?> getFactory() {
-			return this.factory;
-		}
-
-		protected List<KeyDirectory> getKeyDirectories() {
-			return this.keyDirectories;
-		}
-
-		protected boolean isFair() {
-			return this.fair;
-		}
-
-		protected KeyDirectory getCurrent() {
-			return this.current;
-		}
-
-		@Override
-		public void beforeReceive(MessageSource<?> source) {
-			if (this.fair || !this.initialized) {
-				configureSource(source);
-				this.initialized = true;
-			}
-			if (this.logger.isTraceEnabled()) {
-				this.logger.trace("Next poll is for " + this.current);
-			}
-			this.factory.setThreadKey(this.current.getKey());
-		}
-
-		@Override
-		public void afterReceive(boolean messageReceived, MessageSource<?> source) {
-			if (this.logger.isTraceEnabled()) {
-				this.logger.trace("Poll produced "
-						+ (messageReceived ? "a" : "no")
-						+ " message");
-			}
-			this.factory.clearThreadKey();
-			if (!this.fair && !messageReceived) {
-				configureSource(source);
-			}
-		}
-
-		protected void configureSource(MessageSource<?> source) {
+		protected void onRotation(MessageSource<?> source) {
 			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
 							|| source instanceof AbstractRemoteFileStreamingMessageSource,
 					"source must be an AbstractInboundFileSynchronizingMessageSource or a "
 							+ "AbstractRemoteFileStreamingMessageSource");
-			if (!this.iterator.hasNext()) {
-				this.iterator = this.keyDirectories.iterator();
-			}
-			this.current = this.iterator.next();
+
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
-				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
+				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.getCurrent().getDirectory());
 			}
 			else {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-						.setRemoteDirectory(this.current.getDirectory());
+						.setRemoteDirectory(this.getCurrent().getDirectory());
 			}
 		}
 
 	}
-
-	/**
-	 * A {@link DelegatingSessionFactory} key/directory pair.
-	 */
-	public static class KeyDirectory {
-
-		private final Object key;
-
-		private final String directory;
-
-		public KeyDirectory(Object key, String directory) {
-			Assert.notNull(key, "key cannot be null");
-			Assert.notNull(directory, "directory cannot be null");
-			this.key = key;
-			this.directory = directory;
-		}
-
-		public Object getKey() {
-			return this.key;
-		}
-
-		public String getDirectory() {
-			return this.directory;
-		}
-
-		@Override
-		public String toString() {
-			return "KeyDirectory [key=" + this.key.toString() + ", directory=" + this.directory + "]";
-		}
-
-	}
-
 }
