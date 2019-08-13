@@ -71,6 +71,7 @@ public class FtpOutboundGatewayParser extends AbstractRemoteFileOutboundGatewayP
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "working-dir-expression",
 				"workingDirExpressionString");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "chmod", "chmodOctal");
 	}
 
 }

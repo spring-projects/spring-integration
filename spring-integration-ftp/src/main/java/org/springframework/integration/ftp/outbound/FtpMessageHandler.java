@@ -16,8 +16,13 @@
 
 package org.springframework.integration.ftp.outbound;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -45,6 +50,24 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 
 	public FtpMessageHandler(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode mode) {
 		super(remoteFileTemplate, mode);
+	}
+
+	@Override
+	public boolean isChmodCapable() {
+		return true;
+	}
+
+	@Override
+	protected void doChmod(RemoteFileTemplate<FTPFile> remoteFileTemplate, final String path, final int chmod) {
+		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
+			String chModCommand = "chmod " + Integer.toOctalString(chmod) + " " + path;
+			try {
+				client.sendSiteCommand(chModCommand);
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException("Failed to execute chmod", e);
+			}
+		});
 	}
 
 }

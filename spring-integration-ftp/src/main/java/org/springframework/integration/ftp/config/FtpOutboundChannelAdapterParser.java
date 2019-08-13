@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.config.RemoteFileOutboundChannelAdapterParser;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.ftp.outbound.FtpMessageHandler;
@@ -56,6 +57,7 @@ public class FtpOutboundChannelAdapterParser extends RemoteFileOutboundChannelAd
 				.getValue();
 		templateDefinition.getPropertyValues() // NOSONAR never null
 				.add("existsMode", FtpRemoteFileTemplate.ExistsMode.NLST);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "chmod", "chmodOctal");
 	}
 
 }
