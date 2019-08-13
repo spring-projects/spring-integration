@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote.aop;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.util.Assert;
@@ -54,8 +57,7 @@ public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
 
 	private volatile boolean initialized;
 
-	protected AbstractStandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
-								  boolean fair) {
+	protected AbstractStandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories, boolean fair) {
 
 		Assert.notNull(factory, "factory cannot be null");
 		Assert.notNull(keyDirectories, "keyDirectories cannot be null");
@@ -93,28 +95,28 @@ public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
 
 	@Override
 	public KeyDirectory getCurrent() {
-		return current;
+		return this.current;
 	}
 
 
 	protected DelegatingSessionFactory<?> getFactory() {
-		return factory;
+		return this.factory;
 	}
 
 	protected List<KeyDirectory> getKeyDirectories() {
-		return keyDirectories;
+		return this.keyDirectories;
 	}
 
 	protected boolean isFair() {
-		return fair;
+		return this.fair;
 	}
 
 	protected Iterator<KeyDirectory> getIterator() {
-		return iterator;
+		return this.iterator;
 	}
 
 	protected boolean isInitialized() {
-		return initialized;
+		return this.initialized;
 	}
 
 	protected void configureSource(MessageSource<?> source) {
