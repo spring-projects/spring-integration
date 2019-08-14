@@ -41,9 +41,10 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author David Turanski
  *
- * @since 5.2.0
+ * @since 5.1.8
  */
 public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
+
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
 	private final DelegatingSessionFactory<?> factory; // NOSONAR final
