@@ -63,6 +63,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
+					<xsd:attributeGroup ref="int-file:chmod" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -517,6 +518,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
+					<xsd:attributeGroup ref="int-file:chmod" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
