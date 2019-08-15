@@ -6,7 +6,7 @@ buildscript {
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
-		classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.18'
+		classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-beta.2'
 		classpath 'io.spring.nohttp:nohttp-gradle:0.0.3.RELEASE'
 	}
 }
@@ -107,18 +107,6 @@ ext {
 allprojects {
 	group = 'org.springframework.integration'
 
-	apply plugin: "io.spring.dependency-management"
-
-	dependencyManagement {
-		resolutionStrategy {
-			cacheChangingModulesFor 0, 'seconds'
-		}
-		applyMavenExclusions = false
-		generatedPomCustomization {
-			enabled = false
-		}
-	}
-
 	repositories {
 		maven { url 'https://repo.spring.io/libs-milestone' }
 		if (version.endsWith('BUILD-SNAPSHOT')) {
@@ -151,6 +139,17 @@ subprojects { subproject ->
 	apply plugin: 'checkstyle'
 	apply plugin: 'kotlin'
 	apply plugin: 'kotlin-spring'
+	apply plugin: "io.spring.dependency-management"
+
+	dependencyManagement {
+		resolutionStrategy {
+			cacheChangingModulesFor 0, 'seconds'
+		}
+		applyMavenExclusions = false
+		generatedPomCustomization {
+			enabled = false
+		}
+	}
 
 	sourceSets {
 		test {
