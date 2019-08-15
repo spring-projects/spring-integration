@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.file.remote.aop;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,7 +25,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.util.Assert;
 
 /**
@@ -41,13 +44,13 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author David Turanski
  *
- * @since 5.1.8
+ * @since 5.2
  */
-public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
+public class StandardRotationPolicy implements RotationPolicy {
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR final
 
-	private final DelegatingSessionFactory<?> factory; // NOSONAR final
+	private final DelegatingSessionFactory<?> factory;
 
 	private final List<KeyDirectory> keyDirectories = new ArrayList<>();
 
@@ -59,12 +62,12 @@ public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
 
 	private volatile boolean initialized;
 
-	protected AbstractStandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
+	public StandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
 			boolean fair) {
 
 		Assert.notNull(factory, "factory cannot be null");
 		Assert.notNull(keyDirectories, "keyDirectories cannot be null");
-		Assert.isTrue(keyDirectories.size() > 0, "At least one KeyDirectory is required");
+		Assert.isTrue(!keyDirectories.isEmpty(), "At least one KeyDirectory is required");
 		this.factory = factory;
 		this.keyDirectories.addAll(keyDirectories);
 		this.fair = fair;
@@ -107,7 +110,7 @@ public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
 	}
 
 	protected List<KeyDirectory> getKeyDirectories() {
-		return this.keyDirectories;
+		return Collections.unmodifiableList(this.keyDirectories);
 	}
 
 	protected boolean isFair() {
@@ -123,14 +126,26 @@ public abstract class AbstractStandardRotationPolicy implements RotationPolicy {
 	}
 
 	protected void configureSource(MessageSource<?> source) {
-
 		if (!this.iterator.hasNext()) {
 			this.iterator = this.keyDirectories.iterator();
 		}
 		this.current = this.iterator.next();
-
 		onRotation(source);
 	}
 
-	protected abstract void onRotation(MessageSource<?> source);
+	protected void onRotation(MessageSource<?> source) {
+		Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
+						|| source instanceof AbstractRemoteFileStreamingMessageSource,
+				"source must be an AbstractInboundFileSynchronizingMessageSource or a "
+						+ "AbstractRemoteFileStreamingMessageSource");
+
+		if (source instanceof AbstractRemoteFileStreamingMessageSource) {
+			((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(getCurrent().getDirectory());
+		}
+		else {
+			((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
+					.setRemoteDirectory(getCurrent().getDirectory());
+		}
+	}
+
 }

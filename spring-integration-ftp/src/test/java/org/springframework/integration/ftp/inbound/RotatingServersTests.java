@@ -43,8 +43,8 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
-import org.springframework.integration.file.remote.aop.KeyDirectory;
 import org.springframework.integration.file.remote.aop.RotatingServerAdvice;
+import org.springframework.integration.file.remote.aop.RotationPolicy;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.DefaultSessionFactoryLocator;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
@@ -227,17 +227,17 @@ public class RotatingServersTests extends FtpTestSupport {
 
 		@Bean
 		public RotatingServerAdvice advice() {
-			List<KeyDirectory> keyDirectories = new ArrayList<>();
-			keyDirectories.add(new KeyDirectory("one", "foo"));
-			keyDirectories.add(new KeyDirectory("one", "bar"));
-			keyDirectories.add(new KeyDirectory("two", "baz"));
-			keyDirectories.add(new KeyDirectory("two", "qux"));
-			keyDirectories.add(new KeyDirectory("three", "fiz"));
-			keyDirectories.add(new KeyDirectory("three", "buz"));
+			List<RotationPolicy.KeyDirectory> keyDirectories = new ArrayList<>();
+			keyDirectories.add(new RotationPolicy.KeyDirectory("one", "foo"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("one", "bar"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("two", "baz"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("two", "qux"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("three", "fiz"));
+			keyDirectories.add(new RotationPolicy.KeyDirectory("three", "buz"));
 			return theAdvice(keyDirectories);
 		}
 
-		protected RotatingServerAdvice theAdvice(List<KeyDirectory> keyDirectories) {
+		protected RotatingServerAdvice theAdvice(List<RotationPolicy.KeyDirectory> keyDirectories) {
 			return new RotatingServerAdvice(sf(), keyDirectories);
 		}
 
@@ -262,7 +262,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public static class FairConfig extends StandardConfig {
 
 		@Override
-		protected RotatingServerAdvice theAdvice(List<KeyDirectory> keyDirectories) {
+		protected RotatingServerAdvice theAdvice(List<RotationPolicy.KeyDirectory> keyDirectories) {
 			return new RotatingServerAdvice(sf(), keyDirectories, true);
 		}
 
