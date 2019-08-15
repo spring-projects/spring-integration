@@ -20,9 +20,7 @@ import java.util.List;
 
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
-import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -45,9 +43,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * Create an instance that rotates to the next server/directory if no message is
 	 * received.
 	 * @param factory the {@link DelegatingSessionFactory}.
-	 * @param keyDirectories a list of {@link KeyDirectory}.
+	 * @param keyDirectories a list of {@link RotationPolicy.KeyDirectory}.
 	 */
-	public RotatingServerAdvice(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories) {
+	public RotatingServerAdvice(DelegatingSessionFactory<?> factory, List<RotationPolicy.KeyDirectory> keyDirectories) {
 		this(factory, keyDirectories, false);
 	}
 
@@ -55,10 +53,12 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * Create an instance that rotates to the next server/directory depending on the fair
 	 * argument.
 	 * @param factory the {@link DelegatingSessionFactory}.
-	 * @param keyDirectories a list of {@link KeyDirectory}.
+	 * @param keyDirectories a list of {@link RotationPolicy.KeyDirectory}.
 	 * @param fair true to rotate on every poll, false to rotate when no message is received.
 	 */
-	public RotatingServerAdvice(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories, boolean fair) {
+	public RotatingServerAdvice(DelegatingSessionFactory<?> factory, List<RotationPolicy.KeyDirectory> keyDirectories,
+			boolean fair) {
+
 		this(new StandardRotationPolicy(factory, keyDirectories, fair));
 	}
 
@@ -84,29 +84,4 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		return result;
 	}
 
-	public static class StandardRotationPolicy extends AbstractStandardRotationPolicy {
-
-
-		public StandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
-				boolean fair) {
-			super(factory, keyDirectories, fair);
-		}
-
-		@Override
-		protected void onRotation(MessageSource<?> source) {
-			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
-							|| source instanceof AbstractRemoteFileStreamingMessageSource,
-					"source must be an AbstractInboundFileSynchronizingMessageSource or a "
-							+ "AbstractRemoteFileStreamingMessageSource");
-
-			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
-				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(getCurrent().getDirectory());
-			}
-			else {
-				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-						.setRemoteDirectory(getCurrent().getDirectory());
-			}
-		}
-
-	}
 }

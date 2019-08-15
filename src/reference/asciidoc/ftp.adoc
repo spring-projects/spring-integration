@@ -706,20 +706,20 @@ Notice that, in this example, the message handler downstream of the transformer 
 Starting with _version 5.0.7_, the `RotatingServerAdvice` is available; when configured as a poller advice, the inbound adapters can poll multiple servers and directories.
 Configure the advice and add it to the poller's advice chain as normal.
 A `DelegatingSessionFactory` is used to select the server see <<ftp-dsf>> for more information.
-The advice configuration consists of a list of `RotatingServerAdvice.KeyDirectory` objects.
+The advice configuration consists of a list of `RotationPolicy.KeyDirectory` objects.
 
 .Example
 [source, java]
 ----
 @Bean
 public RotatingServerAdvice advice() {
-    List<KeyDirectory> keyDirectories = new ArrayList<>();
-    keyDirectories.add(new KeyDirectory("one", "foo"));
-    keyDirectories.add(new KeyDirectory("one", "bar"));
-    keyDirectories.add(new KeyDirectory("two", "baz"));
-    keyDirectories.add(new KeyDirectory("two", "qux"));
-    keyDirectories.add(new KeyDirectory("three", "fiz"));
-    keyDirectories.add(new KeyDirectory("three", "buz"));
+    List<RotationPolicy.KeyDirectory> keyDirectories = new ArrayList<>();
+    keyDirectories.add(new RotationPolicy.KeyDirectory("one", "foo"));
+    keyDirectories.add(new RotationPolicy.KeyDirectory("one", "bar"));
+    keyDirectories.add(new RotationPolicy.KeyDirectory("two", "baz"));
+    keyDirectories.add(new RotationPolicy.KeyDirectory("two", "qux"));
+    keyDirectories.add(new RotationPolicy.KeyDirectory("three", "fiz"));
+    keyDirectories.add(new RotationPolicy.KeyDirectory("three", "buz"));
     return new RotatingServerAdvice(delegatingSf(), keyDirectories);
 }
 ----
@@ -740,7 +740,7 @@ public RotatingServerAdvice advice() {
 
 In this case, the advice will move to the next server/directory regardless of whether the previous poll returned a file.
 
-Alternatively, you can provide your own `RotatingServerAdvice.RotationPolicy` to reconfigure the message source as needed:
+Alternatively, you can provide your own `RotationPolicy` to reconfigure the message source as needed:
 
 .policy
 [source, java]
