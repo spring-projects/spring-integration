@@ -158,7 +158,8 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 						client.chmod(chmod, path);
 					}
 					catch (SftpException e) {
-						throw new GeneralSftpException("Failed to execute chmod", e);
+						throw new GeneralSftpException(
+								"Failed to execute 'chmod " + Integer.toOctalString(chmod) + " " + path + "'", e);
 					}
 				});
 	}

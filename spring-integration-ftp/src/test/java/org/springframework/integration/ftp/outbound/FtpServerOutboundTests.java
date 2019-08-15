@@ -402,7 +402,6 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	}
 
 	@Test
-	// TODO: Test on Windows - if fails, @DisableIf or stub method on the spy
 	public void testInt3088MPutNotRecursive() throws IOException {
 		Session<?> session = sessionFactory.getSession();
 		session.close();
@@ -459,7 +458,6 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	}
 
 	@Test
-	// TODO: Test on Windows - if fails, @DisableIf or stub method on the spy
 	public void testInt3412FileMode() throws IOException {
 		Session<?> session = sessionFactory.getSession();
 		session.close();

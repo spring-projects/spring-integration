@@ -314,7 +314,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				client.sendSiteCommand(chModCommand);
 			}
 			catch (IOException e) {
-				throw new UncheckedIOException("Failed to execute chmod", e);
+				throw new UncheckedIOException("Failed to execute '" + chModCommand  + "'", e);
 			}
 		});
 	}
