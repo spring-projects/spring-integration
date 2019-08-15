@@ -402,6 +402,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.headersMappedLast;
 	}
 
+	@Nullable
 	protected Duration getConfirmTimeout() {
 		return this.confirmTimeout;
 	}

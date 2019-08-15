@@ -58,6 +58,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="wait-for-confirm">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Set to true if you want to block the calling thread until a publisher confirm has
+									been received. Requires a template configured for returns. If a confirm is not
+									received within the confirm timeout or a negative acknowledgment or returned
+									message is received, an exception will be thrown.
+								</xsd:documentation>
+								<xsd:simpleType>
+									<xsd:union memberTypes="xsd:boolean xsd:string" />
+								</xsd:simpleType>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

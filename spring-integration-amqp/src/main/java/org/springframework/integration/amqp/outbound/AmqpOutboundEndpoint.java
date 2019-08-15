@@ -16,12 +16,21 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.connection.CorrelationData.Confirm;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -38,13 +47,19 @@ import org.springframework.util.Assert;
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
-		implements RabbitTemplate.ConfirmCallback, ReturnCallback {
+		implements ConfirmCallback, ReturnCallback {
+
+	private static final Duration DEFAULT_CONFIRM_TIMEOUT = Duration.ofSeconds(5);
 
 	private final AmqpTemplate amqpTemplate;
 
 	private final RabbitTemplate rabbitTemplate;
 
 	private boolean expectReply;
+
+	private boolean waitForConfirm;
+
+	private Duration waitForConfirmTimeout = DEFAULT_CONFIRM_TIMEOUT;
 
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
@@ -62,6 +77,19 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		this.expectReply = expectReply;
 	}
 
+	/**
+	 * Set to true if you want to block the calling thread until a publisher confirm has
+	 * been received. Requires a template configured for returns. If a confirm is not
+	 * received within the confirm timeout or a negative acknowledgment or returned
+	 * message is received, an exception will be thrown. Does not apply to the gateway
+	 * since it blocks awaiting the reply.
+	 * @param waitForConfirm true to block until the confirmation or timeout is received.
+	 * @since 5.2
+	 * @see #setConfirmTimeout(long)
+	 */
+	public void setWaitForConfirm(boolean waitForConfirm) {
+		this.waitForConfirm = waitForConfirm;
+	}
 
 	@Override
 	public String getComponentType() {
@@ -86,6 +114,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 					"RabbitTemplate implementation is required for publisher confirms");
 			this.rabbitTemplate.setReturnCallback(this);
 		}
+		Duration confirmTimeout = getConfirmTimeout();
+		if (confirmTimeout != null) {
+			this.waitForConfirmTimeout = confirmTimeout;
+		}
 	}
 
 	@Override
@@ -101,11 +133,36 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		String exchangeName = generateExchangeName(requestMessage);
 		String routingKey = generateRoutingKey(requestMessage);
 		if (this.expectReply) {
-			return this.sendAndReceive(exchangeName, routingKey, requestMessage, correlationData);
+			return sendAndReceive(exchangeName, routingKey, requestMessage, correlationData);
 		}
 		else {
-			this.send(exchangeName, routingKey, requestMessage, correlationData);
+			send(exchangeName, routingKey, requestMessage, correlationData);
+			if (this.waitForConfirm && correlationData != null) {
+				waitForConfirm(requestMessage, correlationData);
+			}
 			return null;
+		}
+	}
+
+	private void waitForConfirm(Message<?> requestMessage, CorrelationData correlationData) {
+		try {
+			Confirm confirm = correlationData.getFuture().get(this.waitForConfirmTimeout.toMillis(),
+					TimeUnit.MILLISECONDS);
+			if (!confirm.isAck()) {
+				throw new AmqpException("Negative publisher confirm received: " + confirm);
+			}
+			if (correlationData.getReturnedMessage() != null) {
+				throw new AmqpException("Message was returned by the broker");
+			}
+		}
+		catch (@SuppressWarnings("unused") InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		catch (ExecutionException e) {
+			throw new AmqpException("Failed to get publisher confirm", e);
+		}
+		catch (TimeoutException e) {
+			throw new MessageTimeoutException(requestMessage, this + ": Timed out awaiting publisher confirm", e);
 		}
 	}
 

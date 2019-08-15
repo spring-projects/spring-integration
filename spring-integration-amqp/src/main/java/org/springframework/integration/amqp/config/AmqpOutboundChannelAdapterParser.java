@@ -81,6 +81,7 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-ack-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-nack-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "confirm-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "wait-for-confirm");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "return-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-message-strategy");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-expression",

@@ -178,6 +178,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "confirmAckChannel")).isSameAs(ackChannel);
 		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nullChannel);
 		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "waitForConfirm", Boolean.class)).isFalse();
 	}
 
 	@Test
@@ -191,6 +192,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(endpoint, "confirmNackChannel")).isSameAs(nackChannel);
 		assertThat(TestUtils.getPropertyValue(endpoint, "confirmTimeout")).isEqualTo(Duration.ofMillis(2000));
 		assertThat(TestUtils.getPropertyValue(endpoint, "errorMessageStrategy")).isSameAs(context.getBean("ems"));
+		assertThat(TestUtils.getPropertyValue(endpoint, "waitForConfirm", Boolean.class)).isTrue();
 	}
 
 	@SuppressWarnings("rawtypes")

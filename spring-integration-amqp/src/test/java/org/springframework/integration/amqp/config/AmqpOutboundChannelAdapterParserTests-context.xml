@@ -65,6 +65,7 @@
 								   confirm-ack-channel="ackChannel"
 								   confirm-nack-channel="nackChannel"
 								   confirm-timeout="2000"
+								   wait-for-confirm="true"
 								   error-message-strategy="ems"/>
 
 	<bean id="ems" class="org.springframework.integration.support.DefaultErrorMessageStrategy" />

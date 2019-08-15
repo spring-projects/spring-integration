@@ -45,4 +45,16 @@ public class AmqpOutboundEndpointSpec
 		return super.mappedReplyHeaders(headers);
 	}
 
+	/**
+	 * Wait for a publisher confirm.
+	 * @param waitForConfirm true to wait.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see AmqpOutboundEndpoint#setWaitForConfirm(boolean)
+	 */
+	public AmqpOutboundEndpointSpec waitForConfirm(boolean waitForConfirm) {
+		this.target.setWaitForConfirm(waitForConfirm);
+		return this;
+	}
+
 }
