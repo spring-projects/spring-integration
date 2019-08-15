@@ -63,8 +63,6 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private static final UUID NO_ID = new UUID(0L, 0L);
 
-	private static final Duration DEFAULT_CONFIRM_TIMEOUT = Duration.ofSeconds(5);
-
 	private String exchangeName;
 
 	private String routingKey;
@@ -404,10 +402,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.headersMappedLast;
 	}
 
+	@Nullable
 	protected Duration getConfirmTimeout() {
-		if (this.confirmTimeout == null) {
-			return DEFAULT_CONFIRM_TIMEOUT;
-		}
 		return this.confirmTimeout;
 	}
 

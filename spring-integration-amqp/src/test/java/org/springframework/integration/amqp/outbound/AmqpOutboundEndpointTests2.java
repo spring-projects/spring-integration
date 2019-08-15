@@ -23,6 +23,7 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.QueueBuilder.Overflow;
@@ -40,6 +41,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.DisabledIf;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -50,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @RabbitAvailable(queues = "testConfirmOk")
+@DirtiesContext
 public class AmqpOutboundEndpointTests2 {
 
 	@Test
@@ -63,7 +66,10 @@ public class AmqpOutboundEndpointTests2 {
 		assertThatThrownBy(() -> flow.getInputChannel()
 				.send(new GenericMessage<>("test", Collections.singletonMap("rk", "junkjunk"))))
 						.isInstanceOf(MessageHandlingException.class)
-						.hasMessageStartingWith("Message was returned by the broker");
+						.hasCauseInstanceOf(AmqpException.class)
+						.extracting(ex -> ex.getCause())
+						.extracting(ex -> ex.getMessage())
+						.isEqualTo("Message was returned by the broker");
 	}
 
 	@Test
@@ -71,17 +77,15 @@ public class AmqpOutboundEndpointTests2 {
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 
-		Queue queue = QueueBuilder.nonDurable()
-				.autoDelete()
-				.maxLength(1)
-				.overflow(Overflow.rejectPublish)
-				.build();
+		Queue queue = QueueBuilder.nonDurable().autoDelete().maxLength(1).overflow(Overflow.rejectPublish).build();
 		admin.declareQueue(queue);
 		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName())));
 		assertThatThrownBy(() -> flow.getInputChannel()
 				.send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName()))))
-						.isInstanceOf(MessageHandlingException.class)
-						.hasMessageStartingWith("Negative publisher confirm received: ");
+						.hasCauseInstanceOf(AmqpException.class)
+						.extracting(ex -> ex.getCause())
+						.extracting(ex -> ex.getMessage())
+						.matches(msg -> msg.matches("Negative publisher confirm received: .*"));
 		assertThat(template.receive(queue.getName())).isNotNull();
 		admin.deleteQueue(queue.getName());
 	}
@@ -93,10 +97,10 @@ public class AmqpOutboundEndpointTests2 {
 		@Bean
 		public IntegrationFlow flow(RabbitTemplate template) {
 			return f -> f.handle(Amqp.outboundAdapter(template)
-					.exchangeName("")
+							.exchangeName("")
 					.routingKeyFunction(msg -> msg.getHeaders().get("rk", String.class))
 					.confirmCorrelationFunction(msg -> msg)
-					.waitForConfirm());
+					.waitForConfirm(true));
 		}
 
 		@Bean
