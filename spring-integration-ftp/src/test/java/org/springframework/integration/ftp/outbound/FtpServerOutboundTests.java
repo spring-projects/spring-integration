@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,6 +49,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -399,7 +402,12 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	}
 
 	@Test
-	public void testInt3088MPutNotRecursive() {
+	public void testInt3088MPutNotRecursive() throws IOException {
+		Session<?> session = sessionFactory.getSession();
+		session.close();
+		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
+		FTPClient client = spy(TestUtils.getPropertyValue(session, "client", FTPClient.class));
+		new DirectFieldAccessor(session).setPropertyValue("client", client);
 		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
@@ -410,6 +418,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt");
 		assertThat(out.getPayload().get(1))
 				.isIn("ftpTarget/localSource1.txt", "ftpTarget/localSource2.txt");
+		verify(client).sendSiteCommand("chmod 600 ftpTarget/localSource1.txt");
+		verify(client).sendSiteCommand("chmod 600 ftpTarget/localSource1.txt");
 	}
 
 	@Test
@@ -448,7 +458,12 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	}
 
 	@Test
-	public void testInt3412FileMode() {
+	public void testInt3412FileMode() throws IOException {
+		Session<?> session = sessionFactory.getSession();
+		session.close();
+		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
+		FTPClient client = spy(TestUtils.getPropertyValue(session, "client", FTPClient.class));
+		new DirectFieldAccessor(session).setPropertyValue("client", client);
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
 		assertThat(template.exists("ftpTarget/appending.txt")).isFalse();
 		Message<String> m = MessageBuilder.withPayload("foo")
@@ -468,7 +483,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		catch (MessagingException e) {
 			assertThat(e.getCause().getCause().getMessage()).contains("The destination file already exists");
 		}
-
+		verify(client, times(2)).sendSiteCommand("chmod 600 ftpTarget/appending.txt");
 	}
 
 	@Test

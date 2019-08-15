@@ -32,7 +32,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.Session;
@@ -297,6 +299,24 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				ftpClient.changeWorkingDirectory(currentWorkingDirectory);
 			}
 		}
+	}
+
+	@Override
+	public boolean isChmodCapable() {
+		return true;
+	}
+
+	@Override
+	protected void doChmod(RemoteFileOperations<FTPFile> remoteFileOperations, final String path, final int chmod) {
+		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
+			String chModCommand = "chmod " + Integer.toOctalString(chmod) + " " + path;
+			try {
+				client.sendSiteCommand(chModCommand);
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException("Failed to execute '" + chModCommand  + "'", e);
+			}
+		});
 	}
 
 }

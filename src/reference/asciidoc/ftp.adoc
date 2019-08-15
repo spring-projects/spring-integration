@@ -837,6 +837,7 @@ The following example shows how to configure an `outbound-channel-adapter`:
     temporary-remote-directory-expression="headers['temp_remote_dir']"
     filename-generator="fileNameGenerator"
     use-temporary-filename="true"
+    chmod="600"
     mode="REPLACE"/>
 ----
 ====
@@ -863,6 +864,11 @@ The modes are defined by the `FileExistsMode` enumeration, which includes the fo
 
 `IGNORE` and `FAIL` do not transfer the file.
 `FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
+
+Version 5.2 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
 ==== Avoiding Partially Written Files
 
@@ -1189,6 +1195,11 @@ See the https://github.com/spring-projects/spring-integration/tree/master/spring
 
 The message payload resulting from a `put` operation is a `String` that represents the full path of the file on the server after transfer.
 
+Version 5.2 introduced the `chmod` attribute, which changes the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmod(0600)`.
+Only applies if your FTP server supports the `SITE CHMOD` subcommand.
+
 Using the `mput` Command
 
 The `mput` sends multiple files to the server and supports only one option:
@@ -1207,6 +1218,11 @@ Subdirectories that do not pass the filter are not recursed.
 The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths that result from the transfer).
 
 See also <<ftp-partial>>.
+
+Version 5.2 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+Only applies if your FTP server supports the `SITE CHMOD` subcommand.
 
 ==== Using the `rm` Command
 

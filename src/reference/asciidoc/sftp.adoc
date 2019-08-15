@@ -855,6 +855,10 @@ The modes are defined by the `FileExistsMode` enumeration, which has the followi
 With `IGNORE` and `FAIL`, the file is not transferred.
 `FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
 
+Version 4.3 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
+
 ==== Avoiding Partially Written Files
 
 One of the common problems when dealing with file transfers is the possibility of processing a partial file.
@@ -868,10 +872,6 @@ You can change by setting the `temporary-file-suffix` attribute.
 However, there may be situations where you do not want to use this technique (for example, if the server does not permit renaming files).
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
 When this attribute is `false`, the file is written with its final name, and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
-
-Version 4.3 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
-You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
-When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
 ==== Configuring with Java Configuration
 
@@ -1174,7 +1174,7 @@ See also <<sftp-partial>>.
 
 Version 4.3 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
 You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
-When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
+When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmod(0600)`.
 
 Using the `rm` Command
 

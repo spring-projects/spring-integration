@@ -61,6 +61,12 @@ See <<./ftp.adoc#ftp-server-events, Apache Mina FTP Server Events>> and <<./sftp
 Simple Apache Avro transformers are now provided.
 See <<./transformers.adoc#avro-transformers, Avro Transformers>> for more information.
 
+[[x5.2-ftp-chmod]]
+==== FTP File Permissions
+
+The FTP outbound endpoints now support `chmod` to change permissions on the uploaded file.
+(SFTP already supported it since version 4.3).
+See <<./ftp.adoc#ftp-outbound,FTP Outbound Channel Adapter>> and <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> for more information.
 
 [[x5.2-general]]
 === General Changes
