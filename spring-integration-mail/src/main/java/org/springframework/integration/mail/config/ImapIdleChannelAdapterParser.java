@@ -102,7 +102,7 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "embedded-parts-as-bytes");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "simple-content");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "auto-close-folder");
-
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "cancel-idle-interval");
 		return receiverBuilder.getBeanDefinition();
 	}
 }

@@ -368,6 +368,20 @@ public class ImapIdleChannelAdapterSpec
 		return this;
 	}
 
+	/**
+	 * How often to recycle the idle task (in case of a silently dropped connection).
+	 * Seconds; default 120 (2 minutes).
+	 * @param interval the interval.
+	 * @return the spec.
+	 * @see ImapMailReceiver#setCancelIdleInterval(long)
+	 * @since 5.2
+	 */
+	public ImapIdleChannelAdapterSpec cancelIdleInterval(long interval) {
+		assertReceiver();
+		this.receiver.setCancelIdleInterval(interval);
+		return this;
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister;

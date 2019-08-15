@@ -171,6 +171,14 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="cancel-idle-interval" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								How often to recycle the idle task (in case of a silently dropped connection).
+								Seconds; default 120 (2 minutes).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
