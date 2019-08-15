@@ -171,7 +171,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			return this.fair;
 		}
 
-		protected KeyDirectory getCurrent() {
+		public KeyDirectory getCurrent() {
 			return this.current;
 		}
 
@@ -201,18 +201,18 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		}
 
 		protected void configureSource(MessageSource<?> source) {
-			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
-							|| source instanceof AbstractRemoteFileStreamingMessageSource,
-					"source must be an AbstractInboundFileSynchronizingMessageSource or a "
-							+ "AbstractRemoteFileStreamingMessageSource");
 			if (!this.iterator.hasNext()) {
 				this.iterator = this.keyDirectories.iterator();
 			}
 			this.current = this.iterator.next();
+			onRotation(source);
+		}
+
+		protected void onRotation(MessageSource<?> source) {
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
 				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
 			}
-			else {
+			else if (source instanceof AbstractInboundFileSynchronizingMessageSource) {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
 						.setRemoteDirectory(this.current.getDirectory());
 			}
