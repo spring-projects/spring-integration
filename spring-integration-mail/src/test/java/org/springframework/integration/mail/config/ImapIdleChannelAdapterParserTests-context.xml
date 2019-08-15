@@ -39,7 +39,8 @@
 			simple-content="true"
 			embedded-parts-as-bytes="false"
 			auto-close-folder="false"
-			should-delete-messages="true"/>
+			should-delete-messages="true"
+			cancel-idle-interval="202"/>
 
 	<bean id="mapper" class="org.springframework.integration.mail.support.DefaultMailHeaderMapper" />
 

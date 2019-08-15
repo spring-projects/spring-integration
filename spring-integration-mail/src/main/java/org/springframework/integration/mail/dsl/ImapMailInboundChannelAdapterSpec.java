@@ -24,6 +24,7 @@ import org.springframework.integration.mail.SearchTermStrategy;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class ImapMailInboundChannelAdapterSpec
@@ -72,12 +73,13 @@ public class ImapMailInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see ImapMailReceiver#setCancelIdleInterval(long)
 	 * @since 5.0.10
+	 * @deprecated since 5.2: there is no idle task started for polling channel adapter.
 	 */
+	@Deprecated
 	public ImapMailInboundChannelAdapterSpec cancelIdleInterval(long interval) {
 		assertReceiver();
 		this.receiver.setCancelIdleInterval(interval);
 		return this;
 	}
-
 
 }

@@ -353,7 +353,7 @@ By default, the `ImapMailReceiver` searches for messages based on the default `S
 
 The custom user flag is `spring-integration-mail-adapter`, but you can configure it.
 Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable with `SearchTermStrategy`, which you can inject by using the `search-term-strategy` attribute.
-`SearchTermStrategy` is a strategy interface with a single method that lets you create an instance of the `SearchTerm` used by the `ImapMailReceiver`.
+A `SearchTermStrategy` is a strategy interface with a single method that lets you create an instance of the `SearchTerm` used by the `ImapMailReceiver`.
 The following listing shows the `SearchTermStrategy` interface:
 
 ====
@@ -417,8 +417,7 @@ IMPORTANT: In both configurations, `channel` and `should-delete-messages` are re
 You should understand why `should-delete-messages` is required.
 The issue is with the POP3 protocol, which does not have any knowledge of messages that were read.
 It can only know what has been read within a single session.
-This means that, when your POP3 mail adapter runs, emails are successfully consumed as as they become available during each poll
-and no single email message is delivered more then once.
+This means that, when your POP3 mail adapter runs, emails are successfully consumed as as they become available during each poll and no single email message is delivered more then once.
 However, as soon as you restart your adapter and begin a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
 That is the nature of POP3.
 Some might argue that `should-delete-messages` should be `true` by default.
@@ -433,6 +432,10 @@ Leaving it up to you also means that you are less likely to end up with unintend
 
 NOTE: When configuring a polling email adapter's `should-mark-messages-as-read` attribute, you should be aware of the protocol you are configuring to retrieve messages.
 For example, POP3 does not support this flag, which means setting it to either value has no effect, as messages are not marked as read.
+
+In case of silently dropped connection, an idle cancel task is run on background periodically (a new IDLE will usually immediately be processed).
+To control this interval, a `cancelIdleInterval` option is provided; default 120 (2 minutes).
+RFC 2177 recommends an interval no larger than 29 minutes.
 
 [IMPORTANT]
 =====
@@ -502,7 +505,8 @@ In the preceding example, thanks to the `mail-filter-expression` attribute, only
 
 Another reasonable question is what happens on the next poll or idle event or what happens when such an adapter is restarted.
 Can there be duplication of massages to be filtered? In other words, if, on the last retrieval where you had five new messages and only one passed the filter, what would happen with the other four?
-Would they go through the filtering logic again on the next poll or idle? After all, they were not marked as `SEEN`.
+Would they go through the filtering logic again on the next poll or idle?
+After all, they were not marked as `SEEN`.
 The answer is no.
 They would not be subject to duplicate processing due to another flag (`RECENT`) that is set by the email server and is used by the Spring Integration mail search filter.
 Folder implementations set this flag to indicate that this message is new to this folder.
