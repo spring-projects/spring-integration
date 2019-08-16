@@ -18,7 +18,9 @@ package org.springframework.integration.test.util;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -26,6 +28,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -297,6 +304,96 @@ public abstract class TestUtils {
 			else {
 				return null;
 			}
+		}
+
+	}
+
+	public static LevelsContainer adjustLogLevels(String methodName, List<Class<?>> classes, List<String> categories,
+			Level level) {
+
+		LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+		Configuration config = ctx.getConfiguration();
+
+		Map<Class<?>, Level> classLevels = new HashMap<>();
+		for (Class<?> cls : classes) {
+			String className = cls.getName();
+			LoggerConfig loggerConfig = config.getLoggerConfig(className);
+			LoggerConfig specificConfig = loggerConfig;
+
+			// We need a specific configuration for this logger,
+			// otherwise we would change the level of all other loggers
+			// having the original configuration as parent as well
+
+			if (!loggerConfig.getName().equals(className)) {
+				specificConfig = new LoggerConfig(className, loggerConfig.getLevel(), true);
+				specificConfig.setParent(loggerConfig);
+				config.addLogger(className, specificConfig);
+			}
+
+			classLevels.put(cls, specificConfig.getLevel());
+			specificConfig.setLevel(level);
+		}
+
+		Map<String, Level> categoryLevels = new HashMap<>();
+		for (String category : categories) {
+			LoggerConfig loggerConfig = config.getLoggerConfig(category);
+			LoggerConfig specificConfig = loggerConfig;
+
+			// We need a specific configuration for this logger,
+			// otherwise we would change the level of all other loggers
+			// having the original configuration as parent as well
+
+			if (!loggerConfig.getName().equals(category)) {
+				specificConfig = new LoggerConfig(category, loggerConfig.getLevel(), true);
+				specificConfig.setParent(loggerConfig);
+				config.addLogger(category, specificConfig);
+			}
+
+			categoryLevels.put(category, specificConfig.getLevel());
+			specificConfig.setLevel(level);
+		}
+
+		ctx.updateLoggers();
+
+		LOGGER.warn("++++++++++++++++++++++++++++ "
+				+ "Overridden log level setting for: " + classes
+				+ " and " + categories
+				+ " for test " + methodName);
+
+		return new LevelsContainer(classLevels, categoryLevels);
+	}
+
+	public static void revertLogLevels(String methodName, LevelsContainer container) {
+		LOGGER.warn("++++++++++++++++++++++++++++ "
+				+ "Restoring log level setting for: " + container.classLevels.keySet()
+				+ " and " + container.categoryLevels.keySet()
+				+ " for test " + methodName);
+
+		LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+		Configuration config = ctx.getConfiguration();
+
+		container.classLevels.entrySet().forEach(entry -> {
+			LoggerConfig loggerConfig = config.getLoggerConfig(entry.getKey().getName());
+			loggerConfig.setLevel(entry.getValue());
+		});
+
+		container.categoryLevels.entrySet().forEach(entry -> {
+			LoggerConfig loggerConfig = config.getLoggerConfig(entry.getKey());
+			loggerConfig.setLevel(entry.getValue());
+		});
+
+		ctx.updateLoggers();
+	}
+
+	public static class LevelsContainer {
+
+		final Map<Class<?>, Level> classLevels;
+
+		final Map<String, Level> categoryLevels;
+
+		public LevelsContainer(Map<Class<?>, Level> classLevels, Map<String, Level> categoryLevels) {
+			this.classLevels = classLevels;
+			this.categoryLevels = categoryLevels;
 		}
 
 	}

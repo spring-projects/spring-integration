@@ -17,9 +17,15 @@
 package org.springframework.integration.transformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +34,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.test.condition.LogLevels;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.support.AvroHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -40,11 +48,15 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  *
  */
 @SpringJUnitConfig
+@LogLevels(categories = "foo", level = "DEBUG")
 public class AvroTests {
 
 	@Test
+	@LogLevels(classes = DirectChannel.class, categories = "bar", level = "DEBUG")
 	void testTransformers(@Autowired Config config) {
 		AvroTestClass1 test = new AvroTestClass1("baz", "fiz");
+		Log spied = spy(TestUtils.getPropertyValue(config.in1(), "logger", Log.class));
+		new DirectFieldAccessor(config.in1()).setPropertyValue("logger", spied);
 		config.in1().send(new GenericMessage<>(test));
 		assertThat(config.tapped().receive(0))
 			.isNotNull()
@@ -57,6 +69,10 @@ public class AvroTests {
 			.isEqualTo(test)
 			.isNotSameAs(test);
 		assertThat(received.getHeaders().get("flow")).isEqualTo("flow1");
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(spied, atLeastOnce()).debug(captor.capture());
+		assertThat(captor.getAllValues()).anyMatch(s -> s.contains("preSend on channel"));
+		assertThat(captor.getAllValues()).anyMatch(s -> s.contains("postSend (sent=true) on channel"));
 	}
 
 	@Test
