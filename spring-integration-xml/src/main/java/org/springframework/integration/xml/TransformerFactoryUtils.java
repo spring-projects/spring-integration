@@ -40,6 +40,7 @@ public final class TransformerFactoryUtils {
 
 	/**
 	 * Build a new {@link TransformerFactory} using the default constructor.
+	 * @return the {@link TransformerFactory} instance
 	 */
 	public static TransformerFactory newInstance() {
 		return defaultSettings(TransformerFactory.newInstance());
@@ -48,6 +49,8 @@ public final class TransformerFactoryUtils {
 	/**
 	 * Build an {@link TransformerFactory} and prevent external entities from accessing.
 	 * @see TransformerFactory#newInstance()
+	 * @param transformerFactoryClass the class for {@link TransformerFactory} to instantiate.
+	 * @return the {@link TransformerFactory} instance
 	 */
 	public static TransformerFactory newInstance(Class<? extends TransformerFactory> transformerFactoryClass) {
 		try {
