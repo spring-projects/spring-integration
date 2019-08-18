@@ -317,38 +317,14 @@ public abstract class TestUtils {
 		Map<Class<?>, Level> classLevels = new HashMap<>();
 		for (Class<?> cls : classes) {
 			String className = cls.getName();
-			LoggerConfig loggerConfig = config.getLoggerConfig(className);
-			LoggerConfig specificConfig = loggerConfig;
-
-			// We need a specific configuration for this logger,
-			// otherwise we would change the level of all other loggers
-			// having the original configuration as parent as well
-
-			if (!loggerConfig.getName().equals(className)) {
-				specificConfig = new LoggerConfig(className, loggerConfig.getLevel(), true);
-				specificConfig.setParent(loggerConfig);
-				config.addLogger(className, specificConfig);
-			}
-
+			LoggerConfig specificConfig = addLoggerConfigForCategory(config, className);
 			classLevels.put(cls, specificConfig.getLevel());
 			specificConfig.setLevel(level);
 		}
 
 		Map<String, Level> categoryLevels = new HashMap<>();
 		for (String category : categories) {
-			LoggerConfig loggerConfig = config.getLoggerConfig(category);
-			LoggerConfig specificConfig = loggerConfig;
-
-			// We need a specific configuration for this logger,
-			// otherwise we would change the level of all other loggers
-			// having the original configuration as parent as well
-
-			if (!loggerConfig.getName().equals(category)) {
-				specificConfig = new LoggerConfig(category, loggerConfig.getLevel(), true);
-				specificConfig.setParent(loggerConfig);
-				config.addLogger(category, specificConfig);
-			}
-
+			LoggerConfig specificConfig = addLoggerConfigForCategory(config, category);
 			categoryLevels.put(category, specificConfig.getLevel());
 			specificConfig.setLevel(level);
 		}
@@ -363,6 +339,22 @@ public abstract class TestUtils {
 		return new LevelsContainer(classLevels, categoryLevels);
 	}
 
+	private static LoggerConfig addLoggerConfigForCategory(Configuration config, String category) {
+		LoggerConfig loggerConfig = config.getLoggerConfig(category);
+		LoggerConfig specificConfig = loggerConfig;
+
+		// We need a specific configuration for this logger,
+		// otherwise we would change the level of all other loggers
+		// having the original configuration as parent as well
+
+		if (!loggerConfig.getName().equals(category)) {
+			specificConfig = new LoggerConfig(category, loggerConfig.getLevel(), true);
+			specificConfig.setParent(loggerConfig);
+			config.addLogger(category, specificConfig);
+		}
+		return specificConfig;
+	}
+
 	public static void revertLogLevels(String methodName, LevelsContainer container) {
 		LOGGER.warn("++++++++++++++++++++++++++++ "
 				+ "Restoring log level setting for: " + container.classLevels.keySet()
@@ -372,14 +364,14 @@ public abstract class TestUtils {
 		LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
 		Configuration config = ctx.getConfiguration();
 
-		container.classLevels.entrySet().forEach(entry -> {
-			LoggerConfig loggerConfig = config.getLoggerConfig(entry.getKey().getName());
-			loggerConfig.setLevel(entry.getValue());
+		container.classLevels.forEach((key, value) -> {
+			LoggerConfig loggerConfig = config.getLoggerConfig(key.getName());
+			loggerConfig.setLevel(value);
 		});
 
-		container.categoryLevels.entrySet().forEach(entry -> {
-			LoggerConfig loggerConfig = config.getLoggerConfig(entry.getKey());
-			loggerConfig.setLevel(entry.getValue());
+		container.categoryLevels.forEach((key, value) -> {
+			LoggerConfig loggerConfig = config.getLoggerConfig(key);
+			loggerConfig.setLevel(value);
 		});
 
 		ctx.updateLoggers();
@@ -387,9 +379,9 @@ public abstract class TestUtils {
 
 	public static class LevelsContainer {
 
-		final Map<Class<?>, Level> classLevels;
+		private final Map<Class<?>, Level> classLevels;
 
-		final Map<String, Level> categoryLevels;
+		private final Map<String, Level> categoryLevels;
 
 		public LevelsContainer(Map<Class<?>, Level> classLevels, Map<String, Level> categoryLevels) {
 			this.classLevels = classLevels;

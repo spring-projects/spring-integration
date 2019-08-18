@@ -45,8 +45,6 @@ import org.springframework.util.ObjectUtils;
  */
 public final class Log4j2LevelAdjuster implements MethodRule {
 
-	private static final Log logger = LogFactory.getLog(Log4j2LevelAdjuster.class);
-
 	private final Class<?>[] classes;
 
 	private final Level level;
