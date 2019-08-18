@@ -19,8 +19,6 @@ package org.springframework.integration.test.rule;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.Level;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -89,6 +87,7 @@ public final class Log4j2LevelAdjuster implements MethodRule {
 					}
 				}
 			}
+
 		}
 		return new AdjustingStatement();
 	}
@@ -115,7 +114,8 @@ public final class Log4j2LevelAdjuster implements MethodRule {
 	 */
 	public Log4j2LevelAdjuster classes(boolean merge, Class<?>... classesToAdjust) {
 		return new Log4j2LevelAdjuster(this.level,
-				merge ? Stream.of(this.classes, classesToAdjust).flatMap(Stream::of).toArray(Class<?>[]::new) : classesToAdjust,
+				merge ? Stream.of(this.classes, classesToAdjust).flatMap(Stream::of)
+						.toArray(Class<?>[]::new) : classesToAdjust,
 				this.categories);
 	}
 
