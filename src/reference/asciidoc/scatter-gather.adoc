@@ -163,7 +163,7 @@ In other cases something like a "`compensation message`" should be considered fo
 
 Every async sub-flow should be configured with a `errorChannel` header for the proper error message sending from the `MessagePublishingErrorHandler`.
 Otherwise, an error will be sent to the global `errorChannel` with the common error handling logic.
-See <<./configuration.adoc#namespace-errorhandler,Error Handling>> for more information about async error processing.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information about async error processing.
 
 Synchronous flows may use an `ExpressionEvaluatingRequestHandlerAdvice` for ignoring the exception or returning a compensation message.
 When an exception is thrown from one of the sub-flows to the `ScatterGatherHandler`, it is just re-thrown to upstream.

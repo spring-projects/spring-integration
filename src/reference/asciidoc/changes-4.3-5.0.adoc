@@ -45,7 +45,7 @@ See <<./endpoint.adoc#content-type-conversion,Content Type Conversion>> for more
 
 We added `ErrorMessagePublisher` and the `ErrorMessageStrategy` for creating `ErrorMessage` instances.
 
-See <<./configuration.adoc#namespace-errorhandler,Error Handling>> for more information.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 ===== JDBC Metadata Store
 
