@@ -50,6 +50,8 @@ import com.rabbitmq.client.ConnectionFactory;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.1
  *
  */
@@ -63,7 +65,7 @@ public class BoundRabbitChannelAdviceTests {
 	private Config config;
 
 	@Test
-	public void testAdvice() throws Exception {
+	void testAdvice() throws Exception {
 		this.gate.send("a,b,c");
 		verify(this.config.connection, times(1)).createChannel();
 		verify(this.config.channel).confirmSelect();
@@ -97,7 +99,7 @@ public class BoundRabbitChannelAdviceTests {
 			}).given(cf).newConnection((ExecutorService) isNull(), anyString());
 			cf.setAutomaticRecoveryEnabled(false);
 			CachingConnectionFactory ccf = new CachingConnectionFactory(cf);
-			ccf.setSimplePublisherConfirms(true);
+			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.SIMPLE);
 			return ccf;
 		}
 

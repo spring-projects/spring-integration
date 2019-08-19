@@ -47,6 +47,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.1
  *
  */
@@ -54,7 +56,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @RabbitAvailable(queues = BoundRabbitChannelAdviceIntegrationTests.QUEUE)
 public class BoundRabbitChannelAdviceIntegrationTests {
 
-	public static final String QUEUE = "dedicated.advice";
+	static final String QUEUE = "dedicated.advice";
 
 	@Autowired
 	private Config.Gate gate;
@@ -63,7 +65,7 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 	private Config config;
 
 	@Test
-	public void testAdvice() throws Exception {
+	void testAdvice() throws Exception {
 		BoundRabbitChannelAdvice advice = this.config.advice(this.config.template());
 		Log logger = spy(TestUtils.getPropertyValue(advice, "logger", Log.class));
 		new DirectFieldAccessor(advice).setPropertyValue("logger", logger);
@@ -88,14 +90,14 @@ public class BoundRabbitChannelAdviceIntegrationTests {
 		private final List<String> received = new ArrayList<>();
 
 		@Bean
-		public CachingConnectionFactory cf() throws Exception {
+		public CachingConnectionFactory cf() {
 			CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
-			ccf.setSimplePublisherConfirms(true);
+			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.SIMPLE);
 			return ccf;
 		}
 
 		@Bean
-		public RabbitTemplate template() throws Exception {
+		public RabbitTemplate template() {
 			return new RabbitTemplate(cf());
 		}
 

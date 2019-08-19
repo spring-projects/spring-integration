@@ -47,6 +47,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -65,15 +67,16 @@ public class AmqpOutboundEndpointTests2 {
 	void testWithReturn(@Autowired IntegrationFlow flow) {
 		assertThatThrownBy(() -> flow.getInputChannel()
 				.send(new GenericMessage<>("test", Collections.singletonMap("rk", "junkjunk"))))
-						.isInstanceOf(MessageHandlingException.class)
-						.hasCauseInstanceOf(AmqpException.class)
-						.extracting(ex -> ex.getCause())
-						.extracting(ex -> ex.getMessage())
-						.isEqualTo("Message was returned by the broker");
+				.isInstanceOf(MessageHandlingException.class)
+				.hasCauseInstanceOf(AmqpException.class)
+				.extracting(Throwable::getCause)
+				.extracting(Throwable::getMessage)
+				.isEqualTo("Message was returned by the broker");
 	}
 
 	@Test
-	@DisabledIf("#{systemEnvironment['TRAVIS'] ?: false}") // needs RabbitMQ 3.7
+	@DisabledIf("#{systemEnvironment['TRAVIS'] ?: false}")
+		// needs RabbitMQ 3.7
 	void testWithReject(@Autowired IntegrationFlow flow, @Autowired RabbitAdmin admin,
 			@Autowired RabbitTemplate template) {
 
@@ -82,10 +85,10 @@ public class AmqpOutboundEndpointTests2 {
 		flow.getInputChannel().send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName())));
 		assertThatThrownBy(() -> flow.getInputChannel()
 				.send(new GenericMessage<>("test", Collections.singletonMap("rk", queue.getName()))))
-						.hasCauseInstanceOf(AmqpException.class)
-						.extracting(ex -> ex.getCause())
-						.extracting(ex -> ex.getMessage())
-						.matches(msg -> msg.matches("Negative publisher confirm received: .*"));
+				.hasCauseInstanceOf(AmqpException.class)
+				.extracting(Throwable::getCause)
+				.extracting(Throwable::getMessage)
+				.matches(msg -> msg.matches("Negative publisher confirm received: .*"));
 		assertThat(template.receive(queue.getName())).isNotNull();
 		admin.deleteQueue(queue.getName());
 	}
@@ -97,7 +100,7 @@ public class AmqpOutboundEndpointTests2 {
 		@Bean
 		public IntegrationFlow flow(RabbitTemplate template) {
 			return f -> f.handle(Amqp.outboundAdapter(template)
-							.exchangeName("")
+					.exchangeName("")
 					.routingKeyFunction(msg -> msg.getHeaders().get("rk", String.class))
 					.confirmCorrelationFunction(msg -> msg)
 					.waitForConfirm(true));
@@ -107,7 +110,7 @@ public class AmqpOutboundEndpointTests2 {
 		public CachingConnectionFactory cf() {
 			CachingConnectionFactory ccf = new CachingConnectionFactory(
 					RabbitAvailableCondition.getBrokerRunning().getConnectionFactory());
-			ccf.setPublisherConfirms(true);
+			ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
 			ccf.setPublisherReturns(true);
 			return ccf;
 		}

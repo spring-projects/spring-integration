@@ -31,17 +31,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.junit.AfterClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.listener.adapter.ReplyingMessageListener;
@@ -54,7 +51,7 @@ import org.springframework.integration.amqp.support.ReturnedAmqpMessageException
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -67,25 +64,14 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @since 4.3
  *
  */
-public class AsyncAmqpGatewayTests {
-
-	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues("asyncQ1", "asyncRQ1");
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.amqp");
-
-	@AfterClass
-	public static void tearDown() {
-		brokerRunning.removeTestQueues();
-	}
+@RabbitAvailable(queues = { "asyncQ1", "asyncRQ1" })
+@LogLevels(categories = "org.springframework.amqp", level = "trace")
+class AsyncAmqpGatewayTests {
 
 	@Test
-	public void testConfirmsAndReturns() throws Exception {
+	void testConfirmsAndReturns() throws Exception {
 		CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
-		ccf.setPublisherConfirms(true);
+		ccf.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
 		ccf.setPublisherReturns(true);
 		RabbitTemplate template = new RabbitTemplate(ccf);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
@@ -213,7 +199,7 @@ public class AsyncAmqpGatewayTests {
 				any(org.springframework.amqp.core.Message.class));
 		DirectFieldAccessor dfa = new DirectFieldAccessor(future);
 		dfa.setPropertyValue("nackCause", "nacknack");
-		SettableListenableFuture<Boolean> confirmFuture = new SettableListenableFuture<Boolean>();
+		SettableListenableFuture<Boolean> confirmFuture = new SettableListenableFuture<>();
 		confirmFuture.set(false);
 		dfa.setPropertyValue("confirm", confirmFuture);
 		new DirectFieldAccessor(gateway).setPropertyValue("template", asyncTemplate);
