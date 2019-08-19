@@ -133,18 +133,21 @@ public class StandardRotationPolicy implements RotationPolicy {
 		onRotation(source);
 	}
 
+	/**
+	 * Update the state of the {@link MessageSource} after the server is rotated, if necessary.
+	 * The default implementation updates the remote directory for known MessageSource implementations that require it,
+	 * specifically, instances of {@link AbstractRemoteFileStreamingMessageSource}, and
+	 * {@link AbstractInboundFileSynchronizingMessageSource}, and does nothing otherwise.
+	 * Subclasses may override this method to support other MessageSource types.
+	 * @param source the MessageSource.
+	 */
 	protected void onRotation(MessageSource<?> source) {
-		Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
-						|| source instanceof AbstractRemoteFileStreamingMessageSource,
-				"source must be an AbstractInboundFileSynchronizingMessageSource or a "
-						+ "AbstractRemoteFileStreamingMessageSource");
-
 		if (source instanceof AbstractRemoteFileStreamingMessageSource) {
-			((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(getCurrent().getDirectory());
+			((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
 		}
-		else {
+		else if (source instanceof AbstractInboundFileSynchronizingMessageSource) {
 			((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-					.setRemoteDirectory(getCurrent().getDirectory());
+					.setRemoteDirectory(this.current.getDirectory());
 		}
 	}
 
