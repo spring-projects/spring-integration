@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.lock;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,15 +56,28 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 
 	private final LockRepository client;
 
+	private Duration idleBetweenTries = Duration.ofMillis(100);
+
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
+	}
+
+	/**
+	 * Specify a @link Duration} to sleep between lock record insert/update attempts.
+	 * Defaults to 100 milliseconds.
+	 * @param idleBetweenTries the {@link Duration} to sleep between insert/update attempts.
+	 * @since 5.1.8
+	 */
+	public void setIdleBetweenTries(Duration idleBetweenTries) {
+		Assert.notNull(idleBetweenTries, "'idleBetweenTries' must not be null");
+		this.idleBetweenTries = idleBetweenTries;
 	}
 
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		return this.locks.computeIfAbsent(path, p -> new JdbcLock(this.client, p));
+		return this.locks.computeIfAbsent(path, (key) -> new JdbcLock(this.client, this.idleBetweenTries, key));
 	}
 
 	private String pathFor(String input) {
@@ -87,14 +101,17 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 
 		private final LockRepository mutex;
 
+		private final Duration idleBetweenTries;
+
 		private final String path;
 
 		private volatile long lastUsed = System.currentTimeMillis();
 
 		private final ReentrantLock delegate = new ReentrantLock();
 
-		JdbcLock(LockRepository client, String path) {
+		JdbcLock(LockRepository client, Duration idleBetweenTries, String path) {
 			this.mutex = client;
+			this.idleBetweenTries = idleBetweenTries;
 			this.path = path;
 		}
 
@@ -108,7 +125,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			while (true) {
 				try {
 					while (!doLock()) {
-						Thread.sleep(100); //NOSONAR
+						Thread.sleep(this.idleBetweenTries.toMillis());
 					}
 					break;
 				}
@@ -116,11 +133,11 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					// try again
 				}
 				catch (InterruptedException e) {
-						/*
-						 * This method must be uninterruptible so catch and ignore
-						 * interrupts and only break out of the while loop when
-						 * we get the lock.
-						 */
+					/*
+					 * This method must be uninterruptible so catch and ignore
+					 * interrupts and only break out of the while loop when
+					 * we get the lock.
+					 */
 				}
 				catch (Exception e) {
 					this.delegate.unlock();
@@ -139,7 +156,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			while (true) {
 				try {
 					while (!doLock()) {
-						Thread.sleep(100); //NOSONAR
+						Thread.sleep(this.idleBetweenTries.toMillis());
 						if (Thread.currentThread().isInterrupted()) {
 							throw new InterruptedException();
 						}
@@ -183,7 +200,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			while (true) {
 				try {
 					while (!(acquired = doLock()) && System.currentTimeMillis() < expire) { //NOSONAR
-						Thread.sleep(100); //NOSONAR
+						Thread.sleep(this.idleBetweenTries.toMillis());
 					}
 					if (!acquired) {
 						this.delegate.unlock();

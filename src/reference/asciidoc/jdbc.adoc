@@ -1086,6 +1086,9 @@ The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for thi
 You may also want to specify `CLIENT_ID` for the locks stored for a given `DefaultLockRepository` instance.
 If so, you can specify the `id` to be associated with the `DefaultLockRepository` as a constructor parameter.
 
+Starting with version 5.1.8, the `JdbcLockRegistry` can be configured with the `idleBetweenTries` - a `Duration` to sleep between lock record insert/update executions.
+By default it is `100` milliseconds and in some environments non-leaders pollute connections with data source too often.
+
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
 
