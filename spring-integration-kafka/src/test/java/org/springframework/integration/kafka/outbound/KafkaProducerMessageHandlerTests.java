@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -475,7 +476,7 @@ public class KafkaProducerMessageHandlerTests {
 		willAnswer(i -> {
 			closeLatch.countDown();
 			return null;
-		}).given(producer).close();
+		}).given(producer).close(any());
 		ProducerFactory pf = mock(ProducerFactory.class);
 		given(pf.transactionCapable()).willReturn(true);
 		final List<String> transactionalIds = new ArrayList<>();
@@ -488,6 +489,7 @@ public class KafkaProducerMessageHandlerTests {
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
 		props.setTransactionManager(ptm);
+		props.setMissingTopicsFatal(false);
 		final KafkaTemplate template = new KafkaTemplate(pf);
 		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
 		container.setBeanName("commit");
@@ -506,7 +508,7 @@ public class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
 				new OffsetAndMetadata(0)), "group");
 		inOrder.verify(producer).commitTransaction();
-		inOrder.verify(producer).close();
+		inOrder.verify(producer).close(any());
 		inOrder.verify(producer).beginTransaction();
 		ArgumentCaptor<ProducerRecord> captor = ArgumentCaptor.forClass(ProducerRecord.class);
 		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
@@ -514,12 +516,133 @@ public class KafkaProducerMessageHandlerTests {
 		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
 				new OffsetAndMetadata(1)), "group");
 		inOrder.verify(producer).commitTransaction();
-		inOrder.verify(producer).close();
+		inOrder.verify(producer).close(any());
 		container.stop();
 		verify(pf, times(2)).createProducer(isNull());
 		verifyNoMoreInteractions(producer);
 		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
+		assertThat(transactionalIds.get(1)).isEqualTo("group.foo.0");
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testTransactionTxIdOverride() {
+		Producer producer = mock(Producer.class);
+		AtomicReference<String> txId = new AtomicReference<>();
+		DefaultKafkaProducerFactory pf = new DefaultKafkaProducerFactory(Collections.emptyMap()) {
+
+			@Override
+			protected Producer createTransactionalProducer(String txIdPrefix) {
+				txId.set(txIdPrefix);
+				return producer;
+			}
+
+
+		};
+		pf.setTransactionIdPrefix("default.tx.id.");
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		template.setTransactionIdPrefix("overridden.tx.id.");
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		handler.start();
+		handler.handleMessage(new GenericMessage<>("foo"));
+		handler.stop();
+		InOrder inOrder = inOrder(producer);
+		inOrder.verify(producer).beginTransaction();
+		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
+		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).flush();
+		assertThat(txId.get()).isEqualTo("overridden.tx.id.");
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testConsumeAndProduceTransactionTxIdOverride() throws Exception {
+		Consumer mockConsumer = mock(Consumer.class);
+		final TopicPartition topicPartition = new TopicPartition("foo", 0);
+		willAnswer(i -> {
+			((ConsumerRebalanceListener) i.getArgument(1))
+					.onPartitionsAssigned(Collections.singletonList(topicPartition));
+			return null;
+		}).given(mockConsumer).subscribe(any(Collection.class), any(ConsumerRebalanceListener.class));
+		ConsumerRecords records = new ConsumerRecords(Collections.singletonMap(topicPartition,
+				Collections.singletonList(new ConsumerRecord<>("foo", 0, 0, "key", "value"))));
+		final AtomicBoolean done = new AtomicBoolean();
+		willAnswer(i -> {
+			if (done.compareAndSet(false, true)) {
+				return records;
+			}
+			else {
+				Thread.sleep(500);
+				return null;
+			}
+		}).given(mockConsumer).poll(any(Duration.class));
+		ConsumerFactory cf = mock(ConsumerFactory.class);
+		willReturn(mockConsumer).given(cf).createConsumer("group", "", null, KafkaTestUtils.defaultPropertyOverrides());
+		Producer producer = mock(Producer.class);
+		final CountDownLatch closeLatch = new CountDownLatch(2);
+		willAnswer(i -> {
+			closeLatch.countDown();
+			return null;
+		}).given(producer).close(any());
+		AtomicReference<String> txId = new AtomicReference<>();
+		final List<String> transactionalIds = new ArrayList<>();
+		DefaultKafkaProducerFactory pf = new DefaultKafkaProducerFactory(Collections.emptyMap()) {
+
+			@Override
+			protected Producer createTransactionalProducerForPartition(String txIdPrefix) {
+				txId.set(txIdPrefix);
+				transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
+				return producer;
+			}
+
+
+		};
+		pf.setTransactionIdPrefix("default.tx.id.");
+		KafkaTransactionManager tm = new KafkaTransactionManager(pf);
+		tm.setTransactionIdPrefix("tm.tx.id.");
+		ContainerProperties props = new ContainerProperties("foo");
+		props.setGroupId("group");
+		props.setTransactionManager(tm);
+		props.setMissingTopicsFatal(false);
+		final KafkaTemplate template = new KafkaTemplate(pf);
+		template.setTransactionIdPrefix("template.tx.id.");
+		KafkaMessageListenerContainer container = new KafkaMessageListenerContainer<>(cf, props);
+		container.setBeanName("commit");
+		KafkaMessageDrivenChannelAdapter inbound = new KafkaMessageDrivenChannelAdapter<>(container);
+		DirectChannel channel = new DirectChannel();
+		inbound.setOutputChannel(channel);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setMessageKeyExpression(new LiteralExpression("bar"));
+		handler.setTopicExpression(new LiteralExpression("topic"));
+		channel.subscribe(handler);
+		inbound.afterPropertiesSet();
+		inbound.start();
+		assertThat(closeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		InOrder inOrder = inOrder(producer);
+		inOrder.verify(producer).beginTransaction();
+		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
+				new OffsetAndMetadata(0)), "group");
+		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).close(any());
+		inOrder.verify(producer).beginTransaction();
+		ArgumentCaptor<ProducerRecord> captor = ArgumentCaptor.forClass(ProducerRecord.class);
+		inOrder.verify(producer).send(captor.capture(), any(Callback.class));
+		assertThat(captor.getValue()).isEqualTo(new ProducerRecord("topic", null, "bar", "value"));
+		inOrder.verify(producer).sendOffsetsToTransaction(Collections.singletonMap(topicPartition,
+				new OffsetAndMetadata(1)), "group");
+		inOrder.verify(producer).commitTransaction();
+		inOrder.verify(producer).close(any());
+		container.stop();
+		verifyNoMoreInteractions(producer);
+		assertThat(transactionalIds).hasSizeGreaterThanOrEqualTo(2);
 		assertThat(transactionalIds.get(0)).isEqualTo("group.foo.0");
+		assertThat(transactionalIds.get(1)).isEqualTo("group.foo.0");
+		assertThat(txId.get()).isEqualTo("tm.tx.id.");
 	}
 
 }
