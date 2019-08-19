@@ -54,6 +54,7 @@ as single searchable link:index-single.html[html] and link:../pdf/spring-integra
 **Appendices** ::
 
 [horizontal]
+<<./error-handling.adoc#error-handling,Error Handling>> ::
 <<./spel.adoc#spel,Spring Expression Language (SpEL)>> ::
 <<./message-publishing.adoc#message-publishing,Message Publishing>> ::
 <<./transactions.adoc#transactions,Transaction Support>> ::

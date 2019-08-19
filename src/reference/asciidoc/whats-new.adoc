@@ -84,7 +84,7 @@ The `Function<MessageGroup, Map<String, Object>>` strategy has been introduced f
 See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
 
 All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
-See <<./configuration.adoc#namespace-errorhandler,Error Handling>> for more information.
+See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
 [[x5.2-amqp]]
 ==== AMQP Changes

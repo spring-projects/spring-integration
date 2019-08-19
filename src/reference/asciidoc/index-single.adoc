@@ -90,6 +90,9 @@ The appendices cover advanced topics and additional resources.
 The last appendix covers the history of Spring Integration.
 
 [appendix]
+include::./error-handling.adoc[]
+
+[appendix]
 include::./spel.adoc[]
 
 [appendix]
