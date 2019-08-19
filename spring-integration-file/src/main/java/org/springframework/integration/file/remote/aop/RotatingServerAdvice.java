@@ -208,6 +208,15 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			onRotation(source);
 		}
 
+		/**
+		 * Update the state of the {@link MessageSource} after the server is rotated, if necessary.
+		 * The default implementation updates the remote directory for known MessageSource implementations that require it,
+		 * specifically, instances of {@link AbstractRemoteFileStreamingMessageSource}, and
+		 * {@link AbstractInboundFileSynchronizingMessageSource}, and does nothing otherwise.
+		 * Subclasses may override this method to support other MessageSource types.
+		 *
+		 * @param source the MessageSource.
+		 */
 		protected void onRotation(MessageSource<?> source) {
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
 				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
