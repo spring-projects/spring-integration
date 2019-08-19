@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
@@ -100,7 +101,7 @@ public class KafkaOutboundAdapterParserTests {
 				new MockProducer<Integer, String>(false, new IntegerSerializer(), new StringSerializer()) {
 
 					@Override
-					public void close() {
+					public void close(Duration timeout) {
 						// To avoid non transactional closes.
 					}
 
