@@ -171,7 +171,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			return this.fair;
 		}
 
-		protected KeyDirectory getCurrent() {
+		public KeyDirectory getCurrent() {
 			return this.current;
 		}
 
@@ -201,18 +201,27 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		}
 
 		protected void configureSource(MessageSource<?> source) {
-			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
-							|| source instanceof AbstractRemoteFileStreamingMessageSource,
-					"source must be an AbstractInboundFileSynchronizingMessageSource or a "
-							+ "AbstractRemoteFileStreamingMessageSource");
 			if (!this.iterator.hasNext()) {
 				this.iterator = this.keyDirectories.iterator();
 			}
 			this.current = this.iterator.next();
+			onRotation(source);
+		}
+
+		/**
+		 * Update the state of the {@link MessageSource} after the server is rotated, if necessary.
+		 * The default implementation updates the remote directory for known MessageSource implementations that require it,
+		 * specifically, instances of {@link AbstractRemoteFileStreamingMessageSource}, and
+		 * {@link AbstractInboundFileSynchronizingMessageSource}, and does nothing otherwise.
+		 * Subclasses may override this method to support other MessageSource types.
+		 *
+		 * @param source the MessageSource.
+		 */
+		protected void onRotation(MessageSource<?> source) {
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
 				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
 			}
-			else {
+			else if (source instanceof AbstractInboundFileSynchronizingMessageSource) {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
 						.setRemoteDirectory(this.current.getDirectory());
 			}
