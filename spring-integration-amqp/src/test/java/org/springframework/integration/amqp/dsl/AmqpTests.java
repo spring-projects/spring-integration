@@ -131,22 +131,11 @@ public class AmqpTests {
 	private PollableChannel amqpReplyChannel;
 
 	@Test
-	public void testAmqpOutboundFlow() throws Exception {
+	public void testAmqpOutboundFlow() {
 		this.amqpOutboundInput.send(MessageBuilder.withPayload("hello through the amqp")
 				.setHeader("routingKey", "si.dsl.test")
 				.build());
-		Message<?> receive = null;
-		int i = 0;
-		do {
-			receive = this.amqpReplyChannel.receive();
-			if (receive != null) {
-				break;
-			}
-			Thread.sleep(100);
-			i++;
-		}
-		while (i < 10);
-
+		Message<?> receive = this.amqpReplyChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("HELLO THROUGH THE AMQP");
 
