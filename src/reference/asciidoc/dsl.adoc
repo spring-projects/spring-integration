@@ -816,6 +816,11 @@ When you configure a sub-flow as a lambda, the framework handles the request-rep
 Sub-flows can be nested to any depth, but we do not recommend doing so.
 In fact, even in the router case, adding complex sub-flows within a flow would quickly begin to look like a plate of spaghetti and be difficult for a human to parse.
 
+NOTE: Any sub-flow mappings end up with a `MessageChannel` connection between an original component as a producer (e.g. a `discardChannel` in the `MessageFilter`) and the first endpoint in the sub-flow as a consumer.
+When sub-flow is started with a channel, an extra `bridge()` is placed between the mapping channel and this one to make the proper flow wiring.
+When an existing `IntegrationFlow` bean is used as a subflow reference, there is no such a bridge in between since the framework can resolve the first channel from the flow bean.
+This information is not available yet from inline subflows.
+
 [[java-dsl-protocol-adapters]]
 === Using Protocol Adapters
 
