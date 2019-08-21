@@ -52,11 +52,13 @@ import org.springframework.util.Assert;
  */
 public class JdbcLockRegistry implements ExpirableLockRegistry {
 
+	private static final int DEFAULT_IDLE = 100;
+
 	private final Map<String, JdbcLock> locks = new ConcurrentHashMap<>();
 
 	private final LockRepository client;
 
-	private Duration idleBetweenTries = Duration.ofMillis(100);
+	private Duration idleBetweenTries = Duration.ofMillis(DEFAULT_IDLE);
 
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
