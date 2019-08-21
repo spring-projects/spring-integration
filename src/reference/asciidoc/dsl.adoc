@@ -816,6 +816,24 @@ When you configure a sub-flow as a lambda, the framework handles the request-rep
 Sub-flows can be nested to any depth, but we do not recommend doing so.
 In fact, even in the router case, adding complex sub-flows within a flow would quickly begin to look like a plate of spaghetti and be difficult for a human to parse.
 
+[NOTE]
+====
+In cases where the DSL supports a subflow configuration, when a channel is normally needed for the component being configured, and that subflow starts with a `channel()` element, the framework implicitly places a `bridge()` between the component output channel and the flow's input channel.
+For example, in this `filter` definition:
+
+[source,java]
+----
+.filter(p -> p instanceof String, e -> e
+	.discardFlow(df -> df
+                         .channel(MessageChannels.queue())
+                         ...)
+----
+the Framework internally creates a `DirectChannel` bean for injecting into the `MessageFilter.discardChannel`.
+Then it wraps the subflow into an `IntegrationFlow` starting with this implicit channel for the subscription and places a `bridge` before the `channel()` specified in the flow.
+When an existing `IntegrationFlow` bean is used as a subflow reference (instead of an inline subflow, e.g. a lambda), there is no such bridge required because the framework can resolve the first channel from the flow bean.
+With an inline subflow, the input channel is not yet available.
+====
+
 [[java-dsl-protocol-adapters]]
 === Using Protocol Adapters
 
