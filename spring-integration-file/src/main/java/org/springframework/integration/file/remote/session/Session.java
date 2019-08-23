@@ -109,6 +109,13 @@ public interface Session<F> extends Closeable {
 	Object getClientInstance();
 
 	/**
+	 * Return the host:port this session is connected to.
+	 * @return the host:port this session is connected to.
+	 * @since 5.2
+	 */
+	String getHost();
+
+	/**
 	 * Test the session is still alive, e.g. when checking out from a pool.
 	 * The default implementation simply delegates to {@link #isOpen()}.
 	 * @return true if the test is successful.

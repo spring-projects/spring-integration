@@ -52,4 +52,9 @@ public abstract class FileHeaders {
 	 */
 	public static final String REMOTE_FILE_INFO = PREFIX + "remoteFileInfo";
 
+	/**
+	 * A remote host/port the file has been polled from
+	 */
+	public static final String REMOTE_HOST = PREFIX + "remoteHost";
+
 }

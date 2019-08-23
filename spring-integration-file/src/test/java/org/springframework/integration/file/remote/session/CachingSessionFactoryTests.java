@@ -17,13 +17,12 @@
 package org.springframework.integration.file.remote.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -31,13 +30,15 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -46,7 +47,7 @@ public class CachingSessionFactoryTests {
 	@Test
 	public void testCacheAndReset() {
 		TestSessionFactory factory = new TestSessionFactory();
-		CachingSessionFactory<String> cache = new CachingSessionFactory<String>(factory);
+		CachingSessionFactory<String> cache = new CachingSessionFactory<>(factory);
 		cache.setTestSession(true);
 		Session<String> sess1 = cache.getSession();
 		assertThat(TestUtils.getPropertyValue(sess1, "targetSession.id")).isEqualTo("session:1");
@@ -83,25 +84,24 @@ public class CachingSessionFactoryTests {
 		when(factory.getSession()).thenReturn(session);
 		when(session.readRaw("foo")).thenReturn(new ByteArrayInputStream("".getBytes()));
 		when(session.finalizeRaw()).thenReturn(true);
-		CachingSessionFactory<Object> ccf = new CachingSessionFactory<Object>(factory);
-		RemoteFileTemplate<Object> template = new RemoteFileTemplate<Object>(ccf);
+		CachingSessionFactory<Object> ccf = new CachingSessionFactory<>(factory);
+		RemoteFileTemplate<Object> template = new RemoteFileTemplate<>(ccf);
 		template.setFileNameExpression(new LiteralExpression("foo"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
-		try {
-			template.get(new GenericMessage<String>("foo"), (InputStreamCallback) stream -> {
-				throw new RuntimeException("bar");
-			});
-			fail("Expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause()).isInstanceOf(RuntimeException.class);
-			assertThat(e.getCause().getMessage()).isEqualTo("bar");
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() ->
+						template.get(new GenericMessage<>("foo"),
+								stream -> {
+									throw new RuntimeException("bar");
+								}))
+				.withCauseInstanceOf(RuntimeException.class)
+				.withMessageContaining("bar");
 		verify(session).close();
 	}
 
-	private class TestSessionFactory implements SessionFactory<String> {
+	private static class TestSessionFactory implements SessionFactory<String> {
 
 		private int n;
 
@@ -112,7 +112,7 @@ public class CachingSessionFactoryTests {
 
 	}
 
-	private class TestSession implements Session<String> {
+	private static class TestSession implements Session<String> {
 
 		@SuppressWarnings("unused")
 		private final String id;
@@ -127,39 +127,39 @@ public class CachingSessionFactoryTests {
 		}
 
 		@Override
-		public boolean remove(String path) throws IOException {
+		public boolean remove(String path) {
 			return false;
 		}
 
 		@Override
-		public String[] list(String path) throws IOException {
+		public String[] list(String path) {
 			return null;
 		}
 
 		@Override
-		public void read(String source, OutputStream outputStream) throws IOException {
+		public void read(String source, OutputStream outputStream) {
 		}
 
 		@Override
-		public void write(InputStream inputStream, String destination) throws IOException {
+		public void write(InputStream inputStream, String destination) {
 		}
 
 		@Override
-		public void append(InputStream inputStream, String destination) throws IOException {
+		public void append(InputStream inputStream, String destination) {
 		}
 
 		@Override
-		public boolean mkdir(String directory) throws IOException {
+		public boolean mkdir(String directory) {
 			return false;
 		}
 
 		@Override
-		public boolean rmdir(String directory) throws IOException {
+		public boolean rmdir(String directory) {
 			return false;
 		}
 
 		@Override
-		public void rename(String pathFrom, String pathTo) throws IOException {
+		public void rename(String pathFrom, String pathTo) {
 		}
 
 		@Override
@@ -173,27 +173,32 @@ public class CachingSessionFactoryTests {
 		}
 
 		@Override
-		public boolean exists(String path) throws IOException {
+		public boolean exists(String path) {
 			return false;
 		}
 
 		@Override
-		public String[] listNames(String path) throws IOException {
+		public String[] listNames(String path) {
 			return null;
 		}
 
 		@Override
-		public InputStream readRaw(String source) throws IOException {
+		public InputStream readRaw(String source) {
 			return null;
 		}
 
 		@Override
-		public boolean finalizeRaw() throws IOException {
+		public boolean finalizeRaw() {
 			return false;
 		}
 
 		@Override
 		public Object getClientInstance() {
+			return null;
+		}
+
+		@Override
+		public String getHost() {
 			return null;
 		}
 

@@ -17,7 +17,7 @@
 package org.springframework.integration.file.remote.synchronizer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -83,19 +83,14 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 		};
-		sync.setFilter(new AcceptOnceFileListFilter<String>());
+		sync.setFilter(new AcceptOnceFileListFilter<>());
 		sync.setRemoteDirectory("foo");
 
-		try {
-			sync.synchronizeToLocalDirectory(mock(File.class));
-			assertThat(count.get()).isEqualTo(1);
-			fail("Expected exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause()).isInstanceOf(MessagingException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(IOException.class);
-			assertThat(e.getCause().getCause().getMessage()).isEqualTo("fail");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> sync.synchronizeToLocalDirectory(mock(File.class)))
+				.withRootCauseInstanceOf(IOException.class)
+				.withMessageContaining("fail");
+
 		sync.synchronizeToLocalDirectory(mock(File.class));
 		assertThat(count.get()).isEqualTo(3);
 		sync.close();
@@ -269,13 +264,13 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 		};
-		sync.setFilter(new AcceptOnceFileListFilter<String>());
+		sync.setFilter(new AcceptOnceFileListFilter<>());
 		sync.setRemoteDirectory("foo");
 		sync.setBeanFactory(mock(BeanFactory.class));
 		return sync;
 	}
 
-	private class StringSessionFactory implements SessionFactory<String> {
+	private static class StringSessionFactory implements SessionFactory<String> {
 
 		@Override
 		public Session<String> getSession() {
@@ -284,7 +279,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 	}
 
-	private class StringSession implements Session<String> {
+	private static class StringSession implements Session<String> {
 
 		StringSession() {
 			super();
@@ -357,6 +352,11 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		@Override
 		public Object getClientInstance() {
+			return null;
+		}
+
+		@Override
+		public String getHost() {
 			return null;
 		}
 

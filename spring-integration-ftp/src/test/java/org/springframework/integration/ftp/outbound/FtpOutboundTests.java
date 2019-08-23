@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -88,12 +89,12 @@ public class FtpOutboundTests {
 			file.delete();
 		}
 		assertThat(file.exists()).isFalse();
-		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<String>("String data"));
+		handler.handleMessage(new GenericMessage<>("String data"));
 		assertThat(file.exists()).isTrue();
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
 		assertThat(new String(inFile)).isEqualTo("String data");
@@ -107,12 +108,12 @@ public class FtpOutboundTests {
 			file.delete();
 		}
 		assertThat(file.exists()).isFalse();
-		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<byte[]>("byte[] data".getBytes()));
+		handler.handleMessage(new GenericMessage<>("byte[] data".getBytes()));
 		assertThat(file.exists()).isTrue();
 		byte[] inFile = FileCopyUtils.copyToByteArray(file);
 		assertThat(new String(inFile)).isEqualTo("byte[] data");
@@ -124,7 +125,7 @@ public class FtpOutboundTests {
 		File targetDir = new File("remote-target-dir");
 		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
-		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -141,7 +142,7 @@ public class FtpOutboundTests {
 	}
 
 	@Test
-	public void testHandleMissingFileMessage() throws Exception {
+	public void testHandleMissingFileMessage() {
 		File targetDir = new File("remote-target-dir");
 		assertThat(targetDir.exists()).as("target directory does not exist: " + targetDir.getName()).isTrue();
 
@@ -191,7 +192,7 @@ public class FtpOutboundTests {
 	}
 
 	@Test //INT-2275
-	public void testFtpOutboundGatewayInsideChain() throws Exception {
+	public void testFtpOutboundGatewayInsideChain() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"FtpOutboundInsideChainTests-context.xml", getClass());
 
@@ -248,7 +249,9 @@ public class FtpOutboundTests {
 							any(OutputStream.class))).thenReturn(true);
 				}
 				when(ftpClient.listFiles("remote-test-dir/"))
-						.thenReturn(ftpFiles.toArray(new FTPFile[ftpFiles.size()]));
+						.thenReturn(ftpFiles.toArray(new FTPFile[0]));
+				when(ftpClient.getRemoteAddress())
+						.thenReturn(InetAddress.getByName("127.0.0.1"));
 				return ftpClient;
 			}
 			catch (Exception e) {

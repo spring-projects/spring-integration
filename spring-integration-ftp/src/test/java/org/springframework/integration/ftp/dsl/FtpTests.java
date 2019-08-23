@@ -153,6 +153,7 @@ public class FtpTests extends FtpTestSupport {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" ftpSource1.txt", "ftpSource2.txt");
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST, String.class)).contains("localhost:");
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);

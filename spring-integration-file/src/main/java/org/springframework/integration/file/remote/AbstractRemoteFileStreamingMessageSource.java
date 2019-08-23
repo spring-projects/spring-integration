@@ -205,6 +205,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 								.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
 								.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
 								.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+								.setHeader(FileHeaders.REMOTE_HOST, session.getHost())
 								.setHeader(FileHeaders.REMOTE_FILE_INFO,
 										this.fileInfoJson ? file.toJson() : file);
 					}

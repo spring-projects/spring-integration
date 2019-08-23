@@ -37,11 +37,13 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Alen Turkovic
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
 
-	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
+	private static final Log LOGGER = LogFactory.getLog(CachingSessionFactory.class);
 
 	private final SessionFactory<F> sessionFactory;
 
@@ -55,7 +57,6 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	/**
 	 * Create a CachingSessionFactory with an unlimited number of sessions.
-	 *
 	 * @param sessionFactory the underlying session factory.
 	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
@@ -66,11 +67,9 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * Create a CachingSessionFactory with the specified session limit. By default, if
 	 * no sessions are available in the cache, and the size limit has been reached,
 	 * calling threads will block until a session is available.
-	 * <p>
-	 * Do not cache a {@link DelegatingSessionFactory}, cache each delegate therein instead.
+	 * <p> Do not cache a {@link DelegatingSessionFactory}, cache each delegate therein instead.
 	 * @see #setSessionWaitTimeout(long)
 	 * @see #setPoolSize(int)
-	 *
 	 * @param sessionFactory The underlying session factory.
 	 * @param sessionCacheSize The maximum cache size.
 	 */
@@ -78,7 +77,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		Assert.isTrue(!(sessionFactory instanceof DelegatingSessionFactory),
 				"'sessionFactory' cannot be a 'DelegatingSessionFactory'; cache each delegate instead");
 		this.sessionFactory = sessionFactory;
-		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+		this.pool = new SimplePool<>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
 			@Override
 			public Session<F> createForPool() {
 				return CachingSessionFactory.this.sessionFactory.getSession();
@@ -100,7 +99,6 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	/**
 	 * Sets the limit of how long to wait for a session to become available.
-	 *
 	 * @param sessionWaitTimeout the session wait timeout.
 	 * @throws IllegalStateException if the wait expires prior to a Session becoming available.
 	 */
@@ -111,7 +109,6 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Modify the target session pool size; the actual pool size will adjust up/down
 	 * to this size as and when sessions are requested or retrieved.
-	 *
 	 * @param poolSize The pool size.
 	 */
 	public void setPoolSize(int poolSize) {
@@ -148,9 +145,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * returned to the cache.
 	 */
 	public synchronized void resetCache() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
-		}
+		LOGGER.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
 		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
 			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
 		}
@@ -169,7 +164,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		this.pool.removeAllIdleItems();
 	}
 
-	public class CachedSession implements Session<F> { //NOSONAR (final)
+	public class CachedSession implements Session<F> { //NOSONAR must be final, but can't for mocking in tests
 
 		private final Session<F> targetSession;
 
@@ -190,17 +185,17 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		@Override
 		public synchronized void close() {
 			if (this.released) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Session " + this.targetSession + " already released.");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Session " + this.targetSession + " already released.");
 				}
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Releasing Session " + this.targetSession + " back to the pool.");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Releasing Session " + this.targetSession + " back to the pool.");
 				}
 				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Closing session " + this.targetSession + " after reset.");
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Closing session " + this.targetSession + " after reset.");
 					}
 					this.targetSession.close();
 				}
@@ -293,6 +288,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		@Override
 		public Object getClientInstance() {
 			return this.targetSession.getClientInstance();
+		}
+
+		@Override
+		public String getHost() {
+			return this.targetSession.getHost();
 		}
 
 	}
