@@ -29,11 +29,15 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="cp" class="org.springframework.kafka.listener.ConsumerProperties">
+		<constructor-arg name="topics" value="one"/>
+		<property name="groupId" value="groupForTopic1"/>
+	</bean>
+
 	<int-kafka:inbound-channel-adapter
 			channel="fromOne"
 			consumer-factory="cf"
-			topics="one"
-			group-id="groupForTopic1">
+			consumer-properties="cp">
 		<int:poller fixed-delay="5000"/>
 	</int-kafka:inbound-channel-adapter>
 

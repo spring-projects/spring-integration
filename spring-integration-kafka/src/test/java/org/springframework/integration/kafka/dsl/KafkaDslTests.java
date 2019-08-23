@@ -57,6 +57,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
@@ -83,6 +84,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Nasko Vasilev
  * @author Biju Kunjummen
  * @author Gary Russell
+ * @author Anshul Mehra
  *
  * @since 3.0
  */
@@ -337,7 +339,7 @@ public class KafkaDslTests {
 		@Bean
 		public IntegrationFlow sourceFlow() {
 			return IntegrationFlows
-					.from(Kafka.inboundChannelAdapter(consumerFactory(), TEST_TOPIC3),
+					.from(Kafka.inboundChannelAdapter(consumerFactory(), new ConsumerProperties(TEST_TOPIC3)),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
 						this.fromSource = p.getPayload();

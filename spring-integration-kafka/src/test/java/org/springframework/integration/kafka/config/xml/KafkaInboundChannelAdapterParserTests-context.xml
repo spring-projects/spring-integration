@@ -10,25 +10,21 @@
 	<int-kafka:inbound-channel-adapter
 			id="adapter1"
 			consumer-factory="consumerFactory"
+			consumer-properties="consumerProperties1"
 			ack-factory="ackFactory"
-			topics="topic1"
 			channel="inbound"
-			client-id="client"
-			group-id="group"
 			message-converter="converter"
 			payload-type="java.lang.String"
 			raw-header="true"
-			auto-startup="false"
-			rebalance-listener="rebal">
+			auto-startup="false">
 		<int:poller fixed-delay="5000"/>
 	</int-kafka:inbound-channel-adapter>
 
 	<int-kafka:inbound-channel-adapter
 			id="adapter2"
 			consumer-factory="multiFetchConsumerFactory"
+			consumer-properties="consumerProperties2"
 			allow-multi-fetch="true"
-			topics="topic1, topic2"
-			group-id="group"
 			auto-startup="false"
 			channel="inbound">
 		<int:poller fixed-delay="5000"/>
@@ -40,6 +36,18 @@
 				<entry key="max.poll.records" value="1"/>
 			</map>
 		</constructor-arg>
+	</bean>
+
+	<bean id="consumerProperties1" class="org.springframework.kafka.listener.ConsumerProperties">
+		<constructor-arg name="topics" value="topic1"/>
+		<property name="groupId" value="group"/>
+		<property name="clientId" value="client"/>
+		<property name="consumerRebalanceListener" ref="rebal"/>
+	</bean>
+
+	<bean id="consumerProperties2" class="org.springframework.kafka.listener.ConsumerProperties">
+		<constructor-arg name="topics" value="topic1, topic2"/>
+		<property name="groupId" value="group"/>
 	</bean>
 
 	<bean id="multiFetchConsumerFactory" class="org.springframework.kafka.core.DefaultKafkaConsumerFactory">

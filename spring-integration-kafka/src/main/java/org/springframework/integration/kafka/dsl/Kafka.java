@@ -27,6 +27,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
@@ -38,6 +39,7 @@ import org.springframework.kafka.support.TopicPartitionOffset;
  * @author Artem Bilan
  * @author Nasko Vasilev
  * @author Gary Russell
+ * @author Anshul Mehra
  *
  * @since 3.0
  */
@@ -79,28 +81,13 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
 	 * @since 3.0.1
+	 * @deprecated in favor of {@link #inboundChannelAdapter(ConsumerFactory, ConsumerProperties)}
 	 */
+	@Deprecated
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory, String... topics) {
 
-		return inboundChannelAdapter(consumerFactory, false, topics);
-	}
-
-	/**
-	 * Create an initial {@link KafkaInboundChannelAdapterSpec} with the consumer factory and
-	 * topics.
-	 * @param consumerFactory the consumer factory.
-	 * @param allowMultiFetch true to fetch multiple records on each poll.
-	 * @param topics the topic(s).
-	 * @param <K> the Kafka message key type.
-	 * @param <V> the Kafka message value type.
-	 * @return the spec.
-	 * @since 3.2
-	 */
-	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
-			ConsumerFactory<K, V> consumerFactory, boolean allowMultiFetch, String... topics) {
-
-		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, allowMultiFetch, topics);
+		return inboundChannelAdapter(consumerFactory, new ConsumerProperties(topics), false);
 	}
 
 	/**
@@ -113,7 +100,10 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
 	 * @since 3.0.1
+	 * @deprecated in favor of
+	 * {@link #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory)}
 	 */
+	@Deprecated
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory,
 			KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
@@ -132,14 +122,92 @@ public final class Kafka {
 	 * @param <V> the Kafka message value type.
 	 * @return the spec.
 	 * @since 3.0.1
+	 * @deprecated in favor of
+	 * {@link #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)}
 	 */
+	@Deprecated
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
 			ConsumerFactory<K, V> consumerFactory,
 			KafkaAckCallbackFactory<K, V> ackCallbackFactory,
 			boolean allowMultiFetch,
 			String... topics) {
 
-		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, ackCallbackFactory, allowMultiFetch, topics);
+		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, new ConsumerProperties(topics), ackCallbackFactory, allowMultiFetch);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundChannelAdapterSpec} with the consumer factory and
+	 * topics.
+	 * @param consumerFactory the consumer factory.
+	 * @param consumerProperties the consumerProperties.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the spec.
+	 * @since 3.2
+	 */
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, ConsumerProperties consumerProperties) {
+
+		return inboundChannelAdapter(consumerFactory, consumerProperties, false);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundChannelAdapterSpec} with the consumer factory and
+	 * topics.
+	 * @param consumerFactory the consumer factory.
+	 * @param consumerProperties the consumerProperties.
+	 * @param allowMultiFetch true to fetch multiple records on each poll.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the spec.
+	 * @since 3.2
+	 */
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
+			ConsumerProperties consumerProperties,
+			boolean allowMultiFetch) {
+
+		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, consumerProperties, allowMultiFetch);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundChannelAdapterSpec} with the consumer factory and
+	 * topics with a custom ack callback factory.
+	 * @param consumerFactory the consumer factory.
+	 * @param consumerProperties the consumerProperties.
+	 * @param ackCallbackFactory the callback factory.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the spec.
+	 * @since 3.2
+	 */
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
+			ConsumerProperties consumerProperties,
+			KafkaAckCallbackFactory<K, V> ackCallbackFactory) {
+
+		return inboundChannelAdapter(consumerFactory, consumerProperties, ackCallbackFactory, false);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundChannelAdapterSpec} with the consumer factory and
+	 * topics with a custom ack callback factory.
+	 * @param consumerFactory the consumer factory.
+	 * @param consumerProperties the consumerProperties.
+	 * @param ackCallbackFactory the callback factory.
+	 * @param allowMultiFetch true to fetch multiple records on each poll.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type.
+	 * @return the spec.
+	 * @since 3.2
+	 */
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
+			ConsumerProperties consumerProperties,
+			KafkaAckCallbackFactory<K, V> ackCallbackFactory,
+			boolean allowMultiFetch) {
+
+		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, consumerProperties, ackCallbackFactory, allowMultiFetch);
 	}
 
 	/**

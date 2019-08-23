@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -40,6 +41,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Anshul Mehra
  *
  * @since 3.0.1
  *
@@ -59,9 +61,9 @@ public class MessageSourceIntegrationTests {
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
-		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, TOPIC1);
+		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC1);
 		final CountDownLatch assigned = new CountDownLatch(1);
-		source.setRebalanceListener(new ConsumerRebalanceListener() {
+		consumerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
 
 			@Override
 			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
@@ -73,6 +75,7 @@ public class MessageSourceIntegrationTests {
 			}
 
 		});
+		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, consumerProperties);
 
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
