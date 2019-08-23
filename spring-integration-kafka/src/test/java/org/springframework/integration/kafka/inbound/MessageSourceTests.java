@@ -62,6 +62,7 @@ import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -111,7 +112,7 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 		source.setRawMessageHeader(true);
 
 		Message<?> received = source.receive();
@@ -205,7 +206,7 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 
 		Message<?> received1 = source.receive();
 		consumer.paused(); // need some other interaction with mock between polls for InOrder
@@ -279,8 +280,9 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
-		source.setCommitTimeout(Duration.ofSeconds(30));
+		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
+		consumerProperties.setSyncCommitTimeout(Duration.ofSeconds(30));
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, consumerProperties);
 
 		Message<?> received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
@@ -347,7 +349,7 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 
 		Message<?> received1 = source.receive();
 		consumer.paused(); // need some other interaction with mock between polls for InOrder
@@ -407,17 +409,17 @@ public class MessageSourceTests {
 	@Test
 	public void testMaxPollRecords() {
 		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
-				"topic");
+				new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
-				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), "topic");
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
 		try {
 			new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
 
-			}), "topic");
+			}), new ConsumerProperties("topic"));
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
@@ -441,17 +443,17 @@ public class MessageSourceTests {
 		records1.put(topicPartition, Arrays.asList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
-		given(consumer.poll(Duration.of(2, ChronoUnit.SECONDS))).willReturn(cr1, ConsumerRecords.EMPTY);
+		given(consumer.poll(Duration.of(20 * 5000, ChronoUnit.MILLIS))).willReturn(cr1, ConsumerRecords.EMPTY);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Arrays.asList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
-		given(consumer.poll(Duration.of(50, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
+		given(consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 		source.setRawMessageHeader(true);
 
 		Message<?> received = source.receive();
@@ -477,13 +479,13 @@ public class MessageSourceTests {
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
 		// assignTimeout used on initial poll (before partition assigned)
-		inOrder.verify(consumer).poll(Duration.of(2, ChronoUnit.SECONDS));
+		inOrder.verify(consumer).poll(Duration.of(20 * 5000, ChronoUnit.MILLIS));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
 		// pollTimeout used on subsequent polls
-		inOrder.verify(consumer).poll(Duration.of(50, ChronoUnit.MILLIS));
+		inOrder.verify(consumer).poll(Duration.of(5000, ChronoUnit.MILLIS));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
 		// assignTimeout used after partitions revoked
-		inOrder.verify(consumer).poll(Duration.of(2, ChronoUnit.SECONDS));
+		inOrder.verify(consumer).poll(Duration.of(20 * 5000, ChronoUnit.MILLIS));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -513,7 +515,7 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 4)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, true, "foo");
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"), true);
 		source.setRawMessageHeader(true);
 
 		Message<?> received = source.receive();

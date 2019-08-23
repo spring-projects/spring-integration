@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * Parser for the inbound channel adapter.
  *
  * @author Gary Russell
+ * @author Anshul Mehra
  * @since 3.2
  *
  */
@@ -44,6 +45,10 @@ public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChan
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(KafkaMessageSource.class);
 		builder.addConstructorArgReference(element.getAttribute("consumer-factory"));
+		boolean hasConsumerProperties = StringUtils.hasText(element.getAttribute("consumer-properties"));
+		if (hasConsumerProperties) {
+			builder.addConstructorArgReference(element.getAttribute("consumer-properties"));
+		}
 		String attribute = element.getAttribute("ack-factory");
 		if (StringUtils.hasText(attribute)) {
 			builder.addConstructorArgReference(attribute);
@@ -52,13 +57,15 @@ public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChan
 		if (StringUtils.hasText(attribute)) {
 			builder.addConstructorArgValue(attribute);
 		}
-		builder.addConstructorArgValue(element.getAttribute("topics"));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
+		if (!hasConsumerProperties) {
+			builder.addConstructorArgValue(element.getAttribute("topics"));
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "group-id");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rebalance-listener");
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "raw-header", "rawMessageHeader");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rebalance-listener");
 		return builder.getBeanDefinition();
 	}
 

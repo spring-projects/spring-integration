@@ -156,6 +156,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="consumer-properties" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A reference to a ConsumerProperties.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.kafka.listener.ConsumerProperties"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="ack-factory" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -172,28 +184,36 @@
 			<xsd:attribute name="topics" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
+						[DEPRECATED]
 						Comma-delimited list of topic names.
+						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="group-id" use="required" type="xsd:string">
+			<xsd:attribute name="group-id" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
+						[DEPRECATED]
 						The 'group.id' Kafka Consumer property; overrides the value in the consumer factory.
+						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="client-id" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
+						[DEPRECATED]
 						The 'client.id' Kafka Consumer property; overrides the value in the consumer factory.
+						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="poll-timeout">
 				<xsd:annotation>
 					<xsd:documentation>
-						The time to block in poll() in milliseconds; default 50ms.
+						[DEPRECATED]
+						The time to block in poll() in milliseconds; default 5000ms.
+						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -225,12 +245,14 @@
 			<xsd:attribute name="rebalance-listener" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
+						[DEPRECATED]
 						A reference to a 'ConsumerRebalanceListener'.
+						Deprecated in favor of 'consumer-properties'.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"/>
+									type="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
