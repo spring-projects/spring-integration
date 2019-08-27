@@ -157,4 +157,8 @@ See <<./router.adoc#dynamic-routers, Dynamic Routers>> for more information.
 ==== FTP/SFTP Changes
 
 The `RotatingServerAdvice` is decoupled now from the `RotationPolicy` and its `StandardRotationPolicy`.
-See <<./ftp.adoc#ftp-rotating-server-advice, Polling Multiple Servers and Directories>> for more information.
+
+The remote file information, including host/port and directory are included now into message headers in the `AbstractInboundFileSynchronizingMessageSource` and `AbstractRemoteFileStreamingMessageSource` implementations.
+As well as this information is included into headers in the read operations results of the `AbstractRemoteFileOutboundGateway`.
+
+See <<./ftp.adoc#ftp, FTP(S) Support>> and <<./sftp.adoc#sftp, SFTP Support>> for more information.

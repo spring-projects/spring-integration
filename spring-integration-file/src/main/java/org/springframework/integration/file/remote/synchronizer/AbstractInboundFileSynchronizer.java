@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -48,10 +51,13 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileUtils;
+import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -72,7 +78,7 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F>
-		implements InboundFileSynchronizer, BeanFactoryAware, InitializingBean, Closeable {
+		implements InboundFileSynchronizer, BeanFactoryAware, BeanNameAware, InitializingBean, Closeable {
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -99,7 +105,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	/**
 	 * The current evaluation of the expression.
 	 */
-	private volatile String evaluatedRemoteDirectory;
+	private String evaluatedRemoteDirectory;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
@@ -124,9 +130,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	@Nullable
 	private Comparator<F> comparator;
 
+	private MetadataStore remoteFileMetadataStore = new SimpleMetadataStore();
+
+	private String metadataStorePrefix;
+
+	private String name;
+
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
-	 *
 	 * @param sessionFactory The session factory.
 	 */
 	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
@@ -250,9 +261,35 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.preserveTimestamp = preserveTimestamp;
 	}
 
+	/**
+	 * Configure a {@link MetadataStore} to hold a remote file info (host, port, remote directory)
+	 * to transfer downstream in message headers when local file is pulled.
+	 * @param remoteFileMetadataStore the {@link MetadataStore} to use.
+	 * @since 5.2
+	 */
+	public void setRemoteFileMetadataStore(MetadataStore remoteFileMetadataStore) {
+		this.remoteFileMetadataStore = remoteFileMetadataStore;
+	}
+
+	/**
+	 * Specify a prefix for keys in metadata store do not clash with other keys in the shared store.
+	 * @param metadataStorePrefix the prefix to use.
+	 * @since 5.2
+	 * @see #setRemoteFileMetadataStore(MetadataStore)
+	 */
+	public void setMetadataStorePrefix(String metadataStorePrefix) {
+		this.metadataStorePrefix = metadataStorePrefix;
+	}
+
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.name = name;
 	}
 
 	@Override
@@ -262,6 +299,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
 		evaluateRemoteDirectory();
+		if (!StringUtils.hasText(this.metadataStorePrefix)) {
+			this.metadataStorePrefix = this.name;
+		}
 		doInit();
 	}
 
@@ -334,7 +374,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 			for (F file : filteredFiles) {
 				if (filteringOneByOne) {
-					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter.accept(file)) { // NOSONAR never null
+					if ((maxFetchSize < 0 || accepted < maxFetchSize) && this.filter
+							.accept(file)) { // NOSONAR never null
 						accepted++;
 					}
 					else {
@@ -358,7 +399,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		try {
 			if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
 					localDirectory, session)) {
-				renamedFailed = false;
+				renamedFailed = true;
 			}
 		}
 		catch (RuntimeException | IOException e1) {
@@ -452,6 +493,17 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				if (this.preserveTimestamp && !localFile.setLastModified(modified)) {
 					throw new IllegalStateException("Could not sent last modified on file: " + localFile);
 				}
+				String[] hostPort = session.getHost().split(":");
+				try {
+					String remoteFileMetadata =
+							new URI(protocol(), null, hostPort[0], Integer.parseInt(hostPort[1]),
+									'/' + remoteDirectoryPath, null, remoteFileName)
+									.toString();
+					this.remoteFileMetadataStore.put(buildMetadataKey(localFile), remoteFileMetadata);
+				}
+				catch (URISyntaxException ex) {
+					throw new IllegalStateException("Cannot create a remote file metadata", ex);
+				}
 				return true;
 			}
 			else {
@@ -528,10 +580,44 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
+	/**
+	 * Obtain a metadata for remote file associated with the provided local file.
+	 * @param localFile the local file to retrieve metadata for.
+	 * @return the metadata for remove file in the URI style:
+	 * {@code protocol://host:port/remoteDirectory#remoteFileName}
+	 * @since 5.2
+	 */
+	@Nullable
+	public String getRemoteFileMetadata(File localFile) {
+		String metadataKey = buildMetadataKey(localFile);
+		return this.remoteFileMetadataStore.get(metadataKey);
+	}
+
+	/**
+	 * Remove a metadata for remote file associated with the provided local file.
+	 * @param localFile the local file to remove metadata for.
+	 * @since 5.2
+	 */
+	public void removeRemoteFileMetadata(File localFile) {
+		String metadataKey = buildMetadataKey(localFile);
+		this.remoteFileMetadataStore.remove(metadataKey);
+	}
+
+	private String buildMetadataKey(File file) {
+		return this.metadataStorePrefix + file.getAbsolutePath();
+	}
+
 	protected abstract boolean isFile(F file);
 
 	protected abstract String getFilename(F file);
 
 	protected abstract long getModified(F file);
+
+	/**
+	 * Return the protocol this synchronizer works with.
+	 * @return the protocol this synchronizer works with.
+	 * @since 5.2
+	 */
+	protected abstract String protocol();
 
 }

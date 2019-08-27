@@ -59,4 +59,9 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		return (long) file.getAttrs().getMTime() * 1000;
 	}
 
+	@Override
+	protected String protocol() {
+		return "sftp";
+	}
+
 }

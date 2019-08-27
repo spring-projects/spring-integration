@@ -98,6 +98,8 @@ public class FtpTests extends FtpTestSupport {
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertThat(message).isNotNull();
+		assertThat(message.getHeaders())
+				.containsKeys(FileHeaders.REMOTE_HOST, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
 		Object payload = message.getPayload();
 		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;

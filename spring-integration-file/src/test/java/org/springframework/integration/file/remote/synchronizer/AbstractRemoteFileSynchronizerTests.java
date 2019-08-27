@@ -73,6 +73,11 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 			@Override
+			protected String protocol() {
+				return "file";
+			}
+
+			@Override
 			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile,
 					File localDirectory, Session<String> session) throws IOException {
 				if ("bar".equals(remoteFile) && failWhenCopyingBar.getAndSet(false)) {
@@ -254,6 +259,11 @@ public class AbstractRemoteFileSynchronizerTests {
 			@Override
 			protected long getModified(String file) {
 				return 0;
+			}
+
+			@Override
+			protected String protocol() {
+				return "file";
 			}
 
 			@Override
