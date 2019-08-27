@@ -49,11 +49,6 @@ import reactor.netty.http.server.HttpServer;
 
 /**
  * A server {@link AbstractRSocketConnector} extension to accept and manage client RSocket connections.
- * <p>
- * Note: the {@link RSocketFactory.ServerRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
- * in the provided {@link #factoryConfigurer} is overridden with an internal
- * {@link ServerRSocketMessageHandler#serverResponder()}
- * for the proper Spring Integration channel adapter mappings.
  *
  * @author Artem Bilan
  *
@@ -131,7 +126,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		this.serverMono =
 				serverFactory
-						.acceptor(serverRSocketMessageHandler().serverResponder())
+						.acceptor(serverRSocketMessageHandler().responder())
 						.transport(this.serverTransport)
 						.start()
 						.cache();

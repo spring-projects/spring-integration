@@ -88,7 +88,7 @@ ext {
 	reactorVersion = '3.3.0.M3'
 	resilience4jVersion = '0.16.0'
 	romeToolsVersion = '1.12.1'
-	rsocketVersion = '0.12.2-RC4'
+	rsocketVersion = '1.0.0-RC3-SNAPSHOT'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.0.BUILD-SNAPSHOT'

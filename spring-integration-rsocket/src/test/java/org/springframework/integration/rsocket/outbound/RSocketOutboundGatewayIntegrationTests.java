@@ -119,7 +119,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		serverContext = new AnnotationConfigApplicationContext(ServerConfig.class);
 		server = RSocketFactory.receive()
 				.frameDecoder(PayloadDecoder.ZERO_COPY)
-				.acceptor(serverContext.getBean(RSocketMessageHandler.class).serverResponder())
+				.acceptor(serverContext.getBean(RSocketMessageHandler.class).responder())
 				.transport(TcpServerTransport.create("localhost", 0))
 				.start()
 				.block();
@@ -531,7 +531,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 					.dataMimeType("text/plain")
 					.metadataMimeType("message/x.rsocket.routing.v0")
 					.frameDecoder(PayloadDecoder.ZERO_COPY)
-					.acceptor(messageHandler().clientResponder())
+					.acceptor(messageHandler().responder())
 					.transport(TcpClientTransport.create("localhost", server.address().getPort()))
 					.start()
 					.block();

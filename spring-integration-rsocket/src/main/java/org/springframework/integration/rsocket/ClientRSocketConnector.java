@@ -34,12 +34,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
 /**
- * A client {@link AbstractRSocketConnector} extension to the RSocket server.
- * <p>
- * Note: the {@link RSocketFactory.ClientRSocketFactory#acceptor(java.util.function.Function)}
- * in the provided {@link #factoryConfigurer} is overridden with an internal
- * {@link IntegrationRSocketMessageHandler#clientResponder()}
- * for the proper Spring Integration channel adapter mappings.
+ * A client {@link AbstractRSocketConnector} extension to the RSocket connection.
  *
  * @author Artem Bilan
  *
@@ -126,7 +121,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 						.dataMimeType(getDataMimeType().toString())
 						.metadataMimeType(getMetadataMimeType().toString());
 		this.factoryConfigurer.accept(clientFactory);
-		clientFactory.acceptor(this.rSocketMessageHandler.clientResponder());
+		clientFactory.acceptor(this.rSocketMessageHandler.responder());
 		Payload connectPayload = EmptyPayload.INSTANCE;
 		if (this.connectRoute != null) {
 			connectPayload = DefaultPayload.create(this.connectData, this.connectRoute);

@@ -32,6 +32,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
+import io.rsocket.metadata.WellKnownMimeType;
+
 /**
  * A base connector container for common RSocket client and server functionality.
  * <p>
@@ -53,7 +55,8 @@ public abstract class AbstractRSocketConnector
 
 	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
 
-	private MimeType metadataMimeType = new MimeType("message", "x.rsocket.composite-metadata.v0");
+	private MimeType metadataMimeType =
+			MimeTypeUtils.parseMimeType(WellKnownMimeType.MESSAGE_RSOCKET_COMPOSITE_METADATA.toString());
 
 	private RSocketStrategies rsocketStrategies =
 			RSocketStrategies.builder()
