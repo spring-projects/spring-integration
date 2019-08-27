@@ -198,7 +198,7 @@ public class CachingSessionFactoryTests {
 		}
 
 		@Override
-		public String getHost() {
+		public String getHostPort() {
 			return null;
 		}
 

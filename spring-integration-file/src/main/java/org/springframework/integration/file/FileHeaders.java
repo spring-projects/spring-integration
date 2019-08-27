@@ -55,6 +55,6 @@ public abstract class FileHeaders {
 	/**
 	 * A remote host/port the file has been polled from
 	 */
-	public static final String REMOTE_HOST = PREFIX + "remoteHost";
+	public static final String REMOTE_HOST_PORT = PREFIX + "remoteHostPort";
 
 }

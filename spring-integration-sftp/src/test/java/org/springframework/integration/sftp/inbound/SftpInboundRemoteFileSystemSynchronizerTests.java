@@ -126,7 +126,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertThat(atestFile.getPayload().lastModified()).isGreaterThan(System.currentTimeMillis());
 
 		assertThat(atestFile.getHeaders())
-				.containsKeys(FileHeaders.REMOTE_HOST, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
+				.containsKeys(FileHeaders.REMOTE_HOST_PORT, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
 
 		Message<File> btestFile = ms.receive();
 		assertThat(btestFile).isNotNull();

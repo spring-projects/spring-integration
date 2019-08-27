@@ -230,7 +230,7 @@ public class FtpSession implements Session<FTPFile> {
 	}
 
 	@Override
-	public String getHost() {
+	public String getHostPort() {
 		return this.client.getRemoteAddress().getHostName() + ':' + this.client.getRemotePort();
 	}
 

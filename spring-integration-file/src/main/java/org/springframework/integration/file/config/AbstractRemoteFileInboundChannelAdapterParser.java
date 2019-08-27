@@ -45,14 +45,15 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 	@Override
 	protected final BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				this.getInboundFileSynchronizerClass());
+		BeanDefinitionBuilder synchronizerBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(getInboundFileSynchronizerClass());
 
 		synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 
 		// configure the InboundFileSynchronizer properties
-		BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression(
-				"remote-directory", "remote-directory-expression", parserContext, element, false);
+		BeanDefinition expressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression(
+						"remote-directory", "remote-directory-expression", parserContext, element, false);
 		if (expressionDef != null) {
 			synchronizerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
 		}
@@ -62,6 +63,9 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(synchronizerBuilder, element,
+				"remote-file-metadata-store");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "metadata-store-prefix");
 
 		FileParserUtils.configureFilter(synchronizerBuilder, element, parserContext,
 				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass(),
@@ -100,6 +104,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 	protected abstract Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass();
 
-	protected abstract Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> getPersistentAcceptOnceFileListFilterClass();
+	protected abstract Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>>
+	getPersistentAcceptOnceFileListFilterClass();
 
 }

@@ -29,6 +29,7 @@ import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
+import org.springframework.integration.metadata.MetadataStore;
 
 /**
  * A {@link MessageSourceSpec} for an {@link AbstractInboundFileSynchronizingMessageSource}.
@@ -245,15 +246,37 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		return _this();
 	}
 
+	/**
+	 * Configure a {@link MetadataStore} for remote files metadata.
+	 * @param remoteFileMetadataStore the {@link MetadataStore} to use.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see AbstractInboundFileSynchronizer#setRemoteFileMetadataStore(MetadataStore)
+	 */
+	public S remoteFileMetadataStore(MetadataStore remoteFileMetadataStore) {
+		this.synchronizer.setRemoteFileMetadataStore(remoteFileMetadataStore);
+		return _this();
+	}
+
+	/**
+	 * Configure a prefix for remote files metadata keys.
+	 * @param metadataStorePrefix the metadata key prefix to use.
+	 * @return the spec.
+	 * @since 5.2
+	 * @see #remoteFileMetadataStore
+	 */
+	public S metadataStorePrefix(String metadataStorePrefix) {
+		this.synchronizer.setMetadataStorePrefix(metadataStorePrefix);
+		return _this();
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 		componentsToRegister.put(this.synchronizer, null);
-
 		if (this.expressionFileListFilter != null) {
 			componentsToRegister.put(this.expressionFileListFilter, null);
 		}
-
 		return componentsToRegister;
 	}
 

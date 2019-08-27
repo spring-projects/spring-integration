@@ -494,7 +494,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
-					.setHeader(FileHeaders.REMOTE_HOST, session.getHost());
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 		});
 
 	}
@@ -512,7 +512,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
-					.setHeader(FileHeaders.REMOTE_HOST, session.getHost());
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 		});
 	}
 
@@ -550,7 +550,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						.withPayload(payload)
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-						.setHeader(FileHeaders.REMOTE_HOST, session.getHost())
+						.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
 						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session);
 			}
 			catch (IOException e) {
@@ -566,7 +566,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						.withPayload(getPayload)
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-						.setHeader(FileHeaders.REMOTE_HOST, session1.getHost());
+						.setHeader(FileHeaders.REMOTE_HOST_PORT, session1.getHostPort());
 			});
 		}
 	}
@@ -581,7 +581,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							.withPayload(payload)
 							.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-							.setHeader(FileHeaders.REMOTE_HOST, session.getHost());
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 				}
 		);
 	}
@@ -597,7 +597,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-					.setHeader(FileHeaders.REMOTE_HOST, session.getHost());
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 		});
 	}
 
@@ -630,7 +630,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 							.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
-							.setHeader(FileHeaders.REMOTE_HOST, session.getHost());
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
 				}
 		);
 	}

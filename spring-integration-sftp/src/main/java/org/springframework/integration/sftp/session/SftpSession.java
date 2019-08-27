@@ -303,7 +303,7 @@ public class SftpSession implements Session<LsEntry> {
 	}
 
 	@Override
-	public String getHost() {
+	public String getHostPort() {
 		return this.jschSession.getHost() + ':' + this.jschSession.getPort();
 	}
 

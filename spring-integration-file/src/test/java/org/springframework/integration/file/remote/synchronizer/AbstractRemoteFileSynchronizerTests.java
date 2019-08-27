@@ -366,7 +366,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		}
 
 		@Override
-		public String getHost() {
+		public String getHostPort() {
 			return null;
 		}
 

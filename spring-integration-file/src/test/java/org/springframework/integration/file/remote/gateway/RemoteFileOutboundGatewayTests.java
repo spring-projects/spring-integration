@@ -1024,7 +1024,7 @@ public class RemoteFileOutboundGatewayTests {
 		}
 
 		@Override
-		public String getHost() {
+		public String getHostPort() {
 			return null;
 		}
 

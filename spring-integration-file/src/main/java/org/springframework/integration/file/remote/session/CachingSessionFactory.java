@@ -291,8 +291,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public String getHost() {
-			return this.targetSession.getHost();
+		public String getHostPort() {
+			return this.targetSession.getHostPort();
 		}
 
 	}

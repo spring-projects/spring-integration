@@ -270,7 +270,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			String remoteFileUri = this.synchronizer.getRemoteFileMetadata(messageBuilder.getPayload());
 			if (remoteFileUri != null) {
 				URI uri = URI.create(remoteFileUri);
-				messageBuilder.setHeader(FileHeaders.REMOTE_HOST, uri.getHost() + ':' + uri.getPort())
+				messageBuilder.setHeader(FileHeaders.REMOTE_HOST_PORT, uri.getHost() + ':' + uri.getPort())
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, uri.getPath())
 						.setHeader(FileHeaders.REMOTE_FILE, uri.getFragment());
 			}

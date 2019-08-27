@@ -493,7 +493,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				if (this.preserveTimestamp && !localFile.setLastModified(modified)) {
 					throw new IllegalStateException("Could not sent last modified on file: " + localFile);
 				}
-				String[] hostPort = session.getHost().split(":");
+				String[] hostPort = session.getHostPort().split(":");
 				try {
 					String remoteFileMetadata =
 							new URI(protocol(), null, hostPort[0], Integer.parseInt(hostPort[1]),
