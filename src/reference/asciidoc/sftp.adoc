@@ -635,7 +635,7 @@ Starting with version 5.0, the `FileHeaders.REMOTE_FILE_INFO` header provides ad
 If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the header contains an `SftpFileInfo` object.
 You can access the `LsEntry` object provided by the underlying Jsch library by using the `SftpFileInfo.getFileInfo()` method.
 The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `SftpStreamingMessageSource` into one of your configuration classes.
-See also <<ftp-remote-file-info>>.
+See also <<sftp-remote-file-info>>.
 
 Starting with version 5.1, the generic type of the `comparator` is `LsEntry`.
 Previously, it was `AbstractFileInfo<LsEntry>`.
