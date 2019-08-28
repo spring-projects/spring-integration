@@ -433,7 +433,7 @@ Leaving it up to you also means that you are less likely to end up with unintend
 NOTE: When configuring a polling email adapter's `should-mark-messages-as-read` attribute, you should be aware of the protocol you are configuring to retrieve messages.
 For example, POP3 does not support this flag, which means setting it to either value has no effect, as messages are not marked as read.
 
-In case of silently dropped connection, an idle cancel task is run on background periodically (a new IDLE will usually immediately be processed).
+In the case of silently dropped connection, an idle cancel task is run in the background periodically (a new IDLE will usually immediately be processed).
 To control this interval, a `cancelIdleInterval` option is provided; default 120 (2 minutes).
 RFC 2177 recommends an interval no larger than 29 minutes.
 
