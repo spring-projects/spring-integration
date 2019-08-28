@@ -34,7 +34,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -806,25 +805,6 @@ public class ImapMailReceiverTests {
 		receiver.afterPropertiesSet();
 
 		return folder;
-	}
-
-	@Test
-	public void testExecShutdown() {
-		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(new ImapMailReceiver());
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		adapter.setReconnectDelay(1);
-		adapter.start();
-		ExecutorService exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
-		adapter.stop();
-		assertThat(exec.isShutdown()).isTrue();
-		adapter.start();
-		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
-		adapter.stop();
-		assertThat(exec.isShutdown()).isTrue();
-
-		taskScheduler.shutdown();
 	}
 
 	@Test
