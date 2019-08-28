@@ -19,6 +19,7 @@ package org.springframework.integration.file.remote.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -124,7 +125,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x"));
-		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
 		assertThat(out.getPayload().get(0)).isSameAs(files[1]); // sort by default
 		assertThat(out.getPayload().get(1)).isSameAs(files[0]);
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/x/");
@@ -175,7 +177,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<File>> out = (MessageBuilder<List<File>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/*"));
-		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
 		assertThat(out.getPayload().get(0).getName()).isEqualTo("f1");
 		assertThat(out.getPayload().get(1).getName()).isEqualTo("f2");
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/");
@@ -205,7 +208,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<File>> out = (MessageBuilder<List<File>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/f1"));
-		assertThat(out.getPayload().size()).isEqualTo(1);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(1);
 		assertThat(out.getPayload().get(0).getName()).isEqualTo("f1");
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/");
 	}
@@ -329,7 +333,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x"));
-		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
 		assertThat(out.getPayload().get(0)).isSameAs(files[0]);
 		assertThat(out.getPayload().get(1)).isSameAs(files[1]);
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/x/");
@@ -373,7 +378,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x"));
-		assertThat(out.getPayload().size()).isEqualTo(4);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(4);
 		assertThat(out.getPayload().get(0).getFilename()).isEqualTo("f1");
 		assertThat(out.getPayload().get(1).getFilename()).isEqualTo("d1/d2/f4");
 		assertThat(out.getPayload().get(2).getFilename()).isEqualTo("d1/f3");
@@ -398,7 +404,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x"));
-		assertThat(out.getPayload().size()).isEqualTo(5);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(5);
 		assertThat(out.getPayload().get(0).getFilename()).isEqualTo("f1");
 		assertThat(out.getPayload().get(1).getFilename()).isEqualTo("d1");
 		assertThat(out.getPayload().get(2).getFilename()).isEqualTo("d1/d2");
@@ -419,7 +426,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<TestLsEntry>> out = (MessageBuilder<List<TestLsEntry>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(0);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(0);
 	}
 
 	@Test
@@ -435,7 +443,8 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out).isNotNull();
+		assertThat(out.getPayload()).hasSize(2);
 		assertThat(out.getPayload().get(0)).isEqualTo("f1");
 		assertThat(out.getPayload().get(1)).isEqualTo("f2");
 	}
@@ -453,7 +462,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(2);
+		assertThat(out.getPayload()).hasSize(2);
 		assertThat(out.getPayload().get(0)).isEqualTo("f2");
 		assertThat(out.getPayload().get(1)).isEqualTo("f1");
 	}
@@ -471,7 +480,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(3);
+		assertThat(out.getPayload()).hasSize(3);
 		assertThat(out.getPayload().get(0)).isEqualTo("f1");
 		assertThat(out.getPayload().get(1)).isEqualTo("f2");
 		assertThat(out.getPayload().get(2)).isEqualTo("f3");
@@ -490,7 +499,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(4);
+		assertThat(out.getPayload()).hasSize(4);
 		assertThat(out.getPayload().get(0)).isEqualTo("f1");
 		assertThat(out.getPayload().get(1)).isEqualTo("f2");
 		assertThat(out.getPayload().get(2)).isEqualTo("f3");
@@ -510,7 +519,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(6);
+		assertThat(out.getPayload()).hasSize(6);
 		assertThat(out.getPayload().get(0)).isEqualTo("f2");
 		assertThat(out.getPayload().get(1)).isEqualTo("f1");
 		assertThat(out.getPayload().get(2)).isEqualTo("f3");
@@ -533,7 +542,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<List<String>> out = (MessageBuilder<List<String>>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote"));
-		assertThat(out.getPayload().size()).isEqualTo(1);
+		assertThat(out.getPayload()).hasSize(1);
 		assertThat(out.getPayload().get(0)).isEqualTo("f4");
 	}
 
@@ -748,7 +757,7 @@ public class RemoteFileOutboundGatewayTests {
 		@SuppressWarnings("unchecked")
 		MessageBuilder<Boolean> out = (MessageBuilder<Boolean>) gw
 				.handleRequestMessage(new GenericMessage<>("testremote/x/f1"));
-		assertThat(out.getPayload()).isEqualTo(Boolean.TRUE);
+		assertThat(out.getPayload()).isTrue();
 		verify(session).remove("testremote/x/f1");
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY)).isEqualTo("testremote/x/");
 		assertThat(out.getHeaders().get(FileHeaders.REMOTE_FILE)).isEqualTo("f1");
@@ -876,7 +885,7 @@ public class RemoteFileOutboundGatewayTests {
 		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
 				.build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
-		assertThat(out.size()).isEqualTo(2);
+		assertThat(out).hasSize(2);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
 		assertThat(out.get(0)).isIn("foo/baz.txt", "foo/qux.txt");
 		assertThat(out.get(1)).isIn("foo/baz.txt", "foo/qux.txt");
@@ -908,7 +917,7 @@ public class RemoteFileOutboundGatewayTests {
 		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
 				.build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
-		assertThat(out.size()).isEqualTo(3);
+		assertThat(out).hasSize(3);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
 		assertThat(out.get(0)).isIn("foo/baz.txt", "foo/qux.txt", "foo/" + dir1.getName() + "/" + file3.getName());
 		assertThat(out.get(1)).isIn("foo/baz.txt", "foo/qux.txt", "foo/" + dir1.getName() + "/" + file3.getName());
@@ -917,14 +926,22 @@ public class RemoteFileOutboundGatewayTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	public void testRemoteFileTemplateImmutability() {
+		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", null);
+		assertThatIllegalStateException()
+				.isThrownBy(() -> gw.setRemoteDirectoryExpression(new LiteralExpression("testRemoteDirectory")))
+		.withMessageContaining("The 'remoteDirectoryExpression' must be set on the externally provided");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	public void testMputCollection() throws Exception {
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
 		Session<TestLsEntry> session = mock(Session.class);
-		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
-		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
-		template.setBeanFactory(mock(BeanFactory.class));
-		template.afterPropertiesSet();
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mput", "payload");
+		gw.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<>();
@@ -938,7 +955,7 @@ public class RemoteFileOutboundGatewayTests {
 		Message<List<File>> requestMessage = MessageBuilder.withPayload(files)
 				.build();
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
-		assertThat(out.size()).isEqualTo(2);
+		assertThat(out).isNotNull().hasSize(2);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
 		assertThat(out.get(0)).isEqualTo("foo/fiz.txt");
 		assertThat(out.get(1)).isEqualTo("foo/buz.txt");
@@ -1038,6 +1055,7 @@ public class RemoteFileOutboundGatewayTests {
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
 			this.setBeanFactory(mock(BeanFactory.class));
+			remoteFileTemplateExplicitlySet(false);
 		}
 
 		TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
@@ -1045,7 +1063,6 @@ public class RemoteFileOutboundGatewayTests {
 			super(remoteFileTemplate, command, expression);
 			this.setBeanFactory(mock(BeanFactory.class));
 		}
-
 
 		@Override
 		protected boolean isDirectory(TestLsEntry file) {

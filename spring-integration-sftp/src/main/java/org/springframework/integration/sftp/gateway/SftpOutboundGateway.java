@@ -66,6 +66,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
 
 		this(new SftpRemoteFileTemplate(sessionFactory), messageSessionCallback);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -89,6 +90,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
 		this(new SftpRemoteFileTemplate(sessionFactory), command, expression);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**

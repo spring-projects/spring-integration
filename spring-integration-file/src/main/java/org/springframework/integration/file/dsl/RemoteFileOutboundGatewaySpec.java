@@ -25,6 +25,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -313,8 +314,21 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * @param localFilenameFunction the {@link Function} to use.
 	 * @param <P> the expected payload type.
 	 * @return the Spec.
+	 * @deprecated since 5.2 in favor of {@link #localFilenameFunction(Function)}
 	 */
+	@Deprecated
 	public <P> S localFilename(Function<Message<P>, String> localFilenameFunction) {
+		return localFilenameFunction(localFilenameFunction);
+	}
+
+	/**
+	 * Specify a {@link Function} for local files renaming after downloading.
+	 * @param localFilenameFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 * @since 5.2
+	 */
+	public <P> S localFilenameFunction(Function<Message<P>, String> localFilenameFunction) {
 		return localFilenameExpression(new FunctionExpression<>(localFilenameFunction));
 	}
 
@@ -351,6 +365,167 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return _this();
 	}
 
+	/**
+	 * Determine whether the remote directory should automatically be created when
+	 * sending files to the remote system.
+	 * @param autoCreateDirectory true to create the directory.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setAutoCreateDirectory(boolean)
+	 */
+	public S autoCreateDirectory(boolean autoCreateDirectory) {
+		this.target.setAutoCreateDirectory(autoCreateDirectory);
+		return _this();
+	}
+
+	/**
+	 * Set the remote directory expression used to determine the remote directory to which
+	 * files will be sent.
+	 * @param remoteDirectoryExpression the remote directory expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 */
+	public S remoteDirectoryExpression(String remoteDirectoryExpression) {
+		return remoteDirectoryExpression(PARSER.parseExpression(remoteDirectoryExpression));
+	}
+
+	/**
+	 * Specify a {@link Function} for remote directory.
+	 * @param remoteDirectoryFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 * @see FunctionExpression
+	 */
+	public <P> S remoteDirectoryFunction(Function<Message<P>, String> remoteDirectoryFunction) {
+		return remoteDirectoryExpression(new FunctionExpression<>(remoteDirectoryFunction));
+	}
+
+	/**
+	 * Set the remote directory expression used to determine the remote directory to which
+	 * files will be sent.
+	 * @param remoteDirectoryExpression the remote directory expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 */
+	public S remoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.target.setRemoteDirectoryExpression(remoteDirectoryExpression);
+		return _this();
+	}
+
+	/**
+	 * Set a temporary remote directory expression; used when transferring files to the remote
+	 * system.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 */
+	public S temporaryRemoteDirectoryExpression(String temporaryRemoteDirectoryExpression) {
+		return temporaryRemoteDirectoryExpression(PARSER.parseExpression(temporaryRemoteDirectoryExpression));
+	}
+
+	/**
+	 * Set a temporary remote directory function; used when transferring files to the remote
+	 * system.
+	 * @param temporaryRemoteDirectoryFunction the file name expression.
+	 * @param <P> the expected payload type.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 */
+	public <P> S temporaryRemoteDirectoryFunction(Function<Message<P>, String> temporaryRemoteDirectoryFunction) {
+		return temporaryRemoteDirectoryExpression(new FunctionExpression<>(temporaryRemoteDirectoryFunction));
+	}
+
+	/**
+	 * Set a temporary remote directory expression; used when transferring files to the remote
+	 * system.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setRemoteDirectoryExpression
+	 */
+	public S temporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
+		this.target.setTemporaryRemoteDirectoryExpression(temporaryRemoteDirectoryExpression);
+		return _this();
+	}
+
+	/**
+	 * Set the file name expression to determine the full path to the remote file.
+	 * @param fileNameExpression the file name expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setFileNameExpression
+	 */
+	public S fileNameExpression(String fileNameExpression) {
+		return fileNameExpression(PARSER.parseExpression(fileNameExpression));
+	}
+
+	/**
+	 * Set the file name function to determine the full path to the remote file.
+	 * @param fileNameFunction the file name expression.
+	 * @param <P> the expected payload type.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setFileNameExpression
+	 */
+	public <P> S fileNameFunction(Function<Message<P>, String> fileNameFunction) {
+		return fileNameExpression(new FunctionExpression<>(fileNameFunction));
+	}
+
+	/**
+	 * Set the file name expression to determine the full path to the remote file.
+	 * @param fileNameExpression the file name expression.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setFileNameExpression
+	 */
+	public S fileNameExpression(Expression fileNameExpression) {
+		this.target.setFileNameExpression(fileNameExpression);
+		return _this();
+	}
+
+	/**
+	 * Set whether a temporary file name is used when sending files to the remote system.
+	 * @param useTemporaryFileName true to use a temporary file name.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setUseTemporaryFileName
+	 */
+	public S useTemporaryFileName(boolean useTemporaryFileName) {
+		this.target.setUseTemporaryFileName(useTemporaryFileName);
+		return _this();
+	}
+
+	/**
+	 * Set the file name generator used to generate the remote filename to be used when transferring
+	 * files to the remote system.
+	 * @param fileNameGenerator the file name generator.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setFileNameGenerator
+	 */
+	public S fileNameGenerator(FileNameGenerator fileNameGenerator) {
+		this.target.setFileNameGenerator(fileNameGenerator);
+		return _this();
+	}
+
+	/**
+	 * Set the charset to use when converting String payloads to bytes as the content of the
+	 * remote file. Default {@code UTF-8}.
+	 * @param charset the charset.
+	 * @return the current Spec
+	 * @since 5.2
+	 * @see AbstractRemoteFileOutboundGateway#setCharset
+	 */
+	public S charset(String charset) {
+		this.target.setCharset(charset);
+		return _this();
+	}
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
