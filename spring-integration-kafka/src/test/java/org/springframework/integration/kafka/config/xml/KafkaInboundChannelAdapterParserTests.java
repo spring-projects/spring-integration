@@ -52,21 +52,21 @@ public class KafkaInboundChannelAdapterParserTests {
 
 	@Test
 	public void testProps() {
-		assertThat(TestUtils.getPropertyValue(this.source1, "topics")).isEqualTo(new String[] { "topic1" });
+		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.topics")).isEqualTo(new String[] { "topic1" });
 		assertThat(TestUtils.getPropertyValue(this.source1, "consumerFactory"))
 			.isSameAs(this.context.getBean("consumerFactory"));
 		assertThat(TestUtils.getPropertyValue(this.source1, "ackCallbackFactory"))
 			.isSameAs(this.context.getBean("ackFactory"));
-		assertThat(TestUtils.getPropertyValue(this.source1, "clientId")).isEqualTo("client");
-		assertThat(TestUtils.getPropertyValue(this.source1, "groupId")).isEqualTo("group");
+		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.clientId")).isEqualTo("client");
+		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.groupId")).isEqualTo("group");
 		assertThat(TestUtils.getPropertyValue(this.source1, "messageConverter"))
 			.isSameAs(this.context.getBean("converter"));
 		assertThat(TestUtils.getPropertyValue(this.source1, "payloadType")).isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.source1, "rawMessageHeader", Boolean.class)).isTrue();
-		assertThat(TestUtils.getPropertyValue(this.source1, "rebalanceListener"))
+		assertThat(TestUtils.getPropertyValue(this.source1, "consumerProperties.consumerRebalanceListener"))
 			.isSameAs(this.context.getBean("rebal"));
 
-		assertThat(TestUtils.getPropertyValue(this.source2, "topics")).isEqualTo(new String[] { "topic1", "topic2" });
+		assertThat(TestUtils.getPropertyValue(this.source2, "consumerProperties.topics")).isEqualTo(new String[] { "topic1", "topic2" });
 		DefaultKafkaConsumerFactory<?, ?> cf = TestUtils.getPropertyValue(this.source2, "consumerFactory",
 				DefaultKafkaConsumerFactory.class);
 		assertThat(cf).isSameAs(this.context.getBean("multiFetchConsumerFactory"));
