@@ -38,13 +38,14 @@ import org.springframework.util.ObjectUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class FtpSession implements Session<FTPFile> {
 
-	private static final String SERVER_REPLIED_WITH = "'. Server replied with: ";
+	private static final Log LOGGER = LogFactory.getLog(FtpSession.class);
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final String SERVER_REPLIED_WITH = "'. Server replied with: ";
 
 	private final FTPClient client;
 
@@ -86,7 +87,9 @@ public class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to copy '" + path +
 					SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
-		this.logger.info("File has been successfully transferred from: " + path);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("File has been successfully transferred from: " + path);
+		}
 	}
 
 	@Override
@@ -109,8 +112,8 @@ public class FtpSession implements Session<FTPFile> {
 		}
 		if (this.client.completePendingCommand()) {
 			int replyCode = this.client.getReplyCode();
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug(this + " finalizeRaw - reply code: " + replyCode);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(this + " finalizeRaw - reply code: " + replyCode);
 			}
 			return FTPReply.isPositiveCompletion(replyCode);
 		}
@@ -126,8 +129,8 @@ public class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to write to '" + path
 					+ SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("File has been successfully transferred to: " + path);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("File has been successfully transferred to: " + path);
 		}
 	}
 
@@ -140,8 +143,8 @@ public class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to append to '" + path
 					+ SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("File has been successfully appended to: " + path);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("File has been successfully appended to: " + path);
 		}
 	}
 
@@ -150,17 +153,15 @@ public class FtpSession implements Session<FTPFile> {
 		try {
 			if (this.readingRaw.get()) {
 				if (!finalizeRaw()) {
-					if (this.logger.isWarnEnabled()) {
-						this.logger.warn("Finalize on readRaw() returned false for " + this);
+					if (LOGGER.isWarnEnabled()) {
+						LOGGER.warn("Finalize on readRaw() returned false for " + this);
 					}
 				}
 			}
 			this.client.disconnect();
 		}
 		catch (Exception e) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("failed to disconnect FTPClient", e);
-			}
+			LOGGER.warn("failed to disconnect FTPClient", e);
 		}
 	}
 
@@ -183,8 +184,8 @@ public class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to rename '" + pathFrom +
 					"' to " + pathTo + SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
-		if (this.logger.isInfoEnabled()) {
-			this.logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
+		if (LOGGER.isInfoEnabled()) {
+			LOGGER.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
 		}
 	}
 
@@ -228,6 +229,10 @@ public class FtpSession implements Session<FTPFile> {
 		return this.client;
 	}
 
+	@Override
+	public String getHostPort() {
+		return this.client.getRemoteAddress().getHostName() + ':' + this.client.getRemotePort();
+	}
 
 	@Override
 	public boolean test() {

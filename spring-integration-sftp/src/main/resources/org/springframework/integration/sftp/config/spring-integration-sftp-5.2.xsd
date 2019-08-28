@@ -180,6 +180,29 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="remote-file-metadata-store" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.metadata.MetadataStore" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a MetadataStore for saving remote files information between
+								synchronization and polling.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="metadata-store-prefix" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify a prefix for metadata store to distinguish keys from another places
+								where the same shared store is used.
+								By default, the remote a component name is used.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attributeGroup ref="tempSuffixGroup" />
 				</xsd:extension>
 			</xsd:complexContent>

@@ -19,6 +19,7 @@ package org.springframework.integration.file.remote.synchronizer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
@@ -28,6 +29,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -94,7 +96,6 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	private boolean scannerExplicitlySet = false;
 
 	private volatile boolean running;
-
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this(synchronizer, null);
@@ -192,7 +193,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			this.fileSource.setDirectory(this.localDirectory);
 			initFiltersAndScanner();
 			if (this.getBeanFactory() != null) {
-				this.fileSource.setBeanFactory(this.getBeanFactory());
+				this.fileSource.setBeanFactory(getBeanFactory());
 			}
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
@@ -265,6 +266,16 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			messageBuilder = this.fileSource.doReceive();
 		}
 
+		if (messageBuilder != null) {
+			String remoteFileUri = this.synchronizer.getRemoteFileMetadata(messageBuilder.getPayload());
+			if (remoteFileUri != null) {
+				URI uri = URI.create(remoteFileUri);
+				messageBuilder.setHeader(FileHeaders.REMOTE_HOST_PORT, uri.getHost() + ':' + uri.getPort())
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, uri.getPath())
+						.setHeader(FileHeaders.REMOTE_FILE, uri.getFragment());
+			}
+		}
+
 		return messageBuilder;
 	}
 
@@ -273,7 +284,6 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		return new CompositeFileListFilter<>(
 				Arrays.asList(this.localFileListFilter, new RegexPatternFileListFilter(completePattern)));
 	}
-
 
 	/**
 	 * The {@link FileReadingMessageSource} extension to increase visibility

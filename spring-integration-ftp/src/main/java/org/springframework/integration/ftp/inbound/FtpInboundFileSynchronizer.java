@@ -32,6 +32,7 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
@@ -60,6 +61,11 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	@Override
 	protected long getModified(FTPFile file) {
 		return file.getTimestamp().getTimeInMillis();
+	}
+
+	@Override
+	protected String protocol() {
+		return "ftp";
 	}
 
 }

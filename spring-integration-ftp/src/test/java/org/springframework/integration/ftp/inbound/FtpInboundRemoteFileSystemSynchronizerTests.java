@@ -25,10 +25,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -51,7 +53,9 @@ import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
@@ -60,6 +64,7 @@ import org.springframework.messaging.Message;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class FtpInboundRemoteFileSystemSynchronizerTests {
@@ -76,7 +81,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 	public void testCopyFileToLocalDir() throws Exception {
 		File localDirectory = new File("test");
 		assertThat(localDirectory.exists()).isFalse();
-
+		MetadataStore remoteFileMetadataStore = new SimpleMetadataStore();
 		TestFtpSessionFactory ftpSessionFactory = new TestFtpSessionFactory();
 		ftpSessionFactory.setUsername("kermit");
 		ftpSessionFactory.setPassword("frog");
@@ -85,16 +90,18 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
+		synchronizer.setRemoteFileMetadataStore(remoteFileMetadataStore);
+		synchronizer.setMetadataStorePrefix("ftpPollingTest:");
 		FtpRegexPatternFileListFilter patternFilter = new FtpRegexPatternFileListFilter(".*\\.test$");
 		PropertiesPersistingMetadataStore store = spy(new PropertiesPersistingMetadataStore());
 		store.setBaseDirectory("test");
 		store.afterPropertiesSet();
 		FtpPersistentAcceptOnceFileListFilter persistFilter =
 				new FtpPersistentAcceptOnceFileListFilter(store, "foo");
-		List<FileListFilter<FTPFile>> filters = new ArrayList<FileListFilter<FTPFile>>();
+		List<FileListFilter<FTPFile>> filters = new ArrayList<>();
 		filters.add(persistFilter);
 		filters.add(patternFilter);
-		CompositeFileListFilter<FTPFile> filter = new CompositeFileListFilter<FTPFile>(filters);
+		CompositeFileListFilter<FTPFile> filter = new CompositeFileListFilter<>(filters);
 		synchronizer.setFilter(filter);
 
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
@@ -108,9 +115,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
 		ms.setBeanFactory(mock(BeanFactory.class));
-		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
+		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
-		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<File>();
+		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();
 		localFileListFilter.addFilter(localAcceptOnceFilter);
 		RecursiveDirectoryScanner scanner = new RecursiveDirectoryScanner();
 		ms.setScanner(scanner);
@@ -143,8 +150,12 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
 
-		new File("test/subdir/A.TEST.a").delete();
-		new File("test/subdir/B.TEST.a").delete();
+		File aFile = new File("test/subdir/A.TEST.a");
+		aFile.delete();
+		synchronizer.removeRemoteFileMetadata(aFile);
+		File bFile = new File("test/subdir/B.TEST.a");
+		bFile.delete();
+		synchronizer.removeRemoteFileMetadata(bFile);
 		// the remote filter should prevent a re-fetch
 		nothing = ms.receive();
 		assertThat(nothing).isNull();
@@ -152,11 +163,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ms.stop();
 		verify(synchronizer).close();
 		verify(store).close();
+
+		Map<?, ?> metadata = TestUtils.getPropertyValue(remoteFileMetadataStore, "metadata", Map.class);
+		assertThat(metadata).isEmpty();
 	}
 
 
 	@Test
-	public void testSyncRemoteFileOnlyOnceByDefault() throws Exception {
+	public void testSyncRemoteFileOnlyOnceByDefault() {
 		File localDirectory = new File("test");
 		localDirectory.mkdir();
 
@@ -204,7 +218,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 
-		private final Collection<FTPFile> ftpFiles = new ArrayList<FTPFile>();
+		private final Collection<FTPFile> ftpFiles = new ArrayList<>();
 
 		private void init() {
 			String[] files = new File("remote-test-dir").list();
@@ -237,8 +251,10 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 							Mockito.any(OutputStream.class))).thenReturn(true);
 				}
 				when(ftpClient.listFiles("remote-test-dir"))
-						.thenReturn(ftpFiles.toArray(new FTPFile[ftpFiles.size()]));
+						.thenReturn(ftpFiles.toArray(new FTPFile[0]));
 				when(ftpClient.deleteFile(Mockito.anyString())).thenReturn(true);
+				when(ftpClient.getRemoteAddress()).thenReturn(InetAddress.getByName("localhost"));
+				when(ftpClient.getRemotePort()).thenReturn(-1);
 				return ftpClient;
 			}
 			catch (Exception e) {

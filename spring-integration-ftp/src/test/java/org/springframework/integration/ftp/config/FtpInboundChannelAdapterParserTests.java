@@ -48,6 +48,7 @@ import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.ftp.session.FtpSession;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -87,6 +88,9 @@ public class FtpInboundChannelAdapterParserTests {
 	@Autowired
 	private DirectoryScanner dirScanner;
 
+	@Autowired
+	private MetadataStore metadataStore;
+
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception {
 		assertThat(TestUtils.getPropertyValue(ftpInbound, "autoStartup", Boolean.class)).isFalse();
@@ -109,6 +113,9 @@ public class FtpInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression")).isNotNull();
 		assertThat(TestUtils.getPropertyValue(fisync, "preserveTimestamp", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class)).isEqualTo(".foo");
+		assertThat(TestUtils.getPropertyValue(fisync, "remoteFileMetadataStore", MetadataStore.class))
+				.isSameAs(this.metadataStore);
+		assertThat(TestUtils.getPropertyValue(fisync, "metadataStorePrefix", String.class)).isEqualTo("testPrefix");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertThat(remoteFileSeparator).isNotNull();
 		assertThat(remoteFileSeparator).isEqualTo("");
@@ -123,11 +130,11 @@ public class FtpInboundChannelAdapterParserTests {
 		assertThat(filtersIterator.next()).isInstanceOf(FtpPersistentAcceptOnceFileListFilter.class);
 
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
-		assertThat(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass())).isTrue();
+		assertThat(sessionFactory).isInstanceOf(DefaultFtpSessionFactory.class);
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
 		assertThat(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class)
 				.contains(acceptAllFilter)).isTrue();
-		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
+		final AtomicReference<Method> genMethod = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(AbstractInboundFileSynchronizer.class, method -> {
 			method.setAccessible(true);
 			genMethod.set(method);
@@ -137,10 +144,10 @@ public class FtpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void cachingSessionFactory() throws Exception {
+	public void cachingSessionFactory() {
 		Object sessionFactory = TestUtils.getPropertyValue(simpleAdapterWithCachedSessions,
 				"source.synchronizer.remoteFileTemplate.sessionFactory");
-		assertThat(sessionFactory.getClass()).isEqualTo(CachingSessionFactory.class);
+		assertThat(sessionFactory).isInstanceOf(CachingSessionFactory.class);
 		FtpInboundFileSynchronizer fisync =
 				TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer",
 						FtpInboundFileSynchronizer.class);
@@ -161,7 +168,7 @@ public class FtpInboundChannelAdapterParserTests {
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
 		@Override
-		public DefaultFtpSessionFactory getObject() throws Exception {
+		public DefaultFtpSessionFactory getObject() {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
 			FtpSession session = mock(FtpSession.class);
 			when(factory.getSession()).thenReturn(session);

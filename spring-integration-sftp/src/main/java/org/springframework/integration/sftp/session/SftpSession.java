@@ -46,15 +46,17 @@ import com.jcraft.jsch.SftpException;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SftpSession implements Session<LsEntry> {
 
+	private static final Log LOGGER = LogFactory.getLog(SftpSession.class);
+
 	private static final String SESSION_IS_NOT_CONNECTED = "session is not connected";
 
 	private static final Duration DEFAULT_CHANNEL_CONNECT_TIMEOUT = Duration.ofSeconds(5);
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final com.jcraft.jsch.Session jschSession;
 
@@ -214,14 +216,14 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.rename(pathFrom, pathTo);
 		}
 		catch (SftpException sftpex) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: "
-						+ pathTo + " and execute rename again.");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Initial File rename failed, possibly because file already exists. " +
+						"Will attempt to delete file: " + pathTo + " and execute rename again.");
 			}
 			try {
-				this.remove(pathTo);
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
+				remove(pathTo);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
 				}
 			}
 			catch (IOException ioex) {
@@ -240,8 +242,8 @@ public class SftpSession implements Session<LsEntry> {
 				throw exception; // NOSONAR - added to suppressed exceptions
 			}
 		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
 		}
 	}
 
@@ -298,6 +300,11 @@ public class SftpSession implements Session<LsEntry> {
 	@Override
 	public ChannelSftp getClientInstance() {
 		return this.channel;
+	}
+
+	@Override
+	public String getHostPort() {
+		return this.jschSession.getHost() + ':' + this.jschSession.getPort();
 	}
 
 	@Override

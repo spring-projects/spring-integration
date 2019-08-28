@@ -17,7 +17,8 @@
 package org.springframework.integration.file.remote.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -58,6 +59,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -81,11 +83,11 @@ public class RemoteFileOutboundGatewayTests {
 	public final TemporaryFolder tempFolder = new TemporaryFolder();
 
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testBad() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "bad", "payload");
-		gw.afterPropertiesSet();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new TestRemoteFileOutboundGateway(sessionFactory, "bad", "payload"));
 	}
 
 	@Test
@@ -93,13 +95,10 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setFilter(new TestPatternFilter(""));
-		try {
-			gw.afterPropertiesSet();
-			fail("Exception expected");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage().startsWith("Filters are not supported")).isTrue();
-		}
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(gw::afterPropertiesSet)
+				.withMessageStartingWith("Filters are not supported");
 	}
 
 	@Test
@@ -107,13 +106,10 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "rm", "payload");
 		gw.setFilter(new TestPatternFilter(""));
-		try {
-			gw.afterPropertiesSet();
-			fail("Exception expected");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage().startsWith("Filters are not supported")).isTrue();
-		}
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(gw::afterPropertiesSet)
+				.withMessageStartingWith("Filters are not supported");
 	}
 
 	@Test
@@ -139,11 +135,6 @@ public class RemoteFileOutboundGatewayTests {
 		testMGetWildGuts("f1", "f2");
 	}
 
-	/**
-	 * Test a wildcard mget where the full path is returned for each file
-	 *
-	 * @throws Exception
-	 */
 	@Test
 	public void testMGetWildFullPath() {
 		testMGetWildGuts("testremote/f1", "testremote/f2");
@@ -547,7 +538,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
-	public void testGet() throws Exception {
+	public void testGet() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
@@ -609,22 +600,16 @@ public class RemoteFileOutboundGatewayTests {
 
 		// default (null)
 		MessageBuilder<File> out;
-		try {
-			out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-			fail("Exception expected");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).contains("already exists");
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("f1")))
+				.withMessageContaining("already exists");
 
 		gw.setFileExistsMode(FileExistsMode.FAIL);
-		try {
-			out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
-			fail("Exception expected");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getMessage()).contains("already exists");
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("f1")))
+				.withMessageContaining("already exists");
 
 		gw.setFileExistsMode(FileExistsMode.IGNORE);
 		out = (MessageBuilder<File>) gw.handleRequestMessage(new GenericMessage<>("f1"));
@@ -652,7 +637,8 @@ public class RemoteFileOutboundGatewayTests {
 
 	@Test
 	public void testGetTempFileDelete() {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
+		@SuppressWarnings("unchecked")
+		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
@@ -672,18 +658,15 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 		});
-		try {
-			gw.handleRequestMessage(new GenericMessage<>("f1"));
-			fail("Expected exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause()).isInstanceOf(RuntimeException.class);
-			assertThat(e.getCause().getMessage()).isEqualTo("test remove .writing");
-			@SuppressWarnings("unchecked")
-			RemoteFileTemplate template = new RemoteFileTemplate(sessionFactory);
-			File outFile = new File(this.tmpDir + "/f1" + template.getTemporaryFileSuffix());
-			assertThat(outFile.exists()).isFalse();
-		}
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(new GenericMessage<>("f1")))
+				.withCauseInstanceOf(RuntimeException.class)
+				.withMessageContaining("test remove .writing");
+
+		RemoteFileTemplate<?> template = new RemoteFileTemplate<>(sessionFactory);
+		File outFile = new File(this.tmpDir + "/f1" + template.getTemporaryFileSuffix());
+		assertThat(outFile.exists()).isFalse();
 	}
 
 
@@ -743,8 +726,7 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 			@Override
-			public void read(String source, OutputStream outputStream)
-					throws IOException {
+			public void read(String source, OutputStream outputStream) throws IOException {
 				outputStream.write("testfile".getBytes());
 			}
 
@@ -844,13 +826,10 @@ public class RemoteFileOutboundGatewayTests {
 		verify(session).rename("foo/bar.txt.writing", "foo/bar.txt");
 
 		gw.setFileExistsMode(FileExistsMode.FAIL);
-		try {
-			path = (String) gw.handleRequestMessage(requestMessage);
-			fail("Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).contains("The destination file already exists");
-		}
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> gw.handleRequestMessage(requestMessage))
+				.withMessageContaining("The destination file already exists");
 
 		gw.setFileExistsMode(FileExistsMode.REPLACE);
 		path = (String) gw.handleRequestMessage(requestMessage);
@@ -876,10 +855,9 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMput() throws Exception {
-		@SuppressWarnings("unchecked")
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
-		@SuppressWarnings("unchecked")
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
@@ -897,7 +875,6 @@ public class RemoteFileOutboundGatewayTests {
 		tempFolder.newFile("qux.txt");
 		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
 				.build();
-		@SuppressWarnings("unchecked")
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
 		assertThat(out.size()).isEqualTo(2);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
@@ -906,10 +883,9 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMputRecursive() throws Exception {
-		@SuppressWarnings("unchecked")
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
-		@SuppressWarnings("unchecked")
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
@@ -931,7 +907,6 @@ public class RemoteFileOutboundGatewayTests {
 
 		Message<File> requestMessage = MessageBuilder.withPayload(tempFolder.getRoot())
 				.build();
-		@SuppressWarnings("unchecked")
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
 		assertThat(out.size()).isEqualTo(3);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
@@ -941,10 +916,9 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMputCollection() throws Exception {
-		@SuppressWarnings("unchecked")
 		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
-		@SuppressWarnings("unchecked")
 		Session<TestLsEntry> session = mock(Session.class);
 		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<>(sessionFactory);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
@@ -963,7 +937,6 @@ public class RemoteFileOutboundGatewayTests {
 		files.add(tempFolder.newFile("buz.txt"));
 		Message<List<File>> requestMessage = MessageBuilder.withPayload(files)
 				.build();
-		@SuppressWarnings("unchecked")
 		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
 		assertThat(out.size()).isEqualTo(2);
 		assertThat(out.get(0)).isNotEqualTo(out.get(1));
@@ -1022,7 +995,7 @@ public class RemoteFileOutboundGatewayTests {
 
 		@Override
 		public boolean isOpen() {
-			return open;
+			return this.open;
 		}
 
 		@Override
@@ -1047,6 +1020,11 @@ public class RemoteFileOutboundGatewayTests {
 
 		@Override
 		public Object getClientInstance() {
+			return null;
+		}
+
+		@Override
+		public String getHostPort() {
 			return null;
 		}
 

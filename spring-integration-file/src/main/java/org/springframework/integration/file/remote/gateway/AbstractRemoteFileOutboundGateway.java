@@ -72,7 +72,6 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
 
-
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
 	private final Command command;
@@ -118,7 +117,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory,
 			MessageSessionCallback<F, ?> messageSessionCallback) {
 
-		this(new RemoteFileTemplate<F>(sessionFactory), messageSessionCallback);
+		this(new RemoteFileTemplate<>(sessionFactory), messageSessionCallback);
 	}
 
 	/**
@@ -161,7 +160,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command,
 			@Nullable String expression) {
 
-		this(new RemoteFileTemplate<F>(sessionFactory), command, expression);
+		this(new RemoteFileTemplate<>(sessionFactory), command, expression);
 	}
 
 	/**
@@ -317,7 +316,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @since 4.3
 	 */
 	public void setRenameExpression(Expression renameExpression) {
-		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(renameExpression);
+		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<>(renameExpression);
 	}
 
 	/**
@@ -490,10 +489,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
-		List<?> payload = this.remoteFileTemplate.execute(session -> ls(requestMessage, session, fullDir));
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
+		return this.remoteFileTemplate.execute(session -> {
+			List<?> payload = ls(requestMessage, session, fullDir);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
+
 	}
 
 	private Object doNlst(Message<?> requestMessage) {
@@ -504,11 +507,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
-		List<?> payload = this.remoteFileTemplate.execute(session -> nlst(requestMessage, session, fullDir));
-
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
+		return this.remoteFileTemplate.execute(session -> {
+			List<?> payload = nlst(requestMessage, session, fullDir);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, fullDir)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
 	}
 
 	/**
@@ -541,6 +546,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			session = this.remoteFileTemplate.getSessionFactory().getSession();
 			try {
 				payload = session.readRaw(remoteFilePath);
+				return getMessageBuilderFactory()
+						.withPayload(payload)
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+						.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
+						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session);
 			}
 			catch (IOException e) {
 				throw new MessageHandlingException(requestMessage,
@@ -549,26 +560,30 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		else {
-			payload = this.remoteFileTemplate.execute(session1 ->
-					get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, null));
+			return this.remoteFileTemplate.execute(session1 -> {
+				Object getPayload = get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, null);
+				return getMessageBuilderFactory()
+						.withPayload(getPayload)
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+						.setHeader(FileHeaders.REMOTE_HOST_PORT, session1.getHostPort());
+			});
 		}
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session);
 	}
 
 	private Object doMget(final Message<?> requestMessage) {
 		String remoteFilePath = obtainRemoteFilePath(requestMessage);
-		final String remoteFilename = getRemoteFilename(remoteFilePath);
-		final String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
-		List<File> payload = this.remoteFileTemplate.execute(session ->
-				mGet(requestMessage, session, remoteDir, remoteFilename));
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
+		String remoteFilename = getRemoteFilename(remoteFilePath);
+		String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
+		return this.remoteFileTemplate.execute(session -> {
+					List<File> payload = mGet(requestMessage, session, remoteDir, remoteFilename);
+					return getMessageBuilderFactory()
+							.withPayload(payload)
+							.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+				}
+		);
 	}
 
 	private Object doRm(Message<?> requestMessage) {
@@ -576,12 +591,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFilename = getRemoteFilename(remoteFilePath);
 		String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
 
-		boolean payload = this.remoteFileTemplate.execute(session -> rm(requestMessage, session, remoteFilePath));
-
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
+		return this.remoteFileTemplate.execute(session -> {
+			boolean payload = rm(requestMessage, session, remoteFilePath);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+					.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+		});
 	}
 
 	/**
@@ -606,15 +623,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFileNewPath = this.renameProcessor.processMessage(requestMessage);
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
 
-		Boolean result =
-				this.remoteFileTemplate.execute(session ->
-						mv(requestMessage, session, remoteFilePath, remoteFileNewPath));
-
-		return getMessageBuilderFactory()
-				.withPayload(result)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath);
+		return this.remoteFileTemplate.execute(session -> {
+					Boolean result = mv(requestMessage, session, remoteFilePath, remoteFileNewPath);
+					return getMessageBuilderFactory()
+							.withPayload(result)
+							.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+							.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+							.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort());
+				}
+		);
 	}
 
 	private String obtainRemoteFilePath(Message<?> requestMessage) {

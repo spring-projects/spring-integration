@@ -123,6 +123,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO)).isInstanceOf(FtpFileInfo.class);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
 		assertThat(TestUtils.getPropertyValue(source, "toBeReceived", BlockingQueue.class)).hasSize(1);
 		assertThat(this.metadataMap).hasSize(1);
 		this.adapter.stop();

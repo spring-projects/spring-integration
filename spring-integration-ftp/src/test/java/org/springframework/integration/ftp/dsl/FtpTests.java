@@ -98,6 +98,8 @@ public class FtpTests extends FtpTestSupport {
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertThat(message).isNotNull();
+		assertThat(message.getHeaders())
+				.containsKeys(FileHeaders.REMOTE_HOST_PORT, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
 		Object payload = message.getPayload();
 		assertThat(payload).isInstanceOf(File.class);
 		File file = (File) payload;
@@ -153,6 +155,7 @@ public class FtpTests extends FtpTestSupport {
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isInstanceOf(InputStream.class);
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE)).isIn(" ftpSource1.txt", "ftpSource2.txt");
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_HOST_PORT, String.class)).contains("localhost:");
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);

@@ -45,11 +45,15 @@
 								  max-fetch-size="42"
 								  delete-remote-files="${delete.remote.files}"
 								  auto-startup="false"
-								  preserve-timestamp="true">
+								  preserve-timestamp="true"
+								  remote-file-metadata-store="metadataStore"
+								  metadata-store-prefix="testPrefix">
 		<poller fixed-rate="1000">
 			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
+
+	<beans:bean id="metadataStore" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
 	<beans:bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter"/>
 

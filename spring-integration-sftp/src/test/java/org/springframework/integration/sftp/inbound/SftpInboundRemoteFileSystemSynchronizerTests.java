@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -58,6 +59,7 @@ import com.jcraft.jsch.SftpATTRS;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
@@ -97,7 +99,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		store.afterPropertiesSet();
 		SftpPersistentAcceptOnceFileListFilter persistFilter =
 				new SftpPersistentAcceptOnceFileListFilter(store, "foo");
-		List<FileListFilter<LsEntry>> filters = new ArrayList<FileListFilter<LsEntry>>();
+		List<FileListFilter<LsEntry>> filters = new ArrayList<>();
 		filters.add(persistFilter);
 		filters.add(patternFilter);
 		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<LsEntry>(filters);
@@ -109,27 +111,30 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectory);
 		ms.setBeanFactory(mock(BeanFactory.class));
-		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
+		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.test$"));
-		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<File>();
+		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<>();
 		localFileListFilter.addFilter(localAcceptOnceFilter);
 		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
 		ms.start();
 
-		Message<File> atestFile =  ms.receive();
+		Message<File> atestFile = ms.receive();
 		assertThat(atestFile).isNotNull();
 		assertThat(atestFile.getPayload().getName()).isEqualTo("a.test");
 		// The test remote files are created with the current timestamp + 1 day.
 		assertThat(atestFile.getPayload().lastModified()).isGreaterThan(System.currentTimeMillis());
 
-		Message<File> btestFile =  ms.receive();
+		assertThat(atestFile.getHeaders())
+				.containsKeys(FileHeaders.REMOTE_HOST_PORT, FileHeaders.REMOTE_DIRECTORY, FileHeaders.REMOTE_FILE);
+
+		Message<File> btestFile = ms.receive();
 		assertThat(btestFile).isNotNull();
 		assertThat(btestFile.getPayload().getName()).isEqualTo("b.test");
 		// The test remote files are created with the current timestamp + 1 day.
 		assertThat(atestFile.getPayload().lastModified()).isGreaterThan(System.currentTimeMillis());
 
-		Message<File> nothing =  ms.receive();
+		Message<File> nothing = ms.receive();
 		assertThat(nothing).isNull();
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
@@ -143,7 +148,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		new File("test/a.test").delete();
 		new File("test/b.test").delete();
 		// the remote filter should prevent a re-fetch
-		nothing =  ms.receive();
+		nothing = ms.receive();
 		assertThat(nothing).isNull();
 
 		ms.stop();
@@ -153,7 +158,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 
-		private final Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
+		private final Vector<LsEntry> sftpEntries = new Vector<>();
 
 		private void init() {
 			String[] files = new File("remote-test-dir").list();

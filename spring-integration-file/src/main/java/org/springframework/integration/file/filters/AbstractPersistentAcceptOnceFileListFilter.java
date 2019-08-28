@@ -38,18 +38,16 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F>
-		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>,  Closeable {
+		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, Closeable {
 
 	protected final ConcurrentMetadataStore store; // NOSONAR
+
+	protected final String prefix; // NOSONAR
 
 	@Nullable
 	protected final Flushable flushableStore; // NOSONAR
 
-	protected final String prefix; // NOSONAR
-
-	protected volatile boolean flushOnUpdate; // NOSONAR
-
-	private final Object monitor = new Object();
+	protected boolean flushOnUpdate; // NOSONAR
 
 	public AbstractPersistentAcceptOnceFileListFilter(ConcurrentMetadataStore store, String prefix) {
 		Assert.notNull(store, "'store' cannot be null");
@@ -76,20 +74,18 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	@Override
 	public boolean accept(F file) {
 		String key = buildKey(file);
-		synchronized (this.monitor) {
-			String newValue = value(file);
-			String oldValue = this.store.putIfAbsent(key, newValue);
-			if (oldValue == null) { // not in store
-				flushIfNeeded();
-				return fileStillExists(file);
-			}
-			// same value in store
-			if (!isEqual(file, oldValue) && this.store.replace(key, oldValue, newValue)) {
-				flushIfNeeded();
-				return fileStillExists(file);
-			}
-			return false;
+		String newValue = value(file);
+		String oldValue = this.store.putIfAbsent(key, newValue);
+		if (oldValue == null) { // not in store
+			flushIfNeeded();
+			return fileStillExists(file);
 		}
+		// same value in store
+		if (!isEqual(file, oldValue) && this.store.replace(key, oldValue, newValue)) {
+			flushIfNeeded();
+			return fileStillExists(file);
+		}
+		return false;
 	}
 
 	/**
@@ -151,7 +147,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	 * @return true if equal.
 	 */
 	protected boolean isEqual(F file, String value) {
-		return Long.valueOf(value) == modified(file);
+		return Long.parseLong(value) == modified(file);
 	}
 
 	/**

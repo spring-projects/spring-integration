@@ -30,11 +30,15 @@
 				temporary-file-suffix=".foo"
 				max-fetch-size="42"
 				local-filter="acceptAllFilter"
-				remote-directory-expression="'foo/bar'">
+				remote-directory-expression="'foo/bar'"
+				remote-file-metadata-store="metadataStore"
+				metadata-store-prefix="testPrefix">
 			<int:poller fixed-rate="1000">
 				<int:transactional synchronization-factory="syncFactory"/>
 			</int:poller>
 	</int-ftp:inbound-channel-adapter>
+
+	<bean id="metadataStore" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
 	<bean id="dirScanner" class="org.springframework.integration.file.HeadDirectoryScanner">
 		<constructor-arg value="1" />
