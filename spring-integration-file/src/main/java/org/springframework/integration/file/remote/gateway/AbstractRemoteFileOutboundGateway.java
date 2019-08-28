@@ -41,6 +41,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -108,6 +109,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Integer chmod;
 
+	private boolean remoteFileTemplateExplicitlySet;
+
 	/**
 	 * Construct an instance using the provided session factory and callback for
 	 * performing operations on the session.
@@ -135,6 +138,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.messageSessionCallback = messageSessionCallback;
 		this.fileNameProcessor = null;
 		this.command = null;
+		remoteFileTemplateExplicitlySet(true);
 	}
 
 	/**
@@ -204,6 +208,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			setPrimaryExpression(parsedExpression);
 		}
 		this.messageSessionCallback = null;
+		remoteFileTemplateExplicitlySet(true);
+	}
+
+	protected final void remoteFileTemplateExplicitlySet(boolean remoteFileTemplateExplicitlySet) {
+		this.remoteFileTemplateExplicitlySet = remoteFileTemplateExplicitlySet;
+	}
+
+	protected void assertRemoteFileTemplateMutability(String propertyName) {
+		Assert.state(!this.remoteFileTemplateExplicitlySet,
+				() -> "The '" + propertyName + "' must be set on the externally provided: " + this.remoteFileTemplate);
 	}
 
 	/**
@@ -242,6 +256,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
+		assertRemoteFileTemplateMutability("remoteFileSeparator");
 		this.remoteFileTemplate.setRemoteFileSeparator(remoteFileSeparator);
 	}
 
@@ -290,7 +305,91 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @see RemoteFileTemplate#setTemporaryFileSuffix(String)
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		assertRemoteFileTemplateMutability("temporaryFileSuffix");
 		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
+	}
+
+	/**
+	 * Determine whether the remote directory should automatically be created when
+	 * sending files to the remote system.
+	 * @param autoCreateDirectory true to create the directory.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setAutoCreateDirectory(boolean)
+	 */
+	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
+		assertRemoteFileTemplateMutability("autoCreateDirectory");
+		this.remoteFileTemplate.setAutoCreateDirectory(autoCreateDirectory);
+	}
+
+	/**
+	 * Set the remote directory expression used to determine the remote directory to which
+	 * files will be sent.
+	 * @param remoteDirectoryExpression the remote directory expression.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setRemoteDirectoryExpression
+	 */
+	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		assertRemoteFileTemplateMutability("remoteDirectoryExpression");
+		this.remoteFileTemplate.setRemoteDirectoryExpression(remoteDirectoryExpression);
+	}
+
+	/**
+	 * Set a temporary remote directory expression; used when transferring files to the remote
+	 * system. After a successful transfer the file is renamed using the
+	 * {@link #setRemoteDirectoryExpression(Expression) remoteDirectoryExpression}.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setTemporaryRemoteDirectoryExpression
+	 */
+	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
+		assertRemoteFileTemplateMutability("temporaryRemoteDirectoryExpression");
+		this.remoteFileTemplate.setTemporaryRemoteDirectoryExpression(temporaryRemoteDirectoryExpression);
+	}
+
+	/**
+	 * Set the file name expression to determine the full path to the remote file.
+	 * @param fileNameExpression the file name expression.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setFileNameExpression
+	 */
+	public void setFileNameExpression(Expression fileNameExpression) {
+		assertRemoteFileTemplateMutability("fileNameExpression");
+		this.remoteFileTemplate.setFileNameExpression(fileNameExpression);
+	}
+
+	/**
+	 * Set whether a temporary file name is used when sending files to the remote system.
+	 * @param useTemporaryFileName true to use a temporary file name.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setUseTemporaryFileName
+	 */
+	public void setUseTemporaryFileName(boolean useTemporaryFileName) {
+		assertRemoteFileTemplateMutability("useTemporaryFileName");
+		this.remoteFileTemplate.setUseTemporaryFileName(useTemporaryFileName);
+	}
+
+	/**
+	 * Set the file name generator used to generate the remote filename to be used when transferring
+	 * files to the remote system.
+	 * @param fileNameGenerator the file name generator.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setFileNameGenerator
+	 */
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		assertRemoteFileTemplateMutability("fileNameGenerator");
+		this.remoteFileTemplate.setFileNameGenerator(fileNameGenerator);
+	}
+
+	/**
+	 * Set the charset to use when converting String payloads to bytes as the content of the
+	 * remote file. Default {@code UTF-8}.
+	 * @param charset the charset.
+	 * @since 5.2
+	 * @see RemoteFileTemplate#setCharset
+	 */
+	public void setCharset(String charset) {
+		assertRemoteFileTemplateMutability("charset");
+		this.remoteFileTemplate.setCharset(charset);
 	}
 
 	/**

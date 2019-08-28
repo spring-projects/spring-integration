@@ -68,6 +68,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 		this(new FtpRemoteFileTemplate(sessionFactory), messageSessionCallback);
 		((FtpRemoteFileTemplate) getRemoteFileTemplate()).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**
@@ -92,6 +93,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command, String expression) {
 		this(new FtpRemoteFileTemplate(sessionFactory), command, expression);
 		((FtpRemoteFileTemplate) getRemoteFileTemplate()).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
+		remoteFileTemplateExplicitlySet(false);
 	}
 
 	/**

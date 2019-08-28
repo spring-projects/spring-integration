@@ -197,13 +197,15 @@ public class FtpTests extends FtpTestSupport {
 	public void testFtpMgetFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
-				.handle(Ftp.outboundGateway(sessionFactory(),
-						AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
-						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
-						.fileExistsMode(FileExistsMode.IGNORE)
-						.filterExpression("name matches 'subFtpSource|.*1.txt'")
-						.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
-						.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')"))
+				.handle(
+						Ftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+								.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+								.fileExistsMode(FileExistsMode.IGNORE)
+								.filterExpression("name matches 'subFtpSource|.*1.txt'")
+								.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+								.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')")
+								.charset(StandardCharsets.UTF_8.name())
+								.useTemporaryFileName(true))
 				.channel(out);
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String dir = "ftpSource/";
