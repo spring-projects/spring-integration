@@ -156,9 +156,20 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		if (this.isInternalScheduler) {
 			((ThreadPoolTaskScheduler) this.scheduler).shutdown();
 		}
+		cancelPing();
+	}
+
+	/**
+	 * The hook to be called when we need to cancel the current ping task and close the mail folder.
+	 * In other words: when IMAP idle should be stopped for some reason.
+	 * The next {@link #waitForNewMessages()} call will re-open the folder and start a new ping task.
+	 * @since 5.2
+	 */
+	public void cancelPing() {
 		if (this.pingTask != null) {
 			this.pingTask.cancel(true);
 		}
+		closeFolder();
 	}
 
 	/**

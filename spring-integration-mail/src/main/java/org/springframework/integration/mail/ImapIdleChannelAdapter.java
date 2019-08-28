@@ -78,7 +78,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private boolean shouldReconnectAutomatically = true;
 
-	private Executor sendingTaskExecutor;
+	private Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
 
 	private boolean sendingTaskExecutorSet;
 
@@ -95,13 +95,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	public void setTransactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
+
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
 	}
-
 
 	/**
 	 * Specify an {@link Executor} used to send messages received by the
@@ -156,9 +156,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	protected void doStart() {
 		TaskScheduler scheduler = getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null");
-		if (this.sendingTaskExecutor == null) {
-			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
-		}
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
 	}
 
@@ -166,19 +163,16 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	// guarded by super#lifecycleLock
 	protected void doStop() {
 		this.receivingTask.cancel(true);
-		try {
-			this.mailReceiver.destroy();
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(
-					"Failure during the destruction of Mail receiver: " + this.mailReceiver, e);
-		}
-		/*
-		 * If we're running with the default executor, shut it down.
-		 */
+		this.mailReceiver.cancelPing();
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+		this.mailReceiver.destroy();
+		// If we're running with the default executor, shut it down.
 		if (!this.sendingTaskExecutorSet && this.sendingTaskExecutor != null) {
 			((ExecutorService) this.sendingTaskExecutor).shutdown();
-			this.sendingTaskExecutor = null;
 		}
 	}
 
@@ -250,17 +244,19 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public void run() {
-			try {
-				ImapIdleChannelAdapter.this.idleTask.run();
-				logger.debug("Task completed successfully. Re-scheduling it again right away.");
-			}
-			catch (Exception e) { //run again after a delay
-				if (logger.isWarnEnabled()) {
-					logger.warn("Failed to execute IDLE task. Will attempt to resubmit in "
-							+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
+			if (isRunning()) {
+				try {
+					ImapIdleChannelAdapter.this.idleTask.run();
+					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
-				ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
-				publishException(e);
+				catch (Exception e) { //run again after a delay
+					if (logger.isWarnEnabled()) {
+						logger.warn("Failed to execute IDLE task. Will attempt to resubmit in "
+								+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
+					}
+					ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
+					publishException(e);
+				}
 			}
 		}
 
@@ -275,38 +271,33 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public void run() {
-			final TaskScheduler scheduler = getTaskScheduler();
-			Assert.notNull(scheduler, "'taskScheduler' must not be null");
-			/*
-			 * The following shouldn't be necessary because doStart() will have ensured we have
-			 * one. But, just in case...
-			 */
-			Assert.state(ImapIdleChannelAdapter.this.sendingTaskExecutor != null,
-					"'sendingTaskExecutor' must not be null");
-
-			try {
-				logger.debug("waiting for mail");
-				ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
-				Folder folder = ImapIdleChannelAdapter.this.mailReceiver.getFolder();
-				if (folder != null && folder.isOpen()) {
-					Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
-					if (logger.isDebugEnabled()) {
-						logger.debug("received " + mailMessages.length + " mail messages");
-					}
-					for (Object mailMessage : mailMessages) {
-						Runnable messageSendingTask = createMessageSendingTask(mailMessage);
-						ImapIdleChannelAdapter.this.sendingTaskExecutor.execute(messageSendingTask);
+			if (isRunning()) {
+				try {
+					logger.debug("waiting for mail");
+					ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
+					Folder folder = ImapIdleChannelAdapter.this.mailReceiver.getFolder();
+					if (folder != null && folder.isOpen() && isRunning()) {
+						Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
+						if (logger.isDebugEnabled()) {
+							logger.debug("received " + mailMessages.length + " mail messages");
+						}
+						for (Object mailMessage : mailMessages) {
+							Runnable messageSendingTask = createMessageSendingTask(mailMessage);
+							if (isRunning()) {
+								ImapIdleChannelAdapter.this.sendingTaskExecutor.execute(messageSendingTask);
+							}
+						}
 					}
 				}
-			}
-			catch (MessagingException e) {
-				logger.warn("error occurred in idle task", e);
-				if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
-					throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", e);
-				}
-				else {
-					throw new org.springframework.messaging.MessagingException(
-							"Failure in 'idle' task. Will NOT resubmit.", e);
+				catch (MessagingException e) {
+					logger.warn("error occurred in idle task", e);
+					if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
+						throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", e);
+					}
+					else {
+						throw new org.springframework.messaging.MessagingException(
+								"Failure in 'idle' task. Will NOT resubmit.", e);
+					}
 				}
 			}
 		}
