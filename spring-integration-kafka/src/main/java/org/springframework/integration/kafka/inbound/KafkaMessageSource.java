@@ -55,12 +55,14 @@ import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -107,27 +109,19 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	private final KafkaAckCallbackFactory<K, V> ackCallbackFactory;
 
-	private final String[] topics;
-
 	private final Object consumerMonitor = new Object();
 
 	private final Map<TopicPartition, Set<KafkaAckInfo<K, V>>> inflightRecords = new ConcurrentHashMap<>();
 
 	private final AtomicInteger remainingCount = new AtomicInteger();
 
-	private String groupId;
-
-	private String clientId = "message.source";
+	private final ConsumerProperties consumerProperties;
 
 	private Duration pollTimeout;
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
 	private Class<?> payloadType;
-
-	private ConsumerRebalanceListener rebalanceListener;
-
-	private ConsumerAwareRebalanceListener consumerAwareRebalanceListener;
 
 	private boolean rawMessageHeader;
 
@@ -250,28 +244,31 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		Assert.notNull(consumerFactory, "'consumerFactory' must not be null");
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' must not be null");
-		Assert.isTrue(consumerProperties.getTopics() != null && consumerProperties.getTopics().length > 0, "At least one topic is required");
+		Assert.isTrue(
+				!ObjectUtils.isEmpty(consumerProperties.getTopics())
+				|| !ObjectUtils.isEmpty(consumerProperties.getTopicPartitionsToAssign())
+				|| consumerProperties.getTopicPattern() != null,
+				"topics, topicPattern, or topicPartitions must be provided"
+		);
+		this.consumerProperties = consumerProperties;
+
 		this.consumerFactory = fixOrRejectConsumerFactory(consumerFactory, allowMultiFetch);
 		this.ackCallbackFactory = ackCallbackFactory;
-		this.topics = consumerProperties.getTopics();
-		this.groupId = consumerProperties.getGroupId();
-		if (StringUtils.hasText(consumerProperties.getClientId())) {
-			this.clientId = consumerProperties.getClientId();
-		}
 		this.pollTimeout = Duration.ofMillis(consumerProperties.getPollTimeout());
 		this.assignTimeout = this.minTimeoutProvider.get();
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
 		this.ackCallbackFactory.setCommitTimeout(consumerProperties.getSyncCommitTimeout());
-		if (consumerProperties.getConsumerRebalanceListener() instanceof ConsumerAwareRebalanceListener) {
-			this.consumerAwareRebalanceListener = (ConsumerAwareRebalanceListener) consumerProperties.getConsumerRebalanceListener();
-		}
-		else {
-			this.rebalanceListener = consumerProperties.getConsumerRebalanceListener();
+	}
+
+	@Override
+	protected void onInit() {
+		if (!StringUtils.hasText(this.consumerProperties.getClientId())) {
+			this.consumerProperties.setClientId(getComponentName());
 		}
 	}
 
 	protected String getGroupId() {
-		return this.groupId;
+		return this.consumerProperties.getGroupId();
 	}
 
 	/**
@@ -282,11 +279,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	@Deprecated
 	public void setGroupId(String groupId) {
-		this.groupId = groupId;
+		this.consumerProperties.setGroupId(groupId);
 	}
 
 	protected String getClientId() {
-		return this.clientId;
+		return this.consumerProperties.getClientId();
 	}
 
 	/**
@@ -297,7 +294,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	@Deprecated
 	public void setClientId(String clientId) {
-		this.clientId = clientId;
+		this.consumerProperties.setClientId(clientId);
 	}
 
 	protected long getPollTimeout() {
@@ -343,7 +340,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	}
 
 	protected ConsumerRebalanceListener getRebalanceListener() {
-		return this.rebalanceListener;
+		return this.consumerProperties.getConsumerRebalanceListener();
 	}
 
 	/**
@@ -354,10 +351,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	@Deprecated
 	public void setRebalanceListener(ConsumerRebalanceListener rebalanceListener) {
-		this.rebalanceListener = rebalanceListener;
-		if (rebalanceListener instanceof ConsumerAwareRebalanceListener) {
-			this.consumerAwareRebalanceListener = (ConsumerAwareRebalanceListener) rebalanceListener;
-		}
+		this.consumerProperties.setConsumerRebalanceListener(rebalanceListener);
 	}
 
 	@Override
@@ -537,41 +531,103 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 	protected void createConsumer() {
 		synchronized (this.consumerMonitor) {
-			this.consumer = this.consumerFactory.createConsumer(this.groupId, this.clientId, null);
-			boolean isConsumerAware = this.consumerAwareRebalanceListener != null;
-			this.consumer.subscribe(Arrays.asList(this.topics), new ConsumerRebalanceListener() {
+			this.consumer = this.consumerFactory.createConsumer(this.consumerProperties.getGroupId(),
+					this.consumerProperties.getClientId(), null);
+			ConsumerRebalanceListener providedRebalanceListener = this.consumerProperties
+					.getConsumerRebalanceListener();
+			boolean isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;
+			ConsumerRebalanceListener rebalanceCallback = new ConsumerRebalanceListener() {
 
 				@Override
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 					KafkaMessageSource.this.assignedPartitions.clear();
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-						KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
+						KafkaMessageSource.this.logger
+								.info("Partitions revoked: " + partitions);
 					}
-					if (isConsumerAware) {
-						KafkaMessageSource.this.consumerAwareRebalanceListener.onPartitionsRevokedAfterCommit(
-								KafkaMessageSource.this.consumer, partitions);
+					if (providedRebalanceListener != null) {
+						if (isConsumerAware) {
+							((ConsumerAwareRebalanceListener) providedRebalanceListener)
+									.onPartitionsRevokedAfterCommit(KafkaMessageSource.this.consumer, partitions);
+						}
+						else {
+							providedRebalanceListener.onPartitionsRevoked(partitions);
+						}
 					}
-					else if (KafkaMessageSource.this.rebalanceListener != null) {
-						KafkaMessageSource.this.rebalanceListener.onPartitionsRevoked(partitions);
-					}
+
 				}
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 					KafkaMessageSource.this.assignedPartitions = new ArrayList<>(partitions);
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
-						KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
+						KafkaMessageSource.this.logger
+								.info("Partitions assigned: " + partitions);
 					}
-					if (isConsumerAware) {
-						KafkaMessageSource.this.consumerAwareRebalanceListener.onPartitionsAssigned(
-								KafkaMessageSource.this.consumer, partitions);
-					}
-					else if (KafkaMessageSource.this.rebalanceListener != null) {
-						KafkaMessageSource.this.rebalanceListener.onPartitionsAssigned(partitions);
+					if (providedRebalanceListener != null) {
+						if (isConsumerAware) {
+							((ConsumerAwareRebalanceListener) providedRebalanceListener)
+									.onPartitionsAssigned(KafkaMessageSource.this.consumer, partitions);
+						}
+						else {
+							providedRebalanceListener.onPartitionsAssigned(partitions);
+						}
 					}
 				}
 
-			});
+			};
+
+			if (this.consumerProperties.getTopicPattern() != null) {
+				this.consumer.subscribe(this.consumerProperties.getTopicPattern(), rebalanceCallback);
+			}
+			else if (this.consumerProperties.getTopicPartitionsToAssign() != null) {
+				List<TopicPartition> topicPartitionsToAssign = Arrays
+						.stream(this.consumerProperties.getTopicPartitionsToAssign())
+						.map(TopicPartitionOffset::getTopicPartition)
+						.collect(Collectors.toList());
+				this.consumer.assign(topicPartitionsToAssign);
+				this.assignedPartitions = new ArrayList<>(topicPartitionsToAssign);
+
+				TopicPartitionOffset[] partitions = this.consumerProperties.getTopicPartitionsToAssign();
+
+				for (TopicPartitionOffset partition : partitions) {
+					if (TopicPartitionOffset.SeekPosition.BEGINNING.equals(partition.getPosition())) {
+						this.consumer.seekToBeginning(Collections.singleton(partition.getTopicPartition()));
+					}
+					else if (TopicPartitionOffset.SeekPosition.END.equals(partition.getPosition())) {
+						this.consumer.seekToEnd(Collections.singleton(partition.getTopicPartition()));
+					}
+					else {
+						TopicPartition topicPartition = partition.getTopicPartition();
+						Long offset = partition.getOffset();
+						if (offset != null) {
+							long newOffset = offset;
+
+							if (offset < 0) {
+								if (!partition.isRelativeToCurrent()) {
+									this.consumer.seekToEnd(Collections.singleton(topicPartition));
+									continue;
+								}
+								newOffset = Math.max(0, this.consumer.position(topicPartition) + offset);
+							}
+							else if (partition.isRelativeToCurrent()) {
+								newOffset = this.consumer.position(topicPartition) + offset;
+							}
+
+							try {
+								this.consumer.seek(topicPartition, newOffset);
+							}
+							catch (Exception e) {
+								this.logger.error("Failed to set initial offset for " + topicPartition
+										+ " at " + newOffset + ". Position is " + this.consumer.position(topicPartition), e);
+							}
+						}
+					}
+				}
+			}
+			else {
+				this.consumer.subscribe(Arrays.asList(this.consumerProperties.getTopics()), rebalanceCallback);
+			}
 		}
 	}
 
@@ -799,7 +855,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		@Override
 		public String getGroupId() {
-			return KafkaMessageSource.this.groupId;
+			return KafkaMessageSource.this.getGroupId();
 		}
 
 		@Override
