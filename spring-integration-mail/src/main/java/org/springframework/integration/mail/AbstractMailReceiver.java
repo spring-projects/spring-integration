@@ -390,7 +390,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
-	private void closeFolder() {
+	protected void closeFolder() {
 		this.folderReadLock.lock();
 		try {
 			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);

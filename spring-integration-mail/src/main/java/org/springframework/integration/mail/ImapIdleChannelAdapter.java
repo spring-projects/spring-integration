@@ -163,6 +163,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	// guarded by super#lifecycleLock
 	protected void doStop() {
 		this.receivingTask.cancel(true);
+		this.mailReceiver.cancelPing();
 	}
 
 	@Override
