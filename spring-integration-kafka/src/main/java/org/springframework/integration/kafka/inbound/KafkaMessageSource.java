@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -40,21 +39,26 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckInfo;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.listener.LoggingCommitCallback;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.LogIfLevelEnabled;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
@@ -180,7 +184,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 * @see #KafkaMessageSource(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)
 	 */
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, ConsumerProperties consumerProperties) {
-		this(consumerFactory, consumerProperties, new KafkaAckCallbackFactory<>(), false);
+		this(consumerFactory, consumerProperties, new KafkaAckCallbackFactory<>(consumerProperties), false);
 	}
 
 	/**
@@ -201,7 +205,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory,
 			ConsumerProperties consumerProperties,
 			boolean allowMultiFetch) {
-		this(consumerFactory, consumerProperties, new KafkaAckCallbackFactory<>(), allowMultiFetch);
+
+		this(consumerFactory, consumerProperties, new KafkaAckCallbackFactory<>(consumerProperties), allowMultiFetch);
 	}
 
 	/**
@@ -257,7 +262,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		this.pollTimeout = Duration.ofMillis(consumerProperties.getPollTimeout());
 		this.assignTimeout = this.minTimeoutProvider.get();
 		this.commitTimeout = consumerProperties.getSyncCommitTimeout();
-		this.ackCallbackFactory.setCommitTimeout(consumerProperties.getSyncCommitTimeout());
 	}
 
 	@Override
@@ -646,6 +650,21 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
+	/*
+	 * TODO: Remove when deprecated CTORs below are removed.
+	 */
+	private static ConsumerProperties dummyProperties(@Nullable Duration commitTimeout2) {
+		if (commitTimeout2 == null) {
+			return null;
+		}
+		else {
+			ConsumerProperties consumerProperties = new ConsumerProperties(new String[0]);
+			consumerProperties.setSyncCommitTimeout(commitTimeout2);
+			return consumerProperties;
+		}
+	}
+
+
 	/**
 	 * AcknowledgmentCallbackFactory for KafkaAckInfo.
 	 * @param <K> the key type.
@@ -654,15 +673,36 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	public static class KafkaAckCallbackFactory<K, V> implements AcknowledgmentCallbackFactory<KafkaAckInfo<K, V>> {
 
-		private Duration commitTimeout;
+		private final ConsumerProperties consumerProperties;
 
+		/**
+		 * Deprecated constructor.
+		 * @deprecated in favor of
+		 * {@link #KafkaMessageSource$KafkaAckCallbackFactory(ConsumerProperties)}.
+		 */
+		@Deprecated
+		public KafkaAckCallbackFactory() {
+			this(dummyProperties(null));
+		}
+
+		public KafkaAckCallbackFactory(ConsumerProperties consumerProperties) {
+			this.consumerProperties = consumerProperties;
+		}
+
+		/**
+		 * Deprecated setter.
+		 * @deprecated in favor of
+		 * {@link #KafkaMessageSource$KafkaAckCallbackFactory(ConsumerProperties)}.
+		 * @param commitTimeout the commit timeout.
+		 */
+		@Deprecated
 		public void setCommitTimeout(Duration commitTimeout) {
-			this.commitTimeout = commitTimeout;
+			this.consumerProperties.setSyncCommitTimeout(commitTimeout);
 		}
 
 		@Override
 		public AcknowledgmentCallback createCallback(KafkaAckInfo<K, V> info) {
-			return new KafkaAckCallback<>(info, this.commitTimeout);
+			return new KafkaAckCallback<>(info, this.consumerProperties);
 		}
 
 	}
@@ -675,24 +715,62 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	 */
 	public static class KafkaAckCallback<K, V> implements AcknowledgmentCallback, Acknowledgment {
 
-		private final Log logger = LogFactory.getLog(getClass());
+		private final LogAccessor logger = new LogAccessor(LogFactory.getLog(getClass()));
+
+		private final LogIfLevelEnabled commitLogger;
 
 		private final KafkaAckInfo<K, V> ackInfo;
 
 		private final Duration commitTimeout;
 
+		private final OffsetCommitCallback commitCallback;
+
+		private final boolean isSyncCommits;
+
 		private volatile boolean acknowledged;
 
 		private boolean autoAckEnabled = true;
 
+		/**
+		 * Deprecated constructor.
+		 * @param ackInfo the ack info.
+		 * @deprecated in favor of
+		 * {@link #KafkaMessageSource$KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
+		 */
+		@Deprecated
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo) {
-			this(ackInfo, null);
+			this(ackInfo, (ConsumerProperties) null);
 		}
 
+		/**
+		 * Deprecated constructor.
+		 * @param ackInfo the ack info.
+		 * @param commitTimeout the commit timeout.
+		 * @deprecated in favor of
+		 * {@link #KafkaMessageSource4KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
+		 */
+		@Deprecated
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable Duration commitTimeout) {
-			Assert.notNull(ackInfo, "'ackInfo' cannot be null");
+			this(ackInfo, dummyProperties(commitTimeout));
+		}
+
+		/**
+		 * Construct an instance with the provided properties.
+		 * @param ackInfo the ack info.
+		 * @param consumerProperties the consumer properties - only commit-related
+		 * properties are used.
+		 */
+		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable ConsumerProperties consumerProperties) {
+
+				Assert.notNull(ackInfo, "'ackInfo' cannot be null");
 			this.ackInfo = ackInfo;
-			this.commitTimeout = commitTimeout;
+			this.commitTimeout = consumerProperties.getSyncCommitTimeout();
+			this.isSyncCommits = consumerProperties == null ? true : consumerProperties.isSyncCommits();
+			this.commitCallback = consumerProperties != null && consumerProperties.getCommitCallback() != null
+					? consumerProperties.getCommitCallback()
+					: new LoggingCommitCallback();
+			this.commitLogger = new LogIfLevelEnabled(this.logger,
+					consumerProperties.getCommitLogLevel());
 		}
 
 		@Override
@@ -775,14 +853,14 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						}
 						if (toCommit.size() > 0) {
 							ackInformation = toCommit.get(toCommit.size() - 1);
-							if (this.logger.isDebugEnabled()) {
-								this.logger.debug("Committing pending offsets for " + record + " and all deferred to "
-										+ ackInformation.getRecord());
-							}
+							KafkaAckInfo<K, V> ackInformationToLog = ackInformation;
+							this.commitLogger.log(() -> "Committing pending offsets for " + record
+									+ " and all deferred to " + ackInformationToLog.getRecord());
 							candidates.removeAll(toCommit);
 						}
 						else {
 							ackInformation = this.ackInfo;
+							this.commitLogger.log(() -> "Committing offset for " + record);
 						}
 					}
 					else { // earlier offsets present
@@ -792,11 +870,16 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 						Map<TopicPartition, OffsetAndMetadata> offset =
 								Collections.singletonMap(ackInformation.getTopicPartition(),
 										new OffsetAndMetadata(ackInformation.getRecord().offset() + 1));
-						if (this.commitTimeout == null) {
-							ackInformation.getConsumer().commitSync(offset);
+						if (this.isSyncCommits) {
+							if (this.commitTimeout == null) {
+								ackInformation.getConsumer().commitSync(offset);
+							}
+							else {
+								ackInformation.getConsumer().commitSync(offset, this.commitTimeout);
+							}
 						}
 						else {
-							ackInformation.getConsumer().commitSync(offset, this.commitTimeout);
+							ackInformation.getConsumer().commitAsync(offset, this.commitCallback);
 						}
 					}
 					else {
