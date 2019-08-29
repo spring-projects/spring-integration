@@ -49,7 +49,6 @@ import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckInfo;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -251,8 +250,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' must not be null");
 		Assert.isTrue(
 				!ObjectUtils.isEmpty(consumerProperties.getTopics())
-				|| !ObjectUtils.isEmpty(consumerProperties.getTopicPartitionsToAssign())
-				|| consumerProperties.getTopicPattern() != null,
+						|| !ObjectUtils.isEmpty(consumerProperties.getTopicPartitionsToAssign())
+						|| consumerProperties.getTopicPattern() != null,
 				"topics, topicPattern, or topicPartitions must be provided"
 		);
 		this.consumerProperties = consumerProperties;
@@ -623,7 +622,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 							}
 							catch (Exception e) {
 								this.logger.error("Failed to set initial offset for " + topicPartition
-										+ " at " + newOffset + ". Position is " + this.consumer.position(topicPartition), e);
+										+ " at " + newOffset + ". Position is " + this.consumer
+										.position(topicPartition), e);
 							}
 						}
 					}
@@ -678,7 +678,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		/**
 		 * Deprecated constructor.
 		 * @deprecated in favor of
-		 * {@link #KafkaMessageSource$KafkaAckCallbackFactory(ConsumerProperties)}.
+		 * {@code #KafkaAckCallbackFactory(ConsumerProperties)}.
 		 */
 		@Deprecated
 		public KafkaAckCallbackFactory() {
@@ -691,9 +691,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 
 		/**
 		 * Deprecated setter.
-		 * @deprecated in favor of
-		 * {@link #KafkaMessageSource$KafkaAckCallbackFactory(ConsumerProperties)}.
 		 * @param commitTimeout the commit timeout.
+		 * @deprecated in favor of {@code #KafkaAckCallbackFactory(ConsumerProperties)}.
 		 */
 		@Deprecated
 		public void setCommitTimeout(Duration commitTimeout) {
@@ -734,8 +733,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		/**
 		 * Deprecated constructor.
 		 * @param ackInfo the ack info.
-		 * @deprecated in favor of
-		 * {@link #KafkaMessageSource$KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
+		 * @deprecated in favor of {@code #KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
 		 */
 		@Deprecated
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo) {
@@ -746,8 +744,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		 * Deprecated constructor.
 		 * @param ackInfo the ack info.
 		 * @param commitTimeout the commit timeout.
-		 * @deprecated in favor of
-		 * {@link #KafkaMessageSource4KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
+		 * @deprecated in favor of {@code #KafkaAckCallback(KafkaAckInfo, ConsumerProperties)}
 		 */
 		@Deprecated
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable Duration commitTimeout) {
@@ -761,16 +758,18 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		 * properties are used.
 		 */
 		public KafkaAckCallback(KafkaAckInfo<K, V> ackInfo, @Nullable ConsumerProperties consumerProperties) {
-
-				Assert.notNull(ackInfo, "'ackInfo' cannot be null");
+			Assert.notNull(ackInfo, "'ackInfo' cannot be null");
 			this.ackInfo = ackInfo;
-			this.commitTimeout = consumerProperties.getSyncCommitTimeout();
-			this.isSyncCommits = consumerProperties == null ? true : consumerProperties.isSyncCommits();
-			this.commitCallback = consumerProperties != null && consumerProperties.getCommitCallback() != null
-					? consumerProperties.getCommitCallback()
-					: new LoggingCommitCallback();
+			this.commitTimeout = consumerProperties != null ? consumerProperties.getSyncCommitTimeout() : null;
+			this.isSyncCommits = consumerProperties == null || consumerProperties.isSyncCommits();
+			this.commitCallback =
+					consumerProperties != null && consumerProperties.getCommitCallback() != null
+							? consumerProperties.getCommitCallback()
+							: new LoggingCommitCallback();
 			this.commitLogger = new LogIfLevelEnabled(this.logger,
-					consumerProperties.getCommitLogLevel());
+					consumerProperties != null
+							? consumerProperties.getCommitLogLevel()
+							: LogIfLevelEnabled.Level.DEBUG);
 		}
 
 		@Override
