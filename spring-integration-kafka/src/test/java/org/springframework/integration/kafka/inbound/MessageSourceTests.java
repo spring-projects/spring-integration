@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -59,6 +60,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.record.TimestampType;
@@ -76,6 +78,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConsumerAwareRebalanceListener;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.LogIfLevelEnabled.Level;
 import org.springframework.kafka.support.TopicPartitionOffset;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -89,6 +92,7 @@ import org.springframework.messaging.Message;
  */
 public class MessageSourceTests {
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testIllegalArgs() {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
@@ -97,6 +101,7 @@ public class MessageSourceTests {
 				.hasMessage("topics, topicPattern, or topicPartitions must be provided");
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testConsumerAwareRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
@@ -119,21 +124,22 @@ public class MessageSourceTests {
 		AtomicReference<Consumer> partitionsRevokedConsumer = new AtomicReference<>();
 		consumerProperties.setConsumerRebalanceListener(new ConsumerAwareRebalanceListener() {
 			@Override
-			public void onPartitionsRevokedAfterCommit(Consumer<?, ?> consumer, Collection<TopicPartition> partitions) {
+			public void onPartitionsRevokedAfterCommit(Consumer<?, ?> cons, Collection<TopicPartition> partitions) {
 				partitionsRevokedCalled.getAndSet(true);
-				partitionsRevokedConsumer.set(consumer);
+				partitionsRevokedConsumer.set(cons);
 			}
 
 			@Override
-			public void onPartitionsAssigned(Consumer<?, ?> consumer, Collection<TopicPartition> partitions) {
+			public void onPartitionsAssigned(Consumer<?, ?> cons, Collection<TopicPartition> partitions) {
 				partitionsAssignedCalled.getAndSet(true);
-				partitionsAssignedConsumer.set(consumer);
+				partitionsAssignedConsumer.set(cons);
 			}
+
 		});
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, consumerProperties);
 		source.setRawMessageHeader(true);
 
-		Message<?> received = source.receive();
+		source.receive();
 
 		listener.get().onPartitionsAssigned(assigned);
 		assertThat(partitionsAssignedCalled.get()).isTrue();
@@ -144,6 +150,7 @@ public class MessageSourceTests {
 		assertThat(partitionsRevokedConsumer.get()).isEqualTo(consumer);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
@@ -163,6 +170,7 @@ public class MessageSourceTests {
 		AtomicBoolean partitionsAssignedCalled = new AtomicBoolean();
 		AtomicBoolean partitionsRevokedCalled = new AtomicBoolean();
 		consumerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
+
 			@Override
 			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 				partitionsRevokedCalled.getAndSet(true);
@@ -172,11 +180,12 @@ public class MessageSourceTests {
 			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 				partitionsAssignedCalled.getAndSet(true);
 			}
+
 		});
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, consumerProperties);
 		source.setRawMessageHeader(true);
 
-		Message<?> received = source.receive();
+		source.receive();
 
 		listener.get().onPartitionsAssigned(assigned);
 		assertThat(partitionsAssignedCalled.get()).isTrue();
@@ -185,9 +194,23 @@ public class MessageSourceTests {
 		assertThat(partitionsRevokedCalled.get()).isTrue();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testAck() {
+	public void testAckSyncCommits() {
+		testAckCommon(true, false);
+	}
+
+	@Test
+	public void testAckSyncCommitsTimeout() {
+		testAckCommon(true, false);
+	}
+
+	@Test
+	public void testAckAsyncCommits() {
+		testAckCommon(false, false);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void testAckCommon(boolean sync, boolean timeout) {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
@@ -199,6 +222,11 @@ public class MessageSourceTests {
 		ArgumentCaptor<Collection<TopicPartition>> partitions = ArgumentCaptor.forClass(Collection.class);
 		willDoNothing().given(consumer).pause(partitions.capture());
 		willDoNothing().given(consumer).resume(partitions.capture());
+		willAnswer(invoc -> {
+			OffsetCommitCallback callback = invoc.getArgument(1);
+			callback.onComplete(null, null);
+			return null;
+		}).given(consumer).commitAsync(any(), any());
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Arrays.asList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
@@ -221,7 +249,20 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
-		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
+		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
+		AtomicInteger callbackCount = new AtomicInteger();
+		OffsetCommitCallback commitCallback = (offsets, ex) -> {
+			callbackCount.incrementAndGet();
+		};
+		if (!sync) {
+			consumerProperties.setSyncCommits(false);
+			consumerProperties.setCommitCallback(commitCallback);
+		}
+		if (timeout) {
+			consumerProperties.setSyncCommitTimeout(Duration.ofSeconds(5));
+		}
+		consumerProperties.setCommitLogLevel(Level.INFO);
+		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, consumerProperties);
 		source.setRawMessageHeader(true);
 
 		Message<?> received = source.receive();
@@ -253,13 +294,13 @@ public class MessageSourceTests {
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
+		checkCommit(sync, timeout, consumer, topicPartition, commitCallback, inOrder, 1L);
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
+		checkCommit(sync, timeout, consumer, topicPartition, commitCallback, inOrder, 2L);
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
+		checkCommit(sync, timeout, consumer, topicPartition, commitCallback, inOrder, 3L);
 		inOrder.verify(consumer).poll(any(Duration.class));
-		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
+		checkCommit(sync, timeout, consumer, topicPartition, commitCallback, inOrder, 4L);
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).pause(partitions.getAllValues().get(0));
 		inOrder.verify(consumer).poll(any(Duration.class));
@@ -267,6 +308,31 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
+		if (!sync) {
+			assertThat(callbackCount.get()).isEqualTo(4);
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void checkCommit(boolean sync, boolean timeout, Consumer consumer, TopicPartition topicPartition,
+			OffsetCommitCallback commitCallback, InOrder inOrder, long offset) {
+
+		if (sync) {
+			if (timeout) {
+				inOrder.verify(consumer).commitSync(
+						Collections.singletonMap(topicPartition, new OffsetAndMetadata(offset)),
+						Duration.ofSeconds(5));
+			}
+			else {
+				inOrder.verify(consumer)
+						.commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(offset)));
+			}
+		}
+		else {
+			inOrder.verify(consumer).commitAsync(
+					Collections.singletonMap(topicPartition, new OffsetAndMetadata(offset)),
+					commitCallback);
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -465,15 +531,15 @@ public class MessageSourceTests {
 		Message<?> received2 = source.receive(); // inflight
 		assertThat(received1.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		AcknowledgmentCallback ack1 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received1);
-		Log log1 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger", Log.class));
-		new DirectFieldAccessor(ack1).setPropertyValue("logger", log1);
+		Log log1 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger.log", Log.class));
+		new DirectFieldAccessor(ack1).setPropertyValue("logger.log", log1);
 		given(log1.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log1).warn(any());
 		ack1.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		assertThat(received2.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		AcknowledgmentCallback ack2 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2);
-		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger", Log.class));
-		new DirectFieldAccessor(ack2).setPropertyValue("logger", log2);
+		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger.log", Log.class));
+		new DirectFieldAccessor(ack2).setPropertyValue("logger.log", log2);
 		given(log2.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log2).warn(any());
 		ack2.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
