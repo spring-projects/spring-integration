@@ -151,12 +151,8 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public void close() {
 		try {
-			if (this.readingRaw.get()) {
-				if (!finalizeRaw()) {
-					if (LOGGER.isWarnEnabled()) {
-						LOGGER.warn("Finalize on readRaw() returned false for " + this);
-					}
-				}
+			if (this.readingRaw.get() && !finalizeRaw() && LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Finalize on readRaw() returned false for " + this);
 			}
 			this.client.disconnect();
 		}
@@ -181,11 +177,11 @@ public class FtpSession implements Session<FTPFile> {
 		this.client.deleteFile(pathTo);
 		boolean completed = this.client.rename(pathFrom, pathTo);
 		if (!completed) {
-			throw new IOException("Failed to rename '" + pathFrom +
-					"' to " + pathTo + SERVER_REPLIED_WITH + this.client.getReplyString());
+			throw new IOException("Failed to rename " + pathFrom +
+					" to " + pathTo + SERVER_REPLIED_WITH + this.client.getReplyString());
 		}
 		if (LOGGER.isInfoEnabled()) {
-			LOGGER.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
+			LOGGER.info("File has been successfully renamed from " + pathFrom + " to " + pathTo);
 		}
 	}
 
