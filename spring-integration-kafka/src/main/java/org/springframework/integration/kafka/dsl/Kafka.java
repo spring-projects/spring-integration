@@ -101,7 +101,7 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.0.1
 	 * @deprecated in favor of
-	 * {@link #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory)}
+	 * {@code #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory)}
 	 */
 	@Deprecated
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
@@ -123,7 +123,7 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.0.1
 	 * @deprecated in favor of
-	 * {@link #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)}
+	 * {@code #inboundChannelAdapter(ConsumerFactory, ConsumerProperties, KafkaAckCallbackFactory, boolean)}
 	 */
 	@Deprecated
 	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
@@ -132,7 +132,8 @@ public final class Kafka {
 			boolean allowMultiFetch,
 			String... topics) {
 
-		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, new ConsumerProperties(topics), ackCallbackFactory, allowMultiFetch);
+		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, new ConsumerProperties(topics),
+				ackCallbackFactory, allowMultiFetch);
 	}
 
 	/**
