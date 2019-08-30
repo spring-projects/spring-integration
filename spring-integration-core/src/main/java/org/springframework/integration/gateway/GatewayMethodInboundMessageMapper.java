@@ -217,7 +217,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	private StandardEvaluationContext createMethodInvocationEvaluationContext(Object[] arguments) {
 		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		context.setVariable("args", arguments);
-
 		context.setVariable("gatewayMethod", this.method);
 		return context;
 	}
@@ -298,6 +297,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					headersToMap != null
 							? new HashMap<>(headersToMap)
 							: new HashMap<>();
+
+			headersToPopulate.put("gatewayMethod", holder.getMethod());
+			headersToPopulate.put("gatewayArgs", holder.getArgs());
+
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =
 						GatewayMethodInboundMessageMapper.this.payloadExpression.getValue(
@@ -335,12 +338,12 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					() -> "unable to determine a Message or payload parameter on method ["
 							+ GatewayMethodInboundMessageMapper.this.method + "]");
 			populateSendAndReplyTimeoutHeaders(methodInvocationEvaluationContext, headersToPopulate);
-
 			return buildMessage(headersToPopulate, messageOrPayload, methodInvocationEvaluationContext);
 		}
 
 		private void headerOrHeaders(Map<String, Object> headersToPopulate, Object argumentValue,
 				MethodParameter methodParameter, Annotation annotation) {
+
 			if (annotation.annotationType().equals(Header.class)) {
 				processHeaderAnnotation(headersToPopulate, argumentValue, methodParameter, annotation);
 			}

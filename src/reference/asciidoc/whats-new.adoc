@@ -12,7 +12,7 @@ If you are interested in the changes and features that were introduced in earlie
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.2 development process.
 
-[[x5.2-package-clas]]
+[[x5.2-package-class]]
 === Package and Class Changes
 
 `Pausable` has been moved from `o.s.i.endpoint` to `o.s.i.core`.
@@ -85,6 +85,9 @@ See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more i
 
 All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
+
+The messaging gateway interface proxies now produce request messages always with `gatewayMethod` and `gatewayArgs` headers.
+See <<./gateway.adoc#gateway-configuration-annotations,Gateway Configuration with Annotations and XML>> for more information.
 
 [[x5.2-amqp]]
 ==== AMQP Changes

@@ -175,6 +175,33 @@ However, default headers do NOT override any `@Header` annotations in the servic
 
 The gateway now also supports a `default-payload-expression`, which is applied for all methods (unless overridden).
 
+Starting with version 5.2, the invoked gateway `Method` is always presented as a `gatewayMethod` message header, alongside with the `gatewayArgs` header for the `Object[]` with actually method invocation arguments.
+This information is useful, when we can't declare messaging gateway annotations on the third party interface or XML is not appropriate configuration model.
+This applies from use-cases when we start an `IntegrationFlow` with a multi-method interface and would like to do some routing logic based on a method called:
+
+====
+[source,java]
+----
+public interface RoutingGateway {
+
+    String route1(Object payload);
+
+    String route2(Object payload);
+
+}
+...
+@Bean
+public IntegrationFlow routingGateway() {
+    return IntegrationFlows.from(RoutingGateway.class)
+        .route(Message.class, (message) ->
+                    StaticMessageHeaderAccessor.getGatewayMethod(message).getName(),
+            (router) -> router
+                    .subFlowMapping("route1", (subFlow) -> ...)
+                    .subFlowMapping("route2", (subFlow) -> ...))
+        .get();
+}
+----
+
 [[gateway-mapping]]
 ==== Mapping Method Arguments to a Message
 

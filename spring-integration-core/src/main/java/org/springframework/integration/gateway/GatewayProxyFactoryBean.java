@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -484,13 +486,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	@Nullable
 	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) {
 		if (!this.initialized) {
-			this.afterPropertiesSet();
+			afterPropertiesSet();
 		}
 		Method method = invocation.getMethod();
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
-		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType)
-				|| hasReturnParameterizedWithMessage(method, runningOnCallerThread);
+		if (gateway.isReturnTypeMessage == null) {
+			gateway.isReturnTypeMessage =
+					Message.class.isAssignableFrom(returnType) || hasReturnMessageTypeOnFunction(method);
+		}
+		boolean shouldReturnMessage =
+				gateway.isReturnTypeMessage || hasReturnParameterizedWithMessage(method, runningOnCallerThread);
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
@@ -563,7 +569,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		return response;
 	}
 
-	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable { // NOSONAR
+	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method)
+			throws Throwable { // NOSONAR
 		Class<?>[] exceptionTypes = method.getExceptionTypes();
 		Throwable t = originalException;
 		while (t != null) {
@@ -592,7 +599,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		String payloadExpression = this.globalMethodMetadata != null
 				? this.globalMethodMetadata.getPayloadExpression()
 				: null;
-		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> headerExpressions = new HashMap<>();
 		if (gatewayAnnotation != null) {
 			requestChannelName = gatewayAnnotation.requestChannel();
 			replyChannelName = gatewayAnnotation.replyChannel();
@@ -651,8 +658,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 
 		JavaUtils.INSTANCE
-			.acceptIfHasText(payloadExpression, messageMapper::setPayloadExpression)
-			.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
+				.acceptIfHasText(payloadExpression, messageMapper::setPayloadExpression)
+				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
 		gateway.setBeanName(this.getComponentName());
 
 		setChannel(this.errorChannel, gateway::setErrorChannel, this.errorChannelName, gateway::setErrorChannelName);
@@ -821,7 +828,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private static boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
+	private boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
 		if (!runningOnCallerThread &&
 				(Future.class.isAssignableFrom(method.getReturnType())
 						|| Mono.class.isAssignableFrom(method.getReturnType()))) {
@@ -842,10 +849,23 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		return false;
 	}
 
+	private boolean hasReturnMessageTypeOnFunction(Method method) {
+		if (Function.class.isAssignableFrom(this.serviceInterface) && "apply".equals(method.getName())) {
+			Class<?> returnType =
+					ResolvableType.forClass(Function.class, this.serviceInterface)
+							.getGeneric(1)
+							.getRawClass();
+			return returnType != null && Message.class.isAssignableFrom(returnType);
+		}
+		return false;
+	}
+
 
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
 		private Expression receiveTimeoutExpression;
+
+		private Boolean isReturnTypeMessage;
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);

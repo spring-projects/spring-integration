@@ -17,6 +17,7 @@
 package org.springframework.integration;
 
 import java.io.Closeable;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -111,6 +112,30 @@ public final class StaticMessageHeaderAccessor {
 	@Nullable
 	public static <T> T getSourceData(Message<?> message) {
 		return (T) message.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA);
+	}
+
+	/**
+	 * Return the method called from the messaging gateway interface or {@code null}
+	 * from the headers in the provided message.
+	 * @param message the message to extract gateway method header.
+	 * @return the method called from the messaging gateway interface.
+	 * @since 5.2
+	 */
+	@Nullable
+	public static Method getGatewayMethod(Message<?> message) {
+		return message.getHeaders().get("gatewayMethod", Method.class);
+	}
+
+	/**
+	 * Return the the messaging gateway method invocation arguments array or {@code null}
+	 * from the headers in the provided message.
+	 * @param message the message to extract gateway method arguments header.
+	 * @return the gateway method  invocation arguments.
+	 * @since 5.2
+	 */
+	@Nullable
+	public static Object[] getGatewayArguments(Message<?> message) {
+		return message.getHeaders().get("gatewayArgs", Object[].class);
 	}
 
 }
