@@ -90,7 +90,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	}
 
 	/**
-	 * Set to true to close the connection ouput stream after sending without
+	 * Set to true to close the connection output stream after sending without
 	 * closing the connection. Use to signal EOF to the server, such as when using
 	 * a {@link org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer}.
 	 * Requires a single-use connection factory.

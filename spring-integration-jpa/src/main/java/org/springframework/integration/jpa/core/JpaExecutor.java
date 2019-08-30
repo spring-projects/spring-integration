@@ -425,46 +425,37 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @return Either the number of affected entities when using a JPQL query.
 	 * When using a merge/persist the updated/inserted itself is returned.
 	 */
-	public Object executeOutboundJpaOperation(final Message<?> message) {
-
-		final Object result;
-
+	public Object executeOutboundJpaOperation(Message<?> message) {
 		ParameterSource paramSource = null;
 		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
 			paramSource = determineParameterSource(message);
 		}
 		if (this.jpaQuery != null) {
-			result = this.jpaOperations.executeUpdate(this.jpaQuery, paramSource);
+			return this.jpaOperations.executeUpdate(this.jpaQuery, paramSource);
 		}
 		else if (this.nativeQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, paramSource);
+			return this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, paramSource);
 		}
 		else if (this.namedQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
+			return this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
 		}
 		else {
 			switch (this.persistMode) {
 				case PERSIST:
 					this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
-					result = message.getPayload();
-					break;
+					return message.getPayload();
 				case MERGE:
-					result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
-					break;
+					return this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
 				case DELETE:
 					this.jpaOperations.delete(message.getPayload());
 					if (this.flush) {
 						this.jpaOperations.flush();
 					}
-					result = message.getPayload();
-					break;
+					return message.getPayload();
 				default:
 					throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
 			}
 		}
-
-		return result; // NOSONAR never null
-
 	}
 
 	/**
@@ -496,6 +487,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			if (entityClazz == null && requestMessage != null) {
 				entityClazz = requestMessage.getPayload().getClass();
 			}
+			Assert.state(entityClazz != null, "The entity class to retrieve cannot be null.");
 			payload = this.jpaOperations.find(entityClazz, id);
 		}
 		else {
