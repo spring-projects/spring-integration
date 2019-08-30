@@ -75,7 +75,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public final class RedisLockRegistry implements ExpirableLockRegistry, DisposableBean {
 
-	private static final Log logger = LogFactory.getLog(RedisLockRegistry.class);
+	private static final Log LOGGER = LogFactory.getLog(RedisLockRegistry.class);
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
@@ -97,8 +97,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private final String registryKey;
 
-	private final boolean unlinkAvailable;
-
 	private final StringRedisTemplate redisTemplate;
 
 	private final RedisScript<Boolean> obtainLockScript;
@@ -106,7 +104,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	private final long expireAfter;
 
 	/**
-	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete(Object)} in
+	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete} in
 	 * the separate thread when the current one is interrupted.
 	 */
 	private Executor executor =
@@ -140,7 +138,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.obtainLockScript = new DefaultRedisScript<>(OBTAIN_LOCK_SCRIPT, Boolean.class);
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
-		this.unlinkAvailable = RedisUtils.isUnlinkAvailable(this.redisTemplate);
 	}
 
 	/**
@@ -187,7 +184,7 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private final ReentrantLock localLock = new ReentrantLock();
 
-		private final boolean unlinkAvailable = RedisLockRegistry.this.unlinkAvailable;
+		private volatile boolean unlinkAvailable = true;
 
 		private volatile long lockedAt;
 
@@ -321,8 +318,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 					removeLockKey();
 				}
 
-				if (logger.isDebugEnabled()) {
-					logger.debug("Released lock; " + this);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Released lock; " + this);
 				}
 			}
 			catch (Exception e) {
@@ -335,7 +332,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 		private void removeLockKey() {
 			if (this.unlinkAvailable) {
-				RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
+				try {
+					RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
+				}
+				catch (Exception ex) {
+					LOGGER.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+							"falling back to the regular DELETE command", ex);
+					this.unlinkAvailable = false;
+					RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+				}
 			}
 			else {
 				RedisLockRegistry.this.redisTemplate.delete(this.lockKey);

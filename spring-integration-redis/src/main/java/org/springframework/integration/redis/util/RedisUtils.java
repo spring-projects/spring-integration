@@ -57,7 +57,11 @@ public final class RedisUtils {
 	 * @param redisOperations the {@link RedisOperations} to perform {@code INFO} command.
 	 * @return true or false if {@code UNLINK} Redis command is available or not.
 	 * @throws IllegalStateException when {@code INFO} returns null from the Redis.
+	 * @deprecated since 5.1.8 in favor of explicit trials in the target code.
+	 * The INFO command might not be available on the server, but UNLINK might.
+	 * Will be removed in version 5.3.
 	 */
+	@Deprecated
 	public static boolean isUnlinkAvailable(RedisOperations<?, ?> redisOperations) {
 		return unlinkAvailable.computeIfAbsent(redisOperations, key -> {
 			Properties info = redisOperations.execute(
