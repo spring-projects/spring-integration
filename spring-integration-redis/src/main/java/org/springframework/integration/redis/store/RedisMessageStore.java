@@ -26,7 +26,6 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.redis.util.RedisUtils;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.util.Assert;
 
@@ -47,9 +46,9 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 
 	private final RedisTemplate<Object, Object> redisTemplate;
 
-	private final boolean unlinkAvailable;
-
 	private boolean valueSerializerSet;
+
+	private volatile boolean unlinkAvailable = true;
 
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
@@ -76,7 +75,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		this.redisTemplate.afterPropertiesSet();
-		this.unlinkAvailable = RedisUtils.isUnlinkAvailable(this.redisTemplate);
 	}
 
 	@Override
@@ -137,7 +135,15 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
 			if (this.unlinkAvailable) {
-				this.redisTemplate.unlink(id);
+				try {
+					this.redisTemplate.unlink(id);
+				}
+				catch (Exception ex) {
+					logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+							"falling back to the regular DELETE command", ex);
+					this.unlinkAvailable = false;
+					this.redisTemplate.delete(id);
+				}
 			}
 			else {
 				this.redisTemplate.delete(id);
@@ -149,7 +155,15 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	@Override
 	protected void doRemoveAll(Collection<Object> ids) {
 		if (this.unlinkAvailable) {
-			this.redisTemplate.unlink(ids);
+			try {
+				this.redisTemplate.unlink(ids);
+			}
+			catch (Exception ex) {
+				logger.warn("The UNLINK command has failed (not supported on the Redis server?); " +
+						"falling back to the regular DELETE command", ex);
+				this.unlinkAvailable = false;
+				this.redisTemplate.delete(ids);
+			}
 		}
 		else {
 			this.redisTemplate.delete(ids);
