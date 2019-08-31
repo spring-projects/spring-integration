@@ -132,4 +132,12 @@ public @interface MessagingGateway {
 	 */
 	String mapper() default "";
 
+	/**
+	 * A {@code boolean} flag to indicated that internal headers, such a {@code gatewayMethod}, {@code gatewayArgs} etc.
+	 * should be mapped into the message to send downstream.
+	 * @return the boolean flag to determine if internal headers should be mapped to message to send.
+	 * @since 5.2
+	 */
+	String mapInternalHeaders() default "false";
+
 }

@@ -654,13 +654,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
-				headers, this.argsMapper, this.getMessageBuilderFactory());
+				headers, this.argsMapper, getMessageBuilderFactory());
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 
 		JavaUtils.INSTANCE
 				.acceptIfHasText(payloadExpression, messageMapper::setPayloadExpression)
 				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
-		gateway.setBeanName(this.getComponentName());
+		gateway.setBeanName(getComponentName());
 
 		setChannel(this.errorChannel, gateway::setErrorChannel, this.errorChannelName, gateway::setErrorChannelName);
 		setChannel(requestChannelName, this.defaultRequestChannelName, gateway::setRequestChannelName,
@@ -669,7 +669,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				this.defaultReplyChannel, gateway::setReplyChannel);
 
 		timeouts(requestTimeout, replyTimeout, messageMapper, gateway);
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
 			gateway.setBeanFactory(beanFactory);
 			messageMapper.setBeanFactory(beanFactory);
@@ -828,7 +828,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
+	private static boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
 		if (!runningOnCallerThread &&
 				(Future.class.isAssignableFrom(method.getReturnType())
 						|| Mono.class.isAssignableFrom(method.getReturnType()))) {
@@ -865,7 +865,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		private Expression receiveTimeoutExpression;
 
-		private Boolean isReturnTypeMessage;
+		volatile Boolean isReturnTypeMessage;
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);

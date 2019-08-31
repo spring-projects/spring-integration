@@ -123,7 +123,7 @@ public final class StaticMessageHeaderAccessor {
 	 */
 	@Nullable
 	public static Method getGatewayMethod(Message<?> message) {
-		return message.getHeaders().get("gatewayMethod", Method.class);
+		return message.getHeaders().get(IntegrationMessageHeaderAccessor.GATEWAY_METHOD, Method.class);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public final class StaticMessageHeaderAccessor {
 	 */
 	@Nullable
 	public static Object[] getGatewayArguments(Message<?> message) {
-		return message.getHeaders().get("gatewayArgs", Object[].class);
+		return message.getHeaders().get(IntegrationMessageHeaderAccessor.GATEWAY_ARGS, Object[].class);
 	}
 
 }
