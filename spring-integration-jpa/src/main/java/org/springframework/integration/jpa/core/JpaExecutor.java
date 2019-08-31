@@ -440,21 +440,25 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			return this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
 		}
 		else {
-			switch (this.persistMode) {
-				case PERSIST:
-					this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
-					return message.getPayload();
-				case MERGE:
-					return this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
-				case DELETE:
-					this.jpaOperations.delete(message.getPayload());
-					if (this.flush) {
-						this.jpaOperations.flush();
-					}
-					return message.getPayload();
-				default:
-					throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
-			}
+			return executeOutboundJpaOperationOnPersistentMode(message);
+		}
+	}
+
+	private Object executeOutboundJpaOperationOnPersistentMode(Message<?> message) {
+		switch (this.persistMode) {
+			case PERSIST:
+				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
+				return message.getPayload();
+			case MERGE:
+				return this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
+			case DELETE:
+				this.jpaOperations.delete(message.getPayload());
+				if (this.flush) {
+					this.jpaOperations.flush();
+				}
+				return message.getPayload();
+			default:
+				throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
 		}
 	}
 
@@ -591,7 +595,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 		int evaluatedResult = 0;
 		if (expression != null) {
-			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage); // NOSONAR can be null
+			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage); // NOSONAR can be
+			// null
 			if (evaluationResult != null) {
 				if (evaluationResult instanceof Number) {
 					evaluatedResult = ((Number) evaluationResult).intValue();
