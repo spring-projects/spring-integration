@@ -19,7 +19,6 @@ package org.springframework.integration.rsocket.dsl;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.messaging.Message;
 
@@ -34,12 +33,13 @@ public final class RSockets {
 
 	/**
 	 * Create an {@link RSocketOutboundGatewaySpec} builder for request-reply gateway
-	 * based on provided {@code route}.
+	 * based on provided {@code route} and optional variables to expand route template.
 	 * @param route the {@code route} to send requests.
+	 * @param routeVariables the variables to expand route template.
 	 * @return the RSocketOutboundGatewaySpec instance
 	 */
-	public static RSocketOutboundGatewaySpec outboundGateway(String route) {
-		return outboundGateway(new LiteralExpression(route));
+	public static RSocketOutboundGatewaySpec outboundGateway(String route, Object... routeVariables) {
+		return new RSocketOutboundGatewaySpec(route, routeVariables);
 	}
 
 	/**

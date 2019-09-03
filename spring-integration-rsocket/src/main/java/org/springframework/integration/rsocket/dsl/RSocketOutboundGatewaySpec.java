@@ -16,6 +16,7 @@
 
 package org.springframework.integration.rsocket.dsl;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
@@ -25,6 +26,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.outbound.RSocketOutboundGateway;
 import org.springframework.messaging.Message;
+import org.springframework.util.MimeType;
 
 /**
  * The {@link MessageHandlerSpec} implementation for the {@link RSocketOutboundGateway}.
@@ -34,6 +36,10 @@ import org.springframework.messaging.Message;
  * @since 5.2
  */
 public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutboundGatewaySpec, RSocketOutboundGateway> {
+
+	RSocketOutboundGatewaySpec(String route, Object... routeVariables) {
+		this.target = new RSocketOutboundGateway(route, routeVariables);
+	}
 
 	RSocketOutboundGatewaySpec(Expression routeExpression) {
 		this.target = new RSocketOutboundGateway(routeExpression);
@@ -183,6 +189,42 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 */
 	public RSocketOutboundGatewaySpec expectedResponseType(Expression expectedResponseTypeExpression) {
 		this.target.setExpectedResponseTypeExpression(expectedResponseTypeExpression);
+		return this;
+	}
+
+	/**
+	 * Configure a {@link Function} to evaluate a metadata as a {@code Map<Object, MimeType>}
+	 * for RSocket request against request message.
+	 * @param metadataFunction the {@code Function} to use.
+	 * @param <P> the expected request message payload type.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setMetadataExpression(Expression)
+	 */
+	public <P> RSocketOutboundGatewaySpec metadata(Function<Message<P>, Map<Object, MimeType>> metadataFunction) {
+		return metadata(new FunctionExpression<>(metadataFunction));
+	}
+
+	/**
+	 Configure a SpEL expression to evaluate a metadata as a {@code Map<Object, MimeType>}
+	 * for RSocket request against request message.
+	 * @param metadataExpression the SpEL expression to use.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setMetadataExpression(Expression)
+	 */
+	public RSocketOutboundGatewaySpec metadata(String metadataExpression) {
+		return metadata(PARSER.parseExpression(metadataExpression));
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate a metadata as a {@code Map<Object, MimeType>}
+	 * for RSocket request against request message.
+	 * for RSocket request type at runtime against a request message.
+	 * @param metadataExpression the SpEL expression to use.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setMetadataExpression(Expression)
+	 */
+	public RSocketOutboundGatewaySpec metadata(Expression metadataExpression) {
+		this.target.setMetadataExpression(metadataExpression);
 		return this;
 	}
 

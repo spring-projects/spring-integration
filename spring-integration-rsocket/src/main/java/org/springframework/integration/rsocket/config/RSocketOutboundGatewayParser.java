@@ -52,6 +52,7 @@ public class RSocketOutboundGatewayParser extends AbstractConsumerEndpointParser
 		populateValueOrExpressionIfAny(builder, element, parserContext, "command");
 		populateValueOrExpressionIfAny(builder, element, parserContext, "publisher-element-type");
 		populateValueOrExpressionIfAny(builder, element, parserContext, "expected-response-type");
+		populateValueOrExpressionIfAny(builder, element, parserContext, "metadata");
 		return builder;
 	}
 

@@ -180,7 +180,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								A SpEL expression to evaluate a 'Class' or 'ParameterizedTypeReference'
-								for for an RSocket response at runtime
+								for an RSocket response at runtime
 								against request message.
 								Mutually exclusive with 'expected-response-type'.
 							</xsd:documentation>
@@ -197,6 +197,14 @@
 											type="org.springframework.integration.rsocket.ClientRSocketConnector"/>
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="metadata-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'Map' representing a metadata
+								for an RSocket request at runtime against request message.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>

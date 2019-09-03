@@ -21,6 +21,7 @@
 								  route-expression="'testRoute'"
 								  request-channel="requestChannel"
 								  publisher-element-type="byte[]"
-								  expected-response-type="java.util.Date"/>
+								  expected-response-type="java.util.Date"
+								  metadata-expression="{'metadata': new org.springframework.util.MimeType('*')}"/>
 
 </beans>

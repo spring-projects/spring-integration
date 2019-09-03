@@ -18,14 +18,18 @@ package org.springframework.integration.rsocket.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.Expression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.outbound.RSocketOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.MimeType;
 
 /**
  * @author Artem Bilan
@@ -34,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class RSocketOutboundGatewayParserTests {
+class RSocketOutboundGatewayParserTests {
 
 	@Autowired
 	private ClientRSocketConnector clientRSocketConnector;
@@ -54,6 +58,10 @@ public class RSocketOutboundGatewayParserTests {
 				.isEqualTo("byte[]");
 		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "expectedResponseTypeExpression.literalValue"))
 				.isEqualTo("java.util.Date");
+		Expression metadataExpression =
+				TestUtils.getPropertyValue(this.outboundGateway, "metadataExpression", Expression.class);
+		assertThat(metadataExpression.getValue())
+				.isEqualTo(Collections.singletonMap("metadata", new MimeType("*")));
 	}
 
 }

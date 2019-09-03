@@ -153,7 +153,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
 
-		RSocketRequester.Builder rsocketRequesterBuilder =
+		this.rsocketRequesterMono =
 				RSocketRequester.builder()
 						.dataMimeType(getDataMimeType())
 						.metadataMimeType(getMetadataMimeType())
@@ -162,10 +162,8 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 						.setupRoute(this.setupRoute, this.setupRouteVars)
 						.rsocketFactory(this.factoryConfigurer)
 						.rsocketFactory((rsocketFactory) ->
-								rsocketFactory.acceptor(this.rSocketMessageHandler.responder()));
-		this.setupMetadata.forEach(rsocketRequesterBuilder::setupMetadata);
-		this.rsocketRequesterMono =
-				rsocketRequesterBuilder
+								rsocketFactory.acceptor(this.rSocketMessageHandler.responder()))
+						.apply((builder) -> this.setupMetadata.forEach(builder::setupMetadata))
 						.connect(this.clientTransport)
 						.cache();
 	}

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.rsocket.outbound;
 
+import java.util.Map;
+
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -31,6 +33,8 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeType;
 
 import reactor.core.publisher.Mono;
 
@@ -67,6 +71,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private final Expression routeExpression;
 
+	private Object[] routeVars;
+
 	@Nullable
 	private ClientRSocketConnector clientRSocketConnector;
 
@@ -76,22 +82,29 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression expectedResponseTypeExpression = new ValueExpression<>(String.class);
 
+	private Expression metadataExpression;
+
 	private EvaluationContext evaluationContext;
 
 	@Nullable
 	private Mono<RSocketRequester> rsocketRequesterMono;
 
 	/**
-	 * Instantiate based on the provided RSocket endpoint {@code route}.
+	 * Instantiate based on the provided RSocket endpoint {@code route}
+	 * and optional variables to expand route template.
 	 * @param route the RSocket endpoint route to use.
+	 * @param routeVariables the variables to expand route template.
 	 */
-	public RSocketOutboundGateway(String route) {
+	public RSocketOutboundGateway(String route, Object... routeVariables) {
 		this(new ValueExpression<>(route));
+		this.routeVars = routeVariables;
 	}
 
 	/**
 	 * Instantiate based on the provided SpEL expression to evaluate an RSocket endpoint {@code route}
 	 * at runtime against a request message.
+	 * If route is a template and variables expansion is required, it is recommended to do that
+	 * in this expression evaluation, for example using some bean with an appropriate logic.
 	 * @param routeExpression the SpEL expression to use.
 	 */
 	public RSocketOutboundGateway(Expression routeExpression) {
@@ -173,6 +186,14 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.expectedResponseTypeExpression = expectedResponseTypeExpression;
 	}
 
+	/**
+	 * Specify a SpEL expression to evaluate a metadata for RSocket request
+	 * as {@code Map<Object, MimeType>} against request message.
+	 * @param metadataExpression the expression for metadata.
+	 */
+	public void setMetadataExpression(Expression metadataExpression) {
+		this.metadataExpression = metadataExpression;
+	}
 
 	@Override
 	protected void doInit() {
@@ -205,13 +226,23 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
 	}
 
+	@SuppressWarnings("unchecked")
 	private RSocketRequester.RequestSpec createRequestSpec(RSocketRequester rsocketRequester,
 			Message<?> requestMessage) {
 
 		String route = this.routeExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(route, () -> "The 'routeExpression' [" + this.routeExpression + "] must not evaluate to null");
 
-		return rsocketRequester.route(route);
+		RSocketRequester.RequestSpec requestSpec = rsocketRequester.route(route, this.routeVars);
+		if (this.metadataExpression != null) {
+			Map<Object, MimeType> metadata =
+					this.metadataExpression.getValue(this.evaluationContext, requestMessage, Map.class);
+			if (!CollectionUtils.isEmpty(metadata)) {
+				requestSpec.metadata((spec) -> metadata.forEach(spec::metadata));
+			}
+		}
+
+		return requestSpec;
 	}
 
 	private RSocketRequester.ResponseSpec createResponseSpec(RSocketRequester.RequestSpec requestSpec,
@@ -228,15 +259,14 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private RSocketRequester.ResponseSpec responseSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
 			Publisher<?> payload, Object publisherElementType) {
 
 		if (publisherElementType instanceof Class<?>) {
-			return requestSpec.data(payload, (Class) publisherElementType);
+			return requestSpec.data(payload, (Class<?>) publisherElementType);
 		}
 		else {
-			return requestSpec.data(payload, (ParameterizedTypeReference) publisherElementType);
+			return requestSpec.data(payload, (ParameterizedTypeReference<?>) publisherElementType);
 		}
 	}
 
