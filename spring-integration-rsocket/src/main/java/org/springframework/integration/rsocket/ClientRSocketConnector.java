@@ -17,19 +17,18 @@
 package org.springframework.integration.rsocket;
 
 import java.net.URI;
-import java.util.function.Consumer;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+import org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
 
-import io.rsocket.Payload;
-import io.rsocket.RSocket;
-import io.rsocket.RSocketFactory;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.client.WebsocketClientTransport;
-import io.rsocket.util.DefaultPayload;
-import io.rsocket.util.EmptyPayload;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
@@ -40,22 +39,26 @@ import reactor.core.publisher.Mono;
  *
  * @since 5.2
  *
- * @see RSocketFactory.ClientRSocketFactory
+ * @see io.rsocket.RSocketFactory.ClientRSocketFactory
  * @see RSocketRequester
  */
 public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	private final ClientTransport clientTransport;
 
-	private Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer = (clientRSocketFactory) -> { };
+	private final Map<Object, MimeType> setupMetadata = new LinkedHashMap<>(4);
 
-	private String connectRoute;
+	private ClientRSocketFactoryConfigurer factoryConfigurer = (clientRSocketFactory) -> { };
 
-	private String connectData = "";
+	private Object setupData;
+
+	private String setupRoute;
+
+	private Object[] setupRouteVars = new Object[0];
 
 	private boolean autoConnect;
 
-	private Mono<RSocket> rsocketMono;
+	private Mono<RSocketRequester> rsocketRequesterMono;
 
 	/**
 	 * Instantiate a connector based on the {@link TcpClientTransport}.
@@ -79,6 +82,7 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	/**
 	 * Instantiate a connector based on the provided {@link ClientTransport}.
 	 * @param clientTransport the {@link ClientTransport} to use.
+	 * @see RSocketRequester.Builder#connect(ClientTransport)
 	 */
 	public ClientRSocketConnector(ClientTransport clientTransport) {
 		super(new IntegrationRSocketMessageHandler());
@@ -87,47 +91,83 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	}
 
 	/**
-	 * Specify a {@link Consumer} for  configuring a {@link RSocketFactory.ClientRSocketFactory}.
-	 * @param factoryConfigurer the {@link Consumer} to configure the {@link RSocketFactory.ClientRSocketFactory}.
+	 * Callback to configure the {@code ClientRSocketFactory} directly.
+	 * Note: this class adds extra {@link ClientRSocketFactoryConfigurer} to the
+	 * target {@link RSocketRequester} to populate a reference to an internal
+	 * {@link IntegrationRSocketMessageHandler#responder()}.
+	 * This overrides possible external
+	 * {@link io.rsocket.RSocketFactory.ClientRSocketFactory#acceptor(io.rsocket.SocketAcceptor)}
+	 * @param factoryConfigurer the {@link ClientRSocketFactoryConfigurer} to
+	 *  configure the {@link io.rsocket.RSocketFactory.ClientRSocketFactory}.
+	 * @see RSocketRequester.Builder#rsocketFactory(ClientRSocketFactoryConfigurer)
 	 */
-	public void setFactoryConfigurer(Consumer<RSocketFactory.ClientRSocketFactory> factoryConfigurer) {
+	public void setFactoryConfigurer(ClientRSocketFactoryConfigurer factoryConfigurer) {
 		Assert.notNull(factoryConfigurer, "'factoryConfigurer' must not be null");
 		this.factoryConfigurer = factoryConfigurer;
 	}
 
 	/**
-	 * Configure a route for server RSocket endpoint.
-	 * @param connectRoute the route to connect to.
+	 * Set the route for the setup payload.
+	 * @param setupRoute the route to connect to.
+	 * @see RSocketRequester.Builder#setupRoute(String, Object...)
 	 */
-	public void setConnectRoute(String connectRoute) {
-		this.connectRoute = connectRoute;
+	public void setSetupRoute(String setupRoute) {
+		Assert.notNull(setupRoute, "'setupRoute' must not be null");
+		this.setupRoute = setupRoute;
 	}
 
 	/**
-	 * Configure a data for connect.
-	 * Defaults to empty string.
-	 * @param connectData the data for connect frame.
+	 * Set the variables for route template to expand with.
+	 * @param setupRouteVars the route to connect to.
+	 * @see RSocketRequester.Builder#setupRoute(String, Object...)
 	 */
-	public void setConnectData(String connectData) {
-		Assert.notNull(connectData, "'connectData' must not be null");
-		this.connectData = connectData;
+	public void setSetupRouteVariables(Object... setupRouteVars) {
+		Assert.notNull(setupRouteVars, "'setupRouteVars' must not be null");
+		this.setupRouteVars = Arrays.copyOf(setupRouteVars, setupRouteVars.length);
+	}
+
+	/**
+	 * Add metadata to the setup payload. Composite metadata must be
+	 * in use if this is called more than once or in addition to
+	 * {@link #setSetupRoute(String)}.
+	 * @param setupMetadata the map of metadata to use.
+	 * @see RSocketRequester.Builder#setupMetadata(Object, MimeType)
+	 */
+	public void setSetupMetadata(Map<Object, MimeType> setupMetadata) {
+		Assert.notNull(setupMetadata, "'setupMetadata' must not be null");
+		this.setupMetadata.clear();
+		this.setupMetadata.putAll(setupMetadata);
+	}
+
+	/**
+	 * Set the data for the setup payload.
+	 * @param setupData the data for connect frame.
+	 * @see RSocketRequester.Builder#setupData(Object)
+	 */
+	public void setSetupData(Object setupData) {
+		Assert.notNull(setupData, "'setupData' must not be null");
+		this.setupData = setupData;
 	}
 
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		RSocketFactory.ClientRSocketFactory clientFactory =
-				RSocketFactory.connect()
-						.dataMimeType(getDataMimeType().toString())
-						.metadataMimeType(getMetadataMimeType().toString());
-		this.factoryConfigurer.accept(clientFactory);
-		clientFactory.acceptor(this.rSocketMessageHandler.responder());
-		Payload connectPayload = EmptyPayload.INSTANCE;
-		if (this.connectRoute != null) {
-			connectPayload = DefaultPayload.create(this.connectData, this.connectRoute);
-		}
-		clientFactory.setupPayload(connectPayload);
-		this.rsocketMono = clientFactory.transport(this.clientTransport).start().cache();
+
+		RSocketRequester.Builder rsocketRequesterBuilder =
+				RSocketRequester.builder()
+						.dataMimeType(getDataMimeType())
+						.metadataMimeType(getMetadataMimeType())
+						.rsocketStrategies(getRSocketStrategies())
+						.setupData(this.setupData)
+						.setupRoute(this.setupRoute, this.setupRouteVars)
+						.rsocketFactory(this.factoryConfigurer)
+						.rsocketFactory((rsocketFactory) ->
+								rsocketFactory.acceptor(this.rSocketMessageHandler.responder()));
+		this.setupMetadata.forEach(rsocketRequesterBuilder::setupMetadata);
+		this.rsocketRequesterMono =
+				rsocketRequesterBuilder
+						.connect(this.clientTransport)
+						.cache();
 	}
 
 	@Override
@@ -144,7 +184,8 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 
 	@Override
 	public void destroy() {
-		this.rsocketMono
+		this.rsocketRequesterMono
+				.map(RSocketRequester::rsocket)
 				.doOnNext(Disposable::dispose)
 				.subscribe();
 	}
@@ -153,15 +194,11 @@ public class ClientRSocketConnector extends AbstractRSocketConnector {
 	 * Perform subscription into the RSocket server for incoming requests.
 	 */
 	public void connect() {
-		this.rsocketMono.subscribe();
+		this.rsocketRequesterMono.subscribe();
 	}
 
 	public Mono<RSocketRequester> getRSocketRequester() {
-		return this.rsocketMono
-				.map((rsocket) ->
-						RSocketRequester
-								.wrap(rsocket, getDataMimeType(), getMetadataMimeType(), getRSocketStrategies()))
-				.cache();
+		return this.rsocketRequesterMono;
 	}
 
 }

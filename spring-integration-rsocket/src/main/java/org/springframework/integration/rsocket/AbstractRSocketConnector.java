@@ -53,7 +53,7 @@ public abstract class AbstractRSocketConnector
 
 	protected final IntegrationRSocketMessageHandler rSocketMessageHandler; // NOSONAR - final
 
-	private MimeType dataMimeType = MimeTypeUtils.TEXT_PLAIN;
+	private MimeType dataMimeType;
 
 	private MimeType metadataMimeType =
 			MimeTypeUtils.parseMimeType(WellKnownMimeType.MESSAGE_RSOCKET_COMPOSITE_METADATA.toString());

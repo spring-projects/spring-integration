@@ -19,7 +19,6 @@ package org.springframework.integration.rsocket.outbound;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.Collections;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -64,10 +63,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
 import io.rsocket.frame.decoder.PayloadDecoder;
-import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
-import io.rsocket.util.DefaultPayload;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -515,33 +512,22 @@ public class RSocketOutboundGatewayIntegrationTests {
 	@EnableIntegration
 	public static class ClientConfig extends CommonConfig {
 
-		@Bean
-		public RSocketMessageHandler messageHandler() {
-			RSocketMessageHandler handler = new RSocketMessageHandler();
-			handler.setRSocketStrategies(rsocketStrategies());
-			handler.setHandlers(Collections.singletonList(controller()));
-			return handler;
-		}
-
 		@Bean(destroyMethod = "dispose")
 		@Nullable
 		public RSocket rsocketForServerRequests() {
-			return RSocketFactory.connect()
-					.setupPayload(DefaultPayload.create("", "clientConnect"))
-					.dataMimeType("text/plain")
-					.metadataMimeType("message/x.rsocket.routing.v0")
-					.frameDecoder(PayloadDecoder.ZERO_COPY)
-					.acceptor(messageHandler().responder())
-					.transport(TcpClientTransport.create("localhost", server.address().getPort()))
-					.start()
-					.block();
+
+			return RSocketRequester.builder()
+					.setupRoute("clientConnect")
+					.rsocketFactory(RSocketMessageHandler.clientResponder(rsocketStrategies(), controller()))
+					.connectTcp("localhost", server.address().getPort())
+					.block()
+					.rsocket();
 		}
 
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
 			ClientRSocketConnector clientRSocketConnector =
 					new ClientRSocketConnector("localhost", server.address().getPort());
-			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
 			return clientRSocketConnector;
 		}

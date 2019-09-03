@@ -230,7 +230,7 @@ public class RSocketInboundGatewayIntegrationTests {
 			clientRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
 			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
 			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
-			clientRSocketConnector.setConnectRoute("clientConnect");
+			clientRSocketConnector.setSetupRoute("clientConnect");
 			return clientRSocketConnector;
 		}
 
