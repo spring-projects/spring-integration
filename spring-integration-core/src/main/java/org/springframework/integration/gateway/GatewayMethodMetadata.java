@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.util.Assert;
 
 /**
  * Represents the metadata associated with a Gateway method. This is most useful when there are
@@ -30,21 +31,25 @@ import org.springframework.expression.Expression;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class GatewayMethodMetadata {
 
-	private volatile String payloadExpression;
+	private final Map<String, Expression> headerExpressions = new HashMap<>();
 
-	private volatile String requestChannelName;
+	private String payloadExpression;
 
-	private volatile String replyChannelName;
+	private String requestChannelName;
 
-	private volatile String requestTimeout;
+	private String replyChannelName;
 
-	private volatile String replyTimeout;
+	private String requestTimeout;
 
-	private volatile Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+	private String replyTimeout;
+
+	private boolean mapInternalHeaders;
 
 
 	public String getPayloadExpression() {
@@ -60,7 +65,9 @@ public class GatewayMethodMetadata {
 	}
 
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
-		this.headerExpressions = headerExpressions;
+		Assert.notNull(headerExpressions, "'headerExpressions' must not be null");
+		this.headerExpressions.clear();
+		this.headerExpressions.putAll(headerExpressions);
 	}
 
 	public String getRequestChannelName() {
@@ -93,6 +100,14 @@ public class GatewayMethodMetadata {
 
 	public void setReplyTimeout(String replyTimeout) {
 		this.replyTimeout = replyTimeout;
+	}
+
+	public void setMapInternalHeaders(boolean mapInternalHeaders) {
+		this.mapInternalHeaders = mapInternalHeaders;
+	}
+
+	public boolean isMapInternalHeaders() {
+		return this.mapInternalHeaders;
 	}
 
 }

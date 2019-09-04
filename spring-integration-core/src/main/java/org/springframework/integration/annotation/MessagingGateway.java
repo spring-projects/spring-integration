@@ -112,6 +112,7 @@ public @interface MessagingGateway {
 	 * unless explicitly overridden by a method declaration. Variables include {@code #args}, {@code #methodName},
 	 * {@code #methodString} and {@code #methodObject};
 	 * a bean resolver is also available, enabling expressions like {@code @someBean(#args)}.
+	 * Mutually exclusive with a {@link #mapper()}.
 	 * @return the suggested payload expression, if any
 	 */
 	String defaultPayloadExpression() default "";
@@ -119,6 +120,7 @@ public @interface MessagingGateway {
 	/**
 	 * Provides custom message headers. These default headers are created for
 	 * all methods on the service-interface (unless overridden by a specific method).
+	 * Mutually exclusive with a {@link #mapper()}.
 	 * @return the suggested payload expression, if any
 	 */
 	GatewayHeader[] defaultHeaders() default { };
@@ -128,6 +130,8 @@ public @interface MessagingGateway {
 	 * to map the method arguments to a {@link org.springframework.messaging.Message}. When this
 	 * is provided, no {@code payload-expression}s or {@code header}s are allowed; the custom mapper is
 	 * responsible for creating the message.
+	 * Mutually exclusive with a {@link #defaultPayloadExpression()}, {@link #defaultHeaders()}
+	 * and {@link #mapInternalHeaders()}.
 	 * @return the suggested mapper bean name, if any
 	 */
 	String mapper() default "";
@@ -135,6 +139,7 @@ public @interface MessagingGateway {
 	/**
 	 * A {@code boolean} flag to indicated that internal headers, such a {@code gatewayMethod}, {@code gatewayArgs} etc.
 	 * should be mapped into the message to send downstream.
+	 * Mutually exclusive with a {@link #mapper()}.
 	 * @return the boolean flag to determine if internal headers should be mapped to message to send.
 	 * @since 5.2
 	 */

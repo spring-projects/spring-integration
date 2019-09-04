@@ -156,7 +156,9 @@ In the preceding example a different value is set for the 'RESPONSE_TYPE' header
 
 The `<header/>` element supports `expression` as an alternative to `value`.
 The SpEL expression is evaluated to determine the value of the header.
-There is no `#root` object, but the following variables are available:
+Starting with version 5.2, the `#root` object of the evaluation context is a `MethodArgsHolder` with `getMethod()` and `getArgs()` accessors.
+
+These two expression evaluation context variables are deprecated since version 5.2:
 
 * #args: An `Object[]` containing the method arguments
 * #gatewayMethod: The object (derived from `java.reflect.Method`) that represents the method in the `service-interface` that was invoked.
@@ -164,8 +166,8 @@ A header containing this variable can be used later in the flow (for example, fo
 For example, if you wish to route on the simple method name, you might add a header with the following expression: `#gatewayMethod.name`.
 
 NOTE: The `java.reflect.Method` is not serializable.
-A header with an expression of `#gatewayMethod` is lost if you later serialize the message.
-Consequently, you may wish to use `#gatewayMethod.name` or `#gatewayMethod.toString()` in those cases.
+A header with an expression of `method` is lost if you later serialize the message.
+Consequently, you may wish to use `method.name` or `method.toString()` in those cases.
 The `toString()` method provides a `String` representation of the method, including parameter and return types.
 
 Since version 3.0, `<default-header/>` elements can be defined to add headers to all the messages produced by the gateway, regardless of the method invoked.
@@ -175,8 +177,8 @@ However, default headers do NOT override any `@Header` annotations in the servic
 
 The gateway now also supports a `default-payload-expression`, which is applied for all methods (unless overridden).
 
-Starting with version 5.2, the invoked gateway `Method` is always presented as a `gatewayMethod` message header, alongside with the `gatewayArgs` header for the `Object[]` with actually method invocation arguments.
-This information is useful, when we can't declare messaging gateway annotations on the third party interface or XML is not appropriate configuration model.
+Starting with version 5.2, when we declare an `IntegrationFlow` starting with service interface, the invoked gateway `Method` is always added as a `gatewayMethod` message header, along with the `gatewayArgs` header with the value being the actual method invocation arguments in an `Object[]`.
+This information is useful, when we can't declare messaging gateway annotations on a third party interface and XML is not an appropriate configuration model.
 This applies from use-cases when we start an `IntegrationFlow` with a multi-method interface and would like to do some routing logic based on a method called:
 
 ====
@@ -201,6 +203,11 @@ public IntegrationFlow routingGateway() {
         .get();
 }
 ----
+
+With an XML and `@MessagingGateway` configurations these headers are not added by default.
+See `@MessagingGateway.mapInternalHeaders()` and `<@gateway map-internal-headers="">` attributes description for more information.
+They are not added by default because they may bring some memory overhead during message processing and/or (de)serialization.
+In case of Java DSL we don't have access to any possible configuration option when we parse a service interface without the `@MessagingGateway`, so these headers are always added, but can be stripped off using `.headerFilter("gateway*")` downstream.
 
 [[gateway-mapping]]
 ==== Mapping Method Arguments to a Message

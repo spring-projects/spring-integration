@@ -116,6 +116,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private Expression replyTimeoutExpression;
 
+	boolean mapInternalHeaders;
+
 	GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
@@ -215,6 +217,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return evaluatedHeaders;
 	}
 
+	// TODO Remove in the future release. The MethodArgsHolder as a root object covers this use-case.
 	private StandardEvaluationContext createMethodInvocationEvaluationContext(Object[] arguments) {
 		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		context.setVariable("args", arguments);
@@ -299,8 +302,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 							? new HashMap<>(headersToMap)
 							: new HashMap<>();
 
-			headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_METHOD, holder.getMethod());
-			headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_ARGS, holder.getArgs());
+			if (GatewayMethodInboundMessageMapper.this.mapInternalHeaders) {
+				headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_METHOD, holder.getMethod());
+				headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_ARGS, holder.getArgs());
+			}
 
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =

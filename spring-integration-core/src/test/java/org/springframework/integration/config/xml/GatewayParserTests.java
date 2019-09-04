@@ -42,6 +42,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
@@ -79,11 +80,14 @@ public class GatewayParserTests {
 
 	@Test
 	public void testOneWay() {
-		TestService service = (TestService) context.getBean("oneWay");
+		TestService service = context.getBean("oneWay", TestService.class);
 		service.oneWay("foo");
-		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
+		PollableChannel channel = context.getBean("requestChannel", PollableChannel.class);
 		Message<?> result = channel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("foo");
+		assertThat(result.getHeaders())
+				.containsKeys(IntegrationMessageHeaderAccessor.GATEWAY_METHOD,
+						IntegrationMessageHeaderAccessor.GATEWAY_ARGS);
 	}
 
 	@Test
@@ -118,7 +122,7 @@ public class GatewayParserTests {
 	@Test
 	public void testSolicitResponse() {
 		PollableChannel channel = (PollableChannel) context.getBean("replyChannel");
-		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<>("foo"));
 		TestService service = (TestService) context.getBean("solicitResponse");
 		String result = service.solicitResponse();
 		assertThat(result).isEqualTo("foo");
@@ -161,7 +165,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testFactoryBeanObjectTypeWithServiceInterface() throws Exception {
+	public void testFactoryBeanObjectTypeWithServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
@@ -169,7 +173,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testFactoryBeanObjectTypeWithNoServiceInterface() throws Exception {
+	public void testFactoryBeanObjectTypeWithNoServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
@@ -177,7 +181,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testMonoGateway() throws Exception {
+	public void testMonoGateway() {
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		MessageChannel replyChannel = context.getBean("replyChannel", MessageChannel.class);
 		this.startResponder(requestChannel, replyChannel);
@@ -283,8 +287,8 @@ public class GatewayParserTests {
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
 		assertThat(TestUtils.getPropertyValue(gateway, "asyncExecutor")).isNotNull();
 		verify(logger).debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
-							+ "running on calling thread; the downstream flow must return the required Future: "
-							+ "MyCompletableFuture");
+				+ "running on calling thread; the downstream flow must return the required Future: "
+				+ "MyCompletableFuture");
 	}
 
 	@Test
@@ -409,7 +413,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({"rawtypes", "unchecked"})
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);
@@ -421,7 +425,7 @@ public class GatewayParserTests {
 				}
 				else {
 					modifiedMessage = MessageBuilder.fromMessage(message)
-						.setHeader("executor", this.beanName).build();
+							.setHeader("executor", this.beanName).build();
 				}
 				return new AsyncResult(modifiedMessage);
 			}

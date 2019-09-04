@@ -21,7 +21,8 @@
 
 	<gateway id="oneWay"
 			 service-interface="org.springframework.integration.gateway.TestService"
-			 default-request-channel="requestChannel"/>
+			 default-request-channel="requestChannel"
+			 map-internal-headers="true"/>
 
 	<gateway id="solicitResponse"
 			 service-interface="org.springframework.integration.gateway.TestService"

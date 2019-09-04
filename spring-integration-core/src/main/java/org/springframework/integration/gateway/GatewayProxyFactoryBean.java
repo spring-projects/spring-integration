@@ -655,6 +655,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
 				headers, this.argsMapper, getMessageBuilderFactory());
+		if (this.globalMethodMetadata != null) {
+			messageMapper.mapInternalHeaders = this.globalMethodMetadata.isMapInternalHeaders();
+		}
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 
 		JavaUtils.INSTANCE

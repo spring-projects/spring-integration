@@ -86,7 +86,8 @@ See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more i
 All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
-The messaging gateway interface proxies now produce request messages always with `gatewayMethod` and `gatewayArgs` headers.
+The messaging gateway interface proxies now produce request messages with `gatewayMethod` and `gatewayArgs` headers when they are built from `IntegrationFlow`.
+For XML and `@MessagingGateway` configuration this can be managed by the `mapInternalHeaders` attribute.
 See <<./gateway.adoc#gateway-configuration-annotations,Gateway Configuration with Annotations and XML>> for more information.
 
 [[x5.2-amqp]]
