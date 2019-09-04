@@ -445,18 +445,19 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	private Object executeOutboundJpaOperationOnPersistentMode(Message<?> message) {
+		Object payload = message.getPayload();
 		switch (this.persistMode) {
 			case PERSIST:
-				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
-				return message.getPayload();
+				this.jpaOperations.persist(payload, this.flushSize, this.clearOnFlush);
+				return payload;
 			case MERGE:
-				return this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
+				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush);
 			case DELETE:
-				this.jpaOperations.delete(message.getPayload());
+				this.jpaOperations.delete(payload);
 				if (this.flush) {
 					this.jpaOperations.flush();
 				}
-				return message.getPayload();
+				return payload;
 			default:
 				throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
 		}

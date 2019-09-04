@@ -16,6 +16,7 @@
 
 package org.springframework.integration.rsocket.outbound;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.reactivestreams.Publisher;
@@ -95,9 +96,11 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param route the RSocket endpoint route to use.
 	 * @param routeVariables the variables to expand route template.
 	 */
-	public RSocketOutboundGateway(String route, Object... routeVariables) {
+	public RSocketOutboundGateway(String route, @Nullable Object... routeVariables) {
 		this(new ValueExpression<>(route));
-		this.routeVars = routeVariables;
+		if (routeVariables != null) {
+			this.routeVars = Arrays.copyOf(routeVariables, routeVariables.length);
+		}
 	}
 
 	/**
