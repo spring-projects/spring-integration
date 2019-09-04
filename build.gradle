@@ -39,7 +39,7 @@ allprojects {
 		if (version.endsWith('BUILD-SNAPSHOT')) {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
-//		maven { url 'https://repo.spring.io/libs-staging-local' }
+		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
 	ext.javadocLinks = [
@@ -134,7 +134,7 @@ subprojects { subproject ->
 		romeToolsVersion = '1.9.0'
 		servletApiVersion = '4.0.0'
 		smackVersion = '4.3.3'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.8.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.9.RELEASE'
 		springDataJpaVersion = '2.1.10.RELEASE'
 		springDataMongoVersion = '2.1.10.RELEASE'
 		springDataRedisVersion = '2.1.10.RELEASE'
