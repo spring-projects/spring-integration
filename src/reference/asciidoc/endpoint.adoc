@@ -517,6 +517,7 @@ public class TestConverter implements Converter<Boolean, Number> {
 ====
 
 Alternately, you can use the `@Configuration` annotation, as the following example shows:
+
 [source,java]
 ----
 @Configuration
@@ -621,7 +622,7 @@ The preceding configuration demonstrates an out-of-tune configuration.
 
 By default, the task executor has an unbounded task queue.
 The poller keeps scheduling new tasks even though all the threads are blocked, waiting for either a new message to arrive or the timeout to expire.
-Given that there are 20 threads executing tasks with a five-second timeout, they aree executed at a rate of 4 per second.
+Given that there are 20 threads executing tasks with a five-second timeout, they are executed at a rate of 4 per second.
 However, new tasks are being scheduled at a rate of 20 per second, so the internal queue in the task executor grows at a rate of 16 per second (while the process is idle), so we have a memory leak.
 
 One of the ways to handle this is to set the `queue-capacity` attribute of the task executor.

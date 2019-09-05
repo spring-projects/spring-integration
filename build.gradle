@@ -42,13 +42,13 @@ ext {
 	modifiedFiles =
 			files(grgit.status().unstaged.modified).filter{ f -> f.name.endsWith('.java') || f.name.endsWith('.kt') }
 
-	activeMqVersion = '5.15.9'
+	activeMqVersion = '5.15.10'
 	apacheSshdVersion = '2.3.0'
 	avroVersion = '1.9.0'
 	aspectjVersion = '1.9.4'
-	assertjVersion = '3.13.1'
+	assertjVersion = '3.13.2'
 	assertkVersion = '0.19'
-	awaitilityVersion = '3.1.6'
+	awaitilityVersion = '4.0.0'
 	boonVersion = '0.34'
 	commonsDbcp2Version = '2.6.0'
 	commonsIoVersion = '2.6'
@@ -57,10 +57,10 @@ ext {
 	derbyVersion = '10.14.2.0'
 	ftpServerVersion = '1.1.1'
 	googleJsr305Version = '3.0.2'
-	groovyVersion = '2.5.7'
+	groovyVersion = '2.5.8'
 	hamcrestVersion = '2.1'
-	hazelcastVersion = '3.12.1'
-	hibernateVersion = '5.4.3.Final'
+	hazelcastVersion = '3.12.2'
+	hibernateVersion = '5.4.4.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.199'
 	jackson2Version = '2.9.9.20190807'
@@ -69,7 +69,7 @@ ext {
 	jmsApiVersion = '2.0.1'
 	jpa21ApiVersion = '1.0.2.Final'
 	jpaApiVersion = '2.2.1'
-	jrubyVersion = '9.2.7.0'
+	jrubyVersion = '9.2.8.0'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
 	junit4Version = '4.12'
@@ -78,15 +78,15 @@ ext {
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.1.8.RELEASE'
-	log4jVersion = '2.12.0'
+	log4jVersion = '2.12.1'
 	micrometerVersion = '1.2.0'
 	mockitoVersion = '3.0.0'
 	mysqlVersion = '8.0.16'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.6'
-	reactorNettyVersion = '0.9.0.BUILD-SNAPSHOT'
-	reactorVersion = '3.3.0.BUILD-SNAPSHOT'
-	resilience4jVersion = '0.16.0'
+	reactorNettyVersion = '0.9.0.RC1'
+	reactorVersion = '3.3.0.RC1'
+	resilience4jVersion = '0.17.0'
 	romeToolsVersion = '1.12.1'
 	rsocketVersion = '1.0.0-RC3'
 	servletApiVersion = '4.0.1'
@@ -98,9 +98,9 @@ ext {
 	springGemfireVersion = '2.2.0.BUILD-SNAPSHOT'
 	springSecurityVersion = '5.2.0.BUILD-SNAPSHOT'
 	springRetryVersion = '1.2.4.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.BUILD-SNAPSHOT'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.0.RC2'
 	springWsVersion = '3.0.7.RELEASE'
-	tomcatVersion = "9.0.19"
+	tomcatVersion = "9.0.24"
 	xstreamVersion = '1.4.11.1'
 }
 
@@ -325,7 +325,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = "8.21"
+		toolVersion = "8.24"
 	}
 
 	artifacts {
