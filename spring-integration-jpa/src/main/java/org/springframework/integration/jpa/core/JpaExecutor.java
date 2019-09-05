@@ -451,7 +451,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				this.jpaOperations.persist(payload, this.flushSize, this.clearOnFlush);
 				return payload;
 			case MERGE:
-				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush);
+				return this.jpaOperations.merge(payload, this.flushSize, this.clearOnFlush); // NOSONAR
 			case DELETE:
 				this.jpaOperations.delete(payload);
 				if (this.flush) {
