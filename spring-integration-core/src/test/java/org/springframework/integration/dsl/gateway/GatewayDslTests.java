@@ -19,6 +19,7 @@ package org.springframework.integration.dsl.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.lang.reflect.Method;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -29,12 +30,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -160,16 +161,20 @@ public class GatewayDslTests {
 
 		@Bean
 		public IntegrationFlow functionGateway() {
-			return IntegrationFlows.from(MessageFunction.class)
+			return IntegrationFlows.from(MessageFunction.class,
+					(gateway) -> gateway
+							.defaultHeader("gatewayMethod", MethodArgsHolder::getMethod)
+							.defaultHeader("gatewayArgs", MethodArgsHolder::getArgs))
 					.bridge()
 					.get();
 		}
 
 		@Bean
 		public IntegrationFlow routingGateway() {
-			return IntegrationFlows.from(RoutingGateway.class)
+			return IntegrationFlows.from(RoutingGateway.class,
+					(gateway) -> gateway.defaultHeader("gatewayMethod", MethodArgsHolder::getMethod))
 					.route(Message.class, (message) ->
-									StaticMessageHeaderAccessor.getGatewayMethod(message).getName(),
+									message.getHeaders().get("gatewayMethod", Method.class).getName(),
 							(router) -> router
 									.subFlowMapping("route1", (subFlow) -> subFlow.transform((payload) -> "route1"))
 									.subFlowMapping("route2", (subFlow) -> subFlow.transform((payload) -> "route2")))

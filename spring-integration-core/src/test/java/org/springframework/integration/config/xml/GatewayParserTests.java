@@ -42,7 +42,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
@@ -80,14 +79,11 @@ public class GatewayParserTests {
 
 	@Test
 	public void testOneWay() {
-		TestService service = context.getBean("oneWay", TestService.class);
+		TestService service = (TestService) context.getBean("oneWay");
 		service.oneWay("foo");
-		PollableChannel channel = context.getBean("requestChannel", PollableChannel.class);
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		Message<?> result = channel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("foo");
-		assertThat(result.getHeaders())
-				.containsKeys(IntegrationMessageHeaderAccessor.GATEWAY_METHOD,
-						IntegrationMessageHeaderAccessor.GATEWAY_ARGS);
 	}
 
 	@Test
@@ -112,8 +108,8 @@ public class GatewayParserTests {
 		assertThat(meta.getReplyChannelName()).isEqualTo("foo");
 		meta = (GatewayMethodMetadata) methods.get("oneWayWithTimeouts");
 		assertThat(meta).isNotNull();
-		assertThat(meta.getRequestTimeout()).isEqualTo("#args[1]");
-		assertThat(meta.getReplyTimeout()).isEqualTo("#args[2]");
+		assertThat(meta.getRequestTimeout()).isEqualTo("args[1]");
+		assertThat(meta.getReplyTimeout()).isEqualTo("args[2]");
 		service.oneWayWithTimeouts("foo", 100L, 200L);
 		result = channel.receive(10000);
 		assertThat(result).isNotNull();
@@ -287,8 +283,8 @@ public class GatewayParserTests {
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
 		assertThat(TestUtils.getPropertyValue(gateway, "asyncExecutor")).isNotNull();
 		verify(logger).debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
-				+ "running on calling thread; the downstream flow must return the required Future: "
-				+ "MyCompletableFuture");
+							+ "running on calling thread; the downstream flow must return the required Future: "
+							+ "MyCompletableFuture");
 	}
 
 	@Test
@@ -413,7 +409,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);
@@ -425,7 +421,7 @@ public class GatewayParserTests {
 				}
 				else {
 					modifiedMessage = MessageBuilder.fromMessage(message)
-							.setHeader("executor", this.beanName).build();
+						.setHeader("executor", this.beanName).build();
 				}
 				return new AsyncResult(modifiedMessage);
 			}

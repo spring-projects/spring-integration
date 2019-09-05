@@ -58,7 +58,6 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		if (annotationAttributes == null) {
 			annotationAttributes = AnnotationUtils.getAnnotationAttributes(
 					AnnotationUtils.synthesizeAnnotation(MessagingGateway.class), false, true);
-			annotationAttributes.put("mapInternalHeaders", "true");
 		}
 
 		this.gatewayAttributes = annotationAttributes;
@@ -105,8 +104,6 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 		String mapper = resolveAttribute("mapper");
 
-		String mapInternalHeaders = resolveAttribute("mapInternalHeaders");
-
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
 		Assert.state(!hasMapper || !hasDefaultPayloadExpression,
@@ -116,19 +113,15 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		Assert.state(!hasMapper || !hasDefaultHeaders,
 				"'defaultHeaders' are not allowed when a 'mapper' is provided");
 
-		boolean hasMapInternalHeaders = !ObjectUtils.isEmpty(mapInternalHeaders);
-		Assert.state(!hasMapper || !hasMapInternalHeaders,
-				"'mapInternalHeaders' are not allowed when a 'mapper' is provided");
-
 		JavaUtils.INSTANCE
 				.acceptIfHasText(mapper,
 						value -> setMapper(beanFactory.getBean(value, MethodArgsMessageMapper.class)));
 
-		if (hasDefaultHeaders || hasDefaultPayloadExpression || hasMapInternalHeaders) {
+		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata();
 
 			if (hasDefaultPayloadExpression) {
-				gatewayMethodMetadata.setPayloadExpression(defaultPayloadExpression);
+				gatewayMethodMetadata.setPayloadExpression(EXPRESSION_PARSER.parseExpression(defaultPayloadExpression));
 			}
 
 			Map<String, Expression> headerExpressions = Arrays.stream(defaultHeaders)
@@ -150,9 +143,6 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 							}));
 
 			gatewayMethodMetadata.setHeaderExpressions(headerExpressions);
-			if (hasMapInternalHeaders) {
-				gatewayMethodMetadata.setMapInternalHeaders(Boolean.parseBoolean(mapInternalHeaders));
-			}
 
 			setGlobalMethodMetadata(gatewayMethodMetadata);
 		}

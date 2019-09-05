@@ -810,7 +810,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow errorRecovererFlow() {
-			return IntegrationFlows.from(Function.class, "errorRecovererFunction")
+			return IntegrationFlows.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
 					.handle((GenericHandler<?>) (p, h) -> {
 						throw new RuntimeException("intentional");
 					}, e -> e.advice(retryAdvice()))
@@ -891,7 +891,8 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow globalErrorChannelResolutionFlow(@Qualifier("taskScheduler") TaskExecutor taskExecutor) {
-			return IntegrationFlows.from(Consumer.class, "globalErrorChannelResolutionFunction")
+			return IntegrationFlows.from(Consumer.class,
+					(gateway) -> gateway.beanName("globalErrorChannelResolutionFunction"))
 					.channel(c -> c.executor(taskExecutor))
 					.handle((GenericHandler<?>) (p, h) -> {
 						throw new RuntimeException("intentional");

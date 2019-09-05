@@ -72,16 +72,6 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 */
 	public static final String SOURCE_DATA = "sourceData";
 
-	/**
-	 * The messaging gateway interface method called.
-	 */
-	public static final String GATEWAY_METHOD = "gatewayMethod";
-
-	/**
-	 * The messaging gateway interface method invocation arguments.
-	 */
-	public static final String GATEWAY_ARGS = "gatewayArgs";
-
 	private static final BiFunction<String, String, String> TYPE_VERIFY_MESSAGE_FUNCTION =
 			(name, trailer) -> "The '" + name + trailer;
 

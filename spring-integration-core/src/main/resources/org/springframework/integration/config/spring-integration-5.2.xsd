@@ -821,26 +821,14 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="map-internal-headers" default="false">
-				<xsd:annotation>
-					<xsd:documentation>
-						The flag to control the mapping of internal headers (e.g. 'gatewayMethod', 'gatewayArgs')
-						They are not mapped by default to avoid performance overhead in the downstream processing and/or
-						(de)serialization, when 'gatewayArgs' might be as big objects.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="headerSubElementType">
 		<xsd:annotation>
 			<xsd:documentation>	<![CDATA[
-				Provides mechanism to enrich content of the message with custom message headers.
-				When this method is going to be invoked the generated message will be enriched with these headers.
+				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
+				the generated message will be enriched with these headers.
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="name" type="xsd:string" use="required">

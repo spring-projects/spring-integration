@@ -177,38 +177,6 @@ However, default headers do NOT override any `@Header` annotations in the servic
 
 The gateway now also supports a `default-payload-expression`, which is applied for all methods (unless overridden).
 
-Starting with version 5.2, when we declare an `IntegrationFlow` starting with service interface, the invoked gateway `Method` is always added as a `gatewayMethod` message header, along with the `gatewayArgs` header with the value being the actual method invocation arguments in an `Object[]`.
-This information is useful, when we can't declare messaging gateway annotations on a third party interface and XML is not an appropriate configuration model.
-This applies from use-cases when we start an `IntegrationFlow` with a multi-method interface and would like to do some routing logic based on a method called:
-
-====
-[source,java]
-----
-public interface RoutingGateway {
-
-    String route1(Object payload);
-
-    String route2(Object payload);
-
-}
-...
-@Bean
-public IntegrationFlow routingGateway() {
-    return IntegrationFlows.from(RoutingGateway.class)
-        .route(Message.class, (message) ->
-                    StaticMessageHeaderAccessor.getGatewayMethod(message).getName(),
-            (router) -> router
-                    .subFlowMapping("route1", (subFlow) -> ...)
-                    .subFlowMapping("route2", (subFlow) -> ...))
-        .get();
-}
-----
-
-With an XML and `@MessagingGateway` configurations these headers are not added by default.
-See `@MessagingGateway.mapInternalHeaders()` and `<@gateway map-internal-headers="">` attributes description for more information.
-They are not added by default because they may bring some memory overhead during message processing and/or (de)serialization.
-In case of Java DSL we don't have access to any possible configuration option when we parse a service interface without the `@MessagingGateway`, so these headers are always added, but can be stripped off using `.headerFilter("gateway*")` downstream.
-
 [[gateway-mapping]]
 ==== Mapping Method Arguments to a Message
 

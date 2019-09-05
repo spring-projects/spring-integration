@@ -21,8 +21,7 @@
 
 	<gateway id="oneWay"
 			 service-interface="org.springframework.integration.gateway.TestService"
-			 default-request-channel="requestChannel"
-			 map-internal-headers="true"/>
+			 default-request-channel="requestChannel"/>
 
 	<gateway id="solicitResponse"
 			 service-interface="org.springframework.integration.gateway.TestService"
@@ -92,8 +91,8 @@
 			<header name="foo" value="bar"/>
 		</method>
 		<method name="oneWayWithTimeouts" request-channel="otherRequestChannel"
-							  request-timeout="#args[1]"
-							  reply-timeout="#args[2]">
+							  request-timeout="args[1]"
+							  reply-timeout="args[2]">
 		</method>
 	</gateway>
 

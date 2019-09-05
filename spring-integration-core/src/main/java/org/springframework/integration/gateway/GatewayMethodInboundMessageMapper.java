@@ -39,7 +39,6 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
@@ -116,8 +115,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private Expression replyTimeoutExpression;
 
-	boolean mapInternalHeaders;
-
 	GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
@@ -164,8 +161,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 
-	public void setPayloadExpression(String expressionString) {
-		this.payloadExpression = PARSER.parseExpression(expressionString);
+	public void setPayloadExpression(Expression expressionString) {
+		this.payloadExpression = expressionString;
 	}
 
 	@Override
@@ -301,12 +298,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					headersToMap != null
 							? new HashMap<>(headersToMap)
 							: new HashMap<>();
-
-			if (GatewayMethodInboundMessageMapper.this.mapInternalHeaders) {
-				headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_METHOD, holder.getMethod());
-				headersToPopulate.put(IntegrationMessageHeaderAccessor.GATEWAY_ARGS, holder.getArgs());
-			}
-
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =
 						GatewayMethodInboundMessageMapper.this.payloadExpression.getValue(

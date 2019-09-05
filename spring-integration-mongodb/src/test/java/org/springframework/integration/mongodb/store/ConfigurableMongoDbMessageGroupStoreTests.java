@@ -50,7 +50,7 @@ import com.mongodb.MongoClient;
 public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
 
 	@Override
-	protected ConfigurableMongoDbMessageStore getMessageGroupStore() {
+	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
@@ -59,8 +59,8 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	}
 
 	@Override
-	protected MessageStore getMessageStore() {
-		return getMessageGroupStore();
+	protected MessageStore getMessageStore() throws Exception {
+		return this.getMessageGroupStore();
 	}
 
 	@Test
@@ -70,7 +70,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	}
 
 	@Test
-	@Ignore("The performance test. Too slow. Also needs the release strategy changed to size() == 1000")
+	@Ignore("The performance test. Enough slow. Also needs the release strategy changed to size() == 1000")
 	@MongoDbAvailable
 	public void messageGroupStoreLazyLoadPerformance() {
 		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
@@ -113,7 +113,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	@Test
 	@MongoDbAvailable
-	public void testWithCustomConverter() {
+	public void testWithCustomConverter() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
@@ -127,11 +127,10 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	@Test
 	@MongoDbAvailable
-	public void testPriorityChannel() {
+	public void testPriorityChannel() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml",
-						this.getClass());
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
 		context.refresh();
 
 		Object priorityChannel = context.getBean("priorityChannel");
@@ -139,8 +138,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 		QueueChannel channel = (QueueChannel) priorityChannel;
 
-		Message<String> message =
-				MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
 		channel.send(message);
 		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
 		channel.send(message);

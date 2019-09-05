@@ -55,6 +55,7 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
@@ -102,51 +103,53 @@ import reactor.core.publisher.Mono;
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
-	private volatile Class<?> serviceInterface;
-
-	private volatile MessageChannel defaultRequestChannel;
-
-	private volatile String defaultRequestChannelName;
-
-	private volatile MessageChannel defaultReplyChannel;
-
-	private volatile String defaultReplyChannelName;
-
-	private volatile MessageChannel errorChannel;
-
-	private volatile String errorChannelName;
-
-	private volatile Expression defaultRequestTimeout;
-
-	private volatile Expression defaultReplyTimeout;
-
-	private volatile DestinationResolver<MessageChannel> channelResolver;
-
-	private volatile boolean shouldTrack = false;
-
-	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
-
-	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
-	private volatile Object serviceProxy;
-
-	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
-
-	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
-
-	private volatile Class<?> asyncSubmitType;
-
-	private volatile Class<?> asyncSubmitListenableType;
-
-	private volatile boolean initialized;
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Object initializationMonitor = new Object();
 
-	private volatile Map<String, GatewayMethodMetadata> methodMetadataMap;
+	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
-	private volatile GatewayMethodMetadata globalMethodMetadata;
+	private Class<?> serviceInterface;
 
-	private volatile MethodArgsMessageMapper argsMapper;
+	private MessageChannel defaultRequestChannel;
+
+	private String defaultRequestChannelName;
+
+	private MessageChannel defaultReplyChannel;
+
+	private String defaultReplyChannelName;
+
+	private MessageChannel errorChannel;
+
+	private String errorChannelName;
+
+	private Expression defaultRequestTimeout;
+
+	private Expression defaultReplyTimeout;
+
+	private DestinationResolver<MessageChannel> channelResolver;
+
+	private boolean shouldTrack = false;
+
+	private TypeConverter typeConverter = new SimpleTypeConverter();
+
+	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private Object serviceProxy;
+
+	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+
+	private Class<?> asyncSubmitType;
+
+	private Class<?> asyncSubmitListenableType;
+
+	private volatile boolean initialized;
+
+	private Map<String, GatewayMethodMetadata> methodMetadataMap;
+
+	private GatewayMethodMetadata globalMethodMetadata;
+
+	private MethodArgsMessageMapper argsMapper;
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -545,10 +548,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			// check for the method metadata next
 			if (this.methodMetadataMap != null) {
 				GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
-				hasPayloadExpression = (metadata != null) && StringUtils.hasText(metadata.getPayloadExpression());
+				hasPayloadExpression = (metadata != null) && metadata.getPayloadExpression() != null;
 			}
 			else if (this.globalMethodMetadata != null) {
-				hasPayloadExpression = StringUtils.hasText(this.globalMethodMetadata.getPayloadExpression());
+				hasPayloadExpression = this.globalMethodMetadata.getPayloadExpression() != null;
 			}
 		}
 		return hasPayloadExpression;
@@ -596,7 +599,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		String replyChannelName = null;
 		Expression requestTimeout = this.defaultRequestTimeout;
 		Expression replyTimeout = this.defaultReplyTimeout;
-		String payloadExpression = this.globalMethodMetadata != null
+		Expression payloadExpression = this.globalMethodMetadata != null
 				? this.globalMethodMetadata.getPayloadExpression()
 				: null;
 		Map<String, Expression> headerExpressions = new HashMap<>();
@@ -622,8 +625,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (StringUtils.hasText(gatewayAnnotation.replyTimeoutExpression())) {
 				replyTimeout = ExpressionUtils.longExpression(gatewayAnnotation.replyTimeoutExpression());
 			}
-			if (payloadExpression == null || StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
-				payloadExpression = gatewayAnnotation.payloadExpression();
+			if (payloadExpression == null && StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
+				payloadExpression = PARSER.parseExpression(gatewayAnnotation.payloadExpression());
 			}
 
 			annotationHeaders(gatewayAnnotation, headerExpressions);
@@ -631,7 +634,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		else if (this.methodMetadataMap != null && this.methodMetadataMap.size() > 0) {
 			GatewayMethodMetadata methodMetadata = this.methodMetadataMap.get(method.getName());
 			if (methodMetadata != null) {
-				if (StringUtils.hasText(methodMetadata.getPayloadExpression())) {
+				if (methodMetadata.getPayloadExpression() != null) {
 					payloadExpression = methodMetadata.getPayloadExpression();
 				}
 				if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
@@ -655,13 +658,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
 				headers, this.argsMapper, getMessageBuilderFactory());
-		if (this.globalMethodMetadata != null) {
-			messageMapper.mapInternalHeaders = this.globalMethodMetadata.isMapInternalHeaders();
-		}
+
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 
 		JavaUtils.INSTANCE
-				.acceptIfHasText(payloadExpression, messageMapper::setPayloadExpression)
+				.acceptIfNotNull(payloadExpression, messageMapper::setPayloadExpression)
 				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
 		gateway.setBeanName(getComponentName());
 

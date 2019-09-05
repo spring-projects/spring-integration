@@ -84,7 +84,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		String errorChannel = (String) gatewayAttributes.get("errorChannel");
 		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
 		String mapper = (String) gatewayAttributes.get("mapper");
-		String mapInternalHeaders = (String) gatewayAttributes.get("mapInternalHeaders");
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
@@ -95,19 +94,18 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		Assert.state(!hasMapper || !hasDefaultHeaders,
 				"'defaultHeaders' are not allowed when a 'mapper' is provided");
 
-		boolean hasMapInternalHeaders = !ObjectUtils.isEmpty(mapInternalHeaders);
-		Assert.state(!hasMapper || !hasMapInternalHeaders,
-				"'mapInternalHeaders' are not allowed when a 'mapper' is provided");
-
 		BeanDefinitionBuilder gatewayProxyBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyFactoryBean.class);
 
-		if (hasDefaultHeaders || hasDefaultPayloadExpression || hasMapInternalHeaders) {
+		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
 
 			if (hasDefaultPayloadExpression) {
-				methodMetadataBuilder.addPropertyValue("payloadExpression", defaultPayloadExpression);
+				methodMetadataBuilder.addPropertyValue("payloadExpression",
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+								.addConstructorArgValue(defaultPayloadExpression)
+								.getBeanDefinition());
 			}
 
 			if (hasDefaultHeaders) {
@@ -130,10 +128,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 					headerExpressions.put((String) header.get("name"), expressionDef);
 				}
 				methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
-			}
-
-			if (hasMapInternalHeaders) {
-				methodMetadataBuilder.addPropertyValue("mapInternalHeaders", mapInternalHeaders);
 			}
 
 			gatewayProxyBuilder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
@@ -190,7 +184,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	 * @param importingClassMetadata The importing class metadata
 	 * @return The captured values.
 	 */
-	private List<MultiValueMap<String, Object>> captureMetaAnnotationValues(AnnotationMetadata importingClassMetadata) {
+	private  static List<MultiValueMap<String, Object>> captureMetaAnnotationValues(
+			AnnotationMetadata importingClassMetadata) {
+
 		Set<String> directAnnotations = importingClassMetadata.getAnnotationTypes();
 		List<MultiValueMap<String, Object>> valuesHierarchy = new ArrayList<>();
 		// Need to grab the values now; see SPR-11710
@@ -212,8 +208,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	 * @param valuesHierarchy The values hierarchy in order.
 	 * @param annotationAttributes The current attribute values.
 	 */
-	private void replaceEmptyOverrides(List<MultiValueMap<String, Object>> valuesHierarchy,
+	private static void replaceEmptyOverrides(List<MultiValueMap<String, Object>> valuesHierarchy,
 			Map<String, Object> annotationAttributes) {
+
 		for (Entry<String, Object> entry : annotationAttributes.entrySet()) {
 			Object value = entry.getValue();
 			if (!MessagingAnnotationUtils.hasValue(value)) {

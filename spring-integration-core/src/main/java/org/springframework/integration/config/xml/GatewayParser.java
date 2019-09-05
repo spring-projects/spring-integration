@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.MessagingGatewayRegistrar;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.util.Assert;
@@ -85,8 +86,6 @@ public class GatewayParser implements BeanDefinitionParser {
 
 		gatewayAttributes.put("serviceInterface", element.getAttribute("service-interface"));
 
-		gatewayAttributes.put("mapInternalHeaders", element.getAttribute("map-internal-headers"));
-
 		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes);
 		if (isNested) {
 			return gatewayHolder.getBeanDefinition();
@@ -97,7 +96,7 @@ public class GatewayParser implements BeanDefinitionParser {
 		}
 	}
 
-	private void headers(final Element element, final Map<String, Object> gatewayAttributes) {
+	private void headers(Element element, Map<String, Object> gatewayAttributes) {
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
 			List<Map<String, Object>> headers = new ArrayList<>(headerElements.size());
@@ -109,11 +108,12 @@ public class GatewayParser implements BeanDefinitionParser {
 				header.put("expression", e.getAttribute("expression"));
 				headers.add(header);
 			}
-			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[0]));
+			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map<?, ?>[0]));
 		}
 	}
 
-	private void methods(Element element, ParserContext parserContext, Map<String, Object> gatewayAttributes) {
+	private void methods(final Element element, ParserContext parserContext,
+			final Map<String, Object> gatewayAttributes) {
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
 		if (!CollectionUtils.isEmpty(methodElements)) {
 			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<>();
@@ -128,11 +128,16 @@ public class GatewayParser implements BeanDefinitionParser {
 				methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
 
 				boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
-				Assert.state(!hasMapper || !StringUtils.hasText(element.getAttribute("payload-expression")),
+				String payloadExpression = methodElement.getAttribute("payload-expression");
+				Assert.state(!hasMapper || !StringUtils.hasText(payloadExpression),
 						"'payload-expression' is not allowed when a 'mapper' is provided");
 
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement,
-						"payload-expression");
+				if (StringUtils.hasText(payloadExpression)) {
+					methodMetadataBuilder.addPropertyValue("payloadExpression",
+							BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+									.addConstructorArgValue(payloadExpression)
+									.getBeanDefinition());
+				}
 
 				List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 				if (!CollectionUtils.isEmpty(invocationHeaders)) {
