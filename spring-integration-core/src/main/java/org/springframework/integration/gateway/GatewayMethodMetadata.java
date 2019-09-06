@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.lang.Nullable;
 
 /**
  * Represents the metadata associated with a Gateway method. This is most useful when there are
@@ -30,28 +31,30 @@ import org.springframework.expression.Expression;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class GatewayMethodMetadata {
 
-	private volatile String payloadExpression;
+	private final Map<String, Expression> headerExpressions = new HashMap<>();
 
-	private volatile String requestChannelName;
+	private Expression payloadExpression;
 
-	private volatile String replyChannelName;
+	private String requestChannelName;
 
-	private volatile String requestTimeout;
+	private String replyChannelName;
 
-	private volatile String replyTimeout;
+	private String requestTimeout;
 
-	private volatile Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+	private String replyTimeout;
 
-
-	public String getPayloadExpression() {
+	@Nullable
+	public Expression getPayloadExpression() {
 		return this.payloadExpression;
 	}
 
-	public void setPayloadExpression(String payloadExpression) {
+	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
 	}
 
@@ -59,8 +62,11 @@ public class GatewayMethodMetadata {
 		return this.headerExpressions;
 	}
 
-	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
-		this.headerExpressions = headerExpressions;
+	public void setHeaderExpressions(@Nullable Map<String, Expression> headerExpressions) {
+		this.headerExpressions.clear();
+		if (headerExpressions != null) {
+			this.headerExpressions.putAll(headerExpressions);
+		}
 	}
 
 	public String getRequestChannelName() {

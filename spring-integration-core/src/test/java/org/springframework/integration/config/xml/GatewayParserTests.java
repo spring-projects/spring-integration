@@ -108,8 +108,8 @@ public class GatewayParserTests {
 		assertThat(meta.getReplyChannelName()).isEqualTo("foo");
 		meta = (GatewayMethodMetadata) methods.get("oneWayWithTimeouts");
 		assertThat(meta).isNotNull();
-		assertThat(meta.getRequestTimeout()).isEqualTo("#args[1]");
-		assertThat(meta.getReplyTimeout()).isEqualTo("#args[2]");
+		assertThat(meta.getRequestTimeout()).isEqualTo("args[1]");
+		assertThat(meta.getReplyTimeout()).isEqualTo("args[2]");
 		service.oneWayWithTimeouts("foo", 100L, 200L);
 		result = channel.receive(10000);
 		assertThat(result).isNotNull();
@@ -118,7 +118,7 @@ public class GatewayParserTests {
 	@Test
 	public void testSolicitResponse() {
 		PollableChannel channel = (PollableChannel) context.getBean("replyChannel");
-		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<>("foo"));
 		TestService service = (TestService) context.getBean("solicitResponse");
 		String result = service.solicitResponse();
 		assertThat(result).isEqualTo("foo");
@@ -161,7 +161,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testFactoryBeanObjectTypeWithServiceInterface() throws Exception {
+	public void testFactoryBeanObjectTypeWithServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
@@ -169,7 +169,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testFactoryBeanObjectTypeWithNoServiceInterface() throws Exception {
+	public void testFactoryBeanObjectTypeWithNoServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
@@ -177,7 +177,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testMonoGateway() throws Exception {
+	public void testMonoGateway() {
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		MessageChannel replyChannel = context.getBean("replyChannel", MessageChannel.class);
 		this.startResponder(requestChannel, replyChannel);

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -236,7 +237,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.setPayloadExpression("'hello'");
+		mapper.setPayloadExpression(new LiteralExpression("hello"));
 		Message<?> message = mapper.toMessage(new Object[] { map });
 		assertThat(message.getPayload()).isEqualTo("hello");
 	}
@@ -244,12 +245,12 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithNonHeaderMapPayloadExpressionB() throws Exception {
 		Method method = TestService.class.getMethod("sendNonHeadersMap", Map.class);
-		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		Map<Integer, Object> map = new HashMap<>();
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.setPayloadExpression("#args[0]");
+		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
 		Message<?> message = mapper.toMessage(new Object[] { map });
 		assertThat(message.getPayload()).isEqualTo(map);
 	}
@@ -277,7 +278,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapB.put("2", "TWO");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.setPayloadExpression("#args[0]");
+		mapper.setPayloadExpression(new FunctionExpression<MethodArgsHolder>((methodArgs) -> methodArgs.getArgs()[0]));
 		Message<?> message = mapper.toMessage(new Object[] { mapA, mapB });
 		assertThat(message.getPayload()).isEqualTo(mapA);
 		assertThat(message.getHeaders().get("1")).isEqualTo(mapB.get("1"));

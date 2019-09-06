@@ -28,8 +28,6 @@ import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototy
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
-import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
-import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -316,7 +314,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {
-		return from(serviceInterface, null);
+		return from(serviceInterface, (Consumer<GatewayProxySpec>) null);
 	}
 
 	/**
@@ -331,20 +329,37 @@ public final class IntegrationFlows {
 	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @param beanName the bean name to be used for registering bean for the gateway proxy
 	 * @return new {@link IntegrationFlowBuilder}.
+	 * @deprecated since 5.2 in favor of {@link #from(Class, Consumer)}
 	 */
+	@Deprecated
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface, @Nullable String beanName) {
-		final DirectChannel gatewayRequestChannel = new DirectChannel();
+		return from(serviceInterface, gateway -> gateway.beanName(beanName));
+	}
 
-		GatewayProxyFactoryBean gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);
+	/**
+	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder}
+	 * chain, which becomes as a {@code requestChannel} for the Messaging Gateway(s) built
+	 * on the provided service interface.
+	 * <p>A gateway proxy bean for provided service interface is based on the options
+	 * configured via provided {@link Consumer}.
+	 * @param serviceInterface the service interface class with an optional
+	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
+	 * @param endpointConfigurer the {@link Consumer} to configure proxy bean for gateway.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @since 5.2
+	 */
+	public static IntegrationFlowBuilder from(Class<?> serviceInterface,
+			@Nullable Consumer<GatewayProxySpec> endpointConfigurer) {
 
-		gatewayProxyFactoryBean.setDefaultRequestChannel(gatewayRequestChannel);
-		if (beanName != null) {
-			gatewayProxyFactoryBean.setBeanName(beanName);
+		GatewayProxySpec gatewayProxySpec = new GatewayProxySpec(serviceInterface);
+		if (endpointConfigurer != null) {
+			endpointConfigurer.accept(gatewayProxySpec);
 		}
 
-		return from(gatewayRequestChannel)
-				.addComponent(gatewayProxyFactoryBean);
+		return from(gatewayProxySpec.getGatewayRequestChannel())
+				.addComponent(gatewayProxySpec.getGatewayProxyFactoryBean());
 	}
+
 
 	/**
 	 * Populate a {@link FluxMessageChannel} to the {@link IntegrationFlowBuilder} chain

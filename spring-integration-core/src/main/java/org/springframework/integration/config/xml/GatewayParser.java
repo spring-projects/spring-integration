@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.MessagingGatewayRegistrar;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.util.Assert;
@@ -54,7 +55,7 @@ public class GatewayParser implements BeanDefinitionParser {
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		boolean isNested = parserContext.isNested();
 
-		final Map<String, Object> gatewayAttributes = new HashMap<String, Object>();
+		final Map<String, Object> gatewayAttributes = new HashMap<>();
 		gatewayAttributes.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
 				element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE));
 		gatewayAttributes.put("defaultPayloadExpression", element.getAttribute("default-payload-expression"));
@@ -95,20 +96,19 @@ public class GatewayParser implements BeanDefinitionParser {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private void headers(final Element element, final Map<String, Object> gatewayAttributes) {
+	private void headers(Element element, Map<String, Object> gatewayAttributes) {
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "default-header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
-			List<Map<String, Object>> headers = new ArrayList<Map<String, Object>>(headerElements.size());
+			List<Map<String, Object>> headers = new ArrayList<>(headerElements.size());
 			for (Element e : headerElements) {
-				Map<String, Object> header = new HashMap<String, Object>();
+				Map<String, Object> header = new HashMap<>();
 				header.put(AbstractBeanDefinitionParser.NAME_ATTRIBUTE,
 						e.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE));
 				header.put("value", e.getAttribute("value"));
 				header.put("expression", e.getAttribute("expression"));
 				headers.add(header);
 			}
-			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map[0]));
+			gatewayAttributes.put("defaultHeaders", headers.toArray(new Map<?, ?>[0]));
 		}
 	}
 
@@ -116,7 +116,7 @@ public class GatewayParser implements BeanDefinitionParser {
 			final Map<String, Object> gatewayAttributes) {
 		List<Element> methodElements = DomUtils.getChildElementsByTagName(element, "method");
 		if (!CollectionUtils.isEmpty(methodElements)) {
-			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<String, BeanDefinition>();
+			Map<String, BeanDefinition> methodMetadataMap = new ManagedMap<>();
 			for (Element methodElement : methodElements) {
 				String methodName = methodElement.getAttribute(AbstractBeanDefinitionParser.NAME_ATTRIBUTE);
 				BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
@@ -128,17 +128,22 @@ public class GatewayParser implements BeanDefinitionParser {
 				methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
 
 				boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
-				Assert.state(!hasMapper || !StringUtils.hasText(element.getAttribute("payload-expression")),
+				String payloadExpression = methodElement.getAttribute("payload-expression");
+				Assert.state(!hasMapper || !StringUtils.hasText(payloadExpression),
 						"'payload-expression' is not allowed when a 'mapper' is provided");
 
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement,
-						"payload-expression");
+				if (StringUtils.hasText(payloadExpression)) {
+					methodMetadataBuilder.addPropertyValue("payloadExpression",
+							BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+									.addConstructorArgValue(payloadExpression)
+									.getBeanDefinition());
+				}
 
 				List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 				if (!CollectionUtils.isEmpty(invocationHeaders)) {
 					Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
 
-					Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
+					Map<String, Object> headerExpressions = new ManagedMap<>();
 					for (Element headerElement : invocationHeaders) {
 						BeanDefinition expressionDef = IntegrationNamespaceUtils
 								.createExpressionDefinitionFromValueOrExpression("value", "expression", parserContext,

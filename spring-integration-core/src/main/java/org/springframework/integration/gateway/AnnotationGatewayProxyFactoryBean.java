@@ -121,7 +121,7 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 			GatewayMethodMetadata gatewayMethodMetadata = new GatewayMethodMetadata();
 
 			if (hasDefaultPayloadExpression) {
-				gatewayMethodMetadata.setPayloadExpression(defaultPayloadExpression);
+				gatewayMethodMetadata.setPayloadExpression(EXPRESSION_PARSER.parseExpression(defaultPayloadExpression));
 			}
 
 			Map<String, Expression> headerExpressions = Arrays.stream(defaultHeaders)

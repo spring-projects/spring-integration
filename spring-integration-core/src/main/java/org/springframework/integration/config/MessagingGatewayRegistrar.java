@@ -102,11 +102,14 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 					BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
 
 			if (hasDefaultPayloadExpression) {
-				methodMetadataBuilder.addPropertyValue("payloadExpression", defaultPayloadExpression);
+				methodMetadataBuilder.addPropertyValue("payloadExpression",
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+								.addConstructorArgValue(defaultPayloadExpression)
+								.getBeanDefinition());
 			}
 
 			if (hasDefaultHeaders) {
-				Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
+				Map<String, Object> headerExpressions = new ManagedMap<>();
 				for (Map<String, Object> header : defaultHeaders) {
 					String headerValue = (String) header.get("value");
 					String headerExpression = (String) header.get("expression");
@@ -181,9 +184,11 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	 * @param importingClassMetadata The importing class metadata
 	 * @return The captured values.
 	 */
-	private List<MultiValueMap<String, Object>> captureMetaAnnotationValues(AnnotationMetadata importingClassMetadata) {
+	private  static List<MultiValueMap<String, Object>> captureMetaAnnotationValues(
+			AnnotationMetadata importingClassMetadata) {
+
 		Set<String> directAnnotations = importingClassMetadata.getAnnotationTypes();
-		List<MultiValueMap<String, Object>> valuesHierarchy = new ArrayList<MultiValueMap<String, Object>>();
+		List<MultiValueMap<String, Object>> valuesHierarchy = new ArrayList<>();
 		// Need to grab the values now; see SPR-11710
 		for (String ann : directAnnotations) {
 			Set<String> chain = importingClassMetadata.getMetaAnnotationTypes(ann);
@@ -203,8 +208,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	 * @param valuesHierarchy The values hierarchy in order.
 	 * @param annotationAttributes The current attribute values.
 	 */
-	private void replaceEmptyOverrides(List<MultiValueMap<String, Object>> valuesHierarchy,
+	private static void replaceEmptyOverrides(List<MultiValueMap<String, Object>> valuesHierarchy,
 			Map<String, Object> annotationAttributes) {
+
 		for (Entry<String, Object> entry : annotationAttributes.entrySet()) {
 			Object value = entry.getValue();
 			if (!MessagingAnnotationUtils.hasValue(value)) {

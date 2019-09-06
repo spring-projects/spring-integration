@@ -19,6 +19,9 @@ package org.springframework.integration.dsl.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.lang.reflect.Method;
+import java.util.function.Function;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -97,6 +101,27 @@ public class GatewayDslTests {
 				.withStackTraceContaining("intentional");
 	}
 
+	@Autowired
+	private Function<Object, Message<?>> functionGateay;
+
+	@Test
+	void testHeadersFromFunctionGateway() {
+		Message<?> message = this.functionGateay.apply("testPayload");
+		assertThat(message.getPayload()).isEqualTo("testPayload");
+		assertThat(message.getHeaders()).containsKeys("gatewayMethod", "gatewayArgs");
+	}
+
+	@Autowired
+	private RoutingGateway routingGateway;
+
+	@Test
+	void testRoutingGateway() {
+		String result = this.routingGateway.route1("test1");
+		assertThat(result).isEqualTo("route1");
+		result = this.routingGateway.route2("test2");
+		assertThat(result).isEqualTo("route2");
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -133,6 +158,40 @@ public class GatewayDslTests {
 										throw new RuntimeException("intentional");
 									})));
 		}
+
+		@Bean
+		public IntegrationFlow functionGateway() {
+			return IntegrationFlows.from(MessageFunction.class,
+					(gateway) -> gateway
+							.header("gatewayMethod", MethodArgsHolder::getMethod)
+							.header("gatewayArgs", MethodArgsHolder::getArgs))
+					.bridge()
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow routingGateway() {
+			return IntegrationFlows.from(RoutingGateway.class,
+					(gateway) -> gateway.header("gatewayMethod", MethodArgsHolder::getMethod))
+					.route(Message.class, (message) ->
+									message.getHeaders().get("gatewayMethod", Method.class).getName(),
+							(router) -> router
+									.subFlowMapping("route1", (subFlow) -> subFlow.transform((payload) -> "route1"))
+									.subFlowMapping("route2", (subFlow) -> subFlow.transform((payload) -> "route2")))
+					.get();
+		}
+
+	}
+
+	interface MessageFunction extends Function<Object, Message<?>> {
+
+	}
+
+	interface RoutingGateway {
+
+		String route1(Object payload);
+
+		String route2(Object payload);
 
 	}
 

@@ -26,6 +26,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -140,11 +141,13 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 
 	protected IntegrationFlowDefinition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(messageSourceSpec, endpointConfigurer);
 	}
 
 	protected IntegrationFlowDefinition<?> from(MessageSource<?> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(messageSource, endpointConfigurer);
 	}
 
@@ -182,6 +185,7 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 
 	protected IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(service, methodName, endpointConfigurer);
 	}
 
@@ -191,6 +195,7 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 
 	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(messageSource, endpointConfigurer);
 	}
 
@@ -198,8 +203,29 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(serviceInterface);
 	}
 
-	protected IntegrationFlowBuilder from(Class<?> serviceInterface, String beanName) {
-		return IntegrationFlows.from(serviceInterface, beanName);
+	/**
+	 * Start a flow from a proxy for the service interface.
+	 * @param serviceInterface  the service interface to proxy for the gateway.
+	 * @param beanName the bean name for the gateway proxy.
+	 * @return the {@link IntegrationFlowBuilder} instance
+	 * @deprecated since 5.2 in favor of {@link #from(Class, Consumer)}
+	 */
+	@Deprecated
+	protected IntegrationFlowBuilder from(Class<?> serviceInterface, @Nullable String beanName) {
+		return from(serviceInterface, (gateway) -> gateway.beanName(beanName));
+	}
+
+	/**
+	 * Start a flow from a proxy for the service interface.
+	 * @param serviceInterface the service interface class.
+	 * @param endpointConfigurer the {@link Consumer} to configure proxy bean for gateway.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @since 5.2
+	 */
+	protected IntegrationFlowBuilder from(Class<?> serviceInterface,
+			@Nullable Consumer<GatewayProxySpec> endpointConfigurer) {
+
+		return IntegrationFlows.from(serviceInterface, endpointConfigurer);
 	}
 
 	protected IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
