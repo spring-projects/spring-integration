@@ -86,6 +86,12 @@ See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more i
 All the `MessageHandlingException` s thrown in the framework, includes now a bean resource and source for back tracking a configuration part in case no end-user code involved.
 See <<./error-handling.adoc#error-handling,Error Handling>> for more information.
 
+For better end-user experience, Java DSL now provides a configurer variant for starting flow with a gateway interface.
+See `IntegrationFlows.from(Class<?> serviceInterface, Consumer<GatewayProxySpec> endpointConfigurer)` JavaDocs for more information.
+Also a `MethodArgsHolder` is now a root object for evaluation context for all the expressions in the `GatewayProxyFactoryBean`.
+The `#args` and `#method` evaluation context variables are now deprecated.
+See <<./gateway.adoc#gateway,Messaging Gateways>> for more information.
+
 [[x5.2-amqp]]
 ==== AMQP Changes
 

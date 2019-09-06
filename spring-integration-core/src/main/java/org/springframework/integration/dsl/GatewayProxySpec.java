@@ -81,8 +81,9 @@ public class GatewayProxySpec {
 	 * which will be converted to the return type of the method signature.
 	 * @param channelName the bean name for {@link MessageChannel}
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setDefaultReplyChannel
 	 */
-	public GatewayProxySpec defaultReplyChannel(String channelName) {
+	public GatewayProxySpec replyChannel(String channelName) {
 		this.gatewayProxyFactoryBean.setDefaultReplyChannelName(channelName);
 		return this;
 	}
@@ -93,8 +94,9 @@ public class GatewayProxySpec {
 	 * which will be converted to the return type of the method signature.
 	 * @param replyChannel the {@link MessageChannel} for replies.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setDefaultReplyChannel
 	 */
-	public GatewayProxySpec defaultReplyChannel(MessageChannel replyChannel) {
+	public GatewayProxySpec replyChannel(MessageChannel replyChannel) {
 		this.gatewayProxyFactoryBean.setDefaultReplyChannel(replyChannel);
 		return this;
 	}
@@ -106,6 +108,7 @@ public class GatewayProxySpec {
 	 * reference to the {@code nullChannel} here.
 	 * @param errorChannelName the bean name for {@link MessageChannel}
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setErrorChannel
 	 */
 	public GatewayProxySpec errorChannel(String errorChannelName) {
 		this.gatewayProxyFactoryBean.setErrorChannelName(errorChannelName);
@@ -119,6 +122,7 @@ public class GatewayProxySpec {
 	 * reference to the {@code nullChannel} here.
 	 * @param errorChannel the {@link MessageChannel} for replies.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setErrorChannel
 	 */
 	public GatewayProxySpec errorChannel(MessageChannel errorChannel) {
 		this.gatewayProxyFactoryBean.setErrorChannel(errorChannel);
@@ -132,8 +136,9 @@ public class GatewayProxySpec {
 	 * in milliseconds.
 	 * @param requestTimeout the timeout for requests in milliseconds.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setDefaultRequestTimeout
 	 */
-	public GatewayProxySpec defaultRequestTimeout(long requestTimeout) {
+	public GatewayProxySpec requestTimeout(long requestTimeout) {
 		this.gatewayProxyFactoryBean.setDefaultRequestTimeout(requestTimeout);
 		return this;
 	}
@@ -144,8 +149,9 @@ public class GatewayProxySpec {
 	 * the gateway times out. Value is specified in milliseconds.
 	 * @param replyTimeout the timeout for replies in milliseconds.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setDefaultReplyTimeout
 	 */
-	public GatewayProxySpec defaultReplyTimeout(long replyTimeout) {
+	public GatewayProxySpec replyTimeout(long replyTimeout) {
 		this.gatewayProxyFactoryBean.setDefaultReplyTimeout(replyTimeout);
 		return this;
 	}
@@ -159,6 +165,7 @@ public class GatewayProxySpec {
 	 * if your downstream flow returns a {@link java.util.concurrent.Future}.
 	 * @param executor the {@link Executor} to use.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setAsyncExecutor
 	 */
 	public GatewayProxySpec asyncExecutor(@Nullable Executor executor) {
 		this.gatewayProxyFactoryBean.setAsyncExecutor(executor);
@@ -171,9 +178,10 @@ public class GatewayProxySpec {
 	 * The root object for evaluation context is {@link MethodArgsHolder}.
 	 * @param expression the SpEL expression for default payload.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultPayloadExpression
 	 */
-	public GatewayProxySpec defaultPayloadExpression(String expression) {
-		return defaultPayloadExpression(PARSER.parseExpression(expression));
+	public GatewayProxySpec payloadExpression(String expression) {
+		return payloadExpression(PARSER.parseExpression(expression));
 	}
 
 	/**
@@ -181,9 +189,10 @@ public class GatewayProxySpec {
 	 * unless explicitly overridden by a method declaration.
 	 * @param defaultPayloadFunction the {@link Function} for default payload.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultPayloadExpression
 	 */
-	public GatewayProxySpec defaultPayloadFunction(Function<MethodArgsHolder, ?> defaultPayloadFunction) {
-		return defaultPayloadExpression(new FunctionExpression<>(defaultPayloadFunction));
+	public GatewayProxySpec payloadFunction(Function<MethodArgsHolder, ?> defaultPayloadFunction) {
+		return payloadExpression(new FunctionExpression<>(defaultPayloadFunction));
 	}
 
 	/**
@@ -193,8 +202,9 @@ public class GatewayProxySpec {
 	 * a bean resolver is also available, enabling expressions like {@code @someBean(#args)}.
 	 * @param expression the SpEL expression for default payload.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultPayloadExpression
 	 */
-	public GatewayProxySpec defaultPayloadExpression(Expression expression) {
+	public GatewayProxySpec payloadExpression(Expression expression) {
 		this.gatewayMethodMetadata.setPayloadExpression(expression);
 		this.populateGatewayMethodMetadata = true;
 		return this;
@@ -206,9 +216,10 @@ public class GatewayProxySpec {
 	 * @param headerName the name ofr the header.
 	 * @param value the static value for the header.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultHeaders
 	 */
-	public GatewayProxySpec defaultHeader(String headerName, Object value) {
-		return defaultHeader(headerName, new ValueExpression<>(value));
+	public GatewayProxySpec header(String headerName, Object value) {
+		return header(headerName, new ValueExpression<>(value));
 	}
 
 	/**
@@ -217,9 +228,10 @@ public class GatewayProxySpec {
 	 * @param headerName the name ofr the header.
 	 * @param valueFunction the  {@link Function} for the header value.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultHeaders
 	 */
-	public GatewayProxySpec defaultHeader(String headerName, Function<MethodArgsHolder, ?> valueFunction) {
-		return defaultHeader(headerName, new FunctionExpression<>(valueFunction));
+	public GatewayProxySpec header(String headerName, Function<MethodArgsHolder, ?> valueFunction) {
+		return header(headerName, new FunctionExpression<>(valueFunction));
 	}
 
 	/**
@@ -230,8 +242,9 @@ public class GatewayProxySpec {
 	 * @param headerName the name ofr the header.
 	 * @param valueExpression the SpEL expression for the header value.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see org.springframework.integration.annotation.MessagingGateway#defaultHeaders
 	 */
-	public GatewayProxySpec defaultHeader(String headerName, Expression valueExpression) {
+	public GatewayProxySpec header(String headerName, Expression valueExpression) {
 		this.headerExpressions.put(headerName, valueExpression);
 		this.populateGatewayMethodMetadata = true;
 		return this;
@@ -244,6 +257,7 @@ public class GatewayProxySpec {
 	 * responsible for creating the message.
 	 * @param mapper the {@link MethodArgsMessageMapper} to use.
 	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setMapper(MethodArgsMessageMapper)
 	 */
 	public GatewayProxySpec mapper(MethodArgsMessageMapper mapper) {
 		this.gatewayProxyFactoryBean.setMapper(mapper);

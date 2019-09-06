@@ -163,8 +163,8 @@ public class GatewayDslTests {
 		public IntegrationFlow functionGateway() {
 			return IntegrationFlows.from(MessageFunction.class,
 					(gateway) -> gateway
-							.defaultHeader("gatewayMethod", MethodArgsHolder::getMethod)
-							.defaultHeader("gatewayArgs", MethodArgsHolder::getArgs))
+							.header("gatewayMethod", MethodArgsHolder::getMethod)
+							.header("gatewayArgs", MethodArgsHolder::getArgs))
 					.bridge()
 					.get();
 		}
@@ -172,7 +172,7 @@ public class GatewayDslTests {
 		@Bean
 		public IntegrationFlow routingGateway() {
 			return IntegrationFlows.from(RoutingGateway.class,
-					(gateway) -> gateway.defaultHeader("gatewayMethod", MethodArgsHolder::getMethod))
+					(gateway) -> gateway.header("gatewayMethod", MethodArgsHolder::getMethod))
 					.route(Message.class, (message) ->
 									message.getHeaders().get("gatewayMethod", Method.class).getName(),
 							(router) -> router
