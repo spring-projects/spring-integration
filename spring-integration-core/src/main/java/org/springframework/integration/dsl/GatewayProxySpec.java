@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -161,7 +160,7 @@ public class GatewayProxySpec {
 	 * to use for any of the interface methods that have a {@link java.util.concurrent.Future} return type.
 	 * This {@code Executor} will only be used for those async methods; the sync methods
 	 * will be invoked in the caller's thread.
-	 * Use {@link AnnotationConstants#NULL} to specify no async executor - for example
+	 * Use {@code null} to specify no async executor - for example
 	 * if your downstream flow returns a {@link java.util.concurrent.Future}.
 	 * @param executor the {@link Executor} to use.
 	 * @return current {@link GatewayProxySpec}.

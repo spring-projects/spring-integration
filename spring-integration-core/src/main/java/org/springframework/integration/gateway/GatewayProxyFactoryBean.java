@@ -456,13 +456,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			else if (CompletableFuture.class.equals(returnType)) { // exact
 				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
 			}
-			else if (Future.class.isAssignableFrom(returnType)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return " +
-							"type; "
-							+ "running on calling thread; the downstream flow must return the required Future: "
-							+ returnType.getSimpleName());
-				}
+			else if (Future.class.isAssignableFrom(returnType) && logger.isDebugEnabled()) {
+				logger.debug("AsyncTaskExecutor submit*() return types are incompatible with the method return " +
+						"type; running on calling thread; the downstream flow must return the required Future: "
+						+ returnType.getSimpleName());
 			}
 		}
 		if (Mono.class.isAssignableFrom(returnType)) {
@@ -494,37 +491,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		Method method = invocation.getMethod();
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
-		if (gateway.isReturnTypeMessage == null) {
-			gateway.isReturnTypeMessage =
-					Message.class.isAssignableFrom(returnType) || hasReturnMessageTypeOnFunction(method);
+		if (gateway.getReturnTypeMessage() == null) {
+			gateway.setReturnTypeMessage(Message.class.isAssignableFrom(returnType)
+					|| hasReturnMessageTypeOnFunction(method));
 		}
 		boolean shouldReturnMessage =
 				gateway.isReturnTypeMessage || hasReturnParameterizedWithMessage(method, runningOnCallerThread);
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
-		Object response = null;
+		Object response;
 		boolean hasPayloadExpression = findPayloadExpression(method);
 		if (paramCount == 0 && !hasPayloadExpression) {
-			Long receiveTimeout = null;
-			if (gateway.getReceiveTimeoutExpression() != null) {
-				receiveTimeout = gateway.getReceiveTimeoutExpression().getValue(this.evaluationContext, Long.class);
-			}
-			if (shouldReply) {
-				if (shouldReturnMessage) {
-					if (receiveTimeout != null) {
-						return gateway.receiveMessage(receiveTimeout);
-					}
-					else {
-						return gateway.receiveMessage();
-					}
-				}
-				if (receiveTimeout != null) {
-					response = gateway.receive(receiveTimeout);
-				}
-				else {
-					response = gateway.receive();
-				}
-			}
+			response = receive(gateway, method, shouldReply, shouldReturnMessage);
 		}
 		else {
 			response = sendOrSendAndReceive(invocation, gateway, shouldReturnMessage, shouldReply);
@@ -555,6 +533,35 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		return hasPayloadExpression;
+	}
+
+	@Nullable
+	private Object receive(MethodInvocationGateway gateway, Method method, boolean shouldReply,
+			boolean shouldReturnMessage) {
+
+		Long receiveTimeout = null;
+		Expression receiveTimeoutExpression = gateway.getReceiveTimeoutExpression();
+		if (receiveTimeoutExpression != null) {
+			receiveTimeout = receiveTimeoutExpression.getValue(this.evaluationContext, Long.class);
+		}
+		if (shouldReply) {
+			if (shouldReturnMessage) {
+				if (receiveTimeout != null) {
+					return gateway.receiveMessage(receiveTimeout);
+				}
+				else {
+					return gateway.receiveMessage();
+				}
+			}
+			if (receiveTimeout != null) {
+				return gateway.receive(receiveTimeout);
+			}
+			else {
+				return gateway.receive();
+			}
+		}
+		throw new IllegalArgumentException("The 'void' method without arguments '" + method + "' is not eligible for" +
+				" gateway invocation. Consider to use different signature or 'payloadExpression'.");
 	}
 
 	@Nullable
@@ -595,17 +602,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
-		String requestChannelName = null;
-		String replyChannelName = null;
+		GatewayMethodMetadata methodMetadata = null;
+		if (!CollectionUtils.isEmpty(this.methodMetadataMap)) {
+			methodMetadata = this.methodMetadataMap.get(method.getName());
+		}
+		Map<String, Expression> headerExpressions = new HashMap<>();
 		Expression requestTimeout = this.defaultRequestTimeout;
 		Expression replyTimeout = this.defaultReplyTimeout;
-		Expression payloadExpression = this.globalMethodMetadata != null
-				? this.globalMethodMetadata.getPayloadExpression()
-				: null;
-		Map<String, Expression> headerExpressions = new HashMap<>();
+		Expression payloadExpression =
+				extractPayloadExpressionFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
+		String requestChannelName = extractRequestChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
+		String replyChannelName = extractReplyChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		if (gatewayAnnotation != null) {
-			requestChannelName = gatewayAnnotation.requestChannel();
-			replyChannelName = gatewayAnnotation.replyChannel();
 			/*
 			 * INT-2636 Unspecified annotation attributes should not
 			 * override the default values supplied by explicit configuration.
@@ -625,62 +633,74 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (StringUtils.hasText(gatewayAnnotation.replyTimeoutExpression())) {
 				replyTimeout = ExpressionUtils.longExpression(gatewayAnnotation.replyTimeoutExpression());
 			}
-			if (payloadExpression == null && StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
-				payloadExpression = PARSER.parseExpression(gatewayAnnotation.payloadExpression());
-			}
 
 			annotationHeaders(gatewayAnnotation, headerExpressions);
 		}
-		else if (this.methodMetadataMap != null && this.methodMetadataMap.size() > 0) {
-			GatewayMethodMetadata methodMetadata = this.methodMetadataMap.get(method.getName());
-			if (methodMetadata != null) {
-				if (methodMetadata.getPayloadExpression() != null) {
-					payloadExpression = methodMetadata.getPayloadExpression();
-				}
-				if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
-					headerExpressions.putAll(methodMetadata.getHeaderExpressions());
-				}
-				requestChannelName = methodMetadata.getRequestChannelName();
-				replyChannelName = methodMetadata.getReplyChannelName();
-				String reqTimeout = methodMetadata.getRequestTimeout();
-				if (StringUtils.hasText(reqTimeout)) {
-					requestTimeout = ExpressionUtils.longExpression(reqTimeout);
-				}
-				String repTimeout = methodMetadata.getReplyTimeout();
-				if (StringUtils.hasText(repTimeout)) {
-					replyTimeout = ExpressionUtils.longExpression(repTimeout);
-				}
+		else if (methodMetadata != null) {
+			if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
+				headerExpressions.putAll(methodMetadata.getHeaderExpressions());
+			}
+			String reqTimeout = methodMetadata.getRequestTimeout();
+			if (StringUtils.hasText(reqTimeout)) {
+				requestTimeout = ExpressionUtils.longExpression(reqTimeout);
+			}
+			String repTimeout = methodMetadata.getReplyTimeout();
+			if (StringUtils.hasText(repTimeout)) {
+				replyTimeout = ExpressionUtils.longExpression(repTimeout);
 			}
 		}
-		Map<String, Object> headers = headers(method, headerExpressions);
 
-		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
-				headerExpressions,
-				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
-				headers, this.argsMapper, getMessageBuilderFactory());
+		return doCreateMethodInvocationGateway(method, payloadExpression, headerExpressions,
+				requestChannelName, replyChannelName, requestTimeout, replyTimeout);
+	}
 
-		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
+	@Nullable
+	private Expression extractPayloadExpressionFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+			@Nullable GatewayMethodMetadata methodMetadata) {
 
-		JavaUtils.INSTANCE
-				.acceptIfNotNull(payloadExpression, messageMapper::setPayloadExpression)
-				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
-		gateway.setBeanName(getComponentName());
+		Expression payloadExpression =
+				this.globalMethodMetadata != null
+						? this.globalMethodMetadata.getPayloadExpression()
+						: null;
 
-		setChannel(this.errorChannel, gateway::setErrorChannel, this.errorChannelName, gateway::setErrorChannelName);
-		setChannel(requestChannelName, this.defaultRequestChannelName, gateway::setRequestChannelName,
-				this.defaultRequestChannel, gateway::setRequestChannel);
-		setChannel(replyChannelName, this.defaultReplyChannelName, gateway::setReplyChannelName,
-				this.defaultReplyChannel, gateway::setReplyChannel);
-
-		timeouts(requestTimeout, replyTimeout, messageMapper, gateway);
-		BeanFactory beanFactory = getBeanFactory();
-		if (beanFactory != null) {
-			gateway.setBeanFactory(beanFactory);
-			messageMapper.setBeanFactory(beanFactory);
+		if (gatewayAnnotation != null) {
+			if (payloadExpression == null && StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
+				payloadExpression = PARSER.parseExpression(gatewayAnnotation.payloadExpression());
+			}
 		}
-		gateway.setShouldTrack(this.shouldTrack);
-		gateway.afterPropertiesSet();
-		return gateway;
+		else if (methodMetadata != null) {
+			if (methodMetadata.getPayloadExpression() != null) {
+				payloadExpression = methodMetadata.getPayloadExpression();
+			}
+		}
+
+		return payloadExpression;
+	}
+
+	@Nullable
+	private String extractRequestChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+			@Nullable GatewayMethodMetadata methodMetadata) {
+
+		if (gatewayAnnotation != null) {
+			return gatewayAnnotation.requestChannel();
+		}
+		else if (methodMetadata != null) {
+			return methodMetadata.getRequestChannelName();
+		}
+		return null;
+	}
+
+	@Nullable
+	private String extractReplyChannelFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+			@Nullable GatewayMethodMetadata methodMetadata) {
+
+		if (gatewayAnnotation != null) {
+			return gatewayAnnotation.replyChannel();
+		}
+		else if (methodMetadata != null) {
+			return methodMetadata.getReplyChannelName();
+		}
+		return null;
 	}
 
 	private void annotationHeaders(Gateway gatewayAnnotation, Map<String, Expression> headerExpressions) {
@@ -700,6 +720,41 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 						: EXPRESSION_PARSER.parseExpression(expression));
 			}
 		}
+	}
+
+	private MethodInvocationGateway doCreateMethodInvocationGateway(Method method,
+			@Nullable Expression payloadExpression, Map<String, Expression> headerExpressions,
+			@Nullable String requestChannelName, @Nullable String replyChannelName,
+			Expression requestTimeout, Expression replyTimeout) {
+
+		GatewayMethodInboundMessageMapper messageMapper = createGatewayMessageMapper(method, headerExpressions);
+		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
+
+		JavaUtils.INSTANCE
+				.acceptIfNotNull(payloadExpression, messageMapper::setPayloadExpression)
+				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
+
+		channels(requestChannelName, replyChannelName, gateway);
+
+		timeouts(requestTimeout, replyTimeout, messageMapper, gateway);
+
+		gateway.setBeanName(getComponentName());
+		gateway.setBeanFactory(getBeanFactory());
+		gateway.setShouldTrack(this.shouldTrack);
+		gateway.afterPropertiesSet();
+
+		return gateway;
+	}
+
+	private GatewayMethodInboundMessageMapper createGatewayMessageMapper(Method method, Map<String,
+			Expression> headerExpressions) {
+
+		Map<String, Object> headers = headers(method, headerExpressions);
+
+		return new GatewayMethodInboundMessageMapper(method,
+				headerExpressions,
+				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
+				headers, this.argsMapper, getMessageBuilderFactory());
 	}
 
 	@Nullable
@@ -744,7 +799,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
-	private void timeouts(Expression requestTimeout, Expression replyTimeout,
+	private void channels(@Nullable String requestChannelName, @Nullable String replyChannelName,
+			MethodInvocationGateway gateway) {
+
+		setChannel(this.errorChannel, gateway::setErrorChannel, this.errorChannelName, gateway::setErrorChannelName);
+		setChannel(requestChannelName, this.defaultRequestChannelName, gateway::setRequestChannelName,
+				this.defaultRequestChannel, gateway::setRequestChannel);
+		setChannel(replyChannelName, this.defaultReplyChannelName, gateway::setReplyChannelName,
+				this.defaultReplyChannel, gateway::setReplyChannel);
+	}
+
+	private void timeouts(@Nullable Expression requestTimeout, @Nullable Expression replyTimeout,
 			GatewayMethodInboundMessageMapper messageMapper, MethodInvocationGateway gateway) {
 		if (requestTimeout == null) {
 			gateway.setRequestTimeout(-1);
@@ -869,18 +934,28 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		private Expression receiveTimeoutExpression;
 
-		volatile Boolean isReturnTypeMessage;
+		private volatile Boolean isReturnTypeMessage;
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);
 		}
 
+		@Nullable
 		Expression getReceiveTimeoutExpression() {
 			return this.receiveTimeoutExpression;
 		}
 
 		void setReceiveTimeoutExpression(Expression receiveTimeoutExpression) {
 			this.receiveTimeoutExpression = receiveTimeoutExpression;
+		}
+
+		@Nullable
+		Boolean getReturnTypeMessage() {
+			return this.isReturnTypeMessage;
+		}
+
+		void setReturnTypeMessage(Boolean returnTypeMessage) {
+			this.isReturnTypeMessage = returnTypeMessage;
 		}
 
 	}
@@ -902,7 +977,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				throw e;
 			}
 			catch (Throwable t) { //NOSONAR
-				if (t instanceof RuntimeException) {
+				if (t instanceof RuntimeException) { //NOSONAR
 					throw (RuntimeException) t;
 				}
 				throw new MessagingException("Asynchronous gateway invocation failed", t);

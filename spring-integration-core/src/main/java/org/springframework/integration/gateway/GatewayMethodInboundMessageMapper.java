@@ -111,8 +111,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private BeanFactory beanFactory;
 
+	@Nullable
 	private Expression sendTimeoutExpression;
 
+	@Nullable
 	private Expression replyTimeoutExpression;
 
 	GatewayMethodInboundMessageMapper(Method method) {

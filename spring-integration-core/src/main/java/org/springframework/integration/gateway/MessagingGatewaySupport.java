@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -348,6 +349,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			this.messagingTemplate.setBeanFactory(beanFactory);
 			if (this.requestMapper instanceof DefaultRequestMapper) {
 				((DefaultRequestMapper) this.requestMapper).setMessageBuilderFactory(messageBuilderFactory);
+			}
+			if (this.requestMapper instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.requestMapper).setBeanFactory(beanFactory);
 			}
 			this.messageConverter.setBeanFactory(beanFactory);
 		}
