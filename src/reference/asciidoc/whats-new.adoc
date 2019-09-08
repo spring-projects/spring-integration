@@ -61,13 +61,6 @@ See <<./ftp.adoc#ftp-server-events, Apache Mina FTP Server Events>> and <<./sftp
 Simple Apache Avro transformers are now provided.
 See <<./transformers.adoc#avro-transformers, Avro Transformers>> for more information.
 
-[[x5.2-ftp-chmod]]
-==== FTP File Permissions
-
-The FTP outbound endpoints now support `chmod` to change permissions on the uploaded file.
-(SFTP already supported it since version 4.3).
-See <<./ftp.adoc#ftp-outbound,FTP Outbound Channel Adapter>> and <<./ftp.adoc#ftp-outbound-gateway,FTP Outbound Gateway>> for more information.
-
 [[x5.2-general]]
 === General Changes
 
@@ -166,5 +159,6 @@ The `RotatingServerAdvice` is decoupled now from the `RotationPolicy` and its `S
 
 The remote file information, including host/port and directory are included now into message headers in the `AbstractInboundFileSynchronizingMessageSource` and `AbstractRemoteFileStreamingMessageSource` implementations.
 Also this information is included into headers in the read operations results of the `AbstractRemoteFileOutboundGateway` implementations.
-
+The FTP outbound endpoints now support `chmod` to change permissions on the uploaded file.
+(SFTP already supported it since version 4.3).
 See <<./ftp.adoc#ftp, FTP(S) Support>> and <<./sftp.adoc#sftp, SFTP Support>> for more information.
