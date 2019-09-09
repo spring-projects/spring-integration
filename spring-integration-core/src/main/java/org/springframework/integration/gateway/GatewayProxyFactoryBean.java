@@ -606,48 +606,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (!CollectionUtils.isEmpty(this.methodMetadataMap)) {
 			methodMetadata = this.methodMetadataMap.get(method.getName());
 		}
-		Map<String, Expression> headerExpressions = new HashMap<>();
-		Expression requestTimeout = this.defaultRequestTimeout;
-		Expression replyTimeout = this.defaultReplyTimeout;
 		Expression payloadExpression =
 				extractPayloadExpressionFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		String requestChannelName = extractRequestChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 		String replyChannelName = extractReplyChannelFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
-		if (gatewayAnnotation != null) {
-			/*
-			 * INT-2636 Unspecified annotation attributes should not
-			 * override the default values supplied by explicit configuration.
-			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
-			 * to indicate an indefinite timeout on a gateway method and that will
-			 * no longer work as expected; they will need to use, say, -1 instead.
-			 */
-			if (requestTimeout == null || gatewayAnnotation.requestTimeout() != Long.MIN_VALUE) {
-				requestTimeout = new ValueExpression<>(gatewayAnnotation.requestTimeout());
-			}
-			if (StringUtils.hasText(gatewayAnnotation.requestTimeoutExpression())) {
-				requestTimeout = ExpressionUtils.longExpression(gatewayAnnotation.requestTimeoutExpression());
-			}
-			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != Long.MIN_VALUE) {
-				replyTimeout = new ValueExpression<>(gatewayAnnotation.replyTimeout());
-			}
-			if (StringUtils.hasText(gatewayAnnotation.replyTimeoutExpression())) {
-				replyTimeout = ExpressionUtils.longExpression(gatewayAnnotation.replyTimeoutExpression());
-			}
+		Expression requestTimeout = extractRequestTimeoutFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
+		Expression replyTimeout = extractReplyTimeoutFromAnnotationOrMetadata(gatewayAnnotation, methodMetadata);
 
+		Map<String, Expression> headerExpressions = new HashMap<>();
+		if (gatewayAnnotation != null) {
 			annotationHeaders(gatewayAnnotation, headerExpressions);
 		}
-		else if (methodMetadata != null) {
-			if (!CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
+		else if (methodMetadata != null && !CollectionUtils.isEmpty(methodMetadata.getHeaderExpressions())) {
 				headerExpressions.putAll(methodMetadata.getHeaderExpressions());
-			}
-			String reqTimeout = methodMetadata.getRequestTimeout();
-			if (StringUtils.hasText(reqTimeout)) {
-				requestTimeout = ExpressionUtils.longExpression(reqTimeout);
-			}
-			String repTimeout = methodMetadata.getReplyTimeout();
-			if (StringUtils.hasText(repTimeout)) {
-				replyTimeout = ExpressionUtils.longExpression(repTimeout);
-			}
 		}
 
 		return doCreateMethodInvocationGateway(method, payloadExpression, headerExpressions,
@@ -664,14 +635,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 						: null;
 
 		if (gatewayAnnotation != null) {
+			/*
+			 * INT-2636 Unspecified annotation attributes should not
+			 * override the default values supplied by explicit configuration.
+			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
+			 * to indicate an indefinite timeout on a gateway method and that will
+			 * no longer work as expected; they will need to use, say, -1 instead.
+			 */
 			if (payloadExpression == null && StringUtils.hasText(gatewayAnnotation.payloadExpression())) {
 				payloadExpression = PARSER.parseExpression(gatewayAnnotation.payloadExpression());
 			}
 		}
-		else if (methodMetadata != null) {
-			if (methodMetadata.getPayloadExpression() != null) {
-				payloadExpression = methodMetadata.getPayloadExpression();
-			}
+		else if (methodMetadata != null && methodMetadata.getPayloadExpression() != null) {
+			payloadExpression = methodMetadata.getPayloadExpression();
 		}
 
 		return payloadExpression;
@@ -703,6 +679,68 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		return null;
 	}
 
+	@Nullable
+	private Expression extractRequestTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+			@Nullable GatewayMethodMetadata methodMetadata) {
+
+		Expression requestTimeout = this.defaultRequestTimeout;
+
+		if (gatewayAnnotation != null) {
+			/*
+			 * INT-2636 Unspecified annotation attributes should not
+			 * override the default values supplied by explicit configuration.
+			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
+			 * to indicate an indefinite timeout on a gateway method and that will
+			 * no longer work as expected; they will need to use, say, -1 instead.
+			 */
+			if (requestTimeout == null || gatewayAnnotation.requestTimeout() != Long.MIN_VALUE) {
+				requestTimeout = new ValueExpression<>(gatewayAnnotation.requestTimeout());
+			}
+			if (StringUtils.hasText(gatewayAnnotation.requestTimeoutExpression())) {
+				requestTimeout = ExpressionUtils.longExpression(gatewayAnnotation.requestTimeoutExpression());
+			}
+
+		}
+		else if (methodMetadata != null) {
+			String reqTimeout = methodMetadata.getRequestTimeout();
+			if (StringUtils.hasText(reqTimeout)) {
+				requestTimeout = ExpressionUtils.longExpression(reqTimeout);
+			}
+		}
+		return requestTimeout;
+	}
+
+	@Nullable
+	private Expression extractReplyTimeoutFromAnnotationOrMetadata(@Nullable Gateway gatewayAnnotation,
+			@Nullable GatewayMethodMetadata methodMetadata) {
+
+		Expression replyTimeout = this.defaultReplyTimeout;
+
+		if (gatewayAnnotation != null) {
+			/*
+			 * INT-2636 Unspecified annotation attributes should not
+			 * override the default values supplied by explicit configuration.
+			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
+			 * to indicate an indefinite timeout on a gateway method and that will
+			 * no longer work as expected; they will need to use, say, -1 instead.
+			 */
+			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != Long.MIN_VALUE) {
+				replyTimeout = new ValueExpression<>(gatewayAnnotation.replyTimeout());
+			}
+			if (StringUtils.hasText(gatewayAnnotation.replyTimeoutExpression())) {
+				replyTimeout = ExpressionUtils.longExpression(gatewayAnnotation.replyTimeoutExpression());
+			}
+
+		}
+		else if (methodMetadata != null) {
+			String repTimeout = methodMetadata.getReplyTimeout();
+			if (StringUtils.hasText(repTimeout)) {
+				replyTimeout = ExpressionUtils.longExpression(repTimeout);
+			}
+		}
+		return replyTimeout;
+	}
+
 	private void annotationHeaders(Gateway gatewayAnnotation, Map<String, Expression> headerExpressions) {
 		if (!ObjectUtils.isEmpty(gatewayAnnotation.headers())) {
 			for (GatewayHeader gatewayHeader : gatewayAnnotation.headers()) {
@@ -725,7 +763,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private MethodInvocationGateway doCreateMethodInvocationGateway(Method method,
 			@Nullable Expression payloadExpression, Map<String, Expression> headerExpressions,
 			@Nullable String requestChannelName, @Nullable String replyChannelName,
-			Expression requestTimeout, Expression replyTimeout) {
+			@Nullable Expression requestTimeout, @Nullable Expression replyTimeout) {
 
 		GatewayMethodInboundMessageMapper messageMapper = createGatewayMessageMapper(method, headerExpressions);
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
