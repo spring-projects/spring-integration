@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -66,8 +67,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -76,10 +77,11 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Autowired
@@ -165,17 +167,11 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
-		try {
-			this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt"));
-			fail("Exception expected.");
-		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
-			assertThat(cause).isNotNull();
-			cause = cause.getCause();
-			assertThat(cause).isInstanceOf(IllegalArgumentException.class);
-			assertThat(cause.getMessage()).startsWith("Failed to make local directory");
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() ->
+						this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt")))
+				.withRootCauseInstanceOf(IllegalArgumentException.class)
+				.withMessageContaining("Failed to make local directory");
 	}
 
 	@Test
@@ -190,15 +186,12 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 		assertThat(localFiles).hasSizeGreaterThan(0);
 
-		boolean assertedModified = false;
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
-				assertedModified = assertPreserved(modified, file);
+				assertPreserved(modified, file);
 			}
 		}
-		assertThat(assertedModified).isTrue();
-
 		dir = "sftpSource/subSftpSource/";
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		result = this.output.receive(1000);
@@ -225,14 +218,12 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		List<File> localFiles = (List<File>) result.getPayload();
 		assertThat(localFiles).hasSize(3);
 
-		boolean assertedModified = false;
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/")).contains(dir);
 			if (file.getPath().contains("localTarget1")) {
-				assertedModified = assertPreserved(modified, file);
+				assertPreserved(modified, file);
 			}
 		}
-		assertThat(assertedModified).isTrue();
 		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"))
 				.contains(dir + "subSftpSource");
 
@@ -270,10 +261,9 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		return modified;
 	}
 
-	private boolean assertPreserved(long modified, File file) {
+	private void assertPreserved(long modified, File file) {
 		assertThat(Math.abs(file.lastModified() - modified))
 				.as("lastModified wrong by " + (modified - file.lastModified())).isLessThan(1_000);
-		return true;
 	}
 
 	@Test
@@ -480,7 +470,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
+		this.inboundMPutRecursive.send(new GenericMessage<>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertThat(out).isNotNull();
@@ -504,7 +494,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(getSourceLocalDirectory()));
+		this.inboundMPutRecursiveFiltered.send(new GenericMessage<>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertThat(out).isNotNull();
@@ -559,7 +549,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Test
 	public void testMessageSessionCallback() {
-		this.inboundCallback.send(new GenericMessage<String>("foo"));
+		this.inboundCallback.send(new GenericMessage<>("foo"));
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("FOO");
@@ -576,7 +566,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 			implements MessageSessionCallback<LsEntry, Object> {
 
 		@Override
-		public Object doInSession(Session<ChannelSftp.LsEntry> session, Message<?> requestMessage) throws IOException {
+		public Object doInSession(Session<ChannelSftp.LsEntry> session, Message<?> requestMessage) {
 			return ((String) requestMessage.getPayload()).toUpperCase();
 		}
 
@@ -627,6 +617,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 				return true;
 			};
 		}
+
 	}
 
 }

@@ -17,7 +17,7 @@
 package org.springframework.integration.ftp.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,8 +46,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
@@ -56,8 +56,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.1
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 
 	@Autowired
@@ -112,13 +112,9 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		FileOutputStream fileOutputStream = new FileOutputStream(file);
 		fileOutputStream.write("foo".getBytes());
 		fileOutputStream.close();
-		try {
-			template.send(new GenericMessage<>(file));
-			fail("exception expected");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("bar");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> template.send(new GenericMessage<>(file)))
+				.withStackTraceContaining("bar");
 		File newFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
 		assertThat(file.renameTo(newFile)).isTrue();
 		file.delete();
