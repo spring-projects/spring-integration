@@ -86,7 +86,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
-import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -541,7 +540,9 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 	private void configureLocalMessageHandlerFactory() {
 		BeanFactory beanFactory = getBeanFactory();
 
-		MessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
+		ConfigurableCompositeMessageConverter messageConverter = new ConfigurableCompositeMessageConverter();
+		messageConverter.setBeanFactory(beanFactory);
+		messageConverter.afterPropertiesSet();
 
 		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
 		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
@@ -560,14 +561,11 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
 		customArgumentResolvers.add(mapArgumentResolver);
-
-		if (beanFactory != null) {
-			payloadExpressionArgumentResolver.setBeanFactory(beanFactory);
-			payloadsArgumentResolver.setBeanFactory(beanFactory);
-			mapArgumentResolver.setBeanFactory(beanFactory);
-			if (collectionArgumentResolver != null) {
-				collectionArgumentResolver.setBeanFactory(beanFactory);
-			}
+		payloadExpressionArgumentResolver.setBeanFactory(beanFactory);
+		payloadsArgumentResolver.setBeanFactory(beanFactory);
+		mapArgumentResolver.setBeanFactory(beanFactory);
+		if (collectionArgumentResolver != null) {
+			collectionArgumentResolver.setBeanFactory(beanFactory);
 		}
 
 		DefaultMessageHandlerMethodFactory localHandlerMethodFactory =
