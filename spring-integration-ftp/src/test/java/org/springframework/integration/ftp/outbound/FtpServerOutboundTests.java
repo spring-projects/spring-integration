@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -808,6 +809,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 		private volatile CountDownLatch latch;
 
+		private volatile InetSocketAddress clientAddress;
+
 		@Bean
 		public SessionFactory<FTPFile> ftpSessionFactory(ApplicationContext context) {
 			FtpServerOutboundTests.ftplet().setApplicationEventPublisher(context);
@@ -827,7 +830,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		public void handleEvent(ApacheMinaFtpEvent event) {
 			if (this.latch != null) {
 				if (this.events.size() > 0 || event instanceof SessionOpenedEvent) {
-					this.events.add(event);
+					if (event instanceof SessionOpenedEvent) {
+						this.clientAddress = event.getSession().getClientAddress();
+						this.events.add(event);
+					}
+					else if (event.getSession().getClientAddress().equals(this.clientAddress)) {
+						this.events.add(event);
+					}
 					if (event instanceof SessionClosedEvent) {
 						this.latch.countDown();
 					}
