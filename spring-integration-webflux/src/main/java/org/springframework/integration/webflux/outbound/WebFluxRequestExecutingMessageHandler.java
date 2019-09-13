@@ -312,9 +312,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			inserter = buildBodyInserterForMultiValueMap((MultiValueMap<?, ?>) requestBody,
 					httpRequest.getHeaders().getContentType());
 		}
-
-		if (inserter == null) {
-			inserter = BodyInserters.fromObject(requestBody);
+		else {
+			inserter = BodyInserters.fromValue(requestBody);
 		}
 		return inserter;
 	}
