@@ -22,8 +22,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.GenericMessageConverter;
@@ -47,13 +54,19 @@ import org.springframework.messaging.converter.MessageConverter;
  *
  * @since 5.0
  */
-public class ConfigurableCompositeMessageConverter extends CompositeMessageConverter {
+public class ConfigurableCompositeMessageConverter extends CompositeMessageConverter
+		implements BeanFactoryAware, InitializingBean {
+
+	private final boolean registerDefaults;
+
+	private BeanFactory beanFactory;
 
 	/**
 	 * Create an instance with the default converters.
 	 */
 	public ConfigurableCompositeMessageConverter() {
 		super(initDefaults());
+		this.registerDefaults = true;
 	}
 
 	/**
@@ -73,6 +86,23 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 		super(registerDefaults ?
 				Stream.concat(converters.stream(), initDefaults().stream()).collect(Collectors.toList())
 				: converters);
+		this.registerDefaults = registerDefaults;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		if (this.registerDefaults) {
+			ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
+			if (conversionService == null) {
+				conversionService = DefaultConversionService.getSharedInstance();
+			}
+			getConverters().add(new GenericMessageConverter(conversionService));
+		}
 	}
 
 	private static Collection<MessageConverter> initDefaults() {
@@ -89,8 +119,6 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 
 		// TODO do we port it together with MessageConverterUtils ?
 		// converters.add(new JavaSerializationMessageConverter());
-
-		converters.add(new GenericMessageConverter());
 
 		return converters;
 	}
