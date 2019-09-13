@@ -578,18 +578,20 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	 * that don't run in an application context.
 	 */
 	private void configureLocalMessageHandlerFactory() {
-		MessageConverter messageConverter = null;
+		ConfigurableCompositeMessageConverter messageConverter = null;
 		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null &&
 				beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
 			messageConverter = beanFactory
 					.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-							MessageConverter.class);
+							ConfigurableCompositeMessageConverter.class);
 			((DefaultMessageHandlerMethodFactory) this.messageHandlerMethodFactory)
 					.setMessageConverter(messageConverter);
 		}
 		else {
 			messageConverter = new ConfigurableCompositeMessageConverter();
+			messageConverter.setBeanFactory(beanFactory);
+			messageConverter.afterPropertiesSet();
 		}
 		NullAwarePayloadArgumentResolver nullResolver = new NullAwarePayloadArgumentResolver(messageConverter);
 		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
