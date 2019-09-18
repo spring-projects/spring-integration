@@ -535,7 +535,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 	protected void createConsumer() {
 		synchronized (this.consumerMonitor) {
 			this.consumer = this.consumerFactory.createConsumer(this.consumerProperties.getGroupId(),
-					this.consumerProperties.getClientId(), null);
+					this.consumerProperties.getClientId(), null, this.consumerProperties.getKafkaConsumerProperties());
 			ConsumerRebalanceListener providedRebalanceListener = this.consumerProperties
 					.getConsumerRebalanceListener();
 			boolean isConsumerAware = providedRebalanceListener instanceof ConsumerAwareRebalanceListener;

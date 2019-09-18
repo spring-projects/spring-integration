@@ -60,8 +60,11 @@ public class MessageSourceIntegrationTests {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testSource", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		consumerProps.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 42);
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC1);
+		consumerProperties.getKafkaConsumerProperties()
+			.setProperty(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, "2");
 		final CountDownLatch assigned = new CountDownLatch(1);
 		consumerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
 
@@ -103,6 +106,7 @@ public class MessageSourceIntegrationTests {
 		assertThat(received.getPayload()).isEqualTo("qux");
 		received = source.receive();
 		assertThat(received).isNull();
+		assertThat(KafkaTestUtils.getPropertyValue(source, "consumer.fetcher.minBytes")).isEqualTo(2);
 		source.destroy();
 		producerFactory.destroy();
 	}

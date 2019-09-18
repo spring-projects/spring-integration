@@ -116,7 +116,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
 		AtomicBoolean partitionsAssignedCalled = new AtomicBoolean();
 		AtomicReference<Consumer> partitionsAssignedConsumer = new AtomicReference<>();
@@ -165,7 +165,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
 		AtomicBoolean partitionsAssignedCalled = new AtomicBoolean();
 		AtomicBoolean partitionsRevokedCalled = new AtomicBoolean();
@@ -248,7 +248,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
 		AtomicInteger callbackCount = new AtomicInteger();
 		OffsetCommitCallback commitCallback = (offsets, ex) -> {
@@ -380,7 +380,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 
 		Message<?> received1 = source.receive();
@@ -454,7 +454,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		ConsumerProperties consumerProperties = new ConsumerProperties("foo");
 		consumerProperties.setSyncCommitTimeout(Duration.ofSeconds(30));
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, consumerProperties);
@@ -523,7 +523,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 
 		Message<?> received1 = source.receive();
@@ -627,7 +627,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"));
 		source.setRawMessageHeader(true);
 
@@ -689,7 +689,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 4)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, new ConsumerProperties("foo"), true);
 		source.setRawMessageHeader(true);
 
@@ -746,7 +746,7 @@ public class MessageSourceTests {
 		ConsumerFactory<String, String> consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 		KafkaMessageSource<String, String> source = new KafkaMessageSource<>(consumerFactory, new ConsumerProperties(Pattern.compile("[a-zA-Z0-9_]*?foo")));
 		source.setRawMessageHeader(true);
 		source.start();
@@ -816,7 +816,7 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
-		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
+		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 
 		TopicPartitionOffset beginningTpo = new TopicPartitionOffset(beginning, null, TopicPartitionOffset.SeekPosition.BEGINNING);
 		TopicPartitionOffset endTpo = new TopicPartitionOffset(end, null, TopicPartitionOffset.SeekPosition.END);
