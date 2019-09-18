@@ -172,8 +172,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * Specify the expected response type for the RSocket response.
 	 * @param expectedResponseType The expected type.
 	 * @see #setExpectedResponseTypeExpression(Expression)
-	 * @see RSocketRequester.ResponseSpec#retrieveMono
-	 * @see RSocketRequester.ResponseSpec#retrieveFlux
+	 * @see RSocketRequester.RequestSpec#retrieveMono
+	 * @see RSocketRequester.RequestSpec#retrieveFlux
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
 		setExpectedResponseTypeExpression(new ValueExpression<>(expectedResponseType));
@@ -182,8 +182,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	/**
 	 * Specify the {@link Expression} to determine the type for the RSocket response.
 	 * @param expectedResponseTypeExpression The expected response type expression.
-	 * @see RSocketRequester.ResponseSpec#retrieveMono
-	 * @see RSocketRequester.ResponseSpec#retrieveFlux
+	 * @see RSocketRequester.RequestSpec#retrieveMono
+	 * @see RSocketRequester.RequestSpec#retrieveFlux
 	 */
 	public void setExpectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
 		this.expectedResponseTypeExpression = expectedResponseTypeExpression;
@@ -225,7 +225,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		return requesterMono
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
-				.map((requestSpec) -> createResponseSpec(requestSpec, requestMessage))
+				.map((requestSpec) -> prepareRequestSpec(requestSpec, requestMessage))
 				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
 	}
 
@@ -248,21 +248,21 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		return requestSpec;
 	}
 
-	private RSocketRequester.ResponseSpec createResponseSpec(RSocketRequester.RequestSpec requestSpec,
+	private RSocketRequester.RequestSpec prepareRequestSpec(RSocketRequester.RequestSpec requestSpec,
 			Message<?> requestMessage) {
 
 		Object payload = requestMessage.getPayload();
 		if (payload instanceof Publisher<?> && this.publisherElementTypeExpression != null) {
 			Object publisherElementType = evaluateExpressionForType(requestMessage, this.publisherElementTypeExpression,
 					"publisherElementType");
-			return responseSpecForPublisher(requestSpec, (Publisher<?>) payload, publisherElementType);
+			return prepareRequestSpecForPublisher(requestSpec, (Publisher<?>) payload, publisherElementType);
 		}
 		else {
 			return requestSpec.data(payload);
 		}
 	}
 
-	private RSocketRequester.ResponseSpec responseSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
+	private RSocketRequester.RequestSpec prepareRequestSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
 			Publisher<?> payload, Object publisherElementType) {
 
 		if (publisherElementType instanceof Class<?>) {
@@ -273,7 +273,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Mono<?> performRequest(RSocketRequester.ResponseSpec responseSpec, Message<?> requestMessage) {
+	private Mono<?> performRequest(RSocketRequester.RequestSpec requestSpec, Message<?> requestMessage) {
 		Command command = this.commandExpression.getValue(this.evaluationContext, requestMessage, Command.class);
 		Assert.notNull(command,
 				() -> "The 'command' [" + this.commandExpression + "] must not evaluate to null");
@@ -286,20 +286,20 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		switch (command) {
 			case fireAndForget:
-				return responseSpec.send();
+				return requestSpec.send();
 			case requestResponse:
 				if (expectedResponseType instanceof Class<?>) {
-					return responseSpec.retrieveMono((Class<?>) expectedResponseType);
+					return requestSpec.retrieveMono((Class<?>) expectedResponseType);
 				}
 				else {
-					return responseSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
+					return requestSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
 				}
 			case requestStreamOrChannel:
 				if (expectedResponseType instanceof Class<?>) {
-					return Mono.just(responseSpec.retrieveFlux((Class<?>) expectedResponseType));
+					return Mono.just(requestSpec.retrieveFlux((Class<?>) expectedResponseType));
 				}
 				else {
-					return Mono.just(responseSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
+					return Mono.just(requestSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
 				}
 			default:
 				throw new UnsupportedOperationException("Unsupported command: " + command);
@@ -335,13 +335,13 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		/**
 		 * Perform {@link io.rsocket.RSocket#fireAndForget fireAndForget}.
-		 * @see RSocketRequester.ResponseSpec#send()
+		 * @see RSocketRequester.RequestSpec#send()
 		 */
 		fireAndForget,
 
 		/**
 		 * Perform {@link io.rsocket.RSocket#requestResponse requestResponse}.
-		 * @see RSocketRequester.ResponseSpec#retrieveMono
+		 * @see RSocketRequester.RequestSpec#retrieveMono
 		 */
 		requestResponse,
 
@@ -349,7 +349,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * Perform {@link io.rsocket.RSocket#requestStream requestStream} or
 		 * {@link io.rsocket.RSocket#requestChannel requestChannel} depending on whether
 		 * the request input consists of a single or multiple payloads.
-		 * @see RSocketRequester.ResponseSpec#retrieveFlux
+		 * @see RSocketRequester.RequestSpec#retrieveFlux
 		 */
 		requestStreamOrChannel
 
