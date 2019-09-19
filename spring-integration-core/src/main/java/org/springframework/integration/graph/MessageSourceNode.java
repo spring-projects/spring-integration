@@ -27,7 +27,9 @@ import org.springframework.integration.core.MessageSource;
  *
  */
 @SuppressWarnings("deprecation")
-public class MessageSourceNode extends ErrorCapableEndpointNode {
+public class MessageSourceNode extends ErrorCapableEndpointNode implements ReceiveCountersAware {
+
+	private ReceiveCounters receiveCounters;
 
 	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
 		super(nodeId, name, messageSource, output, errors,
@@ -37,6 +39,14 @@ public class MessageSourceNode extends ErrorCapableEndpointNode {
 						: new IntegrationNode.Stats());
 	}
 
+	public ReceiveCounters getReceiveCounters() {
+		return this.receiveCounters;
+	}
+
+	@Override
+	public void receiveCounters(ReceiveCounters counters) {
+		this.receiveCounters = counters;
+	}
 
 	public static final class Stats extends IntegrationNode.Stats {
 

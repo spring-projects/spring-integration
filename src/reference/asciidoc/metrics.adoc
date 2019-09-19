@@ -94,6 +94,9 @@ IMPORTANT:
 
 Starting with version 5.0.2, the framework automatically detects whether the application context has a single `MetricsFactory` bean and, if so, uses it instead of the default metrics factory.
 
+IMPORTANT: These legacy metrics have been deprecated in favor of Micrometer metrics discussed below.
+Legacy metrics support will be removed in a future release.
+
 [[micrometer-integration]]
 ==== Micrometer Integration
 

@@ -27,7 +27,9 @@ import org.springframework.messaging.MessageChannel;
  *
  */
 @SuppressWarnings("deprecation")
-public class MessageChannelNode extends IntegrationNode {
+public class MessageChannelNode extends IntegrationNode implements SendTimersAware {
+
+	private SendTimers sendTimers;
 
 	public MessageChannelNode(int nodeId, String name, MessageChannel channel) {
 		super(nodeId, name, channel,
@@ -36,6 +38,14 @@ public class MessageChannelNode extends IntegrationNode {
 						: new IntegrationNode.Stats());
 	}
 
+	public SendTimers getSendTimers() {
+		return this.sendTimers;
+	}
+
+	@Override
+	public void sendTimers(SendTimers timers) {
+		this.sendTimers = timers;
+	}
 
 	public static final class Stats extends IntegrationNode.Stats {
 
