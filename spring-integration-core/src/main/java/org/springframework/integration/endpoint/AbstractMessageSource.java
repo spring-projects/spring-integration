@@ -18,6 +18,8 @@ package org.springframework.integration.endpoint;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.BeanNameAware;
@@ -28,6 +30,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.lang.Nullable;
@@ -51,6 +54,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	private final AtomicLong messageCount = new AtomicLong();
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
+	private final Set<MeterFacade> meters = ConcurrentHashMap.newKeySet();
 
 	private Map<String, Expression> headerExpressions;
 
@@ -158,7 +163,15 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	@Override
 	public final Message<T> receive() {
-		return buildMessage(doReceive());
+		try {
+			return buildMessage(doReceive());
+		}
+		catch (RuntimeException ex) {
+			if (this.metricsCaptor != null) {
+				createCounter(false, ex.getClass().getSimpleName()).increment();
+			}
+			throw ex;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -203,15 +216,21 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private void incrementReceiveCounter() {
 		if (this.receiveCounter == null) {
-			this.receiveCounter = this.metricsCaptor.counterBuilder(RECEIVE_COUNTER_NAME)
-					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-					.tag("type", "source")
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Messages received")
-					.build();
+			this.receiveCounter = createCounter(true, "none");
 		}
 		this.receiveCounter.increment();
+	}
+
+	private CounterFacade createCounter(boolean success, String exception) {
+		CounterFacade counter = this.metricsCaptor.counterBuilder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "source")
+				.tag("result", success ? "success" : "failure")
+				.tag("exception", exception)
+				.description("Messages received")
+				.build();
+		this.meters.add(counter);
+		return counter;
 	}
 
 	@Nullable
@@ -234,9 +253,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	@Override
 	public void destroy() {
-		if (this.receiveCounter != null) {
-			this.receiveCounter.remove();
-		}
+		this.meters.forEach(MeterFacade::remove);
+		this.meters.clear();
 	}
 
 }
