@@ -74,6 +74,10 @@ public class MicrometerNodeEnhancer {
 	}
 
 	private <T extends IntegrationNode> void enhanceWithTimers(T node, String type) {
+		((SendTimersAware) node).sendTimers(() -> retrieveTimers(node, type));
+	}
+
+	private <T extends IntegrationNode> SendTimers retrieveTimers(T node, String type) {
 		Timer successTimer = null;
 		try {
 			successTimer = this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
@@ -104,10 +108,14 @@ public class MicrometerNodeEnhancer {
 		TimerStats failures = failureTimer == null ? ZERO_TIMER_STATS
 				: new TimerStats(failureTimer.count(), failureTimer.mean(TimeUnit.MILLISECONDS),
 						failureTimer.max(TimeUnit.MILLISECONDS));
-		((SendTimersAware) node).sendTimers(new SendTimers(successes, failures));
+		return new SendTimers(successes, failures);
 	}
 
 	private <T extends IntegrationNode> void enhanceWithCounts(T node, String type) {
+		((ReceiveCountersAware) node).receiveCounters(() -> retrieveCounters(node, type));
+	}
+
+	private <T extends IntegrationNode> ReceiveCounters retrieveCounters(T node, String type) {
 		Counter successes = null;
 		String name = node.getName();
 		try {
@@ -131,10 +139,9 @@ public class MicrometerNodeEnhancer {
 		catch (@SuppressWarnings("unused") Exception e) {
 			// NOSONAR empty;
 		}
-		((ReceiveCountersAware) node)
-				.receiveCounters(new ReceiveCounters(
-						(long) (successes == null ? 0 : successes.count()),
-						(long) (failures == null ? 0 : failures.count())));
+		return new ReceiveCounters(
+				(long) (successes == null ? 0 : successes.count()),
+				(long) (failures == null ? 0 : failures.count()));
 	}
 
 }

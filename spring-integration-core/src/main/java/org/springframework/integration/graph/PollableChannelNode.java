@@ -16,27 +16,31 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * Represents a pollable channel.
+ *
  * @author Gary Russell
  * @since 5.2
  *
  */
 public class PollableChannelNode extends MessageChannelNode implements ReceiveCountersAware {
 
-	private ReceiveCounters receiveCounters;
+	private Supplier<ReceiveCounters> receiveCounters;
 
 	public PollableChannelNode(int nodeId, String name, MessageChannel channel) {
 		super(nodeId, name, channel);
 	}
 
 	public ReceiveCounters getReceiveCounters() {
-		return this.receiveCounters;
+		return this.receiveCounters.get();
 	}
 
 	@Override
-	public void receiveCounters(ReceiveCounters counters) {
+	public void receiveCounters(Supplier<ReceiveCounters> counters) {
 		this.receiveCounters = counters;
 	}
 

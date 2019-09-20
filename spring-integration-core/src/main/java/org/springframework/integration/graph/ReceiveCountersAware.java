@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 /**
  * @author Gary Russell
  * @since 5.2
@@ -23,6 +25,6 @@ package org.springframework.integration.graph;
  */
 public interface ReceiveCountersAware {
 
-	void receiveCounters(ReceiveCounters counters);
+	void receiveCounters(Supplier<ReceiveCounters> counters);
 
 }

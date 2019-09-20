@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 import org.springframework.integration.core.MessageSource;
 
 /**
@@ -29,7 +31,7 @@ import org.springframework.integration.core.MessageSource;
 @SuppressWarnings("deprecation")
 public class MessageSourceNode extends ErrorCapableEndpointNode implements ReceiveCountersAware {
 
-	private ReceiveCounters receiveCounters;
+	private Supplier<ReceiveCounters> receiveCounters;
 
 	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
 		super(nodeId, name, messageSource, output, errors,
@@ -40,11 +42,11 @@ public class MessageSourceNode extends ErrorCapableEndpointNode implements Recei
 	}
 
 	public ReceiveCounters getReceiveCounters() {
-		return this.receiveCounters;
+		return this.receiveCounters.get();
 	}
 
 	@Override
-	public void receiveCounters(ReceiveCounters counters) {
+	public void receiveCounters(Supplier<ReceiveCounters> counters) {
 		this.receiveCounters = counters;
 	}
 

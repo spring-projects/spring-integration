@@ -74,6 +74,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.minidev.json.JSONArray;
@@ -169,6 +170,15 @@ public class IntegrationGraphServerTests {
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
 		String sourceJson = jsonArray.toJSONString();
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":1");
+
+		// stats refresh without rebuild()
+		this.testSource.receive();
+		baos = new ByteArrayOutputStream();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.writeValue(baos, graph);
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
+		sourceJson = jsonArray.toJSONString();
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2");
 	}
 
 	@Test

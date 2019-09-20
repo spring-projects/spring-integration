@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -31,7 +33,7 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 
 	private final String input;
 
-	private SendTimers sendTimers;
+	private Supplier<SendTimers> sendTimers;
 
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
 		super(nodeId, name, handler, output,
@@ -46,11 +48,11 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 	}
 
 	public SendTimers getSendTimers() {
-		return this.sendTimers;
+		return this.sendTimers.get();
 	}
 
 	@Override
-	public void sendTimers(SendTimers timers) {
+	public void sendTimers(Supplier<SendTimers> timers) {
 		this.sendTimers = timers;
 	}
 
