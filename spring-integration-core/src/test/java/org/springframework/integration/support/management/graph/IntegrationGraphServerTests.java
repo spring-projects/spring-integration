@@ -17,6 +17,7 @@
 package org.springframework.integration.support.management.graph;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
@@ -123,7 +124,7 @@ public class IntegrationGraphServerTests {
 
 		assertThat(jsonArray.size()).isEqualTo(3);
 
-		Map<String, Object> gateway1 = (Map) jsonArray.get(0);
+		Map<String, Object> gateway1 = (Map<String, Object>) jsonArray.get(0);
 
 		Map<String, Object> properties = (Map<String, Object>) gateway1.get("properties");
 
@@ -168,7 +169,7 @@ public class IntegrationGraphServerTests {
 		assertThat(toRouterJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
 		String sourceJson = jsonArray.toJSONString();
-		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":1");
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":1,\"failures\":0");
 
 		// stats refresh without rebuild()
 		this.testSource.receive();
@@ -177,7 +178,15 @@ public class IntegrationGraphServerTests {
 		objectMapper.writeValue(baos, graph);
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
 		sourceJson = jsonArray.toJSONString();
-		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2");
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":0");
+
+		assertThatIllegalStateException().isThrownBy(() -> this.testSource.receive());
+		baos = new ByteArrayOutputStream();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.writeValue(baos, graph);
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
+		sourceJson = jsonArray.toJSONString();
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":1");
 	}
 
 	@Test
@@ -343,6 +352,8 @@ public class IntegrationGraphServerTests {
 			return new QueueChannel();
 		}
 
+		int sourceCount;
+
 		@Bean
 		@InboundChannelAdapter(channel = "fizChannel", autoStartup = "false")
 		public MessageSource<String> testSource() {
@@ -355,6 +366,9 @@ public class IntegrationGraphServerTests {
 
 				@Override
 				protected Object doReceive() {
+					if (++sourceCount > 2) {
+						throw new IllegalStateException();
+					}
 					return new GenericMessage<>("foo");
 				}
 
@@ -371,11 +385,11 @@ public class IntegrationGraphServerTests {
 		}
 
 		@ServiceActivator(inputChannel = "polledChannel")
-		public void bar(String foo) {
+		public void bar(@SuppressWarnings("unused") String foo) {
 		}
 
 		@Filter(inputChannel = "filterChannel")
-		public boolean filter(String payload) {
+		public boolean filter(@SuppressWarnings("unused") String payload) {
 			return false;
 		}
 
