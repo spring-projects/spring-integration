@@ -9,66 +9,85 @@ The resulting `Graph` object can be serialized to any format, although JSON is f
 A Spring Integration application with only the default components would expose a graph as follows:
 
 ====
-[source,json]
+[source,json,subs="normal"]
 ----
 {
-  "contentDescriptor": {
-    "providerVersion": "4.3.0.RELEASE",
-    "providerFormatVersion": 1.0,
-    "provider": "spring-integration",
-    "name": "myApplication"
+  "contentDescriptor" : {
+    "providerVersion" : "{project-version}",
+    "providerFormatVersion" : 1.1,
+    "provider" : "spring-integration",
+    "name" : "myAppName:1.0"
   },
-  "nodes": [
-    {
-      "nodeId": 1,
-      "name": "nullChannel",
-      "stats": null,
-      "componentType": "channel"
-    },
-    {
-      "nodeId": 2,
-      "name": "errorChannel",
-      "stats": null,
-      "componentType": "publish-subscribe-channel"
-    },
-    {
-      "nodeId": 3,
-      "name": "_org.springframework.integration.errorLogger",
-      "stats": {
-        "duration": {
-          "count": 0,
-          "min": 0.0,
-          "max": 0.0,
-          "mean": 0.0,
-          "standardDeviation": 0.0,
-          "countLong": 0
-        },
-        "errorCount": 0,
-        "standardDeviationDuration": 0.0,
-        "countsEnabled": true,
-        "statsEnabled": true,
-        "loggingEnabled": false,
-        "handleCount": 0,
-        "meanDuration": 0.0,
-        "maxDuration": 0.0,
-        "minDuration": 0.0,
-        "activeCount": 0
+  "nodes" : [ {
+    "nodeId" : 1,
+    "componentType" : "null-channel",
+    "properties" : { },
+    "sendTimers" : {
+      "successes" : {
+        "count" : 1,
+        "mean" : 0.0,
+        "max" : 0.0
       },
-      "componentType": "logging-channel-adapter",
-      "output": null,
-      "input": "errorChannel"
-    }
-  ],
-  "links": [
-    {
-      "from": 2,
-      "to": 3,
-      "type": "input"
-    }
-  ]
+      "failures" : {
+        "count" : 0,
+        "mean" : 0.0,
+        "max" : 0.0
+      }
+    },
+    "receiveCounters" : {
+      "successes" : 0,
+      "failures" : 0
+    },
+    "name" : "nullChannel"
+  }, {
+    "nodeId" : 2,
+    "componentType" : "publish-subscribe-channel",
+    "properties" : { },
+    "sendTimers" : {
+      "successes" : {
+        "count" : 1,
+        "mean" : 7.807002,
+        "max" : 7.807002
+      },
+      "failures" : {
+        "count" : 0,
+        "mean" : 0.0,
+        "max" : 0.0
+      }
+    },
+    "name" : "errorChannel"
+  }, {
+    "nodeId" : 3,
+    "componentType" : "logging-channel-adapter",
+    "properties" : { },
+    "output" : null,
+    "input" : "errorChannel",
+    "sendTimers" : {
+      "successes" : {
+        "count" : 1,
+        "mean" : 6.742722,
+        "max" : 6.742722
+      },
+      "failures" : {
+        "count" : 0,
+        "mean" : 0.0,
+        "max" : 0.0
+      }
+    },
+    "name" : "_org.springframework.integration.errorLogger"
+  } ],
+  "links" : [ {
+    "from" : 2,
+    "to" : 3,
+    "type" : "input"
+  } ]
 }
 ----
 ====
+
+NOTE: Version 5.2 has deprecated the legacy metrics in favor of Micrometer meters as discussed <<./metrics.adoc#metrics-management,Metrics Management>>.
+While not shown above, the legacy metrics (under the `stats` child node) will continue to appear in the graph, but with an extra child node `"deprecated" : "stats are deprecated in favor of sendTimers and receiveCounters"`.
+The `providerFormatVersion` has been changed to 1.1 to reflect this change.
 
 In the preceding example, the graph consists of three top-level elements.
 

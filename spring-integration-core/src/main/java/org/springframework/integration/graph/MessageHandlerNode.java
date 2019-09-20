@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 import org.springframework.messaging.MessageHandler;
 
 /**
@@ -27,9 +29,11 @@ import org.springframework.messaging.MessageHandler;
  *
  */
 @SuppressWarnings("deprecation")
-public class MessageHandlerNode extends EndpointNode {
+public class MessageHandlerNode extends EndpointNode implements SendTimersAware {
 
 	private final String input;
+
+	private Supplier<SendTimers> sendTimers;
 
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
 		super(nodeId, name, handler, output,
@@ -41,6 +45,15 @@ public class MessageHandlerNode extends EndpointNode {
 
 	public String getInput() {
 		return this.input;
+	}
+
+	public SendTimers getSendTimers() {
+		return this.sendTimers.get();
+	}
+
+	@Override
+	public void sendTimers(Supplier<SendTimers> timers) {
+		this.sendTimers = timers;
 	}
 
 	public static final class Stats extends IntegrationNode.Stats {

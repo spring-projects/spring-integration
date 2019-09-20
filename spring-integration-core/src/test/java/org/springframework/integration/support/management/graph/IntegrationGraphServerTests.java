@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Router;
@@ -44,9 +45,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -64,12 +67,16 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import net.minidev.json.JSONArray;
 
 /**
@@ -92,6 +99,9 @@ public class IntegrationGraphServerTests {
 	@Autowired
 	private IntegrationFlowContext flowContext;
 
+	@Autowired
+	private MessageSource<String> testSource;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test() throws Exception {
@@ -107,7 +117,7 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(32);
+		assertThat(nodes.size()).isEqualTo(33);
 
 		JSONArray jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.componentType == 'gateway')]");
@@ -125,12 +135,13 @@ public class IntegrationGraphServerTests {
 
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
-		assertThat(links.size()).isEqualTo(33);
+		assertThat(links.size()).isEqualTo(35);
 
-		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
-		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
-		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "quxChannel").build());
-		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
+		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
+		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
+		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "quxChannel").build());
+		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
+		this.testSource.receive();
 
 		this.server.rebuild();
 		graph = this.server.getGraph();
@@ -144,24 +155,44 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(32);
+		assertThat(nodes.size()).isEqualTo(33);
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
-		assertThat(links.size()).isEqualTo(35);
+		assertThat(links.size()).isEqualTo(37);
+
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
+		String routerJson = jsonArray.toJSONString();
+		assertThat(routerJson).contains("\"stats\":{\"deprecated");
+		assertThat(routerJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'toRouter')]");
+		String toRouterJson = jsonArray.toJSONString();
+		assertThat(toRouterJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
+		String sourceJson = jsonArray.toJSONString();
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":1");
+
+		// stats refresh without rebuild()
+		this.testSource.receive();
+		baos = new ByteArrayOutputStream();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.writeValue(baos, graph);
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
+		sourceJson = jsonArray.toJSONString();
+		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2");
 	}
 
 	@Test
 	public void testIncludesDynamic() {
 		Graph graph = this.server.getGraph();
-		assertThat(graph.getNodes().size()).isEqualTo(32);
+		assertThat(graph.getNodes().size()).isEqualTo(33);
 		IntegrationFlow flow = f -> f.handle(m -> {
 		});
 		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(34);
+		assertThat(graph.getNodes().size()).isEqualTo(35);
 		this.flowContext.remove(reg.getId());
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(32);
+		assertThat(graph.getNodes().size()).isEqualTo(33);
 	}
 
 	@Configuration
@@ -186,6 +217,11 @@ public class IntegrationGraphServerTests {
 				return properties;
 			});
 			return server;
+		}
+
+		@Bean
+		public MeterRegistry meterRegistry() {
+			return new SimpleMeterRegistry();
 		}
 
 		@Bean
@@ -306,6 +342,24 @@ public class IntegrationGraphServerTests {
 		@Bean
 		public MessageChannel fizChannel() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		@InboundChannelAdapter(channel = "fizChannel", autoStartup = "false")
+		public MessageSource<String> testSource() {
+			return new AbstractMessageSource<String>() {
+
+				@Override
+				public String getComponentType() {
+					return "source";
+				}
+
+				@Override
+				protected Object doReceive() {
+					return new GenericMessage<>("foo");
+				}
+
+			};
 		}
 
 	}

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.graph;
 
+import java.util.function.Supplier;
+
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -27,7 +29,9 @@ import org.springframework.messaging.MessageChannel;
  *
  */
 @SuppressWarnings("deprecation")
-public class MessageChannelNode extends IntegrationNode {
+public class MessageChannelNode extends IntegrationNode implements SendTimersAware {
+
+	private Supplier<SendTimers> sendTimers;
 
 	public MessageChannelNode(int nodeId, String name, MessageChannel channel) {
 		super(nodeId, name, channel,
@@ -36,6 +40,14 @@ public class MessageChannelNode extends IntegrationNode {
 						: new IntegrationNode.Stats());
 	}
 
+	public SendTimers getSendTimers() {
+		return this.sendTimers.get();
+	}
+
+	@Override
+	public void sendTimers(Supplier<SendTimers> timers) {
+		this.sendTimers = timers;
+	}
 
 	public static final class Stats extends IntegrationNode.Stats {
 
