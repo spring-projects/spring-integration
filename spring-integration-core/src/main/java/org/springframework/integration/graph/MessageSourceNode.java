@@ -19,11 +19,13 @@ package org.springframework.integration.graph;
 import java.util.function.Supplier;
 
 import org.springframework.integration.core.MessageSource;
+import org.springframework.lang.Nullable;
 
 /**
  * Represents a message source.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.3
  *
@@ -41,8 +43,9 @@ public class MessageSourceNode extends ErrorCapableEndpointNode implements Recei
 						: new IntegrationNode.Stats());
 	}
 
+	@Nullable
 	public ReceiveCounters getReceiveCounters() {
-		return this.receiveCounters.get();
+		return this.receiveCounters != null ? this.receiveCounters.get() : null;
 	}
 
 	@Override

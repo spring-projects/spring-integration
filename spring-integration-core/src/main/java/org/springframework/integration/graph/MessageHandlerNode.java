@@ -18,12 +18,14 @@ package org.springframework.integration.graph;
 
 import java.util.function.Supplier;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 
 /**
  * Represents a message handler.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.3
  *
@@ -47,8 +49,9 @@ public class MessageHandlerNode extends EndpointNode implements SendTimersAware 
 		return this.input;
 	}
 
+	@Nullable
 	public SendTimers getSendTimers() {
-		return this.sendTimers.get();
+		return this.sendTimers != null ? this.sendTimers.get() : null;
 	}
 
 	@Override

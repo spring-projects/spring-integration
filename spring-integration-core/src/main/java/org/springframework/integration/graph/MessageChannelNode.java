@@ -18,12 +18,14 @@ package org.springframework.integration.graph;
 
 import java.util.function.Supplier;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
  * Represents a message channel.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.3
  *
@@ -40,8 +42,9 @@ public class MessageChannelNode extends IntegrationNode implements SendTimersAwa
 						: new IntegrationNode.Stats());
 	}
 
+	@Nullable
 	public SendTimers getSendTimers() {
-		return this.sendTimers.get();
+		return this.sendTimers != null ? this.sendTimers.get() : null;
 	}
 
 	@Override

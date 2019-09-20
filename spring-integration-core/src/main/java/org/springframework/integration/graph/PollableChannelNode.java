@@ -18,12 +18,15 @@ package org.springframework.integration.graph;
 
 import java.util.function.Supplier;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
  * Represents a pollable channel.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.2
  *
  */
@@ -35,8 +38,9 @@ public class PollableChannelNode extends MessageChannelNode implements ReceiveCo
 		super(nodeId, name, channel);
 	}
 
+	@Nullable
 	public ReceiveCounters getReceiveCounters() {
-		return this.receiveCounters.get();
+		return this.receiveCounters != null ? this.receiveCounters.get() : null;
 	}
 
 	@Override
