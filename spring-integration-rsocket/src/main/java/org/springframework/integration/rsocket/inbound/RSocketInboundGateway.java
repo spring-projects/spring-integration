@@ -22,13 +22,10 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.core.codec.Decoder;
 import org.springframework.core.codec.Encoder;
-import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
@@ -77,12 +74,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	private final String[] path;
 
-	private RSocketStrategies rsocketStrategies =
-			RSocketStrategies.builder()
-					.decoder(StringDecoder.allMimeTypes())
-					.encoder(CharSequenceEncoder.allMimeTypes())
-					.dataBufferFactory(new DefaultDataBufferFactory())
-					.build();
+	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
 
 	@Nullable
 	private AbstractRSocketConnector rsocketConnector;
@@ -91,7 +83,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	private ResolvableType requestElementType;
 
 	/**
-	 * Instantiate based on the provided Ant-style path patterns to map this endpoint for incoming RSocket requests.
+	 * Instantiate based on the provided path patterns to map this endpoint for incoming RSocket requests.
 	 * @param pathArg the mapping patterns to use.
 	 */
 	public RSocketInboundGateway(String... pathArg) {

@@ -17,6 +17,7 @@
 package org.springframework.integration.rsocket;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +37,6 @@ import org.springframework.messaging.rsocket.annotation.support.RSocketFrameType
 import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.RouteMatcher;
 
 import io.rsocket.RSocketFactory;
 import io.rsocket.transport.ServerTransport;
@@ -108,7 +108,9 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 	 * Defaults to the {@code destination} the client is connected.
 	 * @param clientRSocketKeyStrategy the {@link BiFunction} to determine a key for client {@link RSocketRequester}s.
 	 */
-	public void setClientRSocketKeyStrategy(BiFunction<String, DataBuffer, Object> clientRSocketKeyStrategy) {
+	public void setClientRSocketKeyStrategy(BiFunction<Map<String, Object>,
+			DataBuffer, Object> clientRSocketKeyStrategy) {
+
 		Assert.notNull(clientRSocketKeyStrategy, "'clientRSocketKeyStrategy' must not be null");
 		serverRSocketMessageHandler().clientRSocketKeyStrategy = clientRSocketKeyStrategy;
 	}
@@ -176,7 +178,8 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 		private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
 
-		private BiFunction<String, DataBuffer, Object> clientRSocketKeyStrategy = (destination, data) -> destination;
+		private BiFunction<Map<String, Object>, DataBuffer, Object> clientRSocketKeyStrategy =
+				(headers, data) -> data.toString(StandardCharsets.UTF_8);
 
 		private ApplicationEventPublisher applicationEventPublisher;
 
@@ -184,28 +187,20 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 			registerHandlerMethod(this, HANDLE_CONNECTION_SETUP_METHOD,
 					new CompositeMessageCondition(
 							RSocketFrameTypeMessageCondition.CONNECT_CONDITION,
-							new DestinationPatternsMessageCondition(new String[] { "*" }, getRouteMatcher()))); // NOSONAR
+							new DestinationPatternsMessageCondition(new String[] { "*" }, obtainRouteMatcher())));
 		}
 
 		@SuppressWarnings("unused")
 		private void handleConnectionSetup(Message<DataBuffer> connectMessage) {
 			DataBuffer dataBuffer = connectMessage.getPayload();
 			MessageHeaders messageHeaders = connectMessage.getHeaders();
-			String destination = "";
-			RouteMatcher.Route route =
-					messageHeaders.get(DestinationPatternsMessageCondition.LOOKUP_DESTINATION_HEADER,
-							RouteMatcher.Route.class);
-			if (route != null) {
-				destination = route.value();
-			}
-
-			Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(destination, dataBuffer);
+			Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(messageHeaders, dataBuffer);
 			RSocketRequester rsocketRequester =
 					messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
 							RSocketRequester.class);
 			this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
 			RSocketConnectedEvent rSocketConnectedEvent =
-					new RSocketConnectedEvent(this, destination, dataBuffer, rsocketRequester); // NOSONAR
+					new RSocketConnectedEvent(this, messageHeaders, dataBuffer, rsocketRequester); // NOSONAR
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(rSocketConnectedEvent);
 			}

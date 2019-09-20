@@ -30,9 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.codec.CharSequenceEncoder;
-import org.springframework.core.codec.StringDecoder;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -59,7 +56,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
 import io.rsocket.frame.decoder.PayloadDecoder;
@@ -469,15 +465,6 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private abstract static class CommonConfig {
 
 		@Bean
-		public RSocketStrategies rsocketStrategies() {
-			return RSocketStrategies.builder()
-					.decoder(StringDecoder.allMimeTypes())
-					.encoder(CharSequenceEncoder.allMimeTypes())
-					.dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
-					.build();
-		}
-
-		@Bean
 		public TestController controller() {
 			return new TestController();
 		}
@@ -515,10 +502,9 @@ public class RSocketOutboundGatewayIntegrationTests {
 		@Bean(destroyMethod = "dispose")
 		@Nullable
 		public RSocket rsocketForServerRequests() {
-
 			return RSocketRequester.builder()
 					.setupRoute("clientConnect")
-					.rsocketFactory(RSocketMessageHandler.clientResponder(rsocketStrategies(), controller()))
+					.rsocketFactory(RSocketMessageHandler.clientResponder(RSocketStrategies.create(), controller()))
 					.connectTcp("localhost", server.address().getPort())
 					.block()
 					.rsocket();
@@ -526,10 +512,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
-			ClientRSocketConnector clientRSocketConnector =
-					new ClientRSocketConnector("localhost", server.address().getPort());
-			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
-			return clientRSocketConnector;
+			return new ClientRSocketConnector("localhost", server.address().getPort());
 		}
 
 		@Override
@@ -548,9 +531,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@Bean
 		public RSocketMessageHandler messageHandler() {
-			RSocketMessageHandler handler = new RSocketMessageHandler();
-			handler.setRSocketStrategies(rsocketStrategies());
-			return handler;
+			return new RSocketMessageHandler();
 		}
 
 	}

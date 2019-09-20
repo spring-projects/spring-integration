@@ -25,6 +25,12 @@ See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integr
 [[x5.2-new-components]]
 === New Components
 
+[[x5.2-rsocket-support]]
+==== RSocket Support
+
+The `spring-integration-rsocket` module is now available with channel adapter implementations for RSocket protocol support.
+See <<./rsocket.adoc#rsocket,RSocket Support>> for more information.
+
 [[x5.2-rate-limit-advice]]
 ==== Rate Limit Advice Support
 

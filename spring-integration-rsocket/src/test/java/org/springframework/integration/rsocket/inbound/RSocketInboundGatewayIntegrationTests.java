@@ -27,15 +27,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.codec.CharSequenceEncoder;
-import org.springframework.core.codec.StringDecoder;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
@@ -44,13 +40,9 @@ import org.springframework.integration.rsocket.ServerRSocketConnector;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.util.MimeType;
 
-import io.netty.buffer.PooledByteBufAllocator;
-import io.rsocket.frame.decoder.PayloadDecoder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -155,15 +147,6 @@ public class RSocketInboundGatewayIntegrationTests {
 	private abstract static class CommonConfig {
 
 		@Bean
-		public RSocketStrategies rsocketStrategies() {
-			return RSocketStrategies.builder()
-					.decoder(StringDecoder.allMimeTypes())
-					.encoder(CharSequenceEncoder.allMimeTypes())
-					.dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
-					.build();
-		}
-
-		@Bean
 		public PollableChannel fireAndForgetChannelChannel() {
 			return new QueueChannel();
 		}
@@ -171,7 +154,6 @@ public class RSocketInboundGatewayIntegrationTests {
 		@Bean
 		public RSocketInboundGateway rsocketInboundGatewayFireAndForget() {
 			RSocketInboundGateway rsocketInboundGateway = new RSocketInboundGateway("receive");
-			rsocketInboundGateway.setRSocketStrategies(rsocketStrategies());
 			rsocketInboundGateway.setRequestChannel(fireAndForgetChannelChannel());
 			return rsocketInboundGateway;
 		}
@@ -179,14 +161,8 @@ public class RSocketInboundGatewayIntegrationTests {
 		@Bean
 		public RSocketInboundGateway rsocketInboundGatewayRequestReply() {
 			RSocketInboundGateway rsocketInboundGateway = new RSocketInboundGateway("echo");
-			rsocketInboundGateway.setRSocketStrategies(rsocketStrategies());
-			rsocketInboundGateway.setRequestChannel(requestReplyChannel());
+			rsocketInboundGateway.setRequestChannelName("requestReplyChannel");
 			return rsocketInboundGateway;
-		}
-
-		@Bean
-		public FluxMessageChannel requestReplyChannel() {
-			return new FluxMessageChannel();
 		}
 
 		@Transformer(inputChannel = "requestReplyChannel")
@@ -198,22 +174,18 @@ public class RSocketInboundGatewayIntegrationTests {
 
 	@Configuration
 	@EnableIntegration
-	static class ServerConfig extends CommonConfig implements ApplicationListener<RSocketConnectedEvent> {
+	static class ServerConfig extends CommonConfig {
 
 		final MonoProcessor<RSocketRequester> clientRequester = MonoProcessor.create();
 
-		@Override
-		public void onApplicationEvent(RSocketConnectedEvent event) {
-			this.clientRequester.onNext(event.getRequester());
-		}
-
 		@Bean
 		public ServerRSocketConnector serverRSocketConnector() {
-			ServerRSocketConnector serverRSocketConnector = new ServerRSocketConnector("localhost", 0);
-			serverRSocketConnector.setRSocketStrategies(rsocketStrategies());
-			serverRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
-			serverRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
-			return serverRSocketConnector;
+			return new ServerRSocketConnector("localhost", 0);
+		}
+
+		@EventListener
+		public void onApplicationEvent(RSocketConnectedEvent event) {
+			this.clientRequester.onNext(event.getRequester());
 		}
 
 	}
@@ -227,10 +199,8 @@ public class RSocketInboundGatewayIntegrationTests {
 			ClientRSocketConnector clientRSocketConnector =
 					new ClientRSocketConnector("localhost",
 							serverConfig.serverRSocketConnector().getBoundPort().block());
-			clientRSocketConnector.setMetadataMimeType(new MimeType("message", "x.rsocket.routing.v0"));
-			clientRSocketConnector.setFactoryConfigurer((factory) -> factory.frameDecoder(PayloadDecoder.ZERO_COPY));
-			clientRSocketConnector.setRSocketStrategies(rsocketStrategies());
-			clientRSocketConnector.setSetupRoute("clientConnect");
+			clientRSocketConnector.setSetupRoute("clientConnect/{user}");
+			clientRSocketConnector.setSetupRouteVariables("myUser");
 			return clientRSocketConnector;
 		}
 
