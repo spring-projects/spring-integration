@@ -23,10 +23,6 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.codec.CharSequenceEncoder;
-import org.springframework.core.codec.StringDecoder;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
-import org.springframework.messaging.rsocket.MetadataExtractor;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -38,7 +34,7 @@ import io.rsocket.metadata.WellKnownMimeType;
  * A base connector container for common RSocket client and server functionality.
  * <p>
  * It accepts {@link IntegrationRSocketEndpoint} instances for mapping registration via an internal
- * {@link IntegrationRSocketMessageHandler} or performs an auto-detection otherwise, when all bean are ready
+ * {@link IntegrationRSocketMessageHandler} or performs an auto-detection otherwise, when all beans are ready
  * in the application context.
  *
  * @author Artem Bilan
@@ -58,12 +54,7 @@ public abstract class AbstractRSocketConnector
 	private MimeType metadataMimeType =
 			MimeTypeUtils.parseMimeType(WellKnownMimeType.MESSAGE_RSOCKET_COMPOSITE_METADATA.toString());
 
-	private RSocketStrategies rsocketStrategies =
-			RSocketStrategies.builder()
-					.decoder(StringDecoder.allMimeTypes())
-					.encoder(CharSequenceEncoder.allMimeTypes())
-					.dataBufferFactory(new DefaultDataBufferFactory())
-					.build();
+	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
 
 	private boolean autoStartup = true;
 
@@ -114,7 +105,7 @@ public abstract class AbstractRSocketConnector
 	}
 
 	/**
-	 * Configure {@link IntegrationRSocketEndpoint} instances for mapping nad handling requests.
+	 * Configure {@link IntegrationRSocketEndpoint} instances for mapping and handling requests.
 	 * @param endpoints the {@link IntegrationRSocketEndpoint} instances for handling inbound requests.
 	 * @see #addEndpoint(IntegrationRSocketEndpoint)
 	 */
@@ -123,20 +114,6 @@ public abstract class AbstractRSocketConnector
 		for (IntegrationRSocketEndpoint endpoint : endpoints) {
 			addEndpoint(endpoint);
 		}
-	}
-
-	/**
-	 * Configure a {@link MetadataExtractor} to extract the route and possibly
-	 * other metadata from the first payload of incoming requests.
-	 * <p>By default this is a
-	 * {@link org.springframework.messaging.rsocket.DefaultMetadataExtractor}
-	 * with the configured {@link RSocketStrategies} (and decoders), extracting a route
-	 * from {@code "message/x.rsocket.routing.v0"} or {@code "text/plain"}
-	 * metadata entries.
-	 * @param extractor the extractor to use
-	 */
-	public void setMetadataExtractor(MetadataExtractor extractor) {
-		this.rSocketMessageHandler.setMetadataExtractor(extractor);
 	}
 
 	/**

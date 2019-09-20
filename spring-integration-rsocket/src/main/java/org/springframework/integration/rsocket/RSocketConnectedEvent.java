@@ -16,6 +16,8 @@
 
 package org.springframework.integration.rsocket;
 
+import java.util.Map;
+
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -25,7 +27,7 @@ import org.springframework.messaging.rsocket.RSocketRequester;
  * to the server.
  * <p>
  * This event can be used for mapping {@link RSocketRequester} to the client by the
- * {@code destination} meta-data or connect payload {@code data}.
+ * {@code headers} meta-data or connect payload {@code data}.
  *
  * @author Artem Bilan
  *
@@ -36,21 +38,23 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 @SuppressWarnings("serial")
 public class RSocketConnectedEvent extends IntegrationEvent {
 
-	private final String destination;
+	private final Map<String, Object> headers;
 
 	private final DataBuffer data;
 
 	private final RSocketRequester requester;
 
-	public RSocketConnectedEvent(Object source, String destination, DataBuffer data, RSocketRequester requester) {
+	public RSocketConnectedEvent(Object source, Map<String, Object> headers, DataBuffer data,
+			RSocketRequester requester) {
+
 		super(source);
-		this.destination = destination;
+		this.headers = headers;
 		this.data = data;
 		this.requester = requester;
 	}
 
-	public String getDestination() {
-		return this.destination;
+	public Map<String, Object> getHeaders() {
+		return this.headers;
 	}
 
 	public DataBuffer getData() {
@@ -64,7 +68,8 @@ public class RSocketConnectedEvent extends IntegrationEvent {
 	@Override
 	public String toString() {
 		return "RSocketConnectedEvent{" +
-				"destination='" + this.destination + '\'' +
+				"headers=" + this.headers +
+				", data=" + this.data +
 				", requester=" + this.requester +
 				'}';
 	}
