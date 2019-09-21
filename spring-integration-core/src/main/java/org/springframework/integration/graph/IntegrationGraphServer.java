@@ -81,11 +81,11 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext; //NOSONAR (sync)
+		this.applicationContext = applicationContext; // NOSONAR (sync)
 	}
 
 	protected ApplicationContext getApplicationContext() {
-		return this.applicationContext;
+		return this.applicationContext;  // NOSONAR (sync)
 	}
 
 	/**

@@ -35,6 +35,14 @@ import io.micrometer.core.instrument.Timer;
  */
 public class MicrometerNodeEnhancer {
 
+	private static final String UNUSED = "unused";
+
+	private static final String TAG_TYPE = "type";
+
+	private static final String TAG_NAME = "name";
+
+	private static final String TAG_RESULT = "result";
+
 	private static final TimerStats ZERO_TIMER_STATS = new TimerStats(0L, 0.0, 0.0);
 
 	private final MeterRegistry registry;
@@ -81,25 +89,23 @@ public class MicrometerNodeEnhancer {
 		Timer successTimer = null;
 		try {
 			successTimer = this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
-					.tag("type", type)
-					.tag("name", node.getName())
-					.tag("result", "success")
+					.tag(TAG_TYPE, type)
+					.tag(TAG_NAME, node.getName())
+					.tag(TAG_RESULT, "success")
 					.timer();
 		}
-		catch (@SuppressWarnings("unused")
-		Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
 			// NOSONAR empty
 		}
 		Timer failureTimer = null;
 		try {
 			failureTimer = this.registry.get(IntegrationManagement.SEND_TIMER_NAME)
-					.tag("type", type)
-					.tag("name", node.getName())
-					.tag("result", "failure")
+					.tag(TAG_TYPE, type)
+					.tag(TAG_NAME, node.getName())
+					.tag(TAG_RESULT, "failure")
 					.timer();
 		}
-		catch (@SuppressWarnings("unused")
-		Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
 			// NOSONAR empty;
 		}
 		TimerStats successes = successTimer == null ? ZERO_TIMER_STATS
@@ -120,23 +126,23 @@ public class MicrometerNodeEnhancer {
 		String name = node.getName();
 		try {
 			successes = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
-					.tag("type", type)
-					.tag("name", name)
-					.tag("result", "success")
+					.tag(TAG_TYPE, type)
+					.tag(TAG_NAME, name)
+					.tag(TAG_RESULT, "success")
 					.counter();
 		}
-		catch (@SuppressWarnings("unused") Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
 			// NOSONAR empty;
 		}
 		Counter failures = null;
 		try {
 			failures = this.registry.get(IntegrationManagement.RECEIVE_COUNTER_NAME)
-				.tag("type", type)
-				.tag("name", name)
-				.tag("result", "failure")
+				.tag(TAG_TYPE, type)
+				.tag(TAG_NAME, name)
+				.tag(TAG_RESULT, "failure")
 				.counter();
 		}
-		catch (@SuppressWarnings("unused") Exception e) {
+		catch (@SuppressWarnings(UNUSED) Exception e) { // NOSONAR ignored
 			// NOSONAR empty;
 		}
 		return new ReceiveCounters(

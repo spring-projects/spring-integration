@@ -109,14 +109,14 @@ public abstract class IntegrationNode {
 
 	public static class Stats {
 
-		private final String deprecated = "stats are deprecated in favor of sendTimers and receiveCounters";
+		private static final String deprecated = "stats are deprecated in favor of sendTimers and receiveCounters";
 
 		protected boolean isAvailable() {
 			return false;
 		}
 
 		public String getDeprecated() {
-			return this.deprecated;
+			return deprecated;
 		}
 
 	}
