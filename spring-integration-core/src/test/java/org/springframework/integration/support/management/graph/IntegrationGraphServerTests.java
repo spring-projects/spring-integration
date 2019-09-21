@@ -162,7 +162,7 @@ public class IntegrationGraphServerTests {
 
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'router')]");
 		String routerJson = jsonArray.toJSONString();
-		assertThat(routerJson).contains("\"stats\":{\"deprecated");
+		assertThat(routerJson).contains("\"deprecated\":\"stats are deprecated");
 		assertThat(routerJson).contains("\"sendTimers\":{\"successes\":{\"count\":4");
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'toRouter')]");
 		String toRouterJson = jsonArray.toJSONString();
