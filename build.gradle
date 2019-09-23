@@ -170,6 +170,13 @@ subprojects { subproject ->
 		targetCompatibility = 1.8
 	}
 
+	compileKotlin {
+		kotlinOptions {
+			jvmTarget = '1.8'
+			freeCompilerArgs = ["-Xjsr305=strict"]
+			allWarningsAsErrors = true
+		}
+	}
 	compileTestKotlin {
 		kotlinOptions {
 			freeCompilerArgs = ['-Xjsr305=strict']
@@ -195,6 +202,9 @@ subprojects { subproject ->
 			}
 		}
 
+		compile ('org.jetbrains.kotlin:kotlin-reflect', optional)
+		compile ('org.jetbrains.kotlin:kotlin-stdlib-jdk8', optional)
+
 		// JSR-305 only used for non-required meta-annotations
 		compileOnly "com.google.code.findbugs:jsr305:$googleJsr305Version"
 		testCompile "com.google.code.findbugs:jsr305:$googleJsr305Version"
@@ -217,10 +227,6 @@ subprojects { subproject ->
 		testRuntime 'org.apache.logging.log4j:log4j-jcl'
 
 		testCompile "com.willowtreeapps.assertk:assertk-jvm:$assertkVersion"
-
-		testCompile 'org.jetbrains.kotlin:kotlin-reflect'
-		testCompile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -419,9 +425,10 @@ project('spring-integration-core') {
 		compile("io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion", optional)
 		compile("org.apache.avro:avro:$avroVersion", optional)
 
-		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
+		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
 		testCompile 'io.projectreactor:reactor-test'
-		testCompile ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+		testCompile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+		testCompile 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	}
 }
 
