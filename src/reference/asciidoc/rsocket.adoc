@@ -24,14 +24,15 @@ compile "org.springframework.integration:spring-integration-rsocket:{project-ver
 ====
 
 This module is available starting version 5.2 and is fully based on the Spring Messaging foundation with its RSocket components implementation, such as `RSocketRequester`, `RSocketMessageHandler` and `RSocketStrategies`.
+See https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#rsocket[Spring Framework RSocket Support] for more information about RSocket protocol, terminology and components.
 
 Before starting an integration flow processing via channel adapters we need to establish RSocket connection between server and client.
 For this purpose Spring Integration RSocket support provides a `ServerRSocketConnector` and `ClientRSocketConnector` implementations of the `AbstractRSocketConnector`.
 
 The `ServerRSocketConnector` exposes a listener on the host and port according to provided `io.rsocket.transport.ServerTransport` for accepting connections from clients.
 An internal `RSocketFactory.ServerRSocketFactory` instance can be customized with the `setFactoryConfigurer()`, as well as other options can be configured, e.g. `RSocketStrategies` and `MimeType` for payload data and headers metadata.
-A connected client is stored as a `RSocketRequester` under the key determined by the `clientRSocketKeyStrategy` `BiFunction<Map<String, Object>, DataBuffer, Object>`.
-By default a connect data is used for key as converted to string with UTF-8 charset.
+When a `setupRoute` is provided from the client requester (see `ClientRSocketConnector` below), a connected client is stored as a `RSocketRequester` under the key determined by the `clientRSocketKeyStrategy` `BiFunction<Map<String, Object>, DataBuffer, Object>`.
+By default a connect data is used for the key as a converted value to string with UTF-8 charset.
 Such an `RSocketRequester` registry can be used in the application logic to determine a particular client connection for interaction exactly with this one or for publishing the same message to all connected clients.
 When connection is established from the client, an `RSocketConnectedEvent` is emitted from the `ServerRSocketConnector`.
 This is similar to what is provided by the `@ConnectMapping` annotation in Spring Messaging module.
@@ -46,9 +47,9 @@ The typical server configuration may look like this:
 @Bean
 public RSocketStrategies rsocketStrategies() {
     return RSocketStrategies.builder()
-        .decoder(StringDecoder.allMimeTypes())
+        .decoder(StringDecoder.textPlainOnly())
         .encoder(CharSequenceEncoder.allMimeTypes())
-        .dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
+        .dataBufferFactory(new DefaultDataBufferFactory(true))
         .build();
 }
 
@@ -85,9 +86,9 @@ The typical client configuration may look like this:
 @Bean
 public RSocketStrategies rsocketStrategies() {
     return RSocketStrategies.builder()
-        .decoder(StringDecoder.allMimeTypes())
+        .decoder(StringDecoder.textPlainOnly())
         .encoder(CharSequenceEncoder.allMimeTypes())
-        .dataBufferFactory(new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT))
+        .dataBufferFactory(new DefaultDataBufferFactory(true))
         .build();
 }
 

@@ -69,7 +69,6 @@ public class RSocketDslTests {
 		public ClientRSocketConnector clientRSocketConnector(ServerRSocketConnector serverRSocketConnector) {
 			int port = serverRSocketConnector.getBoundPort().block();
 			ClientRSocketConnector clientRSocketConnector = new ClientRSocketConnector("localhost", port);
-			clientRSocketConnector.setSetupData("foo");
 			clientRSocketConnector.setAutoStartup(false);
 			return clientRSocketConnector;
 		}
