@@ -33,13 +33,13 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -90,14 +90,6 @@ public class MailTests {
 			Thread.sleep(100);
 		}
 		assertThat(n < 100).isTrue();
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		smtpServer.stop();
-		pop3Server.stop();
-		imapServer.stop();
-		imapIdleServer.stop();
 	}
 
 	@Autowired
@@ -188,6 +180,35 @@ public class MailTests {
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
+
+		@Bean
+		public SmartLifecycle serverStopper() {
+			return new SmartLifecycle() {
+
+				@Override
+				public int getPhase() {
+					return Integer.MAX_VALUE;
+				}
+
+				@Override
+				public void stop() {
+					smtpServer.stop();
+					pop3Server.stop();
+					imapServer.stop();
+					imapIdleServer.stop();
+				}
+
+				@Override
+				public void start() {
+				}
+
+				@Override
+				public boolean isRunning() {
+					return true;
+				}
+
+			};
+		}
 
 		@Bean
 		public IntegrationFlow sendMailFlow() {

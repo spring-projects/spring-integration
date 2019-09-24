@@ -412,6 +412,8 @@ public final class TestMailServer {
 
 		protected final List<String> messages = new ArrayList<>(); // NOSONAR protected
 
+		private final List<Socket> clientSockets = new ArrayList<>();
+
 		private volatile boolean listening;
 
 		MailServer(int port) throws IOException {
@@ -445,6 +447,7 @@ public final class TestMailServer {
 			try {
 				while (!serverSocket.isClosed()) {
 					Socket socket = this.serverSocket.accept();
+					this.clientSockets.add(socket);
 					exec.execute(mailHandler(socket));
 				}
 			}
@@ -457,6 +460,9 @@ public final class TestMailServer {
 
 		public void stop() {
 			try {
+				for (Socket socket : this.clientSockets) {
+					socket.close();
+				}
 				this.serverSocket.close();
 			}
 			catch (IOException e) {
