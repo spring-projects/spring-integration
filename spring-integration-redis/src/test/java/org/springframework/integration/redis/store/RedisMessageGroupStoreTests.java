@@ -56,6 +56,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import junit.framework.AssertionFailedError;
 
 /**
@@ -467,11 +468,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			fail("SerializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause().getCause()).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).contains("The class with " +
-					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
-					"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
-					"is not in the trusted packages:");
+			assertThat(e.getCause()).isInstanceOf(InvalidTypeIdException.class);
+			assertThat(e.getMessage()).contains("denied resolution");
 		}
 
 		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());

@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
  * Jackson 2 JSON-processor (@link https://github.com/FasterXML)
@@ -70,9 +71,10 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	private final ObjectMapper objectMapper;
 
 	public Jackson2JsonObjectMapper() {
-		this.objectMapper = new ObjectMapper();
-		this.objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
-		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		this.objectMapper = JsonMapper.builder()
+				.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
+				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+				.build();
 		registerWellKnownModulesIfAvailable();
 	}
 

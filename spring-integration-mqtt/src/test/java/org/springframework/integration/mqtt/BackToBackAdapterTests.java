@@ -106,6 +106,15 @@ public class BackToBackAdapterTests {
 
 	@Test
 	public void testJson() {
+		testJsonCommon("org.springframework");
+	}
+
+	@Test
+	public void testJsonNoTrust() {
+		testJsonCommon();
+	}
+
+	private void testJsonCommon(String... trusted) {
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
 		adapter.setDefaultTopic("mqtt-foo");
 		adapter.setBeanFactory(mock(BeanFactory.class));
@@ -132,7 +141,12 @@ public class BackToBackAdapterTests {
 		assertThat(out).isNotNull();
 		adapter.stop();
 		inbound.stop();
-		assertThat(out.getPayload()).isEqualTo(new Foo("bar"));
+		if (trusted != null) {
+			assertThat(out.getPayload()).isEqualTo(new Foo("bar"));
+		}
+		else {
+			assertThat(out.getPayload()).isNotEqualTo(new Foo("bar"));
+		}
 		assertThat(out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)).isEqualTo("mqtt-foo");
 		assertThat(out.getHeaders().get("baz")).isEqualTo("qux");
 	}
