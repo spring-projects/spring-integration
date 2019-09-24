@@ -126,9 +126,6 @@ public final class JacksonJsonUtils {
 						"org.springframework.integration.store"
 				).forEach(pkg -> builder.allowIfSubType(pkg));
 				for (String pkg : trustedPackages) {
-					if (pkg.equals("*")) {
-						builder.allowIfSubType(Pattern.compile(".*"));
-					}
 					builder.allowIfSubType(pkg);
 				}
 				builder.allowIfSubType(byte[].class);
