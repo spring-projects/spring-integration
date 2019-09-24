@@ -148,7 +148,9 @@ public final class TestMailServer {
 					messages.add(sb.toString());
 				}
 				catch (IOException e) {
-					LOGGER.error(IO_EXCEPTION, e);
+					if (!this.stopped) {
+						LOGGER.error(IO_EXCEPTION, e);
+					}
 				}
 			}
 
@@ -210,7 +212,9 @@ public final class TestMailServer {
 					}
 				}
 				catch (IOException e) {
-					LOGGER.error(IO_EXCEPTION, e);
+					if (!this.stopped) {
+						LOGGER.error(IO_EXCEPTION, e);
+					}
 				}
 			}
 
@@ -380,7 +384,9 @@ public final class TestMailServer {
 					}
 				}
 				catch (IOException e) {
-					LOGGER.error(IO_EXCEPTION, e);
+					if (!this.stopped) {
+						LOGGER.error(IO_EXCEPTION, e);
+					}
 				}
 			}
 
@@ -412,7 +418,7 @@ public final class TestMailServer {
 
 		protected final List<String> messages = new ArrayList<>(); // NOSONAR protected
 
-		private final List<Socket> clientSockets = new ArrayList<>();
+		private final List<MailHandler> handlers = new ArrayList<>();
 
 		private volatile boolean listening;
 
@@ -447,8 +453,9 @@ public final class TestMailServer {
 			try {
 				while (!serverSocket.isClosed()) {
 					Socket socket = this.serverSocket.accept();
-					this.clientSockets.add(socket);
-					exec.execute(mailHandler(socket));
+					MailHandler mailHandler = mailHandler(socket);
+					this.handlers.add(mailHandler);
+					exec.execute(mailHandler);
 				}
 			}
 			catch (@SuppressWarnings("unused") IOException e) {
@@ -460,8 +467,8 @@ public final class TestMailServer {
 
 		public void stop() {
 			try {
-				for (Socket socket : this.clientSockets) {
-					socket.close();
+				for (MailHandler handler : this.handlers) {
+					handler.stop();
 				}
 				this.serverSocket.close();
 			}
@@ -491,6 +498,8 @@ public final class TestMailServer {
 
 			protected BufferedReader reader; // NOSONAR protected
 
+			protected boolean stopped; // NOSONAR
+
 			MailHandler(Socket socket) {
 				this.socket = socket;
 			}
@@ -515,6 +524,15 @@ public final class TestMailServer {
 
 			abstract void doRun();
 
+			void stop() {
+				this.stopped = true;
+				try {
+					this.socket.close();
+				}
+				catch (IOException e) {
+					// NOSONAR
+				}
+			}
 		}
 
 	}
