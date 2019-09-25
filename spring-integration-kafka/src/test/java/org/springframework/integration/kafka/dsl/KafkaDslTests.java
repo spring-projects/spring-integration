@@ -18,6 +18,7 @@ package org.springframework.integration.kafka.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -354,7 +355,7 @@ public class KafkaDslTests {
 			return IntegrationFlows.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
 							.sync(true)
-							.configureKafkaTemplate(t -> t.replyTimeout(30_000)))
+							.configureKafkaTemplate(t -> t.defaultReplyTimeout(Duration.ofSeconds(30))))
 					.get();
 		}
 
