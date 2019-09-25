@@ -270,6 +270,16 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object> impl
 		}
 	}
 
+	/**
+	 * Get a reference to the configured consumer properties; allows further
+	 * customization of the properties before the source is started.
+	 * @return the properties.
+	 * @since 3.2
+	 */
+	public ConsumerProperties getConsumerProperties() {
+		return this.consumerProperties;
+	}
+
 	protected String getGroupId() {
 		return this.consumerProperties.getGroupId();
 	}

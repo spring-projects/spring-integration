@@ -16,6 +16,7 @@
 
 package org.springframework.integration.kafka.dsl;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -119,14 +120,32 @@ public class KafkaOutboundGatewaySpec<K, V, R, S extends KafkaOutboundGatewaySpe
 		}
 
 		@SuppressWarnings("unchecked")
-		ReplyingKafkaTemplateSpec<K, V, R> taskScheduler(TaskScheduler scheduler) {
+		public ReplyingKafkaTemplateSpec<K, V, R> taskScheduler(TaskScheduler scheduler) {
 			((ReplyingKafkaTemplate<K, V, R>) this.target).setTaskScheduler(scheduler);
 			return this;
 		}
 
+		/**
+		 * Default reply timeout.
+		 * @param replyTimeout the timeout.
+		 * @return the spec.
+		 * @deprecated in favor of {@link #defaultReplyTimeout(Duration)}.
+		 */
+		@Deprecated
 		@SuppressWarnings("unchecked")
-		ReplyingKafkaTemplateSpec<K, V, R> replyTimeout(long replyTimeout) {
-			((ReplyingKafkaTemplate<K, V, R>) this.target).setReplyTimeout(replyTimeout);
+		public ReplyingKafkaTemplateSpec<K, V, R> replyTimeout(long replyTimeout) {
+			((ReplyingKafkaTemplate<K, V, R>) this.target).setDefaultReplyTimeout(Duration.ofMillis(replyTimeout));
+			return this;
+		}
+
+		/**
+		 * Default reply timeout.
+		 * @param replyTimeout the timeout.
+		 * @return the spec.
+		 */
+		@SuppressWarnings("unchecked")
+		public ReplyingKafkaTemplateSpec<K, V, R> defaultReplyTimeout(Duration replyTimeout) {
+			((ReplyingKafkaTemplate<K, V, R>) this.target).setDefaultReplyTimeout(replyTimeout);
 			return this;
 		}
 

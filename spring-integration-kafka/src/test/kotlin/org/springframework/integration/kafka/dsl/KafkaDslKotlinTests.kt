@@ -73,6 +73,7 @@ import org.springframework.messaging.support.GenericMessage
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
@@ -328,7 +329,7 @@ class KafkaDslKotlinTests {
         fun replyingKafkaTemplate() =
                 ReplyingKafkaTemplate(producerFactory(), replyContainer())
                         .also {
-                            it.setReplyTimeout(30000)
+                            it.setDefaultReplyTimeout(Duration.ofSeconds(30))
                         }
 
         @Bean
