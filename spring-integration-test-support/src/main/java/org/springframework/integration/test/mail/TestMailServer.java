@@ -257,7 +257,7 @@ public final class TestMailServer {
 				super(socket);
 			}
 
-			@Override
+			@Override // NOSONAR
 			void doRun() {
 				try {
 					write("* OK IMAP4rev1 Service Ready");
