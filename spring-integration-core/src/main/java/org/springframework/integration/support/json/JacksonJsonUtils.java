@@ -16,8 +16,12 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.regex.Pattern;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
@@ -25,9 +29,15 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DatabindContext;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator.Builder;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -89,10 +99,11 @@ public final class JacksonJsonUtils {
 
 	/**
 	 * An implementation of {@link ObjectMapper.DefaultTypeResolverBuilder}
-	 * that verifies packages.
+	 * that wraps a default {@link TypeIdResolver} to the {@link WhitelistTypeIdResolver}.
 	 *
 	 * @author Rob Winch
 	 * @author Artem Bilan
+	 * @author Filip Hanik
 	 * @author Gary Russell
 	 *
 	 * @since 4.3.11
@@ -101,22 +112,46 @@ public final class JacksonJsonUtils {
 
 		private static final long serialVersionUID = 1L;
 
+		private final String[] trustedPackages;
+
 		WhitelistTypeResolverBuilder(String... trustedPackages) {
-			super(ObjectMapper.DefaultTyping.NON_FINAL, validator(trustedPackages));
+			super(ObjectMapper.DefaultTyping.NON_FINAL,
+					//we do explicit validation in the TypeIdResolver
+					BasicPolymorphicTypeValidator.builder()
+							.allowIfSubType(Object.class)
+							.build());
+
+			this.trustedPackages =
+					trustedPackages != null ? Arrays.copyOf(trustedPackages, trustedPackages.length) : null;
+
 			init(JsonTypeInfo.Id.CLASS, null)
 					.inclusion(JsonTypeInfo.As.PROPERTY);
 		}
 
-		private static BasicPolymorphicTypeValidator validator(String... trustedPackages) {
-			Builder builder = BasicPolymorphicTypeValidator.builder();
-			boolean anyMatch = false;
-			for (String pkg : trustedPackages) {
-				if (pkg.equals("*")) {
-					builder.allowIfSubType(Pattern.compile(".*"));
-					anyMatch = true;
-				}
-			}
-			if (!anyMatch) {
+		@Override
+		protected TypeIdResolver idResolver(MapperConfig<?> config,
+				JavaType baseType,
+				PolymorphicTypeValidator subtypeValidator,
+				Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
+			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
+			return new WhitelistTypeIdResolver(result, this.trustedPackages);
+		}
+
+	}
+
+	/**
+	 * A {@link TypeIdResolver} that delegates to an existing implementation
+	 * and throws an IllegalStateException if the class being looked up is not whitelisted,
+	 * does not provide an explicit mixin mappings.
+	 *
+	 * @author Rob Winch
+	 * @author Artem Bilan
+	 *
+	 * @since 4.3.11
+	 */
+	private static final class WhitelistTypeIdResolver implements TypeIdResolver {
+
+		private static final List<String> TRUSTED_PACKAGES =
 				Arrays.asList(
 						"java.util",
 						"java.lang",
@@ -124,13 +159,90 @@ public final class JacksonJsonUtils {
 						"org.springframework.integration.support",
 						"org.springframework.integration.message",
 						"org.springframework.integration.store"
-				).forEach(pkg -> builder.allowIfSubType(pkg));
-				for (String pkg : trustedPackages) {
-					builder.allowIfSubType(pkg);
+				);
+
+		private final TypeIdResolver delegate;
+
+		private final Set<String> trustedPackages = new LinkedHashSet<>(TRUSTED_PACKAGES);
+
+		WhitelistTypeIdResolver(TypeIdResolver delegate, String... trustedPackages) {
+			this.delegate = delegate;
+			if (trustedPackages != null) {
+				for (String whiteListClass : trustedPackages) {
+					if ("*".equals(whiteListClass)) {
+						this.trustedPackages.clear();
+						break;
+					}
+					else {
+						this.trustedPackages.add(whiteListClass);
+					}
 				}
-				builder.allowIfSubType(byte[].class);
 			}
-			return builder.build();
+		}
+
+		@Override
+		public void init(JavaType baseType) {
+			this.delegate.init(baseType);
+		}
+
+		@Override
+		public String idFromValue(Object value) {
+			return this.delegate.idFromValue(value);
+		}
+
+		@Override
+		public String idFromValueAndType(Object value, Class<?> suggestedType) {
+			return this.delegate.idFromValueAndType(value, suggestedType);
+		}
+
+		@Override
+		public String idFromBaseType() {
+			return this.delegate.idFromBaseType();
+		}
+
+		@Override
+		public JavaType typeFromId(DatabindContext context, String id) throws IOException {
+			DeserializationConfig config = (DeserializationConfig) context.getConfig();
+			JavaType result = this.delegate.typeFromId(context, id);
+
+			Package aPackage = result.getRawClass().getPackage();
+			if (aPackage == null || isTrustedPackage(aPackage.getName())) {
+				return result;
+			}
+
+			boolean isExplicitMixin = config.findMixInClassFor(result.getRawClass()) != null;
+			if (isExplicitMixin) {
+				return result;
+			}
+
+			throw new IllegalArgumentException("The class with " + id + " and name of " +
+					"" + result.getRawClass().getName() + " is not in the trusted packages: " +
+					"" + this.trustedPackages + ". " +
+					"If you believe this class is safe to deserialize, please provide its name or an explicit Mixin. " +
+					"If the serialization is only done by a trusted source, you can also enable default typing.");
+		}
+
+		private boolean isTrustedPackage(String packageName) {
+			if (!this.trustedPackages.isEmpty()) {
+				for (String trustedPackage : this.trustedPackages) {
+					if (packageName.equals(trustedPackage) || packageName.startsWith(trustedPackage + ".")) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			return true;
+		}
+
+		@Override
+		public String getDescForKnownTypeIds() {
+			return this.delegate.getDescForKnownTypeIds();
+		}
+
+		@Override
+		public JsonTypeInfo.Id getMechanism() {
+			return this.delegate.getMechanism();
 		}
 
 	}
