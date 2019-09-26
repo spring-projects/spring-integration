@@ -83,7 +83,7 @@ ext {
 	mysqlVersion = '8.0.16'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.6'
-	reactorVersion = 'Dysprosium-BUILD-SNAPSHOT'
+	reactorVersion = 'Dysprosium-RELEASE'
 	resilience4jVersion = '1.0.0'
 	romeToolsVersion = '1.12.1'
 	rsocketVersion = '1.0.0-RC3'
