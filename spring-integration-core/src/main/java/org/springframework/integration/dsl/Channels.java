@@ -29,7 +29,9 @@ import org.springframework.messaging.Message;
  *
  * @since 5.0
  */
-public class Channels {
+public final class Channels {
+
+	static final Channels INSTANCE = new Channels();
 
 	public DirectChannelSpec direct() {
 		return MessageChannels.direct();
@@ -129,7 +131,7 @@ public class Channels {
 		return MessageChannels.flux(id);
 	}
 
-	Channels() {
+	private Channels() {
 		super();
 	}
 

@@ -16,6 +16,10 @@
 
 package org.springframework.integration.dsl;
 
+import org.reactivestreams.Publisher;
+
+import org.springframework.messaging.Message;
+
 /**
  * @author Artem Bilan
  *
@@ -30,6 +34,11 @@ public final class IntegrationFlowBuilder extends IntegrationFlowDefinition<Inte
 	@Override
 	public StandardIntegrationFlow get() { // NOSONAR - not useless, increases visibility
 		return super.get();
+	}
+
+	@Override
+	public <T> Publisher<Message<T>> toReactivePublisher() { // NOSONAR - not useless, increases visibility
+		return super.toReactivePublisher();
 	}
 
 }
