@@ -231,7 +231,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) {
 		Assert.notNull(channels, "'channels' must not be null");
-		return channel(channels.apply(new Channels()));
+		return channel(channels.apply(Channels.INSTANCE));
 	}
 
 	/**
@@ -529,6 +529,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B transform(Object service, String methodName,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		MethodInvokingTransformer transformer;
 		if (StringUtils.hasText(methodName)) {
 			transformer = new MethodInvokingTransformer(service, methodName);
@@ -588,6 +589,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
@@ -614,8 +616,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@link MessageTransformingHandler} instance for the provided
 	 * {@link GenericTransformer} for the specific {@code payloadType} to convert at
 	 * runtime.
-	 * Use {@link #transform(Class, GenericTransformer)} if you need access to the
-	 * entire message.
 	 * @param payloadType the {@link Class} for expected payload type. It can also be
 	 * {@code Message.class} if you wish to access the entire message in the transformer.
 	 * Conversion to this type will be attempted, if necessary.
@@ -690,6 +690,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		Assert.notNull(genericTransformer, "'genericTransformer' must not be null");
 		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
 				(ClassUtils.isLambda(genericTransformer.getClass())
@@ -759,13 +760,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see MethodInvokingSelector
 	 */
 	public B filter(Object service, String methodName, Consumer<FilterEndpointSpec> endpointConfigurer) {
-		MethodInvokingSelector selector;
-		if (StringUtils.hasText(methodName)) {
-			selector = new MethodInvokingSelector(service, methodName);
-		}
-		else {
-			selector = new MethodInvokingSelector(service);
-		}
+		MethodInvokingSelector selector =
+				StringUtils.hasText(methodName)
+						? new MethodInvokingSelector(service, methodName)
+						: new MethodInvokingSelector(service);
 		return filter(selector, endpointConfigurer);
 	}
 
@@ -891,6 +889,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector,
 			Consumer<FilterEndpointSpec> endpointConfigurer) {
+
 		Assert.notNull(genericSelector, "'genericSelector' must not be null");
 		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
 				(ClassUtils.isLambda(genericSelector.getClass())
@@ -957,7 +956,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B handle(String beanName, String methodName,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return handle(new ServiceActivatingHandler(new BeanNameMessageProcessor<Object>(beanName, methodName)),
+		return handle(new ServiceActivatingHandler(new BeanNameMessageProcessor<>(beanName, methodName)),
 				endpointConfigurer);
 	}
 
@@ -997,6 +996,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B handle(Object service, String methodName,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		ServiceActivatingHandler handler;
 		if (StringUtils.hasText(methodName)) {
 			handler = new ServiceActivatingHandler(service, methodName);
@@ -1050,6 +1050,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B handle(GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		return handle(null, handler, endpointConfigurer);
 	}
 
@@ -1097,6 +1098,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		ServiceActivatingHandler serviceActivatingHandler;
 		if (ClassUtils.isLambda(handler.getClass())) {
 			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
@@ -1139,6 +1141,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
@@ -1164,6 +1167,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec,
 			Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
+
 		Assert.notNull(messageHandlerSpec, "'messageHandlerSpec' must not be null");
 		if (messageHandlerSpec instanceof ComponentsRegistration) {
 			addComponents(((ComponentsRegistration) messageHandlerSpec).getComponentsToRegister());
@@ -1188,7 +1192,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		Assert.notNull(messageHandler, "'messageHandler' must not be null");
-		return this.register(new GenericEndpointSpec<>(messageHandler), endpointConfigurer);
+		return register(new GenericEndpointSpec<>(messageHandler), endpointConfigurer);
 	}
 
 	/**
@@ -1306,6 +1310,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B enrichHeaders(MapBuilder<?, String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		return enrichHeaders(headers.get(), endpointConfigurer);
 	}
 
@@ -1331,8 +1336,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see GenericEndpointSpec
 	 */
-	public B enrichHeaders(final Map<String, Object> headers,
+	public B enrichHeaders(Map<String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		HeaderEnricherSpec headerEnricherSpec = new HeaderEnricherSpec();
 		headerEnricherSpec.headers(headers);
 		Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> tuple2 = headerEnricherSpec.get();
@@ -1450,6 +1456,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B split(Object service, String methodName,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+
 		MethodInvokingSplitter splitter;
 		if (StringUtils.hasText(methodName)) {
 			splitter = new MethodInvokingSplitter(service, methodName);
@@ -1484,7 +1491,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B split(String beanName, String methodName,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
-		return split(new MethodInvokingSplitter(new BeanNameMessageProcessor<Object>(beanName, methodName)),
+
+		return split(new MethodInvokingSplitter(new BeanNameMessageProcessor<>(beanName, methodName)),
 				endpointConfigurer);
 	}
 
@@ -1524,6 +1532,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		return addComponent(processor)
@@ -1581,6 +1590,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B split(Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+
 		return split(null, splitter, endpointConfigurer);
 	}
 
@@ -1669,8 +1679,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
+
 		Assert.notNull(splitter, "'splitter' must not be null");
-		return this.register(new SplitterEndpointSpec<>(splitter), endpointConfigurer);
+		return register(new SplitterEndpointSpec<>(splitter), endpointConfigurer);
 	}
 
 	/**
@@ -1680,7 +1691,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return this {@link IntegrationFlowDefinition}.
 	 */
 	public B headerFilter(String... headersToRemove) {
-		return this.headerFilter(new HeaderFilter(headersToRemove), null);
+		return headerFilter(new HeaderFilter(headersToRemove), null);
 	}
 
 	/**
@@ -1694,7 +1705,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public B headerFilter(String headersToRemove, boolean patternMatch) {
 		HeaderFilter headerFilter = new HeaderFilter(StringUtils.delimitedListToStringArray(headersToRemove, ",", " "));
 		headerFilter.setPatternMatch(patternMatch);
-		return this.headerFilter(headerFilter, null);
+		return headerFilter(headerFilter, null);
 	}
 
 	/**
@@ -1707,6 +1718,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B headerFilter(HeaderFilter headerFilter,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		return transform(headerFilter, endpointConfigurer);
 	}
 
@@ -1731,6 +1743,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B claimCheckIn(MessageStore messageStore,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		return transform(new ClaimCheckInTransformer(messageStore), endpointConfigurer);
 	}
 
@@ -1742,7 +1755,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B claimCheckOut(MessageStore messageStore) {
-		return this.claimCheckOut(messageStore, false);
+		return claimCheckOut(messageStore, false);
 	}
 
 	/**
@@ -1754,7 +1767,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see ClaimCheckOutTransformer#setRemoveMessage(boolean)
 	 */
 	public B claimCheckOut(MessageStore messageStore, boolean removeMessage) {
-		return this.claimCheckOut(messageStore, removeMessage, null);
+		return claimCheckOut(messageStore, removeMessage, null);
 	}
 
 	/**
@@ -1770,6 +1783,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B claimCheckOut(MessageStore messageStore, boolean removeMessage,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		ClaimCheckOutTransformer claimCheckOutTransformer = new ClaimCheckOutTransformer(messageStore);
 		claimCheckOutTransformer.setRemoveMessage(removeMessage);
 		return transform(claimCheckOutTransformer, endpointConfigurer);
@@ -1855,6 +1869,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(String beanName, String method, Consumer<RouterSpec<Object,
 			MethodInvokingRouter>> routerConfigurer) {
+
 		MethodInvokingRouter methodInvokingRouter =
 				new MethodInvokingRouter(new BeanNameMessageProcessor<>(beanName, method));
 		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
@@ -1894,6 +1909,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(Object service, String methodName,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+
 		MethodInvokingRouter router;
 		if (StringUtils.hasText(methodName)) {
 			router = new MethodInvokingRouter(service, methodName);
@@ -2062,6 +2078,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+
 		Assert.notNull(messageProcessorSpec, MESSAGE_PROCESSOR_SPEC_MUST_NOT_BE_NULL);
 		MessageProcessor<?> processor = messageProcessorSpec.get();
 		addComponent(processor);
@@ -2272,7 +2289,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B gateway(IntegrationFlow flow, Consumer<GatewayEndpointSpec> endpointConfigurer) {
 		MessageChannel requestChannel = obtainInputChannelFromFlow(flow);
-
 		return gateway(requestChannel, endpointConfigurer);
 	}
 
@@ -2826,11 +2842,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer,
 			Consumer<ScatterGatherSpec> scatterGather) {
+
 		AggregatorSpec aggregatorSpec = new AggregatorSpec();
 		if (gatherer != null) {
 			gatherer.accept(aggregatorSpec);
 		}
-
 		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(scatterChannel, aggregatingMessageHandler);
@@ -2882,7 +2898,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		if (gatherer != null) {
 			gatherer.accept(aggregatorSpec);
 		}
-
 		RecipientListRouter recipientListRouter = recipientListRouterSpec.get().getT2();
 		addComponent(recipientListRouter)
 				.addComponents(recipientListRouterSpec.getComponentsToRegister());
@@ -2933,6 +2948,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B trigger(String triggerActionId,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		MessageProcessor<Void> trigger = new BeanNameMessageProcessor<>(triggerActionId, "trigger");
 		return handle(new ServiceActivatingHandler(trigger), endpointConfigurer);
 	}
@@ -2955,6 +2971,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B trigger(MessageTriggerAction triggerAction,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+
 		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
 	}
 
@@ -2991,7 +3008,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the Reactive Streams {@link Publisher}
 	 */
 	@SuppressWarnings(UNCHECKED)
-	public <T> Publisher<Message<T>> toReactivePublisher() {
+	protected  <T> Publisher<Message<T>> toReactivePublisher() {
 		MessageChannel channelForPublisher = this.currentMessageChannel;
 		Publisher<Message<T>> publisher;
 		if (channelForPublisher instanceof Publisher) {
