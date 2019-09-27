@@ -30,18 +30,14 @@ import java.util.concurrent.locks.Lock;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -95,8 +91,7 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle,
-				SmartInitializingSingleton {
+		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle {
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
@@ -358,22 +353,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.forceReleaseProcessor = createGroupTimeoutProcessor();
 	}
 
-	@Override
-	public void afterSingletonsInstantiated() {
-		if (this.discardChannel == null) {
-			ApplicationContext applicationContext = getApplicationContext();
-			NullChannel nullChannel;
-			try {
-				nullChannel = applicationContext.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME,
-						NullChannel.class);
-			}
-			catch (@SuppressWarnings("unused") BeansException bex) {
-				nullChannel = new NullChannel();
-			}
-			this.discardChannel = nullChannel;
-		}
-	}
-
 	private MessageGroupProcessor createGroupTimeoutProcessor() {
 		MessageGroupProcessor processor = new ForceReleaseMessageGroupProcessor();
 
@@ -409,6 +388,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;
+		if (channelName == null && this.discardChannel == null) {
+			channelName = IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
+		}
 		if (channelName != null) {
 			this.discardChannel = getChannelResolver().resolveDestination(channelName);
 			this.discardChannelName = null;
