@@ -20,6 +20,7 @@ import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.lang.Nullable;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.
@@ -30,6 +31,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class DirectChannel extends AbstractSubscribableChannel {
 
@@ -45,12 +47,13 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	}
 
 	/**
-	 * Create a DirectChannel with a {@link LoadBalancingStrategy}. The
-	 * strategy <em>must not</em> be null.
-	 *
+	 * Create a DirectChannel with a {@link LoadBalancingStrategy}.
+	 * Can be {@code null} with meaning no balancing:
+	 * every message is always going to be handled by thr first subscriber.
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
+	 * @see #setFailover(boolean)
 	 */
-	public DirectChannel(LoadBalancingStrategy loadBalancingStrategy) {
+	public DirectChannel(@Nullable LoadBalancingStrategy loadBalancingStrategy) {
 		this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
 	}
 
@@ -58,7 +61,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify whether the channel's dispatcher should have failover enabled.
 	 * By default, it will. Set this value to 'false' to disable it.
-	 *
 	 * @param failover The failover boolean.
 	 */
 	public void setFailover(boolean failover) {
@@ -68,7 +70,6 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
-	 *
 	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
@@ -85,9 +86,8 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	protected void onInit() {
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			Integer max = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
-					Integer.class);
-			this.setMaxSubscribers(max);
+			Integer max = getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
+			setMaxSubscribers(max);
 		}
 	}
 
