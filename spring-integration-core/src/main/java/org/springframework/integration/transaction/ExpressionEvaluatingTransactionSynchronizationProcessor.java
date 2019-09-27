@@ -23,6 +23,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -115,27 +116,21 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	@Override
 	public void processBeforeCommit(IntegrationResourceHolder holder) {
-		if (this.beforeCommitChannel != null) {
-			doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
-		}
+		doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
 	@Override
 	public void processAfterCommit(IntegrationResourceHolder holder) {
-		if (this.afterCommitChannel != null) {
-			doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
-		}
+		doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
 	@Override
 	public void processAfterRollback(IntegrationResourceHolder holder) {
-		if (this.afterRollbackChannel != null) {
-			doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
-		}
+		doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
-	private void doProcess(IntegrationResourceHolder holder, Expression expression, MessageChannel messageChannel,
-			String expressionType) {
+	private void doProcess(IntegrationResourceHolder holder, Expression expression,
+			@Nullable MessageChannel messageChannel, String expressionType) {
 
 		Message<?> message = holder.getMessage();
 		if (message != null) {
@@ -146,7 +141,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 				}
 				EvaluationContext evaluationContextToUse = prepareEvaluationContextToUse(holder);
 				Object value = expression.getValue(evaluationContextToUse, message);
-				if (value != null) {
+				if (value != null && messageChannel != null) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Sending expression result message to " + messageChannel + " " +
 								"as part of '" + expressionType + "' transaction synchronization");
@@ -176,7 +171,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 					}
 				}
 			}
-			else {
+			else if (messageChannel != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Sending received message to " + messageChannel + " as part of '" +
 							expressionType + "' transaction synchronization");

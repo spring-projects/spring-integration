@@ -38,6 +38,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -55,6 +56,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -392,7 +394,17 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			channelName = IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
 		}
 		if (channelName != null) {
-			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			try {
+				this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			}
+			catch (DestinationResolutionException ex) {
+				if (channelName.equals(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+					this.discardChannel = new NullChannel();
+				}
+				else {
+					throw ex;
+				}
+			}
 			this.discardChannelName = null;
 		}
 		return this.discardChannel;

@@ -30,7 +30,6 @@ import org.springframework.integration.aggregator.MethodInvokingCorrelationStrat
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -60,7 +59,6 @@ public class ResequencerParserTests {
 		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
 				ResequencingMessageHandler.class);
 		assertThat(getPropertyValue(resequencer, "outputChannel")).isNull();
-		assertThat(getPropertyValue(resequencer, "discardChannel") instanceof NullChannel).isTrue();
 		assertThat(getPropertyValue(
 				resequencer, "messagingTemplate.sendTimeout"))
 				.as("The ResequencerEndpoint is not set with the appropriate timeout value").isEqualTo(-1L);
