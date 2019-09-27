@@ -156,12 +156,12 @@ Such an expression must evaluate to a `Map<Object, MimeType>`.
 When `command` is not `fireAndForget`, an `expectedResponseType` must be supplied.
 It is a `String.class` by default.
 An expression for this option can evaluate to a `ParameterizedTypeReference`.
-See `RSocketRequester.RequestSpec.retrieveMono()` and `RSocketRequester.RequestSpec.retrieveFlux()` JavaDocs for more information about reply data and its type.
+See the `RSocketRequester.RequestSpec.retrieveMono()` and `RSocketRequester.RequestSpec.retrieveFlux()` JavaDocs for more information about reply data and its type.
 
 A reply `payload` from the `RSocketOutboundGateway` is always `Mono` (even for a `fireAndForget` command it is `Mono<Void>`) always making this component as `async`.
 Such a `Mono` is subscribed before producing into the `outputChannel` for regular channels or processed on demand by the `FluxMessageChannel`.
-A `Flux` response for the `requestStreamOrChannel` command is also wrapped into a mentioned reply `Mono`.
-It can be flatten downstream by the `FluxMessageChannel` with a passthrough service activator:
+A `Flux` response for the `requestStreamOrChannel` command is also wrapped into a reply `Mono`.
+It can be flattened downstream by the `FluxMessageChannel` with a passthrough service activator:
 
 ====
 [source, java]
