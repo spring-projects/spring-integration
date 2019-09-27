@@ -147,11 +147,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			if (AopUtils.isAopProxy(this.source)) {
 				Advised advised = (Advised) this.source;
 				this.appliedAdvices.forEach(advised::removeAdvice);
-				chain.stream().forEach(advice -> advised.addAdvisor(adviceToReceiveAdvisor(advice)));
+				chain.forEach(advice -> advised.addAdvisor(adviceToReceiveAdvisor(advice)));
 			}
 			else {
 				ProxyFactory proxyFactory = new ProxyFactory(this.source);
-				chain.stream().forEach(advice -> proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice)));
+				chain.forEach(advice -> proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice)));
 				this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 			}
 			this.appliedAdvices.clear();

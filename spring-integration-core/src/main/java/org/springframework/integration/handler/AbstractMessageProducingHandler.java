@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.core.ReactiveAdapter;
+import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -346,8 +348,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			SettableListenableFuture<Object> settableListenableFuture = new SettableListenableFuture<>();
-			Mono.from((Publisher<?>) reply)
-					.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
+			Mono<?> reactiveReply;
+			ReactiveAdapter adapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(null, reply);
+			if (adapter != null && adapter.isMultiValue()) {
+				reactiveReply = Mono.just(reply);
+			}
+			else {
+				reactiveReply = Mono.from((Publisher<?>) reply);
+			}
+			reactiveReply.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
 			future = settableListenableFuture;
 		}
 		future.addCallback(new ReplyFutureCallback(requestMessage, replyChannel));

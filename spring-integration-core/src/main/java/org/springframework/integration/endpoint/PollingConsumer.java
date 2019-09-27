@@ -63,7 +63,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
-		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
+		if (inputChannel instanceof NullChannel) {
 			logger.warn("The polling from the NullChannel does not have any effects: " +
 					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
 		}
@@ -134,7 +134,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		try {
 			if (this.channelInterceptors != null
 					&& ((ExecutorChannelInterceptorAware) this.inputChannel).hasExecutorInterceptors()) {
-				interceptorStack = new ArrayDeque<ExecutorChannelInterceptor>();
+				interceptorStack = new ArrayDeque<>();
 				theMessage = applyBeforeHandle(theMessage, interceptorStack);
 				if (theMessage == null) {
 					return;

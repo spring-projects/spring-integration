@@ -708,6 +708,7 @@ String out = result.get(10, TimeUnit.SECONDS);
 ----
 ====
 
+[[reactor-mono]]
 ===== Reactor `Mono`
 
 Starting with version 5.0, the `GatewayProxyFactoryBean` allows the use of https://projectreactor.io/[Project Reactor] with gateway interface methods, using a https://github.com/reactor/reactor-core[`Mono<T>`] return type.
