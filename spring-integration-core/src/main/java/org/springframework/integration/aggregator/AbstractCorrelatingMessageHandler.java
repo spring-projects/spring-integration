@@ -30,8 +30,11 @@ import java.util.concurrent.locks.Lock;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
@@ -39,6 +42,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
@@ -91,7 +95,8 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle {
+		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle,
+				SmartInitializingSingleton {
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
@@ -315,7 +320,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		super.onInit();
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
@@ -326,10 +331,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.releaseStrategy instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.releaseStrategy).setBeanFactory(beanFactory);
 			}
-		}
-
-		if (this.discardChannel == null) {
-			this.discardChannel = new NullChannel();
 		}
 
 		if (this.releasePartialSequences) {
@@ -355,6 +356,22 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 */
 		this.lockRegistrySet = true;
 		this.forceReleaseProcessor = createGroupTimeoutProcessor();
+	}
+
+	@Override
+	public void afterSingletonsInstantiated() {
+		if (this.discardChannel == null) {
+			ApplicationContext applicationContext = getApplicationContext();
+			NullChannel nullChannel;
+			try {
+				nullChannel = applicationContext.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME,
+						NullChannel.class);
+			}
+			catch (@SuppressWarnings("unused") BeansException bex) {
+				nullChannel = new NullChannel();
+			}
+			this.discardChannel = nullChannel;
+		}
 	}
 
 	private MessageGroupProcessor createGroupTimeoutProcessor() {

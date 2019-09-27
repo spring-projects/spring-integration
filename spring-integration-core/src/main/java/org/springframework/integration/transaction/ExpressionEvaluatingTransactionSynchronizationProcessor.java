@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
@@ -66,11 +65,11 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	private volatile Expression afterRollbackExpression;
 
-	private volatile MessageChannel beforeCommitChannel = new NullChannel();
+	private volatile MessageChannel beforeCommitChannel;
 
-	private volatile MessageChannel afterCommitChannel = new NullChannel();
+	private volatile MessageChannel afterCommitChannel;
 
-	private volatile MessageChannel afterRollbackChannel = new NullChannel();
+	private volatile MessageChannel afterRollbackChannel;
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
@@ -116,17 +115,23 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	@Override
 	public void processBeforeCommit(IntegrationResourceHolder holder) {
-		doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
+		if (this.beforeCommitChannel != null) {
+			doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
+		}
 	}
 
 	@Override
 	public void processAfterCommit(IntegrationResourceHolder holder) {
-		doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
+		if (this.afterCommitChannel != null) {
+			doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
+		}
 	}
 
 	@Override
 	public void processAfterRollback(IntegrationResourceHolder holder) {
-		doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
+		if (this.afterRollbackChannel != null) {
+			doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
+		}
 	}
 
 	private void doProcess(IntegrationResourceHolder holder, Expression expression, MessageChannel messageChannel,

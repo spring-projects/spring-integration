@@ -30,7 +30,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
@@ -39,6 +38,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class AggregatorAnnotationTests {
 
@@ -51,7 +51,6 @@ public class AggregatorAnnotationTests {
 		assertThat(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy)
 				.isTrue();
 		assertThat(getPropertyValue(aggregator, "outputChannel")).isNull();
-		assertThat(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel).isTrue();
 		assertThat(getPropertyValue(aggregator, "messagingTemplate.sendTimeout")).isEqualTo(-1L);
 		assertThat(getPropertyValue(aggregator, "sendPartialResultOnExpiry")).isEqualTo(false);
 		context.close();

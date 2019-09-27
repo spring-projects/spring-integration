@@ -27,6 +27,7 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.lang.Nullable;
@@ -67,6 +68,8 @@ public class NullChannel implements PollableChannel,
 	private MetricsCaptor metricsCaptor;
 
 	private TimerFacade successTimer;
+
+	private CounterFacade receiveCounter;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -268,12 +271,34 @@ public class NullChannel implements PollableChannel,
 		if (this.loggingEnabled) {
 			this.logger.debug("receive called on null channel");
 		}
+		incrementReceiveCounter();
 		return null;
 	}
 
 	@Override
 	public Message<?> receive(long timeout) {
 		return receive();
+	}
+
+	private void incrementReceiveCounter() {
+		if (this.metricsCaptor != null) {
+			if (this.receiveCounter == null) {
+				this.receiveCounter = buildReceiveCounter();
+			}
+			this.receiveCounter.increment();
+		}
+	}
+
+	private CounterFacade buildReceiveCounter() {
+		CounterFacade counterFacade = this.metricsCaptor
+				.counterBuilder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "channel")
+				.tag("result", "success")
+				.tag("exception", "none")
+				.description("Messages received")
+				.build();
+		return counterFacade;
 	}
 
 	@Override
@@ -285,6 +310,9 @@ public class NullChannel implements PollableChannel,
 	public void destroy() {
 		if (this.successTimer != null) {
 			this.successTimer.remove();
+		}
+		if (this.receiveCounter != null) {
+			this.receiveCounter.remove();
 		}
 	}
 

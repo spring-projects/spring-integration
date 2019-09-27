@@ -45,39 +45,43 @@ import org.springframework.util.StringUtils;
 public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBean<FileTailingMessageProducerSupport>
 		implements BeanNameAware, SmartLifecycle, ApplicationEventPublisherAware {
 
-	private volatile String nativeOptions;
+	private String nativeOptions;
 
-	private volatile boolean enableStatusReader = true;
+	private boolean enableStatusReader = true;
 
-	private volatile Long idleEventInterval;
+	private Long idleEventInterval;
 
-	private volatile File file;
+	private File file;
 
-	private volatile TaskExecutor taskExecutor;
+	private TaskExecutor taskExecutor;
 
-	private volatile TaskScheduler taskScheduler;
+	private TaskScheduler taskScheduler;
 
-	private volatile Long delay;
+	private Long delay;
 
-	private volatile Long fileDelay;
+	private Long fileDelay;
 
-	private volatile Boolean end;
+	private Boolean end;
 
-	private volatile Boolean reopen;
+	private Boolean reopen;
 
-	private volatile FileTailingMessageProducerSupport tailAdapter;
+	private FileTailingMessageProducerSupport tailAdapter;
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile MessageChannel outputChannel;
+	private MessageChannel outputChannel;
 
-	private volatile MessageChannel errorChannel;
+	private MessageChannel errorChannel;
 
-	private volatile Boolean autoStartup;
+	private String outputChannelName;
 
-	private volatile Integer phase;
+	private String errorChannelName;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private Boolean autoStartup;
+
+	private Integer phase;
+
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	public void setNativeOptions(String nativeOptions) {
 		if (StringUtils.hasText(nativeOptions)) {
@@ -141,8 +145,16 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.outputChannel = outputChannel;
 	}
 
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
+	}
+
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
+	}
+
+	public void setErrorChannelName(String errorChannelName) {
+		this.errorChannelName = errorChannelName;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -238,6 +250,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 			.acceptIfNotNull(this.autoStartup, adapter::setAutoStartup)
 			.acceptIfNotNull(this.phase, adapter::setPhase)
 			.acceptIfNotNull(this.applicationEventPublisher, adapter::setApplicationEventPublisher)
+			.acceptIfNotNull(this.outputChannelName, adapter::setOutputChannelName)
+			.acceptIfNotNull(this.errorChannelName, adapter::setErrorChannelName)
 			.acceptIfNotNull(beanFactory, adapter::setBeanFactory);
 		adapter.afterPropertiesSet();
 		this.tailAdapter = adapter;
