@@ -20,7 +20,6 @@ import java.io.File;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.file.config.FileTailInboundChannelAdapterFactoryBean;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
@@ -32,6 +31,7 @@ import org.springframework.util.Assert;
  * A {@link MessageProducerSpec} for file tailing adapters.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -186,9 +186,6 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 	@Override
 	protected FileTailingMessageProducerSupport doGet() {
-		if (this.outputChannel == null) {
-			this.factoryBean.setOutputChannel(new NullChannel());
-		}
 		FileTailingMessageProducerSupport tailingMessageProducerSupport = null;
 		try {
 			this.factoryBean.afterPropertiesSet();

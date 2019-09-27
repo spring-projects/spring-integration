@@ -96,10 +96,8 @@ public class PseudoTransactionalMessageSourceTests {
 			}
 		});
 
-		MessageChannel afterCommitChannel = TestUtils.getPropertyValue(syncProcessor, "afterCommitChannel",
-				MessageChannel.class);
-		assertThat(afterCommitChannel).isInstanceOf(NullChannel.class);
-
+		MessageChannel afterCommitChannel = new NullChannel();
+		syncProcessor.setAfterCommitChannel(afterCommitChannel);
 		Log logger = TestUtils.getPropertyValue(afterCommitChannel, "logger", Log.class);
 
 		logger = Mockito.spy(logger);

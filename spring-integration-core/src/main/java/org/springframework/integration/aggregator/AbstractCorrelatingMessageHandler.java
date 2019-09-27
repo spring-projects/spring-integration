@@ -39,6 +39,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
@@ -55,6 +56,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -315,7 +317,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		super.onInit();
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		if (beanFactory != null) {
 			if (this.outputProcessor instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.outputProcessor).setBeanFactory(beanFactory);
@@ -326,10 +328,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.releaseStrategy instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.releaseStrategy).setBeanFactory(beanFactory);
 			}
-		}
-
-		if (this.discardChannel == null) {
-			this.discardChannel = new NullChannel();
 		}
 
 		if (this.releasePartialSequences) {
@@ -392,8 +390,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public MessageChannel getDiscardChannel() {
 		String channelName = this.discardChannelName;
+		if (channelName == null && this.discardChannel == null) {
+			channelName = IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
+		}
 		if (channelName != null) {
-			this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			try {
+				this.discardChannel = getChannelResolver().resolveDestination(channelName);
+			}
+			catch (DestinationResolutionException ex) {
+				if (channelName.equals(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+					this.discardChannel = new NullChannel();
+				}
+				else {
+					throw ex;
+				}
+			}
 			this.discardChannelName = null;
 		}
 		return this.discardChannel;
