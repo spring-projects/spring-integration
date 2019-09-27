@@ -63,7 +63,7 @@ ext {
 	hibernateVersion = '5.4.5.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.199'
-	jacksonVersion = '2.9.9.20190807'
+	jacksonVersion = '2.10.0'
 	javaxActivationVersion = '1.2.0'
 	javaxMailVersion = '1.6.2'
 	jmsApiVersion = '2.0.1'

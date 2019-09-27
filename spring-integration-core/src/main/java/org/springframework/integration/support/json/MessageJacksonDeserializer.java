@@ -24,7 +24,6 @@ import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,7 +48,6 @@ public abstract class MessageJacksonDeserializer<T extends Message<?>> extends S
 
 	protected MessageJacksonDeserializer(Class<T> targetType) {
 		super(targetType);
-		this.mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 	}
 
 	public void setMapper(ObjectMapper mapper) {

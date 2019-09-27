@@ -33,8 +33,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
@@ -146,8 +147,9 @@ public class ObjectToJsonTransformerTests {
 
 	@Test
 	public void objectPayloadWithCustomObjectMapper() {
-		ObjectMapper customMapper = new ObjectMapper();
-		customMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
+		ObjectMapper customMapper = JsonMapper.builder()
+				.configure(JsonWriteFeature.QUOTE_FIELD_NAMES, false)
+				.build();
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));

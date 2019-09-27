@@ -16,7 +16,6 @@
 
 package org.springframework.integration.json;
 
-import java.io.IOException;
 import java.util.AbstractList;
 import java.util.Iterator;
 
@@ -111,9 +110,6 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 				return assertContainerNode(json);
 			}
 			catch (JsonProcessingException e) {
-				throw new AccessException("Exception while trying to deserialize String", e);
-			}
-			catch (IOException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);
 			}
 		}

@@ -34,7 +34,9 @@ import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
@@ -101,6 +103,8 @@ public final class JacksonJsonUtils {
 	 *
 	 * @author Rob Winch
 	 * @author Artem Bilan
+	 * @author Filip Hanik
+	 * @author Gary Russell
 	 *
 	 * @since 4.3.11
 	 */
@@ -111,7 +115,12 @@ public final class JacksonJsonUtils {
 		private final String[] trustedPackages;
 
 		WhitelistTypeResolverBuilder(String... trustedPackages) {
-			super(ObjectMapper.DefaultTyping.NON_FINAL);
+			super(ObjectMapper.DefaultTyping.NON_FINAL,
+					//we do explicit validation in the TypeIdResolver
+					BasicPolymorphicTypeValidator.builder()
+							.allowIfSubType(Object.class)
+							.build());
+
 			this.trustedPackages =
 					trustedPackages != null ? Arrays.copyOf(trustedPackages, trustedPackages.length) : null;
 
@@ -120,10 +129,12 @@ public final class JacksonJsonUtils {
 		}
 
 		@Override
-		protected TypeIdResolver idResolver(MapperConfig<?> config, JavaType baseType, Collection<NamedType> subtypes,
-				boolean forSer, boolean forDeser) {
-			TypeIdResolver delegate = super.idResolver(config, baseType, subtypes, forSer, forDeser);
-			return new WhitelistTypeIdResolver(delegate, this.trustedPackages);
+		protected TypeIdResolver idResolver(MapperConfig<?> config,
+				JavaType baseType,
+				PolymorphicTypeValidator subtypeValidator,
+				Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
+			TypeIdResolver result = super.idResolver(config, baseType, subtypeValidator, subtypes, forSer, forDeser);
+			return new WhitelistTypeIdResolver(result, this.trustedPackages);
 		}
 
 	}
