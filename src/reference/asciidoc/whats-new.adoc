@@ -20,7 +20,7 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.2-behavior]]
 === Behavior Changes
 
-See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-5.1-to-5.2-Migration-Guide#dsl-publishsubscribechannel-behavior-change[Migration Guide] about a behavior change when using `publishSubscribeChannel` within a dynamically registered DSL integration flow.
+See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-5.1-to-5.2-Migration-Guide[Migration Guide] about behavior changes in this version.
 
 [[x5.2-new-components]]
 === New Components

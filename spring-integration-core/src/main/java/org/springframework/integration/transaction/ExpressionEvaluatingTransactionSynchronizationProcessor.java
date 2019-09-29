@@ -16,6 +16,7 @@
 
 package org.springframework.integration.transaction;
 
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.expression.EvaluationContext;
@@ -142,28 +143,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 				EvaluationContext evaluationContextToUse = prepareEvaluationContextToUse(holder);
 				Object value = expression.getValue(evaluationContextToUse, message);
 				if (value != null && messageChannel != null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Sending expression result message to " + messageChannel + " " +
-								"as part of '" + expressionType + "' transaction synchronization");
-					}
-					Message<?> spelResultMessage = null;
-					try {
-						if (value instanceof Message<?>) {
-							spelResultMessage = (Message<?>) value;
-						}
-						else {
-							spelResultMessage =
-									getMessageBuilderFactory()
-											.withPayload(value)
-											.copyHeaders(message.getHeaders())
-											.build();
-						}
-
-						sendMessage(messageChannel, spelResultMessage);
-					}
-					catch (Exception e) {
-						logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
-					}
+					sendMessageForExpressionResult(value, message.getHeaders(), messageChannel, expressionType);
 				}
 				else {
 					if (logger.isTraceEnabled()) {
@@ -186,6 +166,33 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 				}
 
 			}
+		}
+	}
+
+	private void sendMessageForExpressionResult(Object value, Map<String, ?> headers,
+			MessageChannel messageChannel, String expressionType) {
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sending expression result message to " + messageChannel + " " +
+					"as part of '" + expressionType + "' transaction synchronization");
+		}
+		Message<?> spelResultMessage = null;
+		try {
+			if (value instanceof Message<?>) {
+				spelResultMessage = (Message<?>) value;
+			}
+			else {
+				spelResultMessage =
+						getMessageBuilderFactory()
+								.withPayload(value)
+								.copyHeaders(headers)
+								.build();
+			}
+
+			sendMessage(messageChannel, spelResultMessage);
+		}
+		catch (Exception e) {
+			logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
 		}
 	}
 

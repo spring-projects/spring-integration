@@ -290,7 +290,7 @@ public class NullChannel implements PollableChannel,
 	}
 
 	private CounterFacade buildReceiveCounter() {
-		CounterFacade counterFacade = this.metricsCaptor
+		return this.metricsCaptor
 				.counterBuilder(RECEIVE_COUNTER_NAME)
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("type", "channel")
@@ -298,7 +298,6 @@ public class NullChannel implements PollableChannel,
 				.tag("exception", "none")
 				.description("Messages received")
 				.build();
-		return counterFacade;
 	}
 
 	@Override
