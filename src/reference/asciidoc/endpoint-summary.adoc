@@ -156,6 +156,11 @@ The following table summarizes the various endpoints with quick links to the app
 | <<./rmi.adoc#rmi-inbound,Inbound RMI>>
 | <<./rmi.adoc#rmi-outbound,Outbound RMI>>
 
+| *RSocket*
+| N
+| N
+| <<./rsocket.adoc#rsocket-inbound,RSocket Inbound Gateway>>
+| <<./rsocket.adoc#rsocket-outbound,RSocket Outbound Gateway>>
 
 | *SFTP*
 | <<./sftp.adoc#sftp-inbound,SFTP Inbound Channel Adapter>>
@@ -192,6 +197,12 @@ The following table summarizes the various endpoints with quick links to the app
 | <<./ip.adoc#udp-adapters,UDP Adapters>>
 | N
 | N
+
+| *WebFlux*
+| <<./webflux.adoc#webflux-inbound,WebFlux Inbound Channel Adapter>>
+| <<./webflux.adoc#webflux-outbound,WebFlux Outbound Channel Adapter>>
+| <<./webflux.adoc#webflux-inbound,Inbound WebFlux Gateway>>
+| <<./webflux.adoc#webflux-outbound,Outbound WebFlux Gateway>>
 
 | *Web Services*
 | N

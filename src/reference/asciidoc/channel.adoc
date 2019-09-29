@@ -156,12 +156,12 @@ Later, we show how each of these channels can be configured.
 The `DirectChannel` internally delegates to a message dispatcher to invoke its subscribed message handlers, and that dispatcher can have a load-balancing strategy exposed by `load-balancer` or `load-balancer-ref` attributes (mutually exclusive).
 The load balancing strategy is used by the message dispatcher to help determine how messages are distributed amongst message handlers when multiple message handlers subscribe to the same channel.
 As a convenience, the `load-balancer` attribute exposes an enumeration of values pointing to pre-existing implementations of `LoadBalancingStrategy`.
-A `round-robin` (load-balances across the handlers in rotation) and `none` (for the cases where one wants to explicitly disable load balancing) are the only available values.
+`round-robin` (load-balances across the handlers in rotation) and `none` (for the cases where one wants to explicitly disable load balancing) are the only available values.
 Other strategy implementations may be added in future versions.
 However, since version 3.0, you can provide your own implementation of the `LoadBalancingStrategy` and inject it by using the `load-balancer-ref` attribute, which should point to a bean that implements `LoadBalancingStrategy`, as the following example shows:
 
-A `FixedSubscriberChannel` is a variant of a `DirectChannel` with only single `MessageHandler` to subscribe provided during initialization.
-This is useful for high-throughput performance use-cases when no other subscribers are involved and no channel interceptors needed.
+A `FixedSubscriberChannel` is a `SubscribableChannel` that only supports a single `MessageHandler` subscriber that cannot be unsubscribed.
+This is useful for high-throughput performance use-cases when no other subscribers are involved and no channel interceptors are needed.
 
 ====
 [source,xml]
@@ -206,12 +206,12 @@ Since that situation would only occur in a non-predictable way, you should not r
 [[flux-message-channel]]
 ===== `FluxMessageChannel`
 
-The `FluxMessageChannel` is a `org.reactivestreams.Publisher` implementation for `"sinking"` sent messages into an internal `reactor.core.publisher.Flux` for on demand consumption by the reactive subscribers downstream.
-This channel implementation is nor a `SubscribableChannel`, neither `PollableChannel`, so only `org.reactivestreams.Subscriber` instances can be used for this channel consumption honoring back-pressure nature of reactive streams.
-On the other hand, the `FluxMessageChannel` implements a `ReactiveStreamsSubscribableChannel` with its `subscribeTo(Publisher<Message<?>>)` contract to allow to accept events from reactive source publishers bridging a reactive stream into the integration flow.
-To achieve a fully reactive behavior for the whole integration flow, such a channel must be placed between all the endpoints in the flow.
+The `FluxMessageChannel` is an `org.reactivestreams.Publisher` implementation for `"sinking"` sent messages into an internal `reactor.core.publisher.Flux` for on demand consumption by reactive subscribers downstream.
+This channel implementation is neither a `SubscribableChannel`, nor a `PollableChannel`, so only `org.reactivestreams.Subscriber` instances can be used to consume from this channel honoring back-pressure nature of reactive streams.
+On the other hand, the `FluxMessageChannel` implements a `ReactiveStreamsSubscribableChannel` with its `subscribeTo(Publisher<Message<?>>)` contract allowing receiving events from reactive source publishers, bridging a reactive stream into the integration flow.
+To achieve fully reactive behavior for the whole integration flow, such a channel must be placed between all the endpoints in the flow.
 
-See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information about an interaction with Reactive Streams.
+See <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> for more information about interaction with Reactive Streams.
 
 [[channel-implementations-threadlocalchannel]]
 ===== Scoped Channel
@@ -369,7 +369,7 @@ To create a message channel instance, you can use the `<channel/>` element, as f
 ----
 ====
 
-The Java configuration variant is about a `DirectChannel` bean definition:
+The equivalent Java configuration declares a `DirectChannel` `@Bean`:
 
 ====
 [source,java]
@@ -413,7 +413,7 @@ The following sections shows examples of each channel type.
 ===== `DirectChannel` Configuration
 
 As mentioned earlier, `DirectChannel` is the default type.
-The following listing shows who to define one in XML:
+The following listing shows who to define one:
 
 ====
 [source,xml]

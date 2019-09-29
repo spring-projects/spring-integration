@@ -1,12 +1,12 @@
 [[reactive-streams]]
 == Reactive Streams Support
 
-Spring Integration provides support for https://www.reactive-streams.org/[Reactive Streams] interaction in different place of the framework and from different aspects.
-We will revise most of them here with appropriate links to the target chapters for details whenever necessary.
+Spring Integration provides support for https://www.reactive-streams.org/[Reactive Streams] interaction in some places of the framework and from different aspects.
+We will discuss most of them here with appropriate links to the target chapters for details whenever necessary.
 
 === Preface
 
-To recap, the Spring Integration extends the Spring programming model to support the well-known Enterprise Integration Patterns.
+To recap, Spring Integration extends the Spring programming model to support the well-known Enterprise Integration Patterns.
 Spring Integration enables lightweight messaging within Spring-based applications and supports integration with external systems via declarative adapters.
 Spring Integration’s primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
 This goal is achieved in the target application using first class citizens like `message`, `channel` and `endpoint`, which allow us to build an integration flow (pipeline), where (in most cases) one endpoint produces messages into a channel to be consumed by another endpoint.
@@ -16,27 +16,66 @@ The crucial part here is a channel in between: the flow behavior depends from it
 On the other hand, the Reactive Streams is a standard for asynchronous stream processing with non-blocking back pressure.
 The main goal of Reactive Streams is to govern the exchange of stream data across an asynchronous boundary – like passing elements on to another thread or thread-pool – while ensuring that the receiving side is not forced to buffer arbitrary amounts of data.
 In other words, back pressure is an integral part of this model in order to allow the queues which mediate between threads to be bounded.
-The intention of Reactive Streams implementation, such as https://projectreactor.io/[Project Reactor], is to preserve the mentioned benefits and characteristics across the whole processing graph of a stream application.
-The ultimate goal of Reactive Streams libraries is to provide types, set of operators and support API to be a target application in transparent and smooth manner as it is possible with available programming language structure, but the final solution is not so imperative as it is with a normal functions chain invocation.
-It rather divided into to phases: definition and execution which happens somewhere later during subscription to the final reactive publisher and demand for data is pushed from the bottom of the definition to the top with a back-pressure manner - we request as much events as we can handle at the moment.
-The reactive application looks like a `"stream"` or as we got used to in Spring Integration terms - `"stream"`.
+The intention of Reactive Streams implementation, such as https://projectreactor.io/[Project Reactor], is to preserve these benefits and characteristics across the whole processing graph of a stream application.
+The ultimate goal of Reactive Streams libraries is to provide types, set of operators and supporting API for a target application in a transparent and smooth manner as is possible with available programming language structure, but the final solution is not as imperative as it is with a normal function chain invocation.
+It is divided into to phases: definition and execution, which happens some time later during subscription to the final reactive publisher, and demand for data is pushed from the bottom of the definition to the  top applying back-pressure as needed - we request as many events as we can handle at the moment.
+The reactive application looks like a `"stream"` or as we got used to in Spring Integration terms - `"flow"`.
 In fact the Reactive Streams SPI since Java 9 is presented in the `java.util.concurrent.Flow` class.
 
-From here it may look like Spring Integration flows are really a good fit for writing Reactive Streams applications when we apply some reactive framework operators on endpoints, but in fact the problems is much broader and we need to keep in mind that not all endpoints (e.g. `JdbcMessageHandler`) can be processed in reactive stream transparently.
+From here it may look like Spring Integration flows are really a good fit for writing Reactive Streams applications when we apply some reactive framework operators on endpoints, but in fact the problems is much broader and we need to keep in mind that not all endpoints (e.g. `JdbcMessageHandler`) can be processed in a reactive stream transparently.
 Of course, the main goal for Reactive Streams support in Spring Integration is to allow the whole process to be fully reactive, on demand initiated and back-pressure ready.
 It is not going to be possible until the target protocols and systems for channel adapters provide a Reactive Streams interaction model.
 In the sections below we will describe what components and approaches are provided in Spring Integration for developing reactive application preserving integration flow structures.
 
+NOTE: All the Reactive Streams interaction in Spring Integration implemented with https://projectreactor.io/[Project Reactor] types, such as `Mono` and `Flux`.
+
 === Messaging Gateway
+
+The simples point of interaction with Reactive Streams is a `@MessagingGateway` where we just make a return type of the gateway method as a `Mono<?>` - and the whole integration flow behind a gateway method call is going to be performed when a subscription happens on the returned `Mono` instance.
+See <./gateway.adoc#reactor-mono,Reactor `Mono`>> for more information.
+Similar `Mono`-reply approach is used in the framework internally for inbound gateways which are fully based on Reactive Streams compatible protocols (see <<reactive-channel-adapters>> below for more information).
+The send-and-receive operation is wrapped into a `Mono.deffer()` with chaining a reply evaluation from the `replyChannel` header whenever it is available.
+This way an inbound component for the particular reactive protocol (e.g. Netty) is going to be as a subscriber and initiator for a reactive flow performed on the Spring Integration.
+If the request payload is a reactive type, it would be better to handle it withing a reactive stream definition deferring a process to the initiator subscription.
+For this purpose a handler method must return a reactive type as well.
+See the next section for more information.
 
 === Reactive Reply Payload
 
+See <./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
+
 === `FluxMessageChannel` and `ReactiveStreamsConsumer`
+
+See <./channel.adoc#flux-message-channel,`FluxMessageChannel`>> for more information.
 
 === Source Polling Channel Adapter
 
+See <./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
+
 === Splitter and Aggregator
+
+See <./splitter.adoc#split-stream-and-flux,Stream and Flux Splitting>> and <./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
 === Java DSL
 
+See <./dsl.adoc#java-dsl,Java DSL Chapter>> for more information.
+
+[[reactive-channel-adapters]]
 === Reactive Channel Adapters
+
+When the target protocol for integration provides a Reactive Streams solution, it becomes straightforward to implement channel adapters in Spring Integration.
+
+An inbound, event-driven channel adapter implementation is about wrapping a request (if necessary) into a deferred `Mono` or `Flux` and perform a send (and produce reply, if any) only when a protocol component initiates a subscription into a `Mono` returned from the listener method.
+This way we have a reactive stream solution encapsulated exactly in this component.
+Of course, downstream integration flow subscribed on the output channel should honor Reactive Streams specification and be performed in the on demand, back-pressure ready manner.
+This is not always available by the nature (or the current implementation) of `MessageHandler` processor used in the integration flow.
+This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
+
+A reactive outbound channel adapter implementation is about initiation (or continue) a reactive stream to interaction with an external system according provided reactive API for the target protocol.
+An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of reactive stream on top.
+A returned reactive type can be subscribed immediately if we are in one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
+
+Currently Spring Integration provides channel adapter (or gateway) implementation for <./webflux.adoc#webflux,WebFlux>> and <./rsocket.adoc#rsocket,RSocket>>.
+Also an https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for Cassandra reactive driver.
+More reactive channel adapters are coming, for example for https://r2dbc.io/[R2DBC], https://mongodb.github.io/mongo-java-driver-reactivestreams/[MongoDB], for Apache Kafka in https://github.com/spring-projects/spring-integration-kafka[Spring Integration Kafka] based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
+For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.

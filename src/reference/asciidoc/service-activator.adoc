@@ -32,10 +32,12 @@ This can be useful when using <<./endpoint.adoc#content-type-conversion, content
 
 To delegate to an explicitly defined method of any object, you can add the `method` attribute, as the following example shows:
 
+====
 [source,xml]
 ----
 <int:service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/>
 ----
+====
 
 In either case, when the service method returns a non-null value, the endpoint tries to send the reply message to an appropriate reply channel.
 To determine the reply channel, it first checks whether an `output-channel` was provided in the endpoint configuration, as the following example shows:

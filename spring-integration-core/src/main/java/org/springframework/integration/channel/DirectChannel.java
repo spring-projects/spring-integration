@@ -48,8 +48,8 @@ public class DirectChannel extends AbstractSubscribableChannel {
 
 	/**
 	 * Create a DirectChannel with a {@link LoadBalancingStrategy}.
-	 * Can be {@code null} with meaning no balancing:
-	 * every message is always going to be handled by thr first subscriber.
+	 * Can be {@code null} meaning that no balancing is applied;
+	 * every message is always going to be handled by the first subscriber.
 	 * @param loadBalancingStrategy The load balancing strategy implementation.
 	 * @see #setFailover(boolean)
 	 */

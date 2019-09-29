@@ -57,6 +57,7 @@ And starting with version 5.0.9, this method also properly returns a size of the
 An `Iterator` object is useful to avoid the need for building an entire collection in the memory before splitting.
 For example, when underlying items are populated from some external system (e.g. DataBase or FTP `MGET`) using iterations or streams.
 
+[[split-stream-and-flux]]
 ===== Stream and Flux
 
 Starting with version 5.0, the `AbstractMessageSplitter` supports the Java `Stream` and Reactive Streams `Publisher` types for the `value` to split.
