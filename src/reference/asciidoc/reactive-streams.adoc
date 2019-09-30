@@ -31,9 +31,9 @@ NOTE: All the Reactive Streams interaction in Spring Integration implemented wit
 
 === Messaging Gateway
 
-The simples point of interaction with Reactive Streams is a `@MessagingGateway` where we just make a return type of the gateway method as a `Mono<?>` - and the whole integration flow behind a gateway method call is going to be performed when a subscription happens on the returned `Mono` instance.
+The simplest point of interaction with Reactive Streams is a `@MessagingGateway` where we just make a return type of the gateway method as a `Mono<?>` - and the whole integration flow behind a gateway method call is going to be performed when a subscription happens on the returned `Mono` instance.
 See <./gateway.adoc#reactor-mono,Reactor `Mono`>> for more information.
-Similar `Mono`-reply approach is used in the framework internally for inbound gateways which are fully based on Reactive Streams compatible protocols (see <<reactive-channel-adapters>> below for more information).
+A similar `Mono`-reply approach is used in the framework internally for inbound gateways which are fully based on Reactive Streams compatible protocols (see <<reactive-channel-adapters>> below for more information).
 The send-and-receive operation is wrapped into a `Mono.deffer()` with chaining a reply evaluation from the `replyChannel` header whenever it is available.
 This way an inbound component for the particular reactive protocol (e.g. Netty) is going to be as a subscriber and initiator for a reactive flow performed on the Spring Integration.
 If the request payload is a reactive type, it would be better to handle it withing a reactive stream definition deferring a process to the initiator subscription.
@@ -42,21 +42,65 @@ See the next section for more information.
 
 === Reactive Reply Payload
 
+When a reply producing `MessageHandler` returns a reactive type payload for a reply message, it is processed in an asynchronous manner with a regular `MessageChannel` implementation provided for the `outputChannel` and flattened with on demand subscription when the output channel is a `ReactiveStreamsSubscribableChannel` implementation, e.g. `FluxMessageChannel`.
+In case of standard imperative `MessageChannel` use-case and if a reply payload is a *multi-value* publisher (see `ReactiveAdapter.isMultiValue()` for more information), it is wrapped into a `Mono.just()`.
+A result of this `Mono` has to be subscribed explicitly downstream or flattened by the `FluxMessageChannel`, but still downstream.
+With a `ReactiveStreamsSubscribableChannel` for `outputChannel` not need to worry about return type and subscription: everything is processed smoothly by the framework internally.
+
 See <./service-activator.adoc#async-service-activator,Asynchronous Service Activator>> for more information.
 
 === `FluxMessageChannel` and `ReactiveStreamsConsumer`
+
+The `FluxMessageChannel` is a combined implementation of the `MessageChannel` and `Publisher<Message<?>>`.
+A `Flux`, as a hot source, is created internally for sinking incoming message from `send()` implementation.
+The `Publisher.subscribe()` implementation is delegated to that internal `Flux`.
+Also, for on demand upstream consumption, the `FluxMessageChannel` provides an implementation for the `ReactiveStreamsSubscribableChannel` contract.
+Any upstream `Publisher` (see Source Polling Channel Adapter and splitter below, for example) provided for this channel is auto-subscribed when subscription is ready for this channel.
+Events from this delegating publishers are sank into an internal `Flux` mentioned above.
+
+A consumer for the `FluxMessageChannel` must be a `org.reactivestreams.Subscriber` instance for honoring Reactive Streams contract.
+Fortunately all the `MessageHandler` implementations in Spring Integration also implement a `CoreSubscriber` from project Reactor.
+And thanks to a `ReactiveStreamsConsumer` implementation in between, the whole integration flow configuration is left transparent for target developers.
+The flow behavior is change in this case, of course: from imperative, push model to the reactive pull one.
+A `ReactiveStreamsConsumer` can also be used to turn any `MessageChannel` into a reactive source using `MessageChannelReactiveUtils`, making an integration flow partially reactive.
 
 See <./channel.adoc#flux-message-channel,`FluxMessageChannel`>> for more information.
 
 === Source Polling Channel Adapter
 
+Usually the `SourcePollingChannelAdapter` relies on the task which is initiated by the `TaskScheduler`.
+A polling trigger is built from the provided options and used for periodic scheduling for task to poll a target source of data or events.
+When an `outputChannel` is a `ReactiveStreamsSubscribableChannel`, the same `Trigger` is used to determine the next time for execution, but instead of scheduling tasks, the `SourcePollingChannelAdapter` creates a `Flux<Message<?>>` based on the `Flux.generate()` for the `nextExecutionTime` values and `Mono.delay()` for a duration from the previous step.
+A `Flux.flatMapMany()` is used then to poll `maxMessagesPerPoll` and sink them into an output `Flux`.
+This generator `Flux` is subscribed them by the provided `ReactiveStreamsSubscribableChannel` honoring a back-pressure downstream.
+This way any `MessageSource` implementation can be turned into a reactive hot source.
+
 See <./polling-consumer.adoc#polling-consumer,Polling Consumer>> for more information.
 
 === Splitter and Aggregator
 
+When an `AbstractMessageSplitter` gets a `Publisher` for its logic, the process goes naturally over items in `Publisher` to map them into messages for producing into an `outputChannel`.
+If this channel is a `ReactiveStreamsSubscribableChannel`, the `Flux` wrapper for the `Publisher`is subscribed on demand from that channel and this splitter behavior looks more like a `flatMap` Reactor's operator, when we map an incoming event into multi-value output `Publisher`.
+Especially, it makes more sense when the whole integration flow is built with a `FluxMessageChannel` before and after splitter, aligning Spring Integration configuration with a Reactive Streams requirements and its operators for event processing.
+With a regular channel, a `Publisher` is converted into an `Iterable` for standard iterate-and-produce splitting logic.
+
+A `FluxAggregatorMessageHandler` is another sample of particular Reactive Streams logic implementation which could be treated as a `"reactive operator"` in terms of Project Reactor.
+It is fully based on the `Flux.groupBy()` and `Flux.window()` (or `buffer()`) operators.
+The incoming messages are sank into a `Flux.create()` initiated when a `FluxAggregatorMessageHandler` is created making it as a hot source.
+This `Flux` is subscribed by the `ReactiveStreamsSubscribableChannel` on demand or directly in the `FluxAggregatorMessageHandler.start()` when `outputChannel` is not reactive.
+This `MessageHandler` has its power, when the whole integration flow is built with a `FluxMessageChannel` before and after this component making the whole logic back-pressure ready.
+
 See <./splitter.adoc#split-stream-and-flux,Stream and Flux Splitting>> and <./aggregator.adoc#flux-aggregator,Flux Aggregator>> for more information.
 
 === Java DSL
+
+An `IntegrationFlow` in Java DSL can start from any `Publisher` instance (see `IntegrationFlows.from(Publisher<Message<T>>)`), as well as with an `IntegrationFlowBuilder.toReactivePublisher()` operator, the `IntegrationFlow` can be turned into a reactive hot source.
+A `FluxMessageChannel` is used internally in both cased: it can subscribe to inbound `Publisher` according its `ReactiveStreamsSubscribableChannel` contract and it is a `Publisher<Message<?>>` by itself for downstream subscribers.
+With a dynamic `IntegrationFlow` registration we can implement a powerful logic combining Reactive Streams with this integration flow bringing to/from `Publisher`.
+
+For exactly opposite use-case, when `IntegrationFlow` should call a reactive stream and continue after completion, a `fluxTransform()` operator is provided in the `IntegrationFlowDefinition`.
+The flow at this point is turned into a `FluxMessageChannel` which is propagated into a provided `fluxFunction`, performed in the `Flux.transform()` operator.
+A result of the function is wrapped into a `Mono<Message<?>>` for flat-mapping into an output `Flux` which is subscribed by another `FluxMessageChannel` for downstream flow.
 
 See <./dsl.adoc#java-dsl,Java DSL Chapter>> for more information.
 
@@ -71,11 +115,11 @@ Of course, downstream integration flow subscribed on the output channel should h
 This is not always available by the nature (or the current implementation) of `MessageHandler` processor used in the integration flow.
 This limitation can be handled using thread pools and queues or `FluxMessageChannel` (see above) before and after integration endpoints when there is no reactive implementation.
 
-A reactive outbound channel adapter implementation is about initiation (or continue) a reactive stream to interaction with an external system according provided reactive API for the target protocol.
+A reactive outbound channel adapter implementation is about initiation (or continuation) of a reactive stream to interaction with an external system according provided reactive API for the target protocol.
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
 
-Currently Spring Integration provides channel adapter (or gateway) implementation for <./webflux.adoc#webflux,WebFlux>> and <./rsocket.adoc#rsocket,RSocket>>.
-Also an https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for Cassandra reactive driver.
+Currently Spring Integration provides channel adapter (or gateway) implementations for <./webflux.adoc#webflux,WebFlux>> and <./rsocket.adoc#rsocket,RSocket>>.
+Also an https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
 More reactive channel adapters are coming, for example for https://r2dbc.io/[R2DBC], https://mongodb.github.io/mongo-java-driver-reactivestreams/[MongoDB], for Apache Kafka in https://github.com/spring-projects/spring-integration-kafka[Spring Integration Kafka] based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.
