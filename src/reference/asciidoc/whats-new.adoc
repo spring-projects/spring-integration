@@ -12,6 +12,8 @@ If you are interested in the changes and features that were introduced in earlie
 
 If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.2 development process.
 
+Also see a new <<./reactive-streams.adoc#reactive-streams,Reactive Streams Support>> chapter in this documentation.
+
 [[x5.2-package-class]]
 === Package and Class Changes
 
