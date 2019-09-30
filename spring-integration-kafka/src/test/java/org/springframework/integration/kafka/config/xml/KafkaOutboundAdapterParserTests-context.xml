@@ -23,6 +23,7 @@
 										error-message-strategy="ems"
 										send-failure-channel="failures"
 										send-success-channel="successes"
+										header-mapper="customHeaderMapper"
 	>
 		<int-kafka:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
@@ -53,5 +54,7 @@
 	<int:channel id="failures" />
 
 	<int:channel id="successes" />
+	
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
 
 </beans>

@@ -84,6 +84,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Gary Russell
  * @author Marius Bogoevici
  * @author Biju Kunjummen
+ * @author Tom van den Berge
  *
  * @since 0.5
  */
@@ -184,6 +185,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	 */
 	public void setHeaderMapper(KafkaHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
+	}
+
+	public KafkaHeaderMapper getHeaderMapper() {
+		return this.headerMapper;
 	}
 
 	public KafkaTemplate<?, ?> getKafkaTemplate() {

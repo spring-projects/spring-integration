@@ -104,6 +104,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Gary Russell
  * @author Biju Kunjummen
  * @author Artem Bilan
+ * @author Tom van den Berge
  *
  * @since 2.0
  */
@@ -325,6 +326,28 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(((MessagingException) received.getPayload()).getFailedMessage()).isSameAs(message);
 		assertThat(((MessagingException) received.getPayload()).getCause()).isSameAs(fooException);
 		assertThat(((KafkaSendFailureException) received.getPayload()).getRecord()).isNotNull();
+
+		producerFactory.destroy();
+	}
+
+	@Test
+	public void testOutboundWithCustomHeaderMapper() throws Exception {
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+				KafkaTestUtils.producerProps(embeddedKafka));
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
+		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setHeaderMapper(new DefaultKafkaHeaderMapper("!*"));
+		handler.afterPropertiesSet();
+
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(KafkaHeaders.TOPIC, topic1)
+				.setHeader("foo-header", "foo-header-value")
+				.build();
+		handler.handleMessage(message);
+
+		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record.headers().toArray().length).isEqualTo(0);
 
 		producerFactory.destroy();
 	}
