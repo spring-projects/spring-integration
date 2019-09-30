@@ -28,6 +28,6 @@ import org.springframework.messaging.Message;
  */
 public interface ReactiveStreamsSubscribableChannel {
 
-	void subscribeTo(Publisher<Message<?>> publisher);
+	void subscribeTo(Publisher<? extends Message<?>> publisher);
 
 }

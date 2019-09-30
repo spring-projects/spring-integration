@@ -228,7 +228,7 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(serviceInterface, endpointConfigurer);
 	}
 
-	protected IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
+	protected IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
 		return IntegrationFlows.from(publisher);
 	}
 
