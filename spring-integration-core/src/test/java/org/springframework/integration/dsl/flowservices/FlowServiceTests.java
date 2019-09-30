@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -175,7 +174,7 @@ public class FlowServiceTests {
 
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
-			return from(this, "messageSource", e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
+			return from(this::messageSource, e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
 					.split(this, null, e -> e.applySequence(false))
 					.transform(this)
 					.aggregate(a -> a.processor(this, null))
@@ -213,7 +212,7 @@ public class FlowServiceTests {
 
 		@Aggregator
 		public String aggregate(List<String> payloads) {
-			return payloads.stream().collect(Collectors.joining());
+			return String.join("", payloads);
 		}
 
 		@Filter
