@@ -139,9 +139,10 @@ public final class IntegrationFlows {
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
 	 * @return new {@link IntegrationFlowBuilder}.
-	 * @since 1.1
 	 * @see MethodInvokingMessageSource
+	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
 	 */
+	@Deprecated
 	public static IntegrationFlowBuilder from(Object service, String methodName) {
 		return from(service, methodName, null);
 	}
@@ -155,7 +156,7 @@ public final class IntegrationFlows {
 	 * @see Supplier
 	 */
 	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
-		return from(messageSource, "get", null);
+		return from(messageSource, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
@@ -171,7 +172,11 @@ public final class IntegrationFlows {
 	 */
 	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		return from(messageSource, "get", endpointConfigurer);
+		Assert.notNull(messageSource, "'messageSource' must not be null");
+		MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
+		methodInvokingMessageSource.setObject(messageSource);
+		methodInvokingMessageSource.setMethodName("get");
+		return from(methodInvokingMessageSource, endpointConfigurer);
 	}
 
 	/**
@@ -182,9 +187,10 @@ public final class IntegrationFlows {
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
 	 * @return new {@link IntegrationFlowBuilder}.
-	 * @since 1.1
 	 * @see MethodInvokingMessageSource
+	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
 	 */
+	@Deprecated
 	public static IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		Assert.notNull(service, "'service' must not be null");

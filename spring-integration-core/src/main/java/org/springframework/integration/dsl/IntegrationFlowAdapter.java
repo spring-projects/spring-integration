@@ -179,10 +179,26 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(inboundGatewaySpec);
 	}
 
+	/**
+	 * @param service service for polling method
+	 * @param methodName method to poll
+	 * @return the IntegrationFlowBuilder
+	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
+	 */
+	@Deprecated
 	protected IntegrationFlowBuilder from(Object service, String methodName) {
 		return IntegrationFlows.from(service, methodName);
 	}
 
+	/**
+	 *
+	 * @param service service for polling method
+	 * @param methodName method to poll
+	 * @param endpointConfigurer configurer for {@link SourcePollingChannelAdapterSpec}
+	 * @return the IntegrationFlowBuilder
+	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
+	 */
+	@Deprecated
 	protected IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 
