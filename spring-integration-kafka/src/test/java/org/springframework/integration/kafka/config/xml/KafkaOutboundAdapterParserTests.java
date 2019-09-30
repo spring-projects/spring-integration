@@ -53,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Biju Kunjummen
+ * @author Tom van den Berge
  *
  * @since 0.5
  */
@@ -84,6 +85,8 @@ public class KafkaOutboundAdapterParserTests {
 				.isSameAs(this.appContext.getBean("failures"));
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sendSuccessChannel"))
 				.isSameAs(this.appContext.getBean("successes"));
+		assertThat(TestUtils.getPropertyValue(messageHandler, "headerMapper"))
+				.isSameAs(this.appContext.getBean("customHeaderMapper"));
 
 		messageHandler
 				= this.appContext.getBean("kafkaOutboundChannelAdapter2.handler", KafkaProducerMessageHandler.class);
@@ -93,7 +96,6 @@ public class KafkaOutboundAdapterParserTests {
 
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.literalValue")).isEqualTo("500");
 	}
-
 
 	@Test
 	public void testSyncMode() {

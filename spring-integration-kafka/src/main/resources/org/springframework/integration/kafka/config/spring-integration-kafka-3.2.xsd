@@ -31,6 +31,7 @@
 				<xsd:extension base="outboundType">
 					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 					<xsd:attributeGroup ref="kafkaTemplate"/>
+					<xsd:attributeGroup ref="headerMapper"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -126,6 +127,7 @@
 								]]></xsd:documentation>
 							</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="headerMapper"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -635,6 +637,21 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.kafka.core.KafkaTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="headerMapper">
+		<xsd:attribute name="header-mapper" use="optional" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+							Specifies the HeaderMapper used map Spring message headers to or from Kafka message headers.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.kafka.support.KafkaHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

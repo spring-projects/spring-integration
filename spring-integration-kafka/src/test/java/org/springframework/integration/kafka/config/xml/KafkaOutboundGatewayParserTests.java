@@ -31,6 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Tom van den Berge
  * @since 3.2
  *
  */
@@ -66,6 +67,8 @@ public class KafkaOutboundGatewayParserTests {
 				.isSameAs(this.context.getBean("failures"));
 		assertThat(TestUtils.getPropertyValue(this.messageHandler, "sendSuccessChannel"))
 				.isSameAs(this.context.getBean("successes"));
+		assertThat(TestUtils.getPropertyValue(this.messageHandler, "headerMapper"))
+				.isSameAs(this.context.getBean("customHeaderMapper"));
 	}
 
 	public static class EMS extends DefaultErrorMessageStrategy {

@@ -23,7 +23,9 @@
 		send-timeout-expression="44"
 		sync="true"
 		timestamp-expression="T(System).currentTimeMillis()"
-		topic-expression="'topic'"/>
+		topic-expression="'topic'"
+		header-mapper="customHeaderMapper"
+		/>
 
 	<int:channel id="requests"/>
 
@@ -39,4 +41,5 @@
 		<constructor-arg value="org.springframework.kafka.requestreply.ReplyingKafkaTemplate"/>
 	</bean>
 
+	<bean id="customHeaderMapper" class="org.springframework.kafka.support.DefaultKafkaHeaderMapper" />
 </beans>
