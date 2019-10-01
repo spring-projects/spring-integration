@@ -40,6 +40,7 @@ import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2.2
  */
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class JpaExecutorTests {
 
 	@Autowired
@@ -61,7 +63,7 @@ public class JpaExecutorTests {
 	private BeanFactory beanFactory;
 
 	/**
-	 * In this test, the {@link JpaExecutor}'s poll method will be called without
+	 * In this test, the {@link JpaExecutor}'s p\oll method will be called without
 	 * specifying a 'query', 'namedQuery' or 'entityClass' property. This should
 	 * result in an {@link IllegalArgumentException}.
 	 */
