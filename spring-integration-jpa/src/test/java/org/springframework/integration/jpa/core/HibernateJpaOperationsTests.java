@@ -21,16 +21,18 @@ import java.text.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Test
@@ -65,8 +67,7 @@ public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Test
 	@Override
-	public void testExecuteSelectWithNativeQueryReturningEntityClass()
-			throws ParseException {
+	public void testExecuteSelectWithNativeQueryReturningEntityClass() throws ParseException {
 		super.testExecuteSelectWithNativeQueryReturningEntityClass();
 	}
 
