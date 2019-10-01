@@ -46,8 +46,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.StaticMessageHeaderAccessor;
@@ -77,7 +78,6 @@ import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.kafka.support.converter.StringJsonMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -102,7 +102,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 2.0
  *
  */
-public class MessageDrivenAdapterTests {
+class MessageDrivenAdapterTests {
 
 	private static String topic1 = "testTopic1";
 
@@ -116,14 +116,22 @@ public class MessageDrivenAdapterTests {
 
 	private static String topic6 = "testTopic6";
 
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafkaRule =
-			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5, topic6);
+	private static EmbeddedKafkaBroker embeddedKafka;
 
-	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
+	@BeforeAll
+	static void setup() {
+		embeddedKafka = new EmbeddedKafkaBroker(1, true,
+				topic1, topic2, topic3, topic4, topic5, topic6);
+		embeddedKafka.afterPropertiesSet();
+	}
+
+	@AfterAll
+	static void tearDown() {
+		embeddedKafka.destroy();
+	}
 
 	@Test
-	public void testInboundRecord() {
+	void testInboundRecord() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -208,7 +216,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundRecordRetryRecover() {
+	void testInboundRecordRetryRecover() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -266,7 +274,7 @@ public class MessageDrivenAdapterTests {
 	 * to the consumer.
 	 */
 	@Test
-	public void testInboundRecordRetryRecoverWithoutRecoveryCallback() throws Exception {
+	void testInboundRecordRetryRecoverWithoutRecoveryCallback() throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -316,7 +324,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundRecordNoRetryRecover() {
+	void testInboundRecordNoRetryRecover() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test5", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -368,7 +376,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundBatch() throws Exception {
+	void testInboundBatch() throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -391,6 +399,7 @@ public class MessageDrivenAdapterTests {
 			@Override
 			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment,
 					Consumer<?, ?> consumer, Type type) {
+
 				Message<?> message = super.toMessage(records, acknowledgment, consumer, type);
 				return MessageBuilder.fromMessage(message).setHeader("testHeader", "testValue").build();
 			}
@@ -431,6 +440,7 @@ public class MessageDrivenAdapterTests {
 			@Override
 			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment,
 					Consumer<?, ?> consumer, Type payloadType) {
+
 				throw new RuntimeException("testError");
 			}
 
@@ -453,7 +463,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundJson() {
+	void testInboundJson() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -495,7 +505,7 @@ public class MessageDrivenAdapterTests {
 	}
 
 	@Test
-	public void testInboundJsonWithPayload() {
+	void testInboundJsonWithPayload() {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test6", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, Foo> cf = new DefaultKafkaConsumerFactory<>(props);
@@ -503,7 +513,8 @@ public class MessageDrivenAdapterTests {
 		KafkaMessageListenerContainer<Integer, Foo> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 
-		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = Kafka.messageDrivenChannelAdapter(container, ListenerMode.record)
+		KafkaMessageDrivenChannelAdapter<Integer, Foo> adapter = Kafka
+				.messageDrivenChannelAdapter(container, ListenerMode.record)
 				.recordMessageConverter(new StringJsonMessageConverter())
 				.payloadType(Foo.class)
 				.get();
@@ -542,7 +553,7 @@ public class MessageDrivenAdapterTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testPauseResume() throws Exception {
+	void testPauseResume() throws Exception {
 		ConsumerFactory<Integer, String> cf = mock(ConsumerFactory.class);
 		Consumer<Integer, String> consumer = mock(Consumer.class);
 		given(cf.createConsumer(isNull(), eq("clientId"), isNull(), any())).willReturn(consumer);
@@ -597,14 +608,14 @@ public class MessageDrivenAdapterTests {
 		adapter.stop();
 	}
 
-	public static class Foo {
+	static class Foo {
 
 		private String bar;
 
-		public Foo() {
+		Foo() {
 		}
 
-		public Foo(String bar) {
+		Foo(String bar) {
 			this.bar = bar;
 		}
 
@@ -637,14 +648,11 @@ public class MessageDrivenAdapterTests {
 			}
 			Foo other = (Foo) obj;
 			if (this.bar == null) {
-				if (other.bar != null) {
-					return false;
-				}
+				return other.bar == null;
 			}
-			else if (!this.bar.equals(other.bar)) {
-				return false;
+			else {
+				return this.bar.equals(other.bar);
 			}
-			return true;
 		}
 
 	}

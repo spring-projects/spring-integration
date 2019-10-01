@@ -30,9 +30,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,7 +65,8 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -78,7 +77,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
@@ -89,23 +88,21 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 3.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
+@EmbeddedKafka(topics = { KafkaDslTests.TEST_TOPIC1, KafkaDslTests.TEST_TOPIC2, KafkaDslTests.TEST_TOPIC3,
+		KafkaDslTests.TEST_TOPIC4, KafkaDslTests.TEST_TOPIC5 })
 public class KafkaDslTests {
 
-	private static final String TEST_TOPIC1 = "test-topic1";
+	static final String TEST_TOPIC1 = "test-topic1";
 
-	private static final String TEST_TOPIC2 = "test-topic2";
+	static final String TEST_TOPIC2 = "test-topic2";
 
-	private static final String TEST_TOPIC3 = "test-topic3";
+	static final String TEST_TOPIC3 = "test-topic3";
 
-	private static final String TEST_TOPIC4 = "test-topic4";
+	static final String TEST_TOPIC4 = "test-topic4";
 
-	private static final String TEST_TOPIC5 = "test-topic5";
-
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafka =
-			new EmbeddedKafkaRule(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5);
+	static final String TEST_TOPIC5 = "test-topic5";
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -151,7 +148,6 @@ public class KafkaDslTests {
 
 	@Test
 	public void testKafkaAdapters() throws Exception {
-
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
 		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper);
@@ -230,10 +226,14 @@ public class KafkaDslTests {
 
 		private Object fromSource;
 
+		@Autowired
+		private EmbeddedKafkaBroker embeddedKafka;
+
+
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
 			Map<String, Object> props = KafkaTestUtils
-					.consumerProps("test1", "false", embeddedKafka.getEmbeddedKafka());
+					.consumerProps("test1", "false", this.embeddedKafka);
 			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(props);
 		}
@@ -295,7 +295,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public ProducerFactory<Integer, String> producerFactory() {
-			Map<String, Object> props = KafkaTestUtils.producerProps(embeddedKafka.getEmbeddedKafka());
+			Map<String, Object> props = KafkaTestUtils.producerProps(this.embeddedKafka);
 			props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 10000);
 			return new DefaultKafkaProducerFactory<>(props);
 		}

@@ -17,7 +17,7 @@
 package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -29,8 +29,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +44,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Soby Chacko
@@ -57,18 +55,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 0.5
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
-public class KafkaOutboundAdapterParserTests {
+class KafkaOutboundAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext appContext;
 
 	@Test
-	public void testOutboundAdapterConfiguration() {
+	void testOutboundAdapterConfiguration() {
 		KafkaProducerMessageHandler<?, ?> messageHandler
-			= this.appContext.getBean("kafkaOutboundChannelAdapter.handler", KafkaProducerMessageHandler.class);
+				= this.appContext.getBean("kafkaOutboundChannelAdapter.handler", KafkaProducerMessageHandler.class);
 		assertThat(messageHandler).isNotNull();
 		assertThat(messageHandler.getOrder()).isEqualTo(3);
 		assertThat(TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue")).isEqualTo("foo");
@@ -98,7 +95,7 @@ public class KafkaOutboundAdapterParserTests {
 	}
 
 	@Test
-	public void testSyncMode() {
+	void testSyncMode() {
 		MockProducer<Integer, String> mockProducer =
 				new MockProducer<Integer, String>(false, new IntegerSerializer(), new StringSerializer()) {
 
@@ -128,28 +125,18 @@ public class KafkaOutboundAdapterParserTests {
 					return null;
 				});
 
-		try {
-			handler.handleMessage(new GenericMessage<>("foo"));
-			fail("MessageHandlingException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageHandlingException.class);
-			assertThat(e.getCause()).isExactlyInstanceOf(KafkaProducerException.class);
-			assertThat(e.getCause().getCause()).isInstanceOf(RuntimeException.class);
-			assertThat(e.getMessage()).contains("Async Producer Mock exception");
-		}
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(KafkaProducerException.class)
+				.withRootCauseInstanceOf(RuntimeException.class)
+				.withMessageContaining("Async Producer Mock exception");
 
 		handler.setSendTimeout(1);
 
-		try {
-			handler.handleMessage(new GenericMessage<>("foo"));
-			fail("MessageTimeoutException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageTimeoutException.class);
-			assertThat(e.getCause()).isExactlyInstanceOf(TimeoutException.class);
-			assertThat(e.getMessage()).contains("Timeout waiting for response from KafkaProducer");
-		}
+		assertThatExceptionOfType(MessageTimeoutException.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(TimeoutException.class)
+				.withMessageContaining("Timeout waiting for response from KafkaProducer");
 	}
 
 }

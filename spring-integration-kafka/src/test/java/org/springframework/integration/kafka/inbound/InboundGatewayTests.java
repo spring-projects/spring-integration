@@ -29,9 +29,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -40,7 +40,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -52,7 +51,6 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -76,7 +74,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 3.0.2
  *
  */
-public class InboundGatewayTests {
+class InboundGatewayTests {
 
 	private static String topic1 = "testTopic1";
 
@@ -92,32 +90,37 @@ public class InboundGatewayTests {
 
 	private static String topic7 = "testTopic7";
 
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafka =
-			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5, topic6, topic7);
+	private static EmbeddedKafkaBroker embeddedKafka;
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace().categories("org.apache.kafka.clients",
-			"org.springframework.kafka", "org.springframework.integration");
+	@BeforeAll
+	static void setup() {
+		embeddedKafka = new EmbeddedKafkaBroker(1, true,
+				topic1, topic2, topic3, topic4, topic5, topic6, topic7);
+		embeddedKafka.afterPropertiesSet();
+	}
+
+	@AfterAll
+	static void tearDown() {
+		embeddedKafka.destroy();
+	}
 
 	@Test
-	public void testInbound() throws Exception {
-		EmbeddedKafkaBroker embedded = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
+	void testInbound() throws Exception {
 		Map<String, Object> consumerProps =
-				KafkaTestUtils.consumerProps("replyHandler1", "false", embedded);
+				KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embedded.consumeFromAnEmbeddedTopic(consumer, topic2);
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic2);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embedded);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
 		containerProps.setIdleEventInterval(100L);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embedded);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic1);
@@ -177,21 +180,20 @@ public class InboundGatewayTests {
 	}
 
 	@Test
-	public void testInboundErrorRecover() {
-		EmbeddedKafkaBroker broker = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", broker);
+	void testInboundErrorRecover() {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		broker.consumeFromAnEmbeddedTopic(consumer, topic4);
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic4);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", broker);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic3);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(broker);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic3);
@@ -257,21 +259,20 @@ public class InboundGatewayTests {
 	}
 
 	@Test
-	public void testInboundRetryErrorRecover() {
-		EmbeddedKafkaBroker embedded = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embedded);
+	void testInboundRetryErrorRecover() {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
 		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embedded.consumeFromAnEmbeddedTopic(consumer, topic6);
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic6);
 
-		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embedded);
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic5);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
-		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embedded);
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic5);
@@ -342,8 +343,7 @@ public class InboundGatewayTests {
 	}
 
 	@Test
-	public void testInboundRetryErrorRecoverWithoutRecocveryCallback() throws Exception {
-		EmbeddedKafkaBroker embeddedKafka = InboundGatewayTests.embeddedKafka.getEmbeddedKafka();
+	void testInboundRetryErrorRecoverWithoutRecocveryCallback() throws Exception {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler4", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);

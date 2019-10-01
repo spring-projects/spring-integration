@@ -26,15 +26,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConsumerProperties;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 
@@ -46,17 +46,25 @@ import org.springframework.messaging.Message;
  * @since 3.0.1
  *
  */
-public class MessageSourceIntegrationTests {
+class MessageSourceIntegrationTests {
 
-	public static final String TOPIC1 = "MessageSourceIntegrationTests1";
+	private static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafkaRule = new EmbeddedKafkaRule(1, true, 1, TOPIC1);
+	private static EmbeddedKafkaBroker embeddedKafka;
 
-	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
+	@BeforeAll
+	static void setup() {
+		embeddedKafka = new EmbeddedKafkaBroker(1, true, 1, TOPIC1);
+		embeddedKafka.afterPropertiesSet();
+	}
+
+	@AfterAll
+	static void tearDown() {
+		embeddedKafka.destroy();
+	}
 
 	@Test
-	public void testSource() throws Exception {
+	void testSource() throws Exception {
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testSource", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -64,7 +72,7 @@ public class MessageSourceIntegrationTests {
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 		ConsumerProperties consumerProperties = new ConsumerProperties(TOPIC1);
 		consumerProperties.getKafkaConsumerProperties()
-			.setProperty(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, "2");
+				.setProperty(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, "2");
 		final CountDownLatch assigned = new CountDownLatch(1);
 		consumerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
 
