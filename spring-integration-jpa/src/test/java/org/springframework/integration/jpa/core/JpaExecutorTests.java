@@ -17,8 +17,8 @@
 package org.springframework.integration.jpa.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
@@ -63,7 +63,7 @@ public class JpaExecutorTests {
 	private BeanFactory beanFactory;
 
 	/**
-	 * In this test, the {@link JpaExecutor}'s p\oll method will be called without
+	 * In this test, the {@link JpaExecutor}'s poll method will be called without
 	 * specifying a 'query', 'namedQuery' or 'entityClass' property. This should
 	 * result in an {@link IllegalArgumentException}.
 	 */
@@ -72,70 +72,51 @@ public class JpaExecutorTests {
 		JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
 		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
 		jpaExecutor.afterPropertiesSet();
-		try {
-			jpaExecutor.poll();
-		}
-		catch (IllegalStateException e) {
-			assertThat(e.getMessage()).as("Exception Message does not match.")
-					.isEqualTo("For the polling operation, one of "
-							+ "the following properties must be specified: "
-							+ "query, namedQuery or entityClass.");
-			return;
-		}
 
-		fail("Was expecting an IllegalStateException to be thrown.");
+		assertThatIllegalStateException()
+				.isThrownBy(jpaExecutor::poll)
+				.withMessage("For the polling operation, one of "
+						+ "the following properties must be specified: "
+						+ "query, namedQuery or entityClass.");
 	}
 
 	@Test
 	public void testInstantiateJpaExecutorWithNullJpaOperations() {
-		JpaOperations jpaOperations = null;
-
-		try {
-			new JpaExecutor(jpaOperations);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("jpaOperations must not be null.");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new JpaExecutor((JpaOperations) null))
+				.withMessage("jpaOperations must not be null.");
 	}
 
 	@Test
 	public void testSetMultipleQueryTypes() {
-		JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
+		final JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setJpaQuery("select s from Student s");
 		assertThat(TestUtils.getPropertyValue(executor, "jpaQuery", String.class)).isNotNull();
 
-		try {
-			executor.setNamedQuery("NamedQuery");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> executor.setNamedQuery("NamedQuery"))
+				.withMessage("You can define only one of the "
+						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 
 		assertThat(TestUtils.getPropertyValue(executor, "namedQuery")).isNull();
 
-		try {
-			executor.setNativeQuery("select * from Student");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> executor.setNativeQuery("select * from Student"))
+				.withMessage("You can define only one of the "
+						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+
 		assertThat(TestUtils.getPropertyValue(executor, "nativeQuery")).isNull();
 
-		executor = new JpaExecutor(mock(EntityManager.class));
-		executor.setNamedQuery("NamedQuery");
-		assertThat(TestUtils.getPropertyValue(executor, "namedQuery", String.class)).isNotNull();
+		final JpaExecutor executor2 = new JpaExecutor(mock(EntityManager.class));
+		executor2.setNamedQuery("NamedQuery");
+		assertThat(TestUtils.getPropertyValue(executor2, "namedQuery", String.class)).isNotNull();
 
-		try {
-			executor.setJpaQuery("select s from Student s");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).isEqualTo("You can define only one of the "
-					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
-		assertThat(TestUtils.getPropertyValue(executor, "jpaQuery")).isNull();
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> executor2.setJpaQuery("select s from Student s"))
+				.withMessage("You can define only one of the "
+						+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 
+		assertThat(TestUtils.getPropertyValue(executor2, "jpaQuery")).isNull();
 	}
 
 	@Test
@@ -222,7 +203,7 @@ public class JpaExecutorTests {
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		assertThat(results).isNotNull();
-		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).hasSize(1);
 	}
 
 	@Test
@@ -235,7 +216,7 @@ public class JpaExecutorTests {
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		assertThat(results).isNotNull();
-		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).hasSize(1);
 	}
 
 	@Test
@@ -248,7 +229,7 @@ public class JpaExecutorTests {
 
 		List<?> results = (List<?>) jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		assertThat(results).isNotNull();
-		assertThat(results.size()).isEqualTo(1);
+		assertThat(results).hasSize(1);
 	}
 
 	@Test
@@ -267,14 +248,9 @@ public class JpaExecutorTests {
 	@Test
 	public void withNullMaxResultsExpression() {
 		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
-		try {
-			jpaExecutor.setMaxResultsExpression(null);
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("maxResultsExpression cannot be null");
-			return;
-		}
-		fail("Expected the test case to throw an exception");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> jpaExecutor.setMaxResultsExpression(null))
+				.withMessage("maxResultsExpression cannot be null");
 	}
 
 	@Test
