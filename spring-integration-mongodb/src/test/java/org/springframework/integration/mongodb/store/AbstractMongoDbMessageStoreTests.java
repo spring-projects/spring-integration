@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.annotation.PersistenceConstructor;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
@@ -44,7 +44,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClients;
 
 /**
  *
@@ -58,6 +58,9 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
+	protected final SimpleMongoClientDbFactory clientDbFactory =
+			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+
 	@Before
 	public void setup() {
 		this.testApplicationContext.refresh();
@@ -66,12 +69,12 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	@After
 	public void tearDown() {
 		this.testApplicationContext.close();
+		cleanupCollections(this.clientDbFactory);
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void testAddGetWithStringPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testAddGetWithStringPayload() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -85,8 +88,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testAddThenRemoveWithStringPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testAddThenRemoveWithStringPayload() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
@@ -100,8 +102,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testAddGetWithObjectDefaultConstructorPayload() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testAddGetWithObjectDefaultConstructorPayload() {
 		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -118,8 +119,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testWithMessageHistory() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testWithMessageHistory() {
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
 		foo.setName("foo");
@@ -156,8 +156,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3153SequenceDetails() throws Exception {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testInt3153SequenceDetails() {
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("test")
 				.pushSequenceDetails(UUID.randomUUID(), 1, 1)
@@ -173,8 +172,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076MessageAsPayload() throws Exception {
-		MessageStore store = this.getMessageStore();
+	public void testInt3076MessageAsPayload() {
+		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
@@ -191,13 +190,13 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076AdviceMessage() throws Exception {
-		MessageStore store = this.getMessageStore();
+	public void testInt3076AdviceMessage() {
+		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
 		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
-		Message<?> messageToStore = new AdviceMessage<String>("foo", inputMessage);
+		Message<?> messageToStore = new AdviceMessage<>("foo", inputMessage);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertThat(retrievedMessage).isNotNull();
@@ -210,13 +209,13 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testAdviceMessageAsPayload() throws Exception {
-		MessageStore store = this.getMessageStore();
+	public void testAdviceMessageAsPayload() {
+		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
 		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
-		Message<?> messageToStore = new GenericMessage<Message<?>>(new AdviceMessage<String>("foo", inputMessage));
+		Message<?> messageToStore = new GenericMessage<Message<?>>(new AdviceMessage<>("foo", inputMessage));
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertThat(retrievedMessage).isNotNull();
@@ -230,8 +229,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testMutableMessageAsPayload() throws Exception {
-		MessageStore store = this.getMessageStore();
+	public void testMutableMessageAsPayload() {
+		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
@@ -248,8 +247,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076ErrorMessage() throws Exception {
-		MessageStore store = this.getMessageStore();
+	public void testInt3076ErrorMessage() {
+		MessageStore store = getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
@@ -275,7 +274,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testAddAndUpdateAlreadySaved() throws Exception {
+	public void testAddAndUpdateAlreadySaved() {
 		MessageStore messageStore = getMessageStore();
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
@@ -440,18 +439,15 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 				return false;
 			}
 			if (lname == null) {
-				if (other.lname != null) {
-					return false;
-				}
+				return other.lname == null;
 			}
-			else if (!lname.equals(other.lname)) {
-				return false;
+			else {
+				return lname.equals(other.lname);
 			}
-			return true;
 		}
 
 	}
 
-	protected abstract MessageStore getMessageStore() throws Exception;
+	protected abstract MessageStore getMessageStore();
 
 }

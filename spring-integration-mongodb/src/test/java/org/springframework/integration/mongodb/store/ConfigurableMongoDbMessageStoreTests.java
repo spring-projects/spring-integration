@@ -17,11 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.store.MessageStore;
-
-import com.mongodb.MongoClient;
 
 /**
  * @author Amol Nayak
@@ -30,9 +26,8 @@ import com.mongodb.MongoClient;
 public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Override
-	protected MessageStore getMessageStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
+	protected MessageStore getMessageStore() {
+		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;

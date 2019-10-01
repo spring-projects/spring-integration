@@ -18,11 +18,8 @@ package org.springframework.integration.mongodb.store;
 
 import org.junit.Test;
 
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
-
-import com.mongodb.MongoClient;
 
 /**
  * @author Oleg Zhurakousky
@@ -33,21 +30,21 @@ import com.mongodb.MongoClient;
 public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
 
 	@Override
-	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
+	protected MongoDbMessageStore getMessageGroupStore() {
 		MongoDbMessageStore mongoDbMessageStore =
-				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
+				new MongoDbMessageStore(this.clientDbFactory);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
 
 	@Override
-	protected MessageStore getMessageStore() throws Exception {
-		return this.getMessageGroupStore();
+	protected MessageStore getMessageStore() {
+		return getMessageGroupStore();
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void testWithAggregatorWithShutdown() throws Exception {
+	public void testWithAggregatorWithShutdown() {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-config.xml");
 	}
 

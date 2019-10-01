@@ -34,7 +34,7 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -53,10 +53,10 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClients;
 
 /**
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Gary Russell
  * @author Artem Bilan
  *
@@ -326,7 +326,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 
 		@Bean
 		public MongoDbFactory mongoDbFactory() {
-			return new SimpleMongoDbFactory(new MongoClient(), "test");
+			return new SimpleMongoClientDbFactory(MongoClients.create(), "test");
 		}
 
 		@Bean

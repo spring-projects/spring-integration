@@ -24,7 +24,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
@@ -32,15 +32,15 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
  *
  * @author Oleg Zhurakousky
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Artem Bilan
  *
  * @since 2.1
@@ -52,7 +52,7 @@ public abstract class MongoDbAvailableTests {
 
 
 	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoClientDbFactory(MongoClients.create(), "test");
 		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
 		return mongoDbFactory;
 	}

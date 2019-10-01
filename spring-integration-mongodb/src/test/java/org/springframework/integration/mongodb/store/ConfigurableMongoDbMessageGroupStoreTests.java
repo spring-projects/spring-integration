@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -40,8 +38,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StopWatch;
 
-import com.mongodb.MongoClient;
-
 /**
  * @author Amol Nayak
  * @author Artem Bilan
@@ -50,22 +46,21 @@ import com.mongodb.MongoClient;
 public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
 
 	@Override
-	protected ConfigurableMongoDbMessageStore getMessageGroupStore() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
+	protected ConfigurableMongoDbMessageStore getMessageGroupStore() {
+		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
 
 	@Override
-	protected MessageStore getMessageStore() throws Exception {
-		return this.getMessageGroupStore();
+	protected MessageStore getMessageStore() {
+		return getMessageGroupStore();
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void testWithAggregatorWithShutdown() throws Exception {
+	public void testWithAggregatorWithShutdown() {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-configurable-config.xml");
 	}
 
@@ -73,8 +68,6 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Ignore("The performance test. Enough slow. Also needs the release strategy changed to size() == 1000")
 	@MongoDbAvailable
 	public void messageGroupStoreLazyLoadPerformance() {
-		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
-
 		StopWatch watch = new StopWatch("Lazy-Load Performance");
 
 		int sequenceSize = 1000;
@@ -83,7 +76,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 		performLazyLoadEagerTest(watch, sequenceSize, false);
 
-//		System. out .println(watch.prettyPrint()); // checkstyle
+		//		System. out .println(watch.prettyPrint()); // checkstyle
 	}
 
 	private void performLazyLoadEagerTest(StopWatch watch, int sequenceSize, boolean lazyLoad) {
@@ -113,10 +106,10 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	@Test
 	@MongoDbAvailable
-	public void testWithCustomConverter() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testWithCustomConverter() {
 		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this
+						.getClass());
 		context.refresh();
 
 		TestGateway gateway = context.getBean(TestGateway.class);
@@ -127,10 +120,10 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	@Test
 	@MongoDbAvailable
-	public void testPriorityChannel() throws Exception {
-		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+	public void testPriorityChannel() {
 		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this
+						.getClass());
 		context.refresh();
 
 		Object priorityChannel = context.getBean("priorityChannel");
@@ -138,7 +131,10 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 		QueueChannel channel = (QueueChannel) priorityChannel;
 
-		Message<String> message = MessageBuilder.withPayload("1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1).build();
+		Message<String> message =
+				MessageBuilder.withPayload("1")
+						.setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 1)
+						.build();
 		channel.send(message);
 		message = MessageBuilder.withPayload("-1").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, -1).build();
 		channel.send(message);

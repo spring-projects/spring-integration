@@ -25,8 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
@@ -35,7 +34,7 @@ import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.messaging.Message;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClients;
 
 /**
  * @author Mark Fisher
@@ -44,6 +43,9 @@ import com.mongodb.MongoClient;
 public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests {
 
 	private final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+
+	private final SimpleMongoClientDbFactory clientDbFactory =
+			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
 
 	@Before
 	public void setup() {
@@ -57,9 +59,8 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void stringPayload() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
+	public void stringPayload() {
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(this.clientDbFactory);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -74,9 +75,8 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void objectPayload() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
+	public void objectPayload() {
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(this.clientDbFactory);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -95,9 +95,8 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void stringPayloadConfigurable() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
+	public void stringPayloadConfigurable() {
+		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -113,9 +112,8 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void objectPayloadConfigurable() throws Exception {
-		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(mongoDbFactory);
+	public void objectPayloadConfigurable() {
+		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -202,10 +200,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 			else if (!name.equals(other.name)) {
 				return false;
 			}
-			if (shots != other.shots) {
-				return false;
-			}
-			return true;
+			return shots == other.shots;
 		}
 
 	}

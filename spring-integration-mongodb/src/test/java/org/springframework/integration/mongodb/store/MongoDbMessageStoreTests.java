@@ -25,12 +25,9 @@ import org.junit.Test;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.messaging.support.GenericMessage;
-
-import com.mongodb.MongoClient;
 
 /**
  * @author Mark Fisher
@@ -42,8 +39,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Override
 	protected MessageStore getMessageStore() {
-		MongoDbMessageStore mongoDbMessageStore =
-				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(this.clientDbFactory);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
@@ -51,8 +47,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Test
 	@MongoDbAvailable
 	public void testCustomConverter() throws InterruptedException {
-		MongoDbMessageStore mongoDbMessageStore =
-				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(this.clientDbFactory);
 		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
 		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
 		mongoDbMessageStore.afterPropertiesSet();
