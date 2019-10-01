@@ -17,8 +17,8 @@
 package org.springframework.integration.kafka.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -64,7 +64,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.record.TimestampType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
@@ -87,14 +87,16 @@ import org.springframework.messaging.Message;
 /**
  * @author Gary Russell
  * @author Anshul Mehra
+ * @author Artem Bilan
+ *
  * @since 3.0.1
  *
  */
-public class MessageSourceTests {
+class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testIllegalArgs() {
+	void testIllegalArgs() {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		assertThatThrownBy(() -> new KafkaMessageSource(consumerFactory, new ConsumerProperties((Pattern) null)))
 				.isInstanceOf(IllegalArgumentException.class)
@@ -103,7 +105,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testConsumerAwareRebalanceListener() {
+	void testConsumerAwareRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
@@ -123,6 +125,7 @@ public class MessageSourceTests {
 		AtomicBoolean partitionsRevokedCalled = new AtomicBoolean();
 		AtomicReference<Consumer> partitionsRevokedConsumer = new AtomicReference<>();
 		consumerProperties.setConsumerRebalanceListener(new ConsumerAwareRebalanceListener() {
+
 			@Override
 			public void onPartitionsRevokedAfterCommit(Consumer<?, ?> cons, Collection<TopicPartition> partitions) {
 				partitionsRevokedCalled.getAndSet(true);
@@ -152,7 +155,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testRebalanceListener() {
+	void testRebalanceListener() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
@@ -195,17 +198,17 @@ public class MessageSourceTests {
 	}
 
 	@Test
-	public void testAckSyncCommits() {
+	void testAckSyncCommits() {
 		testAckCommon(true, false);
 	}
 
 	@Test
-	public void testAckSyncCommitsTimeout() {
+	void testAckSyncCommitsTimeout() {
 		testAckCommon(true, false);
 	}
 
 	@Test
-	public void testAckAsyncCommits() {
+	void testAckAsyncCommits() {
 		testAckCommon(false, false);
 	}
 
@@ -269,7 +272,7 @@ public class MessageSourceTests {
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
 		assertThat(received.getHeaders().get(IntegrationMessageHeaderAccessor.SOURCE_DATA))
-			.isSameAs(received.getHeaders().get(KafkaHeaders.RAW_DATA));
+				.isSameAs(received.getHeaders().get(KafkaHeaders.RAW_DATA));
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
 				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
@@ -337,7 +340,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testAckOutOfOrder() {
+	void testAckOutOfOrder() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		willAnswer(i -> {
@@ -427,7 +430,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testNack() {
+	void testNack() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		willAnswer(i -> {
@@ -442,7 +445,7 @@ public class MessageSourceTests {
 		}).given(consumer).pause(anyCollection());
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
-		records1.put(topicPartition, Arrays.asList(
+		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
@@ -496,7 +499,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testNackWithLaterInflight() {
+	void testNackWithLaterInflight() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		willAnswer(i -> {
@@ -511,7 +514,7 @@ public class MessageSourceTests {
 		}).given(consumer).pause(anyCollection());
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
-		records1.put(topicPartition, Arrays.asList(
+		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
@@ -582,7 +585,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testMaxPollRecords() {
+	void testMaxPollRecords() {
 		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()),
 				new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
@@ -591,20 +594,17 @@ public class MessageSourceTests {
 				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)), new ConsumerProperties("topic"));
 		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
 				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
-		try {
-			new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
 
-			}), new ConsumerProperties("topic"));
-			fail("Expected exception");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).contains(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() ->
+						new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) { }),
+								new ConsumerProperties("topic")))
+				.withMessageContaining(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testPollTimeouts() {
+	void testPollTimeouts() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
@@ -615,12 +615,12 @@ public class MessageSourceTests {
 		}).given(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
 
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
-		records1.put(topicPartition, Arrays.asList(
+		records1.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		given(consumer.poll(Duration.of(20 * 5000, ChronoUnit.MILLIS))).willReturn(cr1, ConsumerRecords.EMPTY);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
-		records2.put(topicPartition, Arrays.asList(
+		records2.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		given(consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))).willReturn(cr2, ConsumerRecords.EMPTY);
@@ -665,7 +665,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testAllowMulti() {
+	void testAllowMulti() {
 		Consumer consumer = mock(Consumer.class);
 		TopicPartition topicPartition = new TopicPartition("foo", 0);
 		List<TopicPartition> assigned = Collections.singletonList(topicPartition);
@@ -730,7 +730,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testTopicPatternBasedMessageSource() {
+	void testTopicPatternBasedMessageSource() {
 		MockConsumer<String, String> consumer = new MockConsumer<>(OffsetResetStrategy.EARLIEST);
 		TopicPartition topicPartition1 = new TopicPartition("abc_foo", 0);
 		TopicPartition topicPartition2 = new TopicPartition("abc_foo", 1);
@@ -747,7 +747,9 @@ public class MessageSourceTests {
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
-		KafkaMessageSource<String, String> source = new KafkaMessageSource<>(consumerFactory, new ConsumerProperties(Pattern.compile("[a-zA-Z0-9_]*?foo")));
+		KafkaMessageSource<String, String> source = new KafkaMessageSource<>(consumerFactory,
+				new ConsumerProperties(Pattern
+						.compile("[a-zA-Z0-9_]*?foo")));
 		source.setRawMessageHeader(true);
 		source.start();
 		// force consumer creation
@@ -789,7 +791,7 @@ public class MessageSourceTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testStaticPartitionAssignment() {
+	void testStaticPartitionAssignment() {
 		MockConsumer<String, String> consumer = spy(new MockConsumer<>(OffsetResetStrategy.EARLIEST));
 
 		TopicPartition beginning = new TopicPartition("foo", 0);
@@ -818,9 +820,11 @@ public class MessageSourceTests {
 				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull(), any())).willReturn(consumer);
 
-		TopicPartitionOffset beginningTpo = new TopicPartitionOffset(beginning, null, TopicPartitionOffset.SeekPosition.BEGINNING);
+		TopicPartitionOffset beginningTpo = new TopicPartitionOffset(beginning, null,
+				TopicPartitionOffset.SeekPosition.BEGINNING);
 		TopicPartitionOffset endTpo = new TopicPartitionOffset(end, null, TopicPartitionOffset.SeekPosition.END);
-		TopicPartitionOffset timestampTpo = new TopicPartitionOffset(timestamp, null, TopicPartitionOffset.SeekPosition.TIMESTAMP);
+		TopicPartitionOffset timestampTpo = new TopicPartitionOffset(timestamp, null,
+				TopicPartitionOffset.SeekPosition.TIMESTAMP);
 		TopicPartitionOffset negativeOffsetTpo = new TopicPartitionOffset(negativeOffset, -1L, null);
 		TopicPartitionOffset negativeRelativeToCurrentTpo = new TopicPartitionOffset(negativeRelativeToCurrent.topic(),
 				negativeRelativeToCurrent.partition(), -1L, true);
@@ -865,11 +869,11 @@ public class MessageSourceTests {
 		Message<Object> message;
 		Set<String> expected = Stream.of(
 				p0r0, p0r1, p0r2, p0r3, // Seek to beginning
-				p1r3, 					// Seek to end
-				p2r1, p2r2, p2r3, 		// Null offset and SeekPosition.TIMESTAMP results in no change in position
-				p3r3, 					// Negative offset ends up in seek to end
-				p4r2, p4r3, 			// Negative offset with relative to current(3)
-				p5r2, p5r3				// Positive offset with relative to current(1)
+				p1r3,                    // Seek to end
+				p2r1, p2r2, p2r3,        // Null offset and SeekPosition.TIMESTAMP results in no change in position
+				p3r3,                    // Negative offset ends up in seek to end
+				p4r2, p4r3,            // Negative offset with relative to current(3)
+				p5r2, p5r3                // Positive offset with relative to current(1)
 		).map(ConsumerRecord::value).collect(Collectors.toSet());
 		Set<Object> received = new HashSet<>();
 		while ((message = source.receive()) != null) {
@@ -902,4 +906,5 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).close(anyLong(), any(TimeUnit.class));
 		inOrder.verifyNoMoreInteractions();
 	}
+
 }

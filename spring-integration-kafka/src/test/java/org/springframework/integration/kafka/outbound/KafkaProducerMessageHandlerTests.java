@@ -17,7 +17,7 @@
 package org.springframework.integration.kafka.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -56,10 +56,9 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
@@ -87,7 +86,6 @@ import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.support.TransactionSupport;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
 import org.springframework.messaging.Message;
@@ -108,7 +106,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  *
  * @since 2.0
  */
-public class KafkaProducerMessageHandlerTests {
+class KafkaProducerMessageHandlerTests {
 
 	private static String topic1 = "testTopic1out";
 
@@ -122,16 +120,15 @@ public class KafkaProducerMessageHandlerTests {
 
 	private static String topic6 = "testTopic6in";
 
-	@ClassRule
-	public static EmbeddedKafkaRule embeddedKafkaRule =
-			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5, topic6);
-
-	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
+	private static EmbeddedKafkaBroker embeddedKafka;
 
 	private static Consumer<Integer, String> consumer;
 
-	@BeforeClass
-	public static void setUp() {
+	@BeforeAll
+	static void setup() {
+		embeddedKafka = new EmbeddedKafkaBroker(1, true,
+				topic1, topic2, topic3, topic4, topic5, topic6);
+		embeddedKafka.afterPropertiesSet();
 		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testOut", "true", embeddedKafka);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		ConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
@@ -139,13 +136,14 @@ public class KafkaProducerMessageHandlerTests {
 		embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
 	}
 
-	@AfterClass
-	public static void tearDown() {
+	@AfterAll
+	static void tearDown() {
 		consumer.close();
+		embeddedKafka.destroy();
 	}
 
 	@Test
-	public void testOutbound() throws Exception {
+	void testOutbound() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -171,7 +169,7 @@ public class KafkaProducerMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
-		assertThat(record).has(key((Integer) null));
+		assertThat(record).has(key(null));
 		assertThat(record).has(partition(0));
 		assertThat(record).has(value("bar"));
 
@@ -180,7 +178,7 @@ public class KafkaProducerMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
-		assertThat(record).has(key((Integer) null));
+		assertThat(record).has(key(null));
 		assertThat(record).has(value("baz"));
 
 		handler.setPartitionIdExpression(new SpelExpressionParser().parseExpression("headers['kafka_partitionId']"));
@@ -201,7 +199,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithTimestamp() {
+	void testOutboundWithTimestamp() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -232,7 +230,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithTimestampExpression() {
+	void testOutboundWithTimestampExpression() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -271,7 +269,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithAsyncResults() {
+	void testOutboundWithAsyncResults() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -331,7 +329,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundWithCustomHeaderMapper() throws Exception {
+	void testOutboundWithCustomHeaderMapper() {
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
@@ -353,7 +351,7 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutboundGateway() throws Exception {
+	void testOutboundGateway() throws Exception {
 		ConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(
 				KafkaTestUtils.consumerProps(topic5, "false", embeddedKafka));
 		ContainerProperties containerProperties = new ContainerProperties(topic6);
@@ -376,7 +374,8 @@ public class KafkaProducerMessageHandlerTests {
 
 		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
-		ReplyingKafkaTemplate<Integer, String, String> template = new ReplyingKafkaTemplate<>(producerFactory, container);
+		ReplyingKafkaTemplate<Integer, String, String> template =
+				new ReplyingKafkaTemplate<>(producerFactory, container);
 		template.start();
 		assertThat(assigned.await(30, TimeUnit.SECONDS)).isTrue();
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -407,37 +406,30 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(reply.getHeaders().get(KafkaHeaders.TOPIC)).isNull();
 		assertThat(reply.getHeaders().get(KafkaHeaders.CORRELATION_ID)).isNull();
 
-		message = MessageBuilder.withPayload("foo")
+		final Message<?> messageToHandle1 = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic5)
 				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
 				.setHeader(KafkaHeaders.PARTITION_ID, 1)
 				.setHeader(KafkaHeaders.REPLY_TOPIC, "bad")
 				.build();
-		try {
-			handler.handleMessage(message);
-			fail("Expected exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo("The reply topic header [bad] does not match any reply container topic: "
-							+ "[" + topic6 + "]");
-		}
-		message = MessageBuilder.withPayload("foo")
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(messageToHandle1))
+				.withMessageContaining("The reply topic header [bad] does not match any reply container topic: "
+						+ "[" + topic6 + "]");
+
+		final Message<?> messageToHandle2 = MessageBuilder.withPayload("foo")
 				.setHeader(KafkaHeaders.TOPIC, topic5)
 				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
 				.setHeader(KafkaHeaders.PARTITION_ID, 1)
 				.setHeader(KafkaHeaders.REPLY_PARTITION, 999)
 				.build();
-		try {
-			handler.handleMessage(message);
-			fail("Expected exception");
-		}
-		catch (MessageHandlingException e) {
-			assertThat(e.getCause().getMessage())
-					.isEqualTo(
-							"The reply partition header [999] does not match any reply container partition for topic ["
-									+ topic6 + "]: [0, 1]");
-		}
+
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> handler.handleMessage(messageToHandle2))
+				.withMessageContaining("The reply partition header [999] " +
+						"does not match any reply container partition for topic ["
+						+ topic6 + "]: [0, 1]");
 
 		template.stop();
 		// discard from the test consumer
@@ -448,7 +440,7 @@ public class KafkaProducerMessageHandlerTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testTransaction() {
+	void testTransaction() {
 		ProducerFactory pf = mock(ProducerFactory.class);
 		given(pf.transactionCapable()).willReturn(true);
 		Producer producer = mock(Producer.class);
@@ -472,7 +464,7 @@ public class KafkaProducerMessageHandlerTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testConsumeAndProduceTransaction() throws Exception {
+	void testConsumeAndProduceTransaction() throws Exception {
 		Consumer mockConsumer = mock(Consumer.class);
 		final TopicPartition topicPartition = new TopicPartition("foo", 0);
 		willAnswer(i -> {
@@ -507,8 +499,7 @@ public class KafkaProducerMessageHandlerTests {
 			transactionalIds.add(TransactionSupport.getTransactionIdSuffix());
 			return producer;
 		}).given(pf).createProducer(isNull());
-		KafkaTransactionManager tm = new KafkaTransactionManager(pf);
-		PlatformTransactionManager ptm = tm;
+		PlatformTransactionManager ptm = new KafkaTransactionManager(pf);
 		ContainerProperties props = new ContainerProperties("foo");
 		props.setGroupId("group");
 		props.setTransactionManager(ptm);
@@ -549,7 +540,7 @@ public class KafkaProducerMessageHandlerTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testTransactionTxIdOverride() {
+	void testTransactionTxIdOverride() {
 		Producer producer = mock(Producer.class);
 		AtomicReference<String> txId = new AtomicReference<>();
 		DefaultKafkaProducerFactory pf = new DefaultKafkaProducerFactory(Collections.emptyMap()) {
@@ -584,7 +575,7 @@ public class KafkaProducerMessageHandlerTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testConsumeAndProduceTransactionTxIdOverride() throws Exception {
+	void testConsumeAndProduceTransactionTxIdOverride() throws Exception {
 		Consumer mockConsumer = mock(Consumer.class);
 		final TopicPartition topicPartition = new TopicPartition("foo", 0);
 		willAnswer(i -> {

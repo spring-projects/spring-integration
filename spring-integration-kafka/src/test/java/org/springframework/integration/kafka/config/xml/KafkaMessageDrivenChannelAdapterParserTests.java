@@ -21,8 +21,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.NullChannel;
@@ -40,16 +39,16 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan.
  * @author Gary Russell
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class KafkaMessageDrivenChannelAdapterParserTests {
+@SpringJUnitConfig
+@DirtiesContext
+class KafkaMessageDrivenChannelAdapterParserTests {
 
 	@Autowired
 	private NullChannel nullChannel;
@@ -73,7 +72,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	private RecoveryCallback<?> recoveryCallback;
 
 	@Test
-	public void testKafkaMessageDrivenChannelAdapterParser() {
+	void testKafkaMessageDrivenChannelAdapterParser() {
 		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaListener.isRunning()).isFalse();
 		assertThat(this.kafkaListener.getPhase()).isEqualTo(100);
@@ -94,7 +93,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testKafkaBatchMessageDrivenChannelAdapterParser() {
+	void testKafkaBatchMessageDrivenChannelAdapterParser() {
 		assertThat(this.kafkaBatchListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaBatchListener.isRunning()).isFalse();
 		assertThat(this.kafkaBatchListener.getPhase()).isEqualTo(100);
@@ -110,7 +109,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testKafkaMessageDrivenChannelAdapterOptions() {
+	void testKafkaMessageDrivenChannelAdapterOptions() {
 		DefaultKafkaConsumerFactory<Integer, String> cf =
 				new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
 		ContainerProperties containerProps = new ContainerProperties("foo");
