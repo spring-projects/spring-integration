@@ -37,8 +37,10 @@ import org.springframework.integration.MessageRejectedException
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.IntegrationFlow
-import org.springframework.integration.dsl.IntegrationFlows
 import org.springframework.integration.dsl.Pollers
+import org.springframework.integration.dsl.kotlin.filterReified
+import org.springframework.integration.dsl.kotlin.integrationFlow
+import org.springframework.integration.dsl.kotlin.split
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler
@@ -87,7 +89,7 @@ import java.util.stream.Stream
 @SpringJUnitConfig
 @DirtiesContext
 @EmbeddedKafka(topics = [KafkaDslKotlinTests.TEST_TOPIC1, KafkaDslKotlinTests.TEST_TOPIC2,
-    KafkaDslKotlinTests.TEST_TOPIC3, KafkaDslKotlinTests.TEST_TOPIC4, KafkaDslKotlinTests.TEST_TOPIC5])
+	KafkaDslKotlinTests.TEST_TOPIC3, KafkaDslKotlinTests.TEST_TOPIC4, KafkaDslKotlinTests.TEST_TOPIC5])
 class KafkaDslKotlinTests {
 
 	companion object {
@@ -159,8 +161,8 @@ class KafkaDslKotlinTests {
 			assertThat(receive!!.payload).isEqualTo("FOO")
 			val headers = receive.headers
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
-			val acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment::class.java)
-			acknowledgment?.acknowledge()
+			val acknowledgment = headers[KafkaHeaders.ACKNOWLEDGMENT] as Acknowledgment
+			acknowledgment.acknowledge()
 			assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC1)
 			assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
 			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
@@ -176,8 +178,8 @@ class KafkaDslKotlinTests {
 			assertThat(receive!!.payload).isEqualTo("FOO")
 			val headers = receive.headers
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue()
-			val acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment::class.java)
-			acknowledgment?.acknowledge()
+			val acknowledgment = headers[KafkaHeaders.ACKNOWLEDGMENT] as Acknowledgment
+			acknowledgment.acknowledge()
 			assertThat(headers[KafkaHeaders.RECEIVED_TOPIC]).isEqualTo(TEST_TOPIC2)
 			assertThat(headers[KafkaHeaders.RECEIVED_MESSAGE_KEY]).isEqualTo(i + 1)
 			assertThat(headers[KafkaHeaders.RECEIVED_PARTITION_ID]).isEqualTo(0)
@@ -232,7 +234,7 @@ class KafkaDslKotlinTests {
 		@Bean
 		fun consumerFactory(): ConsumerFactory<Int, String> {
 			val props = KafkaTestUtils.consumerProps("test1", "false", this.embeddedKafka)
-			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+			props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 			return DefaultKafkaConsumerFactory(props)
 		}
 
@@ -241,7 +243,7 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun topic1ListenerFromKafkaFlow() =
-				IntegrationFlows.from(
+				integrationFlow(
 						Kafka.messageDrivenChannelAdapter(consumerFactory(),
 								KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 								.configureListenerContainer {
@@ -251,50 +253,52 @@ class KafkaDslKotlinTests {
 								.recoveryCallback(ErrorMessageSendingRecoverer(errorChannel(),
 										RawRecordHeaderErrorMessageStrategy()))
 								.retryTemplate(RetryTemplate())
-								.filterInRetry(true))
-						.filter(Message::class.java, { m -> m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer::class.java)!! < 101 },
-								{ f -> f.throwExceptionOnRejection(true) })
-						.transform<String, String> { it.toUpperCase() }
-						.channel { c -> c.queue("listeningFromKafkaResults1") }
-						.get()
+								.filterInRetry(true)) {
+					it.filterReified<Message<*>>(
+							{ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 },
+							{ f -> f.throwExceptionOnRejection(true) })
+							.transform<String, String> { it.toUpperCase() }
+							.channel { c -> c.queue("listeningFromKafkaResults1") }
+				}
 
 		@Bean
 		fun topic2ListenerFromKafkaFlow() =
-				IntegrationFlows.from(
+				integrationFlow(
 						Kafka.messageDrivenChannelAdapter(consumerFactory(),
 								KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
 								.configureListenerContainer { it.ackMode(ContainerProperties.AckMode.MANUAL) }
 								.recoveryCallback(ErrorMessageSendingRecoverer(errorChannel(),
 										RawRecordHeaderErrorMessageStrategy()))
 								.retryTemplate(RetryTemplate())
-								.filterInRetry(true))
-						.filter(Message::class.java,
-								{ m -> m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer::class.java)!! < 101 },
-								{ it.throwExceptionOnRejection(true) })
-						.transform<String, String> { it.toUpperCase() }
-						.channel { c -> c.queue("listeningFromKafkaResults2") }
-						.get()
+								.filterInRetry(true)) {
+					it.filterReified<Message<*>>(
+							{ m -> (m.headers[KafkaHeaders.RECEIVED_MESSAGE_KEY] as Int) < 101 },
+							{ it.throwExceptionOnRejection(true) })
+							.transform<String, String> { it.toUpperCase() }
+							.channel { c -> c.queue("listeningFromKafkaResults2") }
+				}
 
 		@Bean
 		fun producerFactory(): DefaultKafkaProducerFactory<Int, String> {
 			val props = KafkaTestUtils.producerProps(this.embeddedKafka)
-			props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, "10000")
+			props[ProducerConfig.MAX_BLOCK_MS_CONFIG] = "10000"
 			return DefaultKafkaProducerFactory(props)
 		}
 
 		@Bean
 		fun sendToKafkaFlow() =
-				IntegrationFlow { f ->
-					f.split<String>({ p -> Stream.generate { p }.limit(101) }, null)
-							.publishSubscribeChannel { c ->
-								c.subscribe { sf ->
-									sf.handle(
-											kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
-													.timestampExpression("T(Long).valueOf('1487694048633')")
-									) { it.id("kafkaProducer1") }
-								}
-										.subscribe { sf ->
-											sf.handle(
+				IntegrationFlow {
+					it.split<String>({ p -> Stream.generate { p }.limit(101) })
+							.publishSubscribeChannel {
+								it
+										.subscribe {
+											it.handle(
+													kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
+															.timestampExpression("T(Long).valueOf('1487694048633')")
+											) { it.id("kafkaProducer1") }
+										}
+										.subscribe {
+											it.handle(
 													kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
 															.timestamp<Any> { 1487694048644L }
 											) { it.id("kafkaProducer2") }
@@ -310,21 +314,20 @@ class KafkaDslKotlinTests {
 						.messageKey<Any> { m -> m.headers[IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER] }
 						.headerMapper(mapper())
 						.sync(true)
-						.partitionId<Any> { _ -> 0 }
+						.partitionId<Any> { 0 }
 						.topicExpression("headers[kafka_topic] ?: '$topic'")
-						.configureKafkaTemplate { t -> t.id("kafkaTemplate:$topic") }
+						.configureKafkaTemplate { it.id("kafkaTemplate:$topic") }
 
 
 		@Bean
 		fun sourceFlow() =
-				IntegrationFlows
-						.from(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)))
-						{ e -> e.poller(Pollers.fixedDelay(100)) }
-						.handle { p ->
-							this.fromSource = p.getPayload()
-							this.sourceFlowLatch.countDown()
-						}
-						.get()
+				integrationFlow(Kafka.inboundChannelAdapter(consumerFactory(), ConsumerProperties(TEST_TOPIC3)),
+						{ e -> e.poller(Pollers.fixedDelay(100)) }) {
+					it.handle { m ->
+						this.fromSource = m.payload
+						this.sourceFlowLatch.countDown()
+					}
+				}
 
 		@Bean
 		fun replyingKafkaTemplate() =
@@ -335,10 +338,10 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun outboundGateFlow() =
-				IntegrationFlows.from(Gate::class.java)
-						.handle(Kafka.outboundGateway(replyingKafkaTemplate())
-								.sync(true))
-						.get()
+				integrationFlow<Gate> {
+					it.handle(Kafka.outboundGateway(replyingKafkaTemplate())
+							.sync(true))
+				}
 
 		private fun replyContainer(): GenericMessageListenerContainer<Int, String> {
 			val containerProperties = ContainerProperties(TEST_TOPIC5)
@@ -359,10 +362,9 @@ class KafkaDslKotlinTests {
 
 		@Bean
 		fun serverGateway() =
-				IntegrationFlows.from(
-						Kafka.inboundGateway(consumerFactory(), containerProperties(), producerFactory()))
-						.transform<String, String> { it.toUpperCase() }
-						.get()
+				integrationFlow(Kafka.inboundGateway(consumerFactory(), containerProperties(), producerFactory())) {
+					it.transform<String, String> { it.toUpperCase() }
+				}
 
 		private fun containerProperties() =
 				ContainerProperties(TEST_TOPIC4)
