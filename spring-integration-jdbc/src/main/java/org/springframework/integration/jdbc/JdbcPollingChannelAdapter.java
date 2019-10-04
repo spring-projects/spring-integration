@@ -56,21 +56,21 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private final String selectQuery;
-
 	private RowMapper<?> rowMapper;
 
 	private SqlParameterSource sqlQueryParameterSource;
 
 	private boolean updatePerRow = false;
 
-	private String updateSql;
-
 	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	private boolean sqlParameterSourceFactorySet;
 
 	private int maxRows = 0;
+
+	private volatile String selectQuery;
+
+	private volatile String updateSql;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
@@ -89,7 +89,6 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
-		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
 		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations) {
 
 			@Override
@@ -105,7 +104,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 		};
 
-		this.selectQuery = selectQuery;
+		setSelectQuery(selectQuery);
 		this.rowMapper = new ColumnMapRowMapper();
 	}
 
@@ -114,6 +113,16 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		if (rowMapper == null) {
 			this.rowMapper = new ColumnMapRowMapper();
 		}
+	}
+
+	/**
+	 * Set the select query.
+	 * @param selectQuery the query.
+	 * @since 5.2.1
+	 */
+	public final void setSelectQuery(String selectQuery) {
+		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
+		this.selectQuery = selectQuery;
 	}
 
 	public void setUpdateSql(String updateSql) {
