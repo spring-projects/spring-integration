@@ -175,4 +175,4 @@ See <<./ftp.adoc#ftp, FTP(S) Support>> and <<./sftp.adoc#sftp, SFTP Support>> fo
 ==== JDBC Changes
 
 The `JdbcPollingChannelAdapter` can now be provided with a `Supplier<?>` for the select and update queries, allowing the queries to change for each poll.
-See <<jdbc-inbound-channel-adapter>> for more information.
+See <<./jdbc.adoc#jdbc-inbound-channel-adapter,JDBC Inbound Channel Adapter>> for more information.
