@@ -134,6 +134,8 @@ IMPORTANT: Use the `createParameterSourceNoCache` factory method.
 Otherwise, the parameter source caches the result of the evaluation.
 Also note that, because caching is disabled, if the same parameter name appears in the select query multiple times, it is re-evaluated for each occurrence.
 
+Starting with version 5.3.1, the inbound channel adapter can be provided with `java.util.function.Supplier<String>` s for the select and update queries, allowing the queries to be altered between polls.
+
 [[jdbc-polling-transactions]]
 ==== Polling and Transactions
 

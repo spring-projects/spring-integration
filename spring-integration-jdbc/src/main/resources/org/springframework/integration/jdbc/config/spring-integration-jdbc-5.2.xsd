@@ -148,6 +148,20 @@
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 					<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+					<xsd:attribute name="query-supplier" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									A 'java.util.function.Supplier&lt;String&gt;' that
+									provides a select query to execute when a message is
+									polled for. In general the query can return multiple
+									rows, because
+									the result will be a List (of type determined by the row
+									mapper).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="update" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -156,6 +170,21 @@
 									polled. If the poll is in a transaction then the
 									update will roll back if the transaction does.
 									The update can also be specified as a nested element.
+									Mutually exclusive with 'update-supplier'.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="update-supplier" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									A 'java.util.function.Supplier&lt;String&gt;' that
+									provides an update query to execute when a message is
+									polled. If the poll is in a transaction then the
+									update will roll back if the transaction does.
+									The update can also be specified as a nested element.
+									Mutually exclusive with 'update'.
 								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>

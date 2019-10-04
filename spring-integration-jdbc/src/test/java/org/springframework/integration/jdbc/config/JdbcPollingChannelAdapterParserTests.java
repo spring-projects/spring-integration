@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
@@ -227,6 +228,24 @@ public class JdbcPollingChannelAdapterParserTests {
 
 		public int which() {
 			return this.which;
+		}
+
+	}
+
+	public static class SelectQuerySupplierForMaxRowsTest implements Supplier<String> {
+
+		@Override
+		public String get() {
+			return "select * from item where status=2";
+		}
+
+	}
+
+	public static class UpdateQuerySupplierForMaxRowsTest implements Supplier<String> {
+
+		@Override
+		public String get() {
+			return "update item set status=10 where id in (:id)";
 		}
 
 	}

@@ -21,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
@@ -56,7 +57,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private final String selectQuery;
+	private final Supplier<String> selectQuery;
 
 	private RowMapper<?> rowMapper;
 
@@ -64,7 +65,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private boolean updatePerRow = false;
 
-	private String updateSql;
+	private Supplier<String> updateSql;
 
 	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
@@ -83,13 +84,37 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	/**
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained and the select query to execute to retrieve new rows.
+	 * @param dataSource Must not be null
+	 * @param selectQuery Supplier for the selectQuery query to execute
+	 * @since 5.3.1
+	 */
+	public JdbcPollingChannelAdapter(DataSource dataSource, Supplier<String> selectQuery) {
+		this(new JdbcTemplate(dataSource), selectQuery);
+	}
+
+	/**
 	 * Constructor taking {@link JdbcOperations} instance to use for query
 	 * execution and the select query to execute to retrieve new rows.
 	 * @param jdbcOperations instance to use for query execution
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
+		this(jdbcOperations, () -> selectQuery);
 		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
+	}
+
+
+	/**
+	 * Constructor taking {@link JdbcOperations} instance to use for query
+	 * execution and the select query to execute to retrieve new rows.
+	 * @param jdbcOperations instance to use for query execution
+	 * @param selectQuery Supplier for the selectQuery query to execute
+	 * @since 5.3.1
+	 */
+	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, Supplier<String> selectQuery) {
+		Assert.notNull(selectQuery, "'selectQuery' supplier must be specified.");
 		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations) {
 
 			@Override
@@ -117,6 +142,16 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	public void setUpdateSql(String updateSql) {
+		Assert.hasText(updateSql, "'updateSql' cannot be null or empty");
+		this.updateSql = () -> updateSql;
+	}
+
+	/**
+	 * Set a {@link Supplier} to provide the udateSql.
+	 * @param updateSql the supplier.
+	 * @since 5.3.1
+	 */
+	public void setUpdateSqlSupplier(Supplier<String> updateSql) {
 		this.updateSql = updateSql;
 	}
 
@@ -185,29 +220,32 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 			payload = null;
 		}
 		if (payload != null && this.updateSql != null) {
-			if (this.updatePerRow) {
-				for (Object row : payload) {
-					executeUpdateQuery(row);
+			String sqlForUpdate = this.updateSql.get();
+			if (this.updateSql != null) {
+				if (this.updatePerRow) {
+					for (Object row : payload) {
+						executeUpdateQuery(row, sqlForUpdate);
+					}
 				}
-			}
-			else {
-				executeUpdateQuery(payload);
+				else {
+					executeUpdateQuery(payload, sqlForUpdate);
+				}
 			}
 		}
 		return payload;
 	}
 
-	protected List<?> doPoll(@Nullable SqlParameterSource sqlQueryParameterSource) {
-		if (sqlQueryParameterSource != null) {
-			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
+	protected List<?> doPoll(@Nullable SqlParameterSource parameterSource) {
+		if (parameterSource != null) {
+			return this.jdbcOperations.query(this.selectQuery.get(), parameterSource, this.rowMapper);
 		}
 		else {
-			return this.jdbcOperations.query(this.selectQuery, this.rowMapper);
+			return this.jdbcOperations.query(this.selectQuery.get(), this.rowMapper);
 		}
 	}
 
-	private void executeUpdateQuery(Object obj) {
-		this.jdbcOperations.update(this.updateSql, this.sqlParameterSourceFactory.createParameterSource(obj));
+	private void executeUpdateQuery(Object obj, String sqlForUpdate) {
+		this.jdbcOperations.update(sqlForUpdate, this.sqlParameterSourceFactory.createParameterSource(obj));
 	}
 
 	private static final class PreparedStatementCreatorWithMaxRows

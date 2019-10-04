@@ -31,15 +31,18 @@ import org.springframework.util.StringUtils;
  *
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
 public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	@Override
 	protected boolean shouldGenerateId() {
 		return false;
 	}
 
+	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}
@@ -59,9 +62,15 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 					"simple-jdbc-operations should be set for the JDBC inbound-channel-adapter", source);
 		}
 		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
-		if (!StringUtils.hasText(query)) {
+		String querySupplier = element.getAttribute("query-supplier");
+		if (StringUtils.hasText(element.getAttribute("query"))
+				&& StringUtils.hasText(element.getAttribute("query-supplier"))) {
+			parserContext.getReaderContext().error("Only one of 'query' or 'query-supplier' is allowed", source);
+
+		}
+		if (!StringUtils.hasText(query) && !StringUtils.hasText(querySupplier)) {
 			parserContext.getReaderContext()
-					.error("The 'query' attribute is required", element);
+					.error("The 'query' or 'query-supplier' attributes are required", element);
 		}
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
@@ -69,13 +78,25 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		else {
 			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
-		builder.addConstructorArgValue(query);
+		if (StringUtils.hasText(query)) {
+			builder.addConstructorArgValue(query);
+		}
+		else {
+			builder.addConstructorArgReference(querySupplier);
+		}
+
+		if (StringUtils.hasText(element.getAttribute("update"))
+				&& StringUtils.hasText(element.getAttribute("update-supplier"))) {
+			parserContext.getReaderContext().error("Only one of 'update' or 'update-supplier' is allowed", source);
+
+		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "select-sql-parameter-source");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update", "updateSql");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-supplier", "updateSqlSupplier");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
 
 		return builder.getBeanDefinition();
