@@ -89,7 +89,6 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
-		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
 		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations) {
 
 			@Override
@@ -105,7 +104,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 		};
 
-		this.selectQuery = selectQuery;
+		setSelectQuery(selectQuery);
 		this.rowMapper = new ColumnMapRowMapper();
 	}
 
@@ -121,7 +120,8 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * @param selectQuery the query.
 	 * @since 5.2.1
 	 */
-	public void setSelectQuery(String selectQuery) {
+	public final void setSelectQuery(String selectQuery) {
+		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
 		this.selectQuery = selectQuery;
 	}
 
