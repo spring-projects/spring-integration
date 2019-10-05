@@ -44,9 +44,12 @@ import org.springframework.messaging.support.GenericMessage
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 /**
  * @author Artem Bilan
@@ -120,6 +123,18 @@ class FunctionsTests {
 		assertThat(this.fromSupplierQueue.receive(10_000)).isNotNull()
 	}
 
+	@Autowired
+	private lateinit var monoFunction: Function<String, Mono<Message<*>>>
+
+	@Test
+	fun `verify Mono gateway`() {
+		val mono = this.monoFunction.apply("test")
+
+		StepVerifier.create(mono.map(Message<*>::getPayload).cast(String::class.java))
+				.expectNext("TEST")
+				.verifyComplete()
+	}
+
 	@Configuration
 	@EnableIntegration
 	class Config {
@@ -155,6 +170,14 @@ class FunctionsTests {
 				IntegrationFlows.from<String>({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
 						.channel { c -> c.queue("fromSupplierQueue") }
 						.get()
+
+		@Bean
+		fun monoFunctionGateway() =
+				IntegrationFlows.from(MonoFunction::class.java)
+						.handle<String>({ p, _ -> Mono.just(p).map(String::toUpperCase) }) { e -> e.async(true) }
+						.get()
 	}
+
+	interface MonoFunction : Function<String, Mono<Message<*>>>
 
 }
