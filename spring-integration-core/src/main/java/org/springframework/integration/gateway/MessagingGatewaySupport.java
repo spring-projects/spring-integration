@@ -17,9 +17,9 @@
 package org.springframework.integration.gateway;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -59,6 +59,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
 
 /**
  * A convenient base class for connecting application code to
@@ -74,7 +75,7 @@ import reactor.core.publisher.Mono;
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
-			org.springframework.integration.support.management.MessageSourceMetrics {
+		org.springframework.integration.support.management.MessageSourceMetrics {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -111,8 +112,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private InboundMessageMapper<Object> requestMapper = new DefaultRequestMapper();
 
-	private volatile AbstractEndpoint replyMessageCorrelator;
-
 	private String managedType;
 
 	private String managedName;
@@ -120,6 +119,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private boolean countsEnabled;
 
 	private boolean loggingEnabled = true;
+
+	private volatile AbstractEndpoint replyMessageCorrelator;
 
 	private volatile boolean initialized;
 
@@ -136,7 +137,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * {@link ErrorMessage} with a {@link MessageTimeoutException} payload to the error
 	 * channel if a reply is expected but none is received. If no error channel is
 	 * configured, the {@link MessageTimeoutException} will be thrown.
-	 *
 	 * @param errorOnTimeout true to create the error message.
 	 * @since 4.2
 	 */
@@ -405,7 +405,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	protected void send(Object object) {
-		this.initializeIfNecessary();
+		initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
 		MessageChannel channel = getRequestChannel();
 		Assert.state(channel != null,
@@ -429,7 +429,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Nullable
 	protected Object receive() {
-		this.initializeIfNecessary();
+		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receiveAndConvert(channel, Object.class);
@@ -445,7 +445,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	@Nullable
 	protected Object receive(long timeout) {
-		this.initializeIfNecessary();
+		initializeIfNecessary();
 		MessageChannel channel = getReplyChannel();
 		assertPollableChannel(channel);
 		return this.messagingTemplate.receiveAndConvert(channel, timeout);
@@ -612,7 +612,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			Object originalReplyChannelHeader = message.getHeaders().getReplyChannel();
 			Object originalErrorChannelHeader = message.getHeaders().getErrorChannel();
 
-			FutureReplyChannel replyChan = new FutureReplyChannel();
+			MonoReplyChannel replyChan = new MonoReplyChannel();
 
 			Message<?> requestMessage = MutableMessageBuilder.fromMessage(message)
 					.setReplyChannel(replyChan)
@@ -623,7 +623,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 			sendMessageForReactiveFlow(requestChannel, requestMessage);
 
-			return buildReplyMono(requestMessage, replyChan, error, originalReplyChannelHeader,
+			return buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
 					originalErrorChannelHeader);
 		});
 	}
@@ -649,10 +649,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
-	private Mono<Message<?>> buildReplyMono(Message<?> requestMessage, FutureReplyChannel replyChannel, boolean error,
+	private Mono<Message<?>> buildReplyMono(Message<?> requestMessage, Mono<Message<?>> reply, boolean error,
 			@Nullable Object originalReplyChannelHeader, @Nullable Object originalErrorChannelHeader) {
 
-		return Mono.fromFuture(replyChannel.messageFuture)
+		return reply
 				.doOnSubscribe(s -> {
 					if (!error && this.countsEnabled) {
 						this.messageCount.incrementAndGet();
@@ -841,17 +841,25 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	}
 
-	private static class FutureReplyChannel implements MessageChannel {
+	private static class MonoReplyChannel implements MessageChannel, ReactiveStreamsSubscribableChannel {
 
-		private final CompletableFuture<Message<?>> messageFuture = new CompletableFuture<>();
+		private final MonoProcessor<Message<?>> replyMono = MonoProcessor.create();
 
-		FutureReplyChannel() {
+		MonoReplyChannel() {
 			super();
 		}
 
 		@Override
 		public boolean send(Message<?> message, long timeout) {
-			return this.messageFuture.complete(message);
+			this.replyMono.onNext(message);
+			this.replyMono.onComplete();
+			return true;
+		}
+
+		@Override
+		public void subscribeTo(Publisher<? extends Message<?>> publisher) {
+			this.replyMono.switchIfEmpty(Mono.from(publisher));
+			this.replyMono.onComplete();
 		}
 
 	}

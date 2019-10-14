@@ -25,7 +25,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -50,6 +49,7 @@ import reactor.core.publisher.Mono;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class AsyncGatewayTests {
@@ -58,9 +58,8 @@ public class AsyncGatewayTests {
 	public void futureWithMessageReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -82,9 +81,8 @@ public class AsyncGatewayTests {
 			}
 
 		};
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(channel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -104,16 +102,15 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		ListenableFuture<Message<?>> f = service.returnMessageListenable("foo");
 		long start = System.currentTimeMillis();
-		final AtomicReference<Message<?>> result = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> result = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		f.addCallback(new ListenableFutureCallback<Message<?>>() {
 
@@ -141,9 +138,8 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -159,9 +155,8 @@ public class AsyncGatewayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		addThreadEnricher(requestChannel);
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 
@@ -192,9 +187,8 @@ public class AsyncGatewayTests {
 	public void futureWithPayloadReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -209,9 +203,8 @@ public class AsyncGatewayTests {
 	public void futureWithWildcardReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -224,12 +217,11 @@ public class AsyncGatewayTests {
 
 
 	@Test
-	public void monoWithMessageReturned() throws Exception {
+	public void monoWithMessageReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
@@ -240,12 +232,11 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void monoWithPayloadReturned() throws Exception {
+	public void monoWithPayloadReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
@@ -256,12 +247,11 @@ public class AsyncGatewayTests {
 	}
 
 	@Test
-	public void monoWithWildcardReturned() throws Exception {
+	public void monoWithWildcardReturned() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
@@ -276,16 +266,15 @@ public class AsyncGatewayTests {
 	public void monoWithConsumer() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestEchoService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<String> mono = service.returnStringPromise("foo");
 
-		final AtomicReference<String> result = new AtomicReference<String>();
+		final AtomicReference<String> result = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		mono.subscribe(s -> {
@@ -374,14 +363,13 @@ public class AsyncGatewayTests {
 		}
 
 		@Override
-		public String get() throws InterruptedException, ExecutionException {
-			return result;
+		public String get() {
+			return this.result;
 		}
 
 		@Override
-		public String get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
-				TimeoutException {
-			return result;
+		public String get(long timeout, TimeUnit unit) {
+			return this.result;
 		}
 
 	}

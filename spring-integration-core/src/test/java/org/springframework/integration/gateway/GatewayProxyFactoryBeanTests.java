@@ -17,7 +17,8 @@
 package org.springframework.integration.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -67,12 +68,11 @@ import org.springframework.util.ReflectionUtils;
 public class GatewayProxyFactoryBeanTests {
 
 	@Test
-	public void testRequestReplyWithAnonymousChannel() throws Exception {
+	public void testRequestReplyWithAnonymousChannel() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
@@ -82,7 +82,7 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
+	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GenericConversionService cs = new DefaultConversionService();
@@ -98,13 +98,12 @@ public class GatewayProxyFactoryBeanTests {
 				};
 		stringToByteConverter = spy(stringToByteConverter);
 		cs.addConverter(stringToByteConverter);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
 
 		proxyFactory.setBeanFactory(bf);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
-		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
@@ -114,10 +113,9 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testOneWay() throws Exception {
+	public void testOneWay() {
 		final QueueChannel requestChannel = new QueueChannel();
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -130,11 +128,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testSolicitResponse() throws Exception {
+	public void testSolicitResponse() {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.send(new GenericMessage<>("foo"));
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setDefaultReplyChannel(replyChannel);
 		proxyFactory.setBeanName("testGateway");
@@ -147,11 +144,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testReceiveMessage() throws Exception {
+	public void testReceiveMessage() {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.send(new GenericMessage<>("foo"));
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultReplyChannel(replyChannel);
 
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -163,15 +159,14 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testRequestReplyWithTypeConversion() throws Exception {
+	public void testRequestReplyWithTypeConversion() {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
 			GenericMessage<String> reply = new GenericMessage<>(input.getPayload() + "456");
 			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -239,11 +234,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testMessageAsMethodArgument() throws Exception {
+	public void testMessageAsMethodArgument() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -254,11 +248,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testNoArgMethodWithPayloadAnnotation() throws Exception {
+	public void testNoArgMethodWithPayloadAnnotation() {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -269,15 +262,14 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testMessageAsReturnValue() throws Exception {
+	public void testMessageAsReturnValue() {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
 			GenericMessage<String> reply = new GenericMessage<>(input.getPayload() + "bar");
 			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
@@ -289,25 +281,14 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testServiceMustBeInterface() {
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		int count = 0;
-		try {
-			proxyFactory.setServiceInterface(TestService.class);
-			count++;
-			proxyFactory.setServiceInterface(String.class);
-			count++;
-		}
-		catch (IllegalArgumentException e) {
-			// expected
-		}
-		assertThat(count).isEqualTo(1);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new GatewayProxyFactoryBean(String.class));
 	}
 
 	@Test
-	public void testProxiedToStringMethod() throws Exception {
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+	public void testProxiedToStringMethod() {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
-		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
@@ -316,9 +297,9 @@ public class GatewayProxyFactoryBeanTests {
 		assertThat(proxy.toString().substring(0, expected.length())).isEqualTo(expected);
 	}
 
-	@Test(expected = TestException.class)
-	public void testCheckedExceptionRethrownAsIs() throws Exception {
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+	@Test
+	public void testCheckedExceptionRethrownAsIs() {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean(TestExceptionThrowingInterface.class);
 		DirectChannel channel = new DirectChannel();
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new MessageHandler() {
 
@@ -331,12 +312,12 @@ public class GatewayProxyFactoryBeanTests {
 		});
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
-		proxyFactory.setServiceInterface(TestExceptionThrowingInterface.class);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestExceptionThrowingInterface proxy = (TestExceptionThrowingInterface) proxyFactory.getObject();
-		proxy.throwCheckedException("test");
+		assertThatExceptionOfType(TestException.class)
+				.isThrownBy(() -> proxy.throwCheckedException("test"));
 	}
 
 
@@ -349,10 +330,9 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	public void testProgrammaticWiring() throws Exception {
-		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+	public void testProgrammaticWiring() {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(TestEchoService.class);
 		gpfb.setBeanFactory(mock(BeanFactory.class));
-		gpfb.setServiceInterface(TestEchoService.class);
 		QueueChannel drc = new QueueChannel();
 		gpfb.setDefaultRequestChannel(drc);
 		gpfb.setDefaultReplyTimeout(0L);
@@ -377,49 +357,29 @@ public class GatewayProxyFactoryBeanTests {
 		meta.setHeaderExpressions(Collections.singletonMap(MessageHeaders.ID, new LiteralExpression("bar")));
 		gpfb.setGlobalMethodMetadata(meta);
 
-		try {
-			gpfb.afterPropertiesSet();
-			fail("BeanInitializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanInitializationException.class);
-			assertThat(e.getMessage())
-					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
-		}
+		assertThatExceptionOfType(BeanInitializationException.class)
+				.isThrownBy(gpfb::afterPropertiesSet)
+				.withMessageContaining("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 	}
 
 	@Test
 	public void testIdHeaderOverrideGatewayHeaderAnnotation() {
-		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(HeadersOverwriteService.class);
 		gpfb.setBeanFactory(mock(BeanFactory.class));
-		gpfb.setServiceInterface(HeadersOverwriteService.class);
 
-		try {
-			gpfb.afterPropertiesSet();
-			fail("BeanInitializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanInitializationException.class);
-			assertThat(e.getMessage())
-					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
-		}
+		assertThatExceptionOfType(BeanInitializationException.class)
+				.isThrownBy(gpfb::afterPropertiesSet)
+				.withMessageContaining("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 	}
 
 	@Test
 	public void testTimeStampHeaderOverrideParamHeaderAnnotation() {
-		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(HeadersParamService.class);
 		gpfb.setBeanFactory(mock(BeanFactory.class));
-		gpfb.setServiceInterface(HeadersParamService.class);
 
-		try {
-			gpfb.afterPropertiesSet();
-			fail("BeanInitializationException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(BeanInitializationException.class);
-			assertThat(e.getMessage())
-					.contains("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
-		}
+		assertThatExceptionOfType(BeanInitializationException.class)
+				.isThrownBy(gpfb::afterPropertiesSet)
+				.withMessageContaining("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers");
 	}
 
 	//	@Test

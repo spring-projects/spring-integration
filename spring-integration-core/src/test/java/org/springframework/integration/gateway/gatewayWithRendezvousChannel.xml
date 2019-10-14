@@ -12,7 +12,7 @@
 	<service-activator ref="testHandler" input-channel="requestChannel"/>
 
 	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
-		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
+		<beans:constructor-arg value="org.springframework.integration.gateway.TestService"/>
 		<beans:property name="defaultRequestChannel" ref="requestChannel"/>
 	</beans:bean>
 

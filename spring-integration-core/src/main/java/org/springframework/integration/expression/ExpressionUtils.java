@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 public final class ExpressionUtils {
@@ -81,7 +82,7 @@ public final class ExpressionUtils {
 	 * @param beanFactory The bean factory.
 	 * @return The evaluation context.
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
+	public static StandardEvaluationContext createStandardEvaluationContext(@Nullable BeanFactory beanFactory) {
 		if (beanFactory == null) {
 			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
@@ -95,14 +96,14 @@ public final class ExpressionUtils {
 	 * @return The evaluation context.
 	 * @since 4.3.15
 	 */
-	public static SimpleEvaluationContext createSimpleEvaluationContext(BeanFactory beanFactory) {
+	public static SimpleEvaluationContext createSimpleEvaluationContext(@Nullable BeanFactory beanFactory) {
 		if (beanFactory == null) {
 			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
 		return (SimpleEvaluationContext) doCreateContext(beanFactory, true);
 	}
 
-	private static EvaluationContext doCreateContext(BeanFactory beanFactory, boolean simple) {
+	private static EvaluationContext doCreateContext(@Nullable BeanFactory beanFactory, boolean simple) {
 		ConversionService conversionService = null;
 		EvaluationContext evaluationContext = null;
 		if (beanFactory != null) {
@@ -129,8 +130,8 @@ public final class ExpressionUtils {
 	 * @param simple true if simple.
 	 * @return the evaluation context.
 	 */
-	private static EvaluationContext createEvaluationContext(ConversionService conversionService,
-			BeanFactory beanFactory, boolean simple) {
+	private static EvaluationContext createEvaluationContext(@Nullable ConversionService conversionService,
+			@Nullable BeanFactory beanFactory, boolean simple) {
 
 		if (simple) {
 			Builder ecBuilder = SimpleEvaluationContext.forPropertyAccessors(
@@ -166,6 +167,7 @@ public final class ExpressionUtils {
 	 */
 	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext,
 			@Nullable Message<?> message, String name) {
+
 		File file;
 		Object value = message == null
 				? expression.getValue(evaluationContext)
