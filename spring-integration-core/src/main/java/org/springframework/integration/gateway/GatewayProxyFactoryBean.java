@@ -107,7 +107,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
-	private Class<?> serviceInterface;
+	private Class<?> serviceInterface = RequestReplyExchanger.class;
 
 	private MessageChannel defaultRequestChannel;
 
@@ -157,7 +157,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * {@link RequestReplyExchanger}, upon initialization.
 	 */
 	public GatewayProxyFactoryBean() {
-		// serviceInterface will be determined on demand later
 	}
 
 	public GatewayProxyFactoryBean(Class<?> serviceInterface) {
@@ -170,9 +169,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	/**
 	 * Set the interface class that the generated proxy should implement.
 	 * If none is provided explicitly, the default is {@link RequestReplyExchanger}.
-	 *
 	 * @param serviceInterface The service interface.
+	 * @deprecated since 5.2.1 in favor of ctor initialization
 	 */
+	@Deprecated
 	public void setServiceInterface(Class<?> serviceInterface) {
 		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
 		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
@@ -385,14 +385,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (this.channelResolver == null && beanFactory != null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 			}
-			Class<?> proxyInterface = determineServiceInterface();
-			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(proxyInterface);
+			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
 			for (Method method : methods) {
 				MethodInvocationGateway gateway = createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
-			this.serviceProxy = new ProxyFactory(proxyInterface, this)
-					.getProxy(this.beanClassLoader);
+			this.serviceProxy =
+					new ProxyFactory(this.serviceInterface, this)
+							.getProxy(this.beanClassLoader);
 			if (this.asyncExecutor != null) {
 				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);
@@ -405,13 +405,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 			this.initialized = true;
 		}
-	}
-
-	private Class<?> determineServiceInterface() {
-		if (this.serviceInterface == null) {
-			this.serviceInterface = RequestReplyExchanger.class;
-		}
-		return this.serviceInterface;
 	}
 
 	@Override

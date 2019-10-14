@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ import org.springframework.messaging.handler.annotation.Payload;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class GatewayProxyMessageMappingTests {
@@ -49,9 +51,8 @@ public class GatewayProxyMessageMappingTests {
 
 
 	@Before
-	public void initializeGateway() throws Exception {
-		GatewayProxyFactoryBean factoryBean = new GatewayProxyFactoryBean();
-		factoryBean.setServiceInterface(TestGateway.class);
+	public void initializeGateway() {
+		GatewayProxyFactoryBean factoryBean = new GatewayProxyFactoryBean(TestGateway.class);
 		factoryBean.setDefaultRequestChannel(channel);
 		factoryBean.setBeanName("testGateway");
 		GenericApplicationContext context = new GenericApplicationContext();
@@ -65,8 +66,8 @@ public class GatewayProxyMessageMappingTests {
 
 
 	@Test
-	public void payloadAndHeaderMapWithoutAnnotations() throws Exception {
-		Map<String, Object> m = new HashMap<String, Object>();
+	public void payloadAndHeaderMapWithoutAnnotations() {
+		Map<String, Object> m = new HashMap<>();
 		m.put("k1", "v1");
 		m.put("k2", "v2");
 		gateway.payloadAndHeaderMapWithoutAnnotations("foo", m);
@@ -78,8 +79,8 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void payloadAndHeaderMapWithAnnotations() throws Exception {
-		Map<String, Object> m = new HashMap<String, Object>();
+	public void payloadAndHeaderMapWithAnnotations() {
+		Map<String, Object> m = new HashMap<>();
 		m.put("k1", "v1");
 		m.put("k2", "v2");
 		gateway.payloadAndHeaderMapWithAnnotations("foo", m);
@@ -91,7 +92,7 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void headerValuesAndPayloadWithAnnotations() throws Exception {
+	public void headerValuesAndPayloadWithAnnotations() {
 		gateway.headerValuesAndPayloadWithAnnotations("headerValue1", "payloadValue", "headerValue2");
 		Message<?> result = channel.receive(0);
 		assertThat(result).isNotNull();
@@ -101,8 +102,8 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void mapOnly() throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
+	public void mapOnly() {
+		Map<String, Object> map = new HashMap<>();
 		map.put("k1", "v1");
 		map.put("k2", "v2");
 		gateway.mapOnly(map);
@@ -115,8 +116,8 @@ public class GatewayProxyMessageMappingTests {
 
 	@Test
 	public void twoMapsAndOneAnnotatedWithPayload() {
-		Map<String, Object> map1 = new HashMap<String, Object>();
-		Map<String, Object> map2 = new HashMap<String, Object>();
+		Map<String, Object> map1 = new HashMap<>();
+		Map<String, Object> map2 = new HashMap<>();
 		map1.put("k1", "v1");
 		map2.put("k2", "v2");
 		gateway.twoMapsAndOneAnnotatedWithPayload(map1, map2);
@@ -128,7 +129,7 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void payloadAnnotationAtMethodLevel() throws Exception {
+	public void payloadAnnotationAtMethodLevel() {
 		gateway.payloadAnnotationAtMethodLevel("foo", "bar");
 		Message<?> result = channel.receive(0);
 		assertThat(result).isNotNull();
@@ -136,7 +137,7 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void payloadAnnotationAtMethodLevelUsingBeanResolver() throws Exception {
+	public void payloadAnnotationAtMethodLevelUsingBeanResolver() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
 		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
@@ -155,7 +156,7 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void payloadAnnotationWithExpression() throws Exception {
+	public void payloadAnnotationWithExpression() {
 		gateway.payloadAnnotationWithExpression("foo");
 		Message<?> result = channel.receive(0);
 		assertThat(result).isNotNull();
@@ -163,7 +164,7 @@ public class GatewayProxyMessageMappingTests {
 	}
 
 	@Test
-	public void payloadAnnotationWithExpressionUsingBeanResolver() throws Exception {
+	public void payloadAnnotationWithExpressionUsingBeanResolver() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
 		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
@@ -186,28 +187,32 @@ public class GatewayProxyMessageMappingTests {
 		context.close();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void twoMapsWithoutAnnotations() {
-		Map<String, Object> map1 = new HashMap<String, Object>();
-		Map<String, Object> map2 = new HashMap<String, Object>();
+		Map<String, Object> map1 = new HashMap<>();
+		Map<String, Object> map2 = new HashMap<>();
 		map1.put("k1", "v1");
 		map2.put("k2", "v2");
-		gateway.twoMapsWithoutAnnotations(map1, map2);
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.gateway.twoMapsWithoutAnnotations(map1, map2));
 	}
 
-	@Test(expected = MessagingException.class)
-	public void twoPayloads() throws Exception {
-		gateway.twoPayloads("won't", "work");
+	@Test
+	public void twoPayloads() {
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.gateway.twoPayloads("won't", "work"));
 	}
 
-	@Test(expected = MessagingException.class)
-	public void payloadAndHeaderAnnotationsOnSameParameter() throws Exception {
-		gateway.payloadAndHeaderAnnotationsOnSameParameter("oops");
+	@Test
+	public void payloadAndHeaderAnnotationsOnSameParameter() {
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.gateway.payloadAndHeaderAnnotationsOnSameParameter("oops"));
 	}
 
-	@Test(expected = MessagingException.class)
-	public void payloadAndHeadersAnnotationsOnSameParameter() throws Exception {
-		gateway.payloadAndHeadersAnnotationsOnSameParameter(new HashMap<String, Object>());
+	@Test
+	public void payloadAndHeadersAnnotationsOnSameParameter() {
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.gateway.payloadAndHeadersAnnotationsOnSameParameter(new HashMap<>()));
 	}
 
 
@@ -261,6 +266,7 @@ public class GatewayProxyMessageMappingTests {
 			}
 			return sum;
 		}
+
 	}
 
 }

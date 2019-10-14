@@ -41,7 +41,6 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 
 	public GatewayMessageHandler() {
 		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean();
-		this.gatewayProxyFactoryBean.setServiceInterface(RequestReplyExchanger.class);
 	}
 
 	public void setRequestChannel(MessageChannel requestChannel) {
