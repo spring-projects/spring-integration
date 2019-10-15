@@ -331,6 +331,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
+		configDir = file("$rootDir/src/checkstyle/")
 		toolVersion = '8.24'
 	}
 
