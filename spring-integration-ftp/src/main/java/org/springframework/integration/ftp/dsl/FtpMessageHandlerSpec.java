@@ -22,25 +22,28 @@ import org.springframework.integration.file.dsl.FileTransferringMessageHandlerSp
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.ftp.outbound.FtpMessageHandler;
 
 /**
  * A {@link FileTransferringMessageHandlerSpec} for FTP.
  *
  * @author Artem Bilan
+ * @author Joaquin Santana
+ *
  * @since 5.0
  */
 public class FtpMessageHandlerSpec extends FileTransferringMessageHandlerSpec<FTPFile, FtpMessageHandlerSpec> {
 
 	FtpMessageHandlerSpec(SessionFactory<FTPFile> sessionFactory) {
-		super(sessionFactory);
+		this.target = new FtpMessageHandler(sessionFactory);
 	}
 
 	FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
-		super(remoteFileTemplate);
+		this.target = new FtpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
 	FtpMessageHandlerSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode fileExistsMode) {
-		super(remoteFileTemplate, fileExistsMode);
+		this.target = new FtpMessageHandler(remoteFileTemplate, fileExistsMode);
 	}
 
 }

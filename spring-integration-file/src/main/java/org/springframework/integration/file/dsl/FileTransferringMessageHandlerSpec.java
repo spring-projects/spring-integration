@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link FileTransferringMessageHandlerSpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Joaquin Santana
  *
  * @since 5.0
  */
@@ -52,6 +53,10 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 
 	private DefaultFileNameGenerator defaultFileNameGenerator;
 
+	// TODO: should be refactored using generics in next release (breaking change), see PR-3080.
+	protected FileTransferringMessageHandlerSpec() {
+	}
+
 	protected FileTransferringMessageHandlerSpec(SessionFactory<F> sessionFactory) {
 		this.target = new FileTransferringMessageHandler<>(sessionFactory);
 	}
@@ -62,6 +67,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 
 	protected FileTransferringMessageHandlerSpec(RemoteFileTemplate<F> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
+
 		this.target = new FileTransferringMessageHandler<>(remoteFileTemplate, fileExistsMode);
 	}
 
