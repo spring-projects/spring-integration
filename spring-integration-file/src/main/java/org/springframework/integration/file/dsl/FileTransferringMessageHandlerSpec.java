@@ -16,11 +16,6 @@
 
 package org.springframework.integration.file.dsl;
 
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.Map;
-import java.util.function.Function;
-
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -33,6 +28,11 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The {@link MessageHandlerSpec} for the {@link FileTransferringMessageHandler}.
@@ -51,6 +51,9 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 	private FileNameGenerator fileNameGenerator;
 
 	private DefaultFileNameGenerator defaultFileNameGenerator;
+
+	protected FileTransferringMessageHandlerSpec() {
+	}
 
 	protected FileTransferringMessageHandlerSpec(SessionFactory<F> sessionFactory) {
 		this.target = new FileTransferringMessageHandler<>(sessionFactory);
