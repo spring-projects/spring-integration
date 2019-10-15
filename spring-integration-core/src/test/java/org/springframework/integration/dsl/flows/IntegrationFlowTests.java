@@ -74,6 +74,7 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
 import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
@@ -362,10 +363,10 @@ public class IntegrationFlowTests {
 		assertThat(out).isNotNull();
 		assertThat(out.getPayload()).isEqualTo("bar");
 
-		this.tappedChannel5.send(new GenericMessage<>("foo"));
+		this.tappedChannel5.send(new GenericMessage<>(""));
 		out = this.wireTapSubflowResult.receive(10000);
 		assertThat(out).isNotNull();
-		assertThat(out.getPayload()).isEqualTo("FOO");
+		assertThat(out.getPayload()).isEqualTo("");
 	}
 
 	@Autowired
@@ -700,7 +701,15 @@ public class IntegrationFlowTests {
 		public IntegrationFlow wireTapFlow5() {
 			return f -> f
 					.wireTap(sf -> sf
-							.<String, String>transform(String::toUpperCase)
+							.transform(// Must not be lambda for SpEL fallback behavior on empty payload
+									new GenericTransformer<String, String>() {
+
+										@Override
+										public String transform(String source) {
+											return source.toUpperCase();
+										}
+
+									})
 							.channel(MessageChannels.queue("wireTapSubflowResult")))
 					.channel("nullChannel");
 		}

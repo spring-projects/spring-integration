@@ -55,7 +55,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
-import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -448,18 +447,6 @@ public class MethodInvokingMessageProcessorTests {
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
 				.withRootCauseInstanceOf(CheckedException.class);
-	}
-
-	@Test
-	public void testProcessMessageMethodNotFound() throws Exception {
-		TestDifferentErrorService service = new TestDifferentErrorService();
-		Method method = TestErrorService.class.getMethod("checked", String.class);
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		processor.setUseSpelInvoker(true);
-		processor.setBeanFactory(mock(BeanFactory.class));
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
-				.withCauseInstanceOf(SpelEvaluationException.class);
 	}
 
 	@Test
