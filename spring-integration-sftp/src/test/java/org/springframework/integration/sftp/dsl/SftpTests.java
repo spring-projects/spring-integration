@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -61,6 +62,7 @@ import com.jcraft.jsch.ChannelSftp;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Joaquin Santana
  *
  * @since 5.0
  *
@@ -148,6 +150,34 @@ public class SftpTests extends SftpTestSupport {
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertEquals(1, files.length);
 		assertEquals(3, files[0].getAttrs().getSize());
+
+		registration.destroy();
+	}
+
+
+	@Test
+	@Ignore("Doesn't work as expected on Windows")
+	public void testSftpOutboundFlowWithChmod() {
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+				.useTemporaryFileName(false)
+				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+				.chmod(0644)
+				.remoteDirectory("sftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+
+		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		ChannelSftp.LsEntry[] files = template.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertEquals(1, files.length);
+		assertEquals(3, files[0].getAttrs().getSize());
+		String[] permissions = files[0].getAttrs().getPermissionsString().substring(1).replaceAll("--", "-").split("-");
+		assertEquals("rw", permissions[0]);
+		assertEquals("r", permissions[1]);
+		assertEquals("r", permissions[2]);
 
 		registration.destroy();
 	}

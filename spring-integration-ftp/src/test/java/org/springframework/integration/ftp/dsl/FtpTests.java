@@ -74,6 +74,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Joaquin Santana
  *
  * @since 5.0
  */
@@ -180,6 +181,30 @@ public class FtpTests extends FtpTestSupport {
 				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
 						.useTemporaryFileName(false)
 						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.remoteDirectory("ftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		Message<ByteArrayInputStream> message = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message);
+		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(sessionFactory());
+		FTPFile[] files = template.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertEquals(1, files.length);
+		assertEquals(3, files[0].getSize());
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testFtpOutboundFlowWithChmod() {
+		IntegrationFlow flow = f -> f
+				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+						.useTemporaryFileName(false)
+						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.chmod(0644)
 						.remoteDirectory("ftpTarget"));
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String fileName = "foo.file";
