@@ -154,7 +154,7 @@ public class SftpTests extends SftpTestSupport {
 		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
 				.useTemporaryFileName(false)
 				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
-				.chmod(644)
+				.chmod(0644)
 				.remoteDirectory("sftpTarget"));
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String fileName = "foo.file";

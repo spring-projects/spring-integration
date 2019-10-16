@@ -198,7 +198,7 @@ public class FtpTests extends FtpTestSupport {
 				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
 						.useTemporaryFileName(false)
 						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
-						.chmod(644)
+						.chmod(0644)
 						.remoteDirectory("ftpTarget"));
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String fileName = "foo.file";
