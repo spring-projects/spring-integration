@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -142,6 +144,34 @@ public class SftpTests extends SftpTestSupport {
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
 		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+
+		registration.destroy();
+	}
+
+
+	@Test
+	public void testSftpOutboundFlowWithChmod() {
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+				.useTemporaryFileName(false)
+				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+				.chmod(644)
+				.remoteDirectory("sftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+
+		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		ChannelSftp.LsEntry[] files = template.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getAttrs().getSize()).isEqualTo(3);
+		String[] permissions = files[0].getAttrs().getPermissionsString().substring(1).replaceAll("--", "-").split("-");
+		assertThat(permissions[0]).isEqualTo("rw");
+		assertThat(permissions[1]).isEqualTo("r");
+		assertThat(permissions[2]).isEqualTo("r");
+
 
 		registration.destroy();
 	}

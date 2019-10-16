@@ -193,6 +193,36 @@ public class FtpTests extends FtpTestSupport {
 	}
 
 	@Test
+	public void testFtpOutboundFlowWithChmod() {
+		IntegrationFlow flow = f -> f
+				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+						.useTemporaryFileName(false)
+						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.chmod(644)
+						.remoteDirectory("ftpTarget"));
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		String fileName = "foo.file";
+		Message<ByteArrayInputStream> message = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message);
+		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(sessionFactory());
+		FTPFile[] files = template.execute(session ->
+				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
+		assertThat(files.length).isEqualTo(1);
+		assertThat(files[0].getSize()).isEqualTo(3);
+		assertThat(files[0].hasPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
+		assertThat(files[0].hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION)).isTrue();
+		assertThat(files[0].hasPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
+		assertThat(files[0].hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION)).isFalse();
+		assertThat(files[0].hasPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
+		assertThat(files[0].hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION)).isFalse();
+
+		registration.destroy();
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void testFtpMgetFlow() {
 		QueueChannel out = new QueueChannel();

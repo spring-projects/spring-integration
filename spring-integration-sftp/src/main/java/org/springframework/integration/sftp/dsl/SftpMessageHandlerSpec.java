@@ -23,6 +23,7 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 
 import com.jcraft.jsch.ChannelSftp;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**
  * @author Artem Bilan
@@ -36,11 +37,11 @@ public class SftpMessageHandlerSpec
 	}
 
 	SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate) {
-		this.target = new SftpMessageHandler(remoteFileTemplate);
+		this.target = new SftpMessageHandler(remoteFileTemplate.getSessionFactory());
 	}
 
 	SftpMessageHandlerSpec(RemoteFileTemplate<ChannelSftp.LsEntry> remoteFileTemplate, FileExistsMode fileExistsMode) {
-		this.target = new SftpMessageHandler(remoteFileTemplate, fileExistsMode);
+		this.target = new SftpMessageHandler(new SftpRemoteFileTemplate(remoteFileTemplate.getSessionFactory()), fileExistsMode);
 	}
 
 }
