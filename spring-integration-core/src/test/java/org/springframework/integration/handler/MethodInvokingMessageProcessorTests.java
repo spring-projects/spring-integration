@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -451,6 +452,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	@Ignore("See https://github.com/spring-projects/spring-framework/issues/23824")
 	public void testProcessMessageMethodNotFound() throws Exception {
 		TestDifferentErrorService service = new TestDifferentErrorService();
 		Method method = TestErrorService.class.getMethod("checked", String.class);

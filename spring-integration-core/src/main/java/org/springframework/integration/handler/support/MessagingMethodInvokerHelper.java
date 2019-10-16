@@ -417,7 +417,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 		StandardEvaluationContext context = getEvaluationContext();
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
 		if (this.method != null) {
-			context.registerMethodFilter(targetType, new FixedMethodFilter(this.method));
+			context.registerMethodFilter(targetType,
+					new FixedMethodFilter(ClassUtils.getMostSpecificMethod(this.method, targetType)));
 			if (this.expectedType != null) {
 				Assert.state(context.getTypeConverter()
 								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()), this.expectedType),
