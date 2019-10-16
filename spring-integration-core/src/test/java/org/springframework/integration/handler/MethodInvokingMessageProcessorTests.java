@@ -51,6 +51,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -460,6 +461,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	@Ignore("See https://github.com/spring-projects/spring-framework/issues/23824")
 	public void testProcessMessageMethodNotFound() throws Exception {
 		expected.expect(new ExceptionCauseMatcher(SpelEvaluationException.class));
 		TestDifferentErrorService service = new TestDifferentErrorService();
