@@ -48,13 +48,10 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 		super(remoteFileTemplate);
 	}
 
-	public FtpMessageHandler(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode mode) {
-		super(remoteFileTemplate, mode);
+	public FtpMessageHandler(FtpRemoteFileTemplate template, FileExistsMode fileExistsMode) {
+		super(template, fileExistsMode);
 	}
 
-	public FtpMessageHandler(RemoteFileTemplate<FTPFile> remoteFileTemplate) {
-		super(remoteFileTemplate);
-	}
 
 	@Override
 	public boolean isChmodCapable() {
