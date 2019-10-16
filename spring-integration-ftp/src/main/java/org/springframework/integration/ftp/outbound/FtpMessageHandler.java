@@ -64,7 +64,7 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 	@Override
 	protected void doChmod(RemoteFileTemplate<FTPFile> remoteFileTemplate, final String path, final int chmod) {
 		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
-			String chModCommand = "chmod " + Integer.toOctalString(chmod) + " " + path;
+			String chModCommand = "chmod " + chmod + " " + path;
 			try {
 				client.sendSiteCommand(chModCommand);
 			}
