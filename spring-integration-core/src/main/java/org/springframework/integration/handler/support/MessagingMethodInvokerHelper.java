@@ -1280,8 +1280,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 			AnnotationAttributes annotationAttributes =
 					(AnnotationAttributes) AnnotationUtils.getAnnotationAttributes(headerAnnotation);
 			String valueAttribute = annotationAttributes.getString(AnnotationUtils.VALUE);
+			int len = valueAttribute == null ? 0 : valueAttribute.length();
 			if (!StringUtils.hasText(valueAttribute)) {
 				headerName = methodParameter.getParameterName();
+			}
+			else if (len > 2 && valueAttribute.charAt(0) == '\'' && valueAttribute.charAt(len - 1) == '\'') {
+				headerName = valueAttribute.substring(1, len - 1);
 			}
 			else if (valueAttribute.indexOf('.') != -1) {
 				String[] tokens = valueAttribute.split("\\.", 2);
