@@ -66,6 +66,13 @@ public class SftpMessageHandler extends FileTransferringMessageHandler<LsEntry> 
 		this(new SftpRemoteFileTemplate(sessionFactory));
 	}
 
+	public SftpMessageHandler(RemoteFileTemplate<LsEntry> remoteFileTemplate) {
+		super(remoteFileTemplate);
+	}
+
+	public SftpMessageHandler(RemoteFileTemplate<LsEntry> remoteFileTemplate, FileExistsMode fileExistsMode) {
+		super(remoteFileTemplate, fileExistsMode);
+	}
 
 	@Override
 	public boolean isChmodCapable() {
