@@ -52,6 +52,7 @@ public abstract class FileTransferringMessageHandlerSpec<F, S extends FileTransf
 
 	private DefaultFileNameGenerator defaultFileNameGenerator;
 
+	// TODO: 16/10/2019 this should be refactored using generics in next release (breaking change), see PR-3080.
 	protected FileTransferringMessageHandlerSpec() {
 	}
 
