@@ -170,6 +170,7 @@ public class MethodInvokingMessageProcessorTests {
 				this.name = fname + " " + lname;
 			}
 
+			@Override
 			public String toString() {
 				return "Person: " + this.name;
 			}
@@ -552,7 +553,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void optionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
-		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class,
+				String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, false);
@@ -561,7 +563,8 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void compiledOptionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
-		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class,
+				String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
@@ -577,17 +580,20 @@ public class MethodInvokingMessageProcessorTests {
 		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = MessageBuilder.withPayload("hello")
 				.setHeader("dot2", new DotBean())
+				.setHeader("dotted.literal", "dotted")
 				.build();
 		Object result = processor.processMessage(message);
-		assertEquals("null42", result);
+		assertEquals("null42dotted", result);
 		message = MessageBuilder.withPayload("hello")
 				.setHeader("dot1", new DotBean())
 				.setHeader("dot2", new DotBean())
+				.setHeader("dotted.literal", "dotted")
 				.build();
 		result = processor.processMessage(message);
-		assertEquals("bar42", result);
+		assertEquals("bar42dotted", result);
 		message = MessageBuilder.withPayload("hello")
 				.setHeader("dot1", new DotBean())
+				.setHeader("dotted.literal", "dotted")
 				.build();
 		try {
 			result = processor.processMessage(message);
@@ -1380,8 +1386,8 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public String optionalAndRequiredDottedHeader(@Header(name = "dot1.foo", required = false) String prop,
-				@Header(name = "dot2.baz") Integer num) {
-			return prop + num;
+				@Header(name = "dot2.baz") Integer num, @Header("'dotted.literal'") String dotted) {
+			return prop + num + dotted;
 		}
 
 		public Properties propertiesMethod(Properties properties) {
