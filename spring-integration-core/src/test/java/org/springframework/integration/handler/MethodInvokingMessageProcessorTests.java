@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -55,6 +56,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -447,6 +449,19 @@ public class MethodInvokingMessageProcessorTests {
 		assertThatExceptionOfType(MessageHandlingException.class)
 				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
 				.withRootCauseInstanceOf(CheckedException.class);
+	}
+
+	@Test
+	@Ignore("See https://github.com/spring-projects/spring-framework/issues/23824")
+	public void testProcessMessageMethodNotFound() throws Exception {
+		TestDifferentErrorService service = new TestDifferentErrorService();
+		Method method = TestErrorService.class.getMethod("checked", String.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		processor.setBeanFactory(mock(BeanFactory.class));
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> processor.processMessage(new GenericMessage<>("foo")))
+				.withCauseInstanceOf(SpelEvaluationException.class);
 	}
 
 	@Test
