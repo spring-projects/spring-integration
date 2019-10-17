@@ -40,6 +40,7 @@ public class FileChannelCacheTests {
 		File testFile = new File(temp.getRoot(), "test0");
 		assertThat(testFile.exists()).isFalse();
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNull();
+		assertThat(testFile.exists()).isFalse();
 	}
 
 	@Test
