@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Emmanuel Roux
+ * @since 4.3.22
  */
 public class FileChannelCacheTests {
 
