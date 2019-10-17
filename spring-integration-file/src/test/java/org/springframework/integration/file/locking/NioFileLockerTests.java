@@ -34,6 +34,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Emmanuel Roux
  */
 public class NioFileLockerTests {
 
@@ -74,6 +75,23 @@ public class NioFileLockerTests {
 		filter1.lock(testFile);
 		assertThat(filter2.filterFiles(workdir.listFiles())).isEqualTo(new ArrayList<File>());
 		filter1.unlock(testFile);
+	}
+
+	@Test
+	public void fileLockedWhenNotAlreadyLockedAndExists() throws IOException {
+		NioFileLocker locker = new NioFileLocker();
+		File testFile = new File(workdir, "test2");
+		testFile.createNewFile();
+		assertThat(locker.lock(testFile)).isTrue();
+		locker.unlock(testFile);
+	}
+
+	@Test
+	public void fileNotLockedWhenNotExists() throws IOException {
+		NioFileLocker locker = new NioFileLocker();
+		File testFile = new File(workdir, "test3");
+		assertThat(locker.lock(testFile)).isFalse();
+		assertThat(testFile.exists()).isFalse();
 	}
 
 }

@@ -25,11 +25,14 @@ import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Static cache of FileLocks that can be used to ensure that only a single lock is used inside this ClassLoader.
  *
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Emmanuel Roux
  * @since 2.0
  */
 final class FileChannelCache {
@@ -49,9 +52,10 @@ final class FileChannelCache {
 	 * <p>
 	 * Thread safe.
 	 */
+	@Nullable
 	public static FileLock tryLockFor(File fileToLock) throws IOException {
 		FileChannel channel = channelCache.get(fileToLock);
-		if (channel == null) {
+		if (channel == null && fileToLock.exists()) {
 			@SuppressWarnings("resource")
 			FileChannel newChannel = new RandomAccessFile(fileToLock, "rw").getChannel();
 			FileChannel original = channelCache.putIfAbsent(fileToLock, newChannel);
