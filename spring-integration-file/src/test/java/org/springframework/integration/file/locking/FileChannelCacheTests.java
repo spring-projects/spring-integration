@@ -27,6 +27,8 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Emmanuel Roux
+ * @author Artem Bilan
+ *
  * @since 4.3.22
  */
 public class FileChannelCacheTests {
@@ -35,7 +37,7 @@ public class FileChannelCacheTests {
 	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
-	public void throwsExceptionWhenFileNotExists() throws IOException {
+	public void noLockWhenFileNotExists() throws IOException {
 		File testFile = new File(temp.getRoot(), "test0");
 		assertThat(testFile.exists()).isFalse();
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNull();
@@ -45,7 +47,6 @@ public class FileChannelCacheTests {
 	@Test
 	public void fileLocked() throws IOException {
 		File testFile = temp.newFile("test1");
-		testFile.createNewFile();
 		assertThat(testFile.exists()).isTrue();
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNotNull();
 		FileChannelCache.closeChannelFor(testFile);
