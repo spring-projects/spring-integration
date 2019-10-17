@@ -17,6 +17,7 @@
 package org.springframework.integration.file.locking;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -36,6 +37,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Emmanuel Roux
  */
 public class NioFileLockerTests {
 
@@ -75,6 +77,23 @@ public class NioFileLockerTests {
 		filter1.lock(testFile);
 		assertThat(filter2.filterFiles(workdir.listFiles()), is(new ArrayList<File>()));
 		filter1.unlock(testFile);
+	}
+
+	@Test
+	public void fileLockedWhenNotAlreadyLockedAndExists() throws IOException {
+		NioFileLocker locker = new NioFileLocker();
+		File testFile = new File(this.workdir, "test2");
+		testFile.createNewFile();
+		assertTrue(locker.lock(testFile));
+		locker.unlock(testFile);
+	}
+
+	@Test
+	public void fileNotLockedWhenNotExists() {
+		NioFileLocker locker = new NioFileLocker();
+		File testFile = new File(this.workdir, "test3");
+		assertFalse(locker.lock(testFile));
+		assertFalse(testFile.exists());
 	}
 
 }

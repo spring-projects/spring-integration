@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Emmanuel Roux
  * @since 2.0
  */
 final class FileChannelCache {
@@ -51,7 +52,7 @@ final class FileChannelCache {
 	 */
 	public static FileLock tryLockFor(File fileToLock) throws IOException {
 		FileChannel channel = channelCache.get(fileToLock);
-		if (channel == null) {
+		if (channel == null && fileToLock.exists()) {
 			@SuppressWarnings("resource")
 			FileChannel newChannel = new RandomAccessFile(fileToLock, "rw").getChannel();
 			FileChannel original = channelCache.putIfAbsent(fileToLock, newChannel);
