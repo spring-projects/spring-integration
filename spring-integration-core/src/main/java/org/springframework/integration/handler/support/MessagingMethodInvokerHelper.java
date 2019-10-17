@@ -1276,12 +1276,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 		private String determineHeaderExpression(Annotation headerAnnotation, MethodParameter methodParameter) {
 			methodParameter.initParameterNameDiscovery(PARAMETER_NAME_DISCOVERER);
-			String headerName = null;
 			String relativeExpression = "";
 			AnnotationAttributes annotationAttributes =
 					(AnnotationAttributes) AnnotationUtils.getAnnotationAttributes(headerAnnotation);
 			String valueAttribute = annotationAttributes.getString(AnnotationUtils.VALUE);
-			int len = valueAttribute == null ? 0 : valueAttribute.length();
+			int len = valueAttribute.length();
+			String headerName = valueAttribute;
 			if (!StringUtils.hasText(valueAttribute)) {
 				headerName = methodParameter.getParameterName();
 			}
@@ -1296,9 +1296,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 					this.spelOnly = true;
 				}
 			}
-			else {
-				headerName = valueAttribute;
-			}
+
 			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is "
 					+ "disabled or header name is not explicitly provided via @Header annotation.");
 			String headerRetrievalExpression = "headers['" + headerName + "']";
