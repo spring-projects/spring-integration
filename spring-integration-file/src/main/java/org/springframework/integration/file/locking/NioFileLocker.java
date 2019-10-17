@@ -17,7 +17,6 @@
 package org.springframework.integration.file.locking;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.FileLock;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +36,6 @@ import org.springframework.messaging.MessagingException;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
- * @author Emmanuel Roux
  * @since 2.0
  */
 public class NioFileLocker extends AbstractFileLockerFilter {
@@ -51,9 +49,6 @@ public class NioFileLocker extends AbstractFileLockerFilter {
 			FileLock newLock = null;
 			try {
 				newLock = FileChannelCache.tryLockFor(fileToLock);
-			}
-			catch (FileNotFoundException e) {
-				// Consider lock failed
 			}
 			catch (IOException e) {
 				throw new MessagingException("Failed to lock file: " + fileToLock, e);

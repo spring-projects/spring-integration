@@ -17,7 +17,6 @@
 package org.springframework.integration.file.locking;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -25,6 +24,8 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.springframework.lang.Nullable;
 
 /**
  * Static cache of FileLocks that can be used to ensure that only a single lock is used inside this ClassLoader.
@@ -45,20 +46,16 @@ final class FileChannelCache {
 
 	/**
 	 * Try to get a lock for this file while guaranteeing that the same channel will be used for all file locks in this
-	 * VM. If the lock could not be acquired this method will return <code>null</code>. If the file does not exist this
-	 * method will throw a {@link FileNotFoundException}.
+	 * VM. If the lock could not be acquired this method will return <code>null</code>.
 	 * <p>
 	 * Locks acquired through this method should be passed back to #closeChannelFor to prevent memory leaks.
 	 * <p>
 	 * Thread safe.
 	 */
+	@Nullable
 	public static FileLock tryLockFor(File fileToLock) throws IOException {
-		if (!fileToLock.exists()) {
-			throw new FileNotFoundException("Unable to get lock for non-existent file: " + fileToLock.getAbsolutePath());
-		}
-
 		FileChannel channel = channelCache.get(fileToLock);
-		if (channel == null) {
+		if (channel == null && fileToLock.exists()) {
 			@SuppressWarnings("resource")
 			FileChannel newChannel = new RandomAccessFile(fileToLock, "rw").getChannel();
 			FileChannel original = channelCache.putIfAbsent(fileToLock, newChannel);

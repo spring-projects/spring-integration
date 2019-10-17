@@ -43,11 +43,11 @@ public class FileChannelCacheTests {
 		}
 	};
 
-	@Test(expected = FileNotFoundException.class)
+	@Test
 	public void throwsExceptionWhenFileNotExists() throws IOException {
 		File testFile = new File(workdir, "test0");
 		assertThat(testFile.exists()).isFalse();
-		FileChannelCache.tryLockFor(testFile);
+		assertThat(FileChannelCache.tryLockFor(testFile)).isNull();
 	}
 
 	@Test
