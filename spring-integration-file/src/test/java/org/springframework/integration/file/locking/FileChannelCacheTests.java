@@ -32,28 +32,19 @@ import org.junit.rules.TemporaryFolder;
  */
 public class FileChannelCacheTests {
 
-	private File workdir;
-
 	@Rule
-	public TemporaryFolder temp = new TemporaryFolder() {
-
-		@Override
-		public void create() throws IOException {
-			super.create();
-			workdir = temp.newFolder(FileChannelCacheTests.class.getSimpleName());
-		}
-	};
+	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
 	public void throwsExceptionWhenFileNotExists() throws IOException {
-		File testFile = new File(workdir, "test0");
+		File testFile = new File(temp.getRoot(), "test0");
 		assertThat(testFile.exists()).isFalse();
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNull();
 	}
 
 	@Test
 	public void fileLocked() throws IOException {
-		File testFile = new File(workdir, "test1");
+		File testFile = temp.newFile("test1");
 		testFile.createNewFile();
 		assertThat(testFile.exists()).isTrue();
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNotNull();
