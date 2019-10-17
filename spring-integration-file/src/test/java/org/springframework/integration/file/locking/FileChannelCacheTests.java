@@ -50,4 +50,5 @@ public class FileChannelCacheTests {
 		assertThat(FileChannelCache.tryLockFor(testFile)).isNotNull();
 		FileChannelCache.closeChannelFor(testFile);
 	}
+
 }

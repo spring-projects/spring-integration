@@ -93,4 +93,5 @@ public class NioFileLockerTests {
 		assertThat(locker.lock(testFile)).isFalse();
 		assertThat(testFile.exists()).isFalse();
 	}
+
 }
