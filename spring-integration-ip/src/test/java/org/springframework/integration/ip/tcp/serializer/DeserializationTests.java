@@ -418,21 +418,59 @@ public class DeserializationTests {
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
 		String shortReply = reply.substring(0, reply.length() - 1);
 		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(shortReply));
-		message = outputChannel.receive(6000);
+		message = outputChannel.receive(1000);
 		assertThat(message).isNull();
+	}
 
-		// good message should be received
-		if ((deserializer instanceof ByteArrayRawSerializer)) { // restore old behavior
-			clientNio.setDeserializer(new ByteArrayRawSerializer(true));
-		}
+	@Test
+	public void testTimeoutWithRawDeserializerEofIsTerminator() throws Exception {
+		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
+		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
+		serverNio.setDeserializer(lengthHeaderSerializer);
+		serverNio.setSerializer(serializer);
+		serverNio.afterPropertiesSet();
+		TcpInboundGateway in = new TcpInboundGateway();
+		in.setConnectionFactory(serverNio);
+		QueueChannel serverSideChannel = new QueueChannel();
+		in.setRequestChannel(serverSideChannel);
+		in.setBeanFactory(mock(BeanFactory.class));
+		in.afterPropertiesSet();
+		in.start();
+		TestingUtilities.waitListening(serverNio, null);
+		TcpNioClientConnectionFactory clientNio = new TcpNioClientConnectionFactory("localhost", serverNio.getPort());
+		clientNio.setSerializer(serializer);
+		clientNio.setDeserializer(new ByteArrayRawSerializer(true));
+		clientNio.setSoTimeout(1000);
+		clientNio.afterPropertiesSet();
+		final TcpOutboundGateway out = new TcpOutboundGateway();
+		out.setConnectionFactory(clientNio);
+		QueueChannel outputChannel = new QueueChannel();
+		out.setOutputChannel(outputChannel);
+		out.setRemoteTimeout(60000);
+		out.setBeanFactory(mock(BeanFactory.class));
+		out.afterPropertiesSet();
+		out.start();
+		Runnable command = () -> {
+			try {
+				out.handleMessage(MessageBuilder.withPayload("\u0004Test").build());
+			}
+			catch (Exception e) {
+				// eat SocketTimeoutException. Doesn't matter for this test
+			}
+		};
+		Executor exec = new SimpleAsyncTaskExecutor();
+
+		Message<?> message;
+
 		exec.execute(command);
 		message = serverSideChannel.receive(10000);
 		assertThat(message).isNotNull();
 		assertThat(new String((byte[]) message.getPayload())).isEqualTo("Test");
-		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(reply));
+		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>("reply"));
 		message = outputChannel.receive(10000);
 		assertThat(message).isNotNull();
-		assertThat(new String(((byte[]) message.getPayload()))).isEqualTo(reply);
+		assertThat(new String(((byte[]) message.getPayload()))).isEqualTo("reply");
 	}
 
 	private static class CustomDeserializer extends AbstractByteArraySerializer {
