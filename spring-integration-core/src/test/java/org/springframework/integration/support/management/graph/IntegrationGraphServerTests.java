@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
@@ -71,7 +70,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -86,7 +85,7 @@ import net.minidev.json.JSONArray;
  * @since 4.3
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class IntegrationGraphServerTests {
 
@@ -97,6 +96,9 @@ public class IntegrationGraphServerTests {
 	private MessageChannel toRouter;
 
 	@Autowired
+	private MessageChannel expressionRouterInput;
+
+	@Autowired
 	private IntegrationFlowContext flowContext;
 
 	@Autowired
@@ -104,7 +106,7 @@ public class IntegrationGraphServerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void test() throws Exception {
+	void test() throws Exception {
 		Graph graph = this.server.getGraph();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -117,7 +119,7 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(33);
+		assertThat(nodes.size()).isEqualTo(34);
 
 		JSONArray jsonArray =
 				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.componentType == 'gateway')]");
@@ -135,13 +137,20 @@ public class IntegrationGraphServerTests {
 
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
-		assertThat(links.size()).isEqualTo(35);
+		assertThat(links.size()).isEqualTo(34);
+
+		jsonArray =
+				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter')]");
+
+		Map<String, Object> expressionRouter = (Map<String, Object>) jsonArray.get(0);
+		assertThat(((List<?>) expressionRouter.get("routes")).size()).isEqualTo(0);
 
 		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
 		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "quxChannel").build());
 		this.toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
 		this.testSource.receive();
+		this.expressionRouterInput.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
 
 		this.server.rebuild();
 		graph = this.server.getGraph();
@@ -155,7 +164,7 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size()).isEqualTo(3);
 		nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
-		assertThat(nodes.size()).isEqualTo(33);
+		assertThat(nodes.size()).isEqualTo(34);
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
 		assertThat(links.size()).isEqualTo(37);
@@ -187,20 +196,39 @@ public class IntegrationGraphServerTests {
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'testSource')]");
 		sourceJson = jsonArray.toJSONString();
 		assertThat(sourceJson).contains("\"receiveCounters\":{\"successes\":2,\"failures\":1");
+
+		jsonArray =
+				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.name == 'expressionRouter')]");
+
+		expressionRouter = (Map<String, Object>) jsonArray.get(0);
+		JSONArray routes = (JSONArray) expressionRouter.get("routes");
+		assertThat(routes).hasSize(1);
+		assertThat(routes.get(0)).isEqualTo("fizChannel");
+
+		Object routerNodeId = expressionRouter.get("nodeId");
+
+		Object fizChannelNodeId =
+				((JSONArray) JsonPathUtils.evaluate(baos.toByteArray(),
+						"$..nodes[?(@.name == 'fizChannel')].nodeId")).get(0);
+
+		jsonArray =
+				JsonPathUtils.evaluate(baos.toByteArray(),
+						"$..links[?(@.from == " + routerNodeId + "&& @.to == " + fizChannelNodeId + ")]");
+		assertThat(jsonArray).hasSize(1);
 	}
 
 	@Test
-	public void testIncludesDynamic() {
+	void testIncludesDynamic() {
 		Graph graph = this.server.getGraph();
-		assertThat(graph.getNodes().size()).isEqualTo(33);
+		assertThat(graph.getNodes().size()).isEqualTo(34);
 		IntegrationFlow flow = f -> f.handle(m -> {
 		});
 		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(35);
+		assertThat(graph.getNodes().size()).isEqualTo(36);
 		this.flowContext.remove(reg.getId());
 		graph = this.server.rebuild();
-		assertThat(graph.getNodes().size()).isEqualTo(33);
+		assertThat(graph.getNodes().size()).isEqualTo(34);
 	}
 
 	@Configuration
@@ -314,7 +342,7 @@ public class IntegrationGraphServerTests {
 		}
 
 		@Bean
-		@Router(inputChannel = "four")
+		@Router(inputChannel = "expressionRouterInput")
 		public ExpressionEvaluatingRouter expressionRouter() {
 			ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter(
 					new SpelExpressionParser().parseExpression("headers['foo']"));
