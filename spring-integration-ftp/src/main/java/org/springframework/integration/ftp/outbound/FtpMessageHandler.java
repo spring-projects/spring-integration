@@ -48,8 +48,8 @@ public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 		super(remoteFileTemplate);
 	}
 
-	public FtpMessageHandler(FtpRemoteFileTemplate template, FileExistsMode fileExistsMode) {
-		super(template, fileExistsMode);
+	public FtpMessageHandler(RemoteFileTemplate<FTPFile> remoteFileTemplate, FileExistsMode mode) {
+		super(remoteFileTemplate, mode);
 	}
 
 
