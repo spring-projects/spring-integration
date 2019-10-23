@@ -98,7 +98,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 
 	@Override
-	protected RabbitTemplate getRabbitTemplate() {
+	public RabbitTemplate getRabbitTemplate() {
 		return this.rabbitTemplate;
 	}
 
