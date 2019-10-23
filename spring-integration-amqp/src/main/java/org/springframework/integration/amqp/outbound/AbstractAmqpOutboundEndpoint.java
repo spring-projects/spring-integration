@@ -360,7 +360,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		return this.exchangeNameGenerator;
 	}
 
-	protected AmqpHeaderMapper getHeaderMapper() {
+	public AmqpHeaderMapper getHeaderMapper() {
 		return this.headerMapper;
 	}
 
