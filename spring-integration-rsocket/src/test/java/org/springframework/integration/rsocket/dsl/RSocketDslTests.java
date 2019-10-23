@@ -16,8 +16,6 @@
 
 package org.springframework.integration.rsocket.dsl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -36,7 +34,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -49,11 +47,15 @@ public class RSocketDslTests {
 
 	@Autowired
 	@Qualifier("rsocketUpperCaseRequestFlow.gateway")
-	private Function<String, String> rsocketUpperCaseFlowFunction;
+	private Function<Flux<String>, Flux<String>> rsocketUpperCaseFlowFunction;
 
 	@Test
 	void testRsocketUpperCaseFlows() {
-		assertThat(this.rsocketUpperCaseFlowFunction.apply("hello world")).isEqualTo("HELLO WORLD");
+		Flux<String> result = this.rsocketUpperCaseFlowFunction.apply(Flux.just("a\n", "b\n", "c\n"));
+
+		StepVerifier.create(result)
+				.expectNext("A", "B", "C")
+				.verifyComplete();
 	}
 
 	@Configuration
@@ -78,7 +80,7 @@ public class RSocketDslTests {
 			return IntegrationFlows
 					.from(Function.class)
 					.handle(RSockets.outboundGateway("/uppercase")
-							.command((message) -> RSocketOutboundGateway.Command.requestResponse)
+							.command((message) -> RSocketOutboundGateway.Command.requestStreamOrChannel)
 							.expectedResponseType("T(java.lang.String)")
 							.clientRSocketConnector(clientRSocketConnector))
 					.get();
@@ -88,7 +90,7 @@ public class RSocketDslTests {
 		public IntegrationFlow rsocketUpperCaseFlow() {
 			return IntegrationFlows
 					.from(RSockets.inboundGateway("/uppercase"))
-					.<Flux<String>, Mono<String>>transform((flux) -> flux.next().map(String::toUpperCase))
+					.<Flux<String>, Flux<String>>transform((flux) -> flux.map(String::toUpperCase))
 					.get();
 		}
 
