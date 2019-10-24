@@ -273,825 +273,816 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 
-	// All the methods below override super for bytecode backward compatibility.
+	// All the methods below override super for byte code backward compatibility.
 
 	@Override
-	public B fixedSubscriberChannel() {
+	public B fixedSubscriberChannel() { // NOSONAR - byte code backward compatibility
 		return super.fixedSubscriberChannel();
 	}
 
 	@Override
-	public B fixedSubscriberChannel(String messageChannelName) {
+	public B fixedSubscriberChannel(String messageChannelName) { // NOSONAR - byte code backward compatibility
 		return super.fixedSubscriberChannel(messageChannelName);
 	}
 
 	@Override
-	public B channel(String messageChannelName) {
+	public B channel(String messageChannelName) { // NOSONAR - byte code backward compatibility
 		return super.channel(messageChannelName);
 	}
 
 	@Override
-	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
+	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) { // NOSONAR - byte code backward compatibility
 		return super.channel(messageChannelSpec);
 	}
 
 	@Override
-	public B channel(MessageChannel messageChannel) {
+	public B channel(MessageChannel messageChannel) { // NOSONAR - byte code backward compatibility
 		return super.channel(messageChannel);
 	}
 
 	@Override
-	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) {
+	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) { // NOSONAR - byte code backward compatibility
 		return super.channel(channels);
 	}
 
 	@Override
-	public B publishSubscribeChannel(Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) {
+	public B publishSubscribeChannel(Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.publishSubscribeChannel(publishSubscribeChannelConfigurer);
 	}
 
 	@Override
 	public B publishSubscribeChannel(Executor executor,
-			Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) {
+			Consumer<PublishSubscribeSpec> publishSubscribeChannelConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.publishSubscribeChannel(executor, publishSubscribeChannelConfigurer);
 	}
 
 	@Override
-	public B wireTap(IntegrationFlow flow) {
+	public B wireTap(IntegrationFlow flow) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(flow);
 	}
 
 	@Override
-	public B wireTap(String wireTapChannel) {
+	public B wireTap(String wireTapChannel) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(wireTapChannel);
 	}
 
 	@Override
-	public B wireTap(MessageChannel wireTapChannel) {
+	public B wireTap(MessageChannel wireTapChannel) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(wireTapChannel);
 	}
 
 	@Override
-	public B wireTap(IntegrationFlow flow, Consumer<WireTapSpec> wireTapConfigurer) {
+	public B wireTap(IntegrationFlow flow, Consumer<WireTapSpec> wireTapConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(flow, wireTapConfigurer);
 	}
 
 	@Override
-	public B wireTap(String wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
+	public B wireTap(String wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(wireTapChannel, wireTapConfigurer);
 	}
 
 	@Override
-	public B wireTap(MessageChannel wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) {
+	public B wireTap(MessageChannel wireTapChannel, Consumer<WireTapSpec> wireTapConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(wireTapChannel, wireTapConfigurer);
 	}
 
 	@Override
-	public B wireTap(WireTapSpec wireTapSpec) {
+	public B wireTap(WireTapSpec wireTapSpec) { // NOSONAR - byte code backward compatibility
 		return super.wireTap(wireTapSpec);
 	}
 
 	@Override
-	public B controlBus() {
+	public B controlBus() { // NOSONAR - byte code backward compatibility
 		return super.controlBus();
 	}
 
 	@Override
-	public B controlBus(Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+	public B controlBus(Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.controlBus(endpointConfigurer);
 	}
 
 	@Override
-	public B transform(String expression) {
+	public B transform(String expression) { // NOSONAR - byte code backward compatibility
 		return super.transform(expression);
 	}
 
 	@Override
 	public B transform(String expression,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.transform(expression, endpointConfigurer);
 	}
 
 	@Override
-	public B transform(Object service) {
+	public B transform(Object service) { // NOSONAR - byte code backward compatibility
 		return super.transform(service);
 	}
 
 	@Override
-	public B transform(Object service, String methodName) {
+	public B transform(Object service, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.transform(service, methodName);
 	}
 
 	@Override
 	public B transform(Object service, String methodName,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.transform(service, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public B transform(MessageProcessorSpec<?> messageProcessorSpec) {
+	public B transform(MessageProcessorSpec<?> messageProcessorSpec) { // NOSONAR - byte code backward compatibility
 		return super.transform(messageProcessorSpec);
 	}
 
 	@Override
 	public B transform(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.transform(messageProcessorSpec, endpointConfigurer);
 	}
 
 	@Override
-	public <P> B convert(Class<P> payloadType) {
+	public <P> B convert(Class<P> payloadType) { // NOSONAR - byte code backward compatibility
 		return super.convert(payloadType);
 	}
 
 	@Override
-	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer) {
+	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer) { // NOSONAR - byte code backward compatibility
 		return super.transform(payloadType, genericTransformer);
 	}
 
 	@Override
 	public <P> B convert(Class<P> payloadType,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.convert(payloadType, endpointConfigurer);
 	}
 
 	@Override
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.transform(payloadType, genericTransformer, endpointConfigurer);
 	}
 
 	@Override
-	public B filter(String expression) {
+	public B filter(String expression) { // NOSONAR - byte code backward compatibility
 		return super.filter(expression);
 	}
 
 	@Override
-	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) {
+	public B filter(String expression, Consumer<FilterEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.filter(expression, endpointConfigurer);
 	}
 
 	@Override
-	public B filter(Object service) {
+	public B filter(Object service) { // NOSONAR - byte code backward compatibility
 		return super.filter(service);
 	}
 
 	@Override
-	public B filter(Object service, String methodName) {
+	public B filter(Object service, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.filter(service, methodName);
 	}
 
 	@Override
-	public B filter(Object service, String methodName, Consumer<FilterEndpointSpec> endpointConfigurer) {
+	public B filter(Object service, String methodName, Consumer<FilterEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.filter(service, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public B filter(MessageProcessorSpec<?> messageProcessorSpec) {
+	public B filter(MessageProcessorSpec<?> messageProcessorSpec) { // NOSONAR - byte code backward compatibility
 		return super.filter(messageProcessorSpec);
 	}
 
 	@Override
-	public B filter(MessageProcessorSpec<?> messageProcessorSpec, Consumer<FilterEndpointSpec> endpointConfigurer) {
+	public B filter(MessageProcessorSpec<?> messageProcessorSpec, Consumer<FilterEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.filter(messageProcessorSpec, endpointConfigurer);
 	}
 
 	@Override
-	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector) {
+	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector) { // NOSONAR - byte code backward compatibility
 		return super.filter(payloadType, genericSelector);
 	}
 
 	@Override
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector,
-			Consumer<FilterEndpointSpec> endpointConfigurer) {
+			Consumer<FilterEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.filter(payloadType, genericSelector, endpointConfigurer);
 	}
 
 	@Override
-	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec) {
+	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec) { // NOSONAR - byte code backward compatibility
 		return super.handle(messageHandlerSpec);
 	}
 
 	@Override
-	public B handle(MessageHandler messageHandler) {
+	public B handle(MessageHandler messageHandler) { // NOSONAR - byte code backward compatibility
 		return super.handle(messageHandler);
 	}
 
 	@Override
-	public B handle(String beanName, String methodName) {
+	public B handle(String beanName, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.handle(beanName, methodName);
 	}
 
 	@Override
 	public B handle(String beanName, String methodName,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
+
 		return super.handle(beanName, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public B handle(Object service) {
+	public B handle(Object service) { // NOSONAR - byte code backward compatibility
 		return super.handle(service);
 	}
 
 	@Override
-	public B handle(Object service, String methodName) {
+	public B handle(Object service, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.handle(service, methodName);
 	}
 
 	@Override
 	public B handle(Object service, String methodName,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.handle(service, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler) {
+	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler) { // NOSONAR - byte code backward compatibility
 		return super.handle(payloadType, handler);
 	}
 
 	@Override
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.handle(payloadType, handler, endpointConfigurer);
 	}
 
 	@Override
-	public B handle(MessageProcessorSpec<?> messageProcessorSpec) {
+	public B handle(MessageProcessorSpec<?> messageProcessorSpec) { // NOSONAR - byte code backward compatibility
 		return super.handle(messageProcessorSpec);
 	}
 
 	@Override
 	public B handle(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.handle(messageProcessorSpec, endpointConfigurer);
 	}
 
 	@Override
 	public <H extends MessageHandler> B handle(MessageHandlerSpec<?, H> messageHandlerSpec,
-			Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<H>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.handle(messageHandlerSpec, endpointConfigurer);
 	}
 
 	@Override
-	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
+	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.handle(messageHandler, endpointConfigurer);
 	}
 
 	@Override
-	public B bridge() {
+	public B bridge() { // NOSONAR - byte code backward compatibility
 		return super.bridge();
 	}
 
 	@Override
-	public B bridge(Consumer<GenericEndpointSpec<BridgeHandler>> endpointConfigurer) {
+	public B bridge(Consumer<GenericEndpointSpec<BridgeHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.bridge(endpointConfigurer);
 	}
 
 	@Override
-	public B delay(String groupId) {
+	public B delay(String groupId) { // NOSONAR - byte code backward compatibility
 		return super.delay(groupId);
 	}
 
 	@Override
-	public B delay(String groupId, Consumer<DelayerEndpointSpec> endpointConfigurer) {
+	public B delay(String groupId, Consumer<DelayerEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.delay(groupId, endpointConfigurer);
 	}
 
 	@Override
-	public B enrich(Consumer<EnricherSpec> enricherConfigurer) {
+	public B enrich(Consumer<EnricherSpec> enricherConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.enrich(enricherConfigurer);
 	}
 
 	@Override
-	public B enrichHeaders(MapBuilder<?, String, Object> headers) {
+	public B enrichHeaders(MapBuilder<?, String, Object> headers) { // NOSONAR - byte code backward compatibility
 		return super.enrichHeaders(headers);
 	}
 
 	@Override
 	public B enrichHeaders(MapBuilder<?, String, Object> headers,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.enrichHeaders(headers, endpointConfigurer);
 	}
 
 	@Override
 	public B enrichHeaders(Map<String, Object> headers,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.enrichHeaders(headers, endpointConfigurer);
 	}
 
 	@Override
-	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer) {
+	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.enrichHeaders(headerEnricherConfigurer);
 	}
 
 	@Override
-	public B split() {
+	public B split() { // NOSONAR - byte code backward compatibility
 		return super.split();
 	}
 
 	@Override
-	public B split(Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) {
+	public B split(Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.split(endpointConfigurer);
 	}
 
 	@Override
-	public B split(String expression) {
+	public B split(String expression) { // NOSONAR - byte code backward compatibility
 		return super.split(expression);
 	}
 
 	@Override
-	public B split(String expression, Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) {
+	public B split(String expression, Consumer<SplitterEndpointSpec<ExpressionEvaluatingSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.split(expression, endpointConfigurer);
 	}
 
 	@Override
-	public B split(Object service) {
+	public B split(Object service) { // NOSONAR - byte code backward compatibility
 		return super.split(service);
 	}
 
 	@Override
-	public B split(Object service, String methodName) {
+	public B split(Object service, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.split(service, methodName);
 	}
 
 	@Override
 	public B split(Object service, String methodName,
-			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.split(service, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public B split(String beanName, String methodName) {
+	public B split(String beanName, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.split(beanName, methodName);
 	}
 
 	@Override
 	public B split(String beanName, String methodName,
-			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.split(beanName, methodName, endpointConfigurer);
 	}
 
 	@Override
-	public B split(MessageProcessorSpec<?> messageProcessorSpec) {
+	public B split(MessageProcessorSpec<?> messageProcessorSpec) { // NOSONAR - byte code backward compatibility
 		return super.split(messageProcessorSpec);
 	}
 
 	@Override
 	public B split(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.split(messageProcessorSpec, endpointConfigurer);
 	}
 
 	@Override
-	public <P> B split(Class<P> payloadType, Function<P, ?> splitter) {
+	public <P> B split(Class<P> payloadType, Function<P, ?> splitter) { // NOSONAR - byte code backward compatibility
 		return super.split(payloadType, splitter);
 	}
 
 	@Override
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter,
-			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.split(payloadType, splitter, endpointConfigurer);
 	}
 
 	@Override
-	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec) {
+	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec) { // NOSONAR - byte code backward compatibility
 		return super.split(splitterMessageHandlerSpec);
 	}
 
 	@Override
 	public <S extends AbstractMessageSplitter> B split(MessageHandlerSpec<?, S> splitterMessageHandlerSpec,
-			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.split(splitterMessageHandlerSpec, endpointConfigurer);
 	}
 
 	@Override
-	public B split(AbstractMessageSplitter splitter) {
+	public B split(AbstractMessageSplitter splitter) { // NOSONAR - byte code backward compatibility
 		return super.split(splitter);
 	}
 
 	@Override
 	public <S extends AbstractMessageSplitter> B split(S splitter,
-			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
+			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.split(splitter, endpointConfigurer);
 	}
 
 	@Override
-	public B headerFilter(String... headersToRemove) {
+	public B headerFilter(String... headersToRemove) { // NOSONAR - byte code backward compatibility
 		return super.headerFilter(headersToRemove);
 	}
 
 	@Override
-	public B headerFilter(String headersToRemove, boolean patternMatch) {
+	public B headerFilter(String headersToRemove, boolean patternMatch) { // NOSONAR - byte code backward compatibility
 		return super.headerFilter(headersToRemove, patternMatch);
 	}
 
 	@Override
 	public B headerFilter(HeaderFilter headerFilter,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.headerFilter(headerFilter, endpointConfigurer);
 	}
 
 	@Override
-	public B claimCheckIn(MessageStore messageStore) {
+	public B claimCheckIn(MessageStore messageStore) { // NOSONAR - byte code backward compatibility
 		return super.claimCheckIn(messageStore);
 	}
 
 	@Override
 	public B claimCheckIn(MessageStore messageStore,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.claimCheckIn(messageStore, endpointConfigurer);
 	}
 
 	@Override
-	public B claimCheckOut(MessageStore messageStore) {
+	public B claimCheckOut(MessageStore messageStore) { // NOSONAR - byte code backward compatibility
 		return super.claimCheckOut(messageStore);
 	}
 
 	@Override
-	public B claimCheckOut(MessageStore messageStore, boolean removeMessage) {
+	public B claimCheckOut(MessageStore messageStore, boolean removeMessage) { // NOSONAR - byte code backward compatibility
 		return super.claimCheckOut(messageStore, removeMessage);
 	}
 
 	@Override
 	public B claimCheckOut(MessageStore messageStore, boolean removeMessage,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.claimCheckOut(messageStore, removeMessage, endpointConfigurer);
 	}
 
 	@Override
-	public B resequence() {
+	public B resequence() { // NOSONAR - byte code backward compatibility
 		return super.resequence();
 	}
 
 	@Override
-	public B resequence(Consumer<ResequencerSpec> resequencer) {
+	public B resequence(Consumer<ResequencerSpec> resequencer) { // NOSONAR - byte code backward compatibility
 		return super.resequence(resequencer);
 	}
 
 	@Override
-	public B aggregate() {
+	public B aggregate() { // NOSONAR - byte code backward compatibility
 		return super.aggregate();
 	}
 
 	@Override
-	public B aggregate(Consumer<AggregatorSpec> aggregator) {
+	public B aggregate(Consumer<AggregatorSpec> aggregator) { // NOSONAR - byte code backward compatibility
 		return super.aggregate(aggregator);
 	}
 
 	@Override
-	public B route(String beanName, String method) {
+	public B route(String beanName, String method) { // NOSONAR - byte code backward compatibility
 		return super.route(beanName, method);
 	}
 
 	@Override
 	public B route(String beanName, String method,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.route(beanName, method, routerConfigurer);
 	}
 
 	@Override
-	public B route(Object service) {
+	public B route(Object service) { // NOSONAR - byte code backward compatibility
 		return super.route(service);
 	}
 
 	@Override
-	public B route(Object service, String methodName) {
+	public B route(Object service, String methodName) { // NOSONAR - byte code backward compatibility
 		return super.route(service, methodName);
 	}
 
 	@Override
 	public B route(Object service, String methodName,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.route(service, methodName, routerConfigurer);
 	}
 
 	@Override
-	public B route(String expression) {
+	public B route(String expression) { // NOSONAR - byte code backward compatibility
 		return super.route(expression);
 	}
 
 	@Override
-	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer) {
+	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.route(expression, routerConfigurer);
 	}
 
 	@Override
-	public <S, T> B route(Class<S> payloadType, Function<S, T> router) {
+	public <S, T> B route(Class<S> payloadType, Function<S, T> router) { // NOSONAR - byte code backward compatibility
 		return super.route(payloadType, router);
 	}
 
 	@Override
 	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
-			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.route(payloadType, router, routerConfigurer);
 	}
 
 	@Override
-	public B route(MessageProcessorSpec<?> messageProcessorSpec) {
+	public B route(MessageProcessorSpec<?> messageProcessorSpec) { // NOSONAR - byte code backward compatibility
 		return super.route(messageProcessorSpec);
 	}
 
 	@Override
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.route(messageProcessorSpec, routerConfigurer);
 	}
 
 	@Override
-	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer) {
+	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.routeToRecipients(routerConfigurer);
 	}
 
 	@Override
 	public B routeByException(Consumer<RouterSpec<Class<? extends Throwable>,
-			ErrorMessageExceptionTypeRouter>> routerConfigurer) {
+			ErrorMessageExceptionTypeRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.routeByException(routerConfigurer);
 	}
 
 	@Override
-	public B route(AbstractMessageRouter router) {
+	public B route(AbstractMessageRouter router) { // NOSONAR - byte code backward compatibility
 		return super.route(router);
 	}
 
 	@Override
-	public <R extends AbstractMessageRouter> B route(R router, Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
+	public <R extends AbstractMessageRouter> B route(R router, Consumer<GenericEndpointSpec<R>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.route(router, endpointConfigurer);
 	}
 
 	@Override
-	public B gateway(String requestChannel) {
+	public B gateway(String requestChannel) { // NOSONAR - byte code backward compatibility
 		return super.gateway(requestChannel);
 	}
 
 	@Override
-	public B gateway(String requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) {
+	public B gateway(String requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.gateway(requestChannel, endpointConfigurer);
 	}
 
 	@Override
-	public B gateway(MessageChannel requestChannel) {
+	public B gateway(MessageChannel requestChannel) { // NOSONAR - byte code backward compatibility
 		return super.gateway(requestChannel);
 	}
 
 	@Override
-	public B gateway(MessageChannel requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) {
+	public B gateway(MessageChannel requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.gateway(requestChannel, endpointConfigurer);
 	}
 
 	@Override
-	public B gateway(IntegrationFlow flow) {
+	public B gateway(IntegrationFlow flow) { // NOSONAR - byte code backward compatibility
 		return super.gateway(flow);
 	}
 
 	@Override
-	public B gateway(IntegrationFlow flow, Consumer<GatewayEndpointSpec> endpointConfigurer) {
+	public B gateway(IntegrationFlow flow, Consumer<GatewayEndpointSpec> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.gateway(flow, endpointConfigurer);
 	}
 
 	@Override
-	public B log() {
+	public B log() { // NOSONAR - byte code backward compatibility
 		return super.log();
 	}
 
 	@Override
-	public B log(LoggingHandler.Level level) {
+	public B log(LoggingHandler.Level level) { // NOSONAR - byte code backward compatibility
 		return super.log(level);
 	}
 
 	@Override
-	public B log(String category) {
+	public B log(String category) { // NOSONAR - byte code backward compatibility
 		return super.log(category);
 	}
 
 	@Override
-	public B log(LoggingHandler.Level level, String category) {
+	public B log(LoggingHandler.Level level, String category) { // NOSONAR - byte code backward compatibility
 		return super.log(level, category);
 	}
 
 	@Override
-	public B log(LoggingHandler.Level level, String category, String logExpression) {
+	public B log(LoggingHandler.Level level, String category, String logExpression) { // NOSONAR - byte code backward compatibility
 		return super.log(level, category, logExpression);
 	}
 
 	@Override
-	public <P> B log(Function<Message<P>, Object> function) {
+	public <P> B log(Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.log(function);
 	}
 
 	@Override
-	public B log(Expression logExpression) {
+	public B log(Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.log(logExpression);
 	}
 
 	@Override
-	public B log(LoggingHandler.Level level, Expression logExpression) {
+	public B log(LoggingHandler.Level level, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.log(level, logExpression);
 	}
 
 	@Override
-	public B log(String category, Expression logExpression) {
+	public B log(String category, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.log(category, logExpression);
 	}
 
 	@Override
-	public <P> B log(LoggingHandler.Level level, Function<Message<P>, Object> function) {
+	public <P> B log(LoggingHandler.Level level, Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.log(level, function);
 	}
 
 	@Override
-	public <P> B log(String category, Function<Message<P>, Object> function) {
+	public <P> B log(String category, Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.log(category, function);
 	}
 
 	@Override
-	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
+	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.log(level, category, function);
 	}
 
 	@Override
-	public B log(LoggingHandler.Level level, String category, Expression logExpression) {
+	public B log(LoggingHandler.Level level, String category, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.log(level, category, logExpression);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply() {
+	public IntegrationFlow logAndReply() { // NOSONAR - byte code backward compatibility
 		return super.logAndReply();
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(LoggingHandler.Level level) {
+	public IntegrationFlow logAndReply(LoggingHandler.Level level) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(String category) {
+	public IntegrationFlow logAndReply(String category) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(category);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category) {
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level, category);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, String logExpression) {
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, String logExpression) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level, category, logExpression);
 	}
 
 	@Override
-	public <P> IntegrationFlow logAndReply(Function<Message<P>, Object> function) {
+	public <P> IntegrationFlow logAndReply(Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(function);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(Expression logExpression) {
+	public IntegrationFlow logAndReply(Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(logExpression);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(LoggingHandler.Level level, Expression logExpression) {
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level, logExpression);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(String category, Expression logExpression) {
+	public IntegrationFlow logAndReply(String category, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(category, logExpression);
 	}
 
 	@Override
-	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, Function<Message<P>, Object> function) {
+	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level, function);
 	}
 
 	@Override
-	public <P> IntegrationFlow logAndReply(String category, Function<Message<P>, Object> function) {
+	public <P> IntegrationFlow logAndReply(String category, Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(category, function);
 	}
 
 	@Override
 	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, String category,
-			Function<Message<P>, Object> function) {
+			Function<Message<P>, Object> function) { // NOSONAR - byte code backward compatibility
 
 		return super.logAndReply(level, category, function);
 	}
 
 	@Override
-	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, Expression logExpression) {
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, Expression logExpression) { // NOSONAR - byte code backward compatibility
 		return super.logAndReply(level, category, logExpression);
 	}
 
 	@Override
-	public B scatterGather(MessageChannel scatterChannel) {
+	public B scatterGather(MessageChannel scatterChannel) { // NOSONAR - byte code backward compatibility
 		return super.scatterGather(scatterChannel);
 	}
 
 	@Override
-	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer) {
+	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer) { // NOSONAR - byte code backward compatibility
 		return super.scatterGather(scatterChannel, gatherer);
 	}
 
 	@Override
 	public B scatterGather(MessageChannel scatterChannel, Consumer<AggregatorSpec> gatherer,
-			Consumer<ScatterGatherSpec> scatterGather) {
+			Consumer<ScatterGatherSpec> scatterGather) { // NOSONAR - byte code backward compatibility
 
 		return super.scatterGather(scatterChannel, gatherer, scatterGather);
 	}
 
 	@Override
-	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer) {
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer) { // NOSONAR - byte code backward compatibility
 		return super.scatterGather(scatterer);
 	}
 
 	@Override
-	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer) {
+	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer) { // NOSONAR - byte code backward compatibility
 		return super.scatterGather(scatterer, gatherer);
 	}
 
 	@Override
 	public B scatterGather(Consumer<RecipientListRouterSpec> scatterer, Consumer<AggregatorSpec> gatherer,
-			Consumer<ScatterGatherSpec> scatterGather) {
+			Consumer<ScatterGatherSpec> scatterGather) { // NOSONAR - byte code backward compatibility
 
 		return super.scatterGather(scatterer, gatherer, scatterGather);
 	}
 
 	@Override
-	public B barrier(long timeout) {
+	public B barrier(long timeout) { // NOSONAR - byte code backward compatibility
 		return super.barrier(timeout);
 	}
 
 	@Override
-	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer) {
+	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer) { // NOSONAR - byte code backward compatibility
 		return super.barrier(timeout, barrierConfigurer);
 	}
 
 	@Override
-	public B trigger(String triggerActionId) {
+	public B trigger(String triggerActionId) { // NOSONAR - byte code backward compatibility
 		return super.trigger(triggerActionId);
 	}
 
 	@Override
 	public B trigger(String triggerActionId,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.trigger(triggerActionId, endpointConfigurer);
 	}
 
 	@Override
-	public B trigger(MessageTriggerAction triggerAction) {
+	public B trigger(MessageTriggerAction triggerAction) { // NOSONAR - byte code backward compatibility
 		return super.trigger(triggerAction);
 	}
 
 	@Override
 	public B trigger(MessageTriggerAction triggerAction,
-			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
+			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) { // NOSONAR - byte code backward compatibility
 
 		return super.trigger(triggerAction, endpointConfigurer);
 	}
 
 	@Override
-	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
+	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) { // NOSONAR - byte code backward compatibility
 		return super.fluxTransform(fluxFunction);
 	}
 
 	@Override
-	protected <T> Publisher<Message<T>> toReactivePublisher() {
-		return super.toReactivePublisher();
-	}
-
-	@Override
-	public IntegrationFlow nullChannel() {
+	public IntegrationFlow nullChannel() { // NOSONAR - byte code backward compatibility
 		return super.nullChannel();
 	}
 
 	@Override
-	protected StandardIntegrationFlow get() {
-		return super.get();
-	}
-
-	@Override
-	public B enrichHeaders(Map<String, Object> headers) {
+	public B enrichHeaders(Map<String, Object> headers) { // NOSONAR - byte code backward compatibility
 		return super.enrichHeaders(headers);
 	}
 
