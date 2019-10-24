@@ -131,41 +131,59 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	private Object currentComponent;
 
-	private StandardIntegrationFlow integrationFlow;
-
 	private boolean implicitChannel;
+
+	private StandardIntegrationFlow integrationFlow;
 
 	protected BaseIntegrationFlowDefinition() {
 	}
 
-	private static Object extractProxyTarget(Object target) {
-		if (!(target instanceof Advised)) {
-			return target;
-		}
-		Advised advised = (Advised) target;
-		try {
-			return extractProxyTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			throw new BeanCreationException("Could not extract target", e);
-		}
+	protected B addComponent(Object component) {
+		return addComponent(component, null);
 	}
 
-	B addComponent(Object component) {
-		this.integrationComponents.put(component, null);
+	protected B addComponent(Object component, @Nullable String beanName) {
+		this.integrationComponents.put(component, beanName);
 		return _this();
 	}
 
-	B addComponents(Map<Object, String> components) {
+	protected B addComponents(Map<Object, String> components) {
 		if (components != null) {
 			this.integrationComponents.putAll(components);
 		}
 		return _this();
 	}
 
-	B currentComponent(Object component) {
+	protected Map<Object, String> getIntegrationComponents() {
+		return this.integrationComponents;
+	}
+
+	protected B currentComponent(@Nullable Object component) {
 		this.currentComponent = component;
 		return _this();
+	}
+
+	@Nullable
+	protected Object getCurrentComponent() {
+		return this.currentComponent;
+	}
+
+	protected B currentMessageChannel(@Nullable MessageChannel currentMessageChannel) {
+		this.currentMessageChannel = currentMessageChannel;
+		return _this();
+	}
+
+	@Nullable
+	protected MessageChannel getCurrentMessageChannel() {
+		return this.currentMessageChannel;
+	}
+
+	protected void setImplicitChannel(boolean implicitChannel) {
+		this.implicitChannel = implicitChannel;
+	}
+
+	protected boolean isImplicitChannel() {
+		return this.implicitChannel;
 	}
 
 	/**
@@ -227,12 +245,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel, "'messageChannel' must not be null");
-		this.implicitChannel = false;
-		if (this.currentMessageChannel != null) {
+		setImplicitChannel(false);
+		if (getCurrentMessageChannel() != null) {
 			bridge();
 		}
-		this.currentMessageChannel = messageChannel;
-		return registerOutputChannelIfCan(this.currentMessageChannel);
+		currentMessageChannel(messageChannel);
+		return registerOutputChannelIfCan(messageChannel);
 	}
 
 	/**
@@ -450,12 +468,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		if (!(this.currentMessageChannel instanceof InterceptableChannel)) {
+		MessageChannel currentChannel = getCurrentMessageChannel();
+		if (!(currentChannel instanceof InterceptableChannel)) {
 			channel(new DirectChannel());
-			this.implicitChannel = true;
+			setImplicitChannel(true);
 		}
 		addComponent(wireTapSpec);
-		((InterceptableChannel) this.currentMessageChannel).addInterceptor(interceptor);
+		((InterceptableChannel) getCurrentMessageChannel()).addInterceptor(interceptor);
 		return _this();
 	}
 
@@ -1919,7 +1938,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 					addComponent(flowBuilder.get());
 				}
 				else {
-					this.integrationComponents.put(component, entry.getValue());
+					addComponent(component, entry.getValue());
 				}
 			}
 		}
@@ -1930,8 +1949,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		}
 
 		if (registerSubflowBridge) {
-			this.currentComponent = null;
-			handle(bridgeHandler);
+			currentComponent(null)
+					.handle(bridgeHandler);
 		}
 		return _this();
 	}
@@ -2788,20 +2807,19 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	@SuppressWarnings(UNCHECKED)
 	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
-		if (!(this.currentMessageChannel instanceof FluxMessageChannel)) {
+		if (!(getCurrentMessageChannel() instanceof FluxMessageChannel)) {
 			channel(new FluxMessageChannel());
 		}
 
-		Publisher<Message<I>> upstream = (Publisher<Message<I>>) this.currentMessageChannel;
+		Publisher<Message<I>> upstream = (Publisher<Message<I>>) getCurrentMessageChannel();
 
 		Flux<Message<O>> result = Transformers.transformWithFunction(upstream, fluxFunction);
 
 		FluxMessageChannel downstream = new FluxMessageChannel();
 		downstream.subscribeTo((Flux<Message<?>>) (Flux<?>) result);
 
-		this.currentMessageChannel = downstream;
-
-		return addComponent(this.currentMessageChannel);
+		return currentMessageChannel(downstream)
+				.addComponent(downstream);
 	}
 
 	/**
@@ -2811,13 +2829,14 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	@SuppressWarnings(UNCHECKED)
 	protected <T> Publisher<Message<T>> toReactivePublisher() {
-		MessageChannel channelForPublisher = this.currentMessageChannel;
+		MessageChannel channelForPublisher = getCurrentMessageChannel();
 		Publisher<Message<T>> publisher;
+		Map<Object, String> components = getIntegrationComponents();
 		if (channelForPublisher instanceof Publisher) {
 			publisher = (Publisher<Message<T>>) channelForPublisher;
 		}
 		else {
-			if (channelForPublisher != null && this.integrationComponents.size() > 1
+			if (channelForPublisher != null && components.size() > 1
 					&& !(channelForPublisher instanceof MessageChannelReference) &&
 					!(channelForPublisher instanceof FixedSubscriberChannelPrototype)) {
 				publisher = MessageChannelReactiveUtils.toPublisher(channelForPublisher);
@@ -2829,11 +2848,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			}
 		}
 
-		this.implicitChannel = false;
+		setImplicitChannel(false);
 
 		get();
 
-		return new PublisherIntegrationFlow<>(this.integrationComponents, publisher);
+		return new PublisherIntegrationFlow<>(components, publisher);
 	}
 
 	/**
@@ -2855,8 +2874,8 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 			endpointConfigurer.accept(endpointSpec);
 		}
 
-		MessageChannel inputChannel = this.currentMessageChannel;
-		this.currentMessageChannel = null;
+		MessageChannel inputChannel = getCurrentMessageChannel();
+		currentMessageChannel(null);
 		if (inputChannel == null) {
 			inputChannel = new DirectChannel();
 			this.registerOutputChannelIfCan(inputChannel);
@@ -2886,15 +2905,16 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	private B registerOutputChannelIfCan(MessageChannel outputChannel) {
 		if (!(outputChannel instanceof FixedSubscriberChannelPrototype)) {
-			this.integrationComponents.put(outputChannel, null);
-			if (this.currentComponent != null) {
+			addComponent(outputChannel, null);
+			Object currComponent = getCurrentComponent();
+			if (currComponent != null) {
 				String channelName = null;
 				if (outputChannel instanceof MessageChannelReference) {
 					channelName = ((MessageChannelReference) outputChannel).getName();
 				}
 
-				if (this.currentComponent instanceof MessageProducer) {
-					MessageProducer messageProducer = (MessageProducer) this.currentComponent;
+				if (currComponent instanceof MessageProducer) {
+					MessageProducer messageProducer = (MessageProducer) currComponent;
 					checkReuse(messageProducer);
 					if (channelName != null) {
 						messageProducer.setOutputChannelName(channelName);
@@ -2903,9 +2923,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
-				else if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
+				else if (currComponent instanceof SourcePollingChannelAdapterSpec) {
 					SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean =
-							((SourcePollingChannelAdapterSpec) this.currentComponent).get().getT1();
+							((SourcePollingChannelAdapterSpec) currComponent).get().getT1();
 					if (channelName != null) {
 						pollingChannelAdapterFactoryBean.setOutputChannelName(channelName);
 					}
@@ -2914,20 +2934,19 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 					}
 				}
 				else {
-					throw new BeanCreationException("The 'currentComponent' (" + this.currentComponent +
+					throw new BeanCreationException("The 'currentComponent' (" + currComponent +
 							") is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. " +
 							"This is the end of the integration flow.");
 				}
-				this.currentComponent = null;
+				currentComponent(null);
 			}
 		}
 		return _this();
 	}
 
 	private boolean isOutputChannelRequired() {
-		if (this.currentComponent != null) {
-			Object currentElement = this.currentComponent;
-
+		Object currentElement = getCurrentComponent();
+		if (currentElement != null) {
 			if (AopUtils.isAopProxy(currentElement)) {
 				currentElement = extractProxyTarget(currentElement);
 			}
@@ -2945,30 +2964,33 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	protected StandardIntegrationFlow get() {
 		if (this.integrationFlow == null) {
-			if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
-				throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel +
+			MessageChannel currentChannel = getCurrentMessageChannel();
+			if (currentChannel instanceof FixedSubscriberChannelPrototype) {
+				throw new BeanCreationException("The 'currentMessageChannel' (" + currentChannel +
 						") is a prototype for 'FixedSubscriberChannel' which can't be created without " +
 						"a 'MessageHandler' constructor argument. " +
 						"That means that '.fixedSubscriberChannel()' can't be the last " +
 						"EIP-method in the 'IntegrationFlow' definition.");
 			}
 
-			if (this.integrationComponents.size() == 1) {
-				if (this.currentComponent != null) {
-					if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
-						throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + this.currentComponent
+			Map<Object, String> components = getIntegrationComponents();
+			if (components.size() == 1) {
+				Object currComponent = getCurrentComponent();
+				if (currComponent != null) {
+					if (currComponent instanceof SourcePollingChannelAdapterSpec) {
+						throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + currComponent
 								+ ") " + "must be configured with at least one 'MessageChannel' or 'MessageHandler'.");
 					}
 				}
-				else if (this.currentMessageChannel != null) {
+				else if (currentChannel != null) {
 					throw new BeanCreationException("The 'IntegrationFlow' can't consist of only one 'MessageChannel'. "
 							+ "Add at least '.bridge()' EIP-method before the end of flow.");
 				}
 			}
 
-			if (this.implicitChannel) {
+			if (isImplicitChannel()) {
 				Optional<Object> lastComponent =
-						this.integrationComponents.keySet()
+						components.keySet()
 								.stream()
 								.reduce((first, second) -> second);
 				if (lastComponent.get() instanceof WireTapSpec) {
@@ -2976,7 +2998,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 				}
 			}
 
-			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);
+			this.integrationFlow = new StandardIntegrationFlow(components);
 		}
 		return this.integrationFlow;
 	}
@@ -2999,6 +3021,19 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	public B enrichHeaders(Map<String, Object> headers) {
 		return enrichHeaders(headers, null);
+	}
+
+	private static Object extractProxyTarget(Object target) {
+		if (!(target instanceof Advised)) {
+			return target;
+		}
+		Advised advised = (Advised) target;
+		try {
+			return extractProxyTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Could not extract target", e);
+		}
 	}
 
 	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor {
