@@ -129,21 +129,21 @@ subprojects { subproject ->
 		mysqlVersion = '8.0.16'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.2.5'
-		reactorNettyVersion = '0.8.9.RELEASE'
-		reactorVersion = '3.2.10.RELEASE'
+		reactorNettyVersion = '0.8.13.BUILD-SNAPSHOT'
+		reactorVersion = '3.2.12.RELEASE'
 		romeToolsVersion = '1.9.0'
 		servletApiVersion = '4.0.0'
 		smackVersion = '4.3.3'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.11.RELEASE'
-		springDataJpaVersion = '2.1.11.RELEASE'
-		springDataMongoVersion = '2.1.11.RELEASE'
-		springDataRedisVersion = '2.1.11.RELEASE'
-		springGemfireVersion = '2.1.11.RELEASE'
-		springSecurityVersion = '5.1.5.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.12.BUILD-SNAPSHOT'
+		springDataJpaVersion = '2.1.12.BUILD-SNAPSHOT'
+		springDataMongoVersion = '2.1.12.BUILD-SNAPSHOT'
+		springDataRedisVersion = '2.1.12.BUILD-SNAPSHOT'
+		springGemfireVersion = '2.1.12.BUILD-SNAPSHOT'
+		springSecurityVersion = '5.1.6.RELEASE'
 		springRetryVersion = '1.2.4.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.10.RELEASE'
-		springWsVersion = '3.0.7.RELEASE'
-		tomcatVersion = "9.0.19"
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.11.BUILD-SNAPSHOT'
+		springWsVersion = '3.0.8.BUILD-SNAPSHOT'
+		tomcatVersion = '9.0.19'
 		xstreamVersion = '1.4.11.1'
 	}
 
@@ -154,7 +154,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.8.3"
+		toolVersion = "0.8.4"
 	}
 
 	// dependencies that are common across all java projects
