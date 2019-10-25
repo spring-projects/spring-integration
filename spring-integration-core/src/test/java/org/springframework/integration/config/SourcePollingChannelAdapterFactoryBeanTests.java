@@ -23,7 +23,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ import org.springframework.util.ClassUtils;
 public class SourcePollingChannelAdapterFactoryBeanTests {
 
 	@Test
-	public void testAdviceChain() throws Exception {
+	public void testAdviceChain() {
 		SourcePollingChannelAdapterFactoryBean factoryBean = new SourcePollingChannelAdapterFactoryBean();
 		QueueChannel outputChannel = new QueueChannel();
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
@@ -186,7 +186,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 
 		taskScheduler.shutdown();
 
-		verifyZeroInteractions(errorHandlerLogger);
+		verifyNoInteractions(errorHandlerLogger);
 		verify(adapterLogger).debug(contains("Poll interrupted - during stop()?"));
 	}
 
