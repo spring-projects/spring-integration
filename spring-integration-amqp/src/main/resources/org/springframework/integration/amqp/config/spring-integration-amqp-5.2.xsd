@@ -67,11 +67,11 @@
 									received within the confirm timeout or a negative acknowledgment or returned
 									message is received, an exception will be thrown.
 								</xsd:documentation>
-								<xsd:simpleType>
-									<xsd:union memberTypes="xsd:boolean xsd:string" />
-								</xsd:simpleType>
 							</xsd:appinfo>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -253,6 +253,18 @@
 								the `AmqpTemplate` configuration.
 							</xsd:documentation>
 						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-headers-last">
+						<xsd:annotation>
+							<xsd:documentation>
+								Whether reply headers are mapped before or after conversion from a messaging Message to
+								a spring amqp Message. Set to true, for example, if you wish to override the
+								contentType header set by the converter.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

@@ -107,7 +107,7 @@ public class AmqpInboundGatewayParserTests {
 		});
 
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
-
+		assertThat(TestUtils.getPropertyValue(gateway, "replyHeadersMappedLast", Boolean.class)).isTrue();
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
