@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -171,8 +169,7 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(permissions[0]).isEqualTo("rw");
 		assertThat(permissions[1]).isEqualTo("r");
 		assertThat(permissions[2]).isEqualTo("r");
-
-
+		
 		registration.destroy();
 	}
 
