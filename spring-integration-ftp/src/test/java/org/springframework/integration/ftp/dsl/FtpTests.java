@@ -212,12 +212,6 @@ public class FtpTests extends FtpTestSupport {
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertThat(files.length).isEqualTo(1);
 		assertThat(files[0].getSize()).isEqualTo(3);
-		assertThat(files[0].hasPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
-		assertThat(files[0].hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION)).isTrue();
-		assertThat(files[0].hasPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
-		assertThat(files[0].hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION)).isFalse();
-		assertThat(files[0].hasPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION)).isTrue();
-		assertThat(files[0].hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION)).isFalse();
 
 		registration.destroy();
 	}
