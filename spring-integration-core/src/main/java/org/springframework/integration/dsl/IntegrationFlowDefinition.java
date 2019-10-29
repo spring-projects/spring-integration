@@ -25,11 +25,8 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.GenericSelector;
-import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.GenericHandler;
-import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -46,7 +43,6 @@ import org.springframework.integration.support.MapBuilder;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.integration.transformer.HeaderFilter;
 import org.springframework.integration.transformer.MessageTransformingHandler;
-import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -80,8 +76,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingTransformer
-	 * @see LambdaMessageProcessor
+	 * @see org.springframework.integration.transformer.MethodInvokingTransformer
+	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
 		return transform(null, genericTransformer);
@@ -100,8 +96,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingTransformer
-	 * @see LambdaMessageProcessor
+	 * @see org.springframework.integration.transformer.MethodInvokingTransformer
+	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
@@ -111,7 +107,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * Populate a {@link org.springframework.integration.filter.MessageFilter}
+	 * with {@link org.springframework.integration.filter.MethodInvokingSelector}
 	 * for the provided {@link GenericSelector}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
@@ -130,7 +127,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate a {@link MessageFilter} with {@link MethodInvokingSelector}
+	 * Populate a {@link org.springframework.integration.filter.MessageFilter}
+	 * with {@link org.springframework.integration.filter.MethodInvokingSelector}
 	 * for the provided {@link GenericSelector}.
 	 * In addition accept options for the integration endpoint using {@link FilterEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
@@ -166,7 +164,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param handler the handler to invoke.
 	 * @param <P> the payload type to expect.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see LambdaMessageProcessor
+	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 */
 	public <P> B handle(GenericHandler<P> handler) {
 		return handle(null, handler);
@@ -189,7 +187,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type to expect.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see LambdaMessageProcessor
+	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 * @see GenericEndpointSpec
 	 */
 	public <P> B handle(GenericHandler<P> handler,
@@ -218,7 +216,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see LambdaMessageProcessor
+	 * @see org.springframework.integration.handler.LambdaMessageProcessor
 	 * @see SplitterEndpointSpec
 	 */
 	public <P> B split(Function<P, ?> splitter,
@@ -825,8 +823,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	@Override
-	public B routeByException(Consumer<RouterSpec<Class<? extends Throwable>,
-			ErrorMessageExceptionTypeRouter>> routerConfigurer) { // NOSONAR - byte code backward compatibility
+	public B routeByException(Consumer<RouterSpec<Class<? extends Throwable>,  // NOSONAR - byte code backward compatibility
+			ErrorMessageExceptionTypeRouter>> routerConfigurer) {
 
 		return super.routeByException(routerConfigurer);
 	}

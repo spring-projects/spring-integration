@@ -470,11 +470,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		WireTap interceptor = wireTapSpec.get();
 		MessageChannel currentChannel = getCurrentMessageChannel();
 		if (!(currentChannel instanceof InterceptableChannel)) {
-			channel(new DirectChannel());
+			currentChannel = new DirectChannel();
+			channel(currentChannel);
 			setImplicitChannel(true);
 		}
 		addComponent(wireTapSpec);
-		((InterceptableChannel) getCurrentMessageChannel()).addInterceptor(interceptor);
+		((InterceptableChannel) currentChannel).addInterceptor(interceptor);
 		return _this();
 	}
 
@@ -2807,11 +2808,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 */
 	@SuppressWarnings(UNCHECKED)
 	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
-		if (!(getCurrentMessageChannel() instanceof FluxMessageChannel)) {
-			channel(new FluxMessageChannel());
+		MessageChannel currentChannel = getCurrentMessageChannel();
+		if (!(currentChannel instanceof FluxMessageChannel)) {
+			currentChannel = new FluxMessageChannel();
+			channel(currentChannel);
 		}
 
-		Publisher<Message<I>> upstream = (Publisher<Message<I>>) getCurrentMessageChannel();
+		Publisher<Message<I>> upstream = (Publisher<Message<I>>) currentChannel;
 
 		Flux<Message<O>> result = Transformers.transformWithFunction(upstream, fluxFunction);
 
