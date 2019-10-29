@@ -169,7 +169,7 @@ public class SftpTests extends SftpTestSupport {
 		assertThat(permissions[0]).isEqualTo("rw");
 		assertThat(permissions[1]).isEqualTo("r");
 		assertThat(permissions[2]).isEqualTo("r");
-		
+
 		registration.destroy();
 	}
 
