@@ -59,6 +59,7 @@ import org.springframework.kafka.support.SimpleKafkaHeaderMapper;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
@@ -72,9 +73,17 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
- * Kafka Message Handler; when supplied with a {@link ReplyingKafkaTemplate}
- * it is used as the handler in an outbound gateway. When supplied with a simple
- * {@link KafkaTemplate} it used as the handler in an outbound channel adapter.
+ * Kafka Message Handler; when supplied with a {@link ReplyingKafkaTemplate} it is used as
+ * the handler in an outbound gateway. When supplied with a simple {@link KafkaTemplate}
+ * it used as the handler in an outbound channel adapter.
+ * <p>
+ * Starting with version 3.2.1 the handler supports receiving a pre-built
+ * {@link ProducerRecord} payload. In that case, most configuration properties
+ * ({@link #setTopicExpression(Expression)} etc.) are ignored. If the handler is used as
+ * gateway, the {@link ProducerRecord} will have its headers enhanced to add the
+ * {@link KafkaHeaders#REPLY_TOPIC} unless it already contains such a header. The handler
+ * will not map any additional headers; providing such a payload assumes the headers have
+ * already been mapped.
  *
  * @param <K> the key type.
  * @param <V> the value type.
@@ -136,6 +145,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	private ProducerRecordCreator<K, V> producerRecordCreator =
 			(message, topic, partition, timestamp, key, value, headers) ->
 				new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
+
+	private volatile byte[] singleReplyTopic;
 
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
@@ -373,6 +384,47 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Object handleRequestMessage(final Message<?> message) {
+		final ProducerRecord<K, V> producerRecord;
+		boolean preBuilt = message.getPayload() instanceof ProducerRecord;
+		if (preBuilt) {
+			producerRecord = (ProducerRecord<K, V>) message.getPayload();
+		}
+		else {
+			producerRecord = createProducerRecord(message);
+		}
+		ListenableFuture<SendResult<K, V>> sendFuture;
+		RequestReplyFuture<K, V, Object> gatewayFuture = null;
+		if (this.isGateway && (!preBuilt || producerRecord.headers().lastHeader(KafkaHeaders.REPLY_TOPIC) == null)) {
+			producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
+			gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate).sendAndReceive(producerRecord);
+			sendFuture = gatewayFuture.getSendFuture();
+		}
+		else {
+			if (this.transactional
+					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null) {
+				sendFuture = this.kafkaTemplate.executeInTransaction(t -> {
+					return t.send(producerRecord);
+				});
+			}
+			else {
+				sendFuture = this.kafkaTemplate.send(producerRecord);
+			}
+		}
+		try {
+			processSendResult(message, producerRecord, sendFuture, getSendSuccessChannel());
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessageHandlingException(message, e);
+		}
+		catch (ExecutionException e) {
+			throw new MessageHandlingException(message, e.getCause());
+		}
+		return processReplyFuture(gatewayFuture);
+	}
+
+	@SuppressWarnings("unchecked")
+	private ProducerRecord<K, V> createProducerRecord(final Message<?> message) {
 		MessageHeaders messageHeaders = message.getHeaders();
 		String topic = this.topicExpression != null ?
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
@@ -407,35 +459,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 		final ProducerRecord<K, V> producerRecord = this.producerRecordCreator.create(message, topic, partitionId,
 				timestamp, (K) messageKey, payload, headers);
-		ListenableFuture<SendResult<K, V>> sendFuture;
-		RequestReplyFuture<K, V, Object> gatewayFuture = null;
-		if (this.isGateway) {
-			producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
-			gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate).sendAndReceive(producerRecord);
-			sendFuture = gatewayFuture.getSendFuture();
-		}
-		else {
-			if (this.transactional
-					&& TransactionSynchronizationManager.getResource(this.kafkaTemplate.getProducerFactory()) == null) {
-				sendFuture = this.kafkaTemplate.executeInTransaction(t -> {
-					return t.send(producerRecord);
-				});
-			}
-			else {
-				sendFuture = this.kafkaTemplate.send(producerRecord);
-			}
-		}
-		try {
-			processSendResult(message, producerRecord, sendFuture, getSendSuccessChannel());
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessageHandlingException(message, e);
-		}
-		catch (ExecutionException e) {
-			throw new MessageHandlingException(message, e.getCause());
-		}
-		return processReplyFuture(gatewayFuture);
+		return producerRecord;
 	}
 
 	private byte[] getReplyTopic(final Message<?> message) {
@@ -457,7 +481,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 		if (replyTopic == null) {
 			if (this.replyTopicsAndPartitions.size() == 1) {
-				replyTopic = this.replyTopicsAndPartitions.keySet().iterator().next().getBytes(StandardCharsets.UTF_8);
+				replyTopic = getSingleReplyTopic();
 			}
 			else {
 				throw new IllegalStateException("No reply topic header and no default reply topic is can be determined");
@@ -485,6 +509,16 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			}
 		}
 		return replyTopic;
+	}
+
+	private byte[] getSingleReplyTopic() {
+		if (this.singleReplyTopic == null) {
+			this.singleReplyTopic = this.replyTopicsAndPartitions.keySet()
+					.iterator()
+					.next()
+					.getBytes(StandardCharsets.UTF_8);
+		}
+		return this.singleReplyTopic;
 	}
 
 	private void determineValidReplyTopicsAndPartitions() {
@@ -544,7 +578,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		}
 	}
 
-	private Future<?> processReplyFuture(RequestReplyFuture<?, ?, Object> future) {
+	private Future<?> processReplyFuture(@Nullable RequestReplyFuture<?, ?, Object> future) {
 		if (future == null) {
 			return null;
 		}

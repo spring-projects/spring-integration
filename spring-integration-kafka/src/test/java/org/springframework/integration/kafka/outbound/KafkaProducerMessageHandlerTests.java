@@ -352,6 +352,15 @@ class KafkaProducerMessageHandlerTests {
 
 	@Test
 	void testOutboundGateway() throws Exception {
+		testOutboundGatewayGuts(null);
+	}
+
+	@Test
+	void testOutboundGatewayPrPayload() throws Exception {
+		testOutboundGatewayGuts(new ProducerRecord<Integer, String>(topic5, 1, 2, "foo"));
+	}
+
+	private void testOutboundGatewayGuts(ProducerRecord<?, ?> payload) throws Exception {
 		ConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(
 				KafkaTestUtils.consumerProps(topic5, "false", embeddedKafka));
 		ContainerProperties containerProperties = new ContainerProperties(topic6);
@@ -384,11 +393,17 @@ class KafkaProducerMessageHandlerTests {
 		handler.setOutputChannel(replies);
 		handler.afterPropertiesSet();
 
-		Message<?> message = MessageBuilder.withPayload("foo")
-				.setHeader(KafkaHeaders.TOPIC, topic5)
-				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
-				.build();
+		Message<?> message;
+		if (payload == null) {
+			message = MessageBuilder.withPayload("foo")
+					.setHeader(KafkaHeaders.TOPIC, topic5)
+					.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
+					.setHeader(KafkaHeaders.PARTITION_ID, 1)
+					.build();
+		}
+		else {
+			message = MessageBuilder.withPayload(payload).build();
+		}
 		handler.handleMessage(message);
 
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic5);
