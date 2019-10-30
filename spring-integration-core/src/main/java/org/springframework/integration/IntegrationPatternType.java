@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * The Enterprise Integration Pattern types.
- * Used to indicate which pattern the target component implements.
+ * Used to indicate which pattern a target component implements.
  *
  * @author Artem Bilan
  *
@@ -52,7 +52,7 @@ public enum IntegrationPatternType {
 
 	/**
 	 * The Enterprise Integration Pattern categories.
-	 * Used to indicate which pattern category the target component belongs.
+	 * Used to indicate which pattern category a target component belongs.
 	 */
 	public enum IntegrationPatternCategory {
 

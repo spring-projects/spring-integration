@@ -17,9 +17,7 @@
 package org.springframework.integration;
 
 /**
- * A marker interface indicating that component implements some
- * Enterprise Integration Pattern.
- *
+ * Indicates that a component implements some Enterprise Integration Pattern.
  *
  * @author Artem Bilan
  *
