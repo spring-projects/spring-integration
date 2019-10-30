@@ -113,7 +113,7 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 
-		//		System . out . println(new String(baos.toByteArray()));
+//				System . out . println(new String(baos.toByteArray()));
 
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
 		assertThat(map.size()).isEqualTo(3);
@@ -215,6 +215,22 @@ public class IntegrationGraphServerTests {
 				JsonPathUtils.evaluate(baos.toByteArray(),
 						"$..links[?(@.from == " + routerNodeId + "&& @.to == " + fizChannelNodeId + ")]");
 		assertThat(jsonArray).hasSize(1);
+
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(),
+				"$..nodes[?(@.name == 'services.foo.serviceActivator.handler')]");
+
+		assertThat(jsonArray).hasSize(1);
+
+		Map<String, Object> serviceActivator = (Map<String, Object>) jsonArray.get(0);
+		assertThat(serviceActivator).containsEntry("integrationPatternType", "service_activator");
+
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(),
+				"$..nodes[?(@.name == 'polling')]");
+
+		assertThat(jsonArray).hasSize(1);
+
+		serviceActivator = (Map<String, Object>) jsonArray.get(0);
+		assertThat(serviceActivator).containsEntry("integrationPatternType", "service_activator");
 	}
 
 	@Test

@@ -21,9 +21,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -45,6 +48,9 @@ public abstract class IntegrationNode {
 
 	private final String componentType;
 
+	@Nullable
+	private final IntegrationPatternType integrationPatternType;
+
 	private final Map<String, Object> properties = new HashMap<>();
 
 	private final Map<String, Object> unmodifiableProperties = Collections.unmodifiableMap(this.properties);
@@ -63,6 +69,11 @@ public abstract class IntegrationNode {
 				this.properties.put("expression", expression.getExpressionString());
 			}
 		}
+
+		this.integrationPatternType =
+				nodeObject instanceof IntegrationPattern
+						? ((IntegrationPattern) nodeObject).getIntegrationPatternType()
+						: (nodeObject instanceof MessageHandler ? IntegrationPatternType.service_activator : null);
 	}
 
 	public int getNodeId() {
@@ -73,8 +84,13 @@ public abstract class IntegrationNode {
 		return this.nodeName;
 	}
 
-	public final  String getComponentType() {
+	public final String getComponentType() {
 		return this.componentType;
+	}
+
+	@Nullable
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.integrationPatternType;
 	}
 
 	public Stats getStats() {
