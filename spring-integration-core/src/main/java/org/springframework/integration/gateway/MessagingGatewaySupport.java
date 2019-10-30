@@ -25,6 +25,8 @@ import org.reactivestreams.Subscriber;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -75,7 +77,7 @@ import reactor.core.publisher.MonoProcessor;
 @IntegrationManagedResource
 public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		implements org.springframework.integration.support.management.TrackableComponent,
-		org.springframework.integration.support.management.MessageSourceMetrics {
+		org.springframework.integration.support.management.MessageSourceMetrics, IntegrationPattern {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -343,6 +345,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.managementOverrides;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.inbound_gateway;
 	}
 
 	@Override

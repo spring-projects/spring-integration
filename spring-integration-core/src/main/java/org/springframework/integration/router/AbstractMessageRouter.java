@@ -19,8 +19,10 @@ package org.springframework.integration.router;
 import java.util.Collection;
 import java.util.UUID;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -61,8 +63,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	 * fails to return any channels. If no default channel is provided and channel
 	 * resolution fails to return any channels, the router will throw an
 	 * {@link MessageDeliveryException}.
-	 * <p>
-	 * If messages shall be ignored (dropped) instead, please provide a
+	 * <p> If messages shall be ignored (dropped) instead, please provide a
 	 * {@link org.springframework.integration.channel.NullChannel}.
 	 * @param defaultOutputChannel The default output channel.
 	 */
@@ -129,6 +130,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 		return "router";
 	}
 
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.router;
+	}
+
 	/**
 	 * Provides {@link MessagingTemplate} access for subclasses
 	 * @return The messaging template.
@@ -151,8 +157,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 		super.onInit();
 		Assert.state(!(this.defaultOutputChannelName != null && this.defaultOutputChannel != null),
 				"'defaultOutputChannelName' and 'defaultOutputChannel' are mutually exclusive.");
-		if (this.getBeanFactory() != null) {
-			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -167,7 +174,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		boolean sent = false;
-		Collection<MessageChannel> results = this.determineTargetChannels(message);
+		Collection<MessageChannel> results = determineTargetChannels(message);
 		if (results != null) {
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
@@ -179,10 +186,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 				else {
 					UUID id = message.getHeaders().getId();
 					messageToSend = getMessageBuilderFactory()
-								.fromMessage(message)
-								.pushSequenceDetails(id == null ? generateId() : id,
-										sequenceNumber++, sequenceSize)
-								.build();
+							.fromMessage(message)
+							.pushSequenceDetails(id == null ? generateId() : id,
+									sequenceNumber++, sequenceSize)
+							.build();
 				}
 				if (channel != null) {
 					sent |= doSend(channel, messageToSend);
@@ -195,7 +202,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 				this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}
 			else {
-				throw new MessageDeliveryException(message, "No channel resolved by router '" + this.getComponentName()
+				throw new MessageDeliveryException(message, "No channel resolved by router '" + this
 						+ "' and no 'defaultOutputChannel' defined.");
 			}
 		}

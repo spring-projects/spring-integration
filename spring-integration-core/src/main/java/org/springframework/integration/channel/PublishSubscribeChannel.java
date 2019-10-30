@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -67,6 +68,11 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	@Override
 	public String getComponentType() {
 		return "publish-subscribe-channel";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.publish_subscribe_channel;
 	}
 
 	/**

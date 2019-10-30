@@ -18,6 +18,8 @@ package org.springframework.integration.channel;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.messaging.Message;
 
 /**
@@ -26,8 +28,13 @@ import org.springframework.messaging.Message;
  *
  * @since 5.0
  */
-public interface ReactiveStreamsSubscribableChannel {
+public interface ReactiveStreamsSubscribableChannel extends IntegrationPattern {
 
 	void subscribeTo(Publisher<? extends Message<?>> publisher);
+
+	@Override
+	default IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.reactive_channel;
+	}
 
 }

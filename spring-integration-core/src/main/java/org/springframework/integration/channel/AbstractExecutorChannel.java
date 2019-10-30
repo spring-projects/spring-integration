@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.lang.Nullable;
@@ -126,6 +127,11 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 	@Override
 	public boolean hasExecutorInterceptors() {
 		return this.executorInterceptorsSize > 0;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.executor_channel;
 	}
 
 	protected class MessageHandlingTask implements Runnable {

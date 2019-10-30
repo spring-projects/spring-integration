@@ -19,6 +19,8 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -43,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent,
-		SmartInitializingSingleton {
+		SmartInitializingSingleton, IntegrationPattern {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -150,6 +152,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.inbound_channel_adapter;
 	}
 
 	@Override

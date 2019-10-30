@@ -18,6 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -40,6 +41,7 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 
 	public AggregatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+
 		super(processor, store, correlationStrategy, releaseStrategy);
 	}
 
@@ -53,13 +55,16 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 
 	/**
 	 * Will set the 'expireGroupsUponCompletion' flag.
-	 *
 	 * @param expireGroupsUponCompletion true when groups should be expired on completion.
-	 *
 	 * @see #afterRelease
 	 */
 	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.aggregator;
 	}
 
 	@Override

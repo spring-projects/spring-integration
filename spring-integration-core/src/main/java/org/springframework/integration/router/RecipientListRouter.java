@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -248,6 +249,11 @@ public class RecipientListRouter extends AbstractMessageRouter implements Recipi
 	@Override
 	public String getComponentType() {
 		return "recipient-list-router";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.recipient_list_router;
 	}
 
 	@Override

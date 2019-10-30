@@ -21,8 +21,11 @@ import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
@@ -45,10 +48,12 @@ import groovy.lang.GString;
  *
  * @since 2.0
  */
-public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
+public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object>
+		implements IntegrationPattern {
 
 	private GroovyObjectCustomizer customizer;
 
+	@Nullable
 	private Binding binding;
 
 
@@ -101,6 +106,11 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	 */
 	public void setCustomizer(GroovyObjectCustomizer customizer) {
 		this.customizer = customizer;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.control_bus;
 	}
 
 	@Override
