@@ -45,6 +45,7 @@ import org.springframework.integration.util.PoolItemNotAvailableException;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -52,7 +53,7 @@ public class SessionFactoryTests {
 
 
 	@Test
-	public void testTimeouts() throws Exception {
+	public void testFtpClientInteraction() throws Exception {
 		final FTPClient client = mock(FTPClient.class);
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
 
@@ -67,10 +68,15 @@ public class SessionFactoryTests {
 		sessionFactory.setDataTimeout(789);
 		doReturn(200).when(client).getReplyCode();
 		doReturn(true).when(client).login("foo", null);
-		sessionFactory.getSession();
+		FtpSession session = sessionFactory.getSession();
 		verify(client).setConnectTimeout(123);
 		verify(client).setDefaultTimeout(456);
 		verify(client).setDataTimeout(789);
+
+		session.close();
+
+		verify(client).logout();
+		verify(client).disconnect();
 	}
 
 	@Test
