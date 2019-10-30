@@ -32,6 +32,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.jmx.support.ObjectNameManager;
@@ -122,6 +123,11 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	@Override
 	public String getComponentType() {
 		return this.expectReply ? "jmx:operation-invoking-outbound-gateway" : "jmx:operation-invoking-channel-adapter";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
 	}
 
 	@Override

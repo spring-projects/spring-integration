@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.messaging.Message;
 
 /**
@@ -38,6 +39,11 @@ public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 	@Override
 	public String getComponentType() {
 		return "bridge";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.bridge;
 	}
 
 	@Override

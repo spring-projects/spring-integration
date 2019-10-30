@@ -15,6 +15,11 @@ If you are interested in more details, see the Issue Tracker tickets that were r
 [[x5.3-new-components]]
 === New Components
 
+[[x5.3-integration-pattern]]
+==== Integration Pattern
+
+The `IntegrationPattern` abstraction has been introduced to indicate which enterprise integration pattern (an `IntegrationPatternType`) and category a Spring Integration component belongs to.
+See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for more information about this abstraction and its use-cases.
+
 [[x5.3-general]]
 === General Changes
-

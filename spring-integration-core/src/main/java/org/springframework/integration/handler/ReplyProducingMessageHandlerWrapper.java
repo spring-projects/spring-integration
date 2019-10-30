@@ -17,6 +17,8 @@
 package org.springframework.integration.handler;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -42,6 +44,13 @@ public class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingM
 	public ReplyProducingMessageHandlerWrapper(MessageHandler target) {
 		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return (this.target instanceof IntegrationPattern)
+				? ((IntegrationPattern) this.target).getIntegrationPatternType()
+				: IntegrationPatternType.service_activator;
 	}
 
 	@Override

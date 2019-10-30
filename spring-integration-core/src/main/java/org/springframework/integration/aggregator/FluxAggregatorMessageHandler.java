@@ -23,6 +23,7 @@ import java.util.function.Predicate;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
@@ -214,6 +215,16 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 	 */
 	public void setWindowConfigurer(Function<Flux<Message<?>>, Flux<Flux<Message<?>>>> windowConfigurer) {
 		this.windowConfigurer = windowConfigurer;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "flux-aggregator";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.aggregator;
 	}
 
 	@Override

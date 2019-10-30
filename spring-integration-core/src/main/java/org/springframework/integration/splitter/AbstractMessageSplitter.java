@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
@@ -105,6 +106,11 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 		return this.discardChannel;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.splitter;
 	}
 
 	@Override

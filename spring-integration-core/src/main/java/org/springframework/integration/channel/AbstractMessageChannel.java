@@ -30,6 +30,8 @@ import org.apache.commons.logging.Log;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.OrderComparator;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
@@ -68,7 +70,8 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
+		ConfigurableMetricsAware<AbstractMessageChannelMetrics>,
+		IntegrationPattern {
 
 	protected final ChannelInterceptorList interceptors; // NOSONAR
 
@@ -107,6 +110,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public String getComponentType() {
 		return "channel";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.message_channel;
 	}
 
 	@Override

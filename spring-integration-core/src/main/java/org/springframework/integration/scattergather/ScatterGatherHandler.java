@@ -20,6 +20,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
@@ -105,6 +106,16 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	public void setErrorChannelName(String errorChannelName) {
 		Assert.hasText(errorChannelName, "'errorChannelName' must not be empty.");
 		this.errorChannelName = errorChannelName;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "scatter-gather";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.scatter_gather;
 	}
 
 	@Override

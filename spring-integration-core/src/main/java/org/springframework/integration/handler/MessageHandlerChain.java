@@ -18,10 +18,12 @@ package org.springframework.integration.handler;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -66,18 +68,18 @@ import org.springframework.util.Assert;
 public class MessageHandlerChain extends AbstractMessageProducingHandler
 		implements CompositeMessageHandler, Lifecycle {
 
-	private volatile List<MessageHandler> handlers;
-
-	private volatile boolean initialized;
-
 	private final Object initializationMonitor = new Object();
-
-	private volatile boolean running;
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
+	private List<MessageHandler> handlers;
+
+	private volatile boolean initialized;
+
+	private volatile boolean running;
+
 	public void setHandlers(List<MessageHandler> handlers) {
-		this.handlers = handlers;
+		this.handlers = new LinkedList<>(handlers);
 	}
 
 	@Override
@@ -91,27 +93,24 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 	}
 
 	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.chain;
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");
-				this.configureChain();
+				configureChain();
 				this.initialized = true;
 			}
 		}
 	}
 
-	@Override
-	protected void handleMessageInternal(Message<?> message) {
-		if (!this.initialized) {
-			this.onInit();
-		}
-		this.handlers.get(0).handleMessage(message);
-	}
-
 	private void configureChain() {
-		Assert.isTrue(this.handlers.size() == new HashSet<MessageHandler>(this.handlers).size(),
+		Assert.isTrue(this.handlers.size() == new HashSet<>(this.handlers).size(),
 				"duplicate handlers are not allowed in a chain");
 		for (int i = 0; i < this.handlers.size(); i++) {
 			MessageHandler handler = this.handlers.get(i);
@@ -120,10 +119,11 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 						"the last one in the chain must implement the MessageProducer interface.");
 
 				MessageHandler nextHandler = this.handlers.get(i + 1);
-				MessageChannel nextChannel = (message, timeout) -> {
-					nextHandler.handleMessage(message);
-					return true;
-				};
+				MessageChannel nextChannel =
+						(message, timeout) -> {
+							nextHandler.handleMessage(message);
+							return true;
+						};
 
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 
@@ -144,6 +144,14 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 								"the chain does not implement the MessageProducer interface.");
 			}
 		}
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) {
+		if (!this.initialized) {
+			onInit();
+		}
+		this.handlers.get(0).handleMessage(message);
 	}
 
 	@Override
@@ -171,7 +179,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
-				this.doStart();
+				doStart();
 				this.running = true;
 				if (logger.isInfoEnabled()) {
 					logger.info("started " + this);
@@ -188,7 +196,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 		this.lifecycleLock.lock();
 		try {
 			if (this.running) {
-				this.doStop();
+				doStop();
 				this.running = false;
 				if (logger.isInfoEnabled()) {
 					logger.info("stopped " + this);
@@ -203,7 +211,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 	public final void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
-			this.stop();
+			stop();
 			callback.run();
 		}
 		finally {

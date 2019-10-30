@@ -23,6 +23,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -89,6 +90,15 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	protected ClassLoader getBeanClassLoader() {
 		return this.beanClassLoader;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		// Most out-of-the-box Spring Integration implementations provide an outbound gateway
+		// for particular external protocol. If an implementation doesn't belong to this category,
+		// it overrides this method to provide its own specific integration pattern type:
+		// service-activator, splitter, aggregator, router etc.
+		return IntegrationPatternType.outbound_gateway;
 	}
 
 	@Override

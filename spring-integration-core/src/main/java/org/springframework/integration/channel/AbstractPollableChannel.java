@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
@@ -62,6 +63,11 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	@Override
 	public long getReceiveErrorCountLong() {
 		return getMetrics().getReceiveErrorCountLong();
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.pollable_channel;
 	}
 
 	/**

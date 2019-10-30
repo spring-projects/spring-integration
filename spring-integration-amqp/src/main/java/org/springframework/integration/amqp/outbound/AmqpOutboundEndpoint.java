@@ -30,6 +30,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -96,6 +97,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		return this.expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
 	}
 
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
+	}
 
 	@Override
 	public RabbitTemplate getRabbitTemplate() {
@@ -168,6 +173,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	private void send(String exchangeName, String routingKey,
 			final Message<?> requestMessage, CorrelationData correlationData) {
+
 		if (this.rabbitTemplate != null) {
 			MessageConverter converter = this.rabbitTemplate.getMessageConverter();
 			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,

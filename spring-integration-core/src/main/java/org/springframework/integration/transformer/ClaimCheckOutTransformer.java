@@ -18,6 +18,8 @@ package org.springframework.integration.transformer;
 
 import java.util.UUID;
 
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -31,9 +33,11 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Nick Spacek
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class ClaimCheckOutTransformer extends AbstractTransformer {
+public class ClaimCheckOutTransformer extends AbstractTransformer implements IntegrationPattern {
 
 	private final MessageStore messageStore;
 
@@ -60,6 +64,11 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.claim_check_in;
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");
@@ -74,9 +83,9 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		else {
 			retrievedMessage = this.messageStore.getMessage(id);
 		}
-		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
-				+ " within MessageStore [" + this.messageStore + "]");
-		AbstractIntegrationMessageBuilder<?> responseBuilder = this.getMessageBuilderFactory().fromMessage(retrievedMessage);
+		Assert.notNull(retrievedMessage,
+				() -> "unable to locate Message for ID: " + id + " within MessageStore [" + this.messageStore + "]");
+		AbstractIntegrationMessageBuilder<?> responseBuilder = getMessageBuilderFactory().fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();

@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -55,6 +57,13 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	public String getComponentType() {
 		return "service-activator";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return (this.processor instanceof IntegrationPattern)
+				? ((IntegrationPattern) this.processor).getIntegrationPatternType()
+				: IntegrationPatternType.service_activator;
 	}
 
 	@Override

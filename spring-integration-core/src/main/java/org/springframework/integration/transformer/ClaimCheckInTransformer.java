@@ -18,8 +18,9 @@ package org.springframework.integration.transformer;
 
 import java.util.UUID;
 
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -28,9 +29,11 @@ import org.springframework.util.Assert;
  * is the id of the stored Message.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class ClaimCheckInTransformer extends AbstractTransformer {
+public class ClaimCheckInTransformer extends AbstractTransformer implements IntegrationPattern {
 
 	private final MessageStore messageStore;
 
@@ -51,15 +54,17 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.claim_check_in;
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		UUID id = message.getHeaders().getId();
 		Assert.notNull(id, "ID header must not be null");
 		this.messageStore.addMessage(message);
-		AbstractIntegrationMessageBuilder<?> responseBuilder = getMessageBuilderFactory().withPayload(id);
-		// headers on the 'current' message take precedence
-		responseBuilder.copyHeaders(message.getHeaders());
-		return responseBuilder.build();
+		return id;
 	}
 
 }
