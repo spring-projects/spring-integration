@@ -17,6 +17,8 @@
 package org.springframework.integration.ftp.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -30,8 +32,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.apache.commons.net.ftp.FTPFile;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -47,12 +50,11 @@ import org.springframework.integration.util.PoolItemNotAvailableException;
  * @author Artem Bilan
  *
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class SessionFactoryTests {
+class SessionFactoryTests {
 
 
 	@Test
-	public void testFtpClientInteraction() throws Exception {
+	void testFtpClientInteraction() throws Exception {
 		final FTPClient client = mock(FTPClient.class);
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory() {
 
@@ -79,7 +81,7 @@ public class SessionFactoryTests {
 	}
 
 	@Test
-	public void testWithControlEncoding() {
+	void testWithControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setControlEncoding("UTF-8");
 		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
@@ -87,27 +89,29 @@ public class SessionFactoryTests {
 	}
 
 	@Test
-	public void testWithoutControlEncoding() {
+	void testWithoutControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		assertThat(TestUtils.getPropertyValue(sessionFactory, "controlEncoding"))
 				.as("Expected controlEncoding value of 'ISO-8859-1'").isEqualTo("ISO-8859-1");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testEmptyControlEncoding() {
+	@Test
+	void testEmptyControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		sessionFactory.setControlEncoding("");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> sessionFactory.setControlEncoding(""));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testNullControlEncoding() {
+	@Test
+	void testNullControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		sessionFactory.setControlEncoding(null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> sessionFactory.setControlEncoding(null));
 	}
 
 
 	@Test
-	public void testClientModes() throws Exception {
+	void testClientModes() throws Exception {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		Field[] fields = FTPClient.class.getDeclaredFields();
 		for (Field field : fields) {
@@ -116,7 +120,7 @@ public class SessionFactoryTests {
 					int clientMode = field.getInt(null);
 					sessionFactory.setClientMode(clientMode);
 					if (!(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE ||
-						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)) {
+							clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)) {
 						fail("IllegalArgumentException expected");
 					}
 				}
@@ -129,74 +133,79 @@ public class SessionFactoryTests {
 
 
 	@Test
-	public void testStaleConnection() throws Exception {
-		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
-		Session sessionA = Mockito.mock(Session.class);
-		Session sessionB = Mockito.mock(Session.class);
+	@SuppressWarnings("unchecked")
+	void testStaleConnection() {
+		SessionFactory<FTPFile> sessionFactory = Mockito.mock(SessionFactory.class);
+		Session<FTPFile> sessionA = Mockito.mock(Session.class);
+		Session<FTPFile> sessionB = Mockito.mock(Session.class);
 		Mockito.when(sessionA.isOpen()).thenReturn(true);
 		Mockito.when(sessionB.isOpen()).thenReturn(false);
 
 		Mockito.when(sessionFactory.getSession()).thenReturn(sessionA);
 		Mockito.when(sessionFactory.getSession()).thenReturn(sessionB);
 
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+		CachingSessionFactory<FTPFile> cachingFactory = new CachingSessionFactory<>(sessionFactory, 2);
 
-		Session firstSession = cachingFactory.getSession();
-		Session secondSession = cachingFactory.getSession();
+		Session<FTPFile> firstSession = cachingFactory.getSession();
+		Session<FTPFile> secondSession = cachingFactory.getSession();
 		secondSession.close();
-		Session nonStaleSession = cachingFactory.getSession();
+		Session<FTPFile> nonStaleSession = cachingFactory.getSession();
 		assertThat(TestUtils.getPropertyValue(nonStaleSession, "targetSession"))
 				.isEqualTo(TestUtils.getPropertyValue(firstSession, "targetSession"));
 	}
 
 	@Test
-	public void testSameSessionFromThePool() throws Exception {
-		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
-		Session session = Mockito.mock(Session.class);
+	@SuppressWarnings("unchecked")
+	void testSameSessionFromThePool() {
+		SessionFactory<FTPFile> sessionFactory = Mockito.mock(SessionFactory.class);
+		Session<FTPFile> session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
 
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+		CachingSessionFactory<FTPFile> cachingFactory = new CachingSessionFactory<>(sessionFactory, 2);
 
-		Session s1 = cachingFactory.getSession();
+		Session<FTPFile> s1 = cachingFactory.getSession();
 		s1.close();
-		Session s2 = cachingFactory.getSession();
+		Session<FTPFile> s2 = cachingFactory.getSession();
 		s2.close();
 		assertThat(TestUtils.getPropertyValue(s2, "targetSession"))
 				.isEqualTo(TestUtils.getPropertyValue(s1, "targetSession"));
 		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
 	}
 
-	@Test (expected = PoolItemNotAvailableException.class) // timeout expire
-	public void testSessionWaitExpire() throws Exception {
-		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
-		Session session = Mockito.mock(Session.class);
+	@Test
+	@SuppressWarnings("unchecked")
+	void testSessionWaitExpire() {
+		SessionFactory<FTPFile> sessionFactory = Mockito.mock(SessionFactory.class);
+		Session<FTPFile> session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
 
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+		CachingSessionFactory<FTPFile> cachingFactory = new CachingSessionFactory<>(sessionFactory, 2);
 
 		cachingFactory.setSessionWaitTimeout(3000);
 
 		cachingFactory.getSession();
 		cachingFactory.getSession();
-		cachingFactory.getSession();
+
+		assertThatExceptionOfType(PoolItemNotAvailableException.class) // timeout expire
+				.isThrownBy(cachingFactory::getSession);
 	}
 
 	@Test
-	@Ignore
-	public void testConnectionLimit() throws Exception {
+	@Disabled
+	void testConnectionLimit() throws Exception {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setHost("192.168.28.143");
 		sessionFactory.setPassword("password");
 		sessionFactory.setUsername("user");
-		final CachingSessionFactory factory = new CachingSessionFactory(sessionFactory, 2);
+		final CachingSessionFactory<FTPFile> factory = new CachingSessionFactory<>(sessionFactory, 2);
 
 		final Random random = new Random();
 		final AtomicInteger failures = new AtomicInteger();
 		for (int i = 0; i < 30; i++) {
 			executor.execute(() -> {
 				try {
-					Session session = factory.getSession();
+					Session<FTPFile> session = factory.getSession();
 					Thread.sleep(random.nextInt(5000));
 					session.close();
 				}
@@ -211,4 +220,5 @@ public class SessionFactoryTests {
 
 		assertThat(failures.get()).isEqualTo(0);
 	}
+
 }
