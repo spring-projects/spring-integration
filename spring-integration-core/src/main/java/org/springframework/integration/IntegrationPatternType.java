@@ -30,7 +30,15 @@ import java.util.stream.Collectors;
  */
 public enum IntegrationPatternType {
 
-	service_activator(IntegrationPatternCategory.messaging_endpoint);
+	service_activator(IntegrationPatternCategory.messaging_endpoint),
+
+	splitter(IntegrationPatternCategory.message_routing),
+
+	transformer(IntegrationPatternCategory.message_transformation),
+
+	header_enricher(IntegrationPatternCategory.message_transformation),
+
+	filter(IntegrationPatternCategory.message_routing);
 
 	private final IntegrationPatternCategory patternCategory;
 
@@ -48,7 +56,15 @@ public enum IntegrationPatternType {
 	 */
 	public enum IntegrationPatternCategory {
 
-		messaging_endpoint(IntegrationPatternType.service_activator);
+		messaging_endpoint(service_activator),
+
+		message_routing(
+				splitter,
+				filter),
+
+		message_transformation(
+				transformer,
+				header_enricher);
 
 		private final IntegrationPatternType[] patternTypes;
 
@@ -59,5 +75,7 @@ public enum IntegrationPatternType {
 		public Set<IntegrationPatternType> getPatternTypes() {
 			return Arrays.stream(this.patternTypes).collect(Collectors.toSet());
 		}
+
 	}
+
 }

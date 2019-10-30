@@ -51,6 +51,9 @@ public abstract class IntegrationNode {
 	@Nullable
 	private final IntegrationPatternType integrationPatternType;
 
+	@Nullable
+	private final IntegrationPatternType.IntegrationPatternCategory integrationPatternCategory;
+
 	private final Map<String, Object> properties = new HashMap<>();
 
 	private final Map<String, Object> unmodifiableProperties = Collections.unmodifiableMap(this.properties);
@@ -70,10 +73,18 @@ public abstract class IntegrationNode {
 			}
 		}
 
-		this.integrationPatternType =
-				nodeObject instanceof IntegrationPattern
-						? ((IntegrationPattern) nodeObject).getIntegrationPatternType()
-						: (nodeObject instanceof MessageHandler ? IntegrationPatternType.service_activator : null);
+		if (nodeObject instanceof IntegrationPattern) {
+			this.integrationPatternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType();
+			this.integrationPatternCategory = this.integrationPatternType.getPatternCategory();
+		}
+		else if (nodeObject instanceof MessageHandler) {
+			this.integrationPatternType = IntegrationPatternType.service_activator;
+			this.integrationPatternCategory = this.integrationPatternType.getPatternCategory();
+		}
+		else {
+			this.integrationPatternType = null;
+			this.integrationPatternCategory = null;
+		}
 	}
 
 	public int getNodeId() {
@@ -91,6 +102,11 @@ public abstract class IntegrationNode {
 	@Nullable
 	public IntegrationPatternType getIntegrationPatternType() {
 		return this.integrationPatternType;
+	}
+
+	@Nullable
+	public IntegrationPatternType.IntegrationPatternCategory getIntegrationPatternCategory() {
+		return this.integrationPatternCategory;
 	}
 
 	public Stats getStats() {

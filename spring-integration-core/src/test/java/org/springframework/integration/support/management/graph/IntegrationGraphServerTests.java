@@ -113,7 +113,7 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 
-//				System . out . println(new String(baos.toByteArray()));
+				System . out . println(new String(baos.toByteArray()));
 
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
 		assertThat(map.size()).isEqualTo(3);
