@@ -49,6 +49,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.support.FileUtils;
@@ -302,7 +303,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setCharset(String charset) {
 		Assert.notNull(charset, "charset must not be null");
-		Assert.isTrue(Charset.isSupported(charset), "Charset '" + charset + "' is not supported.");
+		Assert.isTrue(Charset.isSupported(charset), () -> "Charset '" + charset + "' is not supported.");
 		this.charset = Charset.forName(charset);
 	}
 
@@ -410,6 +411,16 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setNewFileCallback(final BiConsumer<File, Message<?>> newFileCallback) {
 		this.newFileCallback = newFileCallback;
+	}
+
+	@Override
+	public String getComponentType() {
+		return this.expectReply ? "file:outbound-gateway" : "file:outbound-channel-adapter";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
 	}
 
 	@Override
@@ -548,7 +559,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File writeMessageToFile(Message<?> requestMessage, File originalFileFromHeader, File tempFile,
 			File resultFile, Object timestamp) throws IOException {
 
-		File fileToReturn = null;
+		File fileToReturn;
 		Object payload = requestMessage.getPayload();
 		if (payload instanceof File) {
 			fileToReturn = handleFileMessage((File) payload, tempFile, resultFile, requestMessage);

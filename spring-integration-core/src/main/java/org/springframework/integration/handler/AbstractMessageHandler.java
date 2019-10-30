@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.reactivestreams.Subscription;
 
 import org.springframework.core.Ordered;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.history.MessageHistory;
@@ -60,7 +62,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		implements MessageHandler,
 		org.springframework.integration.support.management.MessageHandlerMetrics,
 		ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
-		TrackableComponent, Orderable, CoreSubscriber<Message<?>> {
+		TrackableComponent, Orderable, CoreSubscriber<Message<?>>,
+		IntegrationPattern {
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
@@ -137,6 +140,11 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.managementOverrides;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.outbound_channel_adapter;
 	}
 
 	@Override

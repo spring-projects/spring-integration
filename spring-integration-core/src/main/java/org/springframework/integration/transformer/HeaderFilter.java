@@ -19,6 +19,8 @@ package org.springframework.integration.transformer;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -36,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public class HeaderFilter extends IntegrationObjectSupport implements Transformer {
+public class HeaderFilter extends IntegrationObjectSupport implements Transformer, IntegrationPattern {
 
 	private final String[] headersToRemove;
 
@@ -55,6 +57,11 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 	@Override
 	public String getComponentType() {
 		return "header-filter";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.header_filter;
 	}
 
 	@Override

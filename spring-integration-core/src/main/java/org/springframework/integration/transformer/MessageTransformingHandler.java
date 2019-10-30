@@ -20,6 +20,8 @@ import java.util.Collection;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
@@ -58,6 +60,13 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	public String getComponentType() {
 		return (this.transformer instanceof NamedComponent) ?
 				((NamedComponent) this.transformer).getComponentType() : "transformer";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return (this.transformer instanceof IntegrationPattern)
+				? ((IntegrationPattern) this.transformer).getIntegrationPatternType()
+				: IntegrationPatternType.transformer;
 	}
 
 	@Override

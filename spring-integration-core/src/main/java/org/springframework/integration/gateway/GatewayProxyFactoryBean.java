@@ -55,6 +55,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -940,6 +941,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);
+		}
+
+		@Override
+		public IntegrationPatternType getIntegrationPatternType() {
+			return IntegrationPatternType.gateway;
 		}
 
 		@Nullable
