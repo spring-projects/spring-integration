@@ -154,6 +154,7 @@ public class FtpSession implements Session<FTPFile> {
 			if (this.readingRaw.get() && !finalizeRaw() && LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Finalize on readRaw() returned false for " + this);
 			}
+			this.client.logout();
 			this.client.disconnect();
 		}
 		catch (Exception e) {
@@ -194,7 +195,6 @@ public class FtpSession implements Session<FTPFile> {
 	public boolean rmdir(String directory) throws IOException {
 		return this.client.removeDirectory(directory);
 	}
-
 
 	@Override
 	public boolean exists(String path) throws IOException {
