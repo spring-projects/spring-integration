@@ -215,6 +215,24 @@ public class IntegrationGraphServerTests {
 				JsonPathUtils.evaluate(baos.toByteArray(),
 						"$..links[?(@.from == " + routerNodeId + "&& @.to == " + fizChannelNodeId + ")]");
 		assertThat(jsonArray).hasSize(1);
+
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(),
+				"$..nodes[?(@.name == 'services.foo.serviceActivator.handler')]");
+
+		assertThat(jsonArray).hasSize(1);
+
+		Map<String, Object> serviceActivator = (Map<String, Object>) jsonArray.get(0);
+		assertThat(serviceActivator).containsEntry("integrationPatternType", "service_activator");
+
+		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(),
+				"$..nodes[?(@.name == 'polling')]");
+
+		assertThat(jsonArray).hasSize(1);
+
+		serviceActivator = (Map<String, Object>) jsonArray.get(0);
+		assertThat(serviceActivator)
+				.containsEntry("integrationPatternType", "service_activator")
+				.containsEntry("integrationPatternCategory", "messaging_endpoint");
 	}
 
 	@Test

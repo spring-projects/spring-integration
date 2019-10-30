@@ -18,6 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -35,16 +36,15 @@ import org.springframework.messaging.Message;
  */
 public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
 
-	public ResequencingMessageHandler(MessageGroupProcessor processor,
-			MessageGroupStore store, CorrelationStrategy correlationStrategy,
-			ReleaseStrategy releaseStrategy) {
+	public ResequencingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+
 		super(processor, store, correlationStrategy, releaseStrategy);
 		this.setExpireGroupsUponTimeout(false);
 	}
 
 
-	public ResequencingMessageHandler(MessageGroupProcessor processor,
-			MessageGroupStore store) {
+	public ResequencingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
 		super(processor, store);
 		this.setExpireGroupsUponTimeout(false);
 	}
@@ -56,10 +56,8 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * (overridden to false for a resequencer so late messages are immediately discarded rather
-	 * than waiting for the next timeout)
+	 * Overridden to false for a resequencer so late messages are immediately discarded rather
+	 * than waiting for the next timeout
 	 */
 	@Override
 	public final void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
@@ -69,6 +67,11 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	@Override
 	public String getComponentType() {
 		return "resequencer";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.resequencer;
 	}
 
 	@Override

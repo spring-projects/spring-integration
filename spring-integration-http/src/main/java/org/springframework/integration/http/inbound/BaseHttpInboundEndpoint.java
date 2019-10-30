@@ -29,6 +29,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -341,7 +342,12 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 
 	@Override
 	public String getComponentType() {
-		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
+		return this.expectReply ? "http:inbound-gateway" : "http:inbound-channel-adapter";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.inbound_channel_adapter;
 	}
 
 	/**

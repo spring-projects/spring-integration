@@ -31,6 +31,8 @@ import org.springframework.expression.MethodExecutor;
 import org.springframework.expression.MethodFilter;
 import org.springframework.expression.MethodResolver;
 import org.springframework.expression.spel.support.ReflectiveMethodResolver;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.CollectionUtils;
@@ -46,7 +48,8 @@ import org.springframework.util.CollectionUtils;
  *
  * @since 2.0
  */
-public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
+public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object>
+		implements IntegrationPattern {
 
 	@Nullable
 	private final MethodFilter methodFilter;
@@ -73,6 +76,11 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 			MethodResolver methodResolver = new ExpressionCommandMethodResolver(this.methodFilter);
 			getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
 		}
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.control_bus;
 	}
 
 	/**

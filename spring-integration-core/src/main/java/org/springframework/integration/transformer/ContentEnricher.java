@@ -28,6 +28,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -252,6 +253,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	@Override
 	public String getComponentType() {
 		return "enricher";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.content_enricher;
 	}
 
 	/**

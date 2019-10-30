@@ -45,6 +45,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
@@ -267,6 +268,11 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return this.expectReply ? super.getIntegrationPatternType() : IntegrationPatternType.outbound_channel_adapter;
+	}
+
+	@Override
 	protected void doInit() {
 		BeanFactory beanFactory = getBeanFactory();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
@@ -319,7 +325,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				doConvertSetCookie(headers);
 			}
 
-			AbstractIntegrationMessageBuilder<?> replyBuilder = null;
+			AbstractIntegrationMessageBuilder<?> replyBuilder;
 			MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 			if (httpResponse.hasBody()) {
 				Object responseBody = httpResponse.getBody();

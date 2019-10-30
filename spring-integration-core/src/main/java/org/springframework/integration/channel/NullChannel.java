@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.IntegrationPattern;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
@@ -49,7 +51,8 @@ import org.springframework.util.Assert;
 @SuppressWarnings("deprecation")
 public class NullChannel implements PollableChannel,
 		org.springframework.integration.support.management.MessageChannelMetrics,
-		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent {
+		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent,
+		IntegrationPattern {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -103,6 +106,11 @@ public class NullChannel implements PollableChannel,
 	@Override
 	public String getComponentType() {
 		return "null-channel";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.null_channel;
 	}
 
 	@Override
