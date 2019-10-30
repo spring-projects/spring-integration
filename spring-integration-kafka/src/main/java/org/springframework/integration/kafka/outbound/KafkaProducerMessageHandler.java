@@ -133,6 +133,10 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 	private Type replyPayloadType = Object.class;
 
+	private ProducerRecordCreator<K, V> producerRecordCreator =
+			(message, topic, partition, timestamp, key, value, headers) ->
+				new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
+
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
 		this.kafkaTemplate = kafkaTemplate;
@@ -307,6 +311,16 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 		this.replyPayloadType = payloadType;
 	}
 
+	/**
+	 * Set a {@link ProducerRecordCreator} to create the {@link ProducerRecord}.
+	 * @param producerRecordCreator the creator.
+	 * @since 3.2.1
+	 */
+	public void setProducerRecordCreator(ProducerRecordCreator<K, V> producerRecordCreator) {
+		Assert.notNull(producerRecordCreator, "'producerRecordCreator' cannot be null");
+		this.producerRecordCreator = producerRecordCreator;
+	}
+
 	@Override
 	public String getComponentType() {
 		return this.isGateway ? "kafka:outbound-gateway" : "kafka:outbound-channel-adapter";
@@ -391,8 +405,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			headers = new RecordHeaders();
 			this.headerMapper.fromHeaders(messageHeaders, headers);
 		}
-		final ProducerRecord<K, V> producerRecord = new ProducerRecord<>(topic, partitionId, timestamp,
-				(K) messageKey, payload, headers);
+		final ProducerRecord<K, V> producerRecord = this.producerRecordCreator.create(message, topic, partitionId,
+				timestamp, (K) messageKey, payload, headers);
 		ListenableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
 		if (this.isGateway) {
@@ -581,6 +595,35 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 
 			});
 		}
+
+	}
+
+	/**
+	 * Creates a {@link ProducerRecord} from a {@link Message} and/or properties
+	 * derived from configuration and/or the message.
+	 *
+	 * @param <K> the key type.
+	 * @param <V> the value type.
+	 *
+	 * @since 3.2.1
+	 *
+	 */
+	@FunctionalInterface
+	public interface ProducerRecordCreator<K, V> {
+
+		/**
+		 * Create a record.
+		 * @param message the outbound message.
+		 * @param topic the topic.
+		 * @param partition the partition.
+		 * @param timestamp the timestamp.
+		 * @param key the key.
+		 * @param value the value.
+		 * @param headers the headers.
+		 * @return the record.
+		 */
+		ProducerRecord<K, V> create(Message<?> message, String topic, Integer partition, Long timestamp, K key, V value,
+				Headers headers);
 
 	}
 
