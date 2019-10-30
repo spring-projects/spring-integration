@@ -153,6 +153,7 @@ public class FtpSession implements Session<FTPFile> {
 					}
 				}
 			}
+			this.client.logout();
 			this.client.disconnect();
 		}
 		catch (Exception e) {
@@ -195,7 +196,6 @@ public class FtpSession implements Session<FTPFile> {
 	public boolean rmdir(String directory) throws IOException {
 		return this.client.removeDirectory(directory);
 	}
-
 
 	@Override
 	public boolean exists(String path) throws IOException {
