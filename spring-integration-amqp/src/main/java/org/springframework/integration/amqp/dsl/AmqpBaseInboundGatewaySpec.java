@@ -141,6 +141,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 
 	/**
 	 * Set a batching strategy to use when de-batching messages.
+	 * @param batchingStrategy the strategy to use.
 	 * @return the spec.
 	 * @since 5.1.9
 	 * @see AmqpInboundGateway#setBatchingStrategy(BatchingStrategy)

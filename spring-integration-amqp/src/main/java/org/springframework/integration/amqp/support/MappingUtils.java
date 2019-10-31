@@ -42,7 +42,7 @@ public final class MappingUtils {
 	}
 
 	/**
-	 * Map an o.s.Message to an o.s.a.core.Message. When using a
+	 * Map an o.s.m.Message to an o.s.a.core.Message. When using a
 	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
 	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
 	 * header taking precedence.
@@ -61,7 +61,7 @@ public final class MappingUtils {
 	}
 
 	/**
-	 * Map a reply o.s.Message to an o.s.a.core.Message. When using a
+	 * Map a reply o.s.m.Message to an o.s.a.core.Message. When using a
 	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
 	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
 	 * header taking precedence.

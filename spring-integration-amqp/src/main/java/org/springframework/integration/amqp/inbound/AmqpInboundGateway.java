@@ -75,6 +75,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
+	private MessageConverter templateMessageConverter = this.amqpMessageConverter;
+
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private Address defaultReplyTo;
@@ -116,6 +118,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = amqpTemplate;
 		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
+		if (this.amqpTemplateExplicitlySet && this.amqpTemplate instanceof RabbitTemplate) {
+			this.templateMessageConverter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 	}
 
@@ -131,6 +136,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.amqpMessageConverter = messageConverter;
 		if (!this.amqpTemplateExplicitlySet) {
 			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+			this.templateMessageConverter = messageConverter;
 		}
 	}
 
@@ -387,7 +393,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				}
 
 				org.springframework.amqp.core.Message amqpMessage =
-						MappingUtils.mapReplyMessage(reply, AmqpInboundGateway.this.amqpMessageConverter,
+						MappingUtils.mapReplyMessage(reply, AmqpInboundGateway.this.templateMessageConverter,
 								AmqpInboundGateway.this.headerMapper,
 								message.getMessageProperties().getReceivedDeliveryMode(),
 								AmqpInboundGateway.this.replyHeadersMappedLast);
