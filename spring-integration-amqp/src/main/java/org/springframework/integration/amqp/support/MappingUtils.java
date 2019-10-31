@@ -30,6 +30,8 @@ import org.springframework.util.MimeType;
  * Utility methods used during message mapping.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -40,7 +42,7 @@ public final class MappingUtils {
 	}
 
 	/**
-	 * Map an o.s.Message to an o.s.a.core.Message. When using a
+	 * Map an o.s.m.Message to an o.s.a.core.Message. When using a
 	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
 	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
 	 * header taking precedence.
@@ -54,23 +56,62 @@ public final class MappingUtils {
 	public static org.springframework.amqp.core.Message mapMessage(Message<?> requestMessage,
 			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
 			boolean headersMappedLast) {
+
+		return doMapMessage(requestMessage, converter, headerMapper, defaultDeliveryMode, headersMappedLast, false);
+	}
+
+	/**
+	 * Map a reply o.s.m.Message to an o.s.a.core.Message. When using a
+	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
+	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
+	 * header taking precedence.
+	 * @param replyMessage the reply message.
+	 * @param converter the message converter to use.
+	 * @param headerMapper the header mapper to use.
+	 * @param defaultDeliveryMode the default delivery mode.
+	 * @param headersMappedLast true if headers are mapped after conversion.
+	 * @return the mapped Message.
+	 * @since 5.1.9
+	 */
+	public static org.springframework.amqp.core.Message mapReplyMessage(Message<?> replyMessage,
+			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
+			boolean headersMappedLast) {
+
+		return doMapMessage(replyMessage, converter, headerMapper, defaultDeliveryMode, headersMappedLast, true);
+	}
+
+	private static org.springframework.amqp.core.Message doMapMessage(Message<?> message,
+			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
+			boolean headersMappedLast, boolean reply) {
+
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage;
 		if (!headersMappedLast) {
-			headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
+			mapHeaders(message.getHeaders(), amqpMessageProperties, headerMapper, reply);
 		}
 		if (converter instanceof ContentTypeDelegatingMessageConverter && headersMappedLast) {
-			String contentType = contentTypeAsString(requestMessage.getHeaders());
+			String contentType = contentTypeAsString(message.getHeaders());
 			if (contentType != null) {
 				amqpMessageProperties.setContentType(contentType);
 			}
 		}
-		amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		amqpMessage = converter.toMessage(message.getPayload(), amqpMessageProperties);
 		if (headersMappedLast) {
-			headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
+			mapHeaders(message.getHeaders(), amqpMessageProperties, headerMapper, reply);
 		}
-		checkDeliveryMode(requestMessage, amqpMessageProperties, defaultDeliveryMode);
+		checkDeliveryMode(message, amqpMessageProperties, defaultDeliveryMode);
 		return amqpMessage;
+	}
+
+	private static void mapHeaders(MessageHeaders messageHeaders, MessageProperties amqpMessageProperties,
+			AmqpHeaderMapper headerMapper, boolean reply) {
+
+		if (reply) {
+			headerMapper.fromHeadersToReply(messageHeaders, amqpMessageProperties);
+		}
+		else {
+			headerMapper.fromHeadersToRequest(messageHeaders, amqpMessageProperties);
+		}
 	}
 
 	private static String contentTypeAsString(MessageHeaders headers) {

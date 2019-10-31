@@ -138,4 +138,29 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 		return _this();
 	}
 
+	/**
+	 * Set to true to bind the source message in the headers.
+	 * @param bindSourceMessage true to bind.
+	 * @return the spec.
+	 * @since 5.1.9
+	 * @see AmqpInboundGateway#setBindSourceMessage(boolean)
+	 */
+	public S bindSourceMessage(boolean bindSourceMessage) {
+		this.target.setBindSourceMessage(bindSourceMessage);
+		return _this();
+	}
+
+	/**
+	 * When mapping headers for the outbound (reply) message, determine whether the headers are
+	 * mapped before the message is converted, or afterwards.
+	 * @param replyHeadersMappedLast true if reply headers are mapped after conversion.
+	 * @return the spec.
+	 * @since 5.1.9
+	 * @see AmqpInboundGateway#setReplyHeadersMappedLast(boolean)
+	 */
+	public S replyHeadersMappedLast(boolean replyHeadersMappedLast) {
+		this.target.setReplyHeadersMappedLast(replyHeadersMappedLast);
+		return _this();
+	}
+
 }

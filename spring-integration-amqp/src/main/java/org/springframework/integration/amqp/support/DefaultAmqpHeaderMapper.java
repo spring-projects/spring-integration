@@ -105,7 +105,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 */
 	@Override
 	protected Map<String, Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		try {
 			String appId = amqpMessageProperties.getAppId();
 			if (StringUtils.hasText(appId)) {
@@ -325,24 +325,23 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			amqpMessageProperties.setUserId(userId);
 		}
 
-		Map<String, String> jsonHeaders = new HashMap<String, String>();
-
-		for (String jsonHeader : JsonHeaders.HEADERS) {
-			Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
-			if (value != null) {
-				headers.remove(jsonHeader);
-				if (value instanceof Class<?>) {
-					value = ((Class<?>) value).getName();
-				}
-				jsonHeaders.put(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
-			}
-		}
-
 		/*
 		 * If the MessageProperties already contains JsonHeaders, don't overwrite them here because they were
 		 * set up by a message converter.
 		 */
 		if (!amqpMessageProperties.getHeaders().containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, ""))) {
+			Map<String, String> jsonHeaders = new HashMap<>();
+
+			for (String jsonHeader : JsonHeaders.HEADERS) {
+				Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
+				if (value != null) {
+					headers.remove(jsonHeader);
+					if (value instanceof Class<?>) {
+						value = ((Class<?>) value).getName();
+					}
+					jsonHeaders.put(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
+				}
+			}
 			amqpMessageProperties.getHeaders().putAll(jsonHeaders);
 		}
 
@@ -361,8 +360,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			MessageProperties amqpMessageProperties) {
 		// do not overwrite an existing header with the same key
 		// TODO: do we need to expose a boolean 'overwrite' flag?
-		if (!amqpMessageProperties.getHeaders().containsKey(headerName)
-				&& !AmqpHeaders.CONTENT_TYPE.equals(headerName)) {
+		if (!amqpMessageProperties.getHeaders().containsKey(headerName) &&
+				!AmqpHeaders.CONTENT_TYPE.equals(headerName) &&
+				!headerName.startsWith(JsonHeaders.PREFIX)) {
 			amqpMessageProperties.setHeader(headerName, headerValue);
 		}
 	}

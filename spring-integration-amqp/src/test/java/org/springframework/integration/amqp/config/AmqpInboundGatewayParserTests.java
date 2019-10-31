@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -107,7 +108,7 @@ public class AmqpInboundGatewayParserTests {
 		});
 
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
-
+		assertThat(TestUtils.getPropertyValue(gateway, "replyHeadersMappedLast", Boolean.class)).isTrue();
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);

@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class AmqpInboundGatewayParser extends AbstractAmqpInboundAdapterParser {
@@ -48,6 +49,8 @@ public class AmqpInboundGatewayParser extends AbstractAmqpInboundAdapterParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-reply-to");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-headers-last",
+				"replyHeadersMappedLast");
 	}
 
 }
