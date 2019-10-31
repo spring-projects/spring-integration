@@ -37,12 +37,17 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.RSocketConnectedEvent;
 import org.springframework.integration.rsocket.ServerRSocketConnector;
+import org.springframework.integration.rsocket.ServerRSocketMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import io.rsocket.RSocketFactory;
+import io.rsocket.frame.decoder.PayloadDecoder;
+import io.rsocket.transport.netty.server.CloseableChannel;
+import io.rsocket.transport.netty.server.TcpServerTransport;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -179,8 +184,23 @@ public class RSocketInboundGatewayIntegrationTests {
 		final MonoProcessor<RSocketRequester> clientRequester = MonoProcessor.create();
 
 		@Bean
-		public ServerRSocketConnector serverRSocketConnector() {
-			return new ServerRSocketConnector("localhost", 0);
+		public CloseableChannel rsocketServer() {
+			return RSocketFactory.receive()
+					.frameDecoder(PayloadDecoder.ZERO_COPY)
+					.acceptor(serverRSocketMessageHandler().responder())
+					.transport(TcpServerTransport.create("localhost", 0))
+					.start()
+					.block();
+		}
+
+		@Bean
+		public ServerRSocketMessageHandler serverRSocketMessageHandler() {
+			return new ServerRSocketMessageHandler(true);
+		}
+
+		@Bean
+		public ServerRSocketConnector serverRSocketConnector(ServerRSocketMessageHandler serverRSocketMessageHandler) {
+			return new ServerRSocketConnector(serverRSocketMessageHandler);
 		}
 
 		@EventListener
@@ -197,8 +217,7 @@ public class RSocketInboundGatewayIntegrationTests {
 		@Bean
 		public ClientRSocketConnector clientRSocketConnector() {
 			ClientRSocketConnector clientRSocketConnector =
-					new ClientRSocketConnector("localhost",
-							serverConfig.serverRSocketConnector().getBoundPort().block());
+					new ClientRSocketConnector("localhost", serverConfig.rsocketServer().address().getPort());
 			clientRSocketConnector.setSetupRoute("clientConnect/{user}");
 			clientRSocketConnector.setSetupRouteVariables("myUser");
 			return clientRSocketConnector;

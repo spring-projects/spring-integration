@@ -23,12 +23,10 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
-
-import io.rsocket.metadata.WellKnownMimeType;
 
 /**
  * A base connector container for common RSocket client and server functionality.
@@ -49,18 +47,12 @@ public abstract class AbstractRSocketConnector
 
 	protected final IntegrationRSocketMessageHandler rSocketMessageHandler; // NOSONAR - final
 
-	private MimeType dataMimeType;
-
-	private MimeType metadataMimeType =
-			MimeTypeUtils.parseMimeType(WellKnownMimeType.MESSAGE_RSOCKET_COMPOSITE_METADATA.toString());
-
-	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
-
 	private boolean autoStartup = true;
 
 	private volatile boolean running;
 
 	protected AbstractRSocketConnector(IntegrationRSocketMessageHandler rSocketMessageHandler) {
+		Assert.notNull(rSocketMessageHandler, "'rSocketMessageHandler' must not be null");
 		this.rSocketMessageHandler = rSocketMessageHandler;
 	}
 
@@ -68,13 +60,13 @@ public abstract class AbstractRSocketConnector
 	 * Configure a {@link MimeType} for data exchanging.
 	 * @param dataMimeType the {@link MimeType} to use.
 	 */
-	public void setDataMimeType(MimeType dataMimeType) {
-		Assert.notNull(dataMimeType, "'dataMimeType' must not be null");
-		this.dataMimeType = dataMimeType;
+	public void setDataMimeType(@Nullable MimeType dataMimeType) {
+		this.rSocketMessageHandler.setDefaultDataMimeType(dataMimeType);
 	}
 
+	@Nullable
 	protected MimeType getDataMimeType() {
-		return this.dataMimeType;
+		return this.rSocketMessageHandler.getDefaultDataMimeType();
 	}
 
 	/**
@@ -83,12 +75,11 @@ public abstract class AbstractRSocketConnector
 	 * @param metadataMimeType the {@link MimeType} to use.
 	 */
 	public void setMetadataMimeType(MimeType metadataMimeType) {
-		Assert.notNull(metadataMimeType, "'metadataMimeType' must not be null");
-		this.metadataMimeType = metadataMimeType;
+		this.rSocketMessageHandler.setDefaultMetadataMimeType(metadataMimeType);
 	}
 
 	protected MimeType getMetadataMimeType() {
-		return this.metadataMimeType;
+		return this.rSocketMessageHandler.getDefaultMetadataMimeType();
 	}
 
 	/**
@@ -96,12 +87,11 @@ public abstract class AbstractRSocketConnector
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
 	 */
 	public void setRSocketStrategies(RSocketStrategies rsocketStrategies) {
-		Assert.notNull(rsocketStrategies, "'rsocketStrategies' must not be null");
-		this.rsocketStrategies = rsocketStrategies;
+		this.rSocketMessageHandler.setRSocketStrategies(rsocketStrategies);
 	}
 
 	public RSocketStrategies getRSocketStrategies() {
-		return this.rsocketStrategies;
+		return this.rSocketMessageHandler.getRSocketStrategies();
 	}
 
 	/**
@@ -131,9 +121,6 @@ public abstract class AbstractRSocketConnector
 
 	@Override
 	public void afterPropertiesSet() {
-		this.rSocketMessageHandler.setDefaultDataMimeType(this.dataMimeType);
-		this.rSocketMessageHandler.setDefaultMetadataMimeType(this.metadataMimeType);
-		this.rSocketMessageHandler.setRSocketStrategies(this.rsocketStrategies);
 		this.rSocketMessageHandler.afterPropertiesSet();
 	}
 

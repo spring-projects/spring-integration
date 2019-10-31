@@ -48,8 +48,17 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	private static final Method HANDLE_MESSAGE_METHOD =
 			ReflectionUtils.findMethod(ReactiveMessageHandler.class, "handleMessage", Message.class);
 
+	protected final boolean messageMappingCompatible; // NOSONAR final
+
 	IntegrationRSocketMessageHandler() {
-		setHandlerPredicate((clazz) -> false);
+		this(false);
+	}
+
+	IntegrationRSocketMessageHandler(boolean requestMappingCompatible) {
+		this.messageMappingCompatible = requestMappingCompatible;
+		if (!this.messageMappingCompatible) {
+			setHandlerPredicate((clazz) -> false);
+		}
 	}
 
 	public boolean detectEndpoints() {
@@ -76,14 +85,21 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 
 	@Override
 	protected List<? extends HandlerMethodArgumentResolver> initArgumentResolvers() {
-		return Collections.singletonList(new MessageHandlerMethodArgumentResolver());
+		if (this.messageMappingCompatible) {
+			// Add argument resolver before parent initializes argument resolution
+			getArgumentResolverConfigurer().addCustomResolver(new MessageHandlerMethodArgumentResolver());
+			return super.initArgumentResolvers();
+		}
+		else {
+			return Collections.singletonList(new MessageHandlerMethodArgumentResolver());
+		}
 	}
 
-	private static final class MessageHandlerMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {
+	protected static final class MessageHandlerMethodArgumentResolver implements SyncHandlerMethodArgumentResolver {
 
 		@Override
 		public boolean supportsParameter(MethodParameter parameter) {
-			return true;
+			return Message.class.equals(parameter.getParameterType());
 		}
 
 		@Override

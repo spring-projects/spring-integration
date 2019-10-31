@@ -38,6 +38,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.ServerRSocketMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -531,7 +532,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 		@Bean
 		public RSocketMessageHandler messageHandler() {
-			return new RSocketMessageHandler();
+			return new ServerRSocketMessageHandler(true);
 		}
 
 	}
