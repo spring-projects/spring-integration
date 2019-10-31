@@ -16,7 +16,7 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import org.springframework.amqp.rabbit.batch.BatchingStrategy;
+import org.springframework.amqp.rabbit.core.support.BatchingStrategy;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -143,7 +143,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 * Set a batching strategy to use when de-batching messages.
 	 * @param batchingStrategy the strategy to use.
 	 * @return the spec.
-	 * @since 5.1.9
+	 * @since 5.2.1
 	 * @see AmqpInboundGateway#setBatchingStrategy(BatchingStrategy)
 	 */
 	public S batchingStrategy(BatchingStrategy batchingStrategy) {
