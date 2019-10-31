@@ -16,27 +16,20 @@
 
 package org.springframework.integration.rsocket;
 
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.CompositeMessageCondition;
-import org.springframework.messaging.handler.DestinationPatternsMessageCondition;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.annotation.support.RSocketFrameTypeMessageCondition;
-import org.springframework.messaging.rsocket.annotation.support.RSocketRequesterMethodArgumentResolver;
+import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.util.MimeType;
 
 import io.rsocket.RSocketFactory;
 import io.rsocket.transport.ServerTransport;
@@ -56,14 +49,26 @@ import reactor.netty.http.server.HttpServer;
  *
  * @see RSocketFactory.ServerRSocketFactory
  */
-public class ServerRSocketConnector extends AbstractRSocketConnector
-		implements ApplicationEventPublisherAware {
+public class ServerRSocketConnector extends AbstractRSocketConnector implements ApplicationEventPublisherAware {
 
 	private final ServerTransport<CloseableChannel> serverTransport;
 
 	private Consumer<RSocketFactory.ServerRSocketFactory> factoryConfigurer = (serverRSocketFactory) -> { };
 
 	private Mono<CloseableChannel> serverMono;
+
+	/**
+	 * Instantiate a server connector based on a provided {@link ServerRSocketMessageHandler}
+	 * with an assumption that RSocket server is created externally as well.
+	 * All other options are ignored in favor of provided {@link ServerRSocketMessageHandler}
+	 * and its external RSocket server configuration.
+	 * @param serverRSocketMessageHandler the {@link ServerRSocketMessageHandler} to rely on.
+	 * @since 5.2.1
+	 */
+	public ServerRSocketConnector(ServerRSocketMessageHandler serverRSocketMessageHandler) {
+		super(serverRSocketMessageHandler);
+		this.serverTransport = null;
+	}
 
 	/**
 	 * Instantiate a server connector based on the {@link TcpServerTransport}.
@@ -111,41 +116,79 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 	public void setClientRSocketKeyStrategy(BiFunction<Map<String, Object>,
 			DataBuffer, Object> clientRSocketKeyStrategy) {
 
-		Assert.notNull(clientRSocketKeyStrategy, "'clientRSocketKeyStrategy' must not be null");
-		serverRSocketMessageHandler().clientRSocketKeyStrategy = clientRSocketKeyStrategy;
+		if (this.serverTransport != null) {
+			serverRSocketMessageHandler().setClientRSocketKeyStrategy(clientRSocketKeyStrategy);
+		}
+	}
+
+	@Override
+	public void setDataMimeType(@Nullable MimeType dataMimeType) {
+		if (this.serverTransport != null) {
+			super.setDataMimeType(dataMimeType);
+		}
+	}
+
+	@Override
+	public void setMetadataMimeType(MimeType metadataMimeType) {
+		if (this.serverTransport != null) {
+			super.setMetadataMimeType(metadataMimeType);
+		}
+	}
+
+	@Override
+	public void setRSocketStrategies(RSocketStrategies rsocketStrategies) {
+		if (this.serverTransport != null) {
+			super.setRSocketStrategies(rsocketStrategies);
+		}
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		if (this.serverTransport != null) {
+			super.setApplicationContext(applicationContext);
+		}
 	}
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		serverRSocketMessageHandler().applicationEventPublisher = applicationEventPublisher;
+		if (this.serverTransport != null) {
+			serverRSocketMessageHandler().setApplicationEventPublisher(applicationEventPublisher);
+		}
 	}
 
 	@Override
 	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		RSocketFactory.ServerRSocketFactory serverFactory = RSocketFactory.receive();
-		this.factoryConfigurer.accept(serverFactory);
+		if (this.serverTransport != null) {
+			super.afterPropertiesSet();
+			RSocketFactory.ServerRSocketFactory serverFactory = RSocketFactory.receive();
+			this.factoryConfigurer.accept(serverFactory);
 
-		this.serverMono =
-				serverFactory
-						.acceptor(serverRSocketMessageHandler().responder())
-						.transport(this.serverTransport)
-						.start()
-						.cache();
+			this.serverMono =
+					serverFactory
+							.acceptor(serverRSocketMessageHandler().responder())
+							.transport(this.serverTransport)
+							.start()
+							.cache();
+		}
 	}
 
 	public Map<Object, RSocketRequester> getClientRSocketRequesters() {
-		return Collections.unmodifiableMap(serverRSocketMessageHandler().clientRSocketRequesters);
+		return serverRSocketMessageHandler().getClientRSocketRequesters();
 	}
 
 	@Nullable
 	public RSocketRequester getClientRSocketRequester(Object key) {
-		return serverRSocketMessageHandler().clientRSocketRequesters.get(key);
+		return getClientRSocketRequesters().get(key);
 	}
 
 	public Mono<Integer> getBoundPort() {
-		return this.serverMono
-				.map((server) -> server.address().getPort());
+		if (this.serverTransport != null) {
+			return this.serverMono
+					.map((server) -> server.address().getPort());
+		}
+		else {
+			return Mono.empty();
+		}
 	}
 
 	private ServerRSocketMessageHandler serverRSocketMessageHandler() {
@@ -154,63 +197,24 @@ public class ServerRSocketConnector extends AbstractRSocketConnector
 
 	@Override
 	protected void doStart() {
-		this.serverMono.subscribe();
+		if (this.serverTransport != null) {
+			this.serverMono.subscribe();
+		}
 	}
 
 	@Override
 	public void destroy() {
-		this.serverMono
-				.doOnNext(Disposable::dispose)
-				.subscribe();
+		if (this.serverTransport != null) {
+			this.serverMono
+					.doOnNext(Disposable::dispose)
+					.subscribe();
+		}
 	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
 		super.afterSingletonsInstantiated();
 		serverRSocketMessageHandler().registerHandleConnectionSetupMethod();
-	}
-
-	private static class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandler {
-
-		private static final Method HANDLE_CONNECTION_SETUP_METHOD =
-				ReflectionUtils.findMethod(ServerRSocketMessageHandler.class, "handleConnectionSetup", Message.class);
-
-
-		private final Map<Object, RSocketRequester> clientRSocketRequesters = new HashMap<>();
-
-		private BiFunction<Map<String, Object>, DataBuffer, Object> clientRSocketKeyStrategy =
-				(headers, data) -> data.toString(StandardCharsets.UTF_8);
-
-		private ApplicationEventPublisher applicationEventPublisher;
-
-		private void registerHandleConnectionSetupMethod() {
-			registerHandlerMethod(this, HANDLE_CONNECTION_SETUP_METHOD,
-					new CompositeMessageCondition(
-							RSocketFrameTypeMessageCondition.CONNECT_CONDITION,
-							new DestinationPatternsMessageCondition(new String[] { "*" }, obtainRouteMatcher())));
-		}
-
-		@SuppressWarnings("unused")
-		private void handleConnectionSetup(Message<DataBuffer> connectMessage) {
-			DataBuffer dataBuffer = connectMessage.getPayload();
-			MessageHeaders messageHeaders = connectMessage.getHeaders();
-			Object rsocketRequesterKey = this.clientRSocketKeyStrategy.apply(messageHeaders, dataBuffer);
-			RSocketRequester rsocketRequester =
-					messageHeaders.get(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER,
-							RSocketRequester.class);
-			this.clientRSocketRequesters.put(rsocketRequesterKey, rsocketRequester);
-			RSocketConnectedEvent rSocketConnectedEvent =
-					new RSocketConnectedEvent(this, messageHeaders, dataBuffer, rsocketRequester); // NOSONAR
-			if (this.applicationEventPublisher != null) {
-				this.applicationEventPublisher.publishEvent(rSocketConnectedEvent);
-			}
-			else {
-				if (logger.isInfoEnabled()) {
-					logger.info("The RSocket has been connected: " + rSocketConnectedEvent);
-				}
-			}
-		}
-
 	}
 
 }
