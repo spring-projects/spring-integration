@@ -25,8 +25,6 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.batch.BatchingStrategy;
 import org.springframework.amqp.rabbit.batch.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -42,6 +40,7 @@ import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.EndpointUtils;
+import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.MessageChannel;
@@ -49,7 +48,6 @@ import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import com.rabbitmq.client.Channel;
 
@@ -77,6 +75,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
+	private MessageConverter templateMessageConverter = this.amqpMessageConverter;
+
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private Address defaultReplyTo;
@@ -88,6 +88,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
 	private boolean bindSourceMessage;
+
+	private boolean replyHeadersMappedLast;
 
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
@@ -116,6 +118,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = amqpTemplate;
 		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
+		if (this.amqpTemplateExplicitlySet && this.amqpTemplate instanceof RabbitTemplate) {
+			this.templateMessageConverter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		}
 		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 	}
 
@@ -131,6 +136,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.amqpMessageConverter = messageConverter;
 		if (!this.amqpTemplateExplicitlySet) {
 			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+			this.templateMessageConverter = messageConverter;
 		}
 	}
 
@@ -202,6 +208,24 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 */
 	public void setBindSourceMessage(boolean bindSourceMessage) {
 		this.bindSourceMessage = bindSourceMessage;
+	}
+
+	/**
+	 * When mapping headers for the outbound (reply) message, determine whether the headers are
+	 * mapped before the message is converted, or afterwards. This only affects headers
+	 * that might be added by the message converter. When false, the converter's headers
+	 * win; when true, any headers added by the converter will be overridden (if the
+	 * source message has a header that maps to those headers). You might wish to set this
+	 * to true, for example, when using a
+	 * {@link org.springframework.amqp.support.converter.SimpleMessageConverter} with a
+	 * String payload that contains json; the converter will set the content type to
+	 * {@code text/plain} which can be overridden to {@code application/json} by setting
+	 * the {@link AmqpHeaders#CONTENT_TYPE} message header. Default: false.
+	 * @param replyHeadersMappedLast true if reply headers are mapped after conversion.
+	 * @since 5.1.9
+	 */
+	public void setReplyHeadersMappedLast(boolean replyHeadersMappedLast) {
+		this.replyHeadersMappedLast = replyHeadersMappedLast;
 	}
 
 	@Override
@@ -357,7 +381,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 		private void process(Message message, org.springframework.messaging.Message<Object> messagingMessage) {
 			setAttributesIfNecessary(message, messagingMessage);
-			final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(messagingMessage);
+			org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(messagingMessage);
 			if (reply != null) {
 				Address replyTo;
 				String replyToProperty = message.getMessageProperties().getReplyTo();
@@ -368,30 +392,15 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					replyTo = AmqpInboundGateway.this.defaultReplyTo;
 				}
 
-				MessagePostProcessor messagePostProcessor =
-						message1 -> {
-							MessageProperties messageProperties = message1.getMessageProperties();
-							String contentEncoding = messageProperties.getContentEncoding();
-							long contentLength = messageProperties.getContentLength();
-							String contentType = messageProperties.getContentType();
-							AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(),
-									messageProperties);
-							// clear the replyTo from the original message since we are using it now
-							messageProperties.setReplyTo(null);
-							// reset the content-* properties as determined by the MessageConverter
-							if (StringUtils.hasText(contentEncoding)) {
-								messageProperties.setContentEncoding(contentEncoding);
-							}
-							messageProperties.setContentLength(contentLength);
-							if (contentType != null) {
-								messageProperties.setContentType(contentType);
-							}
-							return message1;
-						};
+				org.springframework.amqp.core.Message amqpMessage =
+						MappingUtils.mapReplyMessage(reply, AmqpInboundGateway.this.templateMessageConverter,
+								AmqpInboundGateway.this.headerMapper,
+								message.getMessageProperties().getReceivedDeliveryMode(),
+								AmqpInboundGateway.this.replyHeadersMappedLast);
 
 				if (replyTo != null) {
-					AmqpInboundGateway.this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
-							replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
+					AmqpInboundGateway.this.amqpTemplate.send(replyTo.getExchangeName(), replyTo.getRoutingKey(),
+							amqpMessage);
 				}
 				else {
 					if (!AmqpInboundGateway.this.amqpTemplateExplicitlySet) {
@@ -399,7 +408,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								"and the `defaultReplyTo` hasn't been configured.");
 					}
 					else {
-						AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(), messagePostProcessor);
+						AmqpInboundGateway.this.amqpTemplate.send(amqpMessage);
 					}
 				}
 			}

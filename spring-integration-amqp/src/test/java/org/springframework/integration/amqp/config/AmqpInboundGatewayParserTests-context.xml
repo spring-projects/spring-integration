@@ -1,38 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si-amqp="http://www.springframework.org/schema/integration/amqp"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp https://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:si-amqp="http://www.springframework.org/schema/integration/amqp"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp https://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:channel id="requests"/>
 
 	<si-amqp:inbound-gateway id="gateway" request-channel="requests" queue-names="test" reply-timeout="1234"
-			connection-factory="rabbitConnectionFactory" message-converter="testConverter"/>
+							 connection-factory="rabbitConnectionFactory" message-converter="testConverter"/>
 
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
 
-	<bean id="testConverter" class="org.springframework.integration.amqp.config.AmqpInboundGatewayParserTests$TestConverter"/>
+	<bean id="testConverter"
+		  class="org.springframework.integration.amqp.config.AmqpInboundGatewayParserTests$TestConverter"/>
 
 	<bean id="amqpTemplate" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.core.AmqpTemplate"/>
 	</bean>
 
 	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"
-			connection-factory="rabbitConnectionFactory" message-converter="testConverter"
-			missing-queues-fatal="false"
-			amqp-template="amqpTemplate"
-			default-reply-to="fooExchange/barRoutingKey"
-			auto-startup="false" phase="123"/>
+							 connection-factory="rabbitConnectionFactory" message-converter="testConverter"
+							 missing-queues-fatal="false"
+							 amqp-template="amqpTemplate"
+							 default-reply-to="fooExchange/barRoutingKey"
+							 auto-startup="false" phase="123"/>
 
-	<si-amqp:inbound-gateway id="withHeaderMapper" request-channel="requestChannel" queue-names="inboundchanneladapter.test.2"
-		auto-startup="false" phase="123"
-		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"
-		mapped-reply-headers="bar*"/>
+	<si-amqp:inbound-gateway id="withHeaderMapper" request-channel="requestChannel"
+							 queue-names="inboundchanneladapter.test.2"
+							 auto-startup="false" phase="123"
+							 mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"
+							 mapped-reply-headers="bar*"
+							 reply-headers-last="true"/>
 
 	<int:channel id="requestChannel"/>
 

@@ -210,6 +210,7 @@ public class InboundEndpointTests {
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setDefaultReplyTo("foo");
+		gateway.setReplyHeadersMappedLast(true);
 		gateway.afterPropertiesSet();
 
 
