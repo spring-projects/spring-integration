@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,9 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -308,6 +311,18 @@ public class DefaultAmqpHeaderMapperTests {
 		assertThat(headers.get(AmqpHeaders.DELIVERY_MODE)).isNull();
 		assertThat(headers.get("foo")).isEqualTo("bar");
 		assertThat(headers.get("x-death")).isEqualTo("foo");
+	}
+
+	@Test
+	public void jsonHeadersResolvableTypeSkipped() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
+		MessageHeaders integrationHeaders =
+				new MessageHeaders(
+						Collections.singletonMap(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.forClass(String.class)));
+		MessageProperties amqpProperties = new MessageProperties();
+		headerMapper.fromHeadersToReply(integrationHeaders, amqpProperties);
+
+		assertThat(amqpProperties.getHeaders()).doesNotContainKeys(JsonHeaders.RESOLVABLE_TYPE);
 	}
 
 }
