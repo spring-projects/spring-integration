@@ -54,8 +54,8 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 		this(false);
 	}
 
-	IntegrationRSocketMessageHandler(boolean requestMappingCompatible) {
-		this.messageMappingCompatible = requestMappingCompatible;
+	IntegrationRSocketMessageHandler(boolean messageMappingCompatible) {
+		this.messageMappingCompatible = messageMappingCompatible;
 		if (!this.messageMappingCompatible) {
 			setHandlerPredicate((clazz) -> false);
 		}

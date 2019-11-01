@@ -74,6 +74,11 @@ public void onApplicationEvent(RSocketConnectedEvent event) {
 All the options, including `RSocketStrategies` bean and `@EventListener` for `RSocketConnectedEvent`, are optional.
 See `ServerRSocketConnector` JavaDocs for more information.
 
+Starting with version 5.2.1, the `ServerRSocketMessageHandler` is extracted to the public, top-level class for possible connection with an existing RSocket server.
+When a `ServerRSocketConnector` is supplied with an external instance of `ServerRSocketMessageHandler`, it doesn't create an RSocket server internally and just delegate all the handling logic to the provided instance.
+In addition the `ServerRSocketMessageHandler` can be configured with a `messageMappingCompatible` flag to handle also `@MessageMapping` for RSocket controller replacing fully a functionality provided by the standard `RSocketMessageHandler`.
+This can be useful in mixed configurations, when classical `@MessageMapping` methods present in the same application alongside with RSocket channel adapters and externally configured RSocket server is present in the application.
+
 The `ClientRSocketConnector` serves as a holder for `RSocketRequester` based on the `RSocket` connected via the provided `ClientTransport`.
 The `RSocketFactory.ClientRSocketFactory` can be customized with the provided `ClientRSocketFactoryConfigurer`.
 The `setupRoute` (with optional templates variables) and `setupData` with metadata can be also configured on this component.
