@@ -17,7 +17,7 @@
 package org.springframework.integration.channel.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
@@ -82,14 +82,10 @@ public class ReactiveStreamsConsumerTests {
 
 		reactiveConsumer.stop();
 
-		try {
-			testChannel.send(testMessage);
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("doesn't have subscribers to accept messages");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> testChannel.send(testMessage))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.withMessageContaining("doesn't have subscribers to accept messages");
 
 		reactiveConsumer.start();
 
@@ -102,53 +98,52 @@ public class ReactiveStreamsConsumerTests {
 
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testReactiveStreamsConsumerDirectChannel() throws InterruptedException {
 		DirectChannel testChannel = new DirectChannel();
 
-		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
-
 		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
-		willAnswer(i -> {
-			messages.put(i.getArgument(0));
-			return null;
-		})
-				.given(testSubscriber)
-				.onNext(any(Message.class));
+		Subscriber<Message<?>> testSubscriber = Mockito.spy(new Subscriber<Message<?>>() {
+
+			@Override
+			public void onSubscribe(Subscription subscription) {
+				subscription.request(1);
+			}
+
+			@Override
+			public void onNext(Message<?> message) {
+				messages.offer(message);
+			}
+
+			@Override
+			public void onError(Throwable t) {
+
+			}
+
+			@Override
+			public void onComplete() {
+
+			}
+
+		});
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
-		Message<?> testMessage = new GenericMessage<>("test");
+		final Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
-
-		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
-		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
-		Subscription subscription = subscriptionArgumentCaptor.getValue();
-
-		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isSameAs(testMessage);
 
 		reactiveConsumer.stop();
 
-		try {
-			testChannel.send(testMessage);
-			fail("MessageDeliveryException");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> testChannel.send(testMessage));
 
 		reactiveConsumer.start();
-
-		subscription.request(1);
-
-		testMessage = new GenericMessage<>("test2");
 
 		testChannel.send(testMessage);
 
@@ -159,6 +154,8 @@ public class ReactiveStreamsConsumerTests {
 		verify(testSubscriber, never()).onComplete();
 
 		assertThat(messages.isEmpty()).isTrue();
+
+		reactiveConsumer.stop();
 	}
 
 	@Test
@@ -166,17 +163,31 @@ public class ReactiveStreamsConsumerTests {
 	public void testReactiveStreamsConsumerPollableChannel() throws InterruptedException {
 		QueueChannel testChannel = new QueueChannel();
 
-		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
-
 		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
-		willAnswer(i -> {
-			messages.put(i.getArgument(0));
-			return null;
-		})
-				.given(testSubscriber)
-				.onNext(any(Message.class));
+		Subscriber<Message<?>> testSubscriber = Mockito.spy(new Subscriber<Message<?>>() {
 
+			@Override
+			public void onSubscribe(Subscription subscription) {
+				subscription.request(2);
+			}
+
+			@Override
+			public void onNext(Message<?> message) {
+				messages.offer(message);
+			}
+
+			@Override
+			public void onError(Throwable t) {
+
+			}
+
+			@Override
+			public void onComplete() {
+
+			}
+
+		});
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
@@ -184,12 +195,6 @@ public class ReactiveStreamsConsumerTests {
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
-
-		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
-		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
-		Subscription subscription = subscriptionArgumentCaptor.getValue();
-
-		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isSameAs(testMessage);
@@ -200,11 +205,6 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.send(testMessage);
 
 		reactiveConsumer.start();
-
-		verify(testSubscriber, times(2)).onSubscribe(subscriptionArgumentCaptor.capture());
-		subscription = subscriptionArgumentCaptor.getValue();
-
-		subscription.request(2);
 
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 
@@ -247,14 +247,10 @@ public class ReactiveStreamsConsumerTests {
 
 		endpointFactoryBean.stop();
 
-		try {
-			testChannel.send(testMessage);
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-			assertThat(e.getMessage()).contains("doesn't have subscribers to accept messages");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> testChannel.send(testMessage))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.withMessageContaining("doesn't have subscribers to accept messages");
 
 		endpointFactoryBean.start();
 

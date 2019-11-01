@@ -61,12 +61,14 @@ public final class MessageChannelReactiveUtils {
 	}
 
 	private static <T> Publisher<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
-		EmitterProcessor<Message<T>> publisher = EmitterProcessor.create(1);
-		@SuppressWarnings("unchecked")
-		MessageHandler messageHandler = (message) -> publisher.onNext((Message<T>) message);
-		return publisher
-				.doOnSubscribe((sub) -> inputChannel.subscribe(messageHandler))
-				.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));
+		return Flux.defer(() -> {
+			EmitterProcessor<Message<T>> publisher = EmitterProcessor.create(1);
+			@SuppressWarnings("unchecked")
+			MessageHandler messageHandler = (message) -> publisher.onNext((Message<T>) message);
+			inputChannel.subscribe(messageHandler);
+			return publisher
+					.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));
+		});
 	}
 
 	private static <T> Publisher<Message<T>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
