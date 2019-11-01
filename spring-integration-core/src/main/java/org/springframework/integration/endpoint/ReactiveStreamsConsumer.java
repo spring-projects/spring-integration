@@ -140,8 +140,8 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 			@Override
 			public void hookOnSubscribe(Subscription s) {
-				this.delegate.onSubscribe(s);
 				ReactiveStreamsConsumer.this.subscription = s;
+				this.delegate.onSubscribe(s);
 			}
 
 			@Override

@@ -108,34 +108,42 @@ public class ReactiveStreamsConsumerTests {
 
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testReactiveStreamsConsumerDirectChannel() throws InterruptedException {
 		DirectChannel testChannel = new DirectChannel();
 
-		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
-
 		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
-		willAnswer(i -> {
-			messages.put(i.getArgument(0));
-			return null;
-		})
-				.given(testSubscriber)
-				.onNext(any(Message.class));
+		Subscriber<Message<?>> testSubscriber = Mockito.spy(new Subscriber<Message<?>>() {
+
+			@Override
+			public void onSubscribe(Subscription subscription) {
+				subscription.request(1);
+			}
+
+			@Override
+			public void onNext(Message<?> message) {
+				messages.offer(message);
+			}
+
+			@Override
+			public void onError(Throwable t) {
+
+			}
+
+			@Override
+			public void onComplete() {
+
+			}
+
+		});
 
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
 
-		Message<?> testMessage = new GenericMessage<>("test");
+		final Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
-
-		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
-		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
-		Subscription subscription = subscriptionArgumentCaptor.getValue();
-
-		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
 		assertSame(testMessage, message);
@@ -152,10 +160,6 @@ public class ReactiveStreamsConsumerTests {
 
 		reactiveConsumer.start();
 
-		subscription.request(1);
-
-		testMessage = new GenericMessage<>("test2");
-
 		testChannel.send(testMessage);
 
 		message = messages.poll(10, TimeUnit.SECONDS);
@@ -165,6 +169,8 @@ public class ReactiveStreamsConsumerTests {
 		verify(testSubscriber, never()).onComplete();
 
 		assertTrue(messages.isEmpty());
+
+		reactiveConsumer.stop();
 	}
 
 	@Test
