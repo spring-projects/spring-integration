@@ -25,6 +25,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
+import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.scheduler.Schedulers;
@@ -60,35 +61,16 @@ public final class MessageChannelReactiveUtils {
 	}
 
 	private static <T> Publisher<Message<T>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
-		return new SubscribableChannelPublisherAdapter<>(inputChannel);
+		EmitterProcessor<Message<T>> publisher = EmitterProcessor.create(1);
+		@SuppressWarnings("unchecked")
+		MessageHandler messageHandler = (message) -> publisher.onNext((Message<T>) message);
+		return publisher
+				.doOnSubscribe((sub) -> inputChannel.subscribe(messageHandler))
+				.doOnCancel(() -> inputChannel.unsubscribe(messageHandler));
 	}
 
 	private static <T> Publisher<Message<T>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
 		return new PollableChannelPublisherAdapter<>(inputChannel);
-	}
-
-
-	private static final class SubscribableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
-
-		private final SubscribableChannel channel;
-
-		SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
-			this.channel = channel;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public void subscribe(Subscriber<? super Message<T>> subscriber) {
-			Flux.
-					<Message<?>>create(emitter -> {
-								MessageHandler messageHandler = emitter::next;
-								this.channel.subscribe(messageHandler);
-								emitter.onCancel(() -> this.channel.unsubscribe(messageHandler));
-							},
-							FluxSink.OverflowStrategy.IGNORE)
-					.subscribe((Subscriber<? super Message<?>>) subscriber);
-		}
-
 	}
 
 	private static final class PollableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
