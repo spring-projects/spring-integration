@@ -235,7 +235,7 @@ public class TcpNioConnectionReadTests {
 						s -> assertThat(s).contains("Connection is closed"));
 
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(removed.size() > 0).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 		done.countDown();
 	}
@@ -287,7 +287,7 @@ public class TcpNioConnectionReadTests {
 						s -> assertThat(s).contains("Connection is closed"));
 
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(removed.size() > 0).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 		done.countDown();
 	}
@@ -339,7 +339,7 @@ public class TcpNioConnectionReadTests {
 						s -> assertThat(s).contains("Connection is closed"));
 
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(removed.size() > 0).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 		done.countDown();
 	}
@@ -447,7 +447,7 @@ public class TcpNioConnectionReadTests {
 						s -> assertThat(s).contains("Connection is closed"));
 
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
-		assertThat(removed.size() > 0).isTrue();
+		assertThat(removed).hasSizeGreaterThan(0);
 		scf.stop();
 	}
 
@@ -536,7 +536,7 @@ public class TcpNioConnectionReadTests {
 		assertThat(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS)).isTrue();
 		while (added.get(0).isOpen()) {
 			Thread.sleep(50);
-			if (n++ > 200) {
+			if (n++ > 400) {
 				fail("Failed to close socket");
 			}
 		}
