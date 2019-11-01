@@ -148,7 +148,7 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 	private ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers) {
 		Object valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE);
 		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
-		if (typeIdHeader != null) {
+		if (!(valueType instanceof ResolvableType) && typeIdHeader != null) {
 			Class<?> targetClass = getClassForValue(typeIdHeader);
 			Class<?> contentClass = null;
 			Class<?> keyClass = null;
