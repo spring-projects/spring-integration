@@ -19,8 +19,10 @@ package org.springframework.integration.channel.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.LinkedList;
@@ -31,6 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -160,31 +163,17 @@ public class ReactiveStreamsConsumerTests {
 	public void testReactiveStreamsConsumerPollableChannel() throws InterruptedException {
 		QueueChannel testChannel = new QueueChannel();
 
+		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
+
 		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
 
-		Subscriber<Message<?>> testSubscriber = Mockito.spy(new Subscriber<Message<?>>() {
+		willAnswer(i -> {
+			messages.put(i.getArgument(0));
+			return null;
+		})
+				.given(testSubscriber)
+				.onNext(any(Message.class));
 
-			@Override
-			public void onSubscribe(Subscription subscription) {
-				subscription.request(2);
-			}
-
-			@Override
-			public void onNext(Message<?> message) {
-				messages.offer(message);
-			}
-
-			@Override
-			public void onError(Throwable t) {
-
-			}
-
-			@Override
-			public void onComplete() {
-
-			}
-
-		});
 		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
@@ -192,6 +181,12 @@ public class ReactiveStreamsConsumerTests {
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
+
+		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
+		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
+		Subscription subscription = subscriptionArgumentCaptor.getValue();
+
+		subscription.request(1);
 
 		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isSameAs(testMessage);
@@ -202,6 +197,11 @@ public class ReactiveStreamsConsumerTests {
 		testChannel.send(testMessage);
 
 		reactiveConsumer.start();
+
+		verify(testSubscriber, times(2)).onSubscribe(subscriptionArgumentCaptor.capture());
+		subscription = subscriptionArgumentCaptor.getValue();
+
+		subscription.request(2);
 
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 
