@@ -57,7 +57,8 @@ public class MessageChannelReactiveUtilsTest {
 					.expectNoEvent(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		} finally {
+		}
+		finally {
 			compositeDisposable.dispose();
 		}
 	}
@@ -88,7 +89,8 @@ public class MessageChannelReactiveUtilsTest {
 					.thenAwait(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		} finally {
+		}
+		finally {
 			compositeDisposable.dispose();
 		}
 
