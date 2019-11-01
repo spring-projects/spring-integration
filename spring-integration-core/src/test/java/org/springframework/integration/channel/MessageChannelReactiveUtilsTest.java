@@ -17,8 +17,10 @@
 package org.springframework.integration.channel;
 
 import org.junit.Test;
+
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+
 import reactor.core.Disposable;
 import reactor.core.Disposables;
 import reactor.core.scheduler.Schedulers;
@@ -55,7 +57,8 @@ public class MessageChannelReactiveUtilsTest {
 					.expectNoEvent(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		} finally {
+		}
+		finally {
 			compositeDisposable.dispose();
 		}
 	}
@@ -86,7 +89,8 @@ public class MessageChannelReactiveUtilsTest {
 					.thenAwait(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		} finally {
+		}
+		finally {
 			compositeDisposable.dispose();
 		}
 
