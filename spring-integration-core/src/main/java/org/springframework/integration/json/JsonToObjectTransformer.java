@@ -144,11 +144,11 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		}
 	}
 
-
+	@Nullable
 	private ResolvableType obtainResolvableTypeFromHeadersIfAny(MessageHeaders headers) {
-		ResolvableType valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.class);
+		Object valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE);
 		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
-		if (valueType == null && typeIdHeader != null) {
+		if (typeIdHeader != null) {
 			Class<?> targetClass = getClassForValue(typeIdHeader);
 			Class<?> contentClass = null;
 			Class<?> keyClass = null;
@@ -163,8 +163,9 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 
 			valueType = JsonObjectMapper.buildResolvableType(targetClass, contentClass, keyClass);
 		}
-
-		return valueType;
+		return valueType instanceof ResolvableType
+				? (ResolvableType) valueType
+				: null;
 	}
 
 	private Class<?> getClassForValue(Object classValue) {

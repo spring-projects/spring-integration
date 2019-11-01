@@ -263,13 +263,15 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			Map<String, String> jsonHeaders = new HashMap<>();
 
 			for (String jsonHeader : JsonHeaders.HEADERS) {
-				Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
-				if (value != null) {
-					headers.remove(jsonHeader);
-					if (value instanceof Class<?>) {
-						value = ((Class<?>) value).getName();
+				if (!JsonHeaders.RESOLVABLE_TYPE.equals(jsonHeader)) {
+					Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
+					if (value != null) {
+						headers.remove(jsonHeader);
+						if (value instanceof Class<?>) {
+							value = ((Class<?>) value).getName();
+						}
+						jsonHeaders.put(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
 					}
-					jsonHeaders.put(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
 				}
 			}
 			amqpMessageProperties.getHeaders().putAll(jsonHeaders);
