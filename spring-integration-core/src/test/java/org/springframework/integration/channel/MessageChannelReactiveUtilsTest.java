@@ -16,6 +16,10 @@
 
 package org.springframework.integration.channel;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+
 import org.junit.Test;
 
 import org.springframework.messaging.SubscribableChannel;
@@ -26,10 +30,6 @@ import reactor.core.Disposables;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.concurrent.Queues;
-
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MessageChannelReactiveUtilsTest {
 
@@ -57,8 +57,7 @@ public class MessageChannelReactiveUtilsTest {
 					.expectNoEvent(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		}
-		finally {
+		} finally {
 			compositeDisposable.dispose();
 		}
 	}
@@ -89,8 +88,7 @@ public class MessageChannelReactiveUtilsTest {
 					.thenAwait(Duration.ofMillis(100))
 					.thenCancel()
 					.verify(Duration.ofSeconds(1));
-		}
-		finally {
+		} finally {
 			compositeDisposable.dispose();
 		}
 
