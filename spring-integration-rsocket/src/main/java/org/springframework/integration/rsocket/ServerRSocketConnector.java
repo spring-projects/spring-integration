@@ -99,6 +99,10 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 		this.serverTransport = serverTransport;
 	}
 
+	private ServerRSocketMessageHandler serverRSocketMessageHandler() {
+		return (ServerRSocketMessageHandler) this.rSocketMessageHandler;
+	}
+
 	/**
 	 * Provide a {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
 	 * @param factoryConfigurer the {@link Consumer} to configure the {@link RSocketFactory.ServerRSocketFactory}.
@@ -110,7 +114,7 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 
 	/**
 	 * Configure a strategy to determine a key for the client {@link RSocketRequester} connected.
-	 * Defaults to the {@code destination} the client is connected.
+	 * Defaults to the {@code destination} to which a client is connected.
 	 * @param clientRSocketKeyStrategy the {@link BiFunction} to determine a key for client {@link RSocketRequester}s.
 	 */
 	public void setClientRSocketKeyStrategy(BiFunction<Map<String, Object>,
@@ -172,15 +176,31 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 		}
 	}
 
+	/**
+	 * Return connected {@link RSocketRequester}s mapped by keys.
+	 * @return connected {@link RSocketRequester}s mapped by keys.
+	 * @see ServerRSocketMessageHandler#getClientRSocketRequesters()
+	 */
 	public Map<Object, RSocketRequester> getClientRSocketRequesters() {
 		return serverRSocketMessageHandler().getClientRSocketRequesters();
 	}
 
+	/**
+	 * Return connected {@link RSocketRequester} mapped by key or null.
+	 * @param key the mapping key.
+	 * @return the {@link RSocketRequester} or null.
+	 * @see ServerRSocketMessageHandler#getClientRSocketRequester(Object)
+	 */
 	@Nullable
 	public RSocketRequester getClientRSocketRequester(Object key) {
-		return getClientRSocketRequesters().get(key);
+		return serverRSocketMessageHandler().getClientRSocketRequester(key);
 	}
 
+	/**
+	 * Return the port this internal server is bound or empty {@link Mono}.
+	 * @return the port this internal server is bound or empty {@link Mono}
+	 * if an external server is used.
+	 */
 	public Mono<Integer> getBoundPort() {
 		if (this.serverTransport != null) {
 			return this.serverMono
@@ -189,10 +209,6 @@ public class ServerRSocketConnector extends AbstractRSocketConnector implements 
 		else {
 			return Mono.empty();
 		}
-	}
-
-	private ServerRSocketMessageHandler serverRSocketMessageHandler() {
-		return (ServerRSocketMessageHandler) this.rSocketMessageHandler;
 	}
 
 	@Override

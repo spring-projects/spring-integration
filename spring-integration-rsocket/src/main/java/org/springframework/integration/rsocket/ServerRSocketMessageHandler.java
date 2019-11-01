@@ -26,6 +26,7 @@ import java.util.function.BiFunction;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.CompositeMessageCondition;
@@ -38,6 +39,18 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * An {@link IntegrationRSocketMessageHandler} extension for RSocket service side.
+ * <p>
+ * In a plain Spring Integration application instances of this class are created by the
+ * {@link ServerRSocketConnector} internally and a new RSocket server is started over there.
+ * When an existing RSocket server is in use, an instance of this class has to be
+ * provided as a {@link #responder()} into that server and a {@link ServerRSocketConnector}
+ * should accept the same instance as a delegate.
+ *<p>
+ * With a {@link #messageMappingCompatible} option this class also handles
+ * {@link org.springframework.messaging.handler.annotation.MessageMapping} methods,
+ * covering both Spring Integration and standard
+ * {@link org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler}
+ * functionality.
  *
  * @author Artem Bilan
  *
@@ -57,24 +70,59 @@ public class ServerRSocketMessageHandler extends IntegrationRSocketMessageHandle
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	/**
+	 * Create an service side RSocket message handler instance for delegating
+	 * to {@link IntegrationRSocketEndpoint} beans and collect {@link RSocketRequester}s
+	 * from client connections.
+	 */
 	public ServerRSocketMessageHandler() {
 		this(false);
 	}
 
-	public ServerRSocketMessageHandler(boolean requestMappingCompatible) {
-		super(requestMappingCompatible);
+	/**
+	 * Create an service side RSocket message handler instance for delegating
+	 * to {@link IntegrationRSocketEndpoint} beans and collect {@link RSocketRequester}s
+	 * from client connections.
+	 * When {@code messageMappingCompatible == true}, this class also handles
+	 * {@link org.springframework.messaging.handler.annotation.MessageMapping} methods
+	 * as it is done by the standard
+	 * {@link org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler}.
+	 * @param messageMappingCompatible whether handle also
+	 * {@link org.springframework.messaging.handler.annotation.MessageMapping}.
+	 */
+	public ServerRSocketMessageHandler(boolean messageMappingCompatible) {
+		super(messageMappingCompatible);
 	}
 
-
-	public Map<Object, RSocketRequester> getClientRSocketRequesters() {
-		return Collections.unmodifiableMap(this.clientRSocketRequesters);
-	}
-
+	/**
+	 * Configure a {@link BiFunction} to extract a key for mapping connected {@link RSocketRequester}s.
+	 * Defaults to the {@code destination} a client is connected.
+	 * @param clientRSocketKeyStrategy the {@link BiFunction} to use.
+	 */
 	public void setClientRSocketKeyStrategy(
 			BiFunction<Map<String, Object>, DataBuffer, Object> clientRSocketKeyStrategy) {
 
 		Assert.notNull(clientRSocketKeyStrategy, "'clientRSocketKeyStrategy' must not be null");
 		this.clientRSocketKeyStrategy = clientRSocketKeyStrategy;
+	}
+
+	/**
+	 * Get connected {@link RSocketRequester}s mapped by the keys from the connect messages.
+	 * @return the map of connected {@link RSocketRequester}s.
+	 * @see #setClientRSocketKeyStrategy
+	 */
+	public Map<Object, RSocketRequester> getClientRSocketRequesters() {
+		return Collections.unmodifiableMap(this.clientRSocketRequesters);
+	}
+
+	/**
+	 * Obtain a connected {@link RSocketRequester} mapped by provided key or null.
+	 * @param key the key for mapped {@link RSocketRequester} if any.
+	 * @return the mapped {@link RSocketRequester} or null.
+	 */
+	@Nullable
+	public RSocketRequester getClientRSocketRequester(Object key) {
+		return this.clientRSocketRequesters.get(key);
 	}
 
 	@Override
