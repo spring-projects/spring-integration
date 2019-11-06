@@ -108,9 +108,7 @@
 			<property name="scope" value="package"/>
 			<property name="authorFormat" value=".+\s.+"/>
 		</module>
-		<module name="JavadocMethod">
-			<property name="allowMissingJavadoc" value="true"/>
-		</module>
+		<module name="JavadocMethod"/>
 		<module name="JavadocVariable">
 			<property name="scope" value="public"/>
 		</module>
