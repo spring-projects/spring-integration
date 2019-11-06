@@ -27,7 +27,9 @@ import org.reactivestreams.Subscriber;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.ConnectableFlux;
+import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
@@ -47,15 +49,15 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final Map<Publisher<? extends Message<?>>, ConnectableFlux<?>> publishers = new ConcurrentHashMap<>();
 
-	private final Flux<Message<?>> flux;
+	private final Map<ConnectableFlux<?>, Disposable> disposables = new ConcurrentHashMap<>();
+
+	private final EmitterProcessor<Message<?>> flux;
 
 	private FluxSink<Message<?>> sink;
 
 	public FluxMessageChannel() {
-		this.flux =
-				Flux.<Message<?>>create(emitter -> this.sink = emitter, FluxSink.OverflowStrategy.IGNORE)
-						.publish()
-						.autoConnect();
+		this.flux = EmitterProcessor.create(1, false);
+		this.sink = this.flux.sink();
 	}
 
 	@Override
@@ -70,11 +72,12 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.subscribers.add(subscriber);
 
-		this.flux.doOnCancel(() -> this.subscribers.remove(subscriber))
+		this.flux.doFinally((signal) -> this.subscribers.remove(subscriber))
 				.retry()
 				.subscribe(subscriber);
 
-		this.publishers.values().forEach(ConnectableFlux::connect);
+		this.publishers.values()
+				.forEach((connectableFlux) -> this.disposables.put(connectableFlux, connectableFlux.connect()));
 	}
 
 	@Override
@@ -84,14 +87,22 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						.handle((message, sink) -> sink.next(send(message)))
 						.onErrorContinue((throwable, event) ->
 								logger.warn("Error during processing event: " + event, throwable))
-						.doOnComplete(() -> this.publishers.remove(publisher))
+						.doFinally((signal) -> this.disposables.remove(this.publishers.remove(publisher)))
 						.publish();
 
 		this.publishers.put(publisher, connectableFlux);
 
 		if (!this.subscribers.isEmpty()) {
-			connectableFlux.connect();
+			connectableFlux.connect((disposable) -> this.disposables.put(connectableFlux, disposable));
 		}
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+
+		this.subscribers.forEach(Subscriber::onComplete);
+		this.disposables.values().forEach(Disposable::dispose);
 	}
 
 }

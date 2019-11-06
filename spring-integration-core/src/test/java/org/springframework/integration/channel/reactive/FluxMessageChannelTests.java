@@ -23,14 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
@@ -47,8 +48,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 /**
@@ -56,7 +58,7 @@ import reactor.core.publisher.Flux;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FluxMessageChannelTests {
 
@@ -64,7 +66,7 @@ public class FluxMessageChannelTests {
 	private MessageChannel fluxMessageChannel;
 
 	@Autowired
-	private MessageChannel queueChannel;
+	private QueueChannel queueChannel;
 
 	@Autowired
 	private PollableChannel errorChannel;
@@ -73,7 +75,7 @@ public class FluxMessageChannelTests {
 	private IntegrationFlowContext integrationFlowContext;
 
 	@Test
-	public void testFluxMessageChannel() {
+	void testFluxMessageChannel() {
 		QueueChannel replyChannel = new QueueChannel();
 
 		for (int i = 0; i < 10; i++) {
@@ -90,28 +92,35 @@ public class FluxMessageChannelTests {
 		Message<?> error = this.errorChannel.receive(0);
 		assertThat(error).isNotNull();
 		assertThat(((MessagingException) error.getPayload()).getFailedMessage().getPayload()).isEqualTo(5);
+
+		List<Message<?>> messages = this.queueChannel.clear();
+		assertThat(messages).extracting((message) -> (Integer) message.getPayload())
+				.containsAll(IntStream.range(0, 10).boxed().collect(Collectors.toList()));
 	}
 
 	@Test
-	public void testMessageChannelReactiveAdaptation() throws InterruptedException {
+	void testMessageChannelReactiveAdaptation() throws InterruptedException {
 		CountDownLatch done = new CountDownLatch(2);
 		List<String> results = new ArrayList<>();
 
-		Flux.from(MessageChannelReactiveUtils.<String>toPublisher(this.queueChannel))
-				.map(Message::getPayload)
-				.map(String::toUpperCase)
-				.doOnNext(results::add)
-				.subscribe(v -> done.countDown());
+		Disposable disposable =
+				Flux.from(MessageChannelReactiveUtils.<String>toPublisher(this.queueChannel))
+						.map(Message::getPayload)
+						.map(String::toUpperCase)
+						.doOnNext(results::add)
+						.subscribe(v -> done.countDown());
 
 		this.queueChannel.send(new GenericMessage<>("foo"));
 		this.queueChannel.send(new GenericMessage<>("bar"));
 
 		assertThat(done.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(results).containsExactly("FOO", "BAR");
+
+		disposable.dispose();
 	}
 
 	@Test
-	public void testFluxMessageChannelCleanUp() throws InterruptedException {
+	void testFluxMessageChannelCleanUp() throws InterruptedException {
 		FluxMessageChannel flux = MessageChannels.flux().get();
 
 		CountDownLatch finishLatch = new CountDownLatch(1);
@@ -158,6 +167,7 @@ public class FluxMessageChannelTests {
 		}
 
 		@Bean
+		@BridgeFrom("fluxMessageChannel")
 		public MessageChannel queueChannel() {
 			return new QueueChannel();
 		}
