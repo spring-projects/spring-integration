@@ -190,9 +190,10 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 					if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
 						file = poll();
+						continue;
 					}
 					else {
-						file = null;
+						break;
 					}
 			}
 			if (file != null) {
