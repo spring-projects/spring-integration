@@ -49,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Lukas Gemela
  *
  * @since 4.3
  *
@@ -181,50 +182,56 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	@Override
+	protected Object doReceive(int maxFetchSize) {
+		return doReceive();
+	}
+
+	@Override
 	protected Object doReceive() {
 		Assert.state(this.running.get(), () -> getComponentName() + " is not running");
 		AbstractFileInfo<F> file = poll();
 		while (file != null) {
 			if (this.filter != null && this.filter.supportsSingleFileFiltering()
-						&& !this.filter.accept(file.getFileInfo())) {
+					&& !this.filter.accept(file.getFileInfo())) {
 
-					if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
-						file = poll();
-					}
-					else {
-						file = null;
-					}
+				if (this.toBeReceived.size() > 0) { // don't re-fetch already filtered files
+					file = poll();
+					continue;
+				}
+				else {
+					break;
+				}
 			}
-			if (file != null) {
+			try {
+				String remotePath = remotePath(file);
+				Session<?> session = this.remoteFileTemplate.getSession();
 				try {
-					String remotePath = remotePath(file);
-					Session<?> session = this.remoteFileTemplate.getSession();
-					try {
-						return getMessageBuilderFactory()
-								.withPayload(session.readRaw(remotePath))
-								.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-								.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-								.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
-								.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
-								.setHeader(FileHeaders.REMOTE_FILE_INFO,
-										this.fileInfoJson ? file.toJson() : file);
-					}
-					catch (IOException e) {
-						throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
-					}
+					return getMessageBuilderFactory()
+							.withPayload(session.readRaw(remotePath))
+							.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+							.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
+							.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
+							.setHeader(FileHeaders.REMOTE_FILE_INFO,
+									this.fileInfoJson ? file.toJson() : file);
 				}
-				catch (RuntimeException e) {
-					resetFilterIfNecessary(file);
-					throw e;
+				catch (IOException e) {
+					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
 				}
+			}
+			catch (RuntimeException e) {
+				resetFilterIfNecessary(file);
+				throw e;
 			}
 		}
 		return null;
 	}
 
-	@Override
-	protected Object doReceive(int maxFetchSize) {
-		return doReceive();
+	protected AbstractFileInfo<F> poll() {
+		if (this.toBeReceived.size() == 0) {
+			listFiles();
+		}
+		return this.toBeReceived.poll();
 	}
 
 	private void resetFilterIfNecessary(AbstractFileInfo<F> file) {
@@ -235,13 +242,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			}
 			((ResettableFileListFilter<F>) this.filter).remove(file.getFileInfo());
 		}
-	}
-
-	protected AbstractFileInfo<F> poll() {
-		if (this.toBeReceived.size() == 0) {
-			listFiles();
-		}
-		return this.toBeReceived.poll();
 	}
 
 	protected String remotePath(AbstractFileInfo<F> file) {
