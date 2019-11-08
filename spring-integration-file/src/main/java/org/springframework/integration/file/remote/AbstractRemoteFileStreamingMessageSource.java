@@ -49,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Lukas Gemela
  *
  * @since 4.3
  *
@@ -196,28 +197,26 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 						break;
 					}
 			}
-			if (file != null) {
+			try {
+				String remotePath = remotePath(file);
+				Session<?> session = this.remoteFileTemplate.getSession();
 				try {
-					String remotePath = remotePath(file);
-					Session<?> session = this.remoteFileTemplate.getSession();
-					try {
-						return getMessageBuilderFactory()
-								.withPayload(session.readRaw(remotePath))
-								.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-								.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-								.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
-								.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
-								.setHeader(FileHeaders.REMOTE_FILE_INFO,
-										this.fileInfoJson ? file.toJson() : file);
-					}
-					catch (IOException e) {
-						throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
-					}
+					return getMessageBuilderFactory()
+							.withPayload(session.readRaw(remotePath))
+							.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+							.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
+							.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+							.setHeader(FileHeaders.REMOTE_HOST_PORT, session.getHostPort())
+							.setHeader(FileHeaders.REMOTE_FILE_INFO,
+									this.fileInfoJson ? file.toJson() : file);
 				}
-				catch (RuntimeException e) {
-					resetFilterIfNecessary(file);
-					throw e;
+				catch (IOException e) {
+					throw new UncheckedIOException("IOException when retrieving " + remotePath, e);
 				}
+			}
+			catch (RuntimeException e) {
+				resetFilterIfNecessary(file);
+				throw e;
 			}
 		}
 		return null;
