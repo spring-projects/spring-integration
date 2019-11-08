@@ -16,10 +16,9 @@
 
 package org.springframework.integration.channel;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -45,7 +44,7 @@ import reactor.core.publisher.FluxSink;
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final List<Subscriber<? super Message<?>>> subscribers = new ArrayList<>();
+	private final AtomicInteger subscribed = new AtomicInteger();
 
 	private final Map<Publisher<? extends Message<?>>, ConnectableFlux<?>> publishers = new ConcurrentHashMap<>();
 
@@ -62,7 +61,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(this.subscribers.size() > 0,
+		Assert.state(this.subscribed.get() > 0,
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
 		this.sink.next(message);
 		return true;
@@ -70,12 +69,10 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
-		this.subscribers.add(subscriber);
-
-		this.flux.doFinally((signal) -> this.subscribers.remove(subscriber))
+		this.flux.doFinally((signal) -> this.subscribed.decrementAndGet())
 				.retry()
 				.subscribe(subscriber);
-
+		this.subscribed.incrementAndGet();
 		this.publishers.values()
 				.forEach((connectableFlux) -> this.disposables.put(connectableFlux, connectableFlux.connect()));
 	}
@@ -92,7 +89,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 		this.publishers.put(publisher, connectableFlux);
 
-		if (!this.subscribers.isEmpty()) {
+		if (this.subscribed.get() > 0) {
 			connectableFlux.connect((disposable) -> this.disposables.put(connectableFlux, disposable));
 		}
 	}
@@ -101,7 +98,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public void destroy() {
 		super.destroy();
 
-		this.subscribers.forEach(Subscriber::onComplete);
+		this.flux.onComplete();
 		this.disposables.values().forEach(Disposable::dispose);
 	}
 
