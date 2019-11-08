@@ -53,7 +53,7 @@ class RemoteFileStreamingMessageSourceTests {
 			return files
 					.stream()
 					.map(TestFileInfo::new)
-					.collect(Collectors.toUnmodifiableList());
+					.collect(Collectors.toList());
 		}
 
 		@Override
