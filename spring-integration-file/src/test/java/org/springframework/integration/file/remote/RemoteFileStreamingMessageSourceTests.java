@@ -34,7 +34,7 @@ import org.springframework.integration.file.filters.FileListFilter;
  * @since 5.2
  *
  */
-class RemoteFileStreamingMessageSourceTests {
+public class RemoteFileStreamingMessageSourceTests {
 
 	@Test
 	public void filterOutFilesNotAcceptedByFilter() {
