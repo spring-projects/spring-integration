@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,8 +43,8 @@ import java.util.stream.Collectors;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
@@ -224,6 +225,7 @@ public class MethodInvokingMessageProcessorTests {
 		assertThat(message.getHeaders().get("B")).isEqualTo("B");
 	}
 
+	@Test
 	public void testHandlerInheritanceMethodImplInSubClass() {
 		class A {
 
@@ -253,10 +255,12 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("C")).isEqualTo("C");
 	}
 
+	@Test
 	public void testHandlerInheritanceMethodImplInSubClassAndSuper() {
 		class A {
 
@@ -281,6 +285,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<>(""));
 		assertThat(message.getHeaders().get("C")).isEqualTo("C");
 	}
@@ -290,7 +295,7 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnObject");
 		processor.setBeanFactory(mock(BeanFactory.class));
-		Object result = processor.processMessage(new GenericMessage<String>("testing"));
+		Object result = processor.processMessage(new GenericMessage<>("testing"));
 		assertThat(result).isEqualTo("testing-1");
 	}
 
@@ -299,7 +304,7 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnObject");
 		processor.setBeanFactory(mock(BeanFactory.class));
-		Object result = processor.processMessage(new GenericMessage<Integer>(123456789));
+		Object result = processor.processMessage(new GenericMessage<>(123456789));
 		assertThat(result).isEqualTo("123456789-1");
 	}
 
@@ -317,7 +322,7 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageAndReturnObject");
 		processor.setBeanFactory(mock(BeanFactory.class));
-		Object result = processor.processMessage(new GenericMessage<String>("testing"));
+		Object result = processor.processMessage(new GenericMessage<>("testing"));
 		assertThat(result).isEqualTo("testing-3");
 	}
 
@@ -344,7 +349,7 @@ public class MethodInvokingMessageProcessorTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageSubclassAndReturnMessageSubclass");
 		processor.setBeanFactory(mock(BeanFactory.class));
-		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<>("testing"));
 		assertThat(result.getPayload()).isEqualTo("testing-6");
 	}
 
@@ -452,7 +457,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	@Ignore("See https://github.com/spring-projects/spring-framework/issues/23824")
+	@Disabled("See https://github.com/spring-projects/spring-framework/issues/23824")
 	public void testProcessMessageMethodNotFound() throws Exception {
 		TestDifferentErrorService service = new TestDifferentErrorService();
 		Method method = TestErrorService.class.getMethod("checked", String.class);
@@ -630,7 +635,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void testInt3199GenericTypeResolvingAndObjectMethod() throws Exception {
+	public void testInt3199GenericTypeResolvingAndObjectMethod() {
 
 		class Foo {
 
@@ -675,18 +680,13 @@ public class MethodInvokingMessageProcessorTests {
 
 		}
 
-		try {
-			new MessagingMethodInvokerHelper(new Foo(), (String) null, false);
-			fail("IllegalArgumentException expected");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(IllegalArgumentException.class);
-			assertThat(e.getMessage()).isEqualTo("Found more than one method match for empty parameter for 'payload'");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MessagingMethodInvokerHelper(new Foo(), (String) null, false))
+				.withMessage("Found more than one method match for empty parameter for 'payload'");
 	}
 
 	@Test
-	public void testInt3199MessageMethods() throws Exception {
+	public void testInt3199MessageMethods() {
 
 		class Foo {
 
@@ -717,7 +717,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void testInt3199TypedMethods() throws Exception {
+	public void testInt3199TypedMethods() {
 
 		class Foo {
 
@@ -748,7 +748,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void testInt3199PrecedenceOfCandidates() throws Exception {
+	public void testInt3199PrecedenceOfCandidates() {
 
 		class Foo {
 
@@ -822,7 +822,7 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void testPrivateMethod() throws Exception {
+	public void testPrivateMethod() {
 		class Foo {
 
 			@ServiceActivator
@@ -1288,7 +1288,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public Message<?> acceptPayloadAndReturnMessage(String s) {
-			return new GenericMessage<String>(s + "-2");
+			return new GenericMessage<>(s + "-2");
 		}
 
 		public String acceptMessageAndReturnObject(Message<?> m) {
@@ -1296,15 +1296,15 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public Message<?> acceptMessageAndReturnMessage(Message<?> m) {
-			return new GenericMessage<String>(m.getPayload() + "-4");
+			return new GenericMessage<>(m.getPayload() + "-4");
 		}
 
 		public Message<?> acceptMessageSubclassAndReturnMessage(GenericMessage<String> m) {
-			return new GenericMessage<String>(m.getPayload() + "-5");
+			return new GenericMessage<>(m.getPayload() + "-5");
 		}
 
 		public GenericMessage<String> acceptMessageSubclassAndReturnMessageSubclass(GenericMessage<String> m) {
-			return new GenericMessage<String>(m.getPayload() + "-6");
+			return new GenericMessage<>(m.getPayload() + "-6");
 		}
 
 		public String acceptPayloadAndHeaderAndReturnObject(String s, @Header("number") Integer n) {
@@ -1332,7 +1332,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public String messageAndHeader(Message<?> message, @Header("number") Integer num) {
-			return (String) message.getPayload() + "-" + num.toString();
+			return message.getPayload() + "-" + num.toString();
 		}
 
 		public String twoHeaders(@Header String prop, @Header("number") Integer num) {

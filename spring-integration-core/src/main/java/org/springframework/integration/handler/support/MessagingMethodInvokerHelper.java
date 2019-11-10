@@ -979,16 +979,11 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator im
 
 	private Class<?> getTargetClass(Object targetObject) {
 		Class<?> targetClass = AopProxyUtils.ultimateTargetClass(targetObject);
-		if (targetClass == targetObject.getClass()) {
-			try {
-				// Maybe a proxy with no target - e.g. gateway
-				Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
-				if (interfaces.length == 1) {
-					targetClass = interfaces[0];
-				}
-			}
-			catch (Exception e) {
-				LOGGER.debug("Exception trying to extract interface", e);
+		// Maybe a proxy with no target - e.g. gateway
+		if (targetClass == targetObject.getClass() && targetObject instanceof Advised) {
+			Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
+			if (interfaces.length == 1) {
+				targetClass = interfaces[0];
 			}
 		}
 		if (targetClass.getSimpleName().contains("$MockitoMock$")) {
