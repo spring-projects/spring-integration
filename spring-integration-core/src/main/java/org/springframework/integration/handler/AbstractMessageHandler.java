@@ -144,7 +144,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
-		return IntegrationPatternType.service_activator;
+		return IntegrationPatternType.outbound_channel_adapter;
 	}
 
 	@Override

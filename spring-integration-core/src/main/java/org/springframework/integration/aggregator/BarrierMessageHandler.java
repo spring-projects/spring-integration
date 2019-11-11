@@ -22,6 +22,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
@@ -147,6 +148,11 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	@Override
 	public String getComponentType() {
 		return "barrier";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.barrier;
 	}
 
 	@Override

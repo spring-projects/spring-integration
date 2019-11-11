@@ -36,6 +36,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -282,6 +283,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	@Override
 	public String getComponentType() {
 		return "delayer";
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.delayer;
 	}
 
 	@Override

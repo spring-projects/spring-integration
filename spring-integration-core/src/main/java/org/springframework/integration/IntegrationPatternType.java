@@ -26,11 +26,31 @@ import java.util.stream.Collectors;
  *
  * @author Artem Bilan
  *
- * @since 5.2.1
+ * @since 5.2.2
  */
 public enum IntegrationPatternType {
 
+	message_channel(IntegrationPatternCategory.messaging_channel),
+
+	publish_subscribe_channel(IntegrationPatternCategory.messaging_channel),
+
+	executor_channel(IntegrationPatternCategory.messaging_channel),
+
+	pollable_channel(IntegrationPatternCategory.messaging_channel),
+
+	reactive_channel(IntegrationPatternCategory.messaging_channel),
+
+	null_channel(IntegrationPatternCategory.messaging_channel),
+
+	bridge(IntegrationPatternCategory.messaging_endpoint),
+
 	service_activator(IntegrationPatternCategory.messaging_endpoint),
+
+	outbound_channel_adapter(IntegrationPatternCategory.messaging_endpoint),
+
+	inbound_channel_adapter(IntegrationPatternCategory.messaging_endpoint),
+
+	outbound_gateway(IntegrationPatternCategory.messaging_endpoint),
 
 	splitter(IntegrationPatternCategory.message_routing),
 
@@ -38,7 +58,34 @@ public enum IntegrationPatternType {
 
 	header_enricher(IntegrationPatternCategory.message_transformation),
 
-	filter(IntegrationPatternCategory.message_routing);
+	filter(IntegrationPatternCategory.message_routing),
+
+	content_enricher(IntegrationPatternCategory.message_transformation),
+
+	header_filter(IntegrationPatternCategory.message_transformation),
+
+	claim_check_in(IntegrationPatternCategory.message_transformation),
+
+	claim_check_out(IntegrationPatternCategory.message_transformation),
+
+	aggregator(IntegrationPatternCategory.message_routing),
+
+	resequencer(IntegrationPatternCategory.message_routing),
+
+	barrier(IntegrationPatternCategory.message_routing),
+
+	chain(IntegrationPatternCategory.message_routing),
+
+	scatter_gather(IntegrationPatternCategory.message_routing),
+
+	delayer(IntegrationPatternCategory.message_routing),
+
+	control_bus(IntegrationPatternCategory.system_management),
+
+	router(IntegrationPatternCategory.message_routing),
+
+	recipient_list_router(IntegrationPatternCategory.message_routing);
+
 
 	private final IntegrationPatternCategory patternCategory;
 
@@ -56,15 +103,42 @@ public enum IntegrationPatternType {
 	 */
 	public enum IntegrationPatternCategory {
 
-		messaging_endpoint(service_activator),
+		messaging_channel(
+				message_channel,
+				publish_subscribe_channel,
+				executor_channel,
+				pollable_channel,
+				reactive_channel,
+				null_channel),
+
+		messaging_endpoint(
+				service_activator,
+				outbound_channel_adapter,
+				inbound_channel_adapter,
+				outbound_gateway,
+				bridge),
 
 		message_routing(
 				splitter,
-				filter),
+				filter,
+				aggregator,
+				resequencer,
+				barrier,
+				chain,
+				scatter_gather,
+				delayer,
+				router,
+				recipient_list_router),
 
 		message_transformation(
 				transformer,
-				header_enricher);
+				header_enricher,
+				content_enricher,
+				header_filter,
+				claim_check_in,
+				claim_check_out),
+
+		system_management(control_bus);
 
 		private final IntegrationPatternType[] patternTypes;
 

@@ -23,6 +23,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -89,6 +90,11 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	protected ClassLoader getBeanClassLoader() {
 		return this.beanClassLoader;
+	}
+
+	@Override
+	public IntegrationPatternType getIntegrationPatternType() {
+		return IntegrationPatternType.outbound_gateway;
 	}
 
 	@Override

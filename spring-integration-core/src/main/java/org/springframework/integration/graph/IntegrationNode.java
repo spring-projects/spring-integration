@@ -26,6 +26,7 @@ import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -73,16 +74,23 @@ public abstract class IntegrationNode {
 			}
 		}
 
+		IntegrationPatternType patternType = null;
+
 		if (nodeObject instanceof IntegrationPattern) {
-			this.integrationPatternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType();
-			this.integrationPatternCategory = this.integrationPatternType.getPatternCategory();
+			patternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType();
 		}
 		else if (nodeObject instanceof MessageHandler) {
-			this.integrationPatternType = IntegrationPatternType.service_activator;
+			patternType = IntegrationPatternType.service_activator;
+		}
+		else if (nodeObject instanceof MessageChannel) {
+			patternType = IntegrationPatternType.message_channel;
+		}
+
+		this.integrationPatternType = patternType;
+		if (this.integrationPatternType != null) {
 			this.integrationPatternCategory = this.integrationPatternType.getPatternCategory();
 		}
 		else {
-			this.integrationPatternType = null;
 			this.integrationPatternCategory = null;
 		}
 	}

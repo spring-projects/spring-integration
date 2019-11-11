@@ -21,7 +21,7 @@ package org.springframework.integration;
  *
  * @author Artem Bilan
  *
- * @since 5.2.1
+ * @since 5.2.2
  *
  * @see IntegrationPatternType
  * @see <a href="https://www.enterpriseintegrationpatterns.com/patterns/messaging">EIP official site</a>
