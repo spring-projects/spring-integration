@@ -49,32 +49,39 @@ import org.springframework.util.Assert;
  * inbound / outbound channel adapters should be used.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class TcpInboundGateway extends MessagingGatewaySupport implements
 		TcpListener, TcpSender, ClientModeCapable, OrderlyShutdownCapable {
 
-	private volatile AbstractServerConnectionFactory serverConnectionFactory;
+	/**
+	 * A default retry interval in milliseconds - {@value #DEFAULT_RETRY_INTERVAL}.
+	 */
+	public static final long DEFAULT_RETRY_INTERVAL = 60000;
 
-	private volatile AbstractClientConnectionFactory clientConnectionFactory;
+	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<>();
 
-	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+	private final AtomicInteger activeCount = new AtomicInteger();
 
-	private volatile boolean isClientMode;
+	private AbstractServerConnectionFactory serverConnectionFactory;
 
-	private volatile boolean isSingleUse;
+	private AbstractClientConnectionFactory clientConnectionFactory;
 
-	private volatile long retryInterval = 60000;
+	private boolean isClientMode;
 
-	private volatile ScheduledFuture<?> scheduledFuture;
+	private boolean isSingleUse;
 
-	private volatile ClientModeConnectionManager clientModeConnectionManager;
+	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
 	private volatile boolean active;
 
-	private volatile boolean shuttingDown;
+	private volatile ClientModeConnectionManager clientModeConnectionManager;
 
-	private final AtomicInteger activeCount = new AtomicInteger();
+	private volatile ScheduledFuture<?> scheduledFuture;
+
+	private volatile boolean shuttingDown;
 
 	@Override
 	public boolean onMessage(Message<?> message) {
@@ -117,7 +124,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	}
 
 	private boolean doOnMessage(Message<?> message) {
-		Message<?> reply = this.sendAndReceiveMessage(message);
+		Message<?> reply = sendAndReceiveMessage(message);
 		if (reply == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("null reply received for " + message + " nothing to send");
@@ -144,13 +151,15 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	}
 
 	private void publishNoConnectionEvent(Message<?> message, String connectionId) {
-		AbstractConnectionFactory cf = this.serverConnectionFactory != null ? this.serverConnectionFactory
-				: this.clientConnectionFactory;
+		AbstractConnectionFactory cf =
+				this.serverConnectionFactory != null
+						? this.serverConnectionFactory
+						: this.clientConnectionFactory;
 		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(
-				new TcpConnectionFailedCorrelationEvent(this, connectionId,
-						new MessagingException(message, "Connection not found to process reply.")));
+					new TcpConnectionFailedCorrelationEvent(this, connectionId,
+							new MessagingException(message, "Connection not found to process reply.")));
 		}
 	}
 
@@ -163,7 +172,6 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	/**
 	 * Must be {@link AbstractClientConnectionFactory} or {@link AbstractServerConnectionFactory}.
-	 *
 	 * @param connectionFactory the Connection Factory
 	 */
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
@@ -192,6 +200,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	public void removeDeadConnection(TcpConnection connection) {
 		this.connections.remove(connection.getConnectionId());
 	}
+
 	@Override
 	public String getComponentType() {
 		return "ip:tcp-inbound-gateway";
@@ -221,11 +230,11 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 				this.clientConnectionFactory.start();
 			}
 			if (this.isClientMode) {
-				ClientModeConnectionManager manager = new ClientModeConnectionManager(
-						this.clientConnectionFactory);
+				ClientModeConnectionManager manager =
+						new ClientModeConnectionManager(this.clientConnectionFactory);
 				this.clientModeConnectionManager = manager;
-				Assert.state(this.getTaskScheduler() != null, "Client mode requires a task scheduler");
-				this.scheduledFuture = this.getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+				Assert.state(getTaskScheduler() != null, "Client mode requires a task scheduler");
+				this.scheduledFuture = getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
 			}
 		}
 	}
@@ -272,8 +281,9 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	}
 
 	/**
-	 * @param retryInterval
-	 *            the retryInterval to set
+	 * Configure a retry interval.
+	 * Defaults to {@link #DEFAULT_RETRY_INTERVAL}.
+	 * @param retryInterval the retryInterval to set
 	 */
 	public void setRetryInterval(long retryInterval) {
 		this.retryInterval = retryInterval;
@@ -307,4 +317,5 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		this.stop();
 		return this.activeCount.get();
 	}
+
 }

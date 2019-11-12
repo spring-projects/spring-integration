@@ -778,7 +778,7 @@ Two additional attributes support this mechanism.
 `retry-interval` specifies (in milliseconds) how often the framework tries to reconnect after a connection failure.
 `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
-If the gateway is started, you may force the gateway to establish a connection by sending a <control-bus /> command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
+If the gateway is started, you may force the gateway to establish a connection by sending a `<control-bus/>` command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
 
 The outbound gateway, after sending a message over the connection, waits for a response, constructs a response message, and puts it on the reply channel.
 Communications over the connections are single-threaded.

@@ -28,10 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.ConnectionFactory;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.logging.log4j.Level;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -56,11 +54,12 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -76,7 +75,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -86,7 +85,9 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
+@LogLevels(level = "debug",
+		categories = { "org.springframework", "org.springframework.integration", "org.apache" })
 @DirtiesContext
 public class JmsTests extends ActiveMQMultiContextTests {
 
@@ -144,10 +145,6 @@ public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private CountDownLatch redeliveryLatch;
-
-	@Rule
-	public final Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.forLevel(Level.DEBUG)
-			.categories("org.springframework", "org.springframework.integration", "org.apache");
 
 	@Test
 	public void testPollingFlow() {
@@ -230,6 +227,20 @@ public class JmsTests extends ActiveMQMultiContextTests {
 				.isEqualTo("HELLO THROUGH THE JMS PIPELINE");
 
 		assertThat(this.jmsInboundGatewayChannelCalled.get()).isTrue();
+
+		message = MessageBuilder.withPayload("junk")
+				.setReplyChannel(replyChannel)
+				.setHeader("destination", "jmsPipelineTest")
+				.build();
+
+		this.jmsOutboundGatewayChannel.send(message);
+
+		receive = replyChannel.receive(5000);
+
+		assertThat(receive)
+				.isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo("error: junk is not convertible");
 	}
 
 	@Test
@@ -406,9 +417,22 @@ public class JmsTests extends ActiveMQMultiContextTests {
 			return IntegrationFlows.from(
 					Jms.inboundGateway(jmsConnectionFactory())
 							.requestChannel(jmsInboundGatewayInputChannel())
+							.replyTimeout(1)
+							.errorOnTimeout(true)
+							.errorChannel(new FixedSubscriberChannel(new AbstractReplyProducingMessageHandler() {
+
+								@Override
+								protected Object handleRequestMessage(Message<?> requestMessage) {
+									return "error: " +
+											((MessageTimeoutException) requestMessage.getPayload())
+													.getFailedMessage().getPayload() + " is not convertible";
+								}
+
+							}))
 							.destination("jmsPipelineTest")
 							.configureListenerContainer(c ->
 									c.transactionManager(mock(PlatformTransactionManager.class))))
+					.filter(payload -> !"junk".equals(payload))
 					.<String, String>transform(String::toUpperCase)
 					.get();
 		}

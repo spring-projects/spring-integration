@@ -88,7 +88,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
-	private final boolean errorOnTimeout;
+	private boolean errorOnTimeout;
 
 	private final AtomicLong messageCount = new AtomicLong();
 
@@ -139,6 +139,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * configured, the {@link MessageTimeoutException} will be thrown.
 	 * @param errorOnTimeout true to create the error message.
 	 * @since 4.2
+	 * @see #setErrorOnTimeout
 	 */
 	public MessagingGatewaySupport(boolean errorOnTimeout) {
 		MessagingTemplate template = new MessagingTemplate();
@@ -149,6 +150,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		this.errorOnTimeout = errorOnTimeout;
 	}
 
+	/**
+	 * If errorOnTimeout is true, construct an instance that will send an
+	 * {@link ErrorMessage} with a {@link MessageTimeoutException} payload to the error
+	 * channel if a reply is expected but none is received. If no error channel is
+	 * configured, the {@link MessageTimeoutException} will be thrown.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @since 5.2.2
+	 */
+	public void setErrorOnTimeout(boolean errorOnTimeout) {
+		this.errorOnTimeout = errorOnTimeout;
+	}
 
 	/**
 	 * Set the request channel.

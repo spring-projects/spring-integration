@@ -142,6 +142,10 @@ public class ChannelPublishingJmsMessageListener
 		this.gatewayDelegate.setReplyTimeout(replyTimeout);
 	}
 
+	public void setErrorOnTimeout(boolean errorOnTimeout) {
+		this.gatewayDelegate.setErrorOnTimeout(errorOnTimeout);
+	}
+
 	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.gatewayDelegate.setShouldTrack(shouldTrack);

@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,6 +33,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessagingTemplate;
@@ -60,7 +60,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Gary Russell
@@ -69,7 +70,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 5.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class IpIntegrationTests {
 
@@ -106,7 +107,7 @@ public class IpIntegrationTests {
 	private AtomicBoolean adviceCalled;
 
 	@Test
-	public void testTcpAdapters() {
+	void testTcpAdapters() {
 		ApplicationEventPublisher publisher = e -> { };
 		AbstractServerConnectionFactory server = Tcp.netServer(0).backlog(2).soTimeout(5000).id("server").get();
 		assertThat(server.getComponentName()).isEqualTo("server");
@@ -133,7 +134,7 @@ public class IpIntegrationTests {
 	}
 
 	@Test
-	public void testTcpGateways() {
+	void testTcpGateways() {
 		TestingUtilities.waitListening(this.server1, null);
 		this.client1.stop();
 		this.client1.setPort(this.server1.getPort());
@@ -142,12 +143,12 @@ public class IpIntegrationTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.clientTcpFlowInput);
 
 		assertThat(messagingTemplate.convertSendAndReceive("foo", String.class)).isEqualTo("FOO");
-
+		assertThat(messagingTemplate.convertSendAndReceive("junk", String.class)).isEqualTo("error:non-convertible");
 		assertThat(this.adviceCalled.get()).isTrue();
 	}
 
 	@Test
-	public void testUdp() throws Exception {
+	void testUdp() throws Exception {
 		assertThat(this.config.listeningLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.serverPort).isEqualTo(this.udpInbound.getPort());
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
@@ -160,7 +161,7 @@ public class IpIntegrationTests {
 	}
 
 	@Test
-	public void testUdpInheritance() {
+	void testUdpInheritance() {
 		UdpMulticastOutboundChannelAdapterSpec udpMulticastOutboundChannelAdapterSpec =
 				Udp.outboundMulticastAdapter("headers['udp_dest']");
 
@@ -174,7 +175,7 @@ public class IpIntegrationTests {
 	}
 
 	@Test
-	public void testCloseStream() throws InterruptedException {
+	void testCloseStream() throws InterruptedException {
 		IntegrationFlow server = IntegrationFlows.from(Tcp.inboundGateway(Tcp.netServer(0)
 				.deserializer(new ByteArrayRawSerializer())))
 				.<byte[], String>transform(p -> "reply:" + new String(p).toUpperCase())
@@ -192,19 +193,19 @@ public class IpIntegrationTests {
 		}
 		this.applicationContext.addApplicationListener(new Listener());
 		this.flowContext.registration(server)
-			.id("streamCloseServer")
-			.register();
+				.id("streamCloseServer")
+				.register();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		IntegrationFlow client = IntegrationFlows.from(MessageChannels.direct())
-			.handle(Tcp.outboundGateway(Tcp.netClient("localhost", port.get())
-					.singleUseConnections(true)
-					.serializer(new ByteArrayRawSerializer()))
-				.closeStreamAfterSend(true))
-			.transform(Transformers.objectToString())
-			.get();
+				.handle(Tcp.outboundGateway(Tcp.netClient("localhost", port.get())
+						.singleUseConnections(true)
+						.serializer(new ByteArrayRawSerializer()))
+						.closeStreamAfterSend(true))
+				.transform(Transformers.objectToString())
+				.get();
 		IntegrationFlowRegistration clientRegistration = this.flowContext.registration(client)
-			.id("streamCloseClient")
-			.register();
+				.id("streamCloseClient")
+				.register();
 		assertThat(clientRegistration.getMessagingTemplate()
 				.convertSendAndReceive("foo", String.class)).isEqualTo("reply:FOO");
 	}
@@ -227,10 +228,29 @@ public class IpIntegrationTests {
 
 		@Bean
 		public IntegrationFlow inTcpGateway() {
-			return IntegrationFlows.from(Tcp.inboundGateway(server1()))
+			return IntegrationFlows.from(
+					Tcp.inboundGateway(server1())
+							.replyTimeout(1)
+							.errorOnTimeout(true)
+							.errorChannel("inTcpGatewayErrorFlow.input"))
 					.transform(Transformers.objectToString())
+					.<String>filter((payload) -> !"junk".equals(payload))
 					.<String, String>transform(String::toUpperCase)
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow inTcpGatewayErrorFlow() {
+			return (flow) -> flow
+					.<Exception>handle((payload, headers) -> {
+						if (payload instanceof MessageTimeoutException) {
+							return "error:non-convertible";
+						}
+						else {
+							ReflectionUtils.rethrowRuntimeException(payload);
+							return null;
+						}
+					});
 		}
 
 		@Bean
@@ -252,7 +272,7 @@ public class IpIntegrationTests {
 
 		@Bean
 		public ApplicationListener<UdpServerListeningEvent> events() {
-			return (ApplicationListener<UdpServerListeningEvent>) event -> {
+			return event -> {
 				this.serverPort = event.getPort();
 				this.listeningLatch.countDown();
 			};

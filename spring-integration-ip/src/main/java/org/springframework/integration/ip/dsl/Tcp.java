@@ -24,6 +24,8 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
  *
  * @author Gary Russell
  * @author Tim Ysewyn
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -31,7 +33,6 @@ public final class Tcp {
 
 	/**
 	 * Boolean indicating the connection factory should use NIO.
-	 *
 	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
 	@Deprecated
@@ -40,7 +41,6 @@ public final class Tcp {
 	/**
 	 * Boolean indicating the connection factory should not use NIO
 	 * (default).
-	 *
 	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
 	@Deprecated
@@ -124,6 +124,7 @@ public final class Tcp {
 	 */
 	public static TcpInboundChannelAdapterSpec inboundAdapter(
 			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+
 		return new TcpInboundChannelAdapterSpec(connectionFactorySpec);
 	}
 
@@ -163,6 +164,7 @@ public final class Tcp {
 	 */
 	public static TcpOutboundChannelAdapterSpec outboundAdapter(
 			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+
 		return new TcpOutboundChannelAdapterSpec(connectionFactorySpec);
 	}
 
