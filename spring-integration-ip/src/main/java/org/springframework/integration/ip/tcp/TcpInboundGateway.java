@@ -83,6 +83,21 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile boolean shuttingDown;
 
+	public TcpInboundGateway() {
+		this(false);
+	}
+
+	/**
+	 * Instantiate based on the provided flag to indicate if an {@link ErrorMessage}
+	 * with a {@link org.springframework.integration.MessageTimeoutException} as a payload
+	 * will be sent into an error channel if a reply is expected but none is received.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @since 5.2.2
+	 */
+	public TcpInboundGateway(boolean errorOnTimeout) {
+		super(errorOnTimeout);
+	}
+
 	@Override
 	public boolean onMessage(Message<?> message) {
 		boolean isErrorMessage = message instanceof ErrorMessage;
