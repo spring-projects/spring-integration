@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
