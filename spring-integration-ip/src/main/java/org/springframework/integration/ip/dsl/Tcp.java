@@ -24,6 +24,8 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
  *
  * @author Gary Russell
  * @author Tim Ysewyn
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -31,7 +33,6 @@ public final class Tcp {
 
 	/**
 	 * Boolean indicating the connection factory should use NIO.
-	 *
 	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
 	@Deprecated
@@ -40,7 +41,6 @@ public final class Tcp {
 	/**
 	 * Boolean indicating the connection factory should not use NIO
 	 * (default).
-	 *
 	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
 	@Deprecated
@@ -95,8 +95,23 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory) {
-		return new TcpInboundGatewaySpec(connectionFactory);
+		return inboundGateway(connectionFactory, false);
 	}
+
+	/**
+	 * Create an inbound gateway using the supplied connection factory.
+	 * @param connectionFactory the connection factory - must be an existing bean - it
+	 * will not be initialized.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @return the spec.
+	 * @since 5.2.2
+	 */
+	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory,
+			boolean errorOnTimeout) {
+
+		return new TcpInboundGatewaySpec(connectionFactory, errorOnTimeout);
+	}
+
 
 	/**
 	 * Create an inbound gateway using the supplied connection factory.
@@ -104,7 +119,20 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
-		return new TcpInboundGatewaySpec(connectionFactorySpec);
+		return inboundGateway(connectionFactorySpec, false);
+	}
+
+	/**
+	 * Create an inbound gateway using the supplied connection factory.
+	 * @param connectionFactorySpec the connection factory spec.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @return the spec.
+	 * @since 5.2.2
+	 */
+	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec,
+			boolean errorOnTimeout) {
+
+		return new TcpInboundGatewaySpec(connectionFactorySpec, errorOnTimeout);
 	}
 
 	/**
@@ -124,6 +152,7 @@ public final class Tcp {
 	 */
 	public static TcpInboundChannelAdapterSpec inboundAdapter(
 			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+
 		return new TcpInboundChannelAdapterSpec(connectionFactorySpec);
 	}
 
@@ -163,6 +192,7 @@ public final class Tcp {
 	 */
 	public static TcpOutboundChannelAdapterSpec outboundAdapter(
 			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+
 		return new TcpOutboundChannelAdapterSpec(connectionFactorySpec);
 	}
 
