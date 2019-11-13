@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.reactivestreams.Publisher;
@@ -26,11 +24,10 @@ import org.reactivestreams.Subscriber;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
-import reactor.core.Disposable;
-import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the
@@ -46,11 +43,9 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final AtomicInteger subscribed = new AtomicInteger();
 
-	private final Map<Publisher<? extends Message<?>>, ConnectableFlux<?>> publishers = new ConcurrentHashMap<>();
-
-	private final Map<ConnectableFlux<?>, Disposable> disposables = new ConcurrentHashMap<>();
-
 	private final EmitterProcessor<Message<?>> flux;
+
+	private final EmitterProcessor<Integer> subscriptionDelay = EmitterProcessor.create(false);
 
 	private FluxSink<Message<?>> sink;
 
@@ -72,34 +67,27 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.flux.doFinally((signal) -> this.subscribed.decrementAndGet())
 				.retry()
 				.subscribe(subscriber);
-		this.subscribed.incrementAndGet();
-		this.publishers.values()
-				.forEach((connectableFlux) -> this.disposables.put(connectableFlux, connectableFlux.connect()));
+		this.subscriptionDelay.onNext(this.subscribed.incrementAndGet());
 	}
 
 	@Override
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-		ConnectableFlux<?> connectableFlux =
-				Flux.from(publisher)
-						.handle((message, sink) -> sink.next(send(message)))
-						.onErrorContinue((throwable, event) ->
-								logger.warn("Error during processing event: " + event, throwable))
-						.doFinally((signal) -> this.disposables.remove(this.publishers.remove(publisher)))
-						.publish();
-
-		this.publishers.put(publisher, connectableFlux);
-
-		if (this.subscribed.get() > 0) {
-			connectableFlux.connect((disposable) -> this.disposables.put(connectableFlux, disposable));
-		}
+		Flux.from(publisher)
+				.handle((message, sink) -> sink.next(send(message)))
+				.onErrorContinue((throwable, event) ->
+						logger.warn("Error during processing event: " + event, throwable))
+				.delaySubscription(
+						Mono.fromSupplier(this.subscribed::get)
+								.filter((subscribers) -> subscribers > 0)
+								.switchIfEmpty(this.subscriptionDelay.next()))
+				.subscribe();
 	}
 
 	@Override
 	public void destroy() {
-		super.destroy();
-
+		this.subscriptionDelay.onComplete();
 		this.flux.onComplete();
-		this.disposables.values().forEach(Disposable::dispose);
+		super.destroy();
 	}
 
 }

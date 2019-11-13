@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,6 +50,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.Disposable;
+import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 
 /**
@@ -139,9 +139,9 @@ public class FluxMessageChannelTests {
 
 		assertThat(finishLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
-		assertThat(TestUtils.getPropertyValue(flux, "publishers", Map.class).isEmpty()).isTrue();
-
 		flowRegistration.destroy();
+
+		assertThat(TestUtils.getPropertyValue(flux, "flux", EmitterProcessor.class).isTerminated()).isTrue();
 	}
 
 	@Configuration
