@@ -167,7 +167,8 @@ class FunctionsTests {
 
 		@Bean
 		fun flowFromSupplier() =
-				IntegrationFlows.from<String>({ "bar" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+				IntegrationFlows.from<String>({ "" }) { e -> e.poller { p -> p.fixedDelay(10).maxMessagesPerPoll(1) } }
+						.transform<String, String> { "blank" }
 						.channel { c -> c.queue("fromSupplierQueue") }
 						.get()
 
