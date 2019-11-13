@@ -155,6 +155,22 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	}
 
 	/**
+	 * If errorOnTimeout is true, construct an instance that will send an
+	 * {@link org.springframework.messaging.support.ErrorMessage} with a
+	 * {@link org.springframework.integration.MessageTimeoutException} payload to the error channel
+	 * if a reply is expected but none is received. If no error channel is configured,
+	 * the {@link org.springframework.integration.MessageTimeoutException} will be thrown.
+	 * @param errorOnTimeout true to create the error message on reply timeout.
+	 * @return the spec
+	 * @since 5.2.2
+	 * @see MessagingGatewaySupport#setErrorOnTimeout
+	 */
+	public S errorOnTimeout(boolean errorOnTimeout) {
+		this.target.setErrorOnTimeout(errorOnTimeout);
+		return _this();
+	}
+
+	/**
 	 * An {@link InboundMessageMapper} to use.
 	 * @param requestMapper the requestMapper.
 	 * @return the spec.

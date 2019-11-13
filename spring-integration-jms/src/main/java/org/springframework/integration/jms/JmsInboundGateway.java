@@ -91,6 +91,12 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 	}
 
 	@Override
+	public void setErrorOnTimeout(boolean errorOnTimeout) {
+		super.setErrorOnTimeout(errorOnTimeout);
+		this.endpoint.getListener().setErrorOnTimeout(errorOnTimeout);
+	}
+
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		super.setShouldTrack(shouldTrack);
 		this.endpoint.setShouldTrack(shouldTrack);
@@ -107,6 +113,8 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Orderl
 	public void setShutdownContainerOnStop(boolean shutdownContainerOnStop) {
 		this.endpoint.setShutdownContainerOnStop(shutdownContainerOnStop);
 	}
+
+
 
 	@Override
 	public String getComponentType() {

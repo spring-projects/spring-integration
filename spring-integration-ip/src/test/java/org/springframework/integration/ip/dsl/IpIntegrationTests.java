@@ -229,8 +229,9 @@ public class IpIntegrationTests {
 		@Bean
 		public IntegrationFlow inTcpGateway() {
 			return IntegrationFlows.from(
-					Tcp.inboundGateway(server1(), true)
+					Tcp.inboundGateway(server1())
 							.replyTimeout(1)
+							.errorOnTimeout(true)
 							.errorChannel("inTcpGatewayErrorFlow.input"))
 					.transform(Transformers.objectToString())
 					.<String>filter((payload) -> !"junk".equals(payload))
