@@ -89,8 +89,8 @@ ext {
 	rsocketVersion = '1.0.0-RC5'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.1.RELEASE'
-	springDataVersion = 'Moore-SR1'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.2.BUILD-SNAPSHOT'
+	springDataVersion = 'Moore-BUILD-SNAPSHOT'
 	springSecurityVersion = '5.2.1.RELEASE'
 	springRetryVersion = '1.2.4.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.2.BUILD-SNAPSHOT'
@@ -292,7 +292,6 @@ subprojects { subproject ->
 	test {
 		maxHeapSize = '1536m'
 		jacoco {
-			append = false
 			destinationFile = file("$buildDir/jacoco.exec")
 		}
 	}
