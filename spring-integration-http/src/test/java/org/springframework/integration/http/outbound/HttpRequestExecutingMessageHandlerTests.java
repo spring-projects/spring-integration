@@ -840,7 +840,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		assertThat(exception.getCause().getMessage()).isEqualTo("404 Not Found");
+		assertThat(exception.getCause().getMessage()).contains("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertThat(accept.size() > 0).isTrue();
 		assertThat(accept.get(0).getType()).isEqualTo("application");
@@ -876,7 +876,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		assertThat(exception.getCause().getMessage()).isEqualTo("404 Not Found");
+		assertThat(exception.getCause().getMessage()).contains("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertThat(accept.size() > 0).isTrue();
 		assertThat(accept.get(0).getType()).isEqualTo("application");
