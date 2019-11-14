@@ -185,14 +185,21 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	private Mono<Message<?>> decodeRequestMessage(Message<?> requestMessage) {
-		return Mono.just(decodePayload(requestMessage))
-				.map((payload) ->
-						MessageBuilder.withPayload(payload)
-								.copyHeaders(requestMessage.getHeaders())
-								.build());
+		Object data = decodePayload(requestMessage);
+		if (data == null) {
+			return Mono.just(requestMessage);
+		}
+		else {
+			return Mono.just(data)
+					.map((payload) ->
+							MessageBuilder.withPayload(payload)
+									.copyHeaders(requestMessage.getHeaders())
+									.build());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private Object decodePayload(Message<?> requestMessage) {
 		ResolvableType elementType = this.requestElementType;
 		MimeType mimeType = requestMessage.getHeaders().get(MessageHeaders.CONTENT_TYPE, MimeType.class);
