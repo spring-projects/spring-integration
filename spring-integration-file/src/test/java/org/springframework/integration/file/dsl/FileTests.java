@@ -333,7 +333,7 @@ public class FileTests {
 		@Bean
 		public IntegrationFlow fileFlow1() {
 			return IntegrationFlows.from("fileFlow1Input")
-					.handle(Files.outboundAdapter(tmpDir.getRoot())
+					.handle(Files.outboundAdapter("'file://" + tmpDir.getRoot().getAbsolutePath() + '\'')
 									.fileNameGenerator(message -> null)
 									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
 									.flushInterval(60000)
