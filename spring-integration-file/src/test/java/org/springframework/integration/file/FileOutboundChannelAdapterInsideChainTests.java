@@ -22,69 +22,47 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.FileCopyUtils;
 
 /**
- * //INT-2275
- *
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class FileOutboundChannelAdapterInsideChainTests {
 
-	public static final String TEST_FILE_NAME = FileOutboundChannelAdapterInsideChainTests.class.getSimpleName();
+	static final String TEST_FILE_NAME = FileOutboundChannelAdapterInsideChainTests.class.getSimpleName();
 
-	public static final String WORK_DIR_NAME = System.getProperty("java.io.tmpdir") + "/" + FileOutboundChannelAdapterInsideChainTests.class.getSimpleName() + "Dir";
+	static final String SAMPLE_CONTENT = "test";
 
-	public static final String SAMPLE_CONTENT = "test";
+	@TempDir
+	static File WORK_DIR;
 
 	public static Properties placeholderProperties = new Properties();
-
-	static {
-		placeholderProperties.put("test.file", TEST_FILE_NAME);
-		placeholderProperties.put("work.dir", WORK_DIR_NAME);
-	}
 
 	@Autowired
 	private MessageChannel outboundChainChannel;
 
-	private static File workDir;
-
-	@BeforeClass
-	public static void setupClass() {
-		workDir = new File(WORK_DIR_NAME);
-		workDir.mkdir();
-		workDir.deleteOnExit();
+	@BeforeAll
+	static void setupClass() {
+		placeholderProperties.put("test.file", TEST_FILE_NAME);
+		placeholderProperties.put("work.dir", "'file://" + WORK_DIR.getAbsolutePath() + '\'');
 	}
 
-	@AfterClass
-	public static void cleanUp() {
-		if (workDir != null && workDir.exists()) {
-			for (File file : workDir.listFiles()) {
-				file.delete();
-			}
-		}
-		workDir.delete();
-	}
-
-	@Test //INT-2275
-	public void testFileOutboundChannelAdapterWithinChain() throws IOException {
+	@Test
+	void testFileOutboundChannelAdapterWithinChain() throws IOException {
 		Message<String> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		outboundChainChannel.send(message);
-		File testFile = new File(workDir, TEST_FILE_NAME);
+		File testFile = new File(WORK_DIR, TEST_FILE_NAME);
 		assertThat(testFile.exists()).isTrue();
 		byte[] testFileContent = FileCopyUtils.copyToByteArray(testFile);
 		assertThat(SAMPLE_CONTENT).isEqualTo(new String(testFileContent));

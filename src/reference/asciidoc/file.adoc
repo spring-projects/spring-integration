@@ -688,7 +688,8 @@ If you want to have full SpEL support, you can use the `directory-expression` at
 This attribute accepts a SpEL expression that is evaluated for each message being processed.
 Thus, you have full access to a message's payload and its headers when you dynamically specify the output file directory.
 
-The SpEL expression must resolve to either a `String` or to `java.io.File`.
+The SpEL expression must resolve to either a `String`, `java.io.File` or `org.springframework.core.io.Resource`.
+(The later is evaluated into )
 Furthermore, the resulting `String` or `File` must point to a directory.
 If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
 

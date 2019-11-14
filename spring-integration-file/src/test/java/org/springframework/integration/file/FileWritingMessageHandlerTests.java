@@ -17,6 +17,8 @@
 package org.springframework.integration.file;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,19 +41,21 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -79,36 +83,36 @@ public class FileWritingMessageHandlerTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n????";
+	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
 
 	private File sourceFile;
 
-	@Rule
-	public TemporaryFolder temp = new TemporaryFolder() {
-
-		@Override
-		public void create() throws IOException {
-			super.create();
-			outputDirectory = temp.newFolder("outputDirectory");
-			handler = new FileWritingMessageHandler(outputDirectory);
-			handler.setBeanFactory(mock(BeanFactory.class));
-			handler.afterPropertiesSet();
-			sourceFile = temp.newFile("sourceFile");
-			FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
-					new FileOutputStream(sourceFile, false));
-		}
-
-	};
+	@TempDir
+	File tempDir;
 
 	private File outputDirectory;
 
 	private FileWritingMessageHandler handler;
 
-	@Test(expected = MessageHandlingException.class)
+	@BeforeEach
+	void setup() throws IOException {
+		outputDirectory = new File(tempDir, "outputDirectory");
+		sourceFile = new File(tempDir, "sourceFile");
+		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
+				new FileOutputStream(sourceFile, false));
+
+		this.handler = new FileWritingMessageHandler(this.outputDirectory);
+		this.handler.setBeanFactory(mock(BeanFactory.class));
+		this.handler.setApplicationContext(new GenericApplicationContext());
+		this.handler.afterPropertiesSet();
+
+	}
+
+	@Test
 	public void unsupportedType() {
-		this.handler.handleMessage(new GenericMessage<>(99));
-		assertThat(this.outputDirectory.listFiles()[0]).isNull();
+		assertThatExceptionOfType(MessageHandlingException.class)
+				.isThrownBy(() -> this.handler.handleMessage(new GenericMessage<>(99)));
 	}
 
 	@Test
@@ -138,7 +142,7 @@ public class FileWritingMessageHandlerTests {
 			handler.setChmod(0777);
 		}
 		handler.setOutputChannel(new NullChannel());
-		handler.handleMessage(new GenericMessage<String>("test"));
+		handler.handleMessage(new GenericMessage<>("test"));
 		File[] output = outputDirectory.listFiles();
 		assertThat(output.length).isEqualTo(1);
 		assertThat(output[0]).isNotNull();
@@ -265,18 +269,14 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	@Ignore("INT-3289: doesn't fail on all OS")
+	@Disabled("INT-3289: doesn't fail on all OS")
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
 		handler.setBeanFactory(mock(BeanFactory.class));
-		try {
-			handler.afterPropertiesSet();
-			fail("Expected exception");
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).contains("[/foo] could not be created");
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(handler::afterPropertiesSet)
+				.withMessageContaining("[/foo] could not be created");
 	}
 
 	@Test
@@ -369,7 +369,7 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	public void deleteSourceFileWithInputstreamPayloadAndFileInstanceHeader() throws Exception {
+	public void deleteSourceFileWithInputStreamPayloadAndFileInstanceHeader() throws Exception {
 		QueueChannel output = new QueueChannel();
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setDeleteSourceFiles(true);
@@ -388,7 +388,7 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	public void deleteSourceFileWithInputstreamPayloadAndFilePathHeader() throws Exception {
+	public void deleteSourceFileWithInputStreamPayloadAndFilePathHeader() throws Exception {
 		QueueChannel output = new QueueChannel();
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setDeleteSourceFiles(true);
@@ -407,7 +407,7 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	public void customFileNameGenerator() throws Exception {
+	public void customFileNameGenerator() {
 		final String anyFilename = "fooBar.test";
 		QueueChannel output = new QueueChannel();
 		handler.setOutputChannel(output);
@@ -422,7 +422,7 @@ public class FileWritingMessageHandlerTests {
 	public void existingFileIgnored() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		QueueChannel output = new QueueChannel();
-		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg");
+		File outFile = new File(tempDir, "/outputDirectory/" + message.getHeaders().getId().toString() + ".msg");
 		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
@@ -436,7 +436,8 @@ public class FileWritingMessageHandlerTests {
 	public void existingWritingFileIgnored() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		QueueChannel output = new QueueChannel();
-		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
+		File outFile =
+				new File(tempDir, "/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
 		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
@@ -453,7 +454,8 @@ public class FileWritingMessageHandlerTests {
 	public void existingWritingFileNotIgnoredIfEmptySuffix() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
 		QueueChannel output = new QueueChannel();
-		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
+		File outFile =
+				new File(tempDir, "/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
 		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
@@ -470,7 +472,7 @@ public class FileWritingMessageHandlerTests {
 
 	@Test
 	public void noFlushAppend() throws Exception {
-		File tempFolder = this.temp.newFolder();
+		File tempFolder = new File(tempDir, UUID.randomUUID().toString());
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder);
 		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
 		handler.setFileNameGenerator(message -> "foo.txt");
@@ -483,10 +485,10 @@ public class FileWritingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.start();
 		File file = new File(tempFolder, "foo.txt");
-		handler.handleMessage(new GenericMessage<String>("foo"));
-		handler.handleMessage(new GenericMessage<String>("bar"));
-		handler.handleMessage(new GenericMessage<String>("baz"));
-		handler.handleMessage(new GenericMessage<byte[]>("qux".getBytes())); // change of payload type forces flush
+		handler.handleMessage(new GenericMessage<>("foo"));
+		handler.handleMessage(new GenericMessage<>("bar"));
+		handler.handleMessage(new GenericMessage<>("baz"));
+		handler.handleMessage(new GenericMessage<>("qux".getBytes())); // change of payload type forces flush
 		assertThat(file.length()).isGreaterThanOrEqualTo(9L);
 		handler.stop(); // forces flush
 		assertThat(file.length()).isEqualTo(12L);
@@ -499,7 +501,7 @@ public class FileWritingMessageHandlerTests {
 		}
 		assertThat(file.length()).isEqualTo(15L);
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
-		handler.trigger(new GenericMessage<String>(Matcher.quoteReplacement(file.getAbsolutePath())));
+		handler.trigger(new GenericMessage<>(Matcher.quoteReplacement(file.getAbsolutePath())));
 		assertThat(file.length()).isEqualTo(18L);
 		assertThat(TestUtils.getPropertyValue(handler, "fileStates", Map.class).size()).isEqualTo(0);
 
@@ -510,7 +512,7 @@ public class FileWritingMessageHandlerTests {
 			return true;
 		});
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
-		handler.trigger(new GenericMessage<String>("foo"));
+		handler.trigger(new GenericMessage<>("foo"));
 		assertThat(file.length()).isEqualTo(21L);
 		assertThat(called.get()).isTrue();
 
@@ -536,7 +538,7 @@ public class FileWritingMessageHandlerTests {
 		handler.setFlushWhenIdle(false);
 		handler.start();
 		for (int i = 0; i < 40; i++) {
-			handler.handleMessage(new GenericMessage<String>("foo"));
+			handler.handleMessage(new GenericMessage<>("foo"));
 			Thread.sleep(5);
 		}
 		assertThat(flushes.get()).isGreaterThanOrEqualTo(2);
@@ -545,7 +547,7 @@ public class FileWritingMessageHandlerTests {
 
 	@Test
 	public void lockForFlush() throws Exception {
-		File tempFolder = this.temp.newFolder();
+		File tempFolder = new File(tempDir, UUID.randomUUID().toString());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final BufferedOutputStream out = spy(new BufferedOutputStream(baos));
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder) {
@@ -617,7 +619,7 @@ public class FileWritingMessageHandlerTests {
 
 	@Test
 	public void replaceIfDifferentFile() throws IOException {
-		File file = new File(this.temp.newFolder(), "foo.txt");
+		File file = new File(this.tempDir, "foo.txt");
 		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(file));
 		file.setLastModified(42_000_000);
 		QueueChannel output = new QueueChannel();
@@ -691,8 +693,7 @@ public class FileWritingMessageHandlerTests {
 	protected File messageToFile(Message<?> result) {
 		assertThat(result).isNotNull();
 		assertThat(result.getPayload()).isInstanceOf(File.class);
-		File destFile = (File) result.getPayload();
-		return destFile;
+		return (File) result.getPayload();
 	}
 
 }

@@ -17,6 +17,8 @@
 package org.springframework.integration.expression;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -39,6 +42,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ResourceUtils;
 
 /**
  * Utility class with static methods for helping with evaluation of SpEL expressions.
@@ -53,7 +57,7 @@ public final class ExpressionUtils {
 
 	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-	private static final Log logger = LogFactory.getLog(ExpressionUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(ExpressionUtils.class);
 
 	private ExpressionUtils() {
 		super();
@@ -84,7 +88,7 @@ public final class ExpressionUtils {
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(@Nullable BeanFactory beanFactory) {
 		if (beanFactory == null) {
-			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
+			LOGGER.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
 		return (StandardEvaluationContext) doCreateContext(beanFactory, false);
 	}
@@ -98,7 +102,7 @@ public final class ExpressionUtils {
 	 */
 	public static SimpleEvaluationContext createSimpleEvaluationContext(@Nullable BeanFactory beanFactory) {
 		if (beanFactory == null) {
-			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
+			LOGGER.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
 		return (SimpleEvaluationContext) doCreateContext(beanFactory, true);
 	}
@@ -168,29 +172,49 @@ public final class ExpressionUtils {
 	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext,
 			@Nullable Message<?> message, String name) {
 
-		File file;
-		Object value = message == null
-				? expression.getValue(evaluationContext)
-				: expression.getValue(evaluationContext, message);
-		if (value == null) {
-			throw new IllegalStateException(String.format("The provided %s expression (%s) must not evaluate to null.",
-					name, expression.getExpressionString()));
-		}
-		else if (value instanceof File) {
-			file = (File) value;
+		Object value =
+				message == null
+						? expression.getValue(evaluationContext)
+						: expression.getValue(evaluationContext, message);
+
+		Assert.state(value != null, () ->
+				String.format("The provided %s expression (%s) must not evaluate to null.",
+						name, expression.getExpressionString()));
+
+		if (value instanceof File) {
+			return (File) value;
 		}
 		else if (value instanceof String) {
 			String path = (String) value;
 			Assert.hasText(path, String.format("Unable to resolve %s for the provided Expression '%s'.", name,
 					expression.getExpressionString()));
-			file = new File(path);
+			try {
+				return ResourceUtils.getFile(path);
+			}
+			catch (FileNotFoundException ex) {
+				throw new IllegalStateException(
+						String.format("Unable to resolve %s for the provided Expression '%s'.",
+								name, expression.getExpressionString()),
+						ex);
+			}
+		}
+		else if (value instanceof Resource) {
+			try {
+				return ((Resource) value).getFile();
+			}
+			catch (IOException ex) {
+				throw new IllegalStateException(
+						String.format("Unable to resolve %s for the provided Expression '%s'.",
+								name, expression.getExpressionString()),
+						ex);
+			}
 		}
 		else {
 			throw new IllegalStateException(String.format(
-					"The provided %s expression (%s) must evaluate to type java.io.File or String, not %s.", name,
+					"The provided %s expression (%s) must evaluate to type java.io.File, String " +
+							"or org.springframework.core.io.Resource, not %s.", name,
 					expression.getExpressionString(), value.getClass().getName()));
 		}
-		return file;
 	}
 
 	/**
