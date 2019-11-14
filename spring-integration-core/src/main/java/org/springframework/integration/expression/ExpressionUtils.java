@@ -165,12 +165,12 @@ public final class ExpressionUtils {
 	 * @param expression the expression.
 	 * @param evaluationContext the evaluation context.
 	 * @param message the message (if available).
-	 * @param name the name of the result of the evaluation.
+	 * @param propertyName the property name the expression is evaluated for.
 	 * @return the File.
 	 * @since 5.0
 	 */
 	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext,
-			@Nullable Message<?> message, String name) {
+			@Nullable Message<?> message, String propertyName) {
 
 		Object value =
 				message == null
@@ -179,14 +179,14 @@ public final class ExpressionUtils {
 
 		Assert.state(value != null, () ->
 				String.format("The provided %s expression (%s) must not evaluate to null.",
-						name, expression.getExpressionString()));
+						propertyName, expression.getExpressionString()));
 
 		if (value instanceof File) {
 			return (File) value;
 		}
 		else if (value instanceof String) {
 			String path = (String) value;
-			Assert.hasText(path, String.format("Unable to resolve %s for the provided Expression '%s'.", name,
+			Assert.hasText(path, String.format("Unable to resolve %s for the provided Expression '%s'.", propertyName,
 					expression.getExpressionString()));
 			try {
 				return ResourceUtils.getFile(path);
@@ -194,7 +194,7 @@ public final class ExpressionUtils {
 			catch (FileNotFoundException ex) {
 				throw new IllegalStateException(
 						String.format("Unable to resolve %s for the provided Expression '%s'.",
-								name, expression.getExpressionString()),
+								propertyName, expression.getExpressionString()),
 						ex);
 			}
 		}
@@ -205,14 +205,14 @@ public final class ExpressionUtils {
 			catch (IOException ex) {
 				throw new IllegalStateException(
 						String.format("Unable to resolve %s for the provided Expression '%s'.",
-								name, expression.getExpressionString()),
+								propertyName, expression.getExpressionString()),
 						ex);
 			}
 		}
 		else {
 			throw new IllegalStateException(String.format(
 					"The provided %s expression (%s) must evaluate to type java.io.File, String " +
-							"or org.springframework.core.io.Resource, not %s.", name,
+							"or org.springframework.core.io.Resource, not %s.", propertyName,
 					expression.getExpressionString(), value.getClass().getName()));
 		}
 	}
