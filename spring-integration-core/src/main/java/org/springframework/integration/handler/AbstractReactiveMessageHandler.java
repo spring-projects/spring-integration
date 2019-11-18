@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,35 @@
 
 package org.springframework.integration.handler;
 
-import org.reactivestreams.Subscription;
-
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
 
-import reactor.core.CoreSubscriber;
+import reactor.core.publisher.Mono;
 
 /**
- * Base class for {@link MessageHandler} implementations.
+ * Base class for {@link ReactiveMessageHandler} implementations.
  *
  * @author David Turanski
+ *
+ * @since 5.3
  */
+public abstract class AbstractReactiveMessageHandler extends AbstractBaseMessageHandler
+		implements ReactiveMessageHandler {
 
-@SuppressWarnings("deprecation")
-public abstract class AbstractMessageHandler extends AbstractBaseMessageHandler
-		implements MessageHandler, CoreSubscriber<Message<?>> {
-	public void handleMessage(Message<?> message) {
+	@Override
+	public Mono<Void> handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null"); // NOSONAR - false positive
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
+		//TODO: Can't capture metrics the same way in this context since returning a Mono<>
 		org.springframework.integration.support.management.MetricsContext start = null;
+
 		SampleFacade sample = null;
 		if (this.countsEnabled && this.metricsCaptor != null) {
 			sample = this.metricsCaptor.start();
@@ -51,17 +53,7 @@ public abstract class AbstractMessageHandler extends AbstractBaseMessageHandler
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, getMessageBuilderFactory());
 			}
-			if (this.countsEnabled) {
-				start = this.handlerMetrics.beforeHandle();
-				handleMessageInternal(message);
-				if (sample != null) {
-					sample.stop(sendTimer());
-				}
-				this.handlerMetrics.afterHandle(start, true);
-			}
-			else {
-				handleMessageInternal(message);
-			}
+			return handleMessageInternal(message);
 		}
 		catch (Exception e) {
 			if (sample != null) {
@@ -75,26 +67,5 @@ public abstract class AbstractMessageHandler extends AbstractBaseMessageHandler
 		}
 	}
 
-	@Override
-	public void onSubscribe(Subscription subscription) {
-		Assert.notNull(subscription, "'subscription' must not be null");
-		subscription.request(Long.MAX_VALUE);
-	}
-
-	@Override
-	public void onError(Throwable throwable) {
-
-	}
-
-	@Override
-	public void onComplete() {
-
-	}
-
-	@Override
-	public void onNext(Message<?> message) {
-		handleMessage(message);
-	}
-
-	protected abstract void handleMessageInternal(Message<?> message);
+	protected abstract Mono<Void> handleMessageInternal(Message<?> message);
 }
