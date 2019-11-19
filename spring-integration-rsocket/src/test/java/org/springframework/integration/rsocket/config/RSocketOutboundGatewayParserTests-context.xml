@@ -17,7 +17,7 @@
 	<int-rsocket:outbound-gateway id="outboundGateway"
 								  client-rsocket-connector="clientRSocketConnector"
 								  auto-startup="false"
-								  command="fireAndForget"
+								  interaction-model="fireAndForget"
 								  route-expression="'testRoute'"
 								  request-channel="requestChannel"
 								  publisher-element-type="byte[]"

@@ -19,6 +19,7 @@ package org.springframework.integration.rsocket.dsl;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.inbound.RSocketInboundGateway;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 
@@ -33,6 +34,18 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 
 	RSocketInboundGatewaySpec(String... path) {
 		super(new RSocketInboundGateway(path));
+	}
+
+	/**
+	 * Configure a set of {@link RSocketInteractionModel} the endpoint is going to be mapped onto.
+	 * @param interactionModels the {@link RSocketInteractionModel}s for mapping.
+	 * @return the spec.
+	 * @since 5.2.2
+	 * @see RSocketInboundGateway#setInteractionModels(RSocketInteractionModel...)
+	 */
+	public RSocketInboundGatewaySpec interactionModels(RSocketInteractionModel... interactionModels) {
+		this.target.setInteractionModels(interactionModels);
+		return this;
 	}
 
 	/**

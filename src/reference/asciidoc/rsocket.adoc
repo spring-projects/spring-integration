@@ -122,6 +122,8 @@ See the next section for more information.
 
 The `RSocketInboundGateway` is responsible for receiving RSocket requests and producing responses (if any).
 It requires an array of `path` mapping which could be as patterns similar to MVC request mapping or `@MessageMapping` semantics.
+In addition (since version 5.2.2), a set of interaction models (see `RSocketInteractionModel`) can be configured on the `RSocketInboundGateway` to restrict RSocket requests to this endpoint by the particular frame type.
+By default all the interaction models are supported.
 Such a bean, according its `IntegrationRSocketEndpoint` implementation (extension of a `ReactiveMessageHandler`), is auto detected either by the `ServerRSocketConnector` or `ClientRSocketConnector` for a routing logic in the internal `IntegrationRSocketMessageHandler` for incoming requests.
 An `AbstractRSocketConnector` can be provided to the `RSocketInboundGateway` for explicit endpoint registration.
 This way, the auto-detection option is disabled on that `AbstractRSocketConnector`.
@@ -132,7 +134,7 @@ In this case, an `RSocketInboundGateway` performs a plain `send` operation into 
 Otherwise a `MonoProcessor` value from the `RSocketPayloadReturnValueHandler.RESPONSE_HEADER` header is used for sending a reply to the RSocket.
 For this purpose, an `RSocketInboundGateway` performs a `sendAndReceiveMessageReactive` operation on the `outputChannel`.
 The `payload` of the message to send downstream is always a `Flux` according to `MessagingRSocket` logic.
-When in a `fireAndForget` RSocket interaction model, the messsage has a plain converted `payload`.
+When in a `fireAndForget` RSocket interaction model, the message has a plain converted `payload`.
 The reply `payload` could be a plain object or a `Publisher` - the `RSocketInboundGateway` converts both of them properly into an RSocket response according to the encoders provided in the `RSocketStrategies`.
 
 See <<rsocket-java-config>> for samples how to configure an `RSocketInboundGateway` endpoint and deal with payloads downstream.
@@ -147,7 +149,7 @@ See  `ServerRSocketConnector` JavaDocs for more information.
 
 The `route` to send request has to be configured explicitly (together with path variables) or via a SpEL expression which is evaluated against request message.
 
-The RSocket communication command can be provided via `RSocketOutboundGateway.Command` option or respective expression setting.
+The RSocket interaction model can be provided via `RSocketInteractionModel` option or respective expression setting.
 By default a `requestResponse` is used for common gateway use-cases.
 
 When request message payload is a `Publisher`, a `publisherElementType` option can be provided to encode its elements according an `RSocketStrategies` supplied in the target `RSocketRequester`.
@@ -158,14 +160,14 @@ An RSocket request can also be enhanced with a `metadata`.
 For this purpose a `metadataExpression` against request message can be configured on the `RSocketOutboundGateway`.
 Such an expression must evaluate to a `Map<Object, MimeType>`.
 
-When `command` is not `fireAndForget`, an `expectedResponseType` must be supplied.
+When `interactionModel` is not `fireAndForget`, an `expectedResponseType` must be supplied.
 It is a `String.class` by default.
 An expression for this option can evaluate to a `ParameterizedTypeReference`.
 See the `RSocketRequester.RequestSpec.retrieveMono()` and `RSocketRequester.RequestSpec.retrieveFlux()` JavaDocs for more information about reply data and its type.
 
-A reply `payload` from the `RSocketOutboundGateway` is always `Mono` (even for a `fireAndForget` command it is `Mono<Void>`) always making this component as `async`.
+A reply `payload` from the `RSocketOutboundGateway` is a `Mono` (even for a `fireAndForget` interaction model it is `Mono<Void>`) always making this component as `async`.
 Such a `Mono` is subscribed before producing into the `outputChannel` for regular channels or processed on demand by the `FluxMessageChannel`.
-A `Flux` response for the `requestStreamOrChannel` command is also wrapped into a reply `Mono`.
+A `Flux` response for the `requestStream` or `requestChannel` interaction model is also wrapped into a reply `Mono`.
 It can be flattened downstream by the `FluxMessageChannel` with a passthrough service activator:
 
 ====
@@ -218,6 +220,7 @@ The following example shows how to configure it:
 ----
 <int-rsocket:inbound-gateway id="inboundGateway"
                              path="testPath"
+                             interaction-models="requestStream,requestChannel"
                              rsocket-connector="clientRSocketConnector"
                              request-channel="requestChannel"
                              rsocket-strategies="rsocketStrategies"
@@ -235,7 +238,7 @@ A `ClientRSocketConnector` and `ServerRSocketConnector` should be configured as 
 <int-rsocket:outbound-gateway id="outboundGateway"
                               client-rsocket-connector="clientRSocketConnector"
                               auto-startup="false"
-                              command="fireAndForget"
+                              interaction-model="fireAndForget"
                               route-expression="'testRoute'"
                               request-channel="requestChannel"
                               publisher-element-type="byte[]"
@@ -279,14 +282,15 @@ The following example shows how to configure a RSocket inbound gateway with the 
 @Bean
 public IntegrationFlow rsocketUpperCaseFlow() {
     return IntegrationFlows
-        .from(RSockets.inboundGateway("/uppercase"))
+        .from(RSockets.inboundGateway("/uppercase")
+                   .interactionModels(RSocketInteractionModel.requestChannel))
         .<Flux<String>, Mono<String>>transform((flux) -> flux.next().map(String::toUpperCase))
         .get();
 }
 ----
 ====
 
-A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`/uppercase`" path.
+A `ClientRSocketConnector` or `ServerRSocketConnector` is assumed in this configuration with meaning for auto-detection of such an endpoint on the "`/uppercase`" path and expected interaction model as "`request channel`".
 
 The following example shows how to configure a RSocket outbound gateway with Java:
 
@@ -300,8 +304,8 @@ public RSocketOutboundGateway rsocketOutboundGateway() {
             new RSocketOutboundGateway(
                     new FunctionExpression<Message<?>>((m) ->
                         m.getHeaders().get("route_header")));
-    rsocketOutboundGateway.setCommandExpression(
-            new FunctionExpression<Message<?>>((m) -> m.getHeaders().get("rsocket_command")));
+    rsocketOutboundGateway.setInteractionModelExpression(
+            new FunctionExpression<Message<?>>((m) -> m.getHeaders().get("rsocket_interaction_model")));
     rsocketOutboundGateway.setClientRSocketConnector(clientRSocketConnector());
     return rsocketOutboundGateway;
 }
@@ -322,7 +326,7 @@ public IntegrationFlow rsocketUpperCaseRequestFlow(ClientRSocketConnector client
     return IntegrationFlows
         .from(Function.class)
         .handle(RSockets.outboundGateway("/uppercase")
-            .command(RSocketOutboundGateway.Command.requestResponse)
+            .interactionModel(RSocketInteractionModel.requestResponse)
             .expectedResponseType(String.class)
             .clientRSocketConnector(clientRSocketConnector))
         .get();

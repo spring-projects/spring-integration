@@ -30,6 +30,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.IntegrationRSocketEndpoint;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -74,6 +75,8 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	private final String[] path;
 
+	private RSocketInteractionModel[] interactionModels = RSocketInteractionModel.values();
+
 	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
 
 	@Nullable
@@ -110,6 +113,21 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	public void setRSocketConnector(AbstractRSocketConnector rsocketConnector) {
 		Assert.notNull(rsocketConnector, "'rsocketConnector' must not be null");
 		this.rsocketConnector = rsocketConnector;
+	}
+
+	/**
+	 * Configure a set of {@link RSocketInteractionModel} this endpoint is mapped onto.
+	 * @param interactionModelsArg the {@link RSocketInteractionModel}s for mapping.
+	 * @since 5.2.2
+	 */
+	public void setInteractionModels(RSocketInteractionModel... interactionModelsArg) {
+		Assert.notNull(interactionModelsArg, "'interactionModelsArg' must not be null");
+		this.interactionModels = Arrays.copyOf(interactionModelsArg, interactionModelsArg.length);
+	}
+
+	@Override
+	public RSocketInteractionModel[] getInteractionModels() {
+		return Arrays.copyOf(this.interactionModels, this.interactionModels.length);
 	}
 
 	/**

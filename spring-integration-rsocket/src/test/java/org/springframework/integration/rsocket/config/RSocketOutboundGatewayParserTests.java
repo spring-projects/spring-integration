@@ -50,7 +50,7 @@ class RSocketOutboundGatewayParserTests {
 	void testOutboundGatewayParser() {
 		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "clientRSocketConnector"))
 				.isSameAs(this.clientRSocketConnector);
-		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "commandExpression.literalValue"))
+		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "interactionModelExpression.literalValue"))
 				.isEqualTo("fireAndForget");
 		assertThat(TestUtils.getPropertyValue(this.outboundGateway, "routeExpression.expression"))
 				.isEqualTo("'testRoute'");

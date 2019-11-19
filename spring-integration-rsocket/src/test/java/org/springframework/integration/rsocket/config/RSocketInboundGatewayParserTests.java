@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.inbound.RSocketInboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class RSocketInboundGatewayParserTests {
+class RSocketInboundGatewayParserTests {
 
 	@Autowired
 	private ClientRSocketConnector clientRSocketConnector;
@@ -48,10 +49,11 @@ public class RSocketInboundGatewayParserTests {
 				.isSameAs(this.clientRSocketConnector);
 		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "rsocketStrategies"))
 				.isSameAs(this.clientRSocketConnector.getRSocketStrategies());
-		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "path"))
-				.isEqualTo(new String[] { "testPath" });
+		assertThat(this.inboundGateway.getPath()).containsExactly("testPath");
 		assertThat(TestUtils.getPropertyValue(this.inboundGateway, "requestElementType.resolved"))
 				.isEqualTo(byte[].class);
+		assertThat(this.inboundGateway.getInteractionModels())
+				.containsExactly(RSocketInteractionModel.fireAndForget, RSocketInteractionModel.requestChannel);
 	}
 
 }

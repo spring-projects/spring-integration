@@ -28,8 +28,8 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.ServerRSocketConnector;
-import org.springframework.integration.rsocket.outbound.RSocketOutboundGateway;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -80,7 +80,7 @@ public class RSocketDslTests {
 			return IntegrationFlows
 					.from(Function.class)
 					.handle(RSockets.outboundGateway("/uppercase")
-							.command((message) -> RSocketOutboundGateway.Command.requestStreamOrChannel)
+							.interactionModel((message) -> RSocketInteractionModel.requestChannel)
 							.expectedResponseType("T(java.lang.String)")
 							.clientRSocketConnector(clientRSocketConnector))
 					.get();
@@ -89,7 +89,8 @@ public class RSocketDslTests {
 		@Bean
 		public IntegrationFlow rsocketUpperCaseFlow() {
 			return IntegrationFlows
-					.from(RSockets.inboundGateway("/uppercase"))
+					.from(RSockets.inboundGateway("/uppercase")
+							.interactionModels(RSocketInteractionModel.requestChannel))
 					.<Flux<String>, Flux<String>>transform((flux) -> flux.map(String::toUpperCase))
 					.get();
 		}

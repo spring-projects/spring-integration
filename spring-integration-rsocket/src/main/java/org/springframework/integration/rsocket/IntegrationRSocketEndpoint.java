@@ -39,4 +39,15 @@ public interface IntegrationRSocketEndpoint extends ReactiveMessageHandler {
 	 */
 	String[] getPath();
 
+	/**
+	 * Obtain {@link RSocketInteractionModel}s
+	 * this {@link ReactiveMessageHandler} is going to be mapped onto.
+	 * Defaults to all the {@link RSocketInteractionModel}s.
+	 * @return the interaction models for mapping.
+	 * @since 5.2.2
+	 */
+	default RSocketInteractionModel[] getInteractionModels() {
+		return RSocketInteractionModel.values();
+	}
+
 }
