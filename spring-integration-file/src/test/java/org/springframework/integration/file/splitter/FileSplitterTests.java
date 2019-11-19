@@ -17,7 +17,7 @@
 package org.springframework.integration.file.splitter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -29,15 +29,13 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Date;
-import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
-import org.reactivestreams.Subscriber;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -53,15 +51,15 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.FileCopyUtils;
 
@@ -75,7 +73,7 @@ import reactor.test.StepVerifier;
  * @since 4.1.2
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class FileSplitterTests {
 
@@ -95,20 +93,15 @@ public class FileSplitterTests {
 	@Autowired
 	private PollableChannel output;
 
-	@BeforeClass
-	public static void setup() throws IOException {
-		file = File.createTempFile("foo", ".txt");
+	@BeforeAll
+	static void setup(@TempDir File tempDir) throws IOException {
+		file = new File(tempDir, "foo.txt");
 		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(StandardCharsets.UTF_8),
 				new FileOutputStream(file, false));
 	}
 
-	@AfterClass
-	public static void tearDown() {
-		file.delete();
-	}
-
 	@Test
-	public void testFileSplitter() throws Exception {
+	void testFileSplitter() throws Exception {
 		this.input1.send(new GenericMessage<>(file));
 		Message<?> receive = this.output.receive(10000);
 		assertThat(receive).isNotNull(); //HelloWorld
@@ -156,14 +149,11 @@ public class FileSplitterTests {
 		assertThat(receive).isNotNull(); //äöüß
 		assertThat(this.output.receive(1)).isNull();
 
-		try {
-			this.input2.send(new GenericMessage<>("bar"));
-			fail("FileNotFoundException expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause()).isInstanceOf(FileNotFoundException.class);
-			assertThat(e.getMessage()).contains("Failed to read file [bar]");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.input2.send(new GenericMessage<>("bar")))
+				.withCauseInstanceOf(FileNotFoundException.class)
+				.withMessageContaining("Failed to read file [bar]");
+
 		this.input2.send(new GenericMessage<>(new Date()));
 		receive = this.output.receive(10000);
 		assertThat(receive).isNotNull();
@@ -190,7 +180,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testMarkers() {
+	void testMarkers() {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
@@ -216,7 +206,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testMarkersEmptyFile() throws IOException {
+	void testMarkersEmptyFile() throws IOException {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setOutputChannel(outputChannel);
@@ -244,7 +234,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testMarkersJson() throws Exception {
+	void testMarkersJson() throws Exception {
 		JsonObjectMapper<?, ?> objectMapper = JsonObjectMapperProvider.newInstance();
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true, true);
@@ -273,7 +263,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testFileSplitterReactive() {
+	void testFileSplitterReactive() {
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setApplySequence(true);
@@ -300,14 +290,13 @@ public class FileSplitterTests {
 					assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
 					assertThat(fileMarker.getLineCount()).isEqualTo(2);
 				})
-				.then(() ->
-						((Subscriber<?>) TestUtils.getPropertyValue(outputChannel, "subscribers", List.class).get(0))
-								.onComplete())
-				.verifyComplete();
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
-	public void testFirstLineAsHeader() {
+	void testFirstLineAsHeader() {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setFirstLineAsHeader("firstLine");
@@ -337,7 +326,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testFirstLineAsHeaderOnlyHeader() throws IOException {
+	void testFirstLineAsHeaderOnlyHeader() throws IOException {
 		QueueChannel outputChannel = new QueueChannel();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setFirstLineAsHeader("firstLine");
@@ -365,7 +354,7 @@ public class FileSplitterTests {
 	}
 
 	@Test
-	public void testFileReaderClosedOnException() throws Exception {
+	void testFileReaderClosedOnException() throws Exception {
 		DirectChannel outputChannel = new DirectChannel();
 		outputChannel.subscribe(message -> {
 			throw new RuntimeException();

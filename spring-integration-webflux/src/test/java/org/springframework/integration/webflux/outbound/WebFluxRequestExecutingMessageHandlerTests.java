@@ -18,10 +18,9 @@ package org.springframework.integration.webflux.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
+import java.time.Duration;
 
-import org.junit.Test;
-import org.reactivestreams.Subscriber;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -33,7 +32,6 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.webflux.support.ClientHttpResponseBodyExtractor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -52,10 +50,10 @@ import reactor.test.StepVerifier;
  *
  * @since 5.0
  */
-public class WebFluxRequestExecutingMessageHandlerTests {
+class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
-	public void testReactiveReturn() {
+	void testReactiveReturn() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					response.setStatusCode(HttpStatus.OK);
@@ -78,14 +76,13 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		StepVerifier.create(ackChannel, 2)
 				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
 				.assertNext(m -> assertThat(m.getHeaders()).containsEntry(HttpHeaders.STATUS_CODE, HttpStatus.OK))
-				.then(() ->
-						((Subscriber<?>) TestUtils.getPropertyValue(ackChannel, "subscribers", List.class).get(0))
-								.onComplete())
-				.verifyComplete();
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
-	public void testReactiveErrorOneWay() {
+	void testReactiveErrorOneWay() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -115,7 +112,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void testReactiveConnectErrorOneWay() {
+	void testReactiveConnectErrorOneWay() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					throw new RuntimeException("Intentional connection error");
@@ -144,7 +141,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void testServiceUnavailableWithoutBody() {
+	void testServiceUnavailableWithoutBody() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
@@ -185,7 +182,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testFluxReply() {
+	void testFluxReply() {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.OK);
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
@@ -227,7 +224,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void testClientHttpResponseAsReply() {
+	void testClientHttpResponseAsReply() {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.OK);
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
@@ -275,6 +272,5 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
-
 
 }

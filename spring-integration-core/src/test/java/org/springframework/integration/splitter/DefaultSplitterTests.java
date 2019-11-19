@@ -18,13 +18,13 @@ package org.springframework.integration.splitter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.reactivestreams.Subscriber;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
@@ -32,7 +32,6 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -45,10 +44,10 @@ import reactor.test.StepVerifier;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-public class DefaultSplitterTests {
+class DefaultSplitterTests {
 
 	@Test
-	public void splitMessageWithArrayPayload() throws Exception {
+	void splitMessageWithArrayPayload() {
 		String[] payload = new String[] { "x", "y", "z" };
 		Message<String[]> message = MessageBuilder.withPayload(payload).build();
 		QueueChannel replyChannel = new QueueChannel();
@@ -69,7 +68,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitMessageWithCollectionPayload() throws Exception {
+	void splitMessageWithCollectionPayload() {
 		List<String> payload = Arrays.asList("x", "y", "z");
 		Message<List<String>> message = MessageBuilder.withPayload(payload).build();
 		QueueChannel replyChannel = new QueueChannel();
@@ -90,7 +89,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void correlationIdCopiedFromMessageId() {
+	void correlationIdCopiedFromMessageId() {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
@@ -105,7 +104,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitMessageWithEmptyCollectionPayload() throws Exception {
+	void splitMessageWithEmptyCollectionPayload() {
 		Message<List<String>> message = MessageBuilder.withPayload(Collections.<String>emptyList()).build();
 		QueueChannel replyChannel = new QueueChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
@@ -116,7 +115,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitStream() {
+	void splitStream() {
 		Message<?> message = new GenericMessage<>(
 				Stream.generate(Math::random)
 						.limit(10));
@@ -133,7 +132,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitFlux() {
+	void splitFlux() {
 		Message<?> message = new GenericMessage<>(
 				Flux
 						.generate(() -> 0,
@@ -159,7 +158,7 @@ public class DefaultSplitterTests {
 	}
 
 	@Test
-	public void splitArrayPayloadReactive() {
+	void splitArrayPayloadReactive() {
 		Message<?> message = new GenericMessage<>(new String[] { "x", "y", "z" });
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
@@ -174,14 +173,13 @@ public class DefaultSplitterTests {
 
 		StepVerifier.create(testFlux)
 				.expectNext("x", "y", "z")
-				.then(() ->
-						((Subscriber<?>) TestUtils.getPropertyValue(replyChannel, "subscribers", List.class).get(0))
-								.onComplete())
-				.verifyComplete();
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
-	public void splitStreamReactive() {
+	void splitStreamReactive() {
 		Message<?> message = new GenericMessage<>(Stream.of("x", "y", "z"));
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
@@ -196,14 +194,13 @@ public class DefaultSplitterTests {
 
 		StepVerifier.create(testFlux)
 				.expectNext("x", "y", "z")
-				.then(() ->
-						((Subscriber<?>) TestUtils.getPropertyValue(replyChannel, "subscribers", List.class).get(0))
-								.onComplete())
-				.verifyComplete();
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
-	public void splitFluxReactive() {
+	void splitFluxReactive() {
 		Message<?> message = new GenericMessage<>(Flux.just("x", "y", "z"));
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
@@ -218,10 +215,9 @@ public class DefaultSplitterTests {
 
 		StepVerifier.create(testFlux)
 				.expectNext("x", "y", "z")
-				.then(() ->
-						((Subscriber<?>) TestUtils.getPropertyValue(replyChannel, "subscribers", List.class).get(0))
-								.onComplete())
-				.verifyComplete();
+				.expectNoEvent(Duration.ofMillis(100))
+				.thenCancel()
+				.verify(Duration.ofSeconds(1));
 	}
 
 }

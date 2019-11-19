@@ -31,8 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +50,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Flux;
 
@@ -62,7 +61,7 @@ import reactor.core.publisher.Flux;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class ReactiveStreamsTests {
 
@@ -98,7 +97,7 @@ public class ReactiveStreamsTests {
 	private Publisher<Message<String>> fixedSubscriberChannelFlow;
 
 	@Test
-	public void testReactiveFlow() throws Exception {
+	void testReactiveFlow() throws Exception {
 		List<String> results = new ArrayList<>();
 		CountDownLatch latch = new CountDownLatch(6);
 		Flux.from(this.publisher)
@@ -115,7 +114,7 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	public void testPollableReactiveFlow() throws Exception {
+	void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch latch = new CountDownLatch(6);
@@ -152,7 +151,7 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	public void testFromPublisher() {
+	void testFromPublisher() {
 		Flux<Message<?>> messageFlux = Flux.just("1,2,3,4")
 				.map(v -> v.split(","))
 				.flatMapIterable(Arrays::asList)
@@ -178,11 +177,11 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	public void testFluxTransform() {
+	void testFluxTransform() {
 		QueueChannel resultChannel = new QueueChannel();
 
 		IntegrationFlow integrationFlow = f -> f
-				.split()
+				.split((splitter) -> splitter.delimiters(","))
 				.<String, String>fluxTransform(flux -> flux
 						.map(Message::getPayload)
 						.map(String::toUpperCase))
@@ -212,7 +211,7 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	public void singleChannelFlowTest() throws InterruptedException {
+	void singleChannelFlowTest() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		Flux.from(this.singleChannelFlow)
 				.map(m -> m.getPayload().toUpperCase())
@@ -224,7 +223,7 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	public void fixedSubscriberChannelFlowTest() throws InterruptedException {
+	void fixedSubscriberChannelFlowTest() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		Flux.from(this.fixedSubscriberChannelFlow)
 				.map(m -> m.getPayload().toUpperCase())
