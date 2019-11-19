@@ -32,6 +32,8 @@ import org.springframework.messaging.rsocket.annotation.support.RSocketFrameType
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.util.ReflectionUtils;
 
+import io.rsocket.frame.FrameType;
+
 /**
  * The {@link RSocketMessageHandler} extension for Spring Integration needs.
  * <p>
@@ -79,7 +81,11 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
-						RSocketFrameTypeMessageCondition.REQUEST_CONDITION,
+						new RSocketFrameTypeMessageCondition(
+								FrameType.REQUEST_FNF,
+								FrameType.REQUEST_RESPONSE,
+								FrameType.REQUEST_STREAM,
+								FrameType.REQUEST_CHANNEL),
 						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher()))); // NOSONAR
 	}
 

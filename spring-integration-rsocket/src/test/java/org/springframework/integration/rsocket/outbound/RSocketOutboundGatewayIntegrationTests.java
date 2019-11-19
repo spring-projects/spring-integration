@@ -180,6 +180,15 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void echo(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+						.expectNext("Hello")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo")
@@ -187,13 +196,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(
-				Flux.from(resultChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.expectNext("Hello")
-				.thenCancel()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
@@ -209,6 +212,15 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void echoAsync(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+						.expectNext("Hello async")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-async")
@@ -216,13 +228,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(
-				Flux.from(resultChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.expectNext("Hello async")
-				.thenCancel()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
@@ -238,6 +244,17 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void echoStream(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		@SuppressWarnings("unchecked")
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.next()
+								.map(Message::getPayload)
+								.flatMapMany((payload) -> (Flux<String>) payload))
+						.expectNext("Hello 0").expectNextCount(6).expectNext("Hello 7")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-stream")
@@ -245,22 +262,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		Message<?> resultMessage =
-				Flux.from(resultChannel)
-						.blockFirst();
-
-		assertThat(resultMessage)
-				.isNotNull()
-				.extracting(Message::getPayload)
-				.isInstanceOf(Flux.class);
-
-		@SuppressWarnings("unchecked")
-		Flux<String> resultStream = (Flux<String>) resultMessage.getPayload();
-		StepVerifier.create(resultStream)
-				.expectNext("Hello 0").expectNextCount(6).expectNext("Hello 7")
-				.thenCancel()
-				.verify();
-
+		verifier.verify();
 	}
 
 	@Test
@@ -276,6 +278,17 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void echoChannel(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		@SuppressWarnings("unchecked")
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.next()
+								.map(Message::getPayload)
+								.flatMapMany((payload) -> (Flux<String>) payload))
+						.expectNext("Hello 1 async").expectNextCount(8).expectNext("Hello 10 async")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload(Flux.range(1, 10).map(i -> "Hello " + i))
 						.setHeader(ROUTE_HEADER, "echo-channel")
@@ -283,21 +296,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		Message<?> resultMessage =
-				Flux.from(resultChannel)
-						.blockFirst();
-
-		assertThat(resultMessage)
-				.isNotNull()
-				.extracting(Message::getPayload)
-				.isInstanceOf(Flux.class);
-
-		@SuppressWarnings("unchecked")
-		Flux<String> resultStream = (Flux<String>) resultMessage.getPayload();
-		StepVerifier.create(resultStream)
-				.expectNext("Hello 1 async").expectNextCount(8).expectNext("Hello 10 async")
-				.thenCancel()
-				.verify();
+		verifier.verify();
 	}
 
 
@@ -314,26 +313,21 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void voidReturnValue(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(resultChannel)
+						.expectSubscription()
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "void-return-value")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		Message<?> resultMessage =
-				Flux.from(resultChannel)
-						.blockFirst();
-
-		assertThat(resultMessage)
-				.isNotNull()
-				.extracting(Message::getPayload)
-				.isInstanceOf(Flux.class);
-
-		Flux<?> resultStream = (Flux<?>) resultMessage.getPayload();
-		StepVerifier.create(resultStream)
-				.expectComplete()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
@@ -349,26 +343,21 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void voidReturnValueFromExceptionHandler(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(resultChannel)
+						.expectSubscription()
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("bad")
 						.setHeader(ROUTE_HEADER, "void-return-value")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		Message<?> resultMessage =
-				Flux.from(resultChannel)
-						.blockFirst();
-
-		assertThat(resultMessage)
-				.isNotNull()
-				.extracting(Message::getPayload)
-				.isInstanceOf(Flux.class);
-
-		Flux<?> resultStream = (Flux<?>) resultMessage.getPayload();
-		StepVerifier.create(resultStream)
-				.expectComplete()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
@@ -384,6 +373,15 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void handleWithThrownException(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+						.expectNext("Invalid input error handled")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "thrown-exception")
@@ -391,13 +389,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(
-				Flux.from(resultChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.expectNext("Invalid input error handled")
-				.thenCancel()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
@@ -413,6 +405,15 @@ public class RSocketOutboundGatewayIntegrationTests {
 	private void handleWithErrorSignal(MessageChannel inputChannel, FluxMessageChannel resultChannel,
 			RSocketRequester rsocketRequester) {
 
+		StepVerifier verifier =
+				StepVerifier.create(
+						Flux.from(resultChannel)
+								.map(Message::getPayload)
+								.cast(String.class))
+						.expectNext("Invalid input error handled")
+						.thenCancel()
+						.verifyLater();
+
 		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "error-signal")
@@ -420,13 +421,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
-		StepVerifier.create(
-				Flux.from(resultChannel)
-						.map(Message::getPayload)
-						.cast(String.class))
-				.expectNext("Invalid input error handled")
-				.thenCancel()
-				.verify();
+		verifier.verify();
 	}
 
 	@Test
