@@ -95,23 +95,8 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory) {
-		return inboundGateway(connectionFactory, false);
+		return new TcpInboundGatewaySpec(connectionFactory);
 	}
-
-	/**
-	 * Create an inbound gateway using the supplied connection factory.
-	 * @param connectionFactory the connection factory - must be an existing bean - it
-	 * will not be initialized.
-	 * @param errorOnTimeout true to create the error message on reply timeout.
-	 * @return the spec.
-	 * @since 5.2.2
-	 */
-	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory,
-			boolean errorOnTimeout) {
-
-		return new TcpInboundGatewaySpec(connectionFactory, errorOnTimeout);
-	}
-
 
 	/**
 	 * Create an inbound gateway using the supplied connection factory.
@@ -119,20 +104,7 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
-		return inboundGateway(connectionFactorySpec, false);
-	}
-
-	/**
-	 * Create an inbound gateway using the supplied connection factory.
-	 * @param connectionFactorySpec the connection factory spec.
-	 * @param errorOnTimeout true to create the error message on reply timeout.
-	 * @return the spec.
-	 * @since 5.2.2
-	 */
-	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec,
-			boolean errorOnTimeout) {
-
-		return new TcpInboundGatewaySpec(connectionFactorySpec, errorOnTimeout);
+		return new TcpInboundGatewaySpec(connectionFactorySpec);
 	}
 
 	/**

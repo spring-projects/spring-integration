@@ -1895,8 +1895,6 @@ Usually, replies arrive on a temporary reply channel added to the inbound messag
 |
 | The time in milliseconds for which the gateway waits for a reply.
 Default: 1000 (1 second).
-Starting with version `5.2.2`, the `TcpInboundGateway` can be created with an `errorOnTimeout` boolean flag to raise a `MessageTimeoutException` when downstream reply doesn't come back during reply timeout.
-Such an exception can be handled on the `errorChannel`, e.g. producing a compensation reply for client.
 
 | `error-channel`
 |

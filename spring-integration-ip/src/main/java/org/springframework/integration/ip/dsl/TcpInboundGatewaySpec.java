@@ -42,10 +42,9 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 	/**
 	 * Construct an instance using an existing spring-managed connection factory.
 	 * @param connectionFactoryBean the spring-managed bean.
-	 * @param errorOnTimeout true to create the error message on reply timeout.
 	 */
-	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactoryBean, boolean errorOnTimeout) {
-		super(new TcpInboundGateway(errorOnTimeout));
+	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactoryBean) {
+		super(new TcpInboundGateway());
 		this.connectionFactory = null;
 		this.target.setConnectionFactory(connectionFactoryBean);
 	}
@@ -53,10 +52,9 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 	/**
 	 * Construct an instance using a connection factory spec.
 	 * @param connectionFactorySpec the spec.
-	 * @param errorOnTimeout true to create the error message on reply timeout.
 	 */
-	TcpInboundGatewaySpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec, boolean errorOnTimeout) {
-		super(new TcpInboundGateway(errorOnTimeout));
+	TcpInboundGatewaySpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		super(new TcpInboundGateway());
 		this.connectionFactory = connectionFactorySpec.get();
 		this.target.setConnectionFactory(this.connectionFactory);
 	}
