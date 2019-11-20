@@ -18,10 +18,11 @@ package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
@@ -56,7 +57,7 @@ import org.springframework.util.Assert;
  * @since 2.0.5
  */
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware,
-		BeanFactoryAware, ApplicationEventPublisherAware {
+		ApplicationEventPublisherAware, ApplicationContextAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -74,7 +75,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile boolean soTcpNoDelay;
 
-	private volatile int soLinger  = -1; // don't set by default
+	private volatile int soLinger = -1; // don't set by default
 
 	private volatile boolean soKeepAlive;
 
@@ -122,7 +123,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile BeanFactory beanFactory;
+
+	private ApplicationContext applicationContext;
 
 
 	public TcpConnectionFactoryFactoryBean() {
@@ -133,23 +135,23 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	@Override
-	public final void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() :
-			this.type == null ? AbstractConnectionFactory.class :
-				isServer() ? AbstractServerConnectionFactory.class :
-					isClient() ? AbstractClientConnectionFactory.class :
-						AbstractConnectionFactory.class;
+				this.type == null ? AbstractConnectionFactory.class :
+						isServer() ? AbstractServerConnectionFactory.class :
+								isClient() ? AbstractClientConnectionFactory.class :
+										AbstractConnectionFactory.class;
 	}
 
 	@Override
 	protected AbstractConnectionFactory createInstance() throws Exception {
 		if (!this.mapperSet) {
-			this.mapper.setBeanFactory(this.beanFactory);
+			this.mapper.setBeanFactory(getBeanFactory());
 		}
 		if (this.usingNio) {
 			if (isServer()) {
@@ -188,6 +190,11 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.connectionFactory = connectionFactory;
 			}
 		}
+		this.connectionFactory.setBeanFactory(getBeanFactory());
+		if (this.applicationContext != null) {
+			this.connectionFactory.setApplicationContext(this.applicationContext);
+		}
+		this.connectionFactory.afterPropertiesSet();
 		return this.connectionFactory;
 	}
 
