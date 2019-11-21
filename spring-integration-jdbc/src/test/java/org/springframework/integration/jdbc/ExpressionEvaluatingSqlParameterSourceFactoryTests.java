@@ -23,7 +23,7 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -32,39 +32,41 @@ import org.springframework.jdbc.support.JdbcUtils;
 /**
  * @author Dave Syer
  * @author Meherzad Lahewala
+ * @author Artem Bilan
  */
-public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
+class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
 	private final ExpressionEvaluatingSqlParameterSourceFactory factory =
 			new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	@Test
-	public void testSetStaticParameters() throws Exception {
-		factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(null);
+	void testSetStaticParameters() {
+		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(null);
 		assertThat(source.hasValue("foo")).isTrue();
 		assertThat(source.getValue("foo")).isEqualTo("bar");
 		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
-	public void testMapInput() throws Exception {
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
+	void testMapInput() {
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("foo")).isTrue();
 		assertThat(source.getValue("foo")).isEqualTo("bar");
 		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
-	public void testListOfMapsInput() throws Exception {
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
-				Collections.singletonMap("foo", "bucket")));
+	void testListOfMapsInput() {
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source =
+				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
+						Collections.singletonMap("foo", "bucket")));
 		String expression = "foo";
 		assertThat(source.hasValue(expression)).isTrue();
 		assertThat(source.getValue(expression).toString()).isEqualTo("[bar, bucket]");
@@ -72,10 +74,10 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testMapInputWithExpression() throws Exception {
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
+	void testMapInputWithExpression() {
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
 		assertThat(source.hasValue("foo.toUpperCase()")).isTrue();
 		assertThat(source.getValue("foo.toUpperCase()")).isEqualTo("BAR");
@@ -83,35 +85,37 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testMapInputWithMappedExpression() throws Exception {
-		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
+	void testMapInputWithMappedExpression() {
+		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertThat(source.hasValue("spam")).isTrue();
 		assertThat(source.getValue("spam")).isEqualTo("BAR");
 		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
-	public void testMapInputWithMappedExpressionResolveStatic() throws Exception {
-		factory.setParameterExpressions(Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
-		factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
+	void testMapInputWithMappedExpressionResolveStatic() {
+		this.factory.setParameterExpressions(
+				Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
+		this.factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
 		assertThat(source.hasValue("spam")).isTrue();
 		assertThat(source.getValue("spam")).isEqualTo("BAR");
 		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 	@Test
-	public void testListOfMapsInputWithExpression() throws Exception {
-		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
-				Collections.singletonMap("foo", "bucket")));
+	void testListOfMapsInputWithExpression() {
+		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source =
+				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
+						Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
 		assertThat(source.hasValue(expression)).isTrue();
 		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
@@ -119,13 +123,14 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testListOfMapsInputWithExpressionAndTypes() throws Exception {
-		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.setSqlParameterTypes(Collections.singletonMap("spam", Types.SQLXML));
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
-				Collections.singletonMap("foo", "bucket")));
+	void testListOfMapsInputWithExpressionAndTypes() {
+		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setSqlParameterTypes(Collections.singletonMap("spam", Types.SQLXML));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source =
+				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
+						Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
 		assertThat(source.hasValue(expression)).isTrue();
 		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
@@ -133,17 +138,29 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testListOfMapsInputWithExpressionAndEmptyTypes() throws Exception {
-		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
-		factory.setBeanFactory(mock(BeanFactory.class));
-		factory.setSqlParameterTypes(Collections.emptyMap());
-		factory.afterPropertiesSet();
-		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
-				Collections.singletonMap("foo", "bucket")));
+	void testListOfMapsInputWithExpressionAndEmptyTypes() {
+		this.factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.setSqlParameterTypes(Collections.emptyMap());
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source =
+				this.factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
+						Collections.singletonMap("foo", "bucket")));
 		String expression = "spam";
 		assertThat(source.hasValue(expression)).isTrue();
 		assertThat(source.getValue(expression).toString()).isEqualTo("[BAR, BUCKET]");
 		assertThat(source.getSqlType("spam")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
+	}
+
+	@Test
+	void testNullValue() {
+		this.factory.setStaticParameters(Collections.singletonMap("foo", null));
+		this.factory.setBeanFactory(mock(BeanFactory.class));
+		this.factory.afterPropertiesSet();
+		SqlParameterSource source = this.factory.createParameterSource(null);
+		assertThat(source.hasValue("foo")).isTrue();
+		assertThat(source.getValue("foo")).isNull();
+		assertThat(source.getSqlType("foo")).isEqualTo(JdbcUtils.TYPE_UNKNOWN);
 	}
 
 }

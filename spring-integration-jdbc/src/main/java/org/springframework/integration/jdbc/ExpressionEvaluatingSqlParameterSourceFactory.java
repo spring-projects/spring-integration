@@ -22,11 +22,10 @@ import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -44,8 +43,6 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator
 		implements SqlParameterSourceFactory {
-
-	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final Object ERROR = new Object();
 
@@ -117,8 +114,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			String key = entry.getKey();
 			String expression = entry.getValue();
 			Expression[] expressions = new Expression[] {
-					PARSER.parseExpression(expression),
-					PARSER.parseExpression("#root.![" + expression + "]")
+					EXPRESSION_PARSER.parseExpression(expression),
+					EXPRESSION_PARSER.parseExpression("#root.![" + expression + "]")
 			};
 			paramExpressions.put(key, expressions);
 		}
@@ -172,6 +169,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters,
 				Map<String, Expression[]> parameterExpressions, boolean cache) {
+
 			this.input = input;
 			this.parameterExpressions = parameterExpressions;
 			this.values.putAll(staticParameters);
@@ -182,10 +180,12 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		}
 
 		@Override
+		@Nullable
 		public Object getValue(String paramName) throws IllegalArgumentException {
-			return this.doGetValue(paramName, false);
+			return doGetValue(paramName, false);
 		}
 
+		@Nullable
 		public Object doGetValue(String paramName, boolean calledFromHasValue) throws IllegalArgumentException {
 			if (this.values.containsKey(paramName)) {
 				Object cachedByHasValue = this.values.get(paramName);
@@ -197,14 +197,14 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 			if (!this.parameterExpressions.containsKey(paramName)) {
 				Expression[] expressions = new Expression[] {
-						PARSER.parseExpression(paramName),
-						PARSER.parseExpression("#root.![" + paramName + "]")
+						EXPRESSION_PARSER.parseExpression(paramName),
+						EXPRESSION_PARSER.parseExpression("#root.![" + paramName + "]")
 				};
 				ExpressionEvaluatingSqlParameterSourceFactory.this.parameterExpressions.put(paramName, expressions);
 				this.parameterExpressions.put(paramName, expressions);
 			}
 
-			Expression expression = null;
+			Expression expression;
 
 			if (this.input instanceof Collection<?>) {
 				expression = this.parameterExpressions.get(paramName)[1];
