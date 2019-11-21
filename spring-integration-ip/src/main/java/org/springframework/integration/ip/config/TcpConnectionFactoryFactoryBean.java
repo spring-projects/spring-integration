@@ -19,6 +19,7 @@ package org.springframework.integration.ip.config;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -155,8 +156,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	@Override
 	protected AbstractConnectionFactory createInstance() {
-		if (!this.mapperSet) {
-			this.mapper.setBeanFactory(getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (!this.mapperSet && beanFactory != null) {
+			this.mapper.setBeanFactory(beanFactory);
 		}
 		if (this.usingNio) {
 			if (isServer()) {
@@ -199,7 +201,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.connectionFactory = factory;
 			}
 		}
-		this.connectionFactory.setBeanFactory(getBeanFactory());
+		if (beanFactory != null) {
+			this.connectionFactory.setBeanFactory(beanFactory);
+		}
 		if (this.applicationContext != null) {
 			this.connectionFactory.setApplicationContext(this.applicationContext);
 		}
