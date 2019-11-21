@@ -227,7 +227,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		public boolean hasValue(String paramName) {
 			try {
 				Object value = doGetValue(paramName, true);
-				if (value.equals(ERROR)) {
+				if (ERROR.equals(value)) {
 					return false;
 				}
 			}
