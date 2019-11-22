@@ -25,6 +25,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.common.ExpressionUtils;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,6 +48,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public class FunctionExpression<S> implements Expression {
@@ -65,46 +67,58 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
+	@Nullable
 	public Object getValue() throws EvaluationException {
 		return this.function.apply(null);
 	}
 
 	@Override
+	@Nullable
 	@SuppressWarnings("unchecked")
-	public Object getValue(Object rootObject) throws EvaluationException {
+	public Object getValue(@Nullable Object rootObject) throws EvaluationException {
 		return this.function.apply((S) rootObject);
 	}
 
 	@Override
-	public <T> T getValue(Class<T> desiredResultType) throws EvaluationException {
+	@Nullable
+	public <T> T getValue(@Nullable Class<T> desiredResultType) throws EvaluationException {
 		return getValue(this.defaultContext, desiredResultType);
 	}
 
 	@Override
-	public <T> T getValue(Object rootObject, Class<T> desiredResultType) throws EvaluationException {
+	@Nullable
+	public <T> T getValue(@Nullable Object rootObject, @Nullable Class<T> desiredResultType)
+			throws EvaluationException {
+
 		return getValue(this.defaultContext, rootObject, desiredResultType);
 	}
 
 	@Override
+	@Nullable
 	public Object getValue(EvaluationContext context) throws EvaluationException {
-		Object root = context.getRootObject().getValue();
-		return root == null ? getValue() : getValue(root);
+		return getValue(context.getRootObject().getValue());
 	}
 
 	@Override
-	public Object getValue(EvaluationContext context, Object rootObject) throws EvaluationException {
+	@Nullable
+	public Object getValue(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return getValue(rootObject);
 	}
 
 	@Override
-	public <T> T getValue(EvaluationContext context, Class<T> desiredResultType) throws EvaluationException {
+	@Nullable
+	public <T> T getValue(EvaluationContext context, @Nullable Class<T> desiredResultType) throws EvaluationException {
 		return ExpressionUtils.convertTypedValue(context, new TypedValue(getValue(context)), desiredResultType);
 	}
 
 	@Override
-	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType)
+	@Nullable
+	public <T> T getValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Class<T> desiredResultType)
 			throws EvaluationException {
-		return ExpressionUtils.convertTypedValue(context, new TypedValue(getValue(rootObject)), desiredResultType);
+
+		return ExpressionUtils.convertTypedValue(context,
+				new TypedValue(getValue(context, rootObject)),
+				desiredResultType);
 	}
 
 	@Override
@@ -113,7 +127,7 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public Class<?> getValueType(Object rootObject) throws EvaluationException {
+	public Class<?> getValueType(@Nullable Object rootObject) throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
@@ -123,7 +137,7 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public Class<?> getValueType(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public Class<?> getValueType(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
@@ -133,7 +147,7 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(Object rootObject) throws EvaluationException {
+	public TypeDescriptor getValueTypeDescriptor(@Nullable Object rootObject) throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
@@ -143,23 +157,25 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, Object rootObject)
+	public TypeDescriptor getValueTypeDescriptor(EvaluationContext context, @Nullable Object rootObject)
 			throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object value) throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
 	@Override
-	public void setValue(Object rootObject, Object value) throws EvaluationException {
+	public void setValue(@Nullable Object rootObject, @Nullable Object value) throws EvaluationException {
 		throw this.readOnlyException;
 	}
 
 	@Override
-	public void setValue(EvaluationContext context, Object rootObject, Object value) throws EvaluationException {
+	public void setValue(EvaluationContext context, @Nullable Object rootObject, @Nullable Object value)
+			throws EvaluationException {
+
 		throw this.readOnlyException;
 	}
 
@@ -169,12 +185,12 @@ public class FunctionExpression<S> implements Expression {
 	}
 
 	@Override
-	public boolean isWritable(EvaluationContext context, Object rootObject) throws EvaluationException {
+	public boolean isWritable(EvaluationContext context, @Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 
 	@Override
-	public boolean isWritable(Object rootObject) throws EvaluationException {
+	public boolean isWritable(@Nullable Object rootObject) throws EvaluationException {
 		return false;
 	}
 
