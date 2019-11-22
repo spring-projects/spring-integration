@@ -141,7 +141,7 @@ public class FluxMessageChannelTests {
 
 		flowRegistration.destroy();
 
-		assertThat(TestUtils.getPropertyValue(flux, "flux", EmitterProcessor.class).isTerminated()).isTrue();
+		assertThat(TestUtils.getPropertyValue(flux, "processor", EmitterProcessor.class).isTerminated()).isTrue();
 	}
 
 	@Configuration

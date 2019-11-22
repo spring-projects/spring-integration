@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -27,7 +27,8 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.ReplayProcessor;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * The {@link AbstractMessageChannel} implementation for the
@@ -35,28 +36,30 @@ import reactor.core.publisher.Mono;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Sergei Egorov
  *
  * @since 5.0
  */
 public class FluxMessageChannel extends AbstractMessageChannel
 		implements Publisher<Message<?>>, ReactiveStreamsSubscribableChannel {
 
-	private final AtomicInteger subscribed = new AtomicInteger();
+	private final EmitterProcessor<Message<?>> processor;
 
-	private final EmitterProcessor<Message<?>> flux;
+	private final FluxSink<Message<?>> sink;
 
-	private final EmitterProcessor<Integer> subscriptionDelay = EmitterProcessor.create(false);
+	private final AtomicBoolean subscribed = new AtomicBoolean();
 
-	private FluxSink<Message<?>> sink;
+	private final ReplayProcessor<Boolean> subscribedSignal = ReplayProcessor.create(1);
 
 	public FluxMessageChannel() {
-		this.flux = EmitterProcessor.create(1, false);
-		this.sink = this.flux.sink();
+		this.processor = EmitterProcessor.create(1, false);
+		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
+		this.subscribedSignal.doOnNext(this.subscribed::set).subscribe();
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(this.subscribed.get() > 0,
+		Assert.state(this.subscribed.get(),
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
 		this.sink.next(message);
 		return true;
@@ -64,29 +67,31 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
-		this.flux.doFinally((signal) -> this.subscribed.decrementAndGet())
-				.retry()
+		this.processor.doOnSubscribe((s) -> this.subscribedSignal.onNext(true))
+				.doFinally((s) -> this.subscribedSignal.onNext(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
-		this.subscriptionDelay.onNext(this.subscribed.incrementAndGet());
 	}
 
 	@Override
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
 		Flux.from(publisher)
-				.handle((message, sink) -> sink.next(send(message)))
-				.onErrorContinue((throwable, event) ->
-						logger.warn("Error during processing event: " + event, throwable))
-				.delaySubscription(
-						Mono.fromSupplier(this.subscribed::get)
-								.filter((subscribers) -> subscribers > 0)
-								.switchIfEmpty(this.subscriptionDelay.next()))
+				.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
+				.publishOn(Schedulers.boundedElastic())
+				.doOnNext((message) -> {
+					try {
+						send(message);
+					}
+					catch (Exception e) {
+						logger.warn("Error during processing event: " + message, e);
+					}
+				})
 				.subscribe();
 	}
 
 	@Override
 	public void destroy() {
-		this.subscriptionDelay.onComplete();
-		this.flux.onComplete();
+		this.subscribedSignal.onNext(false);
+		this.processor.onComplete();
 		super.destroy();
 	}
 
