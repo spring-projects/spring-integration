@@ -181,8 +181,9 @@ public class HttpDslTests {
 
 		Message<?> result = this.multiPartFilesChannel.receive(10_000);
 
+		assertThat(result).isNotNull();
+		assertThat(result.getHeaders()).containsEntry("contentLength", -1L);
 		assertThat(result)
-				.isNotNull()
 				.extracting(Message::getPayload)
 				.satisfies((payload) ->
 						assertThat((Map<String, ?>) payload)
@@ -321,7 +322,8 @@ public class HttpDslTests {
 		@Bean
 		public IntegrationFlow multiPartFilesFlow() {
 			return IntegrationFlows
-					.from(Http.inboundChannelAdapter("/multiPartFiles"))
+					.from(Http.inboundChannelAdapter("/multiPartFiles")
+							.headerFunction("contentLength", (entity) -> entity.getHeaders().getContentLength()))
 					.channel((c) -> c.queue("multiPartFilesChannel"))
 					.get();
 		}

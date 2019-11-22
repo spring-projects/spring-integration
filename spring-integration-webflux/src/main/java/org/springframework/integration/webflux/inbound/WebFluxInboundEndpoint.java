@@ -268,6 +268,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			headers.putAll(
 					ExpressionEvalMap.from(getHeaderExpressions())
 							.usingEvaluationContext(evaluationContext)
+							.withRoot(httpEntity)
 							.build());
 		}
 

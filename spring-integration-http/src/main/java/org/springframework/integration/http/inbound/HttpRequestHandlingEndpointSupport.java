@@ -276,6 +276,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				headers.putAll(
 						ExpressionEvalMap.from(getHeaderExpressions())
 								.usingEvaluationContext(evaluationContext)
+								.withRoot(httpEntity)
 								.build());
 			}
 
