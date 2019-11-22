@@ -94,6 +94,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
+		// Most out-of-the-box Spring Integration implementations provide an outbound gateway
+		// for particular external protocol. If an implementation doesn't belong to this category,
+		// it overrides this method to provide its own specific integration pattern type:
+		// service-activator, splitter, aggregator, router etc.
 		return IntegrationPatternType.outbound_gateway;
 	}
 
