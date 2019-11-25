@@ -257,7 +257,7 @@ The preceding gateway produces nodes similar to the following:
 You can use this  `IntegrationNode` hierarchy for parsing the graph model on the client side as well as to understand the general Spring Integration runtime behavior.
 See also <<./overview.adoc#programming-tips,Programming Tips and Tricks>> for more information.
 
-The version 5.2.2 has introduced an `IntegrationPattern` abstraction and all out-of-the-box components, which belongs to particular EI pattern implements this abstraction and provides an `IntegrationPatternType` enum value.
+The version 5.3 has introduced an `IntegrationPattern` abstraction and all out-of-the-box components, which belongs to particular EI pattern implements this abstraction and provides an `IntegrationPatternType` enum value.
 This information can be useful for some categorizing logic in the target application or being exposed into the graph node it can be used on UI to determine how to draw the provided component.
 
 === Integration Graph Controller

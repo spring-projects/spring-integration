@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  *
  * @author Artem Bilan
  *
- * @since 5.2.2
+ * @since 5.3
  */
 public enum IntegrationPatternType {
 
