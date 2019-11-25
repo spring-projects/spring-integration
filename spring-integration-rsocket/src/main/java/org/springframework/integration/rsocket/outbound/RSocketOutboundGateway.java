@@ -225,7 +225,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		return requesterMono
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
-				.map((requestSpec) -> prepareRequestSpec(requestSpec, requestMessage))
+				.map((requestSpec) -> prepareRetrieveSpec(requestSpec, requestMessage))
 				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
 	}
 
@@ -248,7 +248,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		return requestSpec;
 	}
 
-	private RSocketRequester.RetrieveSpec prepareRequestSpec(RSocketRequester.RequestSpec requestSpec,
+	private RSocketRequester.RetrieveSpec prepareRetrieveSpec(RSocketRequester.RequestSpec requestSpec,
 			Message<?> requestMessage) {
 
 		Object payload = requestMessage.getPayload();
