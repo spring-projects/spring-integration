@@ -47,13 +47,13 @@ import org.springframework.util.Assert;
  * <pre class="code">
  * {@code
  *ExpressionEvalMap evalMap = ExpressionEvalMap
- *	.from(expressions)
- *	.usingCallback(new EvaluationCallback() {
- *		Object evaluate(Expression expression) {
- *			// return some expression evaluation
- *        }
+ *  .from(expressions)
+ *  .usingCallback(new EvaluationCallback() {
+ *        Object evaluate(Expression expression) {
+ *	            // return some expression evaluation
+ *         }
  *    })
- *	.build();
+ *    .build();
  *}
  * </pre>
  * <p>
