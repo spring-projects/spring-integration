@@ -248,7 +248,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		return requestSpec;
 	}
 
-	private RSocketRequester.RequestSpec prepareRequestSpec(RSocketRequester.RequestSpec requestSpec,
+	private RSocketRequester.RetrieveSpec prepareRequestSpec(RSocketRequester.RequestSpec requestSpec,
 			Message<?> requestMessage) {
 
 		Object payload = requestMessage.getPayload();
@@ -262,7 +262,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private RSocketRequester.RequestSpec prepareRequestSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
+	private RSocketRequester.RetrieveSpec prepareRequestSpecForPublisher(RSocketRequester.RequestSpec requestSpec,
 			Publisher<?> payload, Object publisherElementType) {
 
 		if (publisherElementType instanceof Class<?>) {
@@ -273,7 +273,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Mono<?> performRequest(RSocketRequester.RequestSpec requestSpec, Message<?> requestMessage) {
+	private Mono<?> performRequest(RSocketRequester.RetrieveSpec requestSpec, Message<?> requestMessage) {
 		Command command = this.commandExpression.getValue(this.evaluationContext, requestMessage, Command.class);
 		Assert.notNull(command,
 				() -> "The 'command' [" + this.commandExpression + "] must not evaluate to null");
