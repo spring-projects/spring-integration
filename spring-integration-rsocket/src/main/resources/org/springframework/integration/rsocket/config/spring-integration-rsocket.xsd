@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/rsocket"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/rsocket"
+			elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation>
+			Defines the configuration elements for Spring Integration's RSocket channel adapters.
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Configures a Messaging Gateway Endpoint for the
+					'org.springframework.integration.rsocket.inbound.RSocketInboundGateway to receive RSocket
+					requests and produce RSocket responses.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="path" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+								The comma separated Ant-style path patterns this endpoint is mapped onto.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="interaction-models">
+						<xsd:annotation>
+							<xsd:documentation>
+								Comma-separated interaction models.
+								Determines which types of RSocket frames are allowed with this Endpoint.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="interactionModelType xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								If a downstream exception is thrown and an error-channel is specified,
+								the MessagingException will be sent to this channel. Otherwise, any such exception
+								will be propagated to the calling system.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rsocket-strategies" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								An 'RSocketStrategies' bean reference for encoding/decoding requests/replies.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.messaging.rsocket.RSocketStrategies"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rsocket-connector" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								An optional 'AbstractRSocketConnector' bean reference for endpoint mapping registration.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.rsocket.AbstractRSocketConnector"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-element-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A 'Class' for a request message payload type (plain or `Publisher` element).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.rsocket.outbound.RSocketOutboundGateway' to send requests
+					over RSocket connections.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0"/>
+					</xsd:choice>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="route" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A 'route' for the target RSocket endpoint.
+								Mutually exclusive with 'route-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="route-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'route' for target RSocket endpoint at runtime
+								against request message.
+								Mutually exclusive with 'route'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="command">
+						<xsd:annotation>
+							<xsd:documentation>
+								[DEPRECATED in favor of 'interaction-model']
+								A 'Command' for the RSocket request type.
+								Mutually exclusive with 'command-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="commandType xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="interaction-model" default="requestResponse">
+						<xsd:annotation>
+							<xsd:documentation>
+								An 'RSocketInteractionModel' for the RSocket request type.
+								Mutually exclusive with 'interaction-model-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="interactionModelType xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="command-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								[DEPRECATED in favor of 'interaction-model-expression']
+								A SpEL expression to evaluate a 'command' for the RSocket request type at runtime
+								against request message.
+								Mutually exclusive with 'command'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="interaction-model-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate an 'RSocketInteractionModel'
+								for the RSocket request type at runtime against request message.
+								Mutually exclusive with 'interaction-model'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="publisher-element-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A 'Class' for a request message payload 'Publisher' type.
+								Mutually exclusive with 'publisher-element-type-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="publisher-element-type-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'Class' or 'ParameterizedTypeReference'
+								for a request message payload 'Publisher' type at runtime
+								against request message.
+								Mutually exclusive with 'publisher-element-type'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expected-response-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A 'Class' for an RSocket response.
+								Mutually exclusive with 'expected-response-type-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'Class' or 'ParameterizedTypeReference'
+								for an RSocket response at runtime
+								against request message.
+								Mutually exclusive with 'expected-response-type'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="client-rsocket-connector" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A 'ClientRSocketConnector' for client side requests.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.rsocket.ClientRSocketConnector"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="metadata-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'Map' representing a metadata
+								for an RSocket request at runtime against request message.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="gatewayType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines common configuration for gateway adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="request-channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-timeout" type="xsd:string"/>
+		<xsd:attribute name="reply-timeout" type="xsd:string"/>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+	</xsd:complexType>
+
+	<xsd:simpleType name="commandType">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="fireAndForget"/>
+			<xsd:enumeration value="requestResponse"/>
+			<xsd:enumeration value="requestStreamOrChannel"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="interactionModelType">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="fireAndForget"/>
+			<xsd:enumeration value="requestResponse"/>
+			<xsd:enumeration value="requestStream"/>
+			<xsd:enumeration value="requestChannel"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+</xsd:schema>

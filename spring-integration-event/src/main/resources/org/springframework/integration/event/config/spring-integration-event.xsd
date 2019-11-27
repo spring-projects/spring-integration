@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/event"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/event"
+	elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for Spring Integration Event Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer'
+				which listens for Application Context events, converts them to Messages and
+				sends them to a Message Channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an error-channel is specified,
+						the MessagingException will be sent to this channel. Otherwise, any such exception
+						will be propagated to the caller.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="event-types" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma delimited list of event types (classes that extend ApplicationEvent or any type
+						which can be treated as event 'payload') that this adapter should send to the message
+						channel. By default, all event types will be sent [OPTIONAL]
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="payload-expression">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						SpEL expression to be evaluated against the ApplicationEvent to create the payload instance.
+						If not provided, the ApplicationEvent itself will be the 'payload'.
+						In case of 'PayloadApplicationEvent' the 'payload' is extracted from the event to send.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler' that receives
+				Messages from a MessageChannel and then publishes Events containing those Messages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="publish-payload" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify if 'payload' should be published as is or the whole 'message'
+						must be wrapped to the 'MessagingEvent'.
+						See 'ApplicationEventPublisher#publishEvent(Object)' for more information.
+						Defaults to 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
