@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mail"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/mail"
+			elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's Mail Channel Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.mail.MailSendingMessageHandler' that
+					sends mails according te provided options.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element ref="integration:poller" minOccurs="0"/>
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0"/>
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="mail-sender" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.mail.MailSender"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="host" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:string"/>
+			<xsd:attribute name="username" type="xsd:string"/>
+			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="java-mail-properties" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.mail.MailReceivingMessageSource'
+				that polls a mailbox for mail messages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inboundMailAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="protocol" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	The protocol to use (e.g. "pop3" or "imap"). Typically, either this or the 'store-uri' would be
+	provided, but not both. However, at least one of them is required.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="search-term-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.mail.SearchTermStrategy"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a custom implementation of
+								org.springframework.integration.mail.SearchTermStrategy
+								to use when retrieving email. Only permitted with 'imap' protocol or an 'imap' uri.
+								By default, the ImapMailReceiver will search for Messages based on the default
+								SearchTerm
+								which is "All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT
+								DELETED, that are NOT SEEN and have not
+								been processed by this mail receiver (enabled by the use of the custom USER flag or
+								simply NOT FLAGGED if not supported)".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="imap-idle-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.mail.ImapIdleChannelAdapter' that listens to the changes in the mail
+				box via IMAP protocol.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inboundMailAdapterType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0"
+									 maxOccurs="1"/>
+					</xsd:choice>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								If a (synchronous) downstream exception is thrown and an error-channel is specified,
+								the MessagingException will be sent to this channel. Otherwise, any such exception
+								will simply be logged as a warning by the channel adapter.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="search-term-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.mail.SearchTermStrategy"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a custom implementation of
+								org.springframework.integration.mail.SearchTermStrategy
+								to use when retrieving email.
+								By default, the ImapMailReceiver will search for Messages based on the default
+								SearchTerm
+								which is "All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT
+								DELETED, that are NOT SEEN and have not
+								been processed by this mail receiver (enabled by the use of the custom USER flag or
+								simply NOT FLAGGED if not supported)".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Reference to a bean that implements
+								org.springframework.core.task.TaskExecutor which is used
+								to send Messages received by this adapter.
+								If not provided, the adapter uses a single-threaded executor.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="cancel-idle-interval" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								How often to recycle the idle task (in case of a silently dropped connection).
+								Seconds; default 120 (2 minutes).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="inboundMailAdapterType">
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+		<xsd:attribute name="store-uri" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The URI for the Mail Store. Typically of the form: [pop3|imap]://user:password@host:port/INBOX
+	If this is not provided, then the store will be retrieved via the no-arg Session.getStore()
+	instead of the Session.getStore(url) method.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mail-filter-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Allows you to provide a SpEL expression which defines a fine grained filtering criteria for the mail messages to be processed by this adapter.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="session" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the javax.mail.Session reference.
+					NOTE: if this is provided, then 'java-mail-properties' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.mail.Session"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="java-mail-properties" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a 'java.util.Properties' instance with settings for the JavaMail Session.
+					NOTE: if this is provided, then 'session' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.Properties"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="authenticator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the javax.mail.Authenticator.
+					NOTE: if this is provided, then 'session' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.mail.Authenticator"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-fetch-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify the maximum number of Mail Messages to fetch per receive call.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify whether mail messages should be deleted after retrieval. Messages are deleted after
+	retrieval but before they are processed. If you wish to delete a message after completion
+	of message processing, use transaction synchronization instead.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="should-mark-messages-as-read" type="xsd:string" use="optional" default="true">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify whether mail messages should be marked as read after being retrieved (Not supported in POP3).
+	Messages are marked after
+	retrieval but before they are processed. If you wish to mark a message after completion
+	of message processing, use transaction synchronization instead.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="user-flag" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify the user flag to mark messages read by the adapter when the mail store does not support
+	the RECENT flag but does support user flags (keywords). This flag is set regardless of the
+	'should-mark-messages-as-read' attribute. It can be used in the 'search-term-strategy' (and
+	is by default) to ignore already processed messages. Default: 'spring-integration-mail-adapter'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="simple-content">
+			<xsd:annotation>
+				<xsd:documentation>
+					When 'true', messages produced by the source will be rendered by 'MimeMessage.getContent()'
+					which is usually just the body for a simple text email. When false (default) the content
+					is rendered by the 'getContent()' method on the actual message returned by the underlying
+					javamail implementation.
+					For example, an IMAP message is rendered with some message headers.
+					This attribute is provided so that users can enable the previous behavior, which just
+					rendered the body.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="inboundMappingGroup"/>
+	</xsd:complexType>
+
+	<xsd:element name="mail-to-string-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a Transformer ('org.springframework.integration.mail.transformer.MailToStringTransformer')
+					that converts a javax.mail.Message payload to a String.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+					</xsd:sequence>
+					<xsd:attribute name="charset" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="header-enricher">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a 'org.springframework.integration.transformer.HeaderEnricher' for adding statically
+					configured Mail Headers.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:choice maxOccurs="unbounded">
+						<xsd:element name="subject" type="headerType"/>
+						<xsd:element name="to" type="headerType"/>
+						<xsd:element name="cc" type="headerType"/>
+						<xsd:element name="bcc" type="headerType"/>
+						<xsd:element name="from" type="headerType"/>
+						<xsd:element name="reply-to" type="headerType"/>
+						<xsd:element name="content-type" type="headerType"/>
+						<xsd:element name="attachment-filename" type="headerType"/>
+						<xsd:element name="multipart-mode" type="headerType"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+					</xsd:choice>
+					<xsd:attribute name="default-overwrite">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify the default boolean value for whether to overwrite existing header values. This
+								will only take effect for
+								sub-elements that do not provide their own 'overwrite' attribute. If the
+								'default-overwrite' attribute is not
+								provided, then the specified header values will NOT overwrite any existing ones with the
+								same header names.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="headerType">
+		<xsd:attribute name="value" type="xsd:string"/>
+		<xsd:attribute name="ref" type="xsd:string"/>
+		<xsd:attribute name="expression" type="xsd:string"/>
+		<xsd:attribute name="overwrite">
+			<xsd:annotation>
+				<xsd:documentation>
+					Boolean value to indicate whether this header value should overwrite an existing header value for
+					the same name.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:attributeGroup name="inboundMappingGroup">
+		<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to a 'org.springframework.integration.mapping.HeaderMapper<MimeMessage>' bean.
+	When not supplied, the message payload will be the raw MimeMessage with no header mapping.
+	When a mapper is provided, the mail headers are mapped to 'MessageHeaders' and the payload
+	will depend on the email contents, and the setting of 'embedded-parts-as-bytes'. The framework
+	provides a 'DefaultMailHeaderMapper'; see the reference manual regarding the headers mapped
+	and the payload types.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="embedded-parts-as-bytes">
+			<xsd:annotation>
+				<xsd:documentation>
+					When a 'header-mapper' is provided, and the 'MimeMessage' has embedded 'Part' (e.g. 'Message' or
+					'Multipart') contents, the message payload will be a byte[] containing the raw data. Set this
+					boolean to 'false' for the payload to be a decoded 'Part' object. Note that 'Part's are not
+					'Serializable', nor are they suitable for serialization using other technologies such as Kryo.
+					Default 'true' (payload is 'byte[]').
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="auto-close-folder" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Default 'true' - close folder automatically after fetch, before producing messages.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+</xsd:schema>

@@ -230,29 +230,6 @@ subprojects { subproject ->
 	ext.xLintArg = '-Xlint:all,-options,-processing'
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
-	task checkTestConfigs {
-		inputs.files(
-				sourceSets.test.java.srcDirs.collect {
-							fileTree(it)
-								.include('**/*.xml')
-								.exclude('**/log4j2-test.xml')
-				})
-		outputs.dir('build/resources')
-		doLast {
-			def wrongConfigs = inputs.files.filter {
-				new XmlParser(false, false)
-						.parse(it)
-						.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/
-			}
-			if (!wrongConfigs.empty) {
-				throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
-						wrongConfigs.collect { relativePath(it) }.join('\n') +
-						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds ' +
-						'on different versions of dependencies.')
-			}
-		}
-	}
-
 	task updateCopyrights {
 		onlyIf { !System.getenv('TRAVIS') && !System.getenv('bamboo_buildKey') }
 		inputs.files(modifiedFiles.filter { f -> f.path.contains(subproject.name) })
@@ -310,7 +287,6 @@ subprojects { subproject ->
 	tasks.withType(Test).all {
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
-		dependsOn checkTestConfigs
 
 		if (name ==~ /(testAll)/) {
 			systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
@@ -1004,7 +980,7 @@ task schemaZip(type: Zip) {
 	description = "Builds -${archiveClassifier} archive containing all " +
 		"XSDs for deployment at static.springframework.org/schema."
 
-	duplicatesStrategy = 'exclude'
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	subprojects.findAll{ !it.name.endsWith('-bom') }.each { subproject ->
 		Properties schemas = new Properties();
@@ -1022,8 +998,12 @@ task schemaZip(type: Zip) {
 				it.path.replaceAll('\\\\', '/').endsWith(schemas.get(key))
 			}
 			assert xsdFile != null
-			into ("integration/${shortName}") {
+			into ("integration/$shortName") {
 				from xsdFile.path
+				rename { String fileName ->
+					String[] versionNumbers = project.version.split(/\./, 3)
+					fileName.replace('.xsd', "-${versionNumbers[0]}.${versionNumbers[1]}.xsd")
+				}
 			}
 		}
 	}
