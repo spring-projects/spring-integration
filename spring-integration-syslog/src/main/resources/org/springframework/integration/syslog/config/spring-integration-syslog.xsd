@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/syslog"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+			targetNamespace="http://www.springframework.org/schema/integration/syslog"
+			elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="https://www.springframework.org/schema/integration/spring-integration.xsd"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration/ip"
+				schemaLocation="https://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's Syslog adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.syslog.inbound.SyslogReceivingChannelAdapterSupport' that
+				listens syslogs from the provided port and convert them to the messages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element name="udp-attributes" type="int-ip:udpInboundAdapterType"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						An explicit tcp connection factory; requires protocol="tcp" and
+						incompatible with the 'port' attribute.
+						Use this if you want to set advanced configuration options on the
+						factory. The default factory uses
+						NIO.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an
+						"error-channel" is specified,
+						the MessagingException will be sent to this channel. Otherwise, any
+						such exception
+						will simply be logged by the channel adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="protocol" type="xsd:string" use="optional"
+						   default="udp">
+				<xsd:annotation>
+					<xsd:documentation>
+						The protocol used to listen for syslog packets, 'udp' or 'tcp'.
+						Default
+						is 'udp'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="port" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The port on which this adapter listens for syslog packets. Default is
+						514. This is
+						standard for UDP, but no standard is esablished for TCP - in many cases
+						514 is
+						used for TCP, but 514 is actually allocated to another protocol.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="converter" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+									type="org.springframework.integration.syslog.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A converter used to map the UDP/TCP message to a Spring Integration
+						message.
+						Default is DefaultSyslogMessageConverter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout" type="xsd:string"
+						   use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						A timeout (milliseconds) when sending messages to 'channel' or
+						'error-channel'. Only
+						applies if the send might block - such as when sending to a bounded
+						QueueChannel that
+						is currently full. Default is infinity.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
