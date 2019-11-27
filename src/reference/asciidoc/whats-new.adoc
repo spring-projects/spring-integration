@@ -23,3 +23,8 @@ See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for mo
 
 [[x5.3-general]]
 === General Changes
+=======
+[[x5.3-general]]
+=== General Changes
+
+
