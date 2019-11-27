@@ -1,5 +1,5 @@
 [[migration-5.0-5.1]]
-=== Changes between 5.1 and 5.1
+=== Changes between 5.0 and 5.1
 
 [[x5.1-new-components]]
 ==== New Components
