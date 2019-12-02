@@ -49,7 +49,7 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 	}
 
 	/**
-	 * Configure {@link RSocketStrategies} instead of a default one.
+	 * Configure an {@link RSocketStrategies} instead of a default one.
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
 	 * @return the spec
 	 * @see RSocketInboundGateway#setRSocketStrategies(RSocketStrategies)
@@ -71,7 +71,7 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 	}
 
 	/**
-	 * Specify the type of payload to be generated when the inbound RSocket request
+	 * Specify a type of payload to be generated when the inbound RSocket request
 	 * content is read by the converters/encoders.
 	 * @param requestElementType The payload type.
 	 * @return the spec

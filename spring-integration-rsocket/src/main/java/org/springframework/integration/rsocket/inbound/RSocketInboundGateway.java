@@ -95,7 +95,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	/**
-	 * Configure {@link RSocketStrategies} instead of a default one.
+	 * Configure an {@link RSocketStrategies} instead of a default one.
 	 * Note: if {@link AbstractRSocketConnector} is provided, then its
 	 * {@link RSocketStrategies} have a precedence.
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
@@ -139,7 +139,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	/**
-	 * Specify the type of payload to be generated when the inbound RSocket request
+	 * Specify a type of payload to be generated when the inbound RSocket request
 	 * content is read by the encoders.
 	 * By default this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.

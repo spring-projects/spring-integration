@@ -145,7 +145,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								[DEPRECATED in favor of 'interaction-model']
-								A 'Command' for RSocket request type.
+								A 'Command' for the RSocket request type.
 								Mutually exclusive with 'command-expression'.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -156,7 +156,7 @@
 					<xsd:attribute name="interaction-model" default="requestResponse">
 						<xsd:annotation>
 							<xsd:documentation>
-								An 'RSocketInteractionModel' for RSocket request type.
+								An 'RSocketInteractionModel' for the RSocket request type.
 								Mutually exclusive with 'interaction-model-expression'.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -168,7 +168,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								[DEPRECATED in favor of 'interaction-model-expression']
-								A SpEL expression to evaluate a 'command' for RSocket request type at runtime
+								A SpEL expression to evaluate a 'command' for the RSocket request type at runtime
 								against request message.
 								Mutually exclusive with 'command'.
 							</xsd:documentation>
@@ -178,7 +178,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								A SpEL expression to evaluate an 'RSocketInteractionModel'
-								for RSocket request type at runtime against request message.
+								for the RSocket request type at runtime against request message.
 								Mutually exclusive with 'interaction-model'.
 							</xsd:documentation>
 						</xsd:annotation>

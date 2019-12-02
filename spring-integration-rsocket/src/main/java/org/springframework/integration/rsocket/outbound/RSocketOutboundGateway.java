@@ -131,7 +131,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Configure a {@link Command} for RSocket request type.
+	 * Configure a {@link Command} for the RSocket request type.
 	 * @param command the {@link Command} to use.
 	 * @deprecated in favor of {@link #setInteractionModel(RSocketInteractionModel)}
 	 */
@@ -141,7 +141,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Configure a {@link RSocketInteractionModel} for RSocket request type.
+	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
 	 * @param interactionModel the {@link RSocketInteractionModel} to use.
 	 * @since 5.2.2
 	 */
@@ -150,7 +150,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a {@link Command} for RSocket request type at runtime
+	 * Configure a SpEL expression to evaluate a {@link Command} for the RSocket request type at runtime
 	 * against a request message.
 	 * @param commandExpression the SpEL expression to use.
 	 * @deprecated in favor of {@link #setInteractionModelExpression(Expression)}
@@ -162,7 +162,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	/**
 	 * Configure a SpEL expression to evaluate an {@link RSocketInteractionModel}
-	 * for RSocket request type at runtime against a request message.
+	 * for the RSocket request type at runtime against a request message.
 	 * @param interactionModelExpression the SpEL expression to use.
 	 * @since 5.2.2
 	 */
@@ -194,7 +194,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify the expected response type for the RSocket response.
+	 * Specify an response type for the RSocket response.
 	 * @param expectedResponseType The expected type.
 	 * @see #setExpectedResponseTypeExpression(Expression)
 	 * @see RSocketRequester.RequestSpec#retrieveMono
@@ -205,7 +205,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify the {@link Expression} to determine the type for the RSocket response.
+	 * Specify an {@link Expression} to determine the type for the RSocket response.
 	 * @param expectedResponseTypeExpression The expected response type expression.
 	 * @see RSocketRequester.RequestSpec#retrieveMono
 	 * @see RSocketRequester.RequestSpec#retrieveFlux
@@ -215,8 +215,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify a SpEL expression to evaluate a metadata for RSocket request
-	 * as {@code Map<Object, MimeType>} against request message.
+	 * Specify a SpEL expression to evaluate a metadata for the RSocket request
+	 * as {@code Map<Object, MimeType>} against a request message.
 	 * @param metadataExpression the expression for metadata.
 	 */
 	public void setMetadataExpression(Expression metadataExpression) {
