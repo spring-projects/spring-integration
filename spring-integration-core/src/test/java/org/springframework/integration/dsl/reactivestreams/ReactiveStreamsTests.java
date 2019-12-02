@@ -152,11 +152,12 @@ public class ReactiveStreamsTests {
 
 	@Test
 	void testFromPublisher() {
-		Flux<Message<?>> messageFlux = Flux.just("1,2,3,4")
-				.map(v -> v.split(","))
-				.flatMapIterable(Arrays::asList)
-				.map(Integer::parseInt)
-				.map(GenericMessage::new);
+		Flux<Message<?>> messageFlux =
+				Flux.just("1,2,3,4")
+						.map(v -> v.split(","))
+						.flatMapIterable(Arrays::asList)
+						.map(Integer::parseInt)
+						.map(GenericMessage::new);
 
 		QueueChannel resultChannel = new QueueChannel();
 

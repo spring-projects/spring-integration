@@ -58,9 +58,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.FileCopyUtils;
 
 import reactor.test.StepVerifier;
@@ -72,8 +70,7 @@ import reactor.test.StepVerifier;
  *
  * @since 4.1.2
  */
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
-@SpringJUnitConfig
+@SpringJUnitConfig(FileSplitterTests.ContextConfiguration.class)
 @DirtiesContext
 public class FileSplitterTests {
 
@@ -265,34 +262,35 @@ public class FileSplitterTests {
 	@Test
 	void testFileSplitterReactive() {
 		FluxMessageChannel outputChannel = new FluxMessageChannel();
+		StepVerifier verifier =
+				StepVerifier.create(outputChannel)
+						.assertNext(m -> {
+							assertThat(m.getHeaders())
+									.containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)
+									.containsEntry(FileHeaders.MARKER, "START");
+							assertThat(m.getPayload()).isInstanceOf(FileMarker.class);
+							FileMarker fileMarker = (FileMarker) m.getPayload();
+							assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.START);
+							assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+						})
+						.expectNextCount(2)
+						.assertNext(m -> {
+							assertThat(m.getHeaders()).containsEntry(FileHeaders.MARKER, "END");
+							assertThat(m.getPayload()).isInstanceOf(FileMarker.class);
+							FileMarker fileMarker = (FileMarker) m.getPayload();
+							assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.END);
+							assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
+							assertThat(fileMarker.getLineCount()).isEqualTo(2);
+						})
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
 		FileSplitter splitter = new FileSplitter(true, true);
 		splitter.setApplySequence(true);
 		splitter.setOutputChannel(outputChannel);
 		splitter.handleMessage(new GenericMessage<>(file));
 
-
-		StepVerifier.create(outputChannel)
-				.assertNext(m -> {
-					assertThat(m.getHeaders())
-							.containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE)
-							.containsEntry(FileHeaders.MARKER, "START");
-					assertThat(m.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
-					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
-					assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.START);
-					assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
-				})
-				.expectNextCount(2)
-				.assertNext(m -> {
-					assertThat(m.getHeaders()).containsEntry(FileHeaders.MARKER, "END");
-					assertThat(m.getPayload()).isInstanceOf(FileSplitter.FileMarker.class);
-					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
-					assertThat(fileMarker.getMark()).isEqualTo(FileMarker.Mark.END);
-					assertThat(fileMarker.getFilePath()).isEqualTo(file.getAbsolutePath());
-					assertThat(fileMarker.getLineCount()).isEqualTo(2);
-				})
-				.expectNoEvent(Duration.ofMillis(100))
-				.thenCancel()
-				.verify(Duration.ofSeconds(1));
+		verifier.verify(Duration.ofSeconds(1));
 	}
 
 	@Test

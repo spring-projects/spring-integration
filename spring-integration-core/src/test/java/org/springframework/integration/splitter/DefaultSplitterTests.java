@@ -161,63 +161,74 @@ class DefaultSplitterTests {
 	void splitArrayPayloadReactive() {
 		Message<?> message = new GenericMessage<>(new String[] { "x", "y", "z" });
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
-		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
-		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
 
 		Flux<String> testFlux =
 				Flux.from(replyChannel)
 						.map(Message::getPayload)
 						.cast(String.class);
 
-		StepVerifier.create(testFlux)
-				.expectNext("x", "y", "z")
-				.expectNoEvent(Duration.ofMillis(100))
-				.thenCancel()
-				.verify(Duration.ofSeconds(1));
+		StepVerifier verifier =
+				StepVerifier.create(testFlux)
+						.expectNext("x", "y", "z")
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
+
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+
+		splitter.handleMessage(message);
+
+		verifier.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
 	void splitStreamReactive() {
 		Message<?> message = new GenericMessage<>(Stream.of("x", "y", "z"));
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
-		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
-		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
-
 		Flux<String> testFlux =
 				Flux.from(replyChannel)
 						.map(Message::getPayload)
 						.cast(String.class);
 
-		StepVerifier.create(testFlux)
-				.expectNext("x", "y", "z")
-				.expectNoEvent(Duration.ofMillis(100))
-				.thenCancel()
-				.verify(Duration.ofSeconds(1));
+		StepVerifier verifier =
+				StepVerifier.create(testFlux)
+						.expectNext("x", "y", "z")
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
+
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+
+		splitter.handleMessage(message);
+
+		verifier.verify(Duration.ofSeconds(1));
 	}
 
 	@Test
 	void splitFluxReactive() {
 		Message<?> message = new GenericMessage<>(Flux.just("x", "y", "z"));
 		FluxMessageChannel replyChannel = new FluxMessageChannel();
-		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
-		splitter.setOutputChannel(replyChannel);
-
-		splitter.handleMessage(message);
-
 		Flux<String> testFlux =
 				Flux.from(replyChannel)
 						.map(Message::getPayload)
 						.cast(String.class);
 
-		StepVerifier.create(testFlux)
-				.expectNext("x", "y", "z")
-				.expectNoEvent(Duration.ofMillis(100))
-				.thenCancel()
-				.verify(Duration.ofSeconds(1));
+		StepVerifier verifier =
+				StepVerifier.create(testFlux)
+						.expectNext("x", "y", "z")
+						.expectNoEvent(Duration.ofMillis(100))
+						.thenCancel()
+						.verifyLater();
+
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+
+		splitter.handleMessage(message);
+
+
+		verifier.verify(Duration.ofSeconds(1));
 	}
 
 }
