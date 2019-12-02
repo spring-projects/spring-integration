@@ -19,6 +19,7 @@ package org.springframework.integration.rsocket.dsl;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.inbound.RSocketInboundGateway;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 
@@ -36,7 +37,19 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 	}
 
 	/**
-	 * Configure {@link RSocketStrategies} instead of a default one.
+	 * Configure a set of {@link RSocketInteractionModel} the endpoint is going to be mapped onto.
+	 * @param interactionModels the {@link RSocketInteractionModel}s for mapping.
+	 * @return the spec.
+	 * @since 5.2.2
+	 * @see RSocketInboundGateway#setInteractionModels(RSocketInteractionModel...)
+	 */
+	public RSocketInboundGatewaySpec interactionModels(RSocketInteractionModel... interactionModels) {
+		this.target.setInteractionModels(interactionModels);
+		return this;
+	}
+
+	/**
+	 * Configure an {@link RSocketStrategies} instead of a default one.
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
 	 * @return the spec
 	 * @see RSocketInboundGateway#setRSocketStrategies(RSocketStrategies)
@@ -58,7 +71,7 @@ public class RSocketInboundGatewaySpec extends MessagingGatewaySpec<RSocketInbou
 	}
 
 	/**
-	 * Specify the type of payload to be generated when the inbound RSocket request
+	 * Specify a type of payload to be generated when the inbound RSocket request
 	 * content is read by the converters/encoders.
 	 * @param requestElementType The payload type.
 	 * @return the spec

@@ -38,6 +38,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.ServerRSocketMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
@@ -80,7 +81,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 
 	private static final String ROUTE_HEADER = "rsocket_route";
 
-	private static final String COMMAND_HEADER = "rsocket_command";
+	private static final String INTERACTION_MODEL_HEADER = "interaction_model";
 
 	private static AnnotationConfigApplicationContext serverContext;
 
@@ -154,7 +155,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "receive")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.fireAndForget)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.fireAndForget)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -192,7 +193,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -224,7 +225,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-async")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -258,7 +259,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "echo-stream")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestStream)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -292,7 +293,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload(Flux.range(1, 10).map(i -> "Hello " + i))
 						.setHeader(ROUTE_HEADER, "echo-channel")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestStreamOrChannel)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestChannel)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -323,7 +324,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("Hello")
 						.setHeader(ROUTE_HEADER, "void-return-value")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -353,7 +354,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("bad")
 						.setHeader(ROUTE_HEADER, "void-return-value")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -385,7 +386,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "thrown-exception")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -417,7 +418,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("a")
 						.setHeader(ROUTE_HEADER, "error-signal")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -441,7 +442,7 @@ public class RSocketOutboundGatewayIntegrationTests {
 		inputChannel.send(
 				MessageBuilder.withPayload("anything")
 						.setHeader(ROUTE_HEADER, "invalid")
-						.setHeader(COMMAND_HEADER, RSocketOutboundGateway.Command.requestResponse)
+						.setHeader(INTERACTION_MODEL_HEADER, RSocketInteractionModel.requestResponse)
 						.setHeader(RSocketRequesterMethodArgumentResolver.RSOCKET_REQUESTER_HEADER, rsocketRequester)
 						.build());
 
@@ -471,8 +472,8 @@ public class RSocketOutboundGatewayIntegrationTests {
 					new RSocketOutboundGateway(
 							new FunctionExpression<Message<?>>((m) ->
 									m.getHeaders().get(ROUTE_HEADER)));
-			rsocketOutboundGateway.setCommandExpression(
-					new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(COMMAND_HEADER)));
+			rsocketOutboundGateway.setInteractionModelExpression(
+					new FunctionExpression<Message<?>>((m) -> m.getHeaders().get(INTERACTION_MODEL_HEADER)));
 			return rsocketOutboundGateway;
 		}
 

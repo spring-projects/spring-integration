@@ -28,6 +28,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -46,9 +47,9 @@ import reactor.core.publisher.Mono;
  * {@link RSocketRequesterMethodArgumentResolver#RSOCKET_REQUESTER_HEADER} request message header
  * on the server side.
  * <p>
- * An RSocket operation is determined by the configured {@link Command} or respective SpEL
+ * An RSocket operation is determined by the configured {@link RSocketInteractionModel} or respective SpEL
  * expression to be evaluated at runtime against the request message.
- * By default the {@link Command#requestResponse} operation is used.
+ * By default the {@link RSocketInteractionModel#requestResponse} operation is used.
  * <p>
  * For a {@link Publisher}-based requests, it must be present in the request message {@code payload}.
  * The flattening via upstream {@link org.springframework.integration.channel.FluxMessageChannel} will work, too,
@@ -65,7 +66,7 @@ import reactor.core.publisher.Mono;
  *
  * @since 5.2
  *
- * @see Command
+ * @see RSocketInteractionModel
  * @see RSocketRequester
  */
 public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler {
@@ -77,7 +78,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	@Nullable
 	private ClientRSocketConnector clientRSocketConnector;
 
-	private Expression commandExpression = new ValueExpression<>(Command.requestResponse);
+	private Expression interactionModelExpression = new ValueExpression<>(RSocketInteractionModel.requestResponse);
 
 	private Expression publisherElementTypeExpression;
 
@@ -130,22 +131,46 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Configure a {@link Command} for RSocket request type.
+	 * Configure a {@link Command} for the RSocket request type.
 	 * @param command the {@link Command} to use.
+	 * @deprecated in favor of {@link #setInteractionModel(RSocketInteractionModel)}
 	 */
+	@Deprecated
 	public void setCommand(Command command) {
-		setCommandExpression(new ValueExpression<>(command));
+		setInteractionModelExpression(new ValueExpression<>(command.interactionModel));
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a {@link Command} for RSocket request type at runtime
+	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
+	 * @param interactionModel the {@link RSocketInteractionModel} to use.
+	 * @since 5.2.2
+	 */
+	public void setInteractionModel(RSocketInteractionModel interactionModel) {
+		setInteractionModelExpression(new ValueExpression<>(interactionModel));
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate a {@link Command} for the RSocket request type at runtime
 	 * against a request message.
 	 * @param commandExpression the SpEL expression to use.
+	 * @deprecated in favor of {@link #setInteractionModelExpression(Expression)}
 	 */
+	@Deprecated
 	public void setCommandExpression(Expression commandExpression) {
-		Assert.notNull(commandExpression, "'commandExpression' must not be null");
-		this.commandExpression = commandExpression;
+		setInteractionModelExpression(commandExpression);
 	}
+
+	/**
+	 * Configure a SpEL expression to evaluate an {@link RSocketInteractionModel}
+	 * for the RSocket request type at runtime against a request message.
+	 * @param interactionModelExpression the SpEL expression to use.
+	 * @since 5.2.2
+	 */
+	public void setInteractionModelExpression(Expression interactionModelExpression) {
+		Assert.notNull(interactionModelExpression, "'interactionModelExpression' must not be null");
+		this.interactionModelExpression = interactionModelExpression;
+	}
+
 
 	/**
 	 * Configure a type for a request {@link Publisher} elements.
@@ -169,7 +194,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify the expected response type for the RSocket response.
+	 * Specify an response type for the RSocket response.
 	 * @param expectedResponseType The expected type.
 	 * @see #setExpectedResponseTypeExpression(Expression)
 	 * @see RSocketRequester.RequestSpec#retrieveMono
@@ -180,7 +205,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify the {@link Expression} to determine the type for the RSocket response.
+	 * Specify an {@link Expression} to determine the type for the RSocket response.
 	 * @param expectedResponseTypeExpression The expected response type expression.
 	 * @see RSocketRequester.RequestSpec#retrieveMono
 	 * @see RSocketRequester.RequestSpec#retrieveFlux
@@ -190,8 +215,8 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Specify a SpEL expression to evaluate a metadata for RSocket request
-	 * as {@code Map<Object, MimeType>} against request message.
+	 * Specify a SpEL expression to evaluate a metadata for the RSocket request
+	 * as {@code Map<Object, MimeType>} against a request message.
 	 * @param metadataExpression the expression for metadata.
 	 */
 	public void setMetadataExpression(Expression metadataExpression) {
@@ -226,7 +251,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		return requesterMono
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
 				.map((requestSpec) -> prepareRetrieveSpec(requestSpec, requestMessage))
-				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
+				.flatMap((retrieveSpec) -> performRetrieve(retrieveSpec, requestMessage));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -273,36 +298,55 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Mono<?> performRequest(RSocketRequester.RetrieveSpec requestSpec, Message<?> requestMessage) {
-		Command command = this.commandExpression.getValue(this.evaluationContext, requestMessage, Command.class);
-		Assert.notNull(command,
-				() -> "The 'command' [" + this.commandExpression + "] must not evaluate to null");
+	private Mono<?> performRetrieve(RSocketRequester.RetrieveSpec retrieveSpec, Message<?> requestMessage) {
+		RSocketInteractionModel interactionModel = evaluateInteractionModel(requestMessage);
+		Assert.notNull(interactionModel,
+				() -> "The 'interactionModelExpression' [" + this.interactionModelExpression + "] must not evaluate to null");
 
 		Object expectedResponseType = null;
-		if (!Command.fireAndForget.equals(command)) {
+		if (!RSocketInteractionModel.fireAndForget.equals(interactionModel)) {
 			expectedResponseType = evaluateExpressionForType(requestMessage, this.expectedResponseTypeExpression,
 					"expectedResponseType");
 		}
 
-		switch (command) {
+		switch (interactionModel) {
 			case fireAndForget:
-				return requestSpec.send();
+				return retrieveSpec.send();
 			case requestResponse:
 				if (expectedResponseType instanceof Class<?>) {
-					return requestSpec.retrieveMono((Class<?>) expectedResponseType);
+					return retrieveSpec.retrieveMono((Class<?>) expectedResponseType);
 				}
 				else {
-					return requestSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
+					return retrieveSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
 				}
-			case requestStreamOrChannel:
+			case requestStream:
+			case requestChannel:
 				if (expectedResponseType instanceof Class<?>) {
-					return Mono.just(requestSpec.retrieveFlux((Class<?>) expectedResponseType));
+					return Mono.just(retrieveSpec.retrieveFlux((Class<?>) expectedResponseType));
 				}
 				else {
-					return Mono.just(requestSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
+					return Mono.just(retrieveSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
 				}
 			default:
-				throw new UnsupportedOperationException("Unsupported command: " + command);
+				throw new UnsupportedOperationException("Unsupported interaction model: " + interactionModel);
+		}
+	}
+
+	private RSocketInteractionModel evaluateInteractionModel(Message<?> requestMessage) {
+		Object value = this.interactionModelExpression.getValue(this.evaluationContext, requestMessage);
+		if (value instanceof RSocketInteractionModel) {
+			return (RSocketInteractionModel) value;
+		}
+		else if (value instanceof Command) {
+			return ((Command) value).interactionModel;
+		}
+		else if (value instanceof String) {
+			return RSocketInteractionModel.valueOf((String) value);
+		}
+		else {
+			throw new IllegalStateException("The 'interactionModelExpression' [" +
+					this.interactionModelExpression +
+					"] must evaluate to 'RSocketInteractionModel' or 'String' type, but not into: '" + value + "'");
 		}
 	}
 
@@ -330,20 +374,22 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	/**
 	 * Enumeration of commands supported by the gateways.
+	 * @deprecated in favor of {@link RSocketInteractionModel}
 	 */
+	@Deprecated
 	public enum Command {
 
 		/**
 		 * Perform {@link io.rsocket.RSocket#fireAndForget fireAndForget}.
 		 * @see RSocketRequester.RequestSpec#send()
 		 */
-		fireAndForget,
+		fireAndForget(RSocketInteractionModel.fireAndForget),
 
 		/**
 		 * Perform {@link io.rsocket.RSocket#requestResponse requestResponse}.
 		 * @see RSocketRequester.RequestSpec#retrieveMono
 		 */
-		requestResponse,
+		requestResponse(RSocketInteractionModel.requestResponse),
 
 		/**
 		 * Perform {@link io.rsocket.RSocket#requestStream requestStream} or
@@ -351,7 +397,13 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * the request input consists of a single or multiple payloads.
 		 * @see RSocketRequester.RequestSpec#retrieveFlux
 		 */
-		requestStreamOrChannel
+		requestStreamOrChannel(RSocketInteractionModel.requestStream);
+
+		private final RSocketInteractionModel interactionModel;
+
+		Command(RSocketInteractionModel interactionModel) {
+			this.interactionModel = interactionModel;
+		}
 
 	}
 

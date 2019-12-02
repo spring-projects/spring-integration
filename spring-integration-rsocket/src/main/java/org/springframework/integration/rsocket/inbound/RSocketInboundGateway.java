@@ -30,6 +30,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.rsocket.AbstractRSocketConnector;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
 import org.springframework.integration.rsocket.IntegrationRSocketEndpoint;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
@@ -74,6 +75,8 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 
 	private final String[] path;
 
+	private RSocketInteractionModel[] interactionModels = RSocketInteractionModel.values();
+
 	private RSocketStrategies rsocketStrategies = RSocketStrategies.create();
 
 	@Nullable
@@ -92,7 +95,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	/**
-	 * Configure {@link RSocketStrategies} instead of a default one.
+	 * Configure an {@link RSocketStrategies} instead of a default one.
 	 * Note: if {@link AbstractRSocketConnector} is provided, then its
 	 * {@link RSocketStrategies} have a precedence.
 	 * @param rsocketStrategies the {@link RSocketStrategies} to use.
@@ -113,6 +116,21 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	/**
+	 * Configure a set of {@link RSocketInteractionModel} this endpoint is mapped onto.
+	 * @param interactionModelsArg the {@link RSocketInteractionModel}s for mapping.
+	 * @since 5.2.2
+	 */
+	public void setInteractionModels(RSocketInteractionModel... interactionModelsArg) {
+		Assert.notNull(interactionModelsArg, "'interactionModelsArg' must not be null");
+		this.interactionModels = Arrays.copyOf(interactionModelsArg, interactionModelsArg.length);
+	}
+
+	@Override
+	public RSocketInteractionModel[] getInteractionModels() {
+		return Arrays.copyOf(this.interactionModels, this.interactionModels.length);
+	}
+
+	/**
 	 * Get an array of the path patterns this endpoint is mapped onto.
 	 * @return the mapping path
 	 */
@@ -121,7 +139,7 @@ public class RSocketInboundGateway extends MessagingGatewaySupport implements In
 	}
 
 	/**
-	 * Specify the type of payload to be generated when the inbound RSocket request
+	 * Specify a type of payload to be generated when the inbound RSocket request
 	 * content is read by the encoders.
 	 * By default this value is null which means at runtime any "text" Content-Type will
 	 * result in String while all others default to {@code byte[].class}.

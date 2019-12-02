@@ -49,6 +49,7 @@ public class RSocketOutboundGatewayParser extends AbstractConsumerEndpointParser
 		builder.addConstructorArgValue(routeExpression);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "client-rsocket-connector",
 				"clientRSocketConnector");
+		populateValueOrExpressionIfAny(builder, element, parserContext, "interaction-model");
 		populateValueOrExpressionIfAny(builder, element, parserContext, "command");
 		populateValueOrExpressionIfAny(builder, element, parserContext, "publisher-element-type");
 		populateValueOrExpressionIfAny(builder, element, parserContext, "expected-response-type");

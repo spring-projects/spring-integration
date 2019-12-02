@@ -17,6 +17,7 @@
 package org.springframework.integration.rsocket;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,13 +80,19 @@ class IntegrationRSocketMessageHandler extends RSocketMessageHandler {
 	}
 
 	public void addEndpoint(IntegrationRSocketEndpoint endpoint) {
+		RSocketFrameTypeMessageCondition frameTypeMessageCondition = RSocketFrameTypeMessageCondition.EMPTY_CONDITION;
+
+		RSocketInteractionModel[] interactionModels = endpoint.getInteractionModels();
+		if (interactionModels.length > 0) {
+			frameTypeMessageCondition =
+					new RSocketFrameTypeMessageCondition(
+							Arrays.stream(interactionModels)
+									.map(RSocketInteractionModel::getFrameType)
+									.toArray(FrameType[]::new));
+		}
 		registerHandlerMethod(endpoint, HANDLE_MESSAGE_METHOD,
 				new CompositeMessageCondition(
-						new RSocketFrameTypeMessageCondition(
-								FrameType.REQUEST_FNF,
-								FrameType.REQUEST_RESPONSE,
-								FrameType.REQUEST_STREAM,
-								FrameType.REQUEST_CHANNEL),
+						frameTypeMessageCondition,
 						new DestinationPatternsMessageCondition(endpoint.getPath(), getRouteMatcher()))); // NOSONAR
 	}
 

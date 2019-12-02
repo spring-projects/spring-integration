@@ -24,6 +24,7 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.rsocket.ClientRSocketConnector;
+import org.springframework.integration.rsocket.RSocketInteractionModel;
 import org.springframework.integration.rsocket.outbound.RSocketOutboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeType;
@@ -58,47 +59,103 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a {@link RSocketOutboundGateway.Command} for RSocket request type.
+	 * Configure an {@link RSocketOutboundGateway.Command} for the RSocket request type.
 	 * @param command the {@link RSocketOutboundGateway.Command} to use.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setCommand(RSocketOutboundGateway.Command)
+	 * @deprecated in favor of {@link #interactionModel(RSocketInteractionModel)}
 	 */
+	@Deprecated
 	public RSocketOutboundGatewaySpec command(RSocketOutboundGateway.Command command) {
-		return command(new ValueExpression<>(command));
+		return interactionModel(new ValueExpression<>(command));
 	}
 
 	/**
-	 * Configure a {@code Function} to evaluate a {@link RSocketOutboundGateway.Command}
-	 * for RSocket request type at runtime against a request message.
+	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
+	 * @param interactionModel the {@link RSocketInteractionModel} to use.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setInteractionModel(RSocketInteractionModel)
+	 * @since 5.2.2
+	 */
+	public RSocketOutboundGatewaySpec interactionModel(RSocketInteractionModel interactionModel) {
+		return interactionModel(new ValueExpression<>(interactionModel));
+	}
+
+	/**
+	 * Configure a {@link Function} to evaluate an {@link RSocketOutboundGateway.Command}
+	 * for the RSocket request type at runtime against a request message.
 	 * @param commandFunction the {@code Function} to use.
 	 * @param <P> the expected request message payload type.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setCommandExpression(Expression)
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @deprecated in favor of {@link #interactionModel(Function)}
 	 */
+	@Deprecated
 	public <P> RSocketOutboundGatewaySpec command(Function<Message<P>, ?> commandFunction) {
-		return command(new FunctionExpression<>(commandFunction));
+		return interactionModel(commandFunction);
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a {@link RSocketOutboundGateway.Command}
-	 * for RSocket request type at runtime against a request message.
+	 * Configure a {@link Function} to evaluate an {@link RSocketInteractionModel}
+	 * for the RSocket request type at runtime against a request message.
+	 * @param interactionModelFunction the {@code Function} to use.
+	 * @param <P> the expected request message payload type.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @since 5.2.2
+	 */
+	public <P> RSocketOutboundGatewaySpec interactionModel(Function<Message<P>, ?> interactionModelFunction) {
+		return interactionModel(new FunctionExpression<>(interactionModelFunction));
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate an {@link RSocketOutboundGateway.Command}
+	 * for the RSocket request type at runtime against a request message.
 	 * @param commandExpression the SpEL expression to use.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setCommandExpression(Expression)
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @deprecated in favor of {@link #interactionModel(String)}
 	 */
+	@Deprecated
 	public RSocketOutboundGatewaySpec command(String commandExpression) {
-		return command(PARSER.parseExpression(commandExpression));
+		return interactionModel(commandExpression);
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate a {@link RSocketOutboundGateway.Command}
-	 * for RSocket request type at runtime against a request message.
+	 * Configure a SpEL expression to evaluate an {@link RSocketInteractionModel}
+	 * for the RSocket request type at runtime against a request message.
+	 * @param interactionModelExpression the SpEL expression to use.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @since 5.2.2
+	 */
+	public RSocketOutboundGatewaySpec interactionModel(String interactionModelExpression) {
+		return interactionModel(PARSER.parseExpression(interactionModelExpression));
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate an {@link RSocketOutboundGateway.Command}
+	 * for the RSocket request type at runtime against a request message.
 	 * @param commandExpression the SpEL expression to use.
 	 * @return the spec
-	 * @see RSocketOutboundGateway#setCommandExpression(Expression)
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @deprecated in favor of {@link #interactionModel(Expression)}
 	 */
+	@Deprecated
 	public RSocketOutboundGatewaySpec command(Expression commandExpression) {
-		this.target.setCommandExpression(commandExpression);
+		return interactionModel(commandExpression);
+	}
+
+	/**
+	 * Configure a SpEL expression to evaluate an {@link RSocketInteractionModel}
+	 * for the RSocket request type at runtime against a request message.
+	 * @param interactionModelExpression the SpEL expression to use.
+	 * @return the spec
+	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
+	 * @since 5.2.2
+	 */
+	public RSocketOutboundGatewaySpec interactionModel(Expression interactionModelExpression) {
+		this.target.setInteractionModelExpression(interactionModelExpression);
 		return this;
 	}
 
@@ -113,7 +170,7 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a {@code Function} to evaluate a request {@link org.reactivestreams.Publisher}
+	 * Configure a {@link Function} to evaluate a request {@link org.reactivestreams.Publisher}
 	 * elements type at runtime against a request message.
 	 * @param publisherElementTypeFunction the {@code Function} to evaluate a type for the request
 	 * {@link org.reactivestreams.Publisher} elements.
@@ -161,7 +218,7 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Specify the {@code Function} to determine the type for the RSocket response.
+	 * Specify the {@link Function} to determine the type for the RSocket response.
 	 * @param expectedResponseTypeFunction The expected response type {@code Function}.
 	 * @param <P> the expected request message payload type.
 	 * @return the spec
@@ -182,7 +239,7 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Specify the {@link Expression} to determine the type for the RSocket response.
+	 * Specify an {@link Expression} to determine the type for the RSocket response.
 	 * @param expectedResponseTypeExpression The expected response type expression.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setExpectedResponseTypeExpression(Expression)
@@ -205,8 +262,8 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 Configure a SpEL expression to evaluate a metadata as a {@code Map<Object, MimeType>}
-	 * for RSocket request against request message.
+	 * Configure a SpEL expression to evaluate a metadata as a {@code Map<Object, MimeType>}
+	 * for the RSocket request against request message.
 	 * @param metadataExpression the SpEL expression to use.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setMetadataExpression(Expression)
@@ -217,8 +274,7 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 
 	/**
 	 * Configure a SpEL expression to evaluate a metadata as a {@code Map<Object, MimeType>}
-	 * for RSocket request against request message.
-	 * for RSocket request type at runtime against a request message.
+	 * for the RSocket request type at runtime against a request message.
 	 * @param metadataExpression the SpEL expression to use.
 	 * @return the spec
 	 * @see RSocketOutboundGateway#setMetadataExpression(Expression)
