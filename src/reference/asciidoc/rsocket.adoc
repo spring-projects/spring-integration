@@ -163,7 +163,7 @@ Such an expression must evaluate to a `Map<Object, MimeType>`.
 When `interactionModel` is not `fireAndForget`, an `expectedResponseType` must be supplied.
 It is a `String.class` by default.
 An expression for this option can evaluate to a `ParameterizedTypeReference`.
-See the `RSocketRequester.RequestSpec.retrieveMono()` and `RSocketRequester.RequestSpec.retrieveFlux()` JavaDocs for more information about reply data and its type.
+See the `RSocketRequester.RetrieveSpec.retrieveMono()` and `RSocketRequester.RetrieveSpec.retrieveFlux()` JavaDocs for more information about reply data and its type.
 
 A reply `payload` from the `RSocketOutboundGateway` is a `Mono` (even for a `fireAndForget` interaction model it is `Mono<Void>`) always making this component as `async`.
 Such a `Mono` is subscribed before producing into the `outputChannel` for regular channels or processed on demand by the `FluxMessageChannel`.

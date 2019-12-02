@@ -251,7 +251,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		return requesterMono
 				.map((rSocketRequester) -> createRequestSpec(rSocketRequester, requestMessage))
 				.map((requestSpec) -> prepareRetrieveSpec(requestSpec, requestMessage))
-				.flatMap((responseSpec) -> performRequest(responseSpec, requestMessage));
+				.flatMap((retrieveSpec) -> performRetrieve(retrieveSpec, requestMessage));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -298,7 +298,7 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	private Mono<?> performRequest(RSocketRequester.RetrieveSpec requestSpec, Message<?> requestMessage) {
+	private Mono<?> performRetrieve(RSocketRequester.RetrieveSpec retrieveSpec, Message<?> requestMessage) {
 		RSocketInteractionModel interactionModel = evaluateInteractionModel(requestMessage);
 		Assert.notNull(interactionModel,
 				() -> "The 'interactionModelExpression' [" + this.interactionModelExpression + "] must not evaluate to null");
@@ -311,21 +311,21 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		switch (interactionModel) {
 			case fireAndForget:
-				return requestSpec.send();
+				return retrieveSpec.send();
 			case requestResponse:
 				if (expectedResponseType instanceof Class<?>) {
-					return requestSpec.retrieveMono((Class<?>) expectedResponseType);
+					return retrieveSpec.retrieveMono((Class<?>) expectedResponseType);
 				}
 				else {
-					return requestSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
+					return retrieveSpec.retrieveMono((ParameterizedTypeReference<?>) expectedResponseType);
 				}
 			case requestStream:
 			case requestChannel:
 				if (expectedResponseType instanceof Class<?>) {
-					return Mono.just(requestSpec.retrieveFlux((Class<?>) expectedResponseType));
+					return Mono.just(retrieveSpec.retrieveFlux((Class<?>) expectedResponseType));
 				}
 				else {
-					return Mono.just(requestSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
+					return Mono.just(retrieveSpec.retrieveFlux((ParameterizedTypeReference<?>) expectedResponseType));
 				}
 			default:
 				throw new UnsupportedOperationException("Unsupported interaction model: " + interactionModel);
