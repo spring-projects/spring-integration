@@ -54,7 +54,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	public FluxMessageChannel() {
 		this.processor = EmitterProcessor.create(1, false);
 		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
-		this.subscribedSignal.doOnNext(this.subscribed::set).subscribe();
+		this.subscribedSignal.subscribe(this.subscribed::set);
 	}
 
 	@Override
