@@ -18,6 +18,7 @@ package org.springframework.integration.channel.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -52,6 +53,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import reactor.core.Disposable;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -142,6 +145,29 @@ public class FluxMessageChannelTests {
 		flowRegistration.destroy();
 
 		assertThat(TestUtils.getPropertyValue(flux, "processor", EmitterProcessor.class).isTerminated()).isTrue();
+	}
+
+	@Test
+	void testEnsureNoEarlySubscriptionToUpstream() {
+		FluxMessageChannel fluxMessageChannel = new FluxMessageChannel();
+
+		StepVerifier verifier =
+				StepVerifier.create(fluxMessageChannel)
+						.expectSubscription()
+						.expectNoEvent(Duration.ofMillis(10))
+						.thenCancel()
+						.verifyLater();
+
+		Mono<Void> composition = fluxMessageChannel.subscribeToUpstream(Mono.just("test").map(GenericMessage::new));
+
+		verifier.verify();
+
+		composition.subscribe();
+
+		StepVerifier.create(Flux.from(fluxMessageChannel).map(Message::getPayload).cast(String.class))
+				.expectNext("test")
+				.thenCancel()
+				.verify();
 	}
 
 	@Configuration
