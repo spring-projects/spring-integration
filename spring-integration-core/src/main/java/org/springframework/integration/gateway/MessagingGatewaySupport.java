@@ -633,17 +633,16 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					.setErrorChannel(replyChan)
 					.build();
 
-			sendMessageForReactiveFlow(requestChannel, requestMessage);
-
-			return buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
-					originalErrorChannelHeader);
+			return sendMessageForReactiveFlow(requestChannel, requestMessage)
+					.then(buildReplyMono(requestMessage, replyChan.replyMono, error, originalReplyChannelHeader,
+							originalErrorChannelHeader));
 		});
 	}
 
-	private void sendMessageForReactiveFlow(MessageChannel requestChannel, Message<?> requestMessage) {
+	private Mono<Void> sendMessageForReactiveFlow(MessageChannel requestChannel, Message<?> requestMessage) {
 		if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
-			((ReactiveStreamsSubscribableChannel) requestChannel)
-					.subscribeTo(Mono.just(requestMessage));
+			return ((ReactiveStreamsSubscribableChannel) requestChannel)
+					.subscribeToUpstream(Mono.just(requestMessage));
 		}
 		else {
 			long sendTimeout = sendTimeout(requestMessage);
@@ -653,11 +652,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 							? requestChannel.send(requestMessage, sendTimeout)
 							: requestChannel.send(requestMessage);
 
-			if (!sent) {
-				throw new MessageDeliveryException(requestMessage,
-						"Failed to send message to channel '" + requestChannel +
-								"' within timeout: " + sendTimeout);
-			}
+			return Mono.just(sent)
+					.filter(Boolean::booleanValue)
+					.switchIfEmpty(Mono.error(new MessageDeliveryException(requestMessage,
+							"Failed to send message to channel '" + requestChannel +
+									"' within timeout: " + sendTimeout)))
+					.then();
 		}
 	}
 
@@ -869,9 +869,15 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 
 		@Override
+		@Deprecated
 		public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-			this.replyMono.switchIfEmpty(Mono.from(publisher));
-			this.replyMono.onComplete();
+			// No-op in favor of subscribeToUpstream()
+		}
+
+		@Override
+		public Mono<Void> subscribeToUpstream(Publisher<? extends Message<?>> upstreamPublisher) {
+			return this.replyMono.switchIfEmpty(Mono.from(upstreamPublisher))
+					.then();
 		}
 
 	}

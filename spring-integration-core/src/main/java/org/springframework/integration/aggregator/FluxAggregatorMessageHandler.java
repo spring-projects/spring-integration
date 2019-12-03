@@ -221,7 +221,9 @@ public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandle
 		if (this.subscribed.compareAndSet(false, true)) {
 			MessageChannel outputChannel = getOutputChannel();
 			if (outputChannel instanceof ReactiveStreamsSubscribableChannel) {
-				((ReactiveStreamsSubscribableChannel) outputChannel).subscribeTo(this.aggregatorFlux);
+				((ReactiveStreamsSubscribableChannel) outputChannel)
+						.subscribeToUpstream(this.aggregatorFlux)
+						.subscribe();
 			}
 			else {
 				this.subscription =

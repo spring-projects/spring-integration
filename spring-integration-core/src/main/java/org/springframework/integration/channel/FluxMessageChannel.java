@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.ReplayProcessor;
 import reactor.core.scheduler.Schedulers;
 
@@ -69,8 +70,14 @@ public class FluxMessageChannel extends AbstractMessageChannel
 	}
 
 	@Override
+	@Deprecated
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-		Flux.from(publisher)
+		subscribeToUpstream(publisher).subscribe();
+	}
+
+	@Override
+	public Mono<Void> subscribeToUpstream(Publisher<? extends Message<?>> upstreamPublisher) {
+		return Flux.from(upstreamPublisher)
 				.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
 				.publishOn(Schedulers.boundedElastic())
 				.doOnNext((message) -> {
@@ -81,7 +88,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						logger.warn("Error during processing event: " + message, e);
 					}
 				})
-				.subscribe();
+				.then();
 	}
 
 	@Override

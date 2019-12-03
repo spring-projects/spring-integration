@@ -185,7 +185,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		super.doStart();
 
 		if (isReactive()) {
-			((ReactiveStreamsSubscribableChannel) this.outputChannel).subscribeTo(getPollingFlux());
+			((ReactiveStreamsSubscribableChannel) this.outputChannel)
+					.subscribeToUpstream(getPollingFlux())
+					.subscribe();
 		}
 	}
 

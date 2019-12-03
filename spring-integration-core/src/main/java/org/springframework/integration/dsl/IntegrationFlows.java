@@ -375,7 +375,7 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(Publisher<? extends Message<?>> publisher) {
 		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
-		reactiveChannel.subscribeTo(publisher);
+		reactiveChannel.subscribeToUpstream(publisher).subscribe();
 		return from((MessageChannel) reactiveChannel);
 	}
 

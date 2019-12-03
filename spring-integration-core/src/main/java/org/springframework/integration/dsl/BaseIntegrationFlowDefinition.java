@@ -2819,7 +2819,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		Flux<Message<O>> result = Transformers.transformWithFunction(upstream, fluxFunction);
 
 		FluxMessageChannel downstream = new FluxMessageChannel();
-		downstream.subscribeTo((Flux<Message<?>>) (Flux<?>) result);
+		downstream.subscribeToUpstream((Flux<Message<?>>) (Flux<?>) result).subscribe();
 
 		return currentMessageChannel(downstream)
 				.addComponent(downstream);
