@@ -65,9 +65,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		this.processor
 				.doFinally((s) -> this.subscribedSignal.onNext(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
-		if (this.processor.hasDownstreams()) {
-			this.subscribedSignal.onNext(true);
-		}
+		this.subscribedSignal.onNext(this.processor.hasDownstreams());
 	}
 
 	@Override
