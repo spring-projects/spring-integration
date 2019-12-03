@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -47,19 +45,16 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final FluxSink<Message<?>> sink;
 
-	private final AtomicBoolean subscribed = new AtomicBoolean();
-
 	private final ReplayProcessor<Boolean> subscribedSignal = ReplayProcessor.create(1);
 
 	public FluxMessageChannel() {
 		this.processor = EmitterProcessor.create(1, false);
 		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
-		this.subscribedSignal.subscribe(this.subscribed::set);
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(this.subscribed.get(),
+		Assert.state(this.processor.hasDownstreams(),
 				() -> "The [" + this + "] doesn't have subscribers to accept messages");
 		this.sink.next(message);
 		return true;
@@ -67,9 +62,12 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
-		this.processor.doOnSubscribe((s) -> this.subscribedSignal.onNext(true))
+		this.processor
 				.doFinally((s) -> this.subscribedSignal.onNext(this.processor.hasDownstreams()))
 				.subscribe(subscriber);
+		if (this.processor.hasDownstreams()) {
+			this.subscribedSignal.onNext(true);
+		}
 	}
 
 	@Override
