@@ -11,6 +11,7 @@ buildscript {
 }
 
 plugins {
+	id 'org.sonarqube' version '2.8'
 	id 'org.asciidoctor.convert' version '1.6.1'
 	id 'org.ajoberstar.grgit' version '3.1.1'
 	id 'io.spring.nohttp' version '0.0.3.RELEASE' apply false
@@ -151,6 +152,7 @@ subprojects { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
+	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 	apply plugin: 'kotlin'
 	apply plugin: 'kotlin-spring'
@@ -179,6 +181,10 @@ subprojects { subproject ->
 		project {
 			natures += 'org.springframework.ide.eclipse.core.springnature'
 		}
+	}
+
+	jacoco {
+		toolVersion = '0.8.4'
 	}
 
 	// dependencies that are common across all java projects
@@ -275,8 +281,19 @@ subprojects { subproject ->
 
     compileKotlin.dependsOn updateCopyrights
 
+	jacocoTestReport {
+		reports {
+			xml.enabled false
+			csv.enabled false
+			html.destination file("${buildDir}/reports/jacoco/html")
+		}
+	}
+
 	test {
 		maxHeapSize = '1536m'
+		jacoco {
+			destinationFile = file("$buildDir/jacoco.exec")
+		}
 	}
 
 	task testAll(type: Test, dependsOn: [':checkAsciidocLinks','check'])
@@ -343,6 +360,7 @@ subprojects { subproject ->
 	}
 
 	check.dependsOn javadoc
+	build.dependsOn jacocoTestReport
 }
 
 project('spring-integration-test-support') {
@@ -945,6 +963,19 @@ task reference(dependsOn: asciidoctor) {
 }
 
 reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
+
+sonarqube {
+	properties {
+		property 'sonar.coverage.jacoco.xmlReportPaths', "${buildDir.name}/jacoco.exec"
+		property 'sonar.links.homepage', linkHomepage
+		property 'sonar.links.ci', linkCi
+		property 'sonar.links.issue', linkIssue
+		property 'sonar.links.scm', linkScmUrl
+		property 'sonar.links.scm_dev', linkScmDevConnection
+		property 'sonar.java.coveragePlugin', 'jacoco'
+		property 'sonar.projectKey', "$group:$name"
+	}
+}
 
 task api(type: Javadoc) {
 	group = 'Documentation'
