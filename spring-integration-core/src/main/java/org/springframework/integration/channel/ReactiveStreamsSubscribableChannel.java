@@ -51,8 +51,11 @@ public interface ReactiveStreamsSubscribableChannel {
 	 */
 	@SuppressWarnings("deprecagtion")
 	default Mono<Void> subscribeToUpstream(Publisher<? extends Message<?>> upstreamPublisher) {
-		subscribeTo(upstreamPublisher);
-		return Mono.empty();
+		return Mono.defer(() -> {
+					subscribeTo(upstreamPublisher);
+					return Mono.empty();
+				}
+		);
 	}
 
 }
