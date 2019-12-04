@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -55,31 +55,27 @@ import com.mongodb.BasicDBObject;
  */
 public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
-	/**
-	 * Tests by providing a null MongoDB Factory
-	 *
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void withNullMongoDBFactory() {
-		Expression expression = mock(Expression.class);
-		new MongoDbMessageSource((MongoDbFactory) null, expression);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageSource((MongoDbFactory) null, mock(Expression.class)));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void withNullMongoTemplate() {
-		Expression expression = mock(Expression.class);
-		new MongoDbMessageSource((MongoOperations) null, expression);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageSource((MongoOperations) null, mock(Expression.class)));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void withNullQueryExpression() {
-		MongoDbFactory mongoDbFactory = mock(MongoDbFactory.class);
-		new MongoDbMessageSource(mongoDbFactory, null);
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> new MongoDbMessageSource(mock(MongoDbFactory.class), null));
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() throws Exception {
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -90,18 +86,17 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<Document> results = ((List<Document>) messageSource.receive().getPayload());
+		List<BasicDBObject> results = ((List<BasicDBObject>) messageSource.receive().getPayload());
 		assertThat(results.size()).isEqualTo(1);
-		Document resultObject = results.get(0);
+		BasicDBObject resultObject = results.get(0);
 
 		assertThat(resultObject.get("name")).isEqualTo("Oleg");
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInList() throws Exception {
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+	public void validateSuccessfulQueryWithSingleElementIfOneInList() {
+		MongoDbFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -121,9 +116,8 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() throws Exception {
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() {
+		MongoDbFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -143,9 +137,8 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() throws Exception {
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() {
+		MongoDbFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -164,14 +157,14 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMultipleElements() throws Exception {
+	public void validateSuccessfulQueryWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"));
 		assertThat(persons.size()).isEqualTo(3);
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulStringQueryExpressionWithMultipleElements() throws Exception {
+	public void validateSuccessfulStringQueryExpressionWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("\"{'address.state' : 'PA'}\""));
 		assertThat(persons.size()).isEqualTo(3);
@@ -179,14 +172,14 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulBasicQueryExpressionWithMultipleElements() throws Exception {
+	public void validateSuccessfulBasicQueryExpressionWithMultipleElements() {
 		List<Person> persons = queryMultipleElements(new SpelExpressionParser()
 				.parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
 		assertThat(persons.size()).isEqualTo(2);
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<Person> queryMultipleElements(Expression queryExpression) throws Exception {
+	private List<Person> queryMultipleElements(Expression queryExpression) {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -203,7 +196,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithNullReturn() throws Exception {
+	public void validateSuccessfulQueryWithNullReturn() {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -222,7 +215,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithCustomConverter() throws Exception {
+	public void validateSuccessfulQueryWithCustomConverter() {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -248,7 +241,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfulQueryWithMongoTemplate() throws Exception {
+	public void validateSuccessfulQueryWithMongoTemplate() {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -274,7 +267,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validatePipelineInModifyOut() throws Exception {
+	public void validatePipelineInModifyOut() {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -287,11 +280,11 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		Document result = (Document) messageSource.receive().getPayload();
+		BasicDBObject result = (BasicDBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");
 		result.put("company", "PepBoys");
 		template.save(result, "data");
-		result = (Document) messageSource.receive().getPayload();
+		result = (BasicDBObject) messageSource.receive().getPayload();
 		assertThat(result.get("_id")).isEqualTo(id);
 	}
 

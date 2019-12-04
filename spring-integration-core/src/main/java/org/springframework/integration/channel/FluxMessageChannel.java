@@ -22,6 +22,8 @@ import org.reactivestreams.Subscriber;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
+import reactor.core.Disposable;
+import reactor.core.Disposables;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -47,6 +49,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final ReplayProcessor<Boolean> subscribedSignal = ReplayProcessor.create(1);
 
+	private final Disposable.Composite upstreamSubscriptions = Disposables.composite();
+
 	public FluxMessageChannel() {
 		this.processor = EmitterProcessor.create(1, false);
 		this.sink = this.processor.sink(FluxSink.OverflowStrategy.BUFFER);
@@ -70,23 +74,25 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribeTo(Publisher<? extends Message<?>> publisher) {
-		Flux.from(publisher)
-				.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
-				.publishOn(Schedulers.boundedElastic())
-				.doOnNext((message) -> {
-					try {
-						send(message);
-					}
-					catch (Exception e) {
-						logger.warn("Error during processing event: " + message, e);
-					}
-				})
-				.subscribe();
+		this.upstreamSubscriptions.add(
+				Flux.from(publisher)
+						.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
+						.publishOn(Schedulers.boundedElastic())
+						.doOnNext((message) -> {
+							try {
+								send(message);
+							}
+							catch (Exception e) {
+								logger.warn("Error during processing event: " + message, e);
+							}
+						})
+						.subscribe());
 	}
 
 	@Override
 	public void destroy() {
 		this.subscribedSignal.onNext(false);
+		this.upstreamSubscriptions.dispose();
 		this.processor.onComplete();
 		super.destroy();
 	}
