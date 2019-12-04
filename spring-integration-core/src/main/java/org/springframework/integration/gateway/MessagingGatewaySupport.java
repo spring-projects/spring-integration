@@ -652,12 +652,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 							? requestChannel.send(requestMessage, sendTimeout)
 							: requestChannel.send(requestMessage);
 
-			return Mono.just(sent)
-					.filter(Boolean::booleanValue)
-					.switchIfEmpty(Mono.error(new MessageDeliveryException(requestMessage,
+			return sent
+					? Mono.empty()
+					: Mono.error(new MessageDeliveryException(requestMessage,
 							"Failed to send message to channel '" + requestChannel +
-									"' within timeout: " + sendTimeout)))
-					.then();
+									"' within timeout: " + sendTimeout));
 		}
 	}
 
