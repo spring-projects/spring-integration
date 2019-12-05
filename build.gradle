@@ -973,6 +973,8 @@ sonarqube {
 		property 'sonar.links.scm', linkScmUrl
 		property 'sonar.links.scm_dev', linkScmDevConnection
 		property 'sonar.java.coveragePlugin', 'jacoco'
+		property 'sonar.projectKey', "$group:$name"
+		property 'sonar.projectName', "$name"
 	}
 }
 
