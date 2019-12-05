@@ -330,7 +330,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = '8.26'
+		toolVersion = project.hasProperty('checkstyleVersion') ? project.checkstyleVersion : '8.26'
 	}
 
 	artifacts {
