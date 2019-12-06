@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.function.Supplier;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import org.springframework.aop.framework.AdvisedSupport;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -386,14 +388,20 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (this.channelResolver == null && beanFactory != null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 			}
-			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
+
+			Method[] methods =
+					ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface,
+							method -> Modifier.isAbstract(method.getModifiers()));
 			for (Method method : methods) {
 				MethodInvocationGateway gateway = createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
-			this.serviceProxy =
-					new ProxyFactory(this.serviceInterface, this)
-							.getProxy(this.beanClassLoader);
+
+			ProxyFactory gatewayProxyFactory =
+					new ProxyFactory(this.serviceInterface, AdvisedSupport.EMPTY_TARGET_SOURCE);
+			gatewayProxyFactory.addAdvice(new DefaultMethodInvokingMethodInterceptor());
+			gatewayProxyFactory.addAdvice(this);
+			this.serviceProxy = gatewayProxyFactory.getProxy(this.beanClassLoader);
 			if (this.asyncExecutor != null) {
 				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);

@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,8 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.MethodArgsHolder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -102,13 +106,28 @@ public class GatewayDslTests {
 	}
 
 	@Autowired
-	private Function<Object, Message<?>> functionGateay;
+	private MessageFunction functionGateway;
+
+	@Autowired
+	@Qualifier("&functionGateway.gateway")
+	private GatewayProxyFactoryBean functionGatewayFactoryBean;
 
 	@Test
 	void testHeadersFromFunctionGateway() {
-		Message<?> message = this.functionGateay.apply("testPayload");
-		assertThat(message.getPayload()).isEqualTo("testPayload");
-		assertThat(message.getHeaders()).containsKeys("gatewayMethod", "gatewayArgs");
+		Object payload = this.functionGateway
+				.andThen(message -> {
+					assertThat(message.getHeaders()).containsKeys("gatewayMethod", "gatewayArgs");
+					return message.getPayload();
+				})
+				.apply("testPayload");
+
+		assertThat(payload).isEqualTo("testPayload");
+
+		Map<Method, MessagingGatewaySupport> gateways = this.functionGatewayFactoryBean.getGateways();
+		assertThat(gateways).hasSize(1);
+
+		Method method = gateways.keySet().iterator().next();
+		assertThat(method.getName()).isEqualTo("apply");
 	}
 
 	@Autowired
@@ -183,7 +202,23 @@ public class GatewayDslTests {
 
 	}
 
-	interface MessageFunction extends Function<Object, Message<?>> {
+	interface MessageFunction {
+
+		Message<?> apply(Object t);
+
+		default <V> Function<V, Message<?>> compose(Function<? super V, Object> before) {
+			Objects.requireNonNull(before);
+			return (v) -> apply(before.apply(v));
+		}
+
+		default <V> Function<Object, V> andThen(Function<? super Message<?>, ? extends V> after) {
+			Objects.requireNonNull(after);
+			return (t) -> after.apply(apply(t));
+		}
+
+		static <T> Function<T, T> identity() {
+			return t -> t;
+		}
 
 	}
 
