@@ -32,13 +32,10 @@ import reactor.core.CoreSubscriber;
  *
  * @author David Turanski
  */
-
-@SuppressWarnings("deprecation")
 public abstract class AbstractMessageHandler extends AbstractBaseMessageHandler
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
-		Assert.notNull(message.getPayload(), "Message payload must not be null"); // NOSONAR - false positive
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}

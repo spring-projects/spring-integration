@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -112,6 +112,22 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
+	public void errorOnMessageHandlingWithNullValuedExpression() {
+
+		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(mongoDbFactory);
+		handler.setCollectionNameExpression(new LiteralExpression(null));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
+		AtomicBoolean errorOccurred = new AtomicBoolean();
+		handler.handleMessage(message)
+				.doOnError(e -> errorOccurred.set(true))
+				.subscribe(aVoid -> assertThat(errorOccurred.get()).isTrue());
+	}
+
+	@Test
+	@MongoDbAvailable
 	public void validateMessageHandlingWithMongoConverter() {
 
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(mongoDbFactory);
@@ -130,13 +146,12 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 
 		assertThat(person.getName()).isEqualTo("Bob");
 		assertThat(person.getAddress().getState()).isEqualTo("PA");
-		//TODO: This doesn't work
-		//verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@Test
 	@MongoDbAvailable
 	public void validateMessageHandlingWithMongoTemplate()  {
+
 		MappingMongoConverter converter = new ReactiveTestMongoConverter(mongoDbFactory, new MongoMappingContext());
 		converter.afterPropertiesSet();
 		converter = spy(converter);
@@ -153,8 +168,6 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 
 		assertThat(person.getName()).isEqualTo("Bob");
 		assertThat(person.getAddress().getState()).isEqualTo("PA");
-		//TODO: This doesn't work
-		//verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	private static <T> T waitFor(Mono<T> mono) {

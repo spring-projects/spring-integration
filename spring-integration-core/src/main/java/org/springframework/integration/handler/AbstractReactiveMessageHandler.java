@@ -17,8 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.management.metrics.SampleFacade;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
@@ -38,33 +36,17 @@ public abstract class AbstractReactiveMessageHandler extends AbstractBaseMessage
 	@Override
 	public Mono<Void> handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
-		Assert.notNull(message.getPayload(), "Message payload must not be null"); // NOSONAR - false positive
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
-		//TODO: Can't capture metrics the same way in this context since returning a Mono<>
-		org.springframework.integration.support.management.MetricsContext start = null;
 
-		SampleFacade sample = null;
-		if (this.countsEnabled && this.metricsCaptor != null) {
-			sample = this.metricsCaptor.start();
+		if (this.shouldTrack) {
+			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
-		try {
-			if (this.shouldTrack) {
-				message = MessageHistory.write(message, this, getMessageBuilderFactory());
-			}
-			return handleMessageInternal(message);
-		}
-		catch (Exception e) {
-			if (sample != null) {
-				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
-			}
-			if (this.countsEnabled) {
-				this.handlerMetrics.afterHandle(start, false);
-			}
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
-					() -> "error occurred in message handler [" + this + "]", e);
-		}
+		final Message<?> msg = message;
+		return handleMessageInternal(msg)
+				.doOnError(e -> this.logger.error(
+						"An error occurred in message handler [" + this + "] on message [" + msg + "]", e));
 	}
 
 	protected abstract Mono<Void> handleMessageInternal(Message<?> message);

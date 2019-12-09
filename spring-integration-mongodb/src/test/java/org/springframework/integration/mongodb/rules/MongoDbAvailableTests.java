@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.rules;
 
 import java.time.Duration;
+
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
@@ -74,10 +75,10 @@ public abstract class MongoDbAvailableTests {
 	protected void cleanupCollections(ReactiveMongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		ReactiveMongoTemplate template = new ReactiveMongoTemplate(mongoDbFactory);
 		template.dropCollection("messages").block(Duration.ofSeconds(3));
-		template.dropCollection("configurableStoreMessages").block(Duration.ofSeconds(3));;
-		template.dropCollection("data").block(Duration.ofSeconds(3));;
+		template.dropCollection("configurableStoreMessages").block(Duration.ofSeconds(3));
+		template.dropCollection("data").block(Duration.ofSeconds(3));
 		for (String additionalCollection : additionalCollectionsToDrop) {
-			template.dropCollection(additionalCollection).block(Duration.ofSeconds(3));;
+			template.dropCollection(additionalCollection).block(Duration.ofSeconds(3));
 		}
 	}
 

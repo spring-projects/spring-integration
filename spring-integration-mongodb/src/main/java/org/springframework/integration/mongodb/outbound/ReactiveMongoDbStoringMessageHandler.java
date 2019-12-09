@@ -53,11 +53,10 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 
 	private volatile Expression collectionNameExpression = new LiteralExpression("data");
 
-	private volatile boolean initialized = false;
+	private boolean initialized = false;
 
 	/**
-	 * Will construct this instance using provided {@link ReactiveMongoDatabaseFactory}
-	 *
+	 * Construct this instance using a provided {@link ReactiveMongoDatabaseFactory}
 	 * @param mongoDbFactory The reactive mongoDatabase factory.
 	 */
 	public ReactiveMongoDbStoringMessageHandler(ReactiveMongoDatabaseFactory mongoDbFactory) {
@@ -67,9 +66,8 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	}
 
 	/**
-	 * Will construct this instance using fully created and initialized instance of provided
+	 * Construct this instance using a fully created and initialized instance of provided
 	 * {@link ReactiveMongoOperations}
-	 *
 	 * @param mongoTemplate The ReactiveMongoOperations implementation.
 	 */
 	public ReactiveMongoDbStoringMessageHandler(ReactiveMongoOperations mongoTemplate) {
@@ -79,10 +77,9 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	}
 
 	/**
-	 * Allows you to provide custom {@link MongoConverter} used to assist in serialization of
+	 * Provide a custom {@link MongoConverter} used to assist in serialization of
 	 * data written to MongoDb. Only allowed if this instance was constructed with a
 	 * {@link MongoDbFactory}.
-	 *
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -92,9 +89,8 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	}
 
 	/**
-	 * Sets the SpEL {@link Expression} that should resolve to a collection name used by
+	 * Set a SpEL {@link Expression} that should resolve to a collection name used by
 	 * {@link MongoOperations} to store data
-	 *
 	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
@@ -109,7 +105,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 
 	@Override
 	protected void onInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
@@ -119,11 +115,17 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	@Override
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, message, String.class);
-		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
 
-		Object payload = message.getPayload();
+		return evaluateCollectionNameExpression(message)
+		.flatMap(collection -> this.mongoTemplate.save(message.getPayload(), collection))
+		.then();
+	}
 
-		return this.mongoTemplate.save(payload, collectionName).then();
+	private Mono<String> evaluateCollectionNameExpression(Message<?> message) {
+		return Mono.fromSupplier(() -> {
+			String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, message, String.class);
+			Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
+			return collectionName;
+		});
 	}
 }
