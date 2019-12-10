@@ -65,7 +65,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer implements Int
 
 	@Override
 	public IntegrationPatternType getIntegrationPatternType() {
-		return IntegrationPatternType.claim_check_in;
+		return IntegrationPatternType.claim_check_out;
 	}
 
 	@Override
