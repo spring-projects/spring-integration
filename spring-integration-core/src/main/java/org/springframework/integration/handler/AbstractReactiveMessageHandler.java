@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
  *
  * @since 5.3
  */
-public abstract class AbstractReactiveMessageHandler extends AbstractBaseMessageHandler
+public abstract class AbstractReactiveMessageHandler extends MessageHandlerSupport
 		implements ReactiveMessageHandler {
 
 	@Override

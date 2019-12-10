@@ -32,7 +32,7 @@ import reactor.core.CoreSubscriber;
  *
  * @author David Turanski
  */
-public abstract class AbstractMessageHandler extends AbstractBaseMessageHandler
+public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");

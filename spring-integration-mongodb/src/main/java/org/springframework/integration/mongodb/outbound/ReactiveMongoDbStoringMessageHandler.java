@@ -43,17 +43,17 @@ import reactor.core.publisher.Mono;
  */
 public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessageHandler {
 
-	private volatile ReactiveMongoOperations mongoTemplate;
+	private  ReactiveMongoOperations mongoTemplate;
 
-	private volatile ReactiveMongoDatabaseFactory mongoDbFactory;
+	private  ReactiveMongoDatabaseFactory mongoDbFactory;
 
-	private volatile MongoConverter mongoConverter;
+	private  MongoConverter mongoConverter;
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private  StandardEvaluationContext evaluationContext;
 
-	private volatile Expression collectionNameExpression = new LiteralExpression("data");
+	private  Expression collectionNameExpression = new LiteralExpression("data");
 
-	private boolean initialized = false;
+	private volatile boolean initialized = false;
 
 	/**
 	 * Construct this instance using a provided {@link ReactiveMongoDatabaseFactory}

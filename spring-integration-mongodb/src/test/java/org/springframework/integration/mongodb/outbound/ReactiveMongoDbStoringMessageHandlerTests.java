@@ -48,7 +48,7 @@ import reactor.core.publisher.Mono;
  * @author Gary Russell
  * @author David Turanski
  *
- * @since 5.2.2
+ * @since 5.3
  */
 public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 

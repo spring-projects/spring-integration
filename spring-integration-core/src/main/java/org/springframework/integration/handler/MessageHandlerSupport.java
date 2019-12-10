@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  */
 @SuppressWarnings("deprecation")
 @IntegrationManagedResource
-public abstract class AbstractBaseMessageHandler extends IntegrationObjectSupport
+public abstract class MessageHandlerSupport extends IntegrationObjectSupport
 		implements org.springframework.integration.support.management.MessageHandlerMetrics,
 		ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
 		TrackableComponent, Orderable, IntegrationPattern {
