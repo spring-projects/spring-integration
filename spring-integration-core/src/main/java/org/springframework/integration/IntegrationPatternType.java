@@ -54,8 +54,6 @@ public enum IntegrationPatternType {
 
 	inbound_gateway(IntegrationPatternCategory.messaging_endpoint),
 
-	gateway(IntegrationPatternCategory.messaging_endpoint),
-
 	splitter(IntegrationPatternCategory.message_routing),
 
 	transformer(IntegrationPatternCategory.message_transformation),
@@ -121,7 +119,6 @@ public enum IntegrationPatternType {
 				inbound_channel_adapter,
 				outbound_gateway,
 				inbound_gateway,
-				gateway,
 				bridge),
 
 		message_routing(

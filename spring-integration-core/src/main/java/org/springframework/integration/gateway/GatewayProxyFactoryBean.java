@@ -939,13 +939,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		private boolean isMonoReturn;
 
+		private boolean isVoidReturn;
+
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);
 		}
 
 		@Override
 		public IntegrationPatternType getIntegrationPatternType() {
-			return IntegrationPatternType.gateway;
+			return this.isVoidReturn
+					? IntegrationPatternType.inbound_channel_adapter
+					: IntegrationPatternType.inbound_gateway;
 		}
 
 		@Nullable
@@ -973,6 +977,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				this.isMonoReturn = Mono.class.isAssignableFrom(this.returnType);
 				this.expectMessage = hasReturnParameterizedWithMessage(resolvableType);
 			}
+			this.isVoidReturn = isVoidReturnType(resolvableType);
 		}
 
 		private boolean hasReturnParameterizedWithMessage(ResolvableType resolvableType) {
@@ -980,6 +985,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					&& Message.class.isAssignableFrom(resolvableType.getGeneric(0).resolve(Object.class));
 		}
 
+		private boolean isVoidReturnType(ResolvableType resolvableType) {
+			Class<?> returnTypeToCheck = this.returnType;
+			if (Future.class.isAssignableFrom(this.returnType) || Mono.class.isAssignableFrom(this.returnType)) {
+				returnTypeToCheck = resolvableType.getGeneric(0).resolve(Object.class);
+			}
+			return Void.class.isAssignableFrom(returnTypeToCheck);
+		}
 	}
 
 	private final class Invoker implements Supplier<Object> {
