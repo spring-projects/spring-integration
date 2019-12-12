@@ -12,7 +12,7 @@ as single searchable link:index-single.html[html] and link:../pdf/spring-integra
 <<./core.adoc#spring-integration-core-messaging,Core Messaging>> ::
 <<./message.adoc#message,Message>> ::
 <<./message-routing.adoc#messaging-routing-chapter,Message Routing>> ::
-<<./message-transformation.adoc#messaging-transformation-chapter]],Message Transformation>> ::
+<<./message-transformation.adoc#messaging-transformation-chapter,Message Transformation>> ::
 <<./messaging-endpoints.adoc#messaging-endpoints-chapter,Messaging Endpoints>> ::
 <<./dsl.adoc#java-dsl,Java DSL>> ::
 <<./system-management.adoc#system-management-chapter,System Management>> ::
