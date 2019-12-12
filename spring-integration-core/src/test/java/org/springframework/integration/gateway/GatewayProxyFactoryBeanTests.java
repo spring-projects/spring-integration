@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -43,6 +43,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.IntegrationPatternType;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
@@ -56,6 +57,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -156,6 +158,11 @@ public class GatewayProxyFactoryBeanTests {
 		Message<String> message = service.getMessage();
 		assertThat(message).isNotNull();
 		assertThat(message.getPayload()).isEqualTo("foo");
+
+		MessagingGatewaySupport messagingGatewaySupport =
+				proxyFactory.getGateways().get(ClassUtils.getMethod(TestService.class, "getMessage"));
+		assertThat(messagingGatewaySupport.getIntegrationPatternType())
+				.isEqualTo(IntegrationPatternType.outbound_channel_adapter);
 	}
 
 	@Test
@@ -259,6 +266,12 @@ public class GatewayProxyFactoryBeanTests {
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithPayloadAnnotation();
 		assertThat(result).isEqualTo("requestReplyWithPayloadAnnotation0bar");
+
+		MessagingGatewaySupport messagingGatewaySupport =
+				proxyFactory.getGateways()
+						.get(ClassUtils.getMethod(TestService.class, "requestReplyWithPayloadAnnotation"));
+		assertThat(messagingGatewaySupport.getIntegrationPatternType())
+				.isEqualTo(IntegrationPatternType.inbound_gateway);
 	}
 
 	@Test

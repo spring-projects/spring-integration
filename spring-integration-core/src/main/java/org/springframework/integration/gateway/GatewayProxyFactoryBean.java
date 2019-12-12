@@ -761,6 +761,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 		gateway.setupReturnType(this.serviceInterface, method);
 
+		if (method.getParameterTypes().length == 0 && !findPayloadExpression(method)) {
+			gateway.setPollable();
+		}
+
 		JavaUtils.INSTANCE
 				.acceptIfNotNull(payloadExpression, messageMapper::setPayloadExpression)
 				.acceptIfNotNull(getTaskScheduler(), gateway::setTaskScheduler);
@@ -941,15 +945,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		private boolean isVoidReturn;
 
+		private boolean pollable;
+
 		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			setRequestMapper(messageMapper);
 		}
 
 		@Override
 		public IntegrationPatternType getIntegrationPatternType() {
-			return this.isVoidReturn
-					? IntegrationPatternType.inbound_channel_adapter
-					: IntegrationPatternType.inbound_gateway;
+			return this.pollable ? IntegrationPatternType.outbound_channel_adapter
+					: this.isVoidReturn
+							? IntegrationPatternType.inbound_channel_adapter
+							: IntegrationPatternType.inbound_gateway;
 		}
 
 		@Nullable
@@ -992,6 +999,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			return Void.class.isAssignableFrom(returnTypeToCheck);
 		}
+
+		private void setPollable() {
+			this.pollable = true;
+		}
+
 	}
 
 	private final class Invoker implements Supplier<Object> {
