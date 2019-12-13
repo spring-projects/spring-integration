@@ -24,4 +24,5 @@ See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for mo
 [[x5.3-general]]
 === General Changes
 
-
+The gateway proxy now doesn't proxy `default` methods by default.
+see <<./gateway.adoc/gateway-calling-default-methods,Invoking `default` Methods>> for more information.

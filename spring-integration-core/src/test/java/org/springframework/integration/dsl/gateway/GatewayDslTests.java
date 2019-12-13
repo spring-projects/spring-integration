@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -124,10 +127,18 @@ public class GatewayDslTests {
 		assertThat(payload).isEqualTo("testPayload");
 
 		Map<Method, MessagingGatewaySupport> gateways = this.functionGatewayFactoryBean.getGateways();
-		assertThat(gateways).hasSize(1);
+		assertThat(gateways).hasSize(2);
 
-		Method method = gateways.keySet().iterator().next();
-		assertThat(method.getName()).isEqualTo("apply");
+		List<String> methodNames = gateways.keySet().stream().map(Method::getName).collect(Collectors.toList());
+		assertThat(methodNames).containsExactlyInAnyOrder("apply", "defaultMethodGateway");
+
+		String defaultMethodPayload = "defaultMethodPayload";
+		this.functionGateway.defaultMethodGateway(defaultMethodPayload);
+
+		Message<?> receive = this.gatewayError.receive(10_000);
+		assertThat(receive).isNotNull()
+				.extracting(Message::getPayload)
+				.isEqualTo(defaultMethodPayload);
 	}
 
 	@Autowired
@@ -206,9 +217,9 @@ public class GatewayDslTests {
 
 		Message<?> apply(Object t);
 
-		default <V> Function<V, Message<?>> compose(Function<? super V, Object> before) {
-			Objects.requireNonNull(before);
-			return (v) -> apply(before.apply(v));
+		@Gateway(requestChannel = "gatewayError")
+		default void defaultMethodGateway(Object payload) {
+			throw new UnsupportedOperationException();
 		}
 
 		default <V> Function<Object, V> andThen(Function<? super Message<?>, ? extends V> after) {

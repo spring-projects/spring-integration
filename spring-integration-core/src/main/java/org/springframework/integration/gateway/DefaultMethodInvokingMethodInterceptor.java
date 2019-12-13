@@ -43,7 +43,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  * @author Artem Bilan
  *
- * @since 5.2.3
+ * @since 5.3
  */
 class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 

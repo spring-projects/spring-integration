@@ -23,7 +23,7 @@ if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
 
 	nohttp {
 		whitelistFile = file('src/nohttp/whitelist.lines')
-		source.include '**/src/**'
+		source.include '**/src/**'GatewayDslTests
 		source.exclude '**/*.gif', '**/*.jpg', '**/*.png', '**/*.svg', '**/*.ks'
 	}
 }

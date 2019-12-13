@@ -354,8 +354,9 @@ If a method has no argument and no return value but does contain a payload expre
 [[gateway-calling-default-methods]]
 ==== Invoking `default` Methods
 
-An interface for gateway proxy may have `default` methods as well and starting with version 5.2.3, the framework injects a `DefaultMethodInvokingMethodInterceptor` into a proxy for calling `default` methods using a `java.lang.invoke.MethodHandle` approach instead of proxying them improperly.
+An interface for gateway proxy may have `default` methods as well and starting with version 5.3, the framework injects a `DefaultMethodInvokingMethodInterceptor` into a proxy for calling `default` methods using a `java.lang.invoke.MethodHandle` approach instead of proxying.
 The interfaces from JDK, such as `java.util.function.Function`, still can be used for gateway proxy, but their `default` methods cannot be called because of internal Java security reasons for a `MethodHandles.Lookup` instantiation against JDK classes.
+These methods also can be proxied (losing their implementation logic and, at the same time, restoring previous gateway proxy behavior) using an explicit `@Gateway` annotation on the method, or `proxyDefaultMethods` on the `@MessagingGateway` annotation or `<gateway>` XML component.
 
 [[gateway-error-handling]]
 ==== Error Handling

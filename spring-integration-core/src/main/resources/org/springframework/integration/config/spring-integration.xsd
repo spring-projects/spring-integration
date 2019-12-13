@@ -832,6 +832,19 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="proxy-default-methods" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Indicate if default methods on the interface should be proxied as well.
+						If an explicit Gateway annotation is present on method it is proxied independently of this option.
+						Note: default methods in JDK classes (such as 'Function') can be proxied, but cannot be invoked
+						via 'MethodHandle' by an internal Java security restriction for 'MethodHandle.Lookup'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

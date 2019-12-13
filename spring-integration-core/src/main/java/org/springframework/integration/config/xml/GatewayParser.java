@@ -86,6 +86,8 @@ public class GatewayParser implements BeanDefinitionParser {
 
 		gatewayAttributes.put("serviceInterface", element.getAttribute("service-interface"));
 
+		gatewayAttributes.put("proxyDefaultMethods", element.getAttribute("proxy-default-methods"));
+
 		BeanDefinitionHolder gatewayHolder = this.registrar.parse(gatewayAttributes);
 		if (isNested) {
 			return gatewayHolder.getBeanDefinition();
