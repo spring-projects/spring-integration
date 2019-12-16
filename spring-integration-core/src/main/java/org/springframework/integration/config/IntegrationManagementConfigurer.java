@@ -278,7 +278,7 @@ public class IntegrationManagementConfigurer
 				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
-			if (!bean.getOverrides().loggingConfigured) {
+			if (!getOverrides(bean).loggingConfigured) {
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
 			String name = entry.getKey();
@@ -292,7 +292,7 @@ public class IntegrationManagementConfigurer
 				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
-			if (!bean.getOverrides().loggingConfigured) {
+			if (!getOverrides(bean).loggingConfigured) {
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
 			bean.registerMetricsCaptor(this.metricsCaptor);
@@ -364,7 +364,7 @@ public class IntegrationManagementConfigurer
 			metrics = this.metricsFactory.createChannelMetrics(name);
 		}
 		Assert.state(metrics != null, "'metrics' must not be null");
-		ManagementOverrides overrides = bean.getOverrides();
+		ManagementOverrides overrides = getOverrides(bean);
 		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
@@ -396,7 +396,7 @@ public class IntegrationManagementConfigurer
 			org.springframework.integration.support.management.MessageHandlerMetrics bean) {
 		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
-		ManagementOverrides overrides = bean.getOverrides();
+		ManagementOverrides overrides = getOverrides(bean);
 		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
@@ -432,7 +432,7 @@ public class IntegrationManagementConfigurer
 			bean.setCountsEnabled(enabled);
 		}
 		else {
-			if (!bean.getOverrides().countsConfigured) {
+			if (!getOverrides(bean).countsConfigured) {
 				bean.setCountsEnabled(this.defaultCountsEnabled);
 			}
 		}
@@ -504,6 +504,10 @@ public class IntegrationManagementConfigurer
 			LOGGER.debug("No source found for (" + name + ")");
 		}
 		return null;
+	}
+
+	private ManagementOverrides getOverrides(final IntegrationManagement bean) {
+		return bean.getOverrides() != null ? bean.getOverrides() : new ManagementOverrides();
 	}
 
 }
