@@ -18,8 +18,7 @@ package org.springframework.integration.mongodb.dsl;
 
 import java.util.function.Function;
 
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
@@ -41,7 +40,7 @@ import org.springframework.messaging.Message;
 public class MongoDbOutboundGatewaySpec
 		extends MessageHandlerSpec<MongoDbOutboundGatewaySpec, MongoDbOutboundGateway> {
 
-	MongoDbOutboundGatewaySpec(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+	MongoDbOutboundGatewaySpec(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
 		this.target = new MongoDbOutboundGateway(mongoDbFactory, mongoConverter);
 		this.target.setRequiresReply(true);
 	}
@@ -143,20 +142,6 @@ public class MongoDbOutboundGatewaySpec
 	 */
 	public <P> MongoDbOutboundGatewaySpec collectionNameFunction(Function<Message<P>, String> collectionNameFunction) {
 		this.target.setCollectionNameExpression(new FunctionExpression<>(collectionNameFunction));
-		return this;
-	}
-
-	/**
-	 * Reference to an instance of {@link CollectionCallback} which specifies the database operation to execute.
-	 * This property is mutually exclusive with {@link #query} and {@link #queryExpression} properties.
-	 * @param collectionCallback the {@link CollectionCallback} instance
-	 * @param <P> the type of the message payload.
-	 * @return the spec
-	 * @deprecated in favor of {@link #collectionCallback(MessageCollectionCallback)}
-	 */
-	@Deprecated
-	public <P> MongoDbOutboundGatewaySpec collectionCallback(CollectionCallback<P> collectionCallback) {
-		this.target.setCollectionCallback(collectionCallback);
 		return this;
 	}
 

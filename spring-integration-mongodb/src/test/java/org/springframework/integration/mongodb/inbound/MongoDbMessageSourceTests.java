@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -58,7 +58,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	public void withNullMongoDBFactory() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new MongoDbMessageSource((MongoDbFactory) null, mock(Expression.class)));
+				.isThrownBy(() -> new MongoDbMessageSource((MongoDatabaseFactory) null, mock(Expression.class)));
 	}
 
 	@Test
@@ -70,13 +70,13 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	public void withNullQueryExpression() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new MongoDbMessageSource(mock(MongoDbFactory.class), null));
+				.isThrownBy(() -> new MongoDbMessageSource(mock(MongoDatabaseFactory.class), null));
 	}
 
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() {
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -96,7 +96,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithSingleElementIfOneInList() {
-		MongoDbFactory mongoDbFactory = prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -117,7 +117,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() {
-		MongoDbFactory mongoDbFactory = prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -138,7 +138,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() {
-		MongoDbFactory mongoDbFactory = prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson(), "data");
@@ -180,7 +180,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@SuppressWarnings("unchecked")
 	private List<Person> queryMultipleElements(Expression queryExpression) {
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Manny"), "data");
@@ -198,7 +198,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithNullReturn() {
 
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Manny"), "data");
@@ -217,7 +217,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithCustomConverter() {
 
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Manny"), "data");
@@ -243,7 +243,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithMongoTemplate() {
 
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MappingMongoConverter converter = new TestMongoConverter(mongoDbFactory, new MongoMappingContext());
 		converter.afterPropertiesSet();
@@ -269,7 +269,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void validatePipelineInModifyOut() {
 
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 

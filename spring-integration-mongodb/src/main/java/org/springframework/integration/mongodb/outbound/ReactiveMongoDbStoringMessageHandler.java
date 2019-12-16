@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
@@ -77,7 +77,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	/**
 	 * Provide a custom {@link MongoConverter} used to assist in serialization of
 	 * data written to MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDbFactory}.
+	 * {@link MongoDatabaseFactory}.
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {

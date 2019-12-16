@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.annotation.PersistenceConstructor;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
@@ -58,8 +58,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	protected final SimpleMongoClientDbFactory clientDbFactory =
-			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+	protected final SimpleMongoClientDatabaseFactory clientDbFactory =
+			new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 
 	@Before
 	public void setup() {

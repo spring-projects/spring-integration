@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.dsl;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 
@@ -30,13 +30,13 @@ public final class MongoDb {
 
 	/**
 	 * Create a {@link MongoDbOutboundGatewaySpec} builder instance
-	 * based on the provided {@link MongoDbFactory} and {@link MongoConverter}.
-	 * @param mongoDbFactory the {@link MongoDbFactory} to use.
+	 * based on the provided {@link MongoDatabaseFactory} and {@link MongoConverter}.
+	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
 	 * @param mongoConverter the {@link MongoConverter} to use.
 	 * @return the {@link MongoDbOutboundGatewaySpec} instance
 	 */
 	public static MongoDbOutboundGatewaySpec outboundGateway(
-			MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+			MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
 
 		return new MongoDbOutboundGatewaySpec(mongoDbFactory, mongoConverter);
 	}

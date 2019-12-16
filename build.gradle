@@ -91,7 +91,7 @@ ext {
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.2.RELEASE'
-	springDataVersion = 'Moore-SR3'
+	springDataVersion = 'Neumann-BUILD-SNAPSHOT'
 	springSecurityVersion = '5.2.1.RELEASE'
 	springRetryVersion = '1.2.4.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.2.RELEASE'
@@ -112,6 +112,7 @@ allprojects {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 			maven { url "https://oss.jfrog.org/artifactory/libs-snapshot" } // RSocket
 		}
+		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 //		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
@@ -572,10 +573,12 @@ project('spring-integration-mongodb') {
 	description = 'Spring Integration MongoDB Support'
 	dependencies {
 		compile project(':spring-integration-core')
-		compile('org.springframework.data:spring-data-mongodb') {
+		compile('org.springframework.data:spring-data-mongodb:3.0.0.BUILD-SNAPSHOT') {
 			exclude group: 'org.springframework'
 		}
 		compile("org.mongodb:mongodb-driver-reactivestreams:$mongodbReactiveDriverVersion", optional)
+		compile("org.mongodb:mongodb-driver-sync:4.0.0-SNAPSHOT", optional)
+		compile("org.mongodb:mongodb-driver-async:4.0.0-SNAPSHOT", optional)
 		testCompile 'io.projectreactor:reactor-test'
 	}
 }

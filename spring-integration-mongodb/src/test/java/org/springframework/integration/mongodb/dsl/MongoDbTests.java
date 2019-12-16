@@ -30,11 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -325,8 +325,8 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		}
 
 		@Bean
-		public MongoDbFactory mongoDbFactory() {
-			return new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+		public MongoDatabaseFactory mongoDbFactory() {
+			return new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 		}
 
 		@Bean

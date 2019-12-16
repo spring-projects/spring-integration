@@ -20,7 +20,7 @@
 		reply-channel="out"/>
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
+		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory"/>
 	</bean>
 
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">

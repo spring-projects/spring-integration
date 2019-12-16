@@ -20,9 +20,13 @@
 		<constructor-arg ref="mongoConnectionFactory"/>
 	</bean>
 
-	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
+	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory">
 		<constructor-arg>
-			<bean class="com.mongodb.MongoClient"/>
+			<bean class="org.springframework.data.mongodb.core.MongoClientFactoryBean">
+				<property name="mongoClientSettings">
+					<bean class="org.springframework.data.mongodb.core.MongoClientSettingsFactoryBean"/>
+				</property>
+			</bean>
 		</constructor-arg>
 		<constructor-arg value="test"/>
 	</bean>

@@ -21,12 +21,13 @@ import java.util.Map;
 
 import org.bson.Document;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
@@ -57,21 +58,21 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	private final String collectionName;
 
 	/**
-	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDatabaseFactory} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * @param factory the mongodb factory
 	 */
-	public MongoDbMetadataStore(MongoDbFactory factory) {
+	public MongoDbMetadataStore(MongoDatabaseFactory factory) {
 		this(factory, DEFAULT_COLLECTION_NAME);
 	}
 
 	/**
-	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDatabaseFactory} and
 	 * collection name
 	 * @param factory the mongodb factory
 	 * @param collectionName the collection name where it persists the data
 	 */
-	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
+	public MongoDbMetadataStore(MongoDatabaseFactory factory, String collectionName) {
 		this(new MongoTemplate(factory), collectionName);
 	}
 
@@ -105,7 +106,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value
 	 * @see MongoTemplate#execute(String, org.springframework.data.mongodb.core.CollectionCallback)
-	 * @see com.mongodb.DBCollection#save
 	 */
 	@Override
 	public void put(String key, String value) {
@@ -188,7 +188,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param oldValue the metadata entry old value to replace
 	 * @param newValue the metadata entry new value to put
 	 * @return {@code true} if replace was successful, {@code false} otherwise.
-	 * @see MongoTemplate#updateFirst(Query, Update, String)
+	 * @see MongoTemplate#updateFirst(Query, UpdateDefinition, String)
 	 */
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {
