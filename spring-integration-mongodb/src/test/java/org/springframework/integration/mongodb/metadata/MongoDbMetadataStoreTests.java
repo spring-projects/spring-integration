@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
@@ -45,7 +45,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@Before
 	public void configure() {
-		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		this.store = new MongoDbMetadataStore(mongoDbFactory);
 	}
 
@@ -53,7 +53,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	public void testConfigureCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
+		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		final MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		store = new MongoDbMetadataStore(template, collectionName);
 		testBasics();
@@ -62,7 +62,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	@Test
 	public void testConfigureFactory() {
-		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		store = new MongoDbMetadataStore(mongoDbFactory);
 		testBasics();
 	}
@@ -71,7 +71,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	public void testConfigureFactorCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
+		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		store = new MongoDbMetadataStore(mongoDbFactory, collectionName);
 		testBasics();
 	}
