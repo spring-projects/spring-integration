@@ -25,7 +25,6 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -52,7 +51,6 @@ import reactor.core.publisher.Mono;
  *
  * @since 5.3
  */
-@Ignore
 public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
 	private ReactiveMongoTemplate template;
