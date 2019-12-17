@@ -31,7 +31,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -59,8 +59,8 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	protected final SimpleMongoClientDbFactory clientDbFactory =
-			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+	protected final SimpleMongoClientDatabaseFactory clientDbFactory =
+			new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 
 	@Before
 	public void setup() {
@@ -423,7 +423,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	//	@Test
 	//	@MongoDbAvailable
 	//	public void testConcurrentModifications() throws Exception{
-	//		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+	//		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
 	//		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
 	//		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 	//

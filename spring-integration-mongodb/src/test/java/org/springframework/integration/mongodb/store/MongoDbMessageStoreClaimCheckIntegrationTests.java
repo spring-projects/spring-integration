@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
@@ -44,8 +44,8 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 
 	private final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	private final SimpleMongoClientDbFactory clientDbFactory =
-			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+	private final SimpleMongoClientDatabaseFactory clientDbFactory =
+			new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 
 	@Before
 	public void setup() {

@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -74,7 +74,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	private MongoConverter mongoConverter;
 
 	@Autowired
-	private MongoDbFactory mongoDbFactory;
+	private MongoDatabaseFactory mongoDbFactory;
 
 	@Before
 	public void setUp() {
@@ -97,7 +97,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	public void testNoFactorySpecified() {
 
 		try {
-			new MongoDbOutboundGateway((MongoDbFactory) null);
+			new MongoDbOutboundGateway((MongoDatabaseFactory) null);
 			fail("Expected the test case to throw an IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {

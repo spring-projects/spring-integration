@@ -24,11 +24,11 @@ import org.junit.Rule;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -59,8 +59,8 @@ public abstract class MongoDbAvailableTests {
 	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
 
 
-	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
-		MongoDbFactory mongoDbFactory = new SimpleMongoClientDbFactory(MongoClients.create(), "test");
+	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
+		MongoDatabaseFactory mongoDbFactory = new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
 		return mongoDbFactory;
 	}
@@ -84,7 +84,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	protected void cleanupCollections(MongoDbFactory mongoDbFactory, String... additionalCollectionsToDrop) {
+	protected void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
@@ -179,7 +179,7 @@ public abstract class MongoDbAvailableTests {
 	public static class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
-				MongoDbFactory mongoDbFactory,
+				MongoDatabaseFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);

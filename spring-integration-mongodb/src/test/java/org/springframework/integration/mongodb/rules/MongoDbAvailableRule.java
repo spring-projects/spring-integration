@@ -16,15 +16,17 @@
 
 package org.springframework.integration.mongodb.rules;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.ServerAddress;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.internal.MongoClientImpl;
 
 /**
  * A {@link MethodRule} implementation that checks for a running MongoDB process.
@@ -46,11 +48,11 @@ public final class MongoDbAvailableRule implements MethodRule {
 			public void evaluate() throws Throwable {
 				MongoDbAvailable mongoAvailable = method.getAnnotation(MongoDbAvailable.class);
 				if (mongoAvailable != null) {
-					try {
-						MongoClientOptions options = new MongoClientOptions.Builder()
-								.serverSelectionTimeout(100)
-								.build();
-						MongoClient mongo = new MongoClient(ServerAddress.defaultHost(), options);
+					MongoClientSettings settings = MongoClientSettings.builder()
+							.applyToSocketSettings(ss -> ss.connectTimeout(100, TimeUnit.MILLISECONDS))
+							.applyToClusterSettings(cs -> cs.serverSelectionTimeout(100, TimeUnit.MILLISECONDS))
+							.build();
+					try (MongoClient mongo = new MongoClientImpl(settings, null)) {
 						mongo.listDatabaseNames()
 								.first();
 					}
