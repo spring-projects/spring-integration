@@ -38,6 +38,7 @@ import org.springframework.util.ObjectUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Den Ivanov
  *
  * @since 2.0
  */
@@ -154,7 +155,9 @@ public class FtpSession implements Session<FTPFile> {
 			if (this.readingRaw.get() && !finalizeRaw() && LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Finalize on readRaw() returned false for " + this);
 			}
-			this.client.logout();
+			if (this.client.isConnected()) {
+				this.client.logout();
+			}
 			this.client.disconnect();
 		}
 		catch (Exception e) {

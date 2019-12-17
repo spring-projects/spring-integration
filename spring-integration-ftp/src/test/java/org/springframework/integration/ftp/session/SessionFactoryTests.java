@@ -69,6 +69,7 @@ class SessionFactoryTests {
 		sessionFactory.setDataTimeout(789);
 		doReturn(200).when(client).getReplyCode();
 		doReturn(true).when(client).login("foo", null);
+		doReturn(true).when(client).isConnected();
 		FtpSession session = sessionFactory.getSession();
 		verify(client).setConnectTimeout(123);
 		verify(client).setDefaultTimeout(456);
@@ -210,7 +211,6 @@ class SessionFactoryTests {
 					session.close();
 				}
 				catch (Exception e) {
-					e.printStackTrace();
 					failures.incrementAndGet();
 				}
 			});
