@@ -263,6 +263,18 @@ public class GatewayProxySpec {
 		return this;
 	}
 
+	/**
+	 * Indicate if {@code default} methods on the interface should be proxied as well.
+	 * @param proxyDefaultMethods the boolean flag to proxy default methods or invoke via {@code MethodHandle}.
+	 * @return current {@link GatewayProxySpec}.
+	 * @see GatewayProxyFactoryBean#setProxyDefaultMethods(boolean)
+	 * @since 5.3
+	 */
+	public GatewayProxySpec proxyDefaultMethods(boolean proxyDefaultMethods) {
+		this.gatewayProxyFactoryBean.setProxyDefaultMethods(proxyDefaultMethods);
+		return this;
+	}
+
 	MessageChannel getGatewayRequestChannel() {
 		return this.gatewayRequestChannel;
 	}

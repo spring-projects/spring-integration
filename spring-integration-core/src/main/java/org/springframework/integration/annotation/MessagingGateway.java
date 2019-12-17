@@ -132,4 +132,15 @@ public @interface MessagingGateway {
 	 */
 	String mapper() default "";
 
+	/**
+	 * Indicate if {@code default} methods on the interface should be proxied as well.
+	 * If an explicit {@link Gateway} annotation is present on method it is proxied
+	 * independently of this option.
+	 * Note: default methods in JDK classes (such as {@code Function}) can be proxied, but cannot be invoked
+	 * via {@code MethodHandle} by an internal Java security restriction for {@code MethodHandle.Lookup}.
+	 * @return the boolean flag to proxy default methods or invoke via {@code MethodHandle}.
+	 * @since 5.3
+	 */
+	boolean proxyDefaultMethods() default false;
+
 }

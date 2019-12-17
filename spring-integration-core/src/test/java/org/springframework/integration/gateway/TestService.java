@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import org.springframework.integration.annotation.Gateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Payload;
 
@@ -64,6 +65,11 @@ public interface TestService {
 	CompletableFuture<Message<?>> completableReturnsMessage(String s);
 
 	MyCompletableMessageFuture customCompletableReturnsMessage(String s);
+
+	@Gateway(requestChannel = "errorChannel")
+	default void defaultMethodGateway(Object payload) {
+		throw new UnsupportedOperationException();
+	}
 
 	class MyCompletableFuture extends CompletableFuture<String> {
 
