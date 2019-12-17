@@ -351,6 +351,13 @@ public interface Cafe {
 
 If a method has no argument and no return value but does contain a payload expression, it is treated as a send-only operation.
 
+[[gateway-calling-default-methods]]
+==== Invoking `default` Methods
+
+An interface for gateway proxy may have `default` methods as well and starting with version 5.3, the framework injects a `DefaultMethodInvokingMethodInterceptor` into a proxy for calling `default` methods using a `java.lang.invoke.MethodHandle` approach instead of proxying.
+The interfaces from JDK, such as `java.util.function.Function`, still can be used for gateway proxy, but their `default` methods cannot be called because of internal Java security reasons for a `MethodHandles.Lookup` instantiation against JDK classes.
+These methods also can be proxied (losing their implementation logic and, at the same time, restoring previous gateway proxy behavior) using an explicit `@Gateway` annotation on the method, or `proxyDefaultMethods` on the `@MessagingGateway` annotation or `<gateway>` XML component.
+
 [[gateway-error-handling]]
 ==== Error Handling
 
@@ -719,7 +726,7 @@ A `Mono` can be used to retrieve the result later (similar to a `Future<?>`), or
 IMPORTANT: The `Mono` is not immediately flushed by the framework.
 Consequently, the underlying message flow is not started before the gateway method returns (as it is with a `Future<?>` `Executor` task).
 The flow starts when the `Mono` is subscribed to.
-Alternatively, the `Mono` (being a `Composable`) might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
+Alternatively, the `Mono` (being a "`Composable`") might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
 The following example shows how to create a gateway with Project Reactor:
 
 ====

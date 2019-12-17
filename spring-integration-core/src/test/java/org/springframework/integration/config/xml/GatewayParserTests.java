@@ -31,8 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
@@ -55,27 +54,31 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
+import reactor.test.StepVerifier;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayParserTests {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	private SubscribableChannel errorChannel;
 
 	@Test
 	public void testOneWay() {
@@ -84,6 +87,17 @@ public class GatewayParserTests {
 		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		Message<?> result = channel.receive(10000);
 		assertThat(result.getPayload()).isEqualTo("foo");
+
+		MonoProcessor<Object> defaultMethodHandler = MonoProcessor.create();
+
+		this.errorChannel.subscribe(message -> defaultMethodHandler.onNext(message.getPayload()));
+
+		String defaultMethodPayload = "defaultMethodPayload";
+		service.defaultMethodGateway(defaultMethodPayload);
+
+		StepVerifier.create(defaultMethodHandler)
+				.expectNext(defaultMethodPayload)
+				.verifyComplete();
 	}
 
 	@Test
@@ -283,8 +297,8 @@ public class GatewayParserTests {
 		assertThat(thread.get()).isEqualTo(Thread.currentThread());
 		assertThat(TestUtils.getPropertyValue(gateway, "asyncExecutor")).isNotNull();
 		verify(logger).debug("AsyncTaskExecutor submit*() return types are incompatible with the method return type; "
-							+ "running on calling thread; the downstream flow must return the required Future: "
-							+ "MyCompletableFuture");
+				+ "running on calling thread; the downstream flow must return the required Future: "
+				+ "MyCompletableFuture");
 	}
 
 	@Test
@@ -409,7 +423,7 @@ public class GatewayParserTests {
 		}
 
 		@Override
-		@SuppressWarnings({"rawtypes", "unchecked"})
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);
@@ -421,7 +435,7 @@ public class GatewayParserTests {
 				}
 				else {
 					modifiedMessage = MessageBuilder.fromMessage(message)
-						.setHeader("executor", this.beanName).build();
+							.setHeader("executor", this.beanName).build();
 				}
 				return new AsyncResult(modifiedMessage);
 			}

@@ -17,6 +17,7 @@
 package org.springframework.integration.function
 
 import assertk.assertThat
+import assertk.assertions.containsAll
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
@@ -36,6 +37,7 @@ import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.IntegrationFlows
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter
+import org.springframework.integration.gateway.GatewayProxyFactoryBean
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
@@ -50,6 +52,7 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
+import java.util.stream.Collectors
 
 /**
  * @author Artem Bilan
@@ -126,6 +129,10 @@ class FunctionsTests {
 	@Autowired
 	private lateinit var monoFunction: Function<String, Mono<Message<*>>>
 
+	@Autowired
+	@Qualifier("&monoFunctionGateway.gateway")
+	private lateinit var monoFunctionGateway: GatewayProxyFactoryBean
+
 	@Test
 	fun `verify Mono gateway`() {
 		val mono = this.monoFunction.apply("test")
@@ -133,6 +140,11 @@ class FunctionsTests {
 		StepVerifier.create(mono.map(Message<*>::getPayload).cast(String::class.java))
 				.expectNext("TEST")
 				.verifyComplete()
+
+		val gateways = this.monoFunctionGateway.gateways
+		assertThat(gateways).size().isEqualTo(3)
+		val methodNames = gateways.keys.stream().map { it.name }.collect(Collectors.toList())
+		assertThat(methodNames).containsAll("apply", "andThen", "compose")
 	}
 
 	@Configuration
@@ -174,7 +186,7 @@ class FunctionsTests {
 
 		@Bean
 		fun monoFunctionGateway() =
-				IntegrationFlows.from(MonoFunction::class.java)
+				IntegrationFlows.from(MonoFunction::class.java) { gateway -> gateway.proxyDefaultMethods(true) }
 						.handle<String>({ p, _ -> Mono.just(p).map(String::toUpperCase) }) { e -> e.async(true) }
 						.get()
 	}

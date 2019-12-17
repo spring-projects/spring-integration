@@ -21,7 +21,8 @@
 
 	<gateway id="oneWay"
 			 service-interface="org.springframework.integration.gateway.TestService"
-			 default-request-channel="requestChannel"/>
+			 default-request-channel="requestChannel"
+			 proxy-default-methods="true"/>
 
 	<gateway id="solicitResponse"
 			 service-interface="org.springframework.integration.gateway.TestService"
@@ -84,15 +85,15 @@
 			 async-executor="testExecutor">
 		<default-header name="baz" value="qux"/>
 		<method name="oneWay" request-channel="otherRequestChannel"
-							  request-timeout="456"
-							  reply-timeout="123"
-							  payload-expression="'fiz'"
-							  reply-channel="foo">
+				request-timeout="456"
+				reply-timeout="123"
+				payload-expression="'fiz'"
+				reply-channel="foo">
 			<header name="foo" value="bar"/>
 		</method>
 		<method name="oneWayWithTimeouts" request-channel="otherRequestChannel"
-							  request-timeout="args[1]"
-							  reply-timeout="args[2]">
+				request-timeout="args[1]"
+				reply-timeout="args[2]">
 		</method>
 	</gateway>
 

@@ -68,8 +68,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 					importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
 			replaceEmptyOverrides(valuesHierarchy, annotationAttributes); // NOSONAR never null
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
-
-			BeanDefinitionReaderUtils.registerBeanDefinition(this.parse(annotationAttributes), registry);
+			annotationAttributes.put("proxyDefaultMethods", "" + annotationAttributes.remove("proxyDefaultMethods"));
+			BeanDefinitionReaderUtils.registerBeanDefinition(parse(annotationAttributes), registry);
 		}
 	}
 
@@ -84,6 +84,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		String errorChannel = (String) gatewayAttributes.get("errorChannel");
 		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
 		String mapper = (String) gatewayAttributes.get("mapper");
+		String proxyDefaultMethods = (String) gatewayAttributes.get("proxyDefaultMethods");
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
@@ -151,6 +152,9 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		}
 		if (StringUtils.hasText(mapper)) {
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
+		}
+		if (StringUtils.hasText(proxyDefaultMethods)) {
+			gatewayProxyBuilder.addPropertyValue("proxyDefaultMethods", proxyDefaultMethods);
 		}
 
 		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeoutExpressionString",

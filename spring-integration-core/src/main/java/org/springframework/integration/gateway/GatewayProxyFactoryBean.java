@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -149,6 +150,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private GatewayMethodMetadata globalMethodMetadata;
 
 	private MethodArgsMessageMapper argsMapper;
+
+	private boolean proxyDefaultMethods;
 
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -362,6 +365,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		this.argsMapper = mapper;
 	}
 
+	/**
+	 * Indicate if {@code default} methods on the interface should be proxied as well.
+	 * If an explicit {@link Gateway} annotation is present on method it is proxied
+	 * independently of this option.
+	 * Note: default methods in JDK classes (such as {@code Function}) can be proxied, but cannot be invoked
+	 * via {@code MethodHandle} by an internal Java security restriction for {@code MethodHandle.Lookup}.
+	 * @param proxyDefaultMethods the boolean flag to proxy default methods or invoke via {@code MethodHandle}.
+	 * @since 5.3
+	 */
+	public void setProxyDefaultMethods(boolean proxyDefaultMethods) {
+		this.proxyDefaultMethods = proxyDefaultMethods;
+	}
+
 	protected AsyncTaskExecutor getAsyncExecutor() {
 		return this.asyncExecutor;
 	}
@@ -386,14 +402,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (this.channelResolver == null && beanFactory != null) {
 				this.channelResolver = ChannelResolverUtils.getChannelResolver(beanFactory);
 			}
-			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
-			for (Method method : methods) {
-				MethodInvocationGateway gateway = createGatewayForMethod(method);
-				this.gatewayMap.put(method, gateway);
-			}
-			this.serviceProxy =
-					new ProxyFactory(this.serviceInterface, this)
-							.getProxy(this.beanClassLoader);
+
+			populateMethodInvocationGateways();
+
+			ProxyFactory gatewayProxyFactory =
+					new ProxyFactory(this.serviceInterface, this);
+			gatewayProxyFactory.addAdvice(new DefaultMethodInvokingMethodInterceptor());
+			this.serviceProxy = gatewayProxyFactory.getProxy(this.beanClassLoader);
 			if (this.asyncExecutor != null) {
 				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);
@@ -405,6 +420,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 			this.initialized = true;
+		}
+	}
+
+	private void populateMethodInvocationGateways() {
+		Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(this.serviceInterface);
+		for (Method method : methods) {
+			if (Modifier.isAbstract(method.getModifiers())
+					|| method.getAnnotation(Gateway.class) != null
+					|| (method.isDefault() && this.proxyDefaultMethods)) {
+
+				MethodInvocationGateway gateway = createGatewayForMethod(method);
+				this.gatewayMap.put(method, gateway);
+			}
 		}
 	}
 
@@ -477,6 +505,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		Method method = invocation.getMethod();
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
+		if (gateway == null) {
+			try {
+				return invocation.proceed();
+			}
+			catch (Throwable throwable) {
+				throw new IllegalStateException(throwable);
+			}
+		}
 		boolean shouldReturnMessage =
 				Message.class.isAssignableFrom(gateway.returnType) || (!runningOnCallerThread && gateway.expectMessage);
 		boolean shouldReply = gateway.returnType != void.class;

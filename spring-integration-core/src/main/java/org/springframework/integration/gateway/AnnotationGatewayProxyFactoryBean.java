@@ -90,7 +90,10 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		else if (StringUtils.hasText(asyncExecutor)) {
 			setAsyncExecutor(beanFactory.getBean(asyncExecutor, Executor.class));
 		}
-
+		boolean proxyDefaultMethods = this.gatewayAttributes.getBoolean("proxyDefaultMethods");
+		if (proxyDefaultMethods) {
+			setProxyDefaultMethods(proxyDefaultMethods);
+		}
 		super.onInit();
 	}
 
