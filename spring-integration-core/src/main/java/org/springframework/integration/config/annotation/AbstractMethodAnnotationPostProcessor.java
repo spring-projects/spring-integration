@@ -54,6 +54,7 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
@@ -163,6 +164,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			if (handler instanceof ReplyProducingMessageHandlerWrapper
 					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
 				handlerBeanName = handlerBeanName + ".wrapper";
+			}
+			if (handler instanceof IntegrationObjectSupport) {
+				((IntegrationObjectSupport) handler).setComponentName(
+						handlerBeanName.substring(0,
+								handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
 			}
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
@@ -396,11 +402,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 			if (StringUtils.hasText(ref)) {
 				Assert.state(!StringUtils.hasText(triggerRef)
-						&& !StringUtils.hasText(executorRef)
-						&& !StringUtils.hasText(cron)
-						&& !StringUtils.hasText(fixedDelayValue)
-						&& !StringUtils.hasText(fixedRateValue)
-						&& !StringUtils.hasText(maxMessagesPerPollValue), // NOSONAR boolean complexity
+								&& !StringUtils.hasText(executorRef)
+								&& !StringUtils.hasText(cron)
+								&& !StringUtils.hasText(fixedDelayValue)
+								&& !StringUtils.hasText(fixedRateValue)
+								&& !StringUtils.hasText(maxMessagesPerPollValue), // NOSONAR boolean complexity
 						"The '@Poller' 'ref' attribute is mutually exclusive with other attributes.");
 				pollerMetadata = this.beanFactory.getBean(ref, PollerMetadata.class);
 			}
