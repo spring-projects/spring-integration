@@ -16,8 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,20 +32,23 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0.4
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class BeanNameTests {
 
@@ -75,6 +79,10 @@ public class BeanNameTests {
 	@Qualifier("eipBean2.handler")
 	private MessageHandler eipBean2Handler;
 
+	@Autowired
+	@Qualifier("eipBean2.handler.wrapper")
+	private ReplyProducingMessageHandlerWrapper eipBean2HandlerWrapper;
+
 	@SuppressWarnings("unused")
 	@Autowired
 	private SourcePollingChannelAdapter eipMethodSource;
@@ -95,7 +103,7 @@ public class BeanNameTests {
 
 	@Test
 	public void contextLoads() {
-
+		assertThat(this.eipBean2HandlerWrapper.getComponentName()).isEqualTo("eipBean2");
 	}
 
 	@Configuration
