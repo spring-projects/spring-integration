@@ -39,8 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
@@ -127,7 +126,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
@@ -141,10 +140,9 @@ import reactor.core.publisher.Mono;
  *
  * @since 4.0
  */
-@ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class,
-		classes = { EnableIntegrationTests.ContextConfiguration.class,
-				EnableIntegrationTests.ContextConfiguration2.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class)
+@SpringJUnitConfig(classes = { EnableIntegrationTests.ContextConfiguration.class,
+		EnableIntegrationTests.ContextConfiguration2.class })
 @DirtiesContext
 public class EnableIntegrationTests {
 
@@ -360,7 +358,7 @@ public class EnableIntegrationTests {
 		assertThat(messageHistory).isNotNull();
 		String messageHistoryString = messageHistory.toString();
 		assertThat(messageHistoryString).contains("input");
-		assertThat(messageHistoryString).contains("annotationTestService.handle.serviceActivator.handler");
+		assertThat(messageHistoryString).contains("annotationTestService.handle.serviceActivator");
 		assertThat(messageHistoryString).doesNotContain("output");
 
 		receive = this.publishedChannel.receive(10_000);

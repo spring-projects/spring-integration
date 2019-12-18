@@ -17,12 +17,11 @@
 package org.springframework.integration.support.management.micrometer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -50,7 +49,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -64,7 +63,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  * @since 5.0.2
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 @TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
 public class MicrometerMetricsTests {
@@ -98,33 +97,25 @@ public class MicrometerMetricsTests {
 	public void testSend() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		this.channel.send(message);
-		try {
-			this.channel.send(this.source.receive()); // "bar"
-			fail("Expected exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("testErrorCount");
-		}
-		try {
-			this.channel.send(new GenericMessage<>("bar"));
-			fail("Expected exception");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("testErrorCount");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.channel.send(this.source.receive())) // "bar"
+				.withStackTraceContaining("testErrorCount");
+
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.channel.send(new GenericMessage<>("bar")))
+				.withStackTraceContaining("testErrorCount");
+
 		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(2);
 		this.channel2.send(message);
 		this.queue.send(message);
 		this.queue.send(message);
 		this.queue.receive();
 		this.badPoll.send(message);
-		try {
-			this.badPoll.receive();
-			fail("Expected exception");
-		}
-		catch (RuntimeException e) {
-			assertThat(e.getMessage()).isEqualTo("badPoll");
-		}
+
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> this.badPoll.receive())
+				.withMessage("badPoll");
+
 		nullChannel.send(message);
 		MeterRegistry registry = this.meterRegistry;
 		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(6);
@@ -147,7 +138,7 @@ public class MicrometerMetricsTests {
 				.timer().count()).isEqualTo(1);
 
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "eipMethod.handler")
+				.tag("name", "eipMethod")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 
@@ -162,7 +153,7 @@ public class MicrometerMetricsTests {
 				.timer().count()).isEqualTo(2);
 
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "eipMethod.handler")
+				.tag("name", "eipMethod")
 				.tag("result", "failure")
 				.timer().count()).isEqualTo(2);
 
@@ -194,32 +185,26 @@ public class MicrometerMetricsTests {
 				.tag("result", "success")
 				.timer();
 		newChannel.destroy();
-		try {
-			registry.get("spring.integration.send")
-					.tag("name", "newChannel")
-					.tag("result", "success")
-					.timer();
-			fail("Expected MeterNotFoundException");
-		}
-		catch (MeterNotFoundException e) {
-			assertThat(e).hasMessageContaining("A meter with name 'spring.integration.send' was found");
-			assertThat(e).hasMessageContaining("No meters have a tag 'name' with value 'newChannel'");
-		}
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() ->
+						registry.get("spring.integration.send")
+								.tag("name", "newChannel")
+								.tag("result", "success")
+								.timer())
+				.withStackTraceContaining("A meter with name 'spring.integration.send' was found")
+				.withStackTraceContaining("No meters have a tag 'name' with value 'newChannel'");
+
 		this.context.close();
-		try {
-			registry.get("spring.integration.send").timers();
-			fail("Expected MeterNotFoundException");
-		}
-		catch (MeterNotFoundException e) {
-			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.send' was found");
-		}
-		try {
-			registry.get("spring.integration.receive").counters();
-			fail("Expected MeterNotFoundException");
-		}
-		catch (MeterNotFoundException e) {
-			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.receive' was found");
-		}
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() -> registry.get("spring.integration.send").timers())
+				.withStackTraceContaining("No meter with name 'spring.integration.send' was found");
+
+		assertThatExceptionOfType(MeterNotFoundException.class)
+				.isThrownBy(() -> registry.get("spring.integration.receive").counters())
+				.withStackTraceContaining("No meter with name 'spring.integration.receive' was found");
+
 		this.channel.destroy();
 		assertThat(TestUtils.getPropertyValue(this.channel, "meters", Set.class)).hasSize(0);
 
