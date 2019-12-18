@@ -24,8 +24,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
@@ -191,6 +193,20 @@ public final class IntegrationUtils {
 					(ex instanceof IllegalStateException && ex.getCause() != null) ? ex.getCause() : ex);
 		}
 		return runtimeException;
+	}
+
+	/**
+	 * Obtain a component name from the provided {@link NamedComponent}.
+	 * @param component the {@link NamedComponent} source for component name.
+	 * @return the component name
+	 * @since 5.3
+	 */
+	public static String obtainComponentName(NamedComponent component) {
+		String name = component.getComponentName();
+		if (name.startsWith('_' + IntegrationConfigUtils.BASE_PACKAGE)) {
+			name = name.substring(('_' + IntegrationConfigUtils.BASE_PACKAGE).length() + 1);
+		}
+		return name;
 	}
 
 }

@@ -43,6 +43,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
@@ -111,9 +112,7 @@ import org.springframework.util.ReflectionUtils;
 public class IntegrationMBeanExporter extends MBeanExporter
 		implements ApplicationContextAware, DestructionAwareBeanPostProcessor {
 
-	private static final String SI_PACKAGE = "org.springframework.integration";
-
-	public static final String DEFAULT_DOMAIN = SI_PACKAGE;
+	public static final String DEFAULT_DOMAIN = IntegrationConfigUtils.BASE_PACKAGE;
 
 	private final IntegrationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
 
@@ -827,7 +826,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		String beanKey;
 		String name = endpoint.getComponentName();
 		String source;
-		if (name.startsWith('_' + SI_PACKAGE)) {
+		if (name.startsWith('_' + IntegrationConfigUtils.BASE_PACKAGE)) {
 			name = getInternalComponentName(name);
 			source = "internal";
 		}
@@ -881,7 +880,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private String getChannelBeanKey(String channel) {
 		String extra = "";
-		if (channel.startsWith(SI_PACKAGE)) {
+		if (channel.startsWith(IntegrationConfigUtils.BASE_PACKAGE)) {
 			extra = ",source=anonymous";
 		}
 		return String.format(this.domain + ":type=MessageChannel,name=%s%s" + getStaticNames(),
@@ -979,11 +978,11 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		String managedType = source;
 		String managedName = name;
 
-		if (managedName != null && managedName.startsWith('_' + SI_PACKAGE)) {
+		if (managedName != null && managedName.startsWith('_' + IntegrationConfigUtils.BASE_PACKAGE)) {
 			managedName = getInternalComponentName(managedName);
 			managedType = "internal";
 		}
-		if (managedName != null && name.startsWith(SI_PACKAGE)) {
+		if (managedName != null && name.startsWith(IntegrationConfigUtils.BASE_PACKAGE)) {
 			MessageChannel inputChannel = endpoint.getInputChannel();
 			if (inputChannel != null) {
 				managedName = buildAnonymousManagedName(this.anonymousHandlerCounters, inputChannel);
@@ -1058,7 +1057,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	private String getInternalComponentName(String name) {
-		return name.substring(('_' + SI_PACKAGE).length() + 1);
+		return name.substring(('_' + IntegrationConfigUtils.BASE_PACKAGE).length() + 1);
 	}
 
 	private org.springframework.integration.support.management.MessageSourceMetrics enhanceSourceMonitor(
@@ -1075,7 +1074,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		if (endpoint != null) {
 			endpointName = endpoint.getBeanName();
 		}
-		if (endpointName != null && endpointName.startsWith('_' + SI_PACKAGE)) {
+		if (endpointName != null && endpointName.startsWith('_' + IntegrationConfigUtils.BASE_PACKAGE)) {
 			endpointName = getInternalComponentName(endpointName);
 			source = "internal";
 		}
@@ -1115,7 +1114,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		String managedType = source;
 		String managedName = name;
 
-		if (managedName != null && managedName.startsWith(SI_PACKAGE)) {
+		if (managedName != null && managedName.startsWith(IntegrationConfigUtils.BASE_PACKAGE)) {
 			Object target = endpoint;
 			if (endpoint instanceof Advised) {
 				TargetSource targetSource = ((Advised) endpoint).getTargetSource();

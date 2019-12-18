@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -42,7 +43,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -177,16 +177,16 @@ public class GatewayParserTests {
 	@Test
 	public void testFactoryBeanObjectTypeWithServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
-		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(
-				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
+		Object attribute =
+				beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
 		assertThat(attribute).isEqualTo(TestService.class.getName());
 	}
 
 	@Test
 	public void testFactoryBeanObjectTypeWithNoServiceInterface() {
 		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
-		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(
-				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
+		Object attribute =
+				beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE);
 		assertThat(attribute).isEqualTo(RequestReplyExchanger.class.getName());
 	}
 

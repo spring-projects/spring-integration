@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -176,9 +176,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		gatewayProxyBuilder.addConstructorArgValue(serviceInterface);
 
 		AbstractBeanDefinition beanDefinition = gatewayProxyBuilder.getBeanDefinition();
-		beanDefinition.addMetadataAttribute(new BeanMetadataAttribute(IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE,
-				serviceInterface));
-
+		beanDefinition.setAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE, serviceInterface);
 		return new BeanDefinitionHolder(beanDefinition, id);
 	}
 
@@ -188,7 +186,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 	 * @param importingClassMetadata The importing class metadata
 	 * @return The captured values.
 	 */
-	private  static List<MultiValueMap<String, Object>> captureMetaAnnotationValues(
+	private static List<MultiValueMap<String, Object>> captureMetaAnnotationValues(
 			AnnotationMetadata importingClassMetadata) {
 
 		Set<String> directAnnotations = importingClassMetadata.getAnnotationTypes();

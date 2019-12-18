@@ -48,6 +48,7 @@ import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.router.RecipientListRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -65,7 +66,7 @@ import org.springframework.util.ClassUtils;
  */
 public class IntegrationGraphServer implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
-	private static final float GRAPH_VERSION = 1.1f;
+	private static final float GRAPH_VERSION = 1.2f;
 
 	private static MicrometerNodeEnhancer micrometerEnhancer;
 
@@ -377,7 +378,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		@Nullable
-		String channelToBeanName(MessageChannel messageChannel) {
+		private String channelToBeanName(MessageChannel messageChannel) {
 			return messageChannel instanceof NamedComponent
 					? ((NamedComponent) messageChannel).getBeanName()
 					: Objects.toString(messageChannel, null);
@@ -396,7 +397,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			String nameToUse = name;
 			MessageSource<?> source = adapter.getMessageSource();
 			if (source instanceof NamedComponent) {
-				nameToUse = ((NamedComponent) source).getComponentName();
+				nameToUse = IntegrationUtils.obtainComponentName((NamedComponent) source);
 			}
 			MessageSourceNode node = new MessageSourceNode(this.nodeId.incrementAndGet(), nameToUse, source,
 					outputChannel, errorChannel);
@@ -412,7 +413,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageHandlerNode node;
 			String name = nameArg;
 			if (handler instanceof NamedComponent) {
-				name = ((NamedComponent) handler).getComponentName();
+				name = IntegrationUtils.obtainComponentName((NamedComponent) handler);
 			}
 			if (handler instanceof CompositeMessageHandler) {
 				node = compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null,
@@ -448,7 +449,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageHandlerNode node;
 			String name = nameArg;
 			if (handler instanceof NamedComponent) {
-				name = ((NamedComponent) handler).getComponentName();
+				name = IntegrationUtils.obtainComponentName((NamedComponent) handler);
 			}
 			if (handler instanceof CompositeMessageHandler) {
 				node = compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName,
@@ -487,7 +488,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 							.map(NamedComponent.class::cast)
 							.map(named ->
 									new CompositeMessageHandlerNode.InnerHandler(
-											named.getComponentName(),
+											IntegrationUtils.obtainComponentName(named),
 											named.getComponentType()))
 							.collect(Collectors.toList());
 
