@@ -160,21 +160,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		producerOrRouter(annotations, handler);
 
 		if (!handler.equals(sourceHandler)) {
-			String handlerBeanName = generateHandlerBeanName(beanName, method);
-			if (handler instanceof ReplyProducingMessageHandlerWrapper
-					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
-				handlerBeanName = handlerBeanName + ".wrapper";
-			}
-			if (handler instanceof IntegrationObjectSupport) {
-				((IntegrationObjectSupport) handler).setComponentName(
-						handlerBeanName.substring(0,
-								handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
-			}
-			this.beanFactory.registerSingleton(handlerBeanName, handler);
-			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
-			if (handler instanceof DisposableBean && this.disposables != null) {
-				this.disposables.add((DisposableBean) handler);
-			}
+			handler = registerHandlerBean(beanName, method, handler);
 		}
 
 		handler = annotated(method, handler);
@@ -187,6 +173,25 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		else {
 			return handler;
 		}
+	}
+
+	private MessageHandler registerHandlerBean(String beanName, Method method, MessageHandler handler) {
+		String handlerBeanName = generateHandlerBeanName(beanName, method);
+		if (handler instanceof ReplyProducingMessageHandlerWrapper
+				&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
+			handlerBeanName = handlerBeanName + ".wrapper";
+		}
+		if (handler instanceof IntegrationObjectSupport) {
+			((IntegrationObjectSupport) handler).setComponentName(
+					handlerBeanName.substring(0,
+							handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
+		}
+		this.beanFactory.registerSingleton(handlerBeanName, handler);
+		handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+		if (handler instanceof DisposableBean && this.disposables != null) {
+			this.disposables.add((DisposableBean) handler);
+		}
+		return handler;
 	}
 
 
