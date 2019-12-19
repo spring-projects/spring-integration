@@ -28,6 +28,7 @@ import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
@@ -46,18 +47,19 @@ import org.springframework.util.Assert;
  */
 public final class IntegrationUtils {
 
-	private static final Log logger = LogFactory.getLog(IntegrationUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(IntegrationUtils.class);
+
+	private static final String INTERNAL_COMPONENT_PREFIX = '_' + IntegrationConfigUtils.BASE_PACKAGE;
 
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME = "messageBuilderFactory";
 
-
 	/**
 	 * Should be set to TRUE on CI plans and framework developer systems.
 	 */
 	public static final boolean fatalWhenNoBeanFactory =
-			Boolean.valueOf(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
+			Boolean.parseBoolean(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
 
 	private IntegrationUtils() {
 		super();
@@ -77,7 +79,7 @@ public final class IntegrationUtils {
 	 * @param beanFactory The bean factory.
 	 * @return The message builder factory.
 	 */
-	public static MessageBuilderFactory getMessageBuilderFactory(BeanFactory beanFactory) {
+	public static MessageBuilderFactory getMessageBuilderFactory(@Nullable BeanFactory beanFactory) {
 		MessageBuilderFactory messageBuilderFactory = null;
 		if (beanFactory != null) {
 			try {
@@ -85,8 +87,8 @@ public final class IntegrationUtils {
 						INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
 			}
 			catch (Exception e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No MessageBuilderFactory with name '"
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No MessageBuilderFactory with name '"
 							+ INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
 							+ "' found: " + e.getMessage()
 							+ ", using default.");
@@ -94,9 +96,7 @@ public final class IntegrationUtils {
 			}
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory, using default.");
-			}
+			LOGGER.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory, using default.");
 			if (fatalWhenNoBeanFactory) {
 				throw new IllegalStateException("All Message creators need a BeanFactory");
 			}
@@ -203,8 +203,8 @@ public final class IntegrationUtils {
 	 */
 	public static String obtainComponentName(NamedComponent component) {
 		String name = component.getComponentName();
-		if (name.startsWith('_' + IntegrationConfigUtils.BASE_PACKAGE)) {
-			name = name.substring(('_' + IntegrationConfigUtils.BASE_PACKAGE).length() + 1);
+		if (name.charAt(0) == '_' && name.startsWith(INTERNAL_COMPONENT_PREFIX)) {
+			name = name.substring((INTERNAL_COMPONENT_PREFIX).length() + 1);
 		}
 		return name;
 	}
