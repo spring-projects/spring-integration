@@ -26,3 +26,7 @@ See its JavaDocs and <<./graph.adoc#integration-graph,Integration Graph>> for mo
 
 The gateway proxy now doesn't proxy `default` methods by default.
 see <<./gateway.adoc/gateway-calling-default-methods,Invoking `default` Methods>> for more information.
+
+
+Internal components (such as `_org.springframework.integration.errorLogger`) now have a shortened name when they are represented in the integration graph.
+See <<./graph.adoc#integration-graph,Integration Graph>> for more information.

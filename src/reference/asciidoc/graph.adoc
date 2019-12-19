@@ -80,7 +80,7 @@ A Spring Integration application with only the default components would expose a
         "max" : 0.0
       }
     },
-    "name" : "_org.springframework.integration.errorLogger"
+    "name" : "errorLogger"
   } ],
   "links" : [ {
     "from" : 2,
@@ -143,29 +143,7 @@ The `nodes` graph element is perhaps the most interesting, because its elements 
 Node elements contain various properties that are generally self-explanatory.
 For example, expression-based components include the `expression` property that contains the primary expression string for the component.
 To enable the metrics, add an `@EnableIntegrationManagement` to a `@Configuration` class or add an `<int:management/>` element to your XML configuration.
-You can control exactly which components in the framework collect statistics.
 See  <<./metrics.adoc#metrics-management,Metrics and Management>> for complete information.
-See the `stats` attribute from the `o.s.i.errorLogger` component in the JSON example shown earlier.
-In this case, The `nullChannel` and `errorChannel` do not provide statistics information, because the configuration for this example was as follows:
-
-====
-[source,java]
-----
-@Configuration
-@EnableIntegration
-@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
-      countsEnabled = "!*",
-      defaultLoggingEnabled = "false")
-public class ManagementConfiguration {
-
-    @Bean
-    public IntegrationGraphServer integrationGraphServer() {
-        return new IntegrationGraphServer();
-    }
-
-}
-----
-====
 
 The `nodeId` represents a unique incremental identifier to let you distinguish one component from another.
 It is also used in the `links` element to represent a relationship (connection) of this component to others, if any.

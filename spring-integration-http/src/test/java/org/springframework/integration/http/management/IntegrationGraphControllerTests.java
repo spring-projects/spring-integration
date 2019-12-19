@@ -24,9 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -43,8 +42,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -62,8 +60,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  *
  * @since 4.3
  */
-@RunWith(SpringRunner.class)
-@WebAppConfiguration
+@SpringJUnitWebConfig
 @TestPropertySource(properties = "spring.application.name:testApplication")
 @DirtiesContext
 public class IntegrationGraphControllerTests {
@@ -73,7 +70,7 @@ public class IntegrationGraphControllerTests {
 
 	private MockMvc mockMvc;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 	}
@@ -88,8 +85,7 @@ public class IntegrationGraphControllerTests {
 				.andExpect(handler().handlerType(IntegrationGraphController.class))
 				.andExpect(handler().methodName("getGraph"))
 				.andExpect(jsonPath("$.nodes..name")
-						.value(Matchers.containsInAnyOrder("nullChannel", "errorChannel",
-								"_org.springframework.integration.errorLogger")))
+						.value(Matchers.containsInAnyOrder("nullChannel", "errorChannel", "errorLogger")))
 				//				.andDo(print())
 				.andExpect(jsonPath("$.contentDescriptor.name").value("testApplication"))
 				.andExpect(jsonPath("$.links").exists());
@@ -154,9 +150,7 @@ public class IntegrationGraphControllerTests {
 	@Configuration
 	@EnableWebMvc
 	@EnableIntegration
-	@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
-			countsEnabled = "!*",
-			defaultLoggingEnabled = "false")
+	@EnableIntegrationManagement(defaultLoggingEnabled = "false")
 	@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins = "https://foo.bar.com")
 	public static class ContextConfiguration {
 
