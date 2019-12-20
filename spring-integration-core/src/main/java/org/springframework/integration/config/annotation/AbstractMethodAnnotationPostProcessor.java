@@ -175,23 +175,24 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 	}
 
-	private MessageHandler registerHandlerBean(String beanName, Method method, MessageHandler handler) {
+	private MessageHandler registerHandlerBean(String beanName, Method method, final MessageHandler handler) {
+		MessageHandler handlerBean = handler;
 		String handlerBeanName = generateHandlerBeanName(beanName, method);
-		if (handler instanceof ReplyProducingMessageHandlerWrapper
+		if (handlerBean instanceof ReplyProducingMessageHandlerWrapper
 				&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
 			handlerBeanName = handlerBeanName + ".wrapper";
 		}
-		if (handler instanceof IntegrationObjectSupport) {
-			((IntegrationObjectSupport) handler).setComponentName(
+		if (handlerBean instanceof IntegrationObjectSupport) {
+			((IntegrationObjectSupport) handlerBean).setComponentName(
 					handlerBeanName.substring(0,
 							handlerBeanName.indexOf(IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX)));
 		}
 		this.beanFactory.registerSingleton(handlerBeanName, handler);
-		handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
-		if (handler instanceof DisposableBean && this.disposables != null) {
-			this.disposables.add((DisposableBean) handler);
+		handlerBean = (MessageHandler) this.beanFactory.initializeBean(handlerBean, handlerBeanName);
+		if (handlerBean instanceof DisposableBean && this.disposables != null) {
+			this.disposables.add((DisposableBean) handlerBean);
 		}
-		return handler;
+		return handlerBean;
 	}
 
 
