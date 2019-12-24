@@ -101,7 +101,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	 * which a message will be sent.
 	 * @param destination the destination name.
 	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
-	 * @see JmsSendingMessageHandler#setDestinationExpression(String)
+	 * @see JmsSendingMessageHandler#setDestinationExpression(Expression)
 	 */
 	public S destinationExpression(String destination) {
 		this.target.setDestinationExpression(PARSER.parseExpression(destination));
@@ -119,7 +119,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	 * @param destinationFunction the destination function.
 	 * @param <P> the expected payload type.
 	 * @return the current {@link JmsOutboundChannelAdapterSpec}.
-	 * @see JmsSendingMessageHandler#setDestinationExpression(String)
+	 * @see JmsSendingMessageHandler#setDestinationExpression(Expression)
 	 * @see FunctionExpression
 	 */
 	public <P> S destination(Function<Message<P>, ?> destinationFunction) {
