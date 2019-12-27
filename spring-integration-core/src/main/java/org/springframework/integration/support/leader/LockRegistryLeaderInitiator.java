@@ -508,7 +508,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private class LockContext implements Context {
 
 		LockContext() {
-			super();
 		}
 
 		@Override

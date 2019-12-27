@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
@@ -46,7 +47,6 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 
 	public PresenceListeningEndpoint() {
-		super();
 	}
 
 	public PresenceListeningEndpoint(XMPPConnection xmppConnection) {
@@ -61,7 +61,7 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(isInitialized(), this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
+		Assert.isTrue(isInitialized(), () -> getComponentName() + " [" + getComponentType() + "] must be initialized");
 		Roster roster = Roster.getInstanceFor(getXmppConnection());
 		roster.addRosterListener(this.rosterListener);
 	}
@@ -83,7 +83,6 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	private class PresencePublishingRosterListener implements RosterListener {
 
 		PresencePublishingRosterListener() {
-			super();
 		}
 
 		@Override

@@ -25,10 +25,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
 /**
- * Base class for TcpConnectionIntercepters; passes all method calls through
+ * Base class for {@link TcpConnectionInterceptor}s; passes all method calls through
  * to the underlying {@link TcpConnection}.
  *
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSupport implements TcpConnectionInterceptor {
@@ -42,7 +43,6 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	private Boolean realSender;
 
 	public TcpConnectionInterceptorSupport() {
-		super();
 	}
 
 	public TcpConnectionInterceptorSupport(ApplicationEventPublisher applicationEventPublisher) {
@@ -221,7 +221,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		if (this.realSender != null) {
 			return this.realSender;
 		}
-		TcpSender sender = this.getSender();
+		TcpSender sender = getSender();
 		while (sender instanceof TcpConnectionInterceptorSupport) {
 			sender = ((TcpConnectionInterceptorSupport) sender).getSender();
 		}

@@ -43,8 +43,7 @@ public class OnlyOnceTrigger implements Trigger {
 
 
 	public OnlyOnceTrigger() {
-		super();
-		executionTime = new Date();
+		this.executionTime = new Date();
 	}
 
 	@Override
@@ -61,8 +60,7 @@ public class OnlyOnceTrigger implements Trigger {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((executionTime == null) ? 0 : executionTime.hashCode());
+		result = prime * result + this.executionTime.hashCode();
 		return result;
 	}
 
@@ -78,15 +76,7 @@ public class OnlyOnceTrigger implements Trigger {
 			return false;
 		}
 		OnlyOnceTrigger other = (OnlyOnceTrigger) obj;
-		if (executionTime == null) {
-			if (other.executionTime != null) {
-				return false;
-			}
-		}
-		else if (!executionTime.equals(other.executionTime)) {
-			return false;
-		}
-		return true;
+		return this.executionTime.equals(other.executionTime);
 	}
 
 	public void reset() {

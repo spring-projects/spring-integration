@@ -97,7 +97,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	 */
 	public void setRoot(String root) {
 		Assert.notNull(root, "'root' must not be null.");
-		Assert.isTrue(root.startsWith("/"), "'root' must start with '/'");
+		Assert.isTrue(root.charAt(0) == '/', "'root' must start with '/'");
 		// remove trailing slash, if not root
 		this.root = "/".equals(root) || !root.endsWith("/") ? root : root.substring(0, root.length() - 1);
 	}
@@ -259,7 +259,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	public String getPath(String key) {
-		return "".equals(key) ? this.root : this.root + "/" + key;
+		return "".equals(key) ? this.root : this.root + '/' + key;
 	}
 
 
@@ -318,7 +318,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	private String getKey(String path) {
-		return path.replace(this.root + "/", "");
+		return path.replace(this.root + '/', "");
 	}
 
 
@@ -346,7 +346,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	private class MetadataStoreListenerInvokingPathChildrenCacheListener implements PathChildrenCacheListener {
 
 		MetadataStoreListenerInvokingPathChildrenCacheListener() {
-			super();
 		}
 
 		@Override

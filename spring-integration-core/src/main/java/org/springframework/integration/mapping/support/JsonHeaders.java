@@ -26,12 +26,12 @@ import java.util.Collections;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public final class JsonHeaders {
 
 	private JsonHeaders() {
-		super();
 	}
 
 	public static final String PREFIX = "json";

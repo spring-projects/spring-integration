@@ -52,7 +52,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	private boolean lazyLoadMessageGroups = true;
 
 	protected AbstractMessageGroupStore() {
-		super();
 	}
 
 	protected AbstractMessageGroupStore(boolean lazyLoadMessageGroups) {

@@ -40,7 +40,6 @@ import org.springframework.util.Assert;
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 
 	public ChainFileListFilter() {
-		super();
 	}
 
 	public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {

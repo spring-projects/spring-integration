@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
@@ -231,7 +232,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 * If more sophisticated logic is required (e.g. changing the message headers etc.)
 	 * please use additional downstream transformers.
 	 * @param requestPayloadExpression The request payload expression.
-	 *
 	 */
 	public void setRequestPayloadExpression(Expression requestPayloadExpression) {
 		this.requestPayloadExpression = requestPayloadExpression;
@@ -283,6 +283,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Assert.state(this.requestChannel != null || this.requestChannelName != null,
 					"If the errorChannel is set, then the requestChannel must not be null");
 		}
+
+		BeanFactory beanFactory = getBeanFactory();
+
 		if (this.requestChannel != null || this.requestChannelName != null) {
 			this.gateway = new Gateway();
 			if (this.requestChannel != null) {
@@ -309,23 +312,24 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				this.gateway.setErrorChannelName(this.errorChannelName);
 			}
 
-			if (this.getBeanFactory() != null) {
-				this.gateway.setBeanFactory(this.getBeanFactory());
+			if (beanFactory != null) {
+				this.gateway.setBeanFactory(beanFactory);
 			}
 
 			this.gateway.afterPropertiesSet();
 		}
 
+
 		if (this.sourceEvaluationContext == null) {
-			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		}
 
-		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		// bean resolution is NOT allowed for the target of the enrichment
 		targetContext.setBeanResolver(null); // NOSONAR (null)
 		this.targetEvaluationContext = targetContext;
 
-		if (getBeanFactory() != null) {
+		if (beanFactory != null) {
 			boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
 
 			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
@@ -337,7 +341,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 									+ "] configuration for " + getComponentName());
 				}
 				if (entry.getValue() instanceof BeanFactoryAware) {
-					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
 				}
 			}
 
@@ -351,7 +355,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 									+ "] configuration for " + getComponentName());
 				}
 				if (entry.getValue() instanceof BeanFactoryAware) {
-					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(beanFactory);
 				}
 			}
 		}
@@ -406,8 +410,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 					return targetPayload;
 				}
 				else {
-					Map<String, Object> targetHeaders = new HashMap<>(
-							this.nullResultHeaderExpressions.size());
+					Map<String, Object> targetHeaders = new HashMap<>(this.nullResultHeaderExpressions.size());
 					for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions
 							.entrySet()) {
 						String header = entry.getKey();
@@ -435,7 +438,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			return targetPayload;
 		}
 		else {
-			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
+			Map<String, Object> targetHeaders = new HashMap<>(this.headerExpressions.size());
 			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
 				String header = entry.getKey();
 				HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
@@ -490,7 +493,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	private static final class Gateway extends MessagingGatewaySupport {
 
 		Gateway() {
-			super();
 		}
 
 		@Override

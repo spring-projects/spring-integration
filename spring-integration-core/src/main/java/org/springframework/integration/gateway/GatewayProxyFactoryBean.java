@@ -509,7 +509,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			try {
 				return invocation.proceed();
 			}
-			catch (Throwable throwable) {
+			catch (Throwable throwable) { // NOSONAR
 				throw new IllegalStateException(throwable);
 			}
 		}

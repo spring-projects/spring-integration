@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -33,10 +34,10 @@ public class PublishSubscribeChannelSpec<S extends PublishSubscribeChannelSpec<S
 		extends MessageChannelSpec<S, PublishSubscribeChannel> {
 
 	protected PublishSubscribeChannelSpec() {
-		this.channel = new PublishSubscribeChannel();
+		this(null);
 	}
 
-	protected PublishSubscribeChannelSpec(Executor executor) {
+	protected PublishSubscribeChannelSpec(@Nullable Executor executor) {
 		this.channel = new PublishSubscribeChannel(executor);
 	}
 

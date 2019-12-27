@@ -27,7 +27,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
@@ -40,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  *
  */
@@ -188,7 +188,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param oldValue the metadata entry old value to replace
 	 * @param newValue the metadata entry new value to put
 	 * @return {@code true} if replace was successful, {@code false} otherwise.
-	 * @see MongoTemplate#updateFirst(Query, UpdateDefinition, String)
+	 * @see MongoTemplate#updateFirst(Query, org.springframework.data.mongodb.core.query.UpdateDefinition, String)
 	 */
 	@Override
 	public boolean replace(String key, String oldValue, String newValue) {

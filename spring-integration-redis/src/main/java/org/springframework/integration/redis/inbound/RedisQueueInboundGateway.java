@@ -359,7 +359,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport
 	private class ListenerTask implements SchedulingAwareRunnable {
 
 		ListenerTask() {
-			super();
 		}
 
 		@Override

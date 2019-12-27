@@ -21,6 +21,7 @@ package org.springframework.integration.ip.tcp.serializer;
  * messages.
  *
  * @author Gary Russell
+ *
  * @since 2.0
  *
  */
@@ -32,7 +33,6 @@ public class SoftEndOfStreamException extends RuntimeException {
 	 * Default constructor.
 	 */
 	public SoftEndOfStreamException() {
-		super();
 	}
 
 	/**

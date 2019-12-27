@@ -38,7 +38,6 @@ public class DirectChannelSpec extends LoadBalancingChannelSpec<DirectChannelSpe
 	}
 
 	DirectChannelSpec() {
-		super();
 	}
 
 }

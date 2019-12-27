@@ -960,7 +960,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private class ForceReleaseMessageGroupProcessor implements MessageGroupProcessor {
 
 		ForceReleaseMessageGroupProcessor() {
-			super();
 		}
 
 		@Override

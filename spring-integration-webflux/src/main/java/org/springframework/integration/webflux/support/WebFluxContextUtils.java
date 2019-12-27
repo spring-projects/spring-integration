@@ -28,7 +28,6 @@ package org.springframework.integration.webflux.support;
 public final class WebFluxContextUtils {
 
 	private WebFluxContextUtils() {
-		super();
 	}
 
 	/**

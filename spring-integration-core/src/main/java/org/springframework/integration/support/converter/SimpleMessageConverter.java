@@ -130,11 +130,10 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	private class DefaultInboundMessageMapper implements InboundMessageMapper<Object> {
 
 		DefaultInboundMessageMapper() {
-			super();
 		}
 
 		@Override
-		public Message<?> toMessage(Object object, @Nullable Map<String, Object> headers) {
+		public Message<?> toMessage(@Nullable Object object, @Nullable Map<String, Object> headers) {
 			if (object == null) {
 				return null;
 			}
@@ -153,11 +152,10 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	private static class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
 
 		DefaultOutboundMessageMapper() {
-			super();
 		}
 
 		@Override
-		public Object fromMessage(Message<?> message) {
+		public Object fromMessage(@Nullable Message<?> message) {
 			return (message != null) ? message.getPayload() : null;
 		}
 

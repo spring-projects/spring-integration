@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
@@ -50,21 +51,16 @@ public class JpaParameter {
 	 * Default constructor.
 	 */
 	public JpaParameter() {
-		super();
 	}
 
 	/**
 	 * Instantiates a new Jpa Parameter.
-	 *
 	 * @param name Name of the JPA parameter, must not be null or empty
 	 * @param value If null, the expression property must be set
 	 * @param expression If null, the value property must be set
 	 */
 	public JpaParameter(String name, @Nullable Object value, @Nullable String expression) {
-		super();
-
 		Assert.hasText(name, "'name' must not be empty.");
-
 		this.name = name;
 		this.value = value;
 		setExpression(expression);
@@ -73,7 +69,6 @@ public class JpaParameter {
 	/**
 	 * Instantiates a new Jpa Parameter without a name. This is useful for specifying
 	 * positional Jpa parameters.
-	 *
 	 * @param value If null, the expression property must be set
 	 * @param expression If null, the value property must be set
 	 */
@@ -124,12 +119,10 @@ public class JpaParameter {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("JpaParameter [name=").append(this.name)
-								.append(", value=").append(this.value)
-								.append(", expression=").append(this.expression)
-								.append("]");
-		return builder.toString();
+		return "JpaParameter [name=" + this.name +
+				", value=" + this.value +
+				", expression=" + this.expression +
+				"]";
 	}
 
 }

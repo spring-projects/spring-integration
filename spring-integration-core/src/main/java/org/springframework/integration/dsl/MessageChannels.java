@@ -133,7 +133,6 @@ public final class MessageChannels {
 	}
 
 	private MessageChannels() {
-		super();
 	}
 
 }

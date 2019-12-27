@@ -165,7 +165,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	private volatile boolean singletonsInstantiated;
 
 	public IntegrationMBeanExporter() {
-		super();
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);
 		setNamingStrategy(this.defaultNamingStrategy);
@@ -181,7 +180,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	}
 
 	/**
-	 * The JMX domain to use for MBeans registered. Defaults to <code>spring.application</code> (which is useful in
+	 * The JMX domain to use for MBeans registered. Defaults to {@code spring.application} (which is useful in
 	 * SpringSource HQ).
 	 * @param domain the domain name to set
 	 */
@@ -209,6 +208,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
+
 		Assert.notNull(applicationContext, "ApplicationContext may not be null");
 		this.applicationContext = applicationContext;
 	}

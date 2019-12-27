@@ -73,11 +73,11 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 	private final List<String> supportedProtocols = new ArrayList<>();
 
-	private volatile WebSocketListener messageListener;
+	private WebSocketListener messageListener;
 
-	private volatile int sendTimeLimit = DEFAULT_SEND_TIME_LIMIT;
+	private int sendTimeLimit = DEFAULT_SEND_TIME_LIMIT;
 
-	private volatile int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
+	private int sendBufferSizeLimit = DEFAULT_SEND_BUFFER_SIZE;
 
 	public void setSendTimeLimit(int sendTimeLimit) {
 		this.sendTimeLimit = sendTimeLimit;
@@ -159,7 +159,6 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	private class IntegrationWebSocketHandler implements WebSocketHandler, SubProtocolCapable {
 
 		IntegrationWebSocketHandler() {
-			super();
 		}
 
 		@Override

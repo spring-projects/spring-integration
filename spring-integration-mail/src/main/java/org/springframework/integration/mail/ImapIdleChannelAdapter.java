@@ -239,7 +239,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private class ReceivingTask implements Runnable {
 
 		ReceivingTask() {
-			super();
 		}
 
 		@Override
@@ -266,7 +265,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private class IdleTask implements Runnable {
 
 		IdleTask() {
-			super();
 		}
 
 		@Override
@@ -310,7 +308,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 
 		ExceptionAwarePeriodicTrigger() {
-			super();
 		}
 
 		@Override

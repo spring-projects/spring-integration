@@ -67,7 +67,6 @@ import org.springframework.messaging.Message;
 public final class MockitoMessageMatchers {
 
 	private MockitoMessageMatchers() {
-		super();
 	}
 
 	public static <T> Message<?> messageWithPayload(Matcher<? super T> payloadMatcher) {

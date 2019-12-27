@@ -26,14 +26,15 @@ import org.springframework.integration.file.remote.session.Session;
 
 /**
  * Utility methods for supporting remote file operations.
+ *
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
 public final class RemoteFileUtils {
 
 	private RemoteFileUtils() {
-		super();
 	}
 
 	/**
@@ -53,7 +54,7 @@ public final class RemoteFileUtils {
 			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
 
 			if (nextSeparatorIndex > -1) {
-				List<String> pathsToCreate = new LinkedList<String>();
+				List<String> pathsToCreate = new LinkedList<>();
 				while (nextSeparatorIndex > -1) {
 					String pathSegment = path.substring(0, nextSeparatorIndex);
 					if (pathSegment.length() == 0 || session.exists(pathSegment)) {

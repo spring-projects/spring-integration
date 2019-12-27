@@ -78,7 +78,6 @@ public final class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {
 	 * @param matcher the target matcher to delegate
 	 */
 	private HeaderMatcher(Matcher<?> matcher) {
-		super();
 		this.matcher = matcher;
 	}
 

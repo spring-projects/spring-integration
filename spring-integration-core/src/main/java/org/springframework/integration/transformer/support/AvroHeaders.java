@@ -27,7 +27,6 @@ package org.springframework.integration.transformer.support;
 public final class AvroHeaders {
 
 	private AvroHeaders() {
-		super();
 	}
 
 	/**

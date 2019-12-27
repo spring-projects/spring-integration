@@ -23,28 +23,31 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+
 /**
  * Utility class used by mongo parsers
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 final class MongoParserUtils {
 
 	private MongoParserUtils() {
-		super();
 	}
 
 	/**
 	 * Will parse and validate
 	 * 'mongodb-template', 'mongodb-factory', 'collection-name', 'collection-name-expression' and 'mongo-converter'
-	 *
-	 * @param element
-	 * @param parserContext
-	 * @param builder
+	 * @param element the element to parse
+	 * @param parserContext the context for parsing
+	 * @param builder the bean definition builder
 	 */
-	public static void processCommonAttributes(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	public static void processCommonAttributes(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+
 		String mongoDbTemplate = element.getAttribute("mongo-template");
 		String mongoDbFactory = element.getAttribute("mongodb-factory");
 
@@ -69,13 +72,13 @@ final class MongoParserUtils {
 		}
 
 		BeanDefinition collectionNameExpressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("collection-name", "collection-name-expression",
-						parserContext, element, false);
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("collection-name",
+						"collection-name-expression", parserContext, element, false);
 
 
 		if (collectionNameExpressionDef != null) {
 			builder.addPropertyValue("collectionNameExpression", collectionNameExpressionDef);
 		}
-
 	}
+
 }

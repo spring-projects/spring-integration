@@ -36,7 +36,6 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	public static final String PROTOCOL = "pop3";
 
 	public Pop3MailReceiver() {
-		super();
 		setProtocol(PROTOCOL);
 	}
 

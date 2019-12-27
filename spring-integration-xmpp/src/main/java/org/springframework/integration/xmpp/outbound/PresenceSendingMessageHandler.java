@@ -37,7 +37,6 @@ import org.springframework.util.Assert;
 public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
 	public PresenceSendingMessageHandler() {
-		super();
 	}
 
 	public PresenceSendingMessageHandler(XMPPConnection xmppConnection) {

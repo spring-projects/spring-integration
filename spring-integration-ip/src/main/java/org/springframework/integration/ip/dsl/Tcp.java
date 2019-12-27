@@ -31,23 +31,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
  */
 public final class Tcp {
 
-	/**
-	 * Boolean indicating the connection factory should use NIO.
-	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
-	 */
-	@Deprecated
-	public static final boolean NIO = true;
-
-	/**
-	 * Boolean indicating the connection factory should not use NIO
-	 * (default).
-	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
-	 */
-	@Deprecated
-	public static final boolean NET = false;
-
 	private Tcp() {
-		super();
 	}
 
 	/**

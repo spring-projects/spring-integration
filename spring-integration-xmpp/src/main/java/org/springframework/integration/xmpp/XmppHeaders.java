@@ -23,12 +23,12 @@ package org.springframework.integration.xmpp;
  * @author Mario Gray
  * @author Josh Long
  * @author Oleg Zhurakousky
+ *
  * @since 2.0
  */
 public final class XmppHeaders {
 
 	private XmppHeaders() {
-		super();
 	}
 
 	public static final String PREFIX = "xmpp_";

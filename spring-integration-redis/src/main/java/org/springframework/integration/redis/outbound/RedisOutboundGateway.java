@@ -143,7 +143,6 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private static class PayloadArgumentsStrategy implements ArgumentsStrategy {
 
 		PayloadArgumentsStrategy() {
-			super();
 		}
 
 		@Override

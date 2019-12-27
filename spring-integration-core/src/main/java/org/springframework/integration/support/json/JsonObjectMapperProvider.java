@@ -40,7 +40,6 @@ public final class JsonObjectMapperProvider {
 			ClassUtils.isPresent("org.boon.json.ObjectMapper", classLoader);
 
 	private JsonObjectMapperProvider() {
-		super();
 	}
 
 	/**

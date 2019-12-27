@@ -38,7 +38,6 @@ public class PriorityChannelSpec extends MessageChannelSpec<PriorityChannelSpec,
 	private MessageGroupQueue messageGroupQueue;
 
 	PriorityChannelSpec() {
-		super();
 	}
 
 	public PriorityChannelSpec capacity(int capacity) {

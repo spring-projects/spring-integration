@@ -51,23 +51,23 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private XMPPTCPConnectionConfiguration connectionConfiguration;
 
-	private volatile String resource; // server will generate resource if not provided
+	private String resource; // server will generate resource if not provided
 
-	private volatile String user;
+	private String user;
 
-	private volatile String password;
+	private String password;
 
-	private volatile String serviceName;
+	private String serviceName;
 
-	private volatile String host;
+	private String host;
 
-	private volatile int port = 5222;
+	private int port = 5222;
 
-	private volatile Roster.SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
+	private Roster.SubscriptionMode subscriptionMode = Roster.getDefaultSubscriptionMode();
 
-	private volatile boolean autoStartup = true;
+	private boolean autoStartup = true;
 
-	private volatile int phase = Integer.MIN_VALUE;
+	private int phase = Integer.MIN_VALUE;
 
 	private volatile boolean running;
 
@@ -226,7 +226,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	private class LoggingConnectionListener implements ConnectionListener {
 
 		LoggingConnectionListener() {
-			super();
 		}
 
 		@Override

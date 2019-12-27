@@ -39,7 +39,6 @@ public abstract class LoadBalancingChannelSpec<S extends MessageChannelSpec<S, C
 	protected Integer maxSubscribers; // NOSONAR
 
 	protected LoadBalancingChannelSpec() {
-		super();
 	}
 
 	public S loadBalancer(LoadBalancingStrategy loadBalancingStrategyToSet) {

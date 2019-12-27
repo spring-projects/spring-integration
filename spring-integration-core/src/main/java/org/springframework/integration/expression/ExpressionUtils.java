@@ -60,7 +60,6 @@ public final class ExpressionUtils {
 	private static final Log LOGGER = LogFactory.getLog(ExpressionUtils.class);
 
 	private ExpressionUtils() {
-		super();
 	}
 
 	/**

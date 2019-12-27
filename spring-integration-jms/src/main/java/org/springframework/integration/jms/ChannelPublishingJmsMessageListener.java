@@ -502,7 +502,6 @@ public class ChannelPublishingJmsMessageListener
 	private class GatewayDelegate extends MessagingGatewaySupport {
 
 		GatewayDelegate() {
-			super();
 		}
 
 		@Override

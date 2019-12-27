@@ -40,7 +40,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 
 	private volatile long halfOpenAfter = 1000;
 
-	private final ConcurrentMap<Object, AdvisedMetadata> metadataMap = new ConcurrentHashMap<Object, AdvisedMetadata>();
+	private final ConcurrentMap<Object, AdvisedMetadata> metadataMap = new ConcurrentHashMap<>();
 
 	public void setThreshold(int threshold) {
 		this.threshold = threshold;
@@ -88,7 +88,6 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		private volatile long lastFailure;
 
 		AdvisedMetadata() {
-			super();
 		}
 
 		private long getLastFailure() {

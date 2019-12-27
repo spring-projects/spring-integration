@@ -19,7 +19,6 @@ package org.springframework.integration.feed.inbound;
 import java.io.Reader;
 import java.io.Serializable;
 import java.net.URL;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -71,11 +70,11 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final Object feedMonitor = new Object();
 
-	private volatile SyndFeedInput syndFeedInput = new SyndFeedInput();
+	private SyndFeedInput syndFeedInput = new SyndFeedInput();
 
 	private boolean syndFeedInputSet;
 
-	private volatile MetadataStore metadataStore;
+	private MetadataStore metadataStore;
 
 	private volatile long lastTime = -1;
 
@@ -148,7 +147,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	protected void onInit() {
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
-			BeanFactory beanFactory = this.getBeanFactory();
+			BeanFactory beanFactory = getBeanFactory();
 			if (beanFactory != null) {
 				this.metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
 			}
@@ -204,7 +203,7 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
 				boolean withinNewEntries = false;
-				Collections.sort(retrievedEntries, this.syndEntryComparator);
+				retrievedEntries.sort(this.syndEntryComparator);
 				for (SyndEntry entry : retrievedEntries) {
 					Date entryDate = getLastModifiedDate(entry);
 					if ((entryDate != null && entryDate.getTime() > this.lastTime)
@@ -259,7 +258,6 @@ public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 	private static final class SyndEntryPublishedDateComparator implements Comparator<SyndEntry>, Serializable {
 
 		SyndEntryPublishedDateComparator() {
-			super();
 		}
 
 		@Override

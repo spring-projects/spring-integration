@@ -150,7 +150,6 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
 
 		DelegatingSubscriber() {
-			super();
 		}
 
 		@Override

@@ -53,7 +53,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private final SourceExtractor<?> sourceExtractor;
 
-	private volatile boolean extractPayload = true;
+	private boolean extractPayload = true;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
 		this(destinationProvider, null, null);
@@ -61,11 +61,13 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			SourceExtractor<?> sourceExtractor) {
+
 		this(destinationProvider, sourceExtractor, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor,
 			WebServiceMessageFactory messageFactory) {
+
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -80,6 +82,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor,
 			WebServiceMessageFactory messageFactory) {
+
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -104,6 +107,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	@Override
 	protected Object doHandle(String uri, final Message<?> requestMessage,
 			final WebServiceMessageCallback requestCallback) {
+
 		Object requestPayload = requestMessage.getPayload();
 		Result responseResultInstance = null;
 		if (requestPayload instanceof String) {
@@ -178,12 +182,11 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		private final Result result;
 
 		SimpleResponseMessageExtractor(Result result) {
-			super();
 			this.result = result;
 		}
 
 		@Override
-		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException {
+		public Object doExtractData(WebServiceMessage message) throws TransformerException {
 			if (!SimpleWebServiceOutboundGateway.this.extractPayload) {
 				return message;
 			}
@@ -213,11 +216,10 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
 
 		DefaultSourceExtractor() {
-			super();
 		}
 
 		@Override
-		public DOMSource extractData(Source source) throws IOException, TransformerException {
+		public DOMSource extractData(Source source) throws TransformerException {
 			if (source instanceof DOMSource) {
 				return (DOMSource) source;
 			}

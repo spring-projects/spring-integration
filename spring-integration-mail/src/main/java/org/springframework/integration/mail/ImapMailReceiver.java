@@ -78,7 +78,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	private volatile ScheduledFuture<?> pingTask;
 
 	public ImapMailReceiver() {
-		super();
 		setProtocol(PROTOCOL);
 	}
 
@@ -259,7 +258,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	private class IdleCanceler implements Runnable {
 
 		IdleCanceler() {
-			super();
 		}
 
 		@Override
@@ -284,7 +282,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	private static class SimpleMessageCountListener extends MessageCountAdapter {
 
 		SimpleMessageCountListener() {
-			super();
 		}
 
 		@Override
@@ -301,7 +298,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	private class DefaultSearchTermStrategy implements SearchTermStrategy {
 
 		DefaultSearchTermStrategy() {
-			super();
 		}
 
 		@Override

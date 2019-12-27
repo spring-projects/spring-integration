@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *
  * @since 5.3
  */
-public enum IntegrationPatternType {
+public enum IntegrationPatternType { // NOSONAR Initialization circularity is useful for static view
 
 	message_channel(IntegrationPatternCategory.messaging_channel),
 
@@ -146,7 +146,7 @@ public enum IntegrationPatternType {
 		private final IntegrationPatternType[] patternTypes;
 
 		IntegrationPatternCategory(IntegrationPatternType... patternTypes) {
-			this.patternTypes = patternTypes;
+			this.patternTypes = Arrays.copyOf(patternTypes, patternTypes.length);
 		}
 
 		public Set<IntegrationPatternType> getPatternTypes() {

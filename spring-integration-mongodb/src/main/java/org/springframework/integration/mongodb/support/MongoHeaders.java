@@ -21,12 +21,12 @@ package org.springframework.integration.mongodb.support;
  * for dealing with headers required by Mongo components
  *
  * @author Gary Russell
+ *
  * @since 2.2
  */
 public final class MongoHeaders {
 
 	private MongoHeaders() {
-		super();
 	}
 
 	public static final String PREFIX = "mongo_";

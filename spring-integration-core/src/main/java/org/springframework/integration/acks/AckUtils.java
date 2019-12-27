@@ -18,31 +18,19 @@ package org.springframework.integration.acks;
 
 import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.Message;
 
 /**
  * Utility methods for acting on {@link AcknowledgmentCallback} headers.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0.1
  *
  */
 public final class AckUtils {
 
 	private AckUtils() {
-		super();
-	}
-
-	/**
-	 * Return the {@link AcknowledgmentCallback} header (if present).
-	 * @param message the message.
-	 * @return the callback, or null.
-	 * @deprecated use StaticMessageHeaderAccessor.getAcknowledgmentCallback(message).
-	 */
-	@Deprecated
-	@Nullable
-	public static AcknowledgmentCallback getAckCallback(Message<?> message) {
-		throw new UnsupportedOperationException("Use StaticMessageHeaderAccessor.getAcknowledgmentCallback(message)");
 	}
 
 	/**

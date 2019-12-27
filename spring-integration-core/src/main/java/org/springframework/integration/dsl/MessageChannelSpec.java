@@ -54,7 +54,6 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	private MessageConverter messageConverter;
 
 	protected MessageChannelSpec() {
-		super();
 	}
 
 	public S datatype(Class<?>... types) {
@@ -118,7 +117,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 
 	@Override
 	protected C doGet() {
-		this.channel.setDatatypes(this.datatypes.toArray(new Class<?>[this.datatypes.size()]));
+		this.channel.setDatatypes(this.datatypes.toArray(new Class<?>[0]));
 		this.channel.setBeanName(getId());
 		this.channel.setInterceptors(this.interceptors);
 		this.channel.setMessageConverter(this.messageConverter);

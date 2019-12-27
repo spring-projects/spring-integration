@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.2
  *
  */
@@ -34,7 +35,6 @@ public final class ChannelResolverUtils {
 	public static final String CHANNEL_RESOLVER_BEAN_NAME = "integrationChannelResolver";
 
 	private ChannelResolverUtils() {
-		super();
 	}
 
 	/**

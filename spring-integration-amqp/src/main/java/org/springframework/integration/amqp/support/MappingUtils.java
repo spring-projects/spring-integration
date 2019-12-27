@@ -38,7 +38,6 @@ import org.springframework.util.MimeType;
 public final class MappingUtils {
 
 	private MappingUtils() {
-		super();
 	}
 
 	/**

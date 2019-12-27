@@ -19,10 +19,11 @@ package org.springframework.integration.aggregator;
 import org.springframework.integration.store.MessageGroup;
 
 /**
- * A {@link ReleaseStrategy} that releases only the first <code>n</code> messages, where <code>n</code> is a threshold.
+ * A {@link ReleaseStrategy} that releases only the first {@code n} messages, where {@code n} is a threshold.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 public class MessageCountReleaseStrategy implements ReleaseStrategy {
@@ -30,18 +31,18 @@ public class MessageCountReleaseStrategy implements ReleaseStrategy {
 	private final int threshold;
 
 	/**
-	 * @param threshold the number of messages to accept before releasing
-	 */
-	public MessageCountReleaseStrategy(int threshold) {
-		super();
-		this.threshold = threshold;
-	}
-
-	/**
 	 * Convenient constructor is only one message is required (threshold=1).
 	 */
 	public MessageCountReleaseStrategy() {
 		this(1);
+	}
+
+	/**
+	 * Construct an instance based on the provided threshold.
+	 * @param threshold the number of messages to accept before releasing
+	 */
+	public MessageCountReleaseStrategy(int threshold) {
+		this.threshold = threshold;
 	}
 
 	/**

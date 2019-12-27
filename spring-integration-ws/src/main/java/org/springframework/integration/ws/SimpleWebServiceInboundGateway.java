@@ -42,7 +42,7 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 
 	private final TransformerSupportDelegate transformerSupportDelegate = new TransformerSupportDelegate();
 
-	private volatile boolean extractPayload = true;
+	private boolean extractPayload = true;
 
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
@@ -50,16 +50,15 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 
 	@Override
 	protected void doInvoke(MessageContext messageContext) {
-
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
 
-		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(
+		AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().withPayload(
 				(this.extractPayload) ? request.getPayloadSource() : request);
 
-		this.fromSoapHeaders(messageContext, builder);
+		fromSoapHeaders(messageContext, builder);
 
-		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
+		Message<?> replyMessage = sendAndReceiveMessage(builder.build());
 
 		if (replyMessage != null) {
 			Object replyPayload = replyMessage.getPayload();
@@ -101,11 +100,10 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 	private static class TransformerSupportDelegate extends TransformerObjectSupport {
 
 		TransformerSupportDelegate() {
-			super();
 		}
 
 		void transformSourceToResult(Source source, Result result) throws TransformerException {
-			this.transform(source, result);
+			transform(source, result);
 		}
 
 	}

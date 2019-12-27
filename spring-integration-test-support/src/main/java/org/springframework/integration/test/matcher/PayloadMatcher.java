@@ -68,7 +68,6 @@ public final class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {
 	 * Create a PayloadMatcher that matches the payload of messages against the given matcher
 	 */
 	private PayloadMatcher(Matcher<T> matcher) {
-		super();
 		this.matcher = matcher;
 	}
 

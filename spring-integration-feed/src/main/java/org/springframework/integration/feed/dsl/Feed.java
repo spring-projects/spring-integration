@@ -24,6 +24,7 @@ import org.springframework.core.io.Resource;
  * The Spring Integration Feed components Factory.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public final class Feed {
@@ -37,7 +38,6 @@ public final class Feed {
 	}
 
 	private Feed() {
-		super();
 	}
 
 }

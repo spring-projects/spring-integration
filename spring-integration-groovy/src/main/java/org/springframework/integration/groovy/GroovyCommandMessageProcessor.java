@@ -62,7 +62,6 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	 * {@link org.springframework.integration.scripting.DefaultScriptVariableGenerator}.
 	 */
 	public GroovyCommandMessageProcessor() {
-		super();
 	}
 
 	/**

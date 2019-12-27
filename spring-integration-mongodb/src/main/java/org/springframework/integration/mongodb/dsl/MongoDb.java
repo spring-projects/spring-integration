@@ -23,7 +23,8 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 /**
  * Factory class for building MongoDb components
  *
- * @author Xavier Padr?
+ * @author Xavier Padro
+ *
  * @since 5.0
  */
 public final class MongoDb {
@@ -52,7 +53,6 @@ public final class MongoDb {
 	}
 
 	private MongoDb() {
-		super();
 	}
 
 }

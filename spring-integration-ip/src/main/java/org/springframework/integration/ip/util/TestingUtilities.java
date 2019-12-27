@@ -27,13 +27,13 @@ import org.springframework.lang.Nullable;
  * use in user test code, samples etc.
  *
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
 public final class TestingUtilities {
 
 	private TestingUtilities() {
-		super();
 	}
 
 	/**

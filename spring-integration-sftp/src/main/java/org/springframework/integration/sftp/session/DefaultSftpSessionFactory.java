@@ -59,7 +59,7 @@ import com.jcraft.jsch.UserInfo;
  */
 public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, SharedSessionCapable {
 
-	private static final Log logger = LogFactory.getLog(DefaultSftpSessionFactory.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultSftpSessionFactory.class);
 
 	static {
 		JSch.setLogger(new JschLogger());
@@ -472,7 +472,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	private class UserInfoWrapper implements UserInfo, UIKeyboardInteractive {
 
 		UserInfoWrapper() {
-			super();
 		}
 
 		/**
@@ -521,8 +520,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				return getDelegate().promptPassword(message);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UserInfo provided - " + message + ", returning: true");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No UserInfo provided - " + message + ", returning: true");
 				}
 				return true;
 			}
@@ -534,8 +533,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				return getDelegate().promptPassphrase(message);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UserInfo provided - " + message + ", returning: true");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No UserInfo provided - " + message + ", returning: true");
 				}
 				return true;
 			}
@@ -543,13 +542,13 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		@Override
 		public boolean promptYesNo(String message) {
-			logger.info(message);
+			LOGGER.info(message);
 			if (hasDelegate()) {
 				return getDelegate().promptYesNo(message);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UserInfo provided - " + message + ", returning:"
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No UserInfo provided - " + message + ", returning:"
 							+ DefaultSftpSessionFactory.this.allowUnknownKeys);
 				}
 				return DefaultSftpSessionFactory.this.allowUnknownKeys;
@@ -562,7 +561,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				getDelegate().showMessage(message);
 			}
 			else {
-				logger.debug(message);
+				LOGGER.debug(message);
 			}
 		}
 
@@ -575,8 +574,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 						instruction, prompt, echo);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
 							+ ":" + Arrays.asList(prompt) + ":" + Arrays.toString(echo));
 				}
 				return null;
