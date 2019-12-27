@@ -47,7 +47,8 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	@Override
 	protected ConfigurableMongoDbMessageStore getMessageGroupStore() {
-		ConfigurableMongoDbMessageStore mongoDbMessageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
+		ConfigurableMongoDbMessageStore mongoDbMessageStore =
+				new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		mongoDbMessageStore.setApplicationContext(this.testApplicationContext);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;

@@ -32,7 +32,7 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	@Override
 	protected MongoDbMessageStore getMessageGroupStore() {
 		MongoDbMessageStore mongoDbMessageStore =
-				new MongoDbMessageStore(this.clientDbFactory);
+				new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}

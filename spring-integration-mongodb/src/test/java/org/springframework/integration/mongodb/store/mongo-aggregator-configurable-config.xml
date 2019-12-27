@@ -17,18 +17,8 @@
 	</int:channel>
 
 	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
-		<constructor-arg ref="mongoConnectionFactory"/>
-	</bean>
-
-	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory">
-		<constructor-arg>
-			<bean class="org.springframework.data.mongodb.core.MongoClientFactoryBean">
-				<property name="mongoClientSettings">
-					<bean class="org.springframework.data.mongodb.core.MongoClientSettingsFactoryBean"/>
-				</property>
-			</bean>
-		</constructor-arg>
-		<constructor-arg value="test"/>
+		<constructor-arg
+				value="#{T (org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests).MONGO_DATABASE_FACTORY}"/>
 	</bean>
 
 </beans>

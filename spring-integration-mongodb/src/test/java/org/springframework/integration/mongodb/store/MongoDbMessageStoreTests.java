@@ -39,7 +39,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 
 	@Override
 	protected MessageStore getMessageStore() {
-		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(this.clientDbFactory);
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
@@ -47,7 +47,7 @@ public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 	@Test
 	@MongoDbAvailable
 	public void testCustomConverter() throws InterruptedException {
-		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(this.clientDbFactory);
+		MongoDbMessageStore mongoDbMessageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		FooToBytesConverter fooToBytesConverter = new FooToBytesConverter();
 		mongoDbMessageStore.setCustomConverters(fooToBytesConverter);
 		mongoDbMessageStore.afterPropertiesSet();

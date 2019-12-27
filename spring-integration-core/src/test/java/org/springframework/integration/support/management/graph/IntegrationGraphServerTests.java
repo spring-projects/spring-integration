@@ -217,7 +217,7 @@ public class IntegrationGraphServerTests {
 		assertThat(jsonArray).hasSize(1);
 
 		jsonArray = JsonPathUtils.evaluate(baos.toByteArray(),
-				"$..nodes[?(@.name == 'services.foo.serviceActivator.handler')]");
+				"$..nodes[?(@.name == 'services.foo.serviceActivator')]");
 
 		assertThat(jsonArray).hasSize(1);
 

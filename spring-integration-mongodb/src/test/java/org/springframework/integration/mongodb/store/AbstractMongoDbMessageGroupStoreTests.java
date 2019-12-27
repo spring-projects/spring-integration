@@ -31,7 +31,6 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -47,8 +46,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.mongodb.client.MongoClients;
-
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -59,9 +56,6 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	protected final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 
-	protected final SimpleMongoClientDatabaseFactory clientDbFactory =
-			new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
-
 	@Before
 	public void setup() {
 		this.testApplicationContext.refresh();
@@ -70,7 +64,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	@After
 	public void tearDown() {
 		this.testApplicationContext.close();
-		cleanupCollections(this.clientDbFactory);
+		cleanupCollections(MONGO_DATABASE_FACTORY);
 	}
 
 	@Test

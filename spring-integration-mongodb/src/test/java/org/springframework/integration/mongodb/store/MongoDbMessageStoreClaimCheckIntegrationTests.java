@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
@@ -34,8 +33,6 @@ import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.messaging.Message;
 
-import com.mongodb.client.MongoClients;
-
 /**
  * @author Mark Fisher
  * @author Artem Bilan
@@ -43,9 +40,6 @@ import com.mongodb.client.MongoClients;
 public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests {
 
 	private final GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
-
-	private final SimpleMongoClientDatabaseFactory clientDbFactory =
-			new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
 
 	@Before
 	public void setup() {
@@ -60,7 +54,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	@Test
 	@MongoDbAvailable
 	public void stringPayload() {
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(this.clientDbFactory);
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -76,7 +70,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	@Test
 	@MongoDbAvailable
 	public void objectPayload() {
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(this.clientDbFactory);
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
@@ -96,7 +90,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	@Test
 	@MongoDbAvailable
 	public void stringPayloadConfigurable() {
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
+		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
@@ -113,7 +107,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	@Test
 	@MongoDbAvailable
 	public void objectPayloadConfigurable() {
-		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(this.clientDbFactory);
+		ConfigurableMongoDbMessageStore messageStore = new ConfigurableMongoDbMessageStore(MONGO_DATABASE_FACTORY);
 		messageStore.setApplicationContext(this.testApplicationContext);
 		messageStore.afterPropertiesSet();
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);

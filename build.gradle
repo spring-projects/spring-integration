@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.3.60'
+	ext.kotlinVersion = '1.3.61'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -59,8 +59,8 @@ ext {
 	googleJsr305Version = '3.0.2'
 	groovyVersion = '2.5.8'
 	hamcrestVersion = '2.2'
-	hazelcastVersion = '3.12.4'
-	hibernateVersion = '5.4.9.Final'
+	hazelcastVersion = '3.12.5'
+	hibernateVersion = '5.4.10.Final'
 	hsqldbVersion = '2.5.0'
 	h2Version = '1.4.200'
 	jacksonVersion = '2.10.1'
@@ -77,26 +77,26 @@ ext {
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.2.1.RELEASE'
-	log4jVersion = '2.12.1'
+	log4jVersion = '2.13.0'
 	micrometerVersion = '1.3.2'
-	mockitoVersion = '3.2.0'
+	mockitoVersion = '3.2.4'
 	mongoDriverVersion = '4.0.0-SNAPSHOT'
 	mysqlVersion = '8.0.18'
 	pahoMqttClientVersion = '1.2.0'
-	postgresVersion = '42.2.8'
+	postgresVersion = '42.2.9'
 	reactorVersion = 'Dysprosium-SR1'
-	resilience4jVersion = '1.1.0'
+	resilience4jVersion = '1.2.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0-RC5'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.2.RELEASE'
-	springDataVersion = 'Neumann-BUILD-SNAPSHOT'
-	springSecurityVersion = '5.2.1.RELEASE'
-	springRetryVersion = '1.2.4.RELEASE'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.BUILD-SNAPSHOT'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-BUILD-SNAPSHOT'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.BUILD-SNAPSHOT'
+	springRetryVersion = '1.2.5.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.2.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
-	tomcatVersion = "9.0.29"
+	tomcatVersion = "9.0.30"
 	xstreamVersion = '1.4.11.1'
 }
 
@@ -305,7 +305,7 @@ subprojects { subproject ->
 	}
 
 	task javadocJar(type: Jar) {
-		classifier = 'javadoc'
+		archiveClassifier = 'javadoc'
 		from javadoc
 	}
 

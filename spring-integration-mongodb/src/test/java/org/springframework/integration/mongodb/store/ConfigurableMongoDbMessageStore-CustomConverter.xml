@@ -3,14 +3,14 @@
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-                  https://www.springframework.org/schema/beans/spring-beans.xsd
-                  http://www.springframework.org/schema/integration
-                  https://www.springframework.org/schema/integration/spring-integration.xsd
-                  http://www.springframework.org/schema/data/mongo
-                  https://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+			 xmlns:util="http://www.springframework.org/schema/util"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+                  http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+                  http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+                  http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
-	<mongo:db-factory dbname="test"/>
+	<util:constant id="mongoDbFactory"
+				   static-field="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageGroupStoreTests.MONGO_DATABASE_FACTORY"/>
 
 	<mongo:auditing/>
 

@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.rules;
 import java.time.Duration;
 
 import org.bson.Document;
+import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
 
@@ -38,6 +39,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
 
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -58,11 +60,15 @@ public abstract class MongoDbAvailableTests {
 	@Rule
 	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
 
+	public static final MongoDatabaseFactory MONGO_DATABASE_FACTORY =
+			new SimpleMongoClientDatabaseFactory(
+					MongoClients.create(
+							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
+					"test");
 
 	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
-		MongoDatabaseFactory mongoDbFactory = new SimpleMongoClientDatabaseFactory(MongoClients.create(), "test");
-		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
-		return mongoDbFactory;
+		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
+		return MONGO_DATABASE_FACTORY;
 	}
 
 	protected ReactiveMongoDatabaseFactory prepareReactiveMongoFactory(String... additionalCollectionsToDrop) {
