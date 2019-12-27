@@ -843,7 +843,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 		DefaultRequestMapper() {
-			super();
 		}
 
 		void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
@@ -865,7 +864,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		private final MonoProcessor<Message<?>> replyMono = MonoProcessor.create();
 
 		MonoReplyChannel() {
-			super();
 		}
 
 		@Override

@@ -238,7 +238,6 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 	private final class ReplyForwardingMessageChannel implements MessageChannel {
 
 		ReplyForwardingMessageChannel() {
-			super();
 		}
 
 		@Override

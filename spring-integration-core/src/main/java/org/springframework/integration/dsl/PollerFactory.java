@@ -81,7 +81,6 @@ public final class PollerFactory {
 	}
 
 	PollerFactory() {
-		super();
 	}
 
 }

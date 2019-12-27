@@ -91,21 +91,21 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile StompHeaders connectHeaders;
+	private StompHeaders connectHeaders;
 
-	private volatile ListenableFuture<StompSession> stompSessionListenableFuture;
+	private boolean autoReceipt;
 
-	private volatile boolean autoReceipt;
+	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private String name;
 
 	private volatile boolean connecting;
 
 	private volatile boolean connected;
 
-	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+	private volatile ListenableFuture<StompSession> stompSessionListenableFuture;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
-
-	private String name;
 
 	public AbstractStompSessionManager(StompClientSupport stompClient) {
 		Assert.notNull(stompClient, "'stompClient' is required.");
@@ -359,7 +359,6 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		private volatile StompSession session;
 
 		CompositeStompSessionHandler() {
-			super();
 		}
 
 		void addHandler(StompSessionHandler delegate) {

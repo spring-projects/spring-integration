@@ -25,6 +25,7 @@ import org.springframework.messaging.Message;
  * Utilities for building error messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.3.10
  *
@@ -41,7 +42,6 @@ public final class ErrorMessageUtils {
 	public static final String INPUT_MESSAGE_CONTEXT_KEY = "inputMessage";
 
 	private ErrorMessageUtils() {
-		super();
 	}
 
 	/**
@@ -67,7 +67,6 @@ public final class ErrorMessageUtils {
 	private static class ErrorMessageAttributes extends AttributeAccessorSupport {
 
 		ErrorMessageAttributes() {
-			super();
 		}
 
 	}

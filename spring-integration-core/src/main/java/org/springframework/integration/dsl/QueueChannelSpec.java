@@ -36,7 +36,6 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 	protected Integer capacity; // NOSONAR
 
 	QueueChannelSpec() {
-		super();
 	}
 
 	QueueChannelSpec(Queue<Message<?>> queue) {
@@ -73,7 +72,6 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 		private Lock storeLock;
 
 		MessageStoreSpec(ChannelMessageStore messageGroupStore, Object groupId) {
-			super();
 			this.messageGroupStore = messageGroupStore;
 			this.groupId = groupId;
 		}

@@ -1091,7 +1091,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private final class Flusher implements Runnable {
 
 		Flusher() {
-			super();
 		}
 
 		@Override
@@ -1170,7 +1169,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
 
 		DefaultFlushPredicate() {
-			super();
 		}
 
 		@Override

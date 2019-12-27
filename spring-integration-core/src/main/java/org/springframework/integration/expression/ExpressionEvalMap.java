@@ -303,7 +303,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		private class ExpressionEvalMapFinalBuilderImpl implements ExpressionEvalMapFinalBuilder {
 
 			ExpressionEvalMapFinalBuilderImpl() {
-				super();
 			}
 
 			@Override
@@ -327,7 +326,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 				implements ExpressionEvalMapComponentsBuilder {
 
 			ExpressionEvalMapComponentsBuilderImpl() {
-				super();
 			}
 
 			@Override

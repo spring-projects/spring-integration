@@ -24,11 +24,12 @@ package org.springframework.integration.ip.tcp.serializer;
  * <pre class="code">
  * TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(1234);
  * server.setSerializer(TcpCodecs.lf());
- * server.setDserializer(TcpCodecs.lf());
+ * server.setDeserializer(TcpCodecs.lf());
  * ...
  * </pre>
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -41,7 +42,6 @@ public final class TcpCodecs {
 	private static ByteArrayLengthHeaderSerializer fourByteLHS;
 
 	private TcpCodecs() {
-		super();
 	}
 
 	/**

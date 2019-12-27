@@ -30,12 +30,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public final class HttpContextUtils {
 
 	private HttpContextUtils() {
-		super();
 	}
 
 	/**

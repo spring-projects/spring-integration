@@ -208,7 +208,6 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 	private class MessageListenerDelegate {
 
 		MessageListenerDelegate() {
-			super();
 		}
 
 		@SuppressWarnings({ "unused" })

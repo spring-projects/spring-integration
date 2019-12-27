@@ -85,7 +85,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		ENCAPSULATED {
 
 			@Nullable
-			private final Method privateLookupIn =
+			private final transient Method privateLookupIn =
 					ReflectionUtils.findMethod(MethodHandles.class, "privateLookupIn", Class.class, Lookup.class);
 
 			@Override
@@ -120,7 +120,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		OPEN {
 
 			@Nullable
-			private final Constructor<Lookup> constructor;
+			private final transient Constructor<Lookup> constructor;
 
 			{
 				Constructor<Lookup> ctor = null;
@@ -140,11 +140,13 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 
 			@Override
 			MethodHandle lookup(Method method) throws ReflectiveOperationException {
-				if (!isAvailable()) {
+				if (this.constructor != null) {
+					return this.constructor.newInstance(method.getDeclaringClass())
+							.unreflectSpecial(method, method.getDeclaringClass());
+				}
+				else {
 					throw new IllegalStateException("Could not obtain MethodHandles.lookup constructor!");
 				}
-				return this.constructor.newInstance(method.getDeclaringClass())
-						.unreflectSpecial(method, method.getDeclaringClass());
 			}
 
 			@Override
@@ -158,6 +160,7 @@ class DefaultMethodInvokingMethodInterceptor implements MethodInterceptor {
 		 * Fallback {@link MethodHandle} lookup using {@link MethodHandles#lookup() public lookup}.
 		 */
 		FALLBACK {
+
 			@Override
 			MethodHandle lookup(Method method) throws ReflectiveOperationException {
 				return doLookup(method, MethodHandles.lookup());

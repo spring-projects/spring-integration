@@ -40,7 +40,6 @@ import reactor.core.scheduler.Schedulers;
 public final class MessageChannelReactiveUtils {
 
 	private MessageChannelReactiveUtils() {
-		super();
 	}
 
 	@SuppressWarnings("unchecked")

@@ -58,7 +58,6 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	private EvaluationContext evaluationContext;
 
 	public ChatMessageListeningEndpoint() {
-		super();
 	}
 
 	public ChatMessageListeningEndpoint(XMPPConnection xmppConnection) {
@@ -103,8 +102,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(isInitialized(), this.getComponentName() + " [" + this.getComponentType()
-				+ "] must be initialized");
+		Assert.isTrue(isInitialized(), () -> getComponentName() + " [" + getComponentType() + "] must be initialized");
 		getXmppConnection().addAsyncStanzaListener(this.stanzaListener, this.stanzaFilter);
 	}
 
@@ -120,14 +118,14 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	private class ChatMessagePublishingStanzaListener implements StanzaListener {
 
 		ChatMessagePublishingStanzaListener() {
-			super();
 		}
 
 		@Override
 		public void processStanza(Stanza packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
-				Map<String, ?> mappedHeaders = ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage);
+				Map<String, ?> mappedHeaders =
+						ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage);
 
 				Object messageBody = xmppMessage.getBody();
 

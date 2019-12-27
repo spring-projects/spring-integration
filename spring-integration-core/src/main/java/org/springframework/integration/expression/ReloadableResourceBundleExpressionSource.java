@@ -19,7 +19,6 @@ package org.springframework.integration.expression;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +52,10 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
+ *
  * @see #setCacheSeconds
  * @see #setBasenames
  * @see #setDefaultEncoding
@@ -70,34 +72,39 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 	private static final String XML_SUFFIX = ".xml";
 
-	private static final Log logger = LogFactory.getLog(ReloadableResourceBundleExpressionSource.class);
+	private static final Log LOGGER = LogFactory.getLog(ReloadableResourceBundleExpressionSource.class);
 
 
-	private volatile String[] basenames = new String[0];
+	/**
+	 * Cache to hold filename lists per Locale
+	 */
+	private final Map<String, Map<Locale, List<String>>> cachedFilenames = new HashMap<>();
 
-	private volatile String defaultEncoding;
+	/**
+	 * Cache to hold already loaded properties per filename
+	 */
+	private final Map<String, PropertiesHolder> cachedProperties = new HashMap<>();
 
-	private volatile Properties fileEncodings;
-
-	private volatile boolean fallbackToSystemLocale = true;
-
-	private volatile long cacheMillis = -1;
-
-	private volatile PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
-
-	private volatile ResourceLoader resourceLoader = new DefaultResourceLoader();
-
-	/** Cache to hold filename lists per Locale */
-	private final Map<String, Map<Locale, List<String>>> cachedFilenames =
-			new HashMap<String, Map<Locale, List<String>>>();
-
-	/** Cache to hold already loaded properties per filename */
-	private final Map<String, PropertiesHolder> cachedProperties = new HashMap<String, PropertiesHolder>();
-
-	/** Cache to hold merged loaded properties per locale */
-	private final Map<Locale, PropertiesHolder> cachedMergedProperties = new HashMap<Locale, PropertiesHolder>();
+	/**
+	 * Cache to hold merged loaded properties per locale
+	 */
+	private final Map<Locale, PropertiesHolder> cachedMergedProperties = new HashMap<>();
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+	private String[] basenames = { };
+
+	private String defaultEncoding;
+
+	private Properties fileEncodings;
+
+	private boolean fallbackToSystemLocale = true;
+
+	private long cacheMillis = -1;
+
+	private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
+
+	private ResourceLoader resourceLoader = new DefaultResourceLoader();
 
 
 	/**
@@ -130,7 +137,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see #setBasename
 	 * @see java.util.ResourceBundle
 	 */
-	public void setBasenames(String[] basenames) {
+	public void setBasenames(@Nullable String[] basenames) {
 		if (basenames != null) {
 			this.basenames = new String[basenames.length];
 			for (int i = 0; i < basenames.length; i++) {
@@ -182,7 +189,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * desirable in an application server environment, where the system Locale
 	 * is not relevant to the application at all: Set this flag to "false"
 	 * in such a scenario.
-	 *
 	 * @param fallbackToSystemLocale true to fall back.
 	 */
 	public void setFallbackToSystemLocale(boolean fallbackToSystemLocale) {
@@ -202,7 +208,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * <li>A value of "0" will check the last-modified timestamp of the file on
 	 * every expression access. <b>Do not use this in a production environment!</b>
 	 * </ul>
-	 *
 	 * @param cacheSeconds The cache seconds.
 	 */
 	public void setCacheSeconds(int cacheSeconds) {
@@ -212,12 +217,10 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	/**
 	 * Set the PropertiesPersister to use for parsing properties files.
 	 * <p>The default is a DefaultPropertiesPersister.
-	 *
 	 * @param propertiesPersister The properties persister.
-	 *
 	 * @see org.springframework.util.DefaultPropertiesPersister
 	 */
-	public void setPropertiesPersister(PropertiesPersister propertiesPersister) {
+	public void setPropertiesPersister(@Nullable PropertiesPersister propertiesPersister) {
 		this.propertiesPersister =
 				(propertiesPersister != null ? propertiesPersister : new DefaultPropertiesPersister());
 	}
@@ -232,7 +235,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see org.springframework.context.ResourceLoaderAware
 	 */
 	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
+	public void setResourceLoader(@Nullable ResourceLoader resourceLoader) {
 		this.resourceLoader = (resourceLoader != null ? resourceLoader : new DefaultResourceLoader());
 	}
 
@@ -253,10 +256,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	private String getExpressionString(String key, Locale locale) {
 		if (this.cacheMillis < 0) {
 			PropertiesHolder propHolder = getMergedProperties(locale);
-			String result = propHolder.getProperty(key);
-			if (result != null) {
-				return result;
-			}
+			return propHolder.getProperty(key);
 		}
 		else {
 			for (String basename : this.basenames) {
@@ -277,7 +277,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * Get a PropertiesHolder that contains the actually visible properties
 	 * for a Locale, after merging all specified resource bundles.
 	 * Either fetches the holder from the cache or freshly loads it.
-	 * <p>Only used when caching resource bundle contents forever, i.e.
+	 * <p> Only used when caching resource bundle contents forever, i.e.
 	 * with cacheSeconds < 0. Therefore, merged properties are always
 	 * cached forever.
 	 */
@@ -323,7 +323,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 					return filenames;
 				}
 			}
-			List<String> filenames = new ArrayList<String>(7);
+			List<String> filenames = new ArrayList<>(7);
 			filenames.addAll(calculateFilenamesForLocale(basename, locale));
 			if (this.fallbackToSystemLocale && !locale.equals(Locale.getDefault())) {
 				List<String> fallbackFilenames = calculateFilenamesForLocale(basename, Locale.getDefault());
@@ -339,7 +339,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				localeMap.put(locale, filenames);
 			}
 			else {
-				localeMap = new HashMap<Locale, List<String>>();
+				localeMap = new HashMap<>();
 				localeMap.put(locale, filenames);
 				this.cachedFilenames.put(basename, localeMap);
 			}
@@ -358,7 +358,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @return the List of filenames to check
 	 */
 	private List<String> calculateFilenamesForLocale(String basename, Locale locale) {
-		List<String> result = new ArrayList<String>(3);
+		List<String> result = new ArrayList<>(3);
 		String language = locale.getLanguage();
 		String country = locale.getCountry();
 		String variant = locale.getVariant();
@@ -423,8 +423,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				try {
 					fileTimestamp = resource.lastModified();
 					if (propHolder != null && propHolder.getFileTimestamp() == fileTimestamp) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Re-caching properties for filename [" + filename
+						if (LOGGER.isDebugEnabled()) {
+							LOGGER.debug("Re-caching properties for filename [" + filename
 									+ "] - file hasn't been modified");
 						}
 						propHolder.setRefreshTimestamp(refreshTimestamp);
@@ -433,8 +433,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				}
 				catch (IOException ex) {
 					// Probably a class path resource: cache it forever.
-					if (logger.isDebugEnabled()) {
-						logger.debug(resource
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug(resource
 								+ " could not be resolved in the file system - assuming that is hasn't changed", ex);
 					}
 					fileTimestamp = -1;
@@ -445,8 +445,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 		else {
 			// Resource does not exist.
-			if (logger.isDebugEnabled()) {
-				logger.debug("No properties file found for [" + filename + "] - neither plain properties nor XML");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("No properties file found for [" + filename + "] - neither plain properties nor XML");
 			}
 			// Empty holder representing "not found".
 			propHolder = new PropertiesHolder();
@@ -472,8 +472,8 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			propHolder = new PropertiesHolder(props, fileTimestamp);
 		}
 		catch (IOException ex) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Could not parse properties file [" + resource.getFilename() + "]", ex);
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Could not parse properties file [" + resource.getFilename() + "]", ex);
 			}
 			// Empty holder representing "not valid".
 			propHolder = new PropertiesHolder();
@@ -489,13 +489,12 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @throws IOException if properties loading failed
 	 */
 	private Properties loadProperties(Resource resource, String filename) throws IOException {
-		InputStream is = resource.getInputStream();
-		Properties props = new Properties();
-		try {
+		try (InputStream is = resource.getInputStream()) {
+			Properties props = new Properties();
 			String resourceFilename = resource.getFilename();
 			if (resourceFilename != null && resourceFilename.endsWith(XML_SUFFIX)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Loading properties [" + resourceFilename + "]");
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Loading properties [" + resourceFilename + "]");
 				}
 				this.propertiesPersister.loadFromXml(props, is);
 			}
@@ -504,13 +503,11 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			}
 			return props;
 		}
-		finally {
-			is.close();
-		}
 	}
 
 	private void loadFromProperties(Resource resource, String filename, InputStream is, Properties props,
-			String resourceFilename) throws IOException, UnsupportedEncodingException {
+			@Nullable String resourceFilename) throws IOException {
+
 		String encoding = null;
 		if (this.fileEncodings != null) {
 			encoding = this.fileEncodings.getProperty(filename);
@@ -519,16 +516,16 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			encoding = this.defaultEncoding;
 		}
 		if (encoding != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Loading properties ["
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Loading properties ["
 						+ (resourceFilename == null ? resource : resourceFilename)
 						+ "] with encoding '" + encoding + "'");
 			}
 			this.propertiesPersister.load(props, new InputStreamReader(is, encoding));
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename)
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename)
 						+ "]");
 			}
 			this.propertiesPersister.load(props, is);
@@ -541,7 +538,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * Subsequent resolve calls will lead to reloading of the properties files.
 	 */
 	public void clearCache() {
-		logger.debug("Clearing entire resource bundle cache");
+		LOGGER.debug("Clearing entire resource bundle cache");
 		synchronized (this.cachedProperties) {
 			this.cachedProperties.clear();
 		}
@@ -571,7 +568,6 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		private long refreshTimestamp = -1;
 
 		PropertiesHolder() {
-			super();
 		}
 
 		PropertiesHolder(Properties properties, long fileTimestamp) {
@@ -579,6 +575,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			this.fileTimestamp = fileTimestamp;
 		}
 
+		@Nullable
 		public Properties getProperties() {
 			return this.properties;
 		}

@@ -47,7 +47,6 @@ public final class JacksonPresent {
 
 
 	private JacksonPresent() {
-		super();
 	}
 
 }

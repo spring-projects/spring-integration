@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.IntegrationPattern;
@@ -103,7 +104,24 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	public void onInit() {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
+		shouldOverwrite = initializeHeadersToAdd(shouldOverwrite, checkReadOnlyHeaders);
+		BeanFactory beanFactory = getBeanFactory();
 
+		if (this.messageProcessor != null
+				&& this.messageProcessor instanceof BeanFactoryAware
+				&& beanFactory != null) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
+		}
+
+		if (!shouldOverwrite && !this.shouldSkipNulls && logger.isWarnEnabled()) {
+			logger.warn(getComponentName() +
+					" is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
+		}
+	}
+
+	private boolean initializeHeadersToAdd(boolean shouldOverwrite, boolean checkReadOnlyHeaders) {
+		boolean overwrite = shouldOverwrite;
+		BeanFactory beanFactory = getBeanFactory();
 		for (Entry<String, ? extends HeaderValueMessageProcessor<?>> entry : this.headersToAdd.entrySet()) {
 			if (checkReadOnlyHeaders &&
 					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
@@ -114,25 +132,15 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			}
 
 			HeaderValueMessageProcessor<?> processor = entry.getValue();
-			if (processor instanceof BeanFactoryAware && getBeanFactory() != null) {
-				((BeanFactoryAware) processor).setBeanFactory(getBeanFactory());
+			if (processor instanceof BeanFactoryAware && beanFactory != null) {
+				((BeanFactoryAware) processor).setBeanFactory(beanFactory);
 			}
 			Boolean processorOverwrite = processor.isOverwrite();
 			if (processorOverwrite != null) {
-				shouldOverwrite |= processorOverwrite;
+				overwrite |= processorOverwrite;
 			}
 		}
-
-		if (this.messageProcessor != null
-				&& this.messageProcessor instanceof BeanFactoryAware
-				&& getBeanFactory() != null) {
-			((BeanFactoryAware) this.messageProcessor).setBeanFactory(getBeanFactory());
-		}
-
-		if (!shouldOverwrite && !this.shouldSkipNulls && logger.isWarnEnabled()) {
-			logger.warn(getComponentName() +
-					" is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
-		}
+		return overwrite;
 	}
 
 	@Override

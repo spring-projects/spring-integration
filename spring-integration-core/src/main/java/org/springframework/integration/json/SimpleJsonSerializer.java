@@ -43,7 +43,6 @@ public final class SimpleJsonSerializer {
 	private static final Log logger = LogFactory.getLog(SimpleJsonSerializer.class);
 
 	private SimpleJsonSerializer() {
-		super();
 	}
 
 	/**

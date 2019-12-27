@@ -77,7 +77,7 @@ public abstract class IntegrationNode {
 		IntegrationPatternType patternType = null;
 
 		if (nodeObject instanceof IntegrationPattern) {
-			patternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType();
+			patternType = ((IntegrationPattern) nodeObject).getIntegrationPatternType(); // NOSONAR
 		}
 		else if (nodeObject instanceof MessageHandler) {
 			patternType = IntegrationPatternType.service_activator;

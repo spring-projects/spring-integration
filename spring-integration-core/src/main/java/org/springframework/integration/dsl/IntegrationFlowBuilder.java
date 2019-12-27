@@ -28,7 +28,6 @@ import org.springframework.messaging.Message;
 public final class IntegrationFlowBuilder extends IntegrationFlowDefinition<IntegrationFlowBuilder> {
 
 	IntegrationFlowBuilder() {
-		super();
 	}
 
 	@Override

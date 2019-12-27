@@ -336,7 +336,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport
 	private class ListenerTask implements SchedulingAwareRunnable {
 
 		ListenerTask() {
-			super();
 		}
 
 		@Override

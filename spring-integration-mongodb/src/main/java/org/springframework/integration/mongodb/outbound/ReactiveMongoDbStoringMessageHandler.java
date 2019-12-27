@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
@@ -77,7 +75,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	/**
 	 * Provide a custom {@link MongoConverter} used to assist in serialization of
 	 * data written to MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDatabaseFactory}.
+	 * {@link ReactiveMongoDatabaseFactory}.
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -88,7 +86,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 
 	/**
 	 * Set a SpEL {@link Expression} that should resolve to a collection name used by
-	 * {@link MongoOperations} to store data
+	 * {@link ReactiveMongoOperations} to store data
 	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
@@ -103,6 +101,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 
 	@Override
 	protected void onInit() {
+		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);

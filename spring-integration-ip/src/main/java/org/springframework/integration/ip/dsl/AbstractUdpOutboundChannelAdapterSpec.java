@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
  * @param <S> the target {@link AbstractUdpOutboundChannelAdapterSpec} implementation type.
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -37,7 +38,6 @@ public abstract class AbstractUdpOutboundChannelAdapterSpec<S extends AbstractUd
 		extends MessageHandlerSpec<S, UnicastSendingMessageHandler> {
 
 	protected AbstractUdpOutboundChannelAdapterSpec() {
-		super();
 	}
 
 	protected AbstractUdpOutboundChannelAdapterSpec(String host, int port) {

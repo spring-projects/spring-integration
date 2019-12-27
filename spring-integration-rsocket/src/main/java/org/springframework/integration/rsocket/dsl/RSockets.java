@@ -74,7 +74,6 @@ public final class RSockets {
 	}
 
 	private RSockets() {
-		super();
 	}
 
 }

@@ -110,6 +110,7 @@ public final class WebFlux {
 	 */
 	public static <P> WebFluxMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
 			WebClient webClient) {
+
 		return outboundChannelAdapter(new FunctionExpression<>(uriFunction), webClient);
 	}
 
@@ -123,6 +124,7 @@ public final class WebFlux {
 	 */
 	public static WebFluxMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
 			WebClient webClient) {
+
 		return new WebFluxMessageHandlerSpec(uriExpression, webClient)
 				.expectReply(false);
 	}
@@ -201,6 +203,7 @@ public final class WebFlux {
 	 */
 	public static <P> WebFluxMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
 			WebClient webClient) {
+
 		return outboundGateway(new FunctionExpression<>(uriFunction), webClient);
 	}
 
@@ -214,6 +217,7 @@ public final class WebFlux {
 	 */
 	public static WebFluxMessageHandlerSpec outboundGateway(Expression uriExpression,
 			WebClient webClient) {
+
 		return new WebFluxMessageHandlerSpec(uriExpression, webClient);
 	}
 
@@ -239,7 +243,6 @@ public final class WebFlux {
 	}
 
 	private WebFlux() {
-		super();
 	}
 
 }

@@ -602,7 +602,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private class ReleaseMessageHandler implements MessageHandler {
 
 		ReleaseMessageHandler() {
-			super();
 		}
 
 		@Override

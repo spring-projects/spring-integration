@@ -26,7 +26,6 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingControlle
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -111,6 +110,7 @@ public final class Http {
 	 */
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
+
 		return outboundChannelAdapter(new FunctionExpression<>(uriFunction), restTemplate);
 	}
 
@@ -198,6 +198,7 @@ public final class Http {
 	 */
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
+
 		return outboundGateway(new FunctionExpression<>(uriFunction), restTemplate);
 	}
 
@@ -221,7 +222,7 @@ public final class Http {
 	 * @return the HttpControllerEndpointSpec instance
 	 */
 	public static HttpControllerEndpointSpec inboundControllerAdapter(String viewName, String... path) {
-		Assert.isTrue(StringUtils.hasText(viewName), "View name must not be empty");
+		Assert.hasText(viewName, "View name must not be empty");
 		return inboundControllerAdapter(new LiteralExpression(viewName), path);
 	}
 
@@ -246,7 +247,7 @@ public final class Http {
 	 * @return the HttpControllerEndpointSpec instance
 	 */
 	public static HttpControllerEndpointSpec inboundControllerGateway(String viewName, String... path) {
-		Assert.isTrue(StringUtils.hasText(viewName), "View name must not be empty");
+		Assert.hasText(viewName, "View name must not be empty");
 		return inboundControllerGateway(new LiteralExpression(viewName), path);
 	}
 
@@ -285,7 +286,6 @@ public final class Http {
 	}
 
 	private Http() {
-		super();
 	}
 
 }

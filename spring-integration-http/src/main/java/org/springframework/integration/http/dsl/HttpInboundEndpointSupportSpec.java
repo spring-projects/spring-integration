@@ -190,7 +190,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 */
 	public S mappedRequestHeaders(String... patterns) {
 		Assert.isNull(this.explicitHeaderMapper,
-				"The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
+				() -> "The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
 						+ this.explicitHeaderMapper);
 		((DefaultHttpHeaderMapper) this.headerMapper).setInboundHeaderNames(patterns);
 		return _this();
@@ -204,7 +204,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 */
 	public S mappedResponseHeaders(String... patterns) {
 		Assert.isNull(this.explicitHeaderMapper,
-				"The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
+				() -> "The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
 						+ this.explicitHeaderMapper);
 		((DefaultHttpHeaderMapper) this.headerMapper).setOutboundHeaderNames(patterns);
 		return _this();
@@ -214,7 +214,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
 	 * {@link org.springframework.http.converter.HttpMessageConverter}s.
 	 * By default this value is null which means at runtime any "text" Content-Type will
-	 * result in String while all others default to <code>byte[].class</code>.
+	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 * @return the current Spec.
 	 */
@@ -227,7 +227,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
 	 * {@link org.springframework.http.converter.HttpMessageConverter}s.
 	 * By default this value is null which means at runtime any "text" Content-Type will
-	 * result in String while all others default to <code>byte[].class</code>.
+	 * result in String while all others default to {@code byte[].class}.
 	 * @param requestPayloadType The payload type.
 	 * @return the current Spec.
 	 */
@@ -373,7 +373,6 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 		private final CrossOrigin crossOrigin = new CrossOrigin();
 
 		CrossOriginSpec() {
-			super();
 		}
 
 		/**

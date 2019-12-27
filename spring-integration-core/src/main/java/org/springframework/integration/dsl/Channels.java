@@ -132,7 +132,6 @@ public final class Channels {
 	}
 
 	private Channels() {
-		super();
 	}
 
 }

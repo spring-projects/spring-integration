@@ -27,6 +27,8 @@ import org.apache.commons.logging.LogFactory;
  * polling when some downstream condition exists in the flow.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.1
  *
  */
@@ -65,7 +67,6 @@ public class PollSkipAdvice implements MethodInterceptor {
 	private static final class DefaultPollSkipStrategy implements PollSkipStrategy {
 
 		DefaultPollSkipStrategy() {
-			super();
 		}
 
 		@Override

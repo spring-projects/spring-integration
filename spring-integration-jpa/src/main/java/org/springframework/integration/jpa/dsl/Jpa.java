@@ -170,7 +170,6 @@ public final class Jpa {
 	}
 
 	private Jpa() {
-		super();
 	}
 
 }

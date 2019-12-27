@@ -24,13 +24,13 @@ import org.springframework.messaging.Message;
  * Factory methods for UDP.
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
 public final class Udp {
 
 	private Udp() {
-		super();
 	}
 
 	/**
@@ -109,8 +109,9 @@ public final class Udp {
 	 * @param destinationFunction function that will provide the destination based on the message.
 	 * @return the spec.
 	 */
-	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(Function<Message<?>, ?>
-			destinationFunction) {
+	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(
+			Function<Message<?>, ?> destinationFunction) {
+
 		return new UdpMulticastOutboundChannelAdapterSpec(destinationFunction);
 	}
 

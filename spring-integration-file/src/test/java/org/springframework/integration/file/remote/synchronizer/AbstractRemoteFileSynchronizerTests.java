@@ -292,7 +292,6 @@ public class AbstractRemoteFileSynchronizerTests {
 	private static class StringSession implements Session<String> {
 
 		StringSession() {
-			super();
 		}
 
 		@Override

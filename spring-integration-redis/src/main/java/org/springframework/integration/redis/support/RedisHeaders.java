@@ -29,7 +29,6 @@ package org.springframework.integration.redis.support;
 public final class RedisHeaders {
 
 	private RedisHeaders() {
-		super();
 	}
 
 	public static final String PREFIX = "redis_";

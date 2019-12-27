@@ -58,6 +58,8 @@ import org.springframework.util.StringUtils;
  */
 public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar {
 
+	private static final String PROXY_DEFAULT_METHODS_ATTR = "proxyDefaultMethods";
+
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
@@ -68,7 +70,8 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 					importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
 			replaceEmptyOverrides(valuesHierarchy, annotationAttributes); // NOSONAR never null
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
-			annotationAttributes.put("proxyDefaultMethods", "" + annotationAttributes.remove("proxyDefaultMethods"));
+			annotationAttributes.put(PROXY_DEFAULT_METHODS_ATTR,
+					"" + annotationAttributes.remove(PROXY_DEFAULT_METHODS_ATTR));
 			BeanDefinitionReaderUtils.registerBeanDefinition(parse(annotationAttributes), registry);
 		}
 	}
@@ -84,7 +87,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		String errorChannel = (String) gatewayAttributes.get("errorChannel");
 		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
 		String mapper = (String) gatewayAttributes.get("mapper");
-		String proxyDefaultMethods = (String) gatewayAttributes.get("proxyDefaultMethods");
+		String proxyDefaultMethods = (String) gatewayAttributes.get(PROXY_DEFAULT_METHODS_ATTR);
 
 		boolean hasMapper = StringUtils.hasText(mapper);
 		boolean hasDefaultPayloadExpression = StringUtils.hasText(defaultPayloadExpression);
@@ -154,7 +157,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
 		}
 		if (StringUtils.hasText(proxyDefaultMethods)) {
-			gatewayProxyBuilder.addPropertyValue("proxyDefaultMethods", proxyDefaultMethods);
+			gatewayProxyBuilder.addPropertyValue(PROXY_DEFAULT_METHODS_ATTR, proxyDefaultMethods);
 		}
 
 		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeoutExpressionString",

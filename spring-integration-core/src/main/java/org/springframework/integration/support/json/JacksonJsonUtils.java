@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 public final class JacksonJsonUtils {
 
 	private JacksonJsonUtils() {
-		super();
 	}
 
 	/**

@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
  */
 public class LeaderInitiator implements SmartLifecycle {
 
-	private static final Log logger = LogFactory.getLog(LeaderInitiator.class);
+	private static final Log LOGGER = LogFactory.getLog(LeaderInitiator.class);
 
 	private static final String DEFAULT_NAMESPACE = "/spring-integration/leader/";
 
@@ -76,27 +76,6 @@ public class LeaderInitiator implements SmartLifecycle {
 	private final Object lifecycleMonitor = new Object();
 
 	/**
-	 * Curator utility for selecting leaders.
-	 */
-	private volatile LeaderSelector leaderSelector;
-
-	/**
-	 * @see SmartLifecycle
-	 */
-	private volatile boolean autoStartup = true;
-
-	/**
-	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
-	 */
-	private volatile int phase = Integer.MAX_VALUE - 1000;
-
-	/**
-	 * Flag that indicates whether the leadership election for
-	 * this {@link #candidate} is running.
-	 */
-	private volatile boolean running;
-
-	/**
 	 * Base path in a zookeeper
 	 */
 	private final String namespace;
@@ -104,7 +83,28 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Leader event publisher if set
 	 */
-	private volatile LeaderEventPublisher leaderEventPublisher;
+	private LeaderEventPublisher leaderEventPublisher;
+
+	/**
+	 * @see SmartLifecycle
+	 */
+	private boolean autoStartup = true;
+
+	/**
+	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
+	 */
+	private int phase = Integer.MAX_VALUE - 1000; // NOSONAR
+
+	/**
+	 * Curator utility for selecting leaders.
+	 */
+	private volatile LeaderSelector leaderSelector;
+
+	/**
+	 * Flag that indicates whether the leadership election for
+	 * this {@link #candidate} is running.
+	 */
+	private volatile boolean running;
 
 	/**
 	 * Construct a {@link LeaderInitiator}.
@@ -181,7 +181,7 @@ public class LeaderInitiator implements SmartLifecycle {
 				this.leaderSelector.start();
 
 				this.running = true;
-				logger.debug("Started LeaderInitiator");
+				LOGGER.debug("Started LeaderInitiator");
 			}
 		}
 	}
@@ -196,7 +196,7 @@ public class LeaderInitiator implements SmartLifecycle {
 			if (this.running) {
 				this.leaderSelector.close();
 				this.running = false;
-				logger.debug("Stopped LeaderInitiator");
+				LOGGER.debug("Stopped LeaderInitiator");
 			}
 		}
 	}
@@ -226,7 +226,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	private String buildLeaderPath() {
 		String ns = StringUtils.hasText(this.namespace) ? this.namespace : DEFAULT_NAMESPACE;
-		if (!ns.startsWith("/")) {
+		if (ns.charAt(0) != '/') {
 			ns = '/' + ns;
 		}
 		if (!ns.endsWith("/")) {
@@ -250,7 +250,7 @@ public class LeaderInitiator implements SmartLifecycle {
 								LeaderInitiator.this.context, LeaderInitiator.this.candidate.getRole());
 					}
 					catch (Exception e) {
-						logger.warn("Error publishing OnGranted event.", e);
+						LOGGER.warn("Error publishing OnGranted event.", e);
 					}
 				}
 
@@ -272,7 +272,7 @@ public class LeaderInitiator implements SmartLifecycle {
 								LeaderInitiator.this.context, LeaderInitiator.this.candidate.getRole());
 					}
 					catch (Exception e) {
-						logger.warn("Error publishing OnRevoked event.", e);
+						LOGGER.warn("Error publishing OnRevoked event.", e);
 					}
 				}
 			}
@@ -286,7 +286,6 @@ public class LeaderInitiator implements SmartLifecycle {
 	private class CuratorContext implements Context {
 
 		CuratorContext() {
-			super();
 		}
 
 		@Override

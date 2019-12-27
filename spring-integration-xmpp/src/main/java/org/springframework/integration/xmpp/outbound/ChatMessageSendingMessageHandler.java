@@ -56,7 +56,6 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 	private ExtensionElementProvider<? extends ExtensionElement> extensionProvider;
 
 	public ChatMessageSendingMessageHandler() {
-		super();
 	}
 
 	public ChatMessageSendingMessageHandler(XMPPConnection xmppConnection) {
@@ -87,10 +86,10 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Assert.isTrue(isInitialized(),
-				() -> getComponentName() + "#" + this.getComponentType() + " must be initialized");
+				() -> getComponentName() + "#" + getComponentType() + " must be initialized");
 		try {
 			Object payload = message.getPayload();
-			org.jivesoftware.smack.packet.Message xmppMessage = null;
+			org.jivesoftware.smack.packet.Message xmppMessage;
 			if (payload instanceof org.jivesoftware.smack.packet.Message) {
 				xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
 			}

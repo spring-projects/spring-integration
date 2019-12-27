@@ -25,6 +25,7 @@ import com.rabbitmq.client.Channel;
  * Utility methods for messaging endpoints.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.1.3
  *
@@ -34,7 +35,6 @@ public final class EndpointUtils {
 	private static final String LEFE_MESSAGE = "Message conversion failed";
 
 	private EndpointUtils() {
-		super();
 	}
 
 	/**
@@ -43,16 +43,16 @@ public final class EndpointUtils {
 	 * @param message the failed message.
 	 * @param channel the channel.
 	 * @param isManualAck true if the container uses manual acknowledgment.
-	 * @param e the exception.
+	 * @param ex the exception.
 	 * @return the exception.
 	 */
-	public static ListenerExecutionFailedException errorMessagePayload(final Message message,
-			Channel channel, boolean isManualAck, Exception e) {
+	public static ListenerExecutionFailedException errorMessagePayload(Message message,
+			Channel channel, boolean isManualAck, Exception ex) {
 
 		return isManualAck
-				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, e, message, channel,
+				? new ManualAckListenerExecutionFailedException(LEFE_MESSAGE, ex, message, channel,
 						message.getMessageProperties().getDeliveryTag())
-				: new ListenerExecutionFailedException(LEFE_MESSAGE, e, message);
+				: new ListenerExecutionFailedException(LEFE_MESSAGE, ex, message);
 	}
 
 }

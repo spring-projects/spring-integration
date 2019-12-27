@@ -673,7 +673,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private static class MessageHistoryToDocumentConverter implements Converter<MessageHistory, Document> {
 
 		MessageHistoryToDocumentConverter() {
-			super();
 		}
 
 		@Override
@@ -697,7 +696,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private class DocumentToGenericMessageConverter implements Converter<Document, GenericMessage<?>> {
 
 		DocumentToGenericMessageConverter() {
-			super();
 		}
 
 		@Override
@@ -718,7 +716,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private final class DocumentToMutableMessageConverter implements Converter<Document, MutableMessage<?>> {
 
 		DocumentToMutableMessageConverter() {
-			super();
 		}
 
 		@Override
@@ -739,7 +736,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private class DocumentToAdviceMessageConverter implements Converter<Document, AdviceMessage<?>> {
 
 		DocumentToAdviceMessageConverter() {
-			super();
 		}
 
 		@Override
@@ -779,7 +775,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		private final WhiteListDeserializingConverter deserializingConverter = new WhiteListDeserializingConverter();
 
 		DocumentToErrorMessageConverter() {
-			super();
 		}
 
 		@Override
@@ -803,7 +798,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
 
 		ThrowableToBytesConverter() {
-			super();
 		}
 
 		@Override

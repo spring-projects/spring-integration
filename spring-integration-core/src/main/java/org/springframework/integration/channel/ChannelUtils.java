@@ -35,7 +35,6 @@ public final class ChannelUtils {
 	public static final String MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME = "integrationMessagePublishingErrorHandler";
 
 	private ChannelUtils() {
-		super();
 	}
 
 	/**
@@ -55,6 +54,5 @@ public final class ChannelUtils {
 		}
 		return beanFactory.getBean(MESSAGE_PUBLISHING_ERROR_HANDLER_BEAN_NAME, ErrorHandler.class);
 	}
-
 
 }

@@ -1341,7 +1341,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		private volatile Destination replyDestination;
 
 		GatewayReplyListenerContainer() {
-			super();
 		}
 
 		@Override
@@ -1452,14 +1451,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private class LateReplyReaper implements Runnable {
 
 		LateReplyReaper() {
-			super();
 		}
 
 		@Override
 		public void run() {
-			if (logger.isTraceEnabled()) {
-				logger.trace("Running late reply reaper");
-			}
+			logger.trace("Running late reply reaper");
 			Iterator<Entry<String, TimedReply>> lateReplyIterator =
 					JmsOutboundGateway.this.earlyOrLateReplies.entrySet().iterator();
 			long now = System.currentTimeMillis();
@@ -1485,7 +1481,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private class IdleContainerStopper implements Runnable {
 
 		IdleContainerStopper() {
-			super();
 		}
 
 		@Override
@@ -1494,6 +1489,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
 						JmsOutboundGateway.this.idleReplyContainerTimeout
 						&& JmsOutboundGateway.this.replies.size() == 0) {
+
 					if (JmsOutboundGateway.this.replyContainer.isRunning()) {
 						if (logger.isDebugEnabled()) {
 							logger.debug(getComponentName() + ": Stopping idle reply container.");

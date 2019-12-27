@@ -173,7 +173,6 @@ class PersistentMessageGroup implements MessageGroup {
 		private volatile Collection<Message<?>> collection;
 
 		PersistentCollection() {
-			super();
 		}
 
 		private void load() {

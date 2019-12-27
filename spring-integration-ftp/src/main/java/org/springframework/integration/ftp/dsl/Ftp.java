@@ -34,6 +34,7 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public final class Ftp {
@@ -55,6 +56,7 @@ public final class Ftp {
 	 */
 	public static FtpInboundChannelAdapterSpec inboundAdapter(SessionFactory<FTPFile> sessionFactory,
 			Comparator<File> receptionOrderComparator) {
+
 		return new FtpInboundChannelAdapterSpec(sessionFactory, receptionOrderComparator);
 	}
 
@@ -66,6 +68,7 @@ public final class Ftp {
 	 */
 	public static FtpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<FTPFile> remoteFileTemplate) {
+
 		return inboundStreamingAdapter(remoteFileTemplate, null);
 	}
 
@@ -79,6 +82,7 @@ public final class Ftp {
 	public static FtpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			Comparator<FTPFile> receptionOrderComparator) {
+
 		return new FtpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}
 
@@ -99,6 +103,7 @@ public final class Ftp {
 	 */
 	public static FtpMessageHandlerSpec outboundAdapter(SessionFactory<FTPFile> sessionFactory,
 			FileExistsMode fileExistsMode) {
+
 		return outboundAdapter(new FtpRemoteFileTemplate(sessionFactory), fileExistsMode);
 	}
 
@@ -119,6 +124,7 @@ public final class Ftp {
 	 */
 	public static FtpMessageHandlerSpec outboundAdapter(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			FileExistsMode fileExistsMode) {
+
 		return new FtpMessageHandlerSpec(remoteFileTemplate, fileExistsMode);
 	}
 
@@ -133,6 +139,7 @@ public final class Ftp {
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+
 		return outboundGateway(sessionFactory, command.getCommand(), expression);
 	}
 
@@ -148,6 +155,7 @@ public final class Ftp {
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
 			String command, String expression) {
+
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(sessionFactory, command, expression));
 	}
 
@@ -163,6 +171,7 @@ public final class Ftp {
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
+
 		return outboundGateway(remoteFileTemplate, command.getCommand(), expression);
 	}
 
@@ -178,6 +187,7 @@ public final class Ftp {
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
 			String command, String expression) {
+
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(remoteFileTemplate, command, expression));
 	}
 
@@ -193,11 +203,11 @@ public final class Ftp {
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
 			MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+
 		return new FtpOutboundGatewaySpec(new FtpOutboundGateway(sessionFactory, messageSessionCallback));
 	}
 
 	private Ftp() {
-		super();
 	}
 
 }

@@ -116,7 +116,6 @@ public class GemfireMetadataStore implements ListenableMetadataStore {
 		private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<>();
 
 		GemfireCacheListener() {
-			super();
 		}
 
 		@Override

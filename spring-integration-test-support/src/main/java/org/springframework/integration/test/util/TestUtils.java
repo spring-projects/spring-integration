@@ -162,7 +162,6 @@ public abstract class TestUtils {
 	public static class TestApplicationContext extends GenericApplicationContext {
 
 		TestApplicationContext() {
-			super();
 		}
 
 		public void registerChannel(@Nullable String channelNameArg, final MessageChannel channel) {

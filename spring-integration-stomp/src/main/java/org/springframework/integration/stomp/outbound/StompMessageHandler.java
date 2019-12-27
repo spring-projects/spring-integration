@@ -87,7 +87,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 	public void setDestination(String destination) {
 		Assert.hasText(destination, "'destination' must not be empty.");
-		this.destinationExpression = new ValueExpression<String>(destination);
+		this.destinationExpression = new ValueExpression<>(destination);
 	}
 
 	public void setDestinationExpression(Expression destinationExpression) {
@@ -142,9 +142,9 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		StompHeaders stompHeaders = new StompHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), stompHeaders);
 		if (stompHeaders.getDestination() == null) {
-			Assert.state(this.destinationExpression != null, "One of 'destination' or 'destinationExpression' must " +
-					"be" +
-					" provided, if message header doesn't supply 'destination' STOMP header.");
+			Assert.state(this.destinationExpression != null,
+					"One of 'destination' or 'destinationExpression' must be provided, " +
+							"if message header doesn't supply 'destination' STOMP header.");
 			String destination = this.destinationExpression.getValue(this.evaluationContext, message, String.class);
 			stompHeaders.setDestination(destination);
 		}
@@ -219,7 +219,6 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	private class IntegrationOutboundStompSessionHandler extends StompSessionHandlerAdapter {
 
 		IntegrationOutboundStompSessionHandler() {
-			super();
 		}
 
 		@Override

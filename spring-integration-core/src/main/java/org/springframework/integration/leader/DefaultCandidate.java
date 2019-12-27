@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author Janne Valkealahti
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class DefaultCandidate extends AbstractCandidate {
@@ -37,7 +38,6 @@ public class DefaultCandidate extends AbstractCandidate {
 	 * Instantiate a default candidate.
 	 */
 	public DefaultCandidate() {
-		super();
 	}
 
 	/**

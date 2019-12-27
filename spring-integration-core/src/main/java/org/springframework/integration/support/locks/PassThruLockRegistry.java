@@ -29,6 +29,7 @@ import java.util.concurrent.locks.Lock;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ *
  * @since 2.2
  *
  */
@@ -42,7 +43,6 @@ public final class PassThruLockRegistry implements LockRegistry {
 	private static final class PassThruLock implements Lock {
 
 		PassThruLock() {
-			super();
 		}
 
 		@Override
@@ -74,6 +74,7 @@ public final class PassThruLockRegistry implements LockRegistry {
 		public void lock() {
 			// noop
 		}
+
 	}
 
 }

@@ -354,7 +354,6 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		private final AtomicInteger nodeId = new AtomicInteger();
 
 		NodeFactory() {
-			super();
 		}
 
 		MessageChannelNode channelNode(String name, MessageChannel channel) {

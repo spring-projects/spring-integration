@@ -20,9 +20,11 @@ package org.springframework.integration.ip.util;
  * Regular Expression Utilities.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public abstract class RegexUtils {
+public final class RegexUtils {
 
 	/**
 	 * Escapes (precedes with \) any characters in the parameter in the set
@@ -38,11 +40,10 @@ public abstract class RegexUtils {
 		// In the following, we look for all the specials and any we find
 		// are escaped in the output string, allowing that string to
 		// be used as a pattern containing the literal specials.
-		String out = stringToEscape.replaceAll(
-				"(\\.|\\$|\\[|\\]|\\^|\\*|\\+|\\{|\\}|\\(|\\)|\\\\|\\?|\\|)",
-				"\\\\$1");
-		return out;
+		return stringToEscape.replaceAll("([.$\\[\\]^*+{}()\\\\?|])", "\\\\$1");
 	}
 
-	private RegexUtils() { }
+	private RegexUtils() {
+	}
+
 }

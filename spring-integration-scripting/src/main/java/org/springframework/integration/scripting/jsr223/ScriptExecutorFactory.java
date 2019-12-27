@@ -65,7 +65,6 @@ public final class ScriptExecutorFactory {
 	}
 
 	private ScriptExecutorFactory() {
-		super();
 	}
 
 }

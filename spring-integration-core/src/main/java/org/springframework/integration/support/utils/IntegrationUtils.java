@@ -62,7 +62,6 @@ public final class IntegrationUtils {
 			Boolean.parseBoolean(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
 
 	private IntegrationUtils() {
-		super();
 	}
 
 	/**

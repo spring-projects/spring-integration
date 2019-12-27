@@ -463,10 +463,6 @@ The following example uses the default implementation of `setValues` to store co
 ----
 public class JsonPreparedStatementSetter extends ChannelMessageStorePreparedStatementSetter {
 
-    public JsonPreparedStatementSetter() {
-        super();
-    }
-
     @Override
     public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage,
         Object groupId, String region, 	boolean priorityEnabled) throws SQLException {

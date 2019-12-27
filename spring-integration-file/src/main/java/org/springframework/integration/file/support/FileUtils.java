@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
  * Utilities for operations on Files.
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
@@ -48,6 +49,7 @@ public final class FileUtils {
 	@SuppressWarnings("unchecked")
 	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate,
 			@Nullable Comparator<F> comparator) {
+
 		if (ObjectUtils.isEmpty(fileArray)) {
 			return fileArray;
 		}
@@ -67,7 +69,6 @@ public final class FileUtils {
 	}
 
 	private FileUtils() {
-		super();
 	}
 
 }

@@ -35,19 +35,22 @@ public abstract class AbstractReactiveMessageHandler extends MessageHandlerSuppo
 		implements ReactiveMessageHandler {
 
 	@Override
-	public Mono<Void> handleMessage(Message<?> message) {
-		Assert.notNull(message, "Message must not be null");
+	public Mono<Void> handleMessage(final Message<?> message) {
+		Assert.notNull(message, "message must not be null");
 		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}
 
+		final Message<?> messageToUse;
 		if (shouldTrack()) {
-			message = MessageHistory.write(message, this, getMessageBuilderFactory());
+			messageToUse = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
-		final Message<?> msg = message;
-		return handleMessageInternal(msg)
+		else {
+			messageToUse = message;
+		}
+		return handleMessageInternal(messageToUse)
 				.doOnError(e -> this.logger.error(
-						"An error occurred in message handler [" + this + "] on message [" + msg + "]", e));
+						"An error occurred in message handler [" + this + "] on message [" + messageToUse + "]", e));
 	}
 
 	protected abstract Mono<Void> handleMessageInternal(Message<?> message);

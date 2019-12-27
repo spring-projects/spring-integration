@@ -31,6 +31,7 @@ import org.springframework.util.MimeType;
  * creation just to access a header.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.1
  *
@@ -39,7 +40,6 @@ import org.springframework.util.MimeType;
 public final class StaticMessageHeaderAccessor {
 
 	private StaticMessageHeaderAccessor() {
-		super();
 	}
 
 	@Nullable

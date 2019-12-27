@@ -156,7 +156,6 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	private static class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandlerRegistry {
 
 		IntegrationServletWebSocketHandlerRegistry() {
-			super();
 		}
 
 		@Override

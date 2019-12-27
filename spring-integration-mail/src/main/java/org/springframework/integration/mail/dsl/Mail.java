@@ -201,7 +201,6 @@ public final class Mail {
 
 
 	private Mail() {
-		super();
 	}
 
 }

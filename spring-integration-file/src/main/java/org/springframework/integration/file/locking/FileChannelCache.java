@@ -33,6 +33,8 @@ import org.springframework.lang.Nullable;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Emmanuel Roux
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 final class FileChannelCache {
@@ -41,12 +43,11 @@ final class FileChannelCache {
 
 
 	private FileChannelCache() {
-		super();
 	}
 
 	/**
 	 * Try to get a lock for this file while guaranteeing that the same channel will be used for all file locks in this
-	 * VM. If the lock could not be acquired this method will return <code>null</code>.
+	 * VM. If the lock could not be acquired this method will return {@code null}.
 	 * <p>
 	 * Locks acquired through this method should be passed back to #closeChannelFor to prevent memory leaks.
 	 * <p>

@@ -41,18 +41,17 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathRouter extends AbstractMappingMessageRouter {
 
-	private volatile NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
-
 	private final XPathExpression xPathExpression;
 
-	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+	private NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
 
-	private volatile boolean evaluateAsString = false;
+	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+
+	private boolean evaluateAsString = false;
 
 	/**
 	 * Create a router that uses an XPath expression. The expression may
 	 * contain zero or more namespace prefixes.
-	 *
 	 * @param expression the XPath expression as a String
 	 * @param namespaces map of namespaces with prefixes as the map keys
 	 */
@@ -64,14 +63,13 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	/**
 	 * Create a router uses an XPath expression with one namespace. For example,
 	 * expression='/ns1:one/@type' prefix='ns1' namespace='www.example.org'
-	 *
 	 * @param expression the XPath expression as a String
 	 * @param prefix namespace prefix
 	 * @param namespace namespace uri
 	 */
 	public XPathRouter(String expression, String prefix, String namespace) {
 		Assert.hasText(expression, "expression must not be empty");
-		Map<String, String> namespaces = new HashMap<String, String>();
+		Map<String, String> namespaces = new HashMap<>();
 		namespaces.put(prefix, namespace);
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
 	}
@@ -79,7 +77,6 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	/**
 	 * Create a router that uses an XPath expression with no namespaces.
 	 * For example '/one/@type'
-	 *
 	 * @param expression the XPath expression as a String
 	 */
 	public XPathRouter(String expression) {
@@ -89,7 +86,6 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 
 	/**
 	 * Create a router that uses the provided XPath expression.
-	 *
 	 * @param expression the XPath expression
 	 */
 	public XPathRouter(XPathExpression expression) {
@@ -103,7 +99,6 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 
 	/**
 	 * Specify the Converter to use when converting payloads prior to XPath evaluation.
-	 *
 	 * @param converter The payload converter.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
@@ -120,7 +115,7 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	protected List<Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		if (this.evaluateAsString) {
-			return Collections.singletonList((Object) this.xPathExpression.evaluateAsString(node));
+			return Collections.singletonList(this.xPathExpression.evaluateAsString(node));
 		}
 		else {
 			return this.xPathExpression.evaluate(node, this.nodeMapper);
@@ -131,13 +126,13 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 	private static class TextContentNodeMapper implements NodeMapper<Object> {
 
 		TextContentNodeMapper() {
-			super();
 		}
 
 		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();
 		}
+
 	}
 
 }

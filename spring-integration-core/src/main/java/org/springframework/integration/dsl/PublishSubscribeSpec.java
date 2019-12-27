@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -36,10 +37,9 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	private int order;
 
 	PublishSubscribeSpec() {
-		super();
 	}
 
-	PublishSubscribeSpec(Executor executor) {
+	PublishSubscribeSpec(@Nullable Executor executor) {
 		super(executor);
 	}
 
