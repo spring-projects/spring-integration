@@ -294,8 +294,9 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 				for (int j = filenames.size() - 1; j >= 0; j--) {
 					String filename = filenames.get(j);
 					PropertiesHolder propHolder = getProperties(filename);
-					if (propHolder.getProperties() != null) {
-						mergedProps.putAll(propHolder.getProperties());
+					Properties propHolderProperties = propHolder.getProperties();
+					if (propHolderProperties != null) {
+						mergedProps.putAll(propHolderProperties);
 					}
 				}
 			}

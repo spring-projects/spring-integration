@@ -38,11 +38,12 @@ import reactor.core.CoreSubscriber;
 public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		implements MessageHandler, CoreSubscriber<Message<?>> {
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation") // NOSONAR
 	public void handleMessage(Message<?> message) {
-		Assert.notNull(message, "Message must not be null");
+		Message<?> messageToUse = message;
+		Assert.notNull(messageToUse, "Message must not be null");
 		if (isLoggingEnabled() && this.logger.isDebugEnabled()) {
-			this.logger.debug(this + " received message: " + message);
+			this.logger.debug(this + " received message: " + messageToUse);
 		}
 		org.springframework.integration.support.management.MetricsContext start = null;
 		SampleFacade sample = null;
@@ -52,19 +53,19 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 		}
 		try {
 			if (shouldTrack()) {
-				message = MessageHistory.write(message, this, getMessageBuilderFactory());
+				messageToUse = MessageHistory.write(messageToUse, this, getMessageBuilderFactory());
 			}
 			AbstractMessageHandlerMetrics handlerMetrics = getHandlerMetrics();
 			if (isCountsEnabled()) {
 				start = handlerMetrics.beforeHandle();
-				handleMessageInternal(message);
+				handleMessageInternal(messageToUse);
 				if (sample != null) {
 					sample.stop(sendTimer());
 				}
 				handlerMetrics.afterHandle(start, true);
 			}
 			else {
-				handleMessageInternal(message);
+				handleMessageInternal(messageToUse);
 			}
 		}
 		catch (Exception e) {
@@ -74,7 +75,7 @@ public abstract class AbstractMessageHandler extends MessageHandlerSupport
 			if (isCountsEnabled()) {
 				getHandlerMetrics().afterHandle(start, false);
 			}
-			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(messageToUse,
 					() -> "error occurred in message handler [" + this + "]", e);
 		}
 	}
