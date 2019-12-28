@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Meherzad Lahewala
+ * @author Jonathan Pearlin
  *
  * @since 4.2
  *
@@ -506,7 +507,7 @@ public class IntegrationManagementConfigurer
 		return null;
 	}
 
-	private ManagementOverrides getOverrides(final IntegrationManagement bean) {
+	private static ManagementOverrides getOverrides(IntegrationManagement bean) {
 		return bean.getOverrides() != null ? bean.getOverrides() : new ManagementOverrides();
 	}
 
