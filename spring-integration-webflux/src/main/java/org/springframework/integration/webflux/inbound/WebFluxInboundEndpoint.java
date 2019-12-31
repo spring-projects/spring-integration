@@ -167,13 +167,14 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private Mono<?> extractRequestBody(ServerWebExchange exchange) {
-		if (isReadable(exchange.getRequest().getMethod())) {
+		ServerHttpRequest request = exchange.getRequest();
+		if (isReadable(request.getMethod())) {
 			return extractReadableRequestBody(exchange)
 					.cast(Object.class)
-					.switchIfEmpty(queryParams(exchange));
+					.switchIfEmpty(queryParams(request));
 		}
 		else {
-			return queryParams(exchange);
+			return queryParams(request);
 		}
 	}
 
@@ -515,8 +516,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return (mediaTypes != null ? new ArrayList<>(mediaTypes) : producibleTypesSupplier.get());
 	}
 
-	private static Mono<?> queryParams(ServerWebExchange exchange) {
-		return Mono.just(exchange.getRequest().getQueryParams());
+	private static Mono<?> queryParams(ServerHttpRequest request) {
+		return Mono.just(request.getQueryParams());
 	}
 
 	private static MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {

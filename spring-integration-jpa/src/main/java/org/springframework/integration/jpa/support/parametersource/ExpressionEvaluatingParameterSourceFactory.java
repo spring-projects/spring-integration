@@ -68,10 +68,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	 */
 	public void setParameters(List<JpaParameter> parameters) {
 		Assert.notEmpty(parameters, "parameters must not be null or empty.");
-
-		for (JpaParameter parameter : parameters) {
-			Assert.notNull(parameter, "The provided list (parameters) cannot contain null values.");
-		}
+		Assert.noNullElements(parameters, "The provided list (parameters) cannot contain null values.");
 
 		this.parameters.addAll(parameters);
 		this.expressionEvaluator.getEvaluationContext().setVariable("staticParameters",
@@ -108,12 +105,11 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 				this.parametersMap.put(parameter.getName(), parameter);
 			}
 			this.values.putAll(ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
-
 		}
 
 		@Override
+		@Nullable
 		public Object getValueByPosition(int position) {
-
 			Assert.isTrue(position >= 0, "The position must be non-negative.");
 
 			if (position <= this.parameters.size()) {
@@ -148,10 +144,10 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 			}
 
 			return null;
-
 		}
 
 		@Override
+		@Nullable
 		public Object getValue(String paramName) {
 			if (this.values.containsKey(paramName)) {
 				return this.values.get(paramName);
