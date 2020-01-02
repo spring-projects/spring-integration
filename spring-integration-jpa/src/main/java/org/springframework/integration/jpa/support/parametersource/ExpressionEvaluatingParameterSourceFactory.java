@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,69 +111,53 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		@Nullable
 		public Object getValueByPosition(int position) {
 			Assert.isTrue(position >= 0, "The position must be non-negative.");
-
 			if (position <= this.parameters.size()) {
-
-				final JpaParameter parameter = this.parameters.get(position);
-
-				if (parameter.getValue() != null) {
-					return parameter.getValue();
+				JpaParameter parameter = this.parameters.get(position);
+				String parameterName = parameter.getName();
+				if (parameterName != null) {
+					return getValue(parameterName);
 				}
-
-				if (parameter.getExpression() != null) {
-					Expression expression;
-
-					if (this.input instanceof Collection<?>) {
-						expression = parameter.getProjectionExpression();
-					}
-					else {
-						expression = parameter.getSpelExpression();
-					}
-
-					final Object value = this.expressionEvaluator.evaluateExpression(expression, this.input);
-					if (parameter.getName() != null) {
-						this.values.put(parameter.getName(), value);
-					}
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Resolved expression " + expression + " to " + value);
-					}
-					return value;
-
+				else {
+					return obtainParameterValue(parameter);
 				}
-
 			}
-
 			return null;
 		}
 
 		@Override
 		@Nullable
 		public Object getValue(String paramName) {
-			if (this.values.containsKey(paramName)) {
-				return this.values.get(paramName);
+			return this.values.computeIfAbsent(paramName,
+					(key) -> {
+						JpaParameter jpaParameter =
+								this.parametersMap.computeIfAbsent(paramName,
+										(name) -> {
+											JpaParameter parameter = new JpaParameter(paramName, null, paramName);
+											ExpressionEvaluatingParameterSourceFactory.this.parameters.add(parameter);
+											return parameter;
+										});
+						return obtainParameterValue(jpaParameter);
+					});
+		}
+
+		@Nullable
+		private Object obtainParameterValue(JpaParameter jpaParameter) {
+			Object value = null;
+			if (jpaParameter.getValue() != null) {
+				value = jpaParameter.getValue();
 			}
-
-			if (!this.parametersMap.containsKey(paramName)) {
-				JpaParameter parameter = new JpaParameter(paramName, null, paramName);
-				ExpressionEvaluatingParameterSourceFactory.this.parameters.add(parameter);
-				this.parametersMap.put(paramName, parameter);
-			}
-
-			JpaParameter jpaParameter = this.parametersMap.get(paramName);
-
-			Expression expression;
-
-			if (this.input instanceof Collection<?>) {
-				expression = jpaParameter.getProjectionExpression();
-			}
-			else {
-				expression = jpaParameter.getSpelExpression();
-			}
-
-			final Object value = this.expressionEvaluator.evaluateExpression(expression, this.input);
-			this.values.put(paramName, value);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Resolved expression " + expression + " to " + value);
+			if (jpaParameter.getExpression() != null) {
+				Expression expression;
+				if (this.input instanceof Collection<?>) {
+					expression = jpaParameter.getProjectionExpression();
+				}
+				else {
+					expression = jpaParameter.getSpelExpression();
+				}
+				value = this.expressionEvaluator.evaluateExpression(expression, this.input); // NOSONAR
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Resolved expression " + expression + " to " + value);
+				}
 			}
 			return value;
 		}

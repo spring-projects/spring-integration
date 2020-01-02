@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -365,7 +365,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 * @return true or false if HTTP request can contain the body
 	 */
 	protected static boolean isReadable(@Nullable HttpMethod httpMethod) {
-		return !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, httpMethod));
+		return httpMethod != null && !(CollectionUtils.containsInstance(NON_READABLE_BODY_HTTP_METHODS, httpMethod));
 	}
 
 }
