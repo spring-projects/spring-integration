@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,13 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0.4
  */
 public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent> {
 
-	private static final Set<String> generatorContextId = new HashSet<String>();
+	private static final Set<String> GENERATOR_CONTEXT_ID = new HashSet<>();
 
 	private static volatile IdGenerator theIdGenerator;
 
@@ -53,19 +55,17 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 		ApplicationContext context = event.getApplicationContext();
 		if (event instanceof ContextRefreshedEvent) {
 			boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
-			if (contextHasIdGenerator) {
-				if (this.setIdGenerator(context)) {
-					IdGeneratorConfigurer.generatorContextId.add(context.getId());
-				}
+			if (contextHasIdGenerator && setIdGenerator(context)) {
+				IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.add(context.getId());
 			}
 		}
-		else if (event instanceof ContextClosedEvent) {
-			if (IdGeneratorConfigurer.generatorContextId.contains(context.getId())) {
-				if (IdGeneratorConfigurer.generatorContextId.size() == 1) {
-					this.unsetIdGenerator();
-				}
-				IdGeneratorConfigurer.generatorContextId.remove(context.getId());
+		else if (event instanceof ContextClosedEvent
+				&& IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.contains(context.getId())) {
+
+			if (IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.size() == 1) {
+				unsetIdGenerator();
 			}
+			IdGeneratorConfigurer.GENERATOR_CONTEXT_ID.remove(context.getId());
 		}
 	}
 
@@ -93,12 +93,14 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 					}
 					else {
 						// different instance has been set, not legal
-						throw new BeanDefinitionStoreException("'MessageHeaders.idGenerator' has already been set and can not be set again");
+						throw new BeanDefinitionStoreException("'MessageHeaders.idGenerator' has already been set and " +
+								"can not be set again");
 					}
 				}
 			}
 			if (this.logger.isInfoEnabled()) {
-				this.logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
+				this.logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean
+						.getClass() + "]");
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
 			IdGeneratorConfigurer.theIdGenerator = idGeneratorBean;

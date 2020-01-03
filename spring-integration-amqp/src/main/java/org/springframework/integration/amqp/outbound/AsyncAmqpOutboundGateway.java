@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,11 +109,11 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 				replyMessageBuilder = buildReply(AsyncAmqpOutboundGateway.this.messageConverter, result);
 				sendOutputs(replyMessageBuilder, this.requestMessage);
 			}
-			catch (Exception e) {
-				Exception exceptionToLogAndSend = e;
-				if (!(e instanceof MessagingException)) {
+			catch (Exception ex) {
+				Exception exceptionToLogAndSend = ex;
+				if (!(ex instanceof MessagingException)) { // NOSONAR
 					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage,
-							"failed to handle a message in the [" + AsyncAmqpOutboundGateway.this + ']', e);
+							"failed to handle a message in the [" + AsyncAmqpOutboundGateway.this + ']', ex);
 					if (replyMessageBuilder != null) {
 						exceptionToLogAndSend =
 								new MessagingException(replyMessageBuilder.build(), exceptionToLogAndSend);
@@ -129,8 +129,8 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 			Throwable exceptionToSend = ex;
 			if (ex instanceof AmqpReplyTimeoutException) {
 				if (getRequiresReply()) {
-					exceptionToSend = new ReplyRequiredException(this.requestMessage, "Timeout on async request/reply",
-							ex);
+					exceptionToSend =
+							new ReplyRequiredException(this.requestMessage, "Timeout on async request/reply", ex);
 				}
 				else {
 					if (logger.isDebugEnabled()) {

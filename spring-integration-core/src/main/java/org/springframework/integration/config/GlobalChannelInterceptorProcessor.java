@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,7 @@ import org.springframework.util.StringUtils;
 public final class GlobalChannelInterceptorProcessor
 		implements BeanFactoryAware, SmartInitializingSingleton, BeanPostProcessor {
 
-	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
-
+	private static final Log LOGGER = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
 
 	private final OrderComparator comparator = new OrderComparator();
 
@@ -76,12 +75,11 @@ public final class GlobalChannelInterceptorProcessor
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public void afterSingletonsInstantiated() {
 		Collection<GlobalChannelInterceptorWrapper> interceptors =
 				this.beanFactory.getBeansOfType(GlobalChannelInterceptorWrapper.class).values();
 		if (CollectionUtils.isEmpty(interceptors)) {
-			logger.debug("No global channel interceptors.");
+			LOGGER.debug("No global channel interceptors.");
 		}
 		else {
 			interceptors.forEach(interceptor -> {
@@ -115,8 +113,8 @@ public final class GlobalChannelInterceptorProcessor
 	 */
 	public void addMatchingInterceptors(InterceptableChannel channel, String beanName) {
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Applying global interceptors on channel '" + beanName + "'");
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Applying global interceptors on channel '" + beanName + "'");
 		}
 
 		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artme Bilan
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 		implements SubscribableChannel, SubscribableChannelManagement {
@@ -59,11 +60,9 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	}
 
 	private void adjustCounterIfNecessary(MessageDispatcher dispatcher, int delta) {
-		if (delta != 0) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Channel '" + this.getFullChannelName() + "' has " + dispatcher.getHandlerCount()
-						+ " subscriber(s).");
-			}
+		if (delta != 0 && logger.isInfoEnabled()) {
+			logger.info("Channel '" + getFullChannelName() + "' has " + dispatcher.getHandlerCount()
+					+ " subscriber(s).");
 		}
 	}
 
@@ -72,9 +71,9 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 		try {
 			return getRequiredDispatcher().dispatch(message);
 		}
-		catch (MessageDispatchingException e) {
-			String description = e.getMessage() + " for channel '" + this.getFullChannelName() + "'.";
-			throw new MessageDeliveryException(message, description, e);
+		catch (MessageDispatchingException ex) {
+			String description = ex.getMessage() + " for channel '" + getFullChannelName() + "'.";
+			throw new MessageDeliveryException(message, description, ex);
 		}
 	}
 

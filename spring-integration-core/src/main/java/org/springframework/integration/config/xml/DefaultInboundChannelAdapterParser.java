@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.springframework.util.xml.DomUtils;
 public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override // NOSONAR complexity
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) { // NOSONAR
 		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;
 		BeanComponentDefinition innerBeanDef =
@@ -69,7 +69,6 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			parserContext.getReaderContext().error(
 				"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
 		}
-
 		if (hasInnerDef) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
@@ -78,7 +77,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				return null;
 			}
 			if (hasMethod) {
-				result = this.parseMethodInvokingSource(innerBeanDef, methodName, element, parserContext);
+				result = parseMethodInvokingSource(innerBeanDef, methodName, element, parserContext);
 			}
 			else {
 				result = innerBeanDef.getBeanDefinition();
@@ -96,7 +95,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationConfigUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
 			sourceBuilder.addConstructorArgValue(scriptBeanDefinition);
-			this.parseHeaderExpressions(sourceBuilder, element, parserContext);
+			parseHeaderExpressions(sourceBuilder, element, parserContext);
 			result = sourceBuilder.getBeanDefinition();
 		}
 		else if (hasExpression || hasExpressionElement) {
@@ -111,18 +110,17 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 						"Exactly one of the 'expression' attribute or inner <expression> is required.", element);
 				return null;
 			}
-			result = this.parseExpression(expressionString, expressionElement, element, parserContext);
+			result = parseExpression(expressionString, expressionElement, element, parserContext);
 		}
 		else if (hasRef) {
 			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef);
 			if (hasMethod) {
-				result = this.parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
+				result = parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
 			}
 			else {
 				result = sourceValue;
 			}
 		}
-
 		return result;
 	}
 
@@ -143,7 +141,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
 
-		BeanDefinition expressionDef = null;
+		BeanDefinition expressionDef;
 
 		if (StringUtils.hasText(expressionString)) {
 			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
@@ -169,7 +167,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	private void parseHeaderExpressions(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
 		if (!CollectionUtils.isEmpty(headerElements)) {
-			ManagedMap<String, Object> headerExpressions = new ManagedMap<String, Object>();
+			ManagedMap<String, Object> headerExpressions = new ManagedMap<>();
 			for (Element headerElement : headerElements) {
 				String headerName = headerElement.getAttribute("name");
 				BeanDefinition expressionDef = IntegrationNamespaceUtils

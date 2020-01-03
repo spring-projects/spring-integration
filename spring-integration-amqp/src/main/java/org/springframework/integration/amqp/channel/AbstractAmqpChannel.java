@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,10 +208,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (!this.initialized && this.rabbitTemplate != null) {
-			if (this.connectionFactory != null) {
-				this.connectionFactory.addConnectionListener(this);
-			}
+		if (!this.initialized && this.rabbitTemplate != null && this.connectionFactory != null) {
+			this.connectionFactory.addConnectionListener(this);
 		}
 		this.initialized = true;
 	}
@@ -246,6 +244,6 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel impleme
 	public void onClose(Connection connection) {
 	}
 
-	protected abstract void  doDeclares();
+	protected abstract void doDeclares();
 
 }

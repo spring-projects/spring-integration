@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,15 @@ import org.springframework.messaging.MessageHandler;
  * @author Dave Syer
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
-	private static final MethodFilter methodFilter = new ControlBusMethodFilter();
+	private static final MethodFilter METHOD_FILTER = new ControlBusMethodFilter();
 
-	private volatile Long sendTimeout;
-
+	private Long sendTimeout;
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
@@ -44,13 +45,12 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 	@Override
 	protected MessageHandler createHandler() {
 		ExpressionCommandMessageProcessor processor =
-				new ExpressionCommandMessageProcessor(methodFilter, this.getBeanFactory());
+				new ExpressionCommandMessageProcessor(METHOD_FILTER, getBeanFactory());
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		return handler;
 	}
-
 
 }

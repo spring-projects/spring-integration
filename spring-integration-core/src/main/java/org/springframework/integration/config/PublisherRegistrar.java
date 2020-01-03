@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
  */
 public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
-	private static final Log logger = LogFactory.getLog(PublisherRegistrar.class);
+	private static final Log LOGGER = LogFactory.getLog(PublisherRegistrar.class);
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
@@ -60,8 +60,8 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 
 			if (StringUtils.hasText(defaultChannel)) {
 				builder.addPropertyValue("defaultChannelName", defaultChannel);
-				if (logger.isInfoEnabled()) {
-					logger.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
 				}
 			}
 
@@ -82,8 +82,8 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 			if (StringUtils.hasText(defaultChannel)) {
 				if (defaultChannelPropertyValue == null) {
 					propertyValues.addPropertyValue("defaultChannelName", defaultChannel);
-					if (logger.isInfoEnabled()) {
-						logger.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("Setting '@Publisher' default-output-channel to '" + defaultChannel + "'.");
 					}
 				}
 				else if (!defaultChannel.equals(defaultChannelPropertyValue.getValue())) {

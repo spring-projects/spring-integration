@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,23 +31,27 @@ import com.esotericsoftware.kryo.Registration;
  * list in the same order.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
+	private static final int DEFAULT_INITIAL_ID = 50;
+
 	private final List<Class<?>> registeredClasses;
 
-	private int initialValue = 50;
+	private int initialValue = DEFAULT_INITIAL_ID;
 
 	/**
 	 * @param classes the list of classes to validateRegistration
 	 */
 	public KryoClassListRegistrar(List<Class<?>> classes) {
-		this.registeredClasses = new ArrayList<Class<?>>(classes);
+		this.registeredClasses = new ArrayList<>(classes);
 	}
 
 	/**
-	 * Set the inital ID value. Classes in the list will be sequentially assigned an ID starting with this value
+	 * Set the initial ID value. Classes in the list will be sequentially assigned an ID starting with this value
 	 * (default is 50).
 	 * @param initialValue the initial value
 	 */
@@ -60,7 +64,7 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
 	@Override
 	public List<Registration> getRegistrations() {
-		List<Registration> registrations = new ArrayList<Registration>();
+		List<Registration> registrations = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(this.registeredClasses)) {
 			for (int i = 0; i < this.registeredClasses.size(); i++) {
 				registrations.add(new Registration(this.registeredClasses.get(i),

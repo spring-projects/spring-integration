@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class ScatterGatherParser extends AbstractConsumerEndpointParser {
@@ -45,7 +46,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 
 	private static final AggregatorParser GATHERER_PARSER = new AggregatorParser();
 
-	private static final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
@@ -115,7 +116,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 		BeanDefinition gathererDefinition = null;
 		if (gatherer == null) {
 			try {
-				gatherer = documentBuilderFactory.newDocumentBuilder().newDocument().createElement("aggregator");
+				gatherer = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder().newDocument().createElement("aggregator");
 			}
 			catch (ParserConfigurationException e) {
 				parserContext.getReaderContext().error(e.getMessage(), element);

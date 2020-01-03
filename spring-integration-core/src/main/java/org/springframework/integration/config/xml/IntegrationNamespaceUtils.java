@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,6 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
- *
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -89,7 +88,6 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used to populate the property
@@ -104,16 +102,12 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 *
-	 * <p>
-	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
+	 * <p> The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
 	 * "foo-bar" attribute would match the "fooBar" property).
-	 *
-	 * @see Conventions#attributeNameToPropertyName(String)
-	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be set on the property
+	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
 	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
 			String attributeName) {
@@ -124,7 +118,6 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used to populate the property
@@ -144,19 +137,15 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 *
-	 * <p>
-	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
+	 * <p> The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
 	 * "foo-bar" attribute would match the "fooBar" property).
-	 *
-	 * @see Conventions#attributeNameToPropertyName(String)
 	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be set on the property
 	 * @param emptyStringAllowed - if true, the value is set, even if an empty String (""); if false, an empty
 	 * String is treated as if the attribute wasn't provided.
-	 *
+	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
 	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element, String attributeName,
 			boolean emptyStringAllowed) {
@@ -169,7 +158,6 @@ public abstract class IntegrationNamespaceUtils {
 	 * Configures the provided bean definition builder with a property reference to a bean. The bean reference is
 	 * identified by the value from the attribute whose name is provided if that attribute is defined in the given
 	 * element.
-	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used as a bean reference to populate the
@@ -200,18 +188,12 @@ public abstract class IntegrationNamespaceUtils {
 	 * Configures the provided bean definition builder with a property reference to a bean. The bean reference is
 	 * identified by the value from the attribute whose name is provided if that attribute is defined in the given
 	 * element.
-	 *
-	 * <p>
-	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
+	 * <p> The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
 	 * "foo-bar" attribute would match the "fooBar" property).
-	 *
-	 * @see Conventions#attributeNameToPropertyName(String)
-	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be used as a bean reference to populate the
 	 * property
-	 *
 	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
@@ -230,7 +212,6 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Provides a user friendly description of an element based on its node name and, if available, its "id" attribute
 	 * value. This is useful for creating error messages from within bean definition parsers.
-	 *
 	 * @param element The element.
 	 * @return The description.
 	 */
@@ -247,7 +228,6 @@ public abstract class IntegrationNamespaceUtils {
 	 * Parse a "poller" element to provide a reference for the target BeanDefinitionBuilder. If the poller element does
 	 * not contain a "ref" attribute, this will create and register a PollerMetadata instance and then add it as a
 	 * property reference of the target builder.
-	 *
 	 * @param pollerElement the "poller" element to parse
 	 * @param targetBuilder the builder that expects the "trigger" property
 	 * @param parserContext the parserContext for the target builder
@@ -257,17 +237,15 @@ public abstract class IntegrationNamespaceUtils {
 
 		if (pollerElement.hasAttribute(REF_ATTRIBUTE)) {
 			int numberOfAttributes = pollerElement.getAttributes().getLength();
-			if (numberOfAttributes != 1) {
-				/*
-				 * When importing the core namespace, e.g. into jdbc, we get a 'default="false"' attribute,
-				 * even if not explicitly declared.
-				 */
-				if (!(numberOfAttributes == 2 &&
-						pollerElement.hasAttribute("default") &&
-						pollerElement.getAttribute("default").equals("false"))) {
-					parserContext.getReaderContext().error(
-							"A 'poller' element that provides a 'ref' must have no other attributes.", pollerElement);
-				}
+			/*
+			 * When importing the core namespace, e.g. into jdbc, we get a 'default="false"' attribute,
+			 * even if not explicitly declared.
+			 */
+			if (numberOfAttributes != 1 && !(numberOfAttributes == 2 &&
+					pollerElement.hasAttribute("default") &&
+					pollerElement.getAttribute("default").equals("false"))) {
+				parserContext.getReaderContext().error(
+						"A 'poller' element that provides a 'ref' must have no other attributes.", pollerElement);
 			}
 			if (pollerElement.getChildNodes().getLength() != 0) {
 				parserContext.getReaderContext().error(
@@ -288,7 +266,6 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Get a text value from a named attribute if it exists, otherwise check for a nested element of the same name.
 	 * If both are specified it is an error, but if neither is specified, just returns null.
-	 *
 	 * @param element a DOM node
 	 * @param name the name of the property (attribute or child element)
 	 * @param parserContext the current context
@@ -314,7 +291,7 @@ public abstract class IntegrationNamespaceUtils {
 		// parses out the inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
 		BeanComponentDefinition innerComponentDefinition = null;
-		if (childElements != null && childElements.size() == 1) {
+		if (childElements.size() == 1) {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
@@ -336,7 +313,6 @@ public abstract class IntegrationNamespaceUtils {
 
 	/**
 	 * Utility method to configure a HeaderMapper for Inbound and Outbound channel adapters/gateway.
-	 *
 	 * @param element The element.
 	 * @param rootBuilder The root builder.
 	 * @param parserContext The parser context.
@@ -352,7 +328,6 @@ public abstract class IntegrationNamespaceUtils {
 
 	/**
 	 * Utility method to configure a HeaderMapper for Inbound and Outbound channel adapters/gateway.
-	 *
 	 * @param element The element.
 	 * @param rootBuilder The root builder.
 	 * @param parserContext The parser context.
@@ -434,7 +409,6 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Parse attributes of "transactional" element and configure a {@link DefaultTransactionAttribute}
 	 * with provided "transactionDefinition" properties.
-	 *
 	 * @param txElement The transactional element.
 	 * @return The bean definition.
 	 */

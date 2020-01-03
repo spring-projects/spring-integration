@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.aop;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -27,13 +26,11 @@ import org.springframework.aop.ClassFilter;
 import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.ComposablePointcut;
 import org.springframework.aop.support.annotation.AnnotationClassFilter;
 import org.springframework.aop.support.annotation.AnnotationMethodMatcher;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.util.Assert;
 
@@ -48,10 +45,11 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-@SuppressWarnings("serial")
 public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
-	private final MessagePublishingInterceptor interceptor;
+	private static final long serialVersionUID = -5387975397101845222L;
+
+	private final transient MessagePublishingInterceptor interceptor;
 
 	private final Pointcut pointcut;
 
@@ -150,7 +148,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 			}
 
 			if (methodAnnotationType != null) {
-				this.methodMatcher = new MetaAnnotationMethodMatcher(methodAnnotationType);
+				this.methodMatcher = new AnnotationMethodMatcher(methodAnnotationType, true);
 			}
 			else {
 				this.methodMatcher = MethodMatcher.TRUE;
@@ -166,35 +164,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		@Override
 		public MethodMatcher getMethodMatcher() {
 			return this.methodMatcher;
-		}
-
-	}
-
-
-	private static final class MetaAnnotationMethodMatcher extends AnnotationMethodMatcher {
-
-		private final Class<? extends Annotation> annotationType;
-
-
-		/**
-		 * Create a new AnnotationClassFilter for the given annotation type.
-		 * @param annotationType the annotation type to look for
-		 */
-		MetaAnnotationMethodMatcher(Class<? extends Annotation> annotationType) {
-			super(annotationType);
-			this.annotationType = annotationType;
-		}
-
-
-		@Override
-		public boolean matches(Method method, Class<?> targetClass) {
-			if (AnnotationUtils.getAnnotation(method, this.annotationType) != null) {
-				return true;
-			}
-			// The method may be on an interface, so let's check on the target class as well.
-			Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
-			return (!specificMethod.equals(method) &&
-					(AnnotationUtils.getAnnotation(specificMethod, this.annotationType) != null));
 		}
 
 	}
