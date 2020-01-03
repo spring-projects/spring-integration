@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class AmqpChannelParser extends AbstractChannelParser {
@@ -50,52 +51,73 @@ public class AmqpChannelParser extends AbstractChannelParser {
 
 		builder.addPropertyValue("pubSub", "publish-subscribe-channel".equals(element.getLocalName()));
 
+		populateConsumersPerQueueIfAny(element, parserContext, builder);
+
+		String[] valuesToPopulate = {
+				"max-subscribers",
+				"acknowledge-mode",
+				"auto-startup",
+				"channel-transacted",
+				"template-channel-transacted",
+				"concurrent-consumers",
+				"encoding",
+				"expose-listener-channel",
+				"phase",
+				"prefetch-count",
+				"queue-name",
+				"receive-timeout",
+				"recovery-interval",
+				"missing-queues-fatal",
+				"shutdown-timeout",
+				"tx-size",
+				"default-delivery-mode",
+				"extract-payload",
+				"headers-last"
+		};
+
+		for (String attribute : valuesToPopulate) {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
+		}
+
+		String[] referencesToPopulate = {
+				"advice-chain",
+				"amqp-admin",
+				"error-handler",
+				"exchange",
+				"message-converter",
+				"message-properties-converter",
+				"task-executor",
+				"transaction-attribute",
+				"transaction-manager",
+				"outbound-header-mapper",
+				"inbound-header-mapper"
+		};
+
+		for (String attribute : referencesToPopulate) {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attribute);
+		}
+
+		return builder;
+	}
+
+	private void populateConsumersPerQueueIfAny(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
+
 		String consumersPerQueue = element.getAttribute("consumers-per-queue");
 		if (StringUtils.hasText(consumersPerQueue)) {
 			if (StringUtils.hasText(element.getAttribute("concurrent-consumers"))) {
-				parserContext.getReaderContext().error("'consumers-per-queue' and 'concurrent-consumers' are mutually "
-						+ "exclusive", element);
+				parserContext.getReaderContext()
+						.error("'consumers-per-queue' and 'concurrent-consumers' are mutually exclusive", element);
 			}
 			if (StringUtils.hasText(element.getAttribute("tx-size"))) {
 				parserContext.getReaderContext().error("'tx-size' is not allowed with 'consumers-per-queue'", element);
 			}
 			if (StringUtils.hasText(element.getAttribute("receive-timeout"))) {
-				parserContext.getReaderContext().error("'receive-timeout' is not allowed with 'consumers-per-queue'",
-						element);
+				parserContext.getReaderContext()
+						.error("'receive-timeout' is not allowed with 'consumers-per-queue'", element);
 			}
 			builder.addPropertyValue("consumersPerQueue", consumersPerQueue);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "advice-chain");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "amqp-admin");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "channel-transacted");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "template-channel-transacted");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "exchange");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expose-listener-channel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-properties-converter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "prefetch-count");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "missing-queues-fatal");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "shutdown-timeout");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-attribute");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tx-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-delivery-mode");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "outbound-header-mapper");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "inbound-header-mapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "headers-last");
-		return builder;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Comparator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.Message;
 
@@ -38,11 +38,11 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Artem Bilan
- * @author Enrique Rodr?guez
+ * @author Enrique Rodriguez
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
-	private static final Log logger = LogFactory.getLog(SequenceSizeReleaseStrategy.class);
+	private static final Log LOGGER = LogFactory.getLog(SequenceSizeReleaseStrategy.class);
 
 	private final Comparator<Message<?>> comparator = new MessageSequenceComparator();
 
@@ -78,18 +78,16 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	@Override
 	public boolean canRelease(MessageGroup messageGroup) {
-
 		boolean canRelease = false;
-
 		int size = messageGroup.size();
 		if (this.releasePartialSequences && size > 0) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("Considering partial release of group [" + messageGroup + "]");
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Considering partial release of group [" + messageGroup + "]");
 			}
 			Collection<Message<?>> messages = messageGroup.getMessages();
 			Message<?> minMessage = Collections.min(messages, this.comparator);
 
-			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(minMessage).getSequenceNumber();
+			int nextSequenceNumber = StaticMessageHeaderAccessor.getSequenceNumber(minMessage);
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 
 			if (nextSequenceNumber - lastReleasedMessageSequence == 1) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,19 +45,19 @@ import org.springframework.util.Assert;
 @ManagedResource
 public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterceptor, BeanFactoryAware {
 
-	private static final Log logger = LogFactory.getLog(WireTap.class);
-
-	private volatile MessageChannel channel;
-
-	private volatile String channelName;
-
-	private volatile long timeout = 0;
+	private static final Log LOGGER = LogFactory.getLog(WireTap.class);
 
 	private final MessageSelector selector;
 
-	private volatile boolean running = true;
+	private MessageChannel channel;
+
+	private String channelName;
+
+	private long timeout = 0;
 
 	private BeanFactory beanFactory;
+
+	private volatile boolean running = true;
 
 
 	/**
@@ -156,8 +156,8 @@ public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterc
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		MessageChannel wireTapChannel = getChannel();
 		if (wireTapChannel.equals(channel)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("WireTap is refusing to intercept its own channel '" + wireTapChannel + "'");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("WireTap is refusing to intercept its own channel '" + wireTapChannel + "'");
 			}
 			return message;
 		}
@@ -165,8 +165,8 @@ public class WireTap implements ChannelInterceptor, Lifecycle, VetoCapableInterc
 			boolean sent = (this.timeout >= 0)
 					? wireTapChannel.send(message, this.timeout)
 					: wireTapChannel.send(message);
-			if (!sent && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to WireTap channel '" + wireTapChannel + "'");
+			if (!sent && LOGGER.isWarnEnabled()) {
+				LOGGER.warn("failed to send message to WireTap channel '" + wireTapChannel + "'");
 			}
 		}
 		return message;

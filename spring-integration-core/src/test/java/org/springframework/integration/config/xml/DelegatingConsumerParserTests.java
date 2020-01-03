@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -25,8 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -56,8 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 3.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 public class DelegatingConsumerParserTests {
 
 	@Autowired
@@ -191,8 +188,7 @@ public class DelegatingConsumerParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
-	public void testOneRefOnly() throws Exception {
+	public void testOneRefOnly() {
 		ServiceActivatorFactoryBean fb = new ServiceActivatorFactoryBean();
 		fb.setBeanFactory(mock(BeanFactory.class));
 		MyServiceARPMH service = new MyServiceARPMH();
@@ -200,24 +196,18 @@ public class DelegatingConsumerParserTests {
 		fb.setTargetObject(service);
 		fb.getObject();
 
-		assertThat(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service)).isTrue();
+		assertThat(TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS", Set.class).contains(service)).isTrue();
 
 		ServiceActivatorFactoryBean fb2 = new ServiceActivatorFactoryBean();
 		fb2.setBeanFactory(mock(BeanFactory.class));
 		fb2.setTargetObject(service);
-		try {
-			fb2.getObject();
-			fail("expected exception");
-		}
-		catch (Exception e) {
-			assertThat(e.getMessage())
-					.isEqualTo("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
-							+ "use scope=\"prototype\"");
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(fb2::getObject)
+				.withMessage("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
+						+ "use scope=\"prototype\"");
 
 		fb.destroy();
-
-		assertThat(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service)).isFalse();
+		assertThat(TestUtils.getPropertyValue(fb, "REFERENCED_REPLY_PRODUCERS", Set.class).contains(service)).isFalse();
 	}
 
 	private void testHandler(MessageHandler handler) {
@@ -256,7 +246,7 @@ public class DelegatingConsumerParserTests {
 
 		@Override
 		protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-			List<MessageChannel> channels = new ArrayList<MessageChannel>();
+			List<MessageChannel> channels = new ArrayList<>();
 			channels.add(replyChannel);
 			return channels;
 		}

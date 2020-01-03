@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,19 +36,20 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser EXPRESSION_PARSER =
+			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private final ExpressionEvaluatingMessageProcessor<Object> processor;
 
 
 	public ExpressionEvaluatingCorrelationStrategy(String expressionString) {
 		Assert.hasText(expressionString, "expressionString must not be empty");
-		Expression expression = expressionParser.parseExpression(expressionString);
-		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
+		Expression expression = EXPRESSION_PARSER.parseExpression(expressionString);
+		this.processor = new ExpressionEvaluatingMessageProcessor<>(expression, Object.class);
 	}
 
 	public ExpressionEvaluatingCorrelationStrategy(Expression expression) {
-		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
+		this.processor = new ExpressionEvaluatingMessageProcessor<>(expression, Object.class);
 	}
 
 	public Object getCorrelationKey(Message<?> message) {
@@ -56,9 +57,7 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (beanFactory != null) {
-			this.processor.setBeanFactory(beanFactory);
-		}
+		this.processor.setBeanFactory(beanFactory);
 	}
 
 }

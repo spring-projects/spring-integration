@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware,
 		InitializingBean, SmartLifecycle, DisposableBean {
 
-	private static final Log logger = LogFactory.getLog(ConsumerEndpointFactoryBean.class);
+	private static final Log LOGGER = LogFactory.getLog(ConsumerEndpointFactoryBean.class);
 
 	private final Object initializationMonitor = new Object();
 
@@ -184,7 +184,7 @@ public class ConsumerEndpointFactoryBean
 	@Override
 	public void afterPropertiesSet() {
 		if (this.beanName == null) {
-			logger.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
+			LOGGER.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
 					"Consider specifying the 'beanName' property on this ConsumerEndpointFactoryBean.");
 		}
 		else {
@@ -203,8 +203,8 @@ public class ConsumerEndpointFactoryBean
 				}
 			}
 			catch (Exception e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Could not set component name for handler "
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Could not set component name for handler "
 							+ this.handler + " for " + this.beanName + " :" + e.getMessage());
 				}
 			}
@@ -301,10 +301,10 @@ public class ConsumerEndpointFactoryBean
 				() -> "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 		this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
-		if (logger.isWarnEnabled()
+		if (LOGGER.isWarnEnabled()
 				&& Boolean.FALSE.equals(this.autoStartup)
 				&& channel instanceof FixedSubscriberChannel) {
-			logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
+			LOGGER.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
 		}
 	}
 

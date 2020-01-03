@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,13 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionParser {
 
 	@Override // NOSONAR complexity
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) { // NOSONAR
 		Object source = parserContext.extractSource(element);
 
 		String selector = element.getAttribute("selector");
@@ -87,14 +88,14 @@ public class IdempotentReceiverInterceptorParser extends AbstractBeanDefinitionP
 			parserContext.getReaderContext().error("The 'endpoint' attribute is required", source);
 		}
 
-		BeanMetadataElement selectorBeanDefinition = null;
+		BeanMetadataElement selectorBeanDefinition;
 		if (hasSelector) {
 			selectorBeanDefinition = new RuntimeBeanReference(selector);
 		}
 		else {
 			BeanDefinitionBuilder selectorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(MetadataStoreSelector.class);
-			BeanMetadataElement keyStrategyBeanDefinition = null;
+			BeanMetadataElement keyStrategyBeanDefinition;
 			if (hasKeyStrategy) {
 				keyStrategyBeanDefinition = new RuntimeBeanReference(keyStrategy);
 			}

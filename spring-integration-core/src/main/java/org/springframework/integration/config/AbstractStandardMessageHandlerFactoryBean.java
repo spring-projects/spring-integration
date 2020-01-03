@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractStandardMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements DisposableBean {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser();
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-	private static final Set<MessageHandler> referencedReplyProducers = new HashSet<>();
+	private static final Set<MessageHandler> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
 	private Boolean requiresReply;
 
@@ -80,7 +80,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	 * @param expressionString the expression as a String.
 	 */
 	public void setExpressionString(String expressionString) {
-		this.expression = expressionParser.parseExpression(expressionString);
+		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
 	}
 
 	/**
@@ -106,7 +106,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	@Override
 	public void destroy() {
 		if (this.replyHandler != null) {
-			referencedReplyProducers.remove(this.replyHandler);
+			REFERENCED_REPLY_PRODUCERS.remove(this.replyHandler);
 		}
 	}
 
@@ -165,10 +165,10 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	}
 
 	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
-		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
+		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
 				"An AbstractMessageProducingMessageHandler may only be referenced once (" +
 						replyHandler.getBeanName() + ") - use scope=\"prototype\"");
-		referencedReplyProducers.add(replyHandler);
+		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 		this.replyHandler = replyHandler;
 	}
 

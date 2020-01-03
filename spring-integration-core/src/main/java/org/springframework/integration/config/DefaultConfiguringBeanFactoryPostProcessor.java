@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,12 +92,12 @@ import org.springframework.util.ClassUtils;
 class DefaultConfiguringBeanFactoryPostProcessor
 		implements BeanFactoryPostProcessor, BeanClassLoaderAware, SmartInitializingSingleton {
 
-	private static final Log logger = LogFactory.getLog(DefaultConfiguringBeanFactoryPostProcessor.class);
+	private static final Log LOGGER = LogFactory.getLog(DefaultConfiguringBeanFactoryPostProcessor.class);
 
 	private static final IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
 			new IntegrationConverterInitializer();
 
-	private static final Set<Integer> registriesProcessed = new HashSet<>();
+	private static final Set<Integer> REGISTRIES_PROCESSED = new HashSet<>();
 
 	private ClassLoader classLoader;
 
@@ -134,22 +134,22 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			registerMessageHandlerMethodFactory();
 			registerListMessageHandlerMethodFactory();
 		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("BeanFactory is not a BeanDefinitionRegistry. " +
+		else if (LOGGER.isWarnEnabled()) {
+			LOGGER.warn("BeanFactory is not a BeanDefinitionRegistry. " +
 					"The default Spring Integration infrastructure beans are not going to be registered");
 		}
 	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		if (logger.isDebugEnabled()) {
+		if (LOGGER.isDebugEnabled()) {
 			Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 
 			StringWriter writer = new StringWriter();
 			integrationProperties.list(new PrintWriter(writer));
 			StringBuffer propertiesBuffer = writer.getBuffer()
 					.delete(0, "-- listing properties --".length());
-			logger.debug("\nSpring Integration global properties:\n" + propertiesBuffer);
+			LOGGER.debug("\nSpring Integration global properties:\n" + propertiesBuffer);
 		}
 	}
 
@@ -209,8 +209,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerErrorChannel() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
-			if (logger.isInfoEnabled()) {
-				logger.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
 						"' has been explicitly defined. " +
 						"Therefore, a default PublishSubscribeChannel will be created.");
 			}
@@ -280,8 +280,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = this.registry.getBeanDefinition(definitionName);
 			if (className.equals(definition.getBeanClassName())) {
-				if (logger.isInfoEnabled()) {
-					logger.info(className + " is already registered and will be used");
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info(className + " is already registered and will be used");
 				}
 				return;
 			}
@@ -296,8 +296,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerTaskScheduler() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
-			if (logger.isInfoEnabled()) {
-				logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
 						"' has been explicitly defined. " +
 						"Therefore, a default ThreadPoolTaskScheduler will be created.");
 			}
@@ -337,7 +337,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 						integrationPropertiesBuilder.getBeanDefinition());
 			}
 			catch (IOException e) {
-				logger.warn("Cannot load 'spring.integration.properties' Resources.", e);
+				LOGGER.warn("Cannot load 'spring.integration.properties' Resources.", e);
 			}
 		}
 	}
@@ -350,18 +350,18 @@ class DefaultConfiguringBeanFactoryPostProcessor
 		jsonPath(registryId);
 		xpath(registryId);
 		jsonNodeToString(registryId);
-		registriesProcessed.add(registryId);
+		REGISTRIES_PROCESSED.add(registryId);
 	}
 
 	private void jsonPath(int registryId) throws LinkageError {
 		String jsonPathBeanName = "jsonPath";
-		if (!this.beanFactory.containsBean(jsonPathBeanName) && !registriesProcessed.contains(registryId)) {
+		if (!this.beanFactory.containsBean(jsonPathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
 			Class<?> jsonPathClass = null;
 			try {
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", this.classLoader);
 			}
 			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				logger.debug("The '#jsonPath' SpEL function cannot be registered: " +
+				LOGGER.debug("The '#jsonPath' SpEL function cannot be registered: " +
 						"there is no jayway json-path.jar on the classpath.");
 			}
 
@@ -371,7 +371,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 				}
 				catch (ClassNotFoundException e) {
 					jsonPathClass = null;
-					logger.warn("The '#jsonPath' SpEL function cannot be registered. " +
+					LOGGER.warn("The '#jsonPath' SpEL function cannot be registered. " +
 							"An old json-path.jar version is detected in the classpath." +
 							"At least 2.4.0 is required; see version information at: " +
 							"https://github.com/jayway/JsonPath/releases", e);
@@ -388,14 +388,14 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private void xpath(int registryId) throws LinkageError {
 		String xpathBeanName = "xpath";
-		if (!this.beanFactory.containsBean(xpathBeanName) && !registriesProcessed.contains(registryId)) {
+		if (!this.beanFactory.containsBean(xpathBeanName) && !REGISTRIES_PROCESSED.contains(registryId)) {
 			Class<?> xpathClass = null;
 			try {
 				xpathClass = ClassUtils.forName(IntegrationConfigUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
 						this.classLoader);
 			}
 			catch (@SuppressWarnings("unused") ClassNotFoundException e) {
-				logger.debug("SpEL function '#xpath' isn't registered: " +
+				LOGGER.debug("SpEL function '#xpath' isn't registered: " +
 						"there is no spring-integration-xml.jar on the classpath.");
 			}
 
@@ -409,7 +409,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	private void jsonNodeToString(int registryId) {
 		if (!this.beanFactory.containsBean(
 				IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME) &&
-				!registriesProcessed.contains(registryId) && JacksonPresent.isJackson2Present()) {
+				!REGISTRIES_PROCESSED.contains(registryId) && JacksonPresent.isJackson2Present()) {
 
 			this.registry.registerBeanDefinition(
 					IntegrationContextUtils.TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME,
@@ -456,8 +456,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerHeaderChannelRegistry() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME)) {
-			if (logger.isInfoEnabled()) {
-				logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
 						"' has been explicitly defined. " +
 						"Therefore, a default DefaultHeaderChannelRegistry will be created.");
 			}

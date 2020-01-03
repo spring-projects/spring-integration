@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  */
 public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>, InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(ReleaseStrategyFactoryBean.class);
+	private static final Log LOGGER = LogFactory.getLog(ReleaseStrategyFactoryBean.class);
 
 	private Object target;
 
@@ -73,8 +73,8 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>,
 					this.strategy = new MethodInvokingReleaseStrategy(this.target, method);
 				}
 				else {
-					if (logger.isWarnEnabled()) {
-						logger.warn("No ReleaseStrategy annotated method found on "
+					if (LOGGER.isWarnEnabled()) {
+						LOGGER.warn("No ReleaseStrategy annotated method found on "
 								+ this.target.getClass().getSimpleName()
 								+ "; falling back to SimpleSequenceSizeReleaseStrategy, target: "
 								+ this.target + ", methodName: " + this.methodName);
@@ -83,7 +83,7 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>,
 			}
 		}
 		else {
-			logger.warn("No target supplied; falling back to SimpleSequenceSizeReleaseStrategy");
+			LOGGER.warn("No target supplied; falling back to SimpleSequenceSizeReleaseStrategy");
 		}
 	}
 

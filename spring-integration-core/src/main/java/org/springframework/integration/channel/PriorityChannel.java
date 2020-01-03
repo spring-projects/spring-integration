@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.util.UpperBound;
@@ -39,6 +39,11 @@ import org.springframework.messaging.MessageHeaders;
  */
 public class PriorityChannel extends QueueChannel {
 
+	/**
+	 * PriorityBlockingQueue#DEFAULT_INITIAL_CAPACITY is private
+	 */
+	private static final int DEFAULT_INITIAL_CAPACITY = 11;
+
 	private final UpperBound upperBound;
 
 	private final AtomicLong sequenceCounter = new AtomicLong();
@@ -47,7 +52,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with an unbounded queue. Message priority will be
-	 * based on the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 * based on the value of {@link StaticMessageHeaderAccessor#getPriority(Message)}.
 	 */
 	public PriorityChannel() {
 		this(0, null);
@@ -55,8 +60,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with the specified queue capacity. Message priority
-	 * will be based upon the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
-	 *
+	 * will be based upon the value of {@link StaticMessageHeaderAccessor#getPriority(Message)}.
 	 * @param capacity The queue capacity.
 	 */
 	public PriorityChannel(int capacity) {
@@ -67,8 +71,7 @@ public class PriorityChannel extends QueueChannel {
 	 * Create a channel with an unbounded queue. Message priority will be
 	 * determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
-	 *
+	 * {@link StaticMessageHeaderAccessor#getPriority(Message)}.
 	 * @param comparator The comparator.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
@@ -80,13 +83,12 @@ public class PriorityChannel extends QueueChannel {
 	 * is a non-positive value, the queue will be unbounded. Message priority
 	 * will be determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
-	 *
+	 * {@link StaticMessageHeaderAccessor#getPriority(Message)}.
 	 * @param capacity The capacity.
 	 * @param comparator The comparator.
 	 */
 	public PriorityChannel(int capacity, @Nullable Comparator<Message<?>> comparator) {
-		super(new PriorityBlockingQueue<>(11, new SequenceFallbackComparator(comparator)));
+		super(new PriorityBlockingQueue<>(DEFAULT_INITIAL_CAPACITY, new SequenceFallbackComparator(comparator)));
 		this.upperBound = new UpperBound(capacity);
 		this.useMessageStore = false;
 	}
@@ -147,19 +149,19 @@ public class PriorityChannel extends QueueChannel {
 
 		private final Comparator<Message<?>> targetComparator;
 
-		SequenceFallbackComparator(Comparator<Message<?>> targetComparator) {
+		SequenceFallbackComparator(@Nullable Comparator<Message<?>> targetComparator) {
 			this.targetComparator = targetComparator;
 		}
 
 		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
-			int compareResult = 0;
+			int compareResult;
 			if (this.targetComparator != null) {
 				compareResult = this.targetComparator.compare(message1, message2);
 			}
 			else {
-				Integer priority1 = new IntegrationMessageHeaderAccessor(message1).getPriority();
-				Integer priority2 = new IntegrationMessageHeaderAccessor(message2).getPriority();
+				Integer priority1 = StaticMessageHeaderAccessor.getPriority(message1);
+				Integer priority2 = StaticMessageHeaderAccessor.getPriority(message2);
 
 				priority1 = priority1 != null ? priority1 : 0;
 				priority2 = priority2 != null ? priority2 : 0;

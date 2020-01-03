@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
@@ -33,11 +30,13 @@ import org.springframework.messaging.Message;
 /**
  * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
  * processed is delegated to a {@link org.springframework.integration.aggregator.ReleaseStrategy ReleaseStrategy}.
- * When a message can be processed it is up to the client to take care of the locking (potentially from the ReleaseStrategy's
+ * When a message can be processed it is up to the client to take care of the locking (potentially from the
+ * ReleaseStrategy's
  * {@link org.springframework.integration.aggregator.ReleaseStrategy#canRelease(org.springframework.integration.store.MessageGroup) canRelease(..)}
  * method).
  * <p>
- * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples the receiver and the sender. It can
+ * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples the receiver and the
+ * sender. It can
  * be applied in scenarios where completion of a message group is not well defined but only a certain amount of messages
  * for any given correlation key may be processed at a time.
  * <p>
@@ -47,34 +46,32 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @see AbstractCorrelatingMessageHandler
  */
 public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource<Object> {
 
-	private static final Log log = LogFactory.getLog(CorrelatingMessageBarrier.class);
-
-	private volatile CorrelationStrategy correlationStrategy;
-
-	private volatile ReleaseStrategy releaseStrategy;
-
-	private final ConcurrentMap<Object, Object> correlationLocks = new ConcurrentHashMap<Object, Object>();
+	private final ConcurrentMap<Object, Object> correlationLocks = new ConcurrentHashMap<>();
 
 	private final MessageGroupStore store;
 
+	private CorrelationStrategy correlationStrategy;
 
-	public CorrelatingMessageBarrier(MessageGroupStore store) {
-		this.store = store;
-	}
+	private ReleaseStrategy releaseStrategy;
+
 
 	public CorrelatingMessageBarrier() {
 		this(new SimpleMessageStore(0));
 	}
 
+	public CorrelatingMessageBarrier(MessageGroupStore store) {
+		this.store = store;
+	}
+
 
 	/**
 	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages
-	 *
 	 * @param correlationStrategy The correlation strategy.
 	 */
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
@@ -83,7 +80,6 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	/**
 	 * Set the ReleaseStrategy that should be used when deciding if a group in this barrier may be released.
-	 *
 	 * @param releaseStrategy The release strategy.
 	 */
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
@@ -97,8 +93,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		synchronized (lock) {
 			this.store.addMessagesToGroup(correlationKey, message);
 		}
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("Handled message for key [%s]: %s.", correlationKey, message));
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("Handled message for key [%s]: %s.", correlationKey, message));
 		}
 	}
 
@@ -116,23 +112,21 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 			synchronized (lock) {
 				MessageGroup group = this.store.getMessageGroup(key);
 				//group might be removed by another thread
-				if (group != null) {
-					if (this.releaseStrategy.canRelease(group)) {
-						Message<?> nextMessage = null;
+				if (group != null && this.releaseStrategy.canRelease(group)) {
+					Message<?> nextMessage = null;
 
-						Iterator<Message<?>> messages = group.getMessages().iterator();
-						if (messages.hasNext()) {
-							nextMessage = messages.next();
-							this.store.removeMessagesFromGroup(key, nextMessage);
-							if (log.isDebugEnabled()) {
-								log.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
-							}
+					Iterator<Message<?>> messages = group.getMessages().iterator();
+					if (messages.hasNext()) {
+						nextMessage = messages.next();
+						this.store.removeMessagesFromGroup(key, nextMessage);
+						if (logger.isDebugEnabled()) {
+							logger.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
 						}
-						else {
-							remove(key);
-						}
-						return (Message<Object>) nextMessage;
 					}
+					else {
+						remove(key);
+					}
+					return (Message<Object>) nextMessage;
 				}
 			}
 		}

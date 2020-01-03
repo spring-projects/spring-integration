@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,16 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.concurrent.CopyOnWriteArraySet;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.SpringVersion;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,17 +33,19 @@ import org.springframework.util.StringUtils;
  * integration namespace.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.context.event.SimpleApplicationEventMulticaster";
+	protected Class<?> getBeanClass(Element element) {
+		return SimpleApplicationEventMulticaster.class;
 	}
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		return AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
 	}
 
@@ -56,19 +56,13 @@ public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinit
 			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
 		else {
-			BeanDefinitionBuilder executorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor");
+			BeanDefinitionBuilder executorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskExecutor.class);
 			executorBuilder.addPropertyValue("corePoolSize", 1);
 			executorBuilder.addPropertyValue("maxPoolSize", 10);
 			executorBuilder.addPropertyValue("queueCapacity", 0);
 			executorBuilder.addPropertyValue("threadNamePrefix", "event-multicaster-");
-			String executorBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					executorBuilder.getBeanDefinition(), parserContext.getRegistry());
-			builder.addPropertyReference("taskExecutor", executorBeanName);
-		}
-		String springVersion = SpringVersion.getVersion();
-		if (springVersion != null && springVersion.startsWith("2")) {
-			builder.addPropertyValue("collectionClass", CopyOnWriteArraySet.class);
+			builder.addPropertyValue("taskExecutor", executorBuilder.getBeanDefinition());
 		}
 	}
 

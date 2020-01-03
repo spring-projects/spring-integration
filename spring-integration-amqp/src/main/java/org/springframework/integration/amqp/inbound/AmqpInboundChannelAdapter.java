@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,17 +61,17 @@ import com.rabbitmq.client.Channel;
 public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		OrderlyShutdownCapable {
 
-	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<AttributeAccessor>();
+	private static final ThreadLocal<AttributeAccessor> ATTRIBUTES_HOLDER = new ThreadLocal<>();
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
-	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
+	private MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<? extends Object> recoveryCallback;
+	private RecoveryCallback<?> recoveryCallback;
 
 	private BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(0, 0, 0L);
 
@@ -119,7 +119,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	 * @since 4.3.10
 	 * @see #setRetryTemplate(RetryTemplate)
 	 */
-	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+	public void setRecoveryCallback(RecoveryCallback<?> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
 	}
 
@@ -197,12 +197,12 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
 		boolean needAttributes = needHolder || this.retryTemplate != null;
 		if (needHolder) {
-			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+			ATTRIBUTES_HOLDER.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
 			AttributeAccessor attributes = this.retryTemplate != null
 					? RetrySynchronizationManager.getContext()
-					: attributesHolder.get();
+					: ATTRIBUTES_HOLDER.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
@@ -212,7 +212,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	@Override
 	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.Message<?> message) {
-		AttributeAccessor attributes = attributesHolder.get();
+		AttributeAccessor attributes = ATTRIBUTES_HOLDER.get();
 		if (attributes == null) {
 			return super.getErrorMessageAttributes(message);
 		}
@@ -223,7 +223,6 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	protected class Listener implements ChannelAwareMessageListener {
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, final Channel channel) {
 			boolean retryDisabled = AmqpInboundChannelAdapter.this.retryTemplate == null;
@@ -233,21 +232,21 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				}
 				else {
 					final org.springframework.messaging.Message<Object> toSend = createMessage(message, channel);
-					AmqpInboundChannelAdapter.this.retryTemplate.execute(context -> {
+					AmqpInboundChannelAdapter.this.retryTemplate.execute(
+							context -> {
 								StaticMessageHeaderAccessor.getDeliveryAttempt(toSend).incrementAndGet();
 								setAttributesIfNecessary(message, toSend);
 								sendMessage(toSend);
 								return null;
-							},
-							(RecoveryCallback<Object>) AmqpInboundChannelAdapter.this.recoveryCallback);
+							}, AmqpInboundChannelAdapter.this.recoveryCallback);
 				}
 			}
 			catch (MessageConversionException e) {
 				if (getErrorChannel() != null) {
 					setAttributesIfNecessary(message, null);
 					getMessagingTemplate()
-						.send(getErrorChannel(), buildErrorMessage(null,
-								EndpointUtils.errorMessagePayload(message, channel, isManualAck(), e)));
+							.send(getErrorChannel(), buildErrorMessage(null,
+									EndpointUtils.errorMessagePayload(message, channel, isManualAck(), e)));
 				}
 				else {
 					throw e;
@@ -255,7 +254,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			}
 			finally {
 				if (retryDisabled) {
-					attributesHolder.remove();
+					ATTRIBUTES_HOLDER.remove();
 				}
 			}
 		}
@@ -289,16 +288,15 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			if (AmqpInboundChannelAdapter.this.bindSourceMessage) {
 				headers.put(IntegrationMessageHeaderAccessor.SOURCE_DATA, message);
 			}
-			final org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
+			return getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers)
 					.build();
-			return messagingMessage;
 		}
 
 		private boolean isManualAck() {
-			return AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
-					== AcknowledgeMode.MANUAL;
+			return AcknowledgeMode.MANUAL ==
+					AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode();
 		}
 
 	}

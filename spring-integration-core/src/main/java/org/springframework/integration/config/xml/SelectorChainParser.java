@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,13 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return MessageSelectorChain.class.getName();
+	protected Class<?> getBeanClass(Element element) {
+		return MessageSelectorChain.class;
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		if (!StringUtils.hasText(element.getAttribute("id"))) {
 			parserContext.getReaderContext().error("id is required", element);
 		}
-		this.parseSelectorChain(builder, element, parserContext);
+		parseSelectorChain(builder, element, parserContext);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -88,11 +89,12 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private RuntimeBeanReference buildMethodInvokingSelector(ParserContext parserContext, String ref, String method) {
-		BeanDefinitionBuilder methodInvokingSelectorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSelector.class);
+		BeanDefinitionBuilder methodInvokingSelectorBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSelector.class);
 		methodInvokingSelectorBuilder.addConstructorArgValue(new RuntimeBeanReference(ref));
 		methodInvokingSelectorBuilder.addConstructorArgValue(method);
-		RuntimeBeanReference selector = new RuntimeBeanReference(BeanDefinitionReaderUtils.registerWithGeneratedName(
+		return new RuntimeBeanReference(BeanDefinitionReaderUtils.registerWithGeneratedName(
 				methodInvokingSelectorBuilder.getBeanDefinition(), parserContext.getRegistry()));
-		return selector;
 	}
+
 }
