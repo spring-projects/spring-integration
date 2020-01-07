@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqEvent;
-import org.apache.geode.internal.cache.LocalRegion;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.gemfire.fork.ForkUtil;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author David Turanski
@@ -44,13 +43,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class CqInboundChannelAdapterTests {
 
 	@Autowired
-	LocalRegion region;
+	@Qualifier("test")
+	Region<String, Integer> region;
 
 	@Autowired
 	ConfigurableApplicationContext applicationContext;
@@ -66,13 +65,13 @@ public class CqInboundChannelAdapterTests {
 
 	static OutputStream os;
 
-	@BeforeClass
-	public static void startUp() throws Exception {
+	@BeforeAll
+	public static void startUp() {
 		os = ForkUtil.cacheServer();
 	}
 
 	@Test
-	public void testCqEvent() throws InterruptedException {
+	public void testCqEvent() {
 		assertThat(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class)).isTrue();
 		region.put("one", 1);
 		Message<?> msg = outputChannel1.receive(10000);
@@ -81,14 +80,14 @@ public class CqInboundChannelAdapterTests {
 	}
 
 	@Test
-	public void testPayloadExpression() throws InterruptedException {
+	public void testPayloadExpression() {
 		region.put("one", 1);
 		Message<?> msg = outputChannel2.receive(10000);
 		assertThat(msg).isNotNull();
 		assertThat(msg.getPayload()).isEqualTo(1);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void cleanUp() {
 		sendSignal();
 	}

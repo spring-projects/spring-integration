@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,27 +21,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.geode.internal.cache.DistributedRegion;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.geode.cache.Region;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class GemfireOutboundChannelAdapterTests {
 
@@ -49,19 +48,21 @@ public class GemfireOutboundChannelAdapterTests {
 	MessageChannel cacheChannel1;
 
 	@Autowired
-	DistributedRegion region1;
+	@Qualifier("region1")
+	Region<String, String> region1;
 
 	@Autowired
 	MessageChannel cacheChannel2;
 
 	@Autowired
-	DistributedRegion region2;
+	@Qualifier("region2")
+	Region<String, String> region2;
 
 	@Autowired
 	MessageChannel cacheChainChannel;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		region1.clear();
 		region2.clear();
@@ -69,7 +70,7 @@ public class GemfireOutboundChannelAdapterTests {
 
 	@Test
 	public void testWriteMapPayload() {
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("foo", "bar");
 
 		Message<?> message = MessageBuilder.withPayload(map).build();
@@ -87,9 +88,9 @@ public class GemfireOutboundChannelAdapterTests {
 		assertThat(region2.get("foo")).isEqualTo("bar");
 	}
 
-	@Test //INT-2275
+	@Test
 	public void testWriteWithinChain() {
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		map.put("foo", "bar");
 
 		Message<?> message = MessageBuilder.withPayload(map).build();
