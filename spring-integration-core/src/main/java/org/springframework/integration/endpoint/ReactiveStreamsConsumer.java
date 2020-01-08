@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,25 @@ import org.springframework.integration.channel.ChannelUtils;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.router.MessageRouter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
-import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.Flux;
 
 
 /**
+ * An {@link AbstractEndpoint} implementation for Reactive Streams subscription into an
+ * input channel and reactive consumption of messages from that channel.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
@@ -48,17 +54,22 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 	private final MessageChannel inputChannel;
 
-	private final MessageHandler handler;
-
 	private final Publisher<Message<Object>> publisher;
 
+	private final MessageHandler handler;
+
+	@Nullable
+	private final ReactiveMessageHandler reactiveMessageHandler;
+
+	@Nullable
 	private final Subscriber<Message<?>> subscriber;
 
+	@Nullable
 	private final Lifecycle lifecycleDelegate;
 
 	private ErrorHandler errorHandler;
 
-	private volatile Subscription subscription;
+	private volatile Disposable subscription;
 
 	@SuppressWarnings("unchecked")
 	public ReactiveStreamsConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
@@ -68,10 +79,10 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 						: new MessageHandlerSubscriber(messageHandler));
 	}
 
-	public ReactiveStreamsConsumer(MessageChannel inputChannel, final Subscriber<Message<?>> subscriber) {
-		this.inputChannel = inputChannel;
+	public ReactiveStreamsConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
+		this.inputChannel = inputChannel;
 
 		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
 			logger.warn("The consuming from the NullChannel does not have any effects: " +
@@ -90,6 +101,24 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		else {
 			this.handler = this.subscriber::onNext;
 		}
+		this.reactiveMessageHandler = null;
+	}
+
+	/**
+	 * Instantiate an endpoint based on the provided {@link MessageChannel} and {@link ReactiveMessageHandler}.
+	 * @param inputChannel the channel to consume in reactive manner.
+	 * @param reactiveMessageHandler the {@link ReactiveMessageHandler} to process messages.
+	 * @since 5.3
+	 */
+	public ReactiveStreamsConsumer(MessageChannel inputChannel, ReactiveMessageHandler reactiveMessageHandler) {
+		Assert.notNull(inputChannel, "'inputChannel' must not be null");
+		this.inputChannel = inputChannel;
+		this.handler = new ReactiveMessageHandlerAdapter(reactiveMessageHandler);
+		this.reactiveMessageHandler = reactiveMessageHandler;
+		this.publisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
+		this.subscriber = null;
+		this.lifecycleDelegate =
+				reactiveMessageHandler instanceof Lifecycle ? (Lifecycle) reactiveMessageHandler : null;
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -132,53 +161,33 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.start();
 		}
-		this.publisher.subscribe(new DelegatingSubscriber());
+
+		Flux<?> flux = null;
+		if (this.reactiveMessageHandler != null) {
+			flux = Flux.from(this.publisher)
+					.flatMap(this.reactiveMessageHandler::handleMessage);
+		}
+		else if (this.subscriber != null) {
+			flux = Flux.from(this.publisher)
+					.doOnSubscribe(this.subscriber::onSubscribe)
+					.doOnComplete(this.subscriber::onComplete)
+					.doOnNext(this.subscriber::onNext);
+		}
+		if (flux != null) {
+			this.subscription =
+					flux.onErrorContinue((ex, data) -> this.errorHandler.handleError(ex))
+							.subscribe();
+		}
 	}
 
 	@Override
 	protected void doStop() {
 		if (this.subscription != null) {
-			this.subscription.cancel();
+			this.subscription.dispose();
 		}
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.stop();
 		}
-	}
-
-	private final class DelegatingSubscriber extends BaseSubscriber<Message<?>> {
-
-		private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
-
-		DelegatingSubscriber() {
-		}
-
-		@Override
-		public void hookOnSubscribe(Subscription s) {
-			ReactiveStreamsConsumer.this.subscription = s;
-			this.delegate.onSubscribe(s);
-		}
-
-		@Override
-		public void hookOnNext(Message<?> message) {
-			try {
-				this.delegate.onNext(message);
-			}
-			catch (Exception e) {
-				ReactiveStreamsConsumer.this.errorHandler.handleError(e);
-				hookOnError(e);
-			}
-		}
-
-		@Override
-		public void hookOnError(Throwable t) {
-			this.delegate.onError(t);
-		}
-
-		@Override
-		public void hookOnComplete() {
-			this.delegate.onComplete();
-		}
-
 	}
 
 	private static final class MessageHandlerSubscriber

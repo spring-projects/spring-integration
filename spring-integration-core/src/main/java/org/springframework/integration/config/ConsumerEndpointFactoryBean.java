@@ -42,12 +42,14 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.ChannelResolverUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
@@ -112,11 +114,17 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile boolean initialized;
 
-	public void setHandler(MessageHandler handler) {
-		Assert.notNull(handler, "handler must not be null");
+	public void setHandler(Object handler) {
+		Assert.state(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
+				"'handler' must be an instance of 'MessageHandler' or 'ReactiveMessageHandler'");
 		synchronized (this.handlerMonitor) {
 			Assert.isNull(this.handler, "handler cannot be overridden");
-			this.handler = handler;
+			if (handler instanceof ReactiveMessageHandler) {
+				this.handler = new ReactiveMessageHandlerAdapter((ReactiveMessageHandler) handler);
+			}
+			else {
+				this.handler = (MessageHandler) handler;
+			}
 		}
 	}
 
@@ -210,7 +218,12 @@ public class ConsumerEndpointFactoryBean
 			}
 		}
 
-		adviceChain();
+		if (!(this.handler instanceof ReactiveMessageHandlerAdapter)) {
+			adviceChain();
+		}
+		else {
+			LOGGER.warn("the advice chain cannot be applied for 'ReactiveMessageHandler'");
+		}
 		if (this.channelResolver == null) {
 			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 		}
@@ -282,7 +295,13 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer(channel);
 			}
 			else {
-				this.endpoint = new ReactiveStreamsConsumer(channel, this.handler);
+				if (this.handler instanceof ReactiveMessageHandlerAdapter) {
+					this.endpoint = new ReactiveStreamsConsumer(channel,
+							((ReactiveMessageHandlerAdapter) this.handler).getDelegate());
+				}
+				else {
+					this.endpoint = new ReactiveStreamsConsumer(channel, this.handler);
+				}
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);

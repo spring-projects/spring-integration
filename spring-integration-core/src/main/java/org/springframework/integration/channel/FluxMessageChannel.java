@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,14 +78,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
 						.publishOn(Schedulers.boundedElastic())
-						.doOnNext((message) -> {
-							try {
-								send(message);
-							}
-							catch (Exception e) {
-								logger.warn("Error during processing event: " + message, e);
-							}
-						})
+						.doOnNext(this::send)
+						.onErrorContinue((ex, message) -> logger.warn("Error during processing event: " + message, ex))
 						.subscribe());
 	}
 

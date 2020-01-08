@@ -113,7 +113,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 
-		return evaluateCollectionNameExpression(message)
+ 		return evaluateCollectionNameExpression(message)
 				.flatMap(collection -> this.mongoTemplate.save(message.getPayload(), collection))
 				.then();
 	}
