@@ -35,18 +35,17 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 4.2
  */
 public class DynamicPeriodicTrigger implements Trigger {
 
-	private volatile Duration initialDuration = Duration.ofMillis(0);
+	private Duration initialDuration = Duration.ofMillis(0);
 
-	private volatile Duration duration;
+	private Duration duration;
 
-	private volatile TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-
-	private volatile boolean fixedRate = false;
+	private boolean fixedRate = false;
 
 	/**
 	 * Create a trigger with the given period in milliseconds. The underlying
@@ -177,14 +176,11 @@ public class DynamicPeriodicTrigger implements Trigger {
 			return false;
 		}
 		if (this.initialDuration == null) {
-			if (other.initialDuration != null) {
-				return false;
-			}
+			return other.initialDuration == null;
 		}
-		else if (!this.initialDuration.equals(other.initialDuration)) {
-			return false;
+		else {
+			return this.initialDuration.equals(other.initialDuration);
 		}
-		return true;
 	}
 
 
