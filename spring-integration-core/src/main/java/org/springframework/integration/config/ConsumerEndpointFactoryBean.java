@@ -115,7 +115,7 @@ public class ConsumerEndpointFactoryBean
 	private volatile boolean initialized;
 
 	public void setHandler(Object handler) {
-		Assert.state(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
+		Assert.isTrue(handler instanceof MessageHandler || handler instanceof ReactiveMessageHandler,
 				"'handler' must be an instance of 'MessageHandler' or 'ReactiveMessageHandler'");
 		synchronized (this.handlerMonitor) {
 			Assert.isNull(this.handler, "handler cannot be overridden");
@@ -222,7 +222,7 @@ public class ConsumerEndpointFactoryBean
 			adviceChain();
 		}
 		else {
-			LOGGER.warn("the advice chain cannot be applied for 'ReactiveMessageHandler'");
+			LOGGER.warn("the advice chain cannot be applied to a 'ReactiveMessageHandler'");
 		}
 		if (this.channelResolver == null) {
 			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
