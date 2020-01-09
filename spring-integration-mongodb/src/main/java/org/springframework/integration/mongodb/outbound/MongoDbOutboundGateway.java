@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.mongodb.outbound;
 
 import org.bson.Document;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  */
 public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private MongoDatabaseFactory mongoDbFactory;
+	private MongoDbFactory mongoDbFactory;
 
 	private MongoConverter mongoConverter;
 
@@ -65,12 +65,12 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression collectionNameExpression;
 
-	public MongoDbOutboundGateway(MongoDatabaseFactory mongoDbFactory) {
+	public MongoDbOutboundGateway(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, new MappingMongoConverter(new DefaultDbRefResolver(mongoDbFactory),
 				new MongoMappingContext()));
 	}
 
-	public MongoDbOutboundGateway(MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
+	public MongoDbOutboundGateway(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
 		Assert.notNull(mongoDbFactory, "mongoDatabaseFactory must not be null.");
 		Assert.notNull(mongoConverter, "mongoConverter must not be null.");
 		this.mongoDbFactory = mongoDbFactory;

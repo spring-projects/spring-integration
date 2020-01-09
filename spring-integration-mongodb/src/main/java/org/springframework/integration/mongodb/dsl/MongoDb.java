@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.dsl;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 
@@ -31,13 +31,13 @@ public final class MongoDb {
 
 	/**
 	 * Create a {@link MongoDbOutboundGatewaySpec} builder instance
-	 * based on the provided {@link MongoDatabaseFactory} and {@link MongoConverter}.
-	 * @param mongoDbFactory the {@link MongoDatabaseFactory} to use.
+	 * based on the provided {@link MongoDbFactory} and {@link MongoConverter}.
+	 * @param mongoDbFactory the {@link MongoDbFactory} to use.
 	 * @param mongoConverter the {@link MongoConverter} to use.
 	 * @return the {@link MongoDbOutboundGatewaySpec} instance
 	 */
 	public static MongoDbOutboundGatewaySpec outboundGateway(
-			MongoDatabaseFactory mongoDbFactory, MongoConverter mongoConverter) {
+			MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
 
 		return new MongoDbOutboundGatewaySpec(mongoDbFactory, mongoConverter);
 	}

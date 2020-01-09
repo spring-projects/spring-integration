@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -76,7 +76,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	protected final String collectionName; // NOSONAR - final
 
-	protected final MongoDatabaseFactory mongoDbFactory; // NOSONAR - final
+	protected final MongoDbFactory mongoDbFactory; // NOSONAR - final
 
 	private MongoTemplate mongoTemplate;
 
@@ -94,11 +94,11 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		this.mongoDbFactory = null;
 	}
 
-	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, String collectionName) {
+	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public AbstractConfigurableMongoDbMessageStore(MongoDatabaseFactory mongoDbFactory,
+	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory,
 			MappingMongoConverter mappingMongoConverter, String collectionName) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.hasText(collectionName, "'collectionName' must not be empty");

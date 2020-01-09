@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -141,19 +141,19 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private String[] whiteListPatterns;
 
 	/**
-	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory}.and the default collection name.
+	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
 	 * @param mongoDbFactory The mongodb factory.
 	 */
-	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory) {
+	public MongoDbMessageStore(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
 	}
 
 	/**
-	 * Create a MongoDbMessageStore using the provided {@link MongoDatabaseFactory} and collection name.
+	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory} and collection name.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param collectionName The collection name.
 	 */
-	public MongoDbMessageStore(MongoDatabaseFactory mongoDbFactory, @Nullable String collectionName) {
+	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, @Nullable String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		this.converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, this.converter);
@@ -523,7 +523,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private Object[] customConverters;
 
-		MessageReadingMongoConverter(MongoDatabaseFactory mongoDbFactory,
+		MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}

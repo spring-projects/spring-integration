@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.List;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
@@ -75,7 +75,7 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 	private volatile MongoConverter mongoConverter;
 
-	private volatile MongoDatabaseFactory mongoDbFactory;
+	private volatile MongoDbFactory mongoDbFactory;
 
 	private volatile boolean initialized = false;
 
@@ -84,14 +84,14 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	private volatile boolean expectSingleResult = false;
 
 	/**
-	 * Creates an instance with the provided {@link MongoDatabaseFactory} and SpEL expression
+	 * Creates an instance with the provided {@link MongoDbFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string
 	 * (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
 	 */
-	public MongoDbMessageSource(MongoDatabaseFactory mongoDbFactory, Expression queryExpression) {
+	public MongoDbMessageSource(MongoDbFactory mongoDbFactory, Expression queryExpression) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 
@@ -156,7 +156,7 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	/**
 	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
 	 * data read from MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDatabaseFactory}.
+	 * {@link MongoDbFactory}.
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
