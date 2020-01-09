@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.messaging.support.InterceptableChannel;
+
 /**
- * The {@link ChannelInterceptorAware} extension for the cases when
+ * The {@link InterceptableChannel} extension for the cases when
  * the {@link org.springframework.messaging.support.ExecutorChannelInterceptor}s
  * may have reason (e.g. {@link ExecutorChannel} or {@link QueueChannel})
  * and the implementors require to know if they should make the
@@ -28,8 +30,7 @@ package org.springframework.integration.channel;
  *
  * @since 4.2
  */
-@SuppressWarnings("deprecation")
-public interface ExecutorChannelInterceptorAware extends ChannelInterceptorAware {
+public interface ExecutorChannelInterceptorAware extends InterceptableChannel {
 
 	boolean hasExecutorInterceptors();
 

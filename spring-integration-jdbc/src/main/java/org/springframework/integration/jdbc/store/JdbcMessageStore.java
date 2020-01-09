@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -79,8 +76,6 @@ import org.springframework.util.StringUtils;
  */
 public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
-	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
-
 	/**
 	 * Default value for the table prefix property.
 	 */
@@ -95,13 +90,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?"),
 
-		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=? and REGION=?"),
+		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=? and " +
+				"REGION=?"),
 
 		REMOVE_GROUP_TO_MESSAGE_JOIN("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and REGION=?"),
 
 		COUNT_ALL_MESSAGES_IN_GROUPS("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where REGION=?"),
 
-		COUNT_ALL_MESSAGES_IN_GROUP("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and REGION=?"),
+		COUNT_ALL_MESSAGES_IN_GROUP("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and " +
+				"REGION=?"),
 
 		LIST_MESSAGES_BY_GROUP_KEY("SELECT MESSAGE_ID, MESSAGE_BYTES, CREATED_DATE " +
 				"from %PREFIX%MESSAGE where MESSAGE_ID in " +
@@ -123,7 +120,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ? and REGION=?"),
 
-		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?"),
+		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and " +
+				"REGION=?"),
 
 		GET_GROUP_CREATED_DATE("SELECT CREATED_DATE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
@@ -138,7 +136,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		COMPLETE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, COMPLETE=1 where GROUP_KEY=? and REGION=?"),
 
-		UPDATE_LAST_RELEASED_SEQUENCE("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, LAST_RELEASED_SEQUENCE=? where GROUP_KEY=? and REGION=?"),
+		UPDATE_LAST_RELEASED_SEQUENCE("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, LAST_RELEASED_SEQUENCE=? where " +
+				"GROUP_KEY=? and REGION=?"),
 
 		DELETE_MESSAGES_FROM_GROUP("DELETE from %PREFIX%MESSAGE where MESSAGE_ID in " +
 				"(SELECT MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ? and REGION = ?) and REGION = ?"),
@@ -164,36 +163,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 	}
 
-	/**
-	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
-	 * optimization for the put method.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String SAVED_KEY = JdbcMessageStore.class.getSimpleName() + ".SAVED";
-
-	/**
-	 * The name of the message header that stores a timestamp for the time the message was inserted.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
-
 	private final MessageMapper mapper = new MessageMapper();
-
-	private volatile String region = "DEFAULT";
-
-	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
 
 	private final JdbcOperations jdbcTemplate;
 
-	private volatile WhiteListDeserializingConverter deserializer;
+	private final Map<Query, String> queryCache = new HashMap<>();
 
-	private volatile SerializingConverter serializer;
+	private String region = "DEFAULT";
 
-	private volatile LobHandler lobHandler = new DefaultLobHandler();
+	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
+	private WhiteListDeserializingConverter deserializer;
+
+	private SerializingConverter serializer;
+
+	private LobHandler lobHandler = new DefaultLobHandler();
 
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
@@ -357,8 +341,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		final String groupKey = getKey(groupId);
-		boolean groupNotExist = this.jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS), // NOSONAR query never returns null
-				Integer.class, groupKey, this.region) < 1;
+		boolean groupNotExist = this.jdbcTemplate
+				.queryForObject(this.getQuery(Query.GROUP_EXISTS), // NOSONAR query never returns null
+						Integer.class, groupKey, this.region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
 
@@ -408,16 +393,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), // NOSONAR query never returns null
-				Integer.class, this.region);
+		return this.jdbcTemplate
+				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), // NOSONAR query never returns null
+						Integer.class, this.region);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), // NOSONAR query never returns null
-				Integer.class, key, this.region);
+		return this.jdbcTemplate
+				.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), // NOSONAR query never returns null
+						Integer.class, key, this.region);
 	}
 
 	@Override

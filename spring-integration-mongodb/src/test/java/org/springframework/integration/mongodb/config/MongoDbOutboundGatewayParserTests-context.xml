@@ -58,7 +58,7 @@
 
 
 	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.core.CollectionCallback"/>
+		<constructor-arg value="org.springframework.integration.mongodb.outbound.MessageCollectionCallback"/>
 	</bean>
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">

@@ -17,11 +17,11 @@
 package org.springframework.integration.mongodb.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -39,17 +39,15 @@ import org.springframework.integration.mongodb.outbound.MongoDbOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Artem Bilan
  *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MongoDbOutboundGatewayParserTests {
 
@@ -139,22 +137,28 @@ public class MongoDbOutboundGatewayParserTests {
 				.isInstanceOf(MessageCollectionCallback.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndFactoryFail() {
-		new ClassPathXmlApplicationContext("outbound-gateway-fail-template-factory-config.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("outbound-gateway-fail-template-factory-config.xml",
+								getClass()));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void templateAndConverterFail() {
-		new ClassPathXmlApplicationContext("outbound-gateway-fail-template-converter-config.xml",
-				this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("outbound-gateway-fail-template-converter-config.xml",
+								this.getClass()));
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void collectionCallbackAndQueryFail() {
-		new ClassPathXmlApplicationContext("outbound-gateway-fail-collection-callback-config.xml",
-				this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("outbound-gateway-fail-collection-callback-config.xml",
+								this.getClass()));
 	}
 
 }

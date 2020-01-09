@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,32 +179,6 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(inboundGatewaySpec);
 	}
 
-	/**
-	 * @param service service for polling method
-	 * @param methodName method to poll
-	 * @return the IntegrationFlowBuilder
-	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
-	 */
-	@Deprecated
-	protected IntegrationFlowBuilder from(Object service, String methodName) {
-		return IntegrationFlows.from(service, methodName);
-	}
-
-	/**
-	 *
-	 * @param service service for polling method
-	 * @param methodName method to poll
-	 * @param endpointConfigurer configurer for {@link SourcePollingChannelAdapterSpec}
-	 * @return the IntegrationFlowBuilder
-	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
-	 */
-	@Deprecated
-	protected IntegrationFlowBuilder from(Object service, String methodName,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-
-		return IntegrationFlows.from(service, methodName, endpointConfigurer);
-	}
-
 	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
 		return IntegrationFlows.from(messageSource);
 	}
@@ -217,18 +191,6 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 
 	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {
 		return IntegrationFlows.from(serviceInterface);
-	}
-
-	/**
-	 * Start a flow from a proxy for the service interface.
-	 * @param serviceInterface  the service interface to proxy for the gateway.
-	 * @param beanName the bean name for the gateway proxy.
-	 * @return the {@link IntegrationFlowBuilder} instance
-	 * @deprecated since 5.2 in favor of {@link #from(Class, Consumer)}
-	 */
-	@Deprecated
-	protected IntegrationFlowBuilder from(Class<?> serviceInterface, @Nullable String beanName) {
-		return from(serviceInterface, (gateway) -> gateway.beanName(beanName));
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,6 @@
 
 package org.springframework.integration.mqtt.core;
 
-import java.util.Arrays;
-import java.util.Properties;
-
-import javax.net.SocketFactory;
-
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
@@ -36,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Gunnar Hillert
+ *
  * @since 4.0
  *
  */
@@ -48,105 +44,11 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	private ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 
 	/**
-	 * Set the cleanSession.
-	 * @param cleanSession the cleanSession to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setCleanSession(Boolean cleanSession) {
-		this.options.setCleanSession(cleanSession);
-	}
-
-	/**
-	 * Set the connectionTimeout.
-	 * @param connectionTimeout the connectionTimeout to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setConnectionTimeout(Integer connectionTimeout) {
-		this.options.setConnectionTimeout(connectionTimeout);
-	}
-
-	/**
-	 * Set the keepAliveInterval.
-	 * @param keepAliveInterval the keepAliveInterval to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setKeepAliveInterval(Integer keepAliveInterval) {
-		this.options.setKeepAliveInterval(keepAliveInterval);
-	}
-
-	/**
-	 * Set the password.
-	 * @param password the password to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setPassword(String password) {
-		this.options.setPassword(password.toCharArray());
-	}
-
-	/**
-	 * Set the socketFactory.
-	 * @param socketFactory the socketFactory to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setSocketFactory(SocketFactory socketFactory) {
-		this.options.setSocketFactory(socketFactory);
-	}
-
-	/**
-	 * Set the sslProperties.
-	 * @param sslProperties the sslProperties to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setSslProperties(Properties sslProperties) {
-		this.options.setSSLProperties(sslProperties);
-	}
-
-	/**
-	 * Set the userName.
-	 * @param userName the userName to set.
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setUserName(String userName) {
-		this.options.setUserName(userName);
-	}
-
-	/**
-	 * Will be used to set the "Last Will and Testament" (LWT) for the connection.
-	 * @param will The will.
-	 * @see MqttConnectOptions#setWill
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setWill(Will will) {
-		this.options.setWill(will.getTopic(), will.getPayload(), will.getQos(), will.isRetained());
-	}
-
-	/**
 	 * Set the persistence to pass into the client constructor.
 	 * @param persistence the persistence to set.
 	 */
 	public void setPersistence(MqttClientPersistence persistence) {
 		this.persistence = persistence;
-	}
-
-	/**
-	 * Use this when using multiple server instances, for example when using HA.
-	 * @param serverURIs The URIs.
-	 * @see MqttConnectOptions#setServerURIs(String[])
-	 * @since 4.1
-	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
-	 */
-	@Deprecated
-	public void setServerURIs(String... serverURIs) {
-		Assert.notNull(serverURIs, "'serverURIs' must not be null.");
-		this.options.setServerURIs(Arrays.copyOf(serverURIs, serverURIs.length));
 	}
 
 	/**

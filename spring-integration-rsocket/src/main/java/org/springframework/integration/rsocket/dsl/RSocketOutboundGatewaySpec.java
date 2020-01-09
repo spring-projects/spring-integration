@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,18 +59,6 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure an {@link RSocketOutboundGateway.Command} for the RSocket request type.
-	 * @param command the {@link RSocketOutboundGateway.Command} to use.
-	 * @return the spec
-	 * @see RSocketOutboundGateway#setCommand(RSocketOutboundGateway.Command)
-	 * @deprecated in favor of {@link #interactionModel(RSocketInteractionModel)}
-	 */
-	@Deprecated
-	public RSocketOutboundGatewaySpec command(RSocketOutboundGateway.Command command) {
-		return interactionModel(new ValueExpression<>(command));
-	}
-
-	/**
 	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
 	 * @param interactionModel the {@link RSocketInteractionModel} to use.
 	 * @return the spec
@@ -79,20 +67,6 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 */
 	public RSocketOutboundGatewaySpec interactionModel(RSocketInteractionModel interactionModel) {
 		return interactionModel(new ValueExpression<>(interactionModel));
-	}
-
-	/**
-	 * Configure a {@link Function} to evaluate an {@link RSocketOutboundGateway.Command}
-	 * for the RSocket request type at runtime against a request message.
-	 * @param commandFunction the {@code Function} to use.
-	 * @param <P> the expected request message payload type.
-	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
-	 * @deprecated in favor of {@link #interactionModel(Function)}
-	 */
-	@Deprecated
-	public <P> RSocketOutboundGatewaySpec command(Function<Message<P>, ?> commandFunction) {
-		return interactionModel(commandFunction);
 	}
 
 	/**
@@ -109,19 +83,6 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	}
 
 	/**
-	 * Configure a SpEL expression to evaluate an {@link RSocketOutboundGateway.Command}
-	 * for the RSocket request type at runtime against a request message.
-	 * @param commandExpression the SpEL expression to use.
-	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
-	 * @deprecated in favor of {@link #interactionModel(String)}
-	 */
-	@Deprecated
-	public RSocketOutboundGatewaySpec command(String commandExpression) {
-		return interactionModel(commandExpression);
-	}
-
-	/**
 	 * Configure a SpEL expression to evaluate an {@link RSocketInteractionModel}
 	 * for the RSocket request type at runtime against a request message.
 	 * @param interactionModelExpression the SpEL expression to use.
@@ -131,19 +92,6 @@ public class RSocketOutboundGatewaySpec extends MessageHandlerSpec<RSocketOutbou
 	 */
 	public RSocketOutboundGatewaySpec interactionModel(String interactionModelExpression) {
 		return interactionModel(PARSER.parseExpression(interactionModelExpression));
-	}
-
-	/**
-	 * Configure a SpEL expression to evaluate an {@link RSocketOutboundGateway.Command}
-	 * for the RSocket request type at runtime against a request message.
-	 * @param commandExpression the SpEL expression to use.
-	 * @return the spec
-	 * @see RSocketOutboundGateway#setInteractionModelExpression(Expression)
-	 * @deprecated in favor of {@link #interactionModel(Expression)}
-	 */
-	@Deprecated
-	public RSocketOutboundGatewaySpec command(Expression commandExpression) {
-		return interactionModel(commandExpression);
 	}
 
 	/**

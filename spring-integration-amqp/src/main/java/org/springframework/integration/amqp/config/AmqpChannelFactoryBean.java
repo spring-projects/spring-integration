@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,16 +312,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	public void setTransactionManager(PlatformTransactionManager transactionManager) {
 		this.transactionManager = transactionManager;
-	}
-
-	/**
-	 * Specify a batch size for consumer.
-	 * @param txSize the batch size to use
-	 * @deprecated since 5.2 in favor of {@link #setBatchSize(Integer)}
-	 */
-	@Deprecated
-	public void setTxSize(int txSize) {
-		setBatchSize(txSize);
 	}
 
 	public void setBatchSize(Integer batchSize) {

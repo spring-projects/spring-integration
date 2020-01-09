@@ -359,14 +359,10 @@ To avoid unexpected issues with JSON mapping features when you use annotations, 
 
 [source,java]
 ----
-@org.codehaus.jackson.annotate.JsonIgnoreProperties(ignoreUnknown=true)
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
-@org.boon.json.annotations.JsonIgnoreProperties("thing1")
 public class Thing1 {
 
-        @org.codehaus.jackson.annotate.JsonProperty("thing1Thing2")
         @com.fasterxml.jackson.annotation.JsonProperty("thing1Thing2")
-        @org.boon.json.annotations.JsonProperty("thing1Thing2")
         public Object thing2;
 
 }

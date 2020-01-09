@@ -9,9 +9,9 @@
 		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="socketUtils" class="org.springframework.integration.test.util.SocketUtils" />
+	<bean id="socketUtils" class="org.springframework.util.SocketUtils" />
 
-	<int-syslog:inbound-channel-adapter id="foo" port="#{socketUtils.findAvailableUdpSocket(1514)}" />
+	<int-syslog:inbound-channel-adapter id="foo" port="#{socketUtils.findAvailableUdpPort(1514)}" />
 
 	<int-syslog:inbound-channel-adapter id="foobar" channel="foo" port="1514" auto-startup="false" />
 
@@ -23,7 +23,7 @@
 		<int:queue/>
 	</int:channel>
 
-	<int-syslog:inbound-channel-adapter id="explicitUdp" protocol="udp" port="1514" auto-startup="false" />
+	<int-syslog:inbound-channel-adapter id="explicitUdp" port="1514" auto-startup="false" />
 
 	<int:channel id="explicitUdp">
 		<int:queue/>
@@ -42,7 +42,7 @@
 	<bean id="converter"
 		class="org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterParserTests$PassThruConverter" />
 
-	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="#{socketUtils.findAvailableServerSocket(1514)}" />
+	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="#{socketUtils.findAvailableTcpPort(1514)}" />
 
 	<int:channel id="bar">
 		<int:queue/>
@@ -58,10 +58,10 @@
 		send-timeout="456"
 		error-channel="errors" />
 
-	<int-ip:tcp-connection-factory id="cf" 
+	<int-ip:tcp-connection-factory id="cf"
 		using-nio="true"
 		type="server"
-		port="1514" 
+		port="1514"
 		deserializer="rfc6587" />
 
 	<bean id="rfc5424" class="org.springframework.integration.syslog.RFC5424MessageConverter" />

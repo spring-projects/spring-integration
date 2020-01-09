@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
-	private Class<?> serviceInterface = RequestReplyExchanger.class;
+	private final Class<?> serviceInterface;
 
 	private MessageChannel defaultRequestChannel;
 
@@ -161,23 +161,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * {@link RequestReplyExchanger}, upon initialization.
 	 */
 	public GatewayProxyFactoryBean() {
+		this.serviceInterface = RequestReplyExchanger.class;
 	}
 
 	public GatewayProxyFactoryBean(Class<?> serviceInterface) {
-		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
-		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
-		this.serviceInterface = serviceInterface;
-	}
-
-
-	/**
-	 * Set the interface class that the generated proxy should implement.
-	 * If none is provided explicitly, the default is {@link RequestReplyExchanger}.
-	 * @param serviceInterface The service interface.
-	 * @deprecated since 5.2.1 in favor of ctor initialization
-	 */
-	@Deprecated
-	public void setServiceInterface(Class<?> serviceInterface) {
 		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
 		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,33 +131,12 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * Configure a {@link Command} for the RSocket request type.
-	 * @param command the {@link Command} to use.
-	 * @deprecated in favor of {@link #setInteractionModel(RSocketInteractionModel)}
-	 */
-	@Deprecated
-	public void setCommand(Command command) {
-		setInteractionModelExpression(new ValueExpression<>(command.interactionModel));
-	}
-
-	/**
 	 * Configure an {@link RSocketInteractionModel} for the RSocket request type.
 	 * @param interactionModel the {@link RSocketInteractionModel} to use.
 	 * @since 5.2.2
 	 */
 	public void setInteractionModel(RSocketInteractionModel interactionModel) {
 		setInteractionModelExpression(new ValueExpression<>(interactionModel));
-	}
-
-	/**
-	 * Configure a SpEL expression to evaluate a {@link Command} for the RSocket request type at runtime
-	 * against a request message.
-	 * @param commandExpression the SpEL expression to use.
-	 * @deprecated in favor of {@link #setInteractionModelExpression(Expression)}
-	 */
-	@Deprecated
-	public void setCommandExpression(Expression commandExpression) {
-		setInteractionModelExpression(commandExpression);
 	}
 
 	/**
@@ -337,9 +316,6 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		if (value instanceof RSocketInteractionModel) {
 			return (RSocketInteractionModel) value;
 		}
-		else if (value instanceof Command) {
-			return ((Command) value).interactionModel;
-		}
 		else if (value instanceof String) {
 			return RSocketInteractionModel.valueOf((String) value);
 		}
@@ -370,41 +346,6 @@ public class RSocketOutboundGateway extends AbstractReplyProducingMessageHandler
 		else {
 			return type;
 		}
-	}
-
-	/**
-	 * Enumeration of commands supported by the gateways.
-	 * @deprecated in favor of {@link RSocketInteractionModel}
-	 */
-	@Deprecated
-	public enum Command {
-
-		/**
-		 * Perform {@link io.rsocket.RSocket#fireAndForget fireAndForget}.
-		 * @see RSocketRequester.RequestSpec#send()
-		 */
-		fireAndForget(RSocketInteractionModel.fireAndForget),
-
-		/**
-		 * Perform {@link io.rsocket.RSocket#requestResponse requestResponse}.
-		 * @see RSocketRequester.RequestSpec#retrieveMono
-		 */
-		requestResponse(RSocketInteractionModel.requestResponse),
-
-		/**
-		 * Perform {@link io.rsocket.RSocket#requestStream requestStream} or
-		 * {@link io.rsocket.RSocket#requestChannel requestChannel} depending on whether
-		 * the request input consists of a single or multiple payloads.
-		 * @see RSocketRequester.RequestSpec#retrieveFlux
-		 */
-		requestStreamOrChannel(RSocketInteractionModel.requestStream);
-
-		private final RSocketInteractionModel interactionModel;
-
-		Command(RSocketInteractionModel interactionModel) {
-			this.interactionModel = interactionModel;
-		}
-
 	}
 
 }

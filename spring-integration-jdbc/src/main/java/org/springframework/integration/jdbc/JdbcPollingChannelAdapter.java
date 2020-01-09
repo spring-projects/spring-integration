@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,18 +145,6 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 */
 	public void setSelectSqlParameterSource(@Nullable SqlParameterSource sqlQueryParameterSource) {
 		this.sqlQueryParameterSource = sqlQueryParameterSource;
-	}
-
-	/**
-	 * The maximum number of rows to pull out of the query results per poll (if
-	 * greater than zero, otherwise all rows will be packed into the outgoing
-	 * message). Default is zero.
-	 * @param maxRows the max rows to set
-	 * @deprecated since 5.1 in favor of {@link #setMaxRows(int)}
-	 */
-	@Deprecated
-	public void setMaxRowsPerPoll(int maxRows) {
-		setMaxRows(maxRows);
 	}
 
 	/**
