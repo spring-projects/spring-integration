@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,17 +200,6 @@ public class AmqpMessageChannelSpec<S extends AmqpMessageChannelSpec<S>> extends
 	public S transactionManager(PlatformTransactionManager transactionManager) {
 		this.amqpChannelFactoryBean.setTransactionManager(transactionManager);
 		return _this();
-	}
-
-	/**
-	 * Configure the txSize.
-	 * @param txSize the txSize.
-	 * @return the spec.
-	 * @deprecated since 5.2 in favor of {@link #batchSize(int)}
-	 */
-	@Deprecated
-	public S txSize(int txSize) {
-		return batchSize(txSize);
 	}
 
 	/**

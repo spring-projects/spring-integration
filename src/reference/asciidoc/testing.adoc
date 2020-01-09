@@ -70,16 +70,16 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 
 ==== Using the `SocketUtils` Class
 
-The https://docs.spring.io/spring-integration/api/org/springframework/integration/test/util/SocketUtils.html[`SocketUtils` class] provides several methods that select one or more random ports for exposing server-side components without conflicts, as the following example shows:
+The https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/util/SocketUtils.html[`SocketUtils` class] provides several methods that select one or more random ports for exposing server-side components without conflicts, as the following example shows:
 
 ====
 [source,xml]
 ----
-<bean id="socketUtils" class="org.springframework.integration.test.util.SocketUtils" />
+<bean id="socketUtils" class="org.springframework.util.SocketUtils" />
 
 <int-syslog:inbound-channel-adapter id="syslog"
             channel="sysLogs"
-            port="#{socketUtils.findAvailableUdpSocket(1514)}" />
+            port="#{socketUtils.findAvailableUdpPort(1514)}" />
 
 <int:channel id="sysLogs">
     <int:queue/>

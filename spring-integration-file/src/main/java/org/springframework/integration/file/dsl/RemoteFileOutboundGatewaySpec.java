@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,18 +307,6 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 */
 	public S localFilenameExpression(String localFilenameExpression) {
 		return localFilenameExpression(PARSER.parseExpression(localFilenameExpression));
-	}
-
-	/**
-	 * Specify a {@link Function} for local files renaming after downloading.
-	 * @param localFilenameFunction the {@link Function} to use.
-	 * @param <P> the expected payload type.
-	 * @return the Spec.
-	 * @deprecated since 5.2 in favor of {@link #localFilenameFunction(Function)}
-	 */
-	@Deprecated
-	public <P> S localFilename(Function<Message<P>, String> localFilenameFunction) {
-		return localFilenameFunction(localFilenameFunction);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,14 +77,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
 		Assert.notNull(metadataSource, "metadataSource must not be null");
 		this.metadataSource = metadataSource;
-	}
-
-	/**
-	 * @param metadataSource the {@link PublisherMetadataSource} to use.
-	 * @deprecated since 5.2 in favor constructor argument.
-	 */
-	@Deprecated
-	public void setPublisherMetadataSource(PublisherMetadataSource metadataSource) {
 	}
 
 	/**

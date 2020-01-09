@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private String updateSql;
+	private final String updateSql;
 
 	private PreparedStatementCreator generatedKeysStatementCreator;
 
@@ -128,16 +128,6 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		this.keysGenerated = keysGenerated;
 	}
 
-	/**
-	 * Configure an SQL statement to perform an UPDATE on the target database.
-	 * @param updateSql the SQL statement to perform.
-	 * @deprecated since 5.1.3 in favor of constructor argument.
-	 */
-	@Deprecated
-	public final void setUpdateSql(String updateSql) {
-		Assert.hasText(updateSql, "'updateSql' must not be empty.");
-		this.updateSql = updateSql;
-	}
 
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;

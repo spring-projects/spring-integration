@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.file.filters;
 
 import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
@@ -33,8 +32,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F>
-		implements InitializingBean { // TODO Remove in the next version
+public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F> {
 
 	private Pattern pattern;
 
@@ -59,15 +57,6 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 		this.pattern = pattern;
 	}
 
-	/**
-	 * @deprecated since 5.1.3. Will be removed in the next 5.2 version.
-	 */
-	@Override
-	@Deprecated
-	public void afterPropertiesSet() {
-
-	}
-
 	@Override
 	public boolean accept(F file) {
 		return alwaysAccept(file) || (file != null && this.pattern.matcher(getFilename(file)).matches());
@@ -75,7 +64,6 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDire
 
 	/**
 	 * Subclasses must implement this method to extract the file's name.
-	 *
 	 * @param file The file.
 	 * @return The file name.
 	 */

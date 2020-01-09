@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,23 +58,6 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	/**
-	 * Create a trigger with the given period and time unit. The time unit will
-	 * apply not only to the period but also to any 'initialDelay' value, if
-	 * configured on this Trigger later via {@link #setInitialDelay(long)}.
-	 * @param period Must not be negative
-	 * @param timeUnit Must not be null
-	 * @deprecated in favor of {@link #DynamicPeriodicTrigger(Duration)}.
-	 */
-	@Deprecated
-	public DynamicPeriodicTrigger(long period, TimeUnit timeUnit) {
-		Assert.isTrue(period >= 0, "period must not be negative");
-		Assert.notNull(timeUnit, "timeUnit must not be null");
-
-		this.timeUnit = timeUnit;
-		this.duration = Duration.ofMillis(this.timeUnit.toMillis(period));
-	}
-
-	/**
 	 * Create a trigger with the provided duration.
 	 * @param duration the duration.
 	 * @since 5.1
@@ -83,19 +66,6 @@ public class DynamicPeriodicTrigger implements Trigger {
 		Assert.notNull(duration, "duration must not be null");
 		Assert.isTrue(!duration.isNegative(), "duration must not be negative");
 		this.duration = duration;
-	}
-
-	/**
-	 * Specify the delay for the initial execution. It will be evaluated in
-	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
-	 * provided upon instantiation, the default is milliseconds.
-	 * @param initialDelay the initial delay in milliseconds.
-	 * @deprecated in favor of {@link #setInitialDuration(Duration)}.
-	 */
-	@Deprecated
-	public void setInitialDelay(long initialDelay) {
-		Assert.isTrue(initialDelay >= 0, "initialDelay must not be negative");
-		this.initialDuration = Duration.ofMillis(this.timeUnit.toMillis(initialDelay));
 	}
 
 	/**
@@ -146,60 +116,6 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 */
 	public void setFixedRate(boolean fixedRate) {
 		this.fixedRate = fixedRate;
-	}
-
-	/**
-	 * Return the period in milliseconds.
-	 * @return the period.
-	 * @deprecated in favor of {@link #getDuration()}.
-	 */
-	@Deprecated
-	public long getPeriod() {
-		return this.duration.toMillis();
-	}
-
-	/**
-	 * Specify the period of the trigger. It will be evaluated in
-	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
-	 * provided upon instantiation, the default is milliseconds.
-	 * @param period Must not be negative
-	 * @deprecated in favor of {@link #setDuration(Duration)}.
-	 */
-	@Deprecated
-	public void setPeriod(long period) {
-		Assert.isTrue(period >= 0, "period must not be negative");
-		this.duration = Duration.ofMillis(this.timeUnit.toMillis(period));
-	}
-
-	/**
-	 * Get the time unit.
-	 * @return the time unit.
-	 * @deprecated - use {@link Duration} instead.
-	 */
-	@Deprecated
-	public TimeUnit getTimeUnit() {
-		return this.timeUnit;
-	}
-
-	/**
-	 * Set the time unit.
-	 * @param timeUnit the time unit.
-	 * @deprecated - use {@link Duration} instead.
-	 */
-	@Deprecated
-	public void setTimeUnit(TimeUnit timeUnit) {
-		Assert.notNull(timeUnit, "timeUnit must not be null");
-		this.timeUnit = timeUnit;
-	}
-
-	/**
-	 * Get the initial delay in milliseconds.
-	 * @return the initial delay.
-	 * @deprecated in favor of {@link #getInitialDuration()}.
-	 */
-	@Deprecated
-	public long getInitialDelay() {
-		return this.initialDuration.toMillis();
 	}
 
 	/**

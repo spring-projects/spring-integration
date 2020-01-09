@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public final class IntegrationFlows {
 	 * @see MessageSourceSpec and its implementations.
 	 */
 	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
-		return from(messageSourceSpec, (Consumer<SourcePollingChannelAdapterSpec>) null);
+		return from(messageSourceSpec, null);
 	}
 
 	/**
@@ -134,20 +134,6 @@ public final class IntegrationFlows {
 	}
 
 	/**
-	 * Populate the provided {@link MethodInvokingMessageSource} for the method of the provided service.
-	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see MethodInvokingMessageSource
-	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
-	 */
-	@Deprecated
-	public static IntegrationFlowBuilder from(Object service, String methodName) {
-		return from(service, methodName, null);
-	}
-
-	/**
 	 * Provides {@link Supplier} as source of messages to the integration flow which will
 	 * be triggered by the application context's default poller (which must be declared).
 	 * @param messageSource the {@link Supplier} to populate.
@@ -156,7 +142,7 @@ public final class IntegrationFlows {
 	 * @see Supplier
 	 */
 	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
-		return from(messageSource, (Consumer<SourcePollingChannelAdapterSpec>) null);
+		return from(messageSource, null);
 	}
 
 	/**
@@ -172,33 +158,12 @@ public final class IntegrationFlows {
 	 */
 	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		Assert.notNull(messageSource, "'messageSource' must not be null");
 		MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
 		methodInvokingMessageSource.setObject(messageSource);
 		methodInvokingMessageSource.setMethodName("get");
 		return from(methodInvokingMessageSource, endpointConfigurer);
-	}
-
-	/**
-	 * Populate the provided {@link MethodInvokingMessageSource} for the method of the provided service.
-	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
-	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
-	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see MethodInvokingMessageSource
-	 * @deprecated since 5.2 in favor of method reference via {@link #from(Supplier)}
-	 */
-	@Deprecated
-	public static IntegrationFlowBuilder from(Object service, String methodName,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		Assert.notNull(service, "'service' must not be null");
-		Assert.hasText(methodName, "'methodName' must not be empty");
-		MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
-		messageSource.setObject(service);
-		messageSource.setMethodName(methodName);
-		return from(messageSource, endpointConfigurer);
 	}
 
 	/**
@@ -209,7 +174,7 @@ public final class IntegrationFlows {
 	 * @see MessageSource
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource) {
-		return from(messageSource, (Consumer<SourcePollingChannelAdapterSpec>) null);
+		return from(messageSource, null);
 	}
 
 	/**
@@ -265,7 +230,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessageProducerSupport messageProducer) {
-		return from(messageProducer, (IntegrationFlowBuilder) null);
+		return from(messageProducer, null);
 	}
 
 	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
@@ -304,7 +269,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
-		return from(inboundGateway, (IntegrationFlowBuilder) null);
+		return from(inboundGateway, null);
 	}
 
 	/**
@@ -320,26 +285,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {
-		return from(serviceInterface, (Consumer<GatewayProxySpec>) null);
-	}
-
-	/**
-	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder}
-	 * chain, which becomes as a {@code requestChannel} for the Messaging Gateway(s) built
-	 * on the provided service interface.
-	 * <p>A gateway proxy bean for provided service interface is registered under a name of
-	 * the provided {@code beanName} if not null, or from the
-	 * {@link org.springframework.integration.annotation.MessagingGateway#name()} if present
-	 * or as a fallback to the {@link IntegrationFlow} bean name plus {@code .gateway} suffix.
-	 * @param serviceInterface the service interface class with an optional
-	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
-	 * @param beanName the bean name to be used for registering bean for the gateway proxy
-	 * @return new {@link IntegrationFlowBuilder}.
-	 * @deprecated since 5.2 in favor of {@link #from(Class, Consumer)}
-	 */
-	@Deprecated
-	public static IntegrationFlowBuilder from(Class<?> serviceInterface, @Nullable String beanName) {
-		return from(serviceInterface, gateway -> gateway.beanName(beanName));
+		return from(serviceInterface, null);
 	}
 
 	/**

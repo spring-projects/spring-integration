@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,13 +45,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
 	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
-
-	/**
-	 * Represents the time when the message has been added to the store.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	protected static final String CREATED_DATE = "CREATED_DATE";
 
 	private final String messagePrefix;
 

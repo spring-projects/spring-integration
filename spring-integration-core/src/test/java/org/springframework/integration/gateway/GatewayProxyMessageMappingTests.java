@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
@@ -49,8 +49,7 @@ public class GatewayProxyMessageMappingTests {
 
 	private volatile TestGateway gateway = null;
 
-
-	@Before
+	@BeforeEach
 	public void initializeGateway() {
 		GatewayProxyFactoryBean factoryBean = new GatewayProxyFactoryBean(TestGateway.class);
 		factoryBean.setDefaultRequestChannel(channel);
@@ -63,7 +62,6 @@ public class GatewayProxyMessageMappingTests {
 		factoryBean.afterPropertiesSet();
 		this.gateway = (TestGateway) factoryBean.getObject();
 	}
-
 
 	@Test
 	public void payloadAndHeaderMapWithoutAnnotations() {
@@ -141,7 +139,7 @@ public class GatewayProxyMessageMappingTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
 		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
-		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
+		gatewayDefinition.getConstructorArgumentValues().addGenericArgumentValue(TestGateway.class);
 		context.registerBeanDefinition("testGateway", gatewayDefinition);
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
@@ -168,7 +166,7 @@ public class GatewayProxyMessageMappingTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
 		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
-		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
+		gatewayDefinition.getConstructorArgumentValues().addGenericArgumentValue(TestGateway.class);
 		context.registerBeanDefinition("testGateway", gatewayDefinition);
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,

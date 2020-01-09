@@ -19,7 +19,6 @@ package org.springframework.integration.mongodb.outbound;
 import org.bson.Document;
 
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -40,7 +39,7 @@ import org.springframework.util.Assert;
 /**
  * Makes outbound operations to query a MongoDb database using a {@link MongoOperations}
  *
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Artem Bilan
  *
  * @since 5.0
@@ -90,21 +89,6 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	public void setQueryExpressionString(String queryExpressionString) {
 		Assert.notNull(queryExpressionString, "queryExpressionString must not be null.");
 		this.queryExpression = EXPRESSION_PARSER.parseExpression(queryExpressionString);
-	}
-
-	/**
-	 * Specify a {@link CollectionCallback} to perform against MongoDB collection.
-	 * @param collectionCallback the callback to perform against MongoDB collection.
-	 * @deprecated in favor of {@link #setMessageCollectionCallback(MessageCollectionCallback)}.
-	 * Will be removed in 5.2
-	 */
-	@Deprecated
-	public void setCollectionCallback(CollectionCallback<?> collectionCallback) {
-		Assert.notNull(collectionCallback, "'collectionCallback' must not be null.");
-		this.collectionCallback =
-				collectionCallback instanceof MessageCollectionCallback
-						? (MessageCollectionCallback) collectionCallback
-						: (collection, requestMessage) -> collectionCallback.doInCollection(collection);
 	}
 
 	/**
@@ -171,21 +155,21 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		// TODO: 5.2 assert not null
+		Assert.notNull(collectionName, "'collectionNameExpression' cannot evaluate to null");
 		Object result;
 
 		if (this.collectionCallback != null) {
-			result = this.mongoTemplate.execute(collectionName, // NOSONAR
+			result = this.mongoTemplate.execute(collectionName,
 					collection -> this.collectionCallback.doInCollection(collection, requestMessage));
 		}
 		else {
 			Query query = buildQuery(requestMessage);
 
 			if (this.expectSingleResult) {
-				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName); // NOSONAR
+				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
 			}
 			else {
-				result = this.mongoTemplate.find(query, this.entityClass, collectionName); // NOSONAR
+				result = this.mongoTemplate.find(query, this.entityClass, collectionName);
 			}
 		}
 

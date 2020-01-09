@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,21 +113,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		PRIORITY_WITH_EXCLUSIONS,
 		DELETE_MESSAGE
 	}
-
-	/**
-	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
-	 * optimization for the put method.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String SAVED_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".SAVED";
-
-	/**
-	 * The name of the message header that stores a timestamp for the time the message was inserted.
-	 * @deprecated since 5.0. This constant isn't used any more.
-	 */
-	@Deprecated
-	public static final String CREATED_DATE_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private final Set<String> idCache = new HashSet<>();
 

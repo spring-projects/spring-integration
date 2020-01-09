@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,17 +99,6 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	/**
-	 * Set the expression to evaluate against the message after a successful
-	 * handler invocation.
-	 * @param onSuccessExpression the SpEL expression.
-	 * @deprecated in favor of {@link #setOnSuccessExpression(Expression)}
-	 */
-	@Deprecated
-	public void setExpressionOnSuccess(Expression onSuccessExpression) {
-		setOnSuccessExpression(onSuccessExpression);
-	}
-
-	/**
 	 * Set the expression to evaluate against the root message after a failed
 	 * handler invocation. The exception is available as the variable {@code #exception}.
 	 * Defaults to {@code payload}, if {@code failureChannel} is configured.
@@ -129,17 +118,6 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	 */
 	public void setOnFailureExpression(@Nullable Expression onFailureExpression) {
 		this.onFailureExpression = onFailureExpression;
-	}
-
-	/**
-	 * Set the expression to evaluate against the root message after a failed
-	 * handler invocation. The exception is available as the variable {@code #exception}
-	 * @param onFailureExpression the SpEL expression.
-	 * @deprecated in favor of {@link #setOnFailureExpression(Expression)}
-	 */
-	@Deprecated
-	public void setExpressionOnFailure(Expression onFailureExpression) {
-		setOnFailureExpression(onFailureExpression);
 	}
 
 	/**

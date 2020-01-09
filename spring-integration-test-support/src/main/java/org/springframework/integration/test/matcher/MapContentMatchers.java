@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,48 +92,8 @@ public final class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super 
 
 	}
 
-	/**
-	 * Create {@link Matcher} for map entry.
-	 * @param key the key to check.
-	 * @param value the value to check.
-	 * @param <K> the key type.
-	 * @param <V> the value type.
-	 * @return the {@link Matcher} for map entry.
-	 * @deprecated since 5.2 in favor of {@link Matchers#hasEntry(Object, Object)}.
-	 */
-	@Deprecated
-	public static <K, V> Matcher<Map<? extends K, ? extends V>> hasEntry(K key, V value) {
-		return Matchers.hasEntry(key, value);
-	}
-
-	/**
-	 * Create {@link Matcher} for map entry.
-	 * @param key the key to check.
-	 * @param valueMatcher the {@link Matcher} for value.
-	 * @param <T> the key type.
-	 * @param <V> the value type.
-	 * @return the {@link Matcher} for map entry.
-	 * @deprecated since 5.2 in favor of {@link Matchers#hasEntry(Matcher, Matcher)}.
-	 */
-	@Deprecated
-	public static <T, V> Matcher<Map<? extends T, ? extends V>> hasEntry(T key, Matcher<V> valueMatcher) {
-		return Matchers.hasEntry(Matchers.is(key), valueMatcher);
-	}
-
-	/**
-	 * Create {@link Matcher} for map key.
-	 * @param key the key to check.
-	 * @param <T> the key type.
-	 * @return {@link Matcher} for map key.
-	 * @deprecated since 5.2 in favor of {@link Matchers#hasKey}.
-	 */
-	@Deprecated
-	public static <T> Matcher<Map<? extends T, ?>> hasKey(T key) {
-		return Matchers.hasKey(key);
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T, V> Matcher<Map<? extends T, ? extends V>> hasAllEntries(Map<T, V> entries) {
+	@SuppressWarnings("unchecked")
+	public static <T, V> Matcher<Map<T, V>> hasAllEntries(Map<T, V> entries) {
 		List<Matcher<? super Map<T, V>>> matchers = new ArrayList<>(entries.size());
 		for (Map.Entry<T, V> entry : entries.entrySet()) {
 			final V value = entry.getValue();
@@ -144,8 +104,7 @@ public final class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super 
 				matchers.add(Matchers.hasEntry(entry.getKey(), value));
 			}
 		}
-		//return AllOf.allOf(matchers); //Does not work with Hamcrest 1.3
-		return new AllOf(matchers);
+		return AllOf.allOf(matchers);
 	}
 
 }

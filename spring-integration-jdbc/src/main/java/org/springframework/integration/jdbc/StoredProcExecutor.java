@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -473,28 +473,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		Assert.noNullElements(returningResultSetRowMappers.values().toArray(),
 				"'returningResultSetRowMappers' cannot contain null values.");
 		this.returningResultSetRowMappers = returningResultSetRowMappers;
-	}
-
-	/**
-	 * Allows for the retrieval of metrics.
-	 * @return the metrics.
-	 * @deprecated since 5.2
-	 * @throws UnsupportedOperationException since this functionality isn't supported any more.
-	 */
-	@Deprecated
-	public Object getJdbcCallOperationsCacheStatistics() {
-		throw new UnsupportedOperationException("The Google Guava cache isn't supported any more.");
-	}
-
-	/**
-	 * Allows for the retrieval of metrics.
-	 * @return Map containing metrics of the JdbcCallOperationsCache
-	 * @deprecated since 5.2
-	 * @throws UnsupportedOperationException since this functionality isn't supported any more.
-	 */
-	@Deprecated
-	public Map<String, Object> getJdbcCallOperationsCacheStatisticsAsMap() {
-		throw new UnsupportedOperationException("The Google Guava cache isn't supported any more.");
 	}
 
 	/**

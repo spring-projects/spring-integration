@@ -50,7 +50,6 @@ ext {
 	assertjVersion = '3.14.0'
 	assertkVersion = '0.20'
 	awaitilityVersion = '4.0.1'
-	boonVersion = '0.34'
 	commonsDbcp2Version = '2.7.0'
 	commonsIoVersion = '2.6'
 	commonsNetVersion = '3.6'
@@ -411,7 +410,6 @@ project('spring-integration-core') {
 		api 'io.projectreactor:reactor-core'
 		optionalApi 'com.fasterxml.jackson.core:jackson-databind'
 		optionalApi "com.jayway.jsonpath:json-path:$jsonpathVersion"
-		optionalApi "io.fastjson:boon:$boonVersion"
 		optionalApi "com.esotericsoftware:kryo-shaded:$kryoShadedVersion"
 		optionalApi "io.micrometer:micrometer-core:$micrometerVersion"
 		optionalApi "io.github.resilience4j:resilience4j-ratelimiter:$resilience4jVersion"
