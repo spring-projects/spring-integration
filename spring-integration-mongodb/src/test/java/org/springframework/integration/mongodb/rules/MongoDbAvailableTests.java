@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@ package org.springframework.integration.mongodb.rules;
 import java.time.Duration;
 
 import org.bson.Document;
-import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
+import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -60,13 +59,13 @@ public abstract class MongoDbAvailableTests {
 	@Rule
 	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
 
-	public static final MongoDatabaseFactory MONGO_DATABASE_FACTORY =
-			new SimpleMongoClientDatabaseFactory(
+	public static final MongoDbFactory MONGO_DATABASE_FACTORY =
+			new SimpleMongoClientDbFactory(
 					MongoClients.create(
-							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
+							MongoClientSettings.builder().build()),
 					"test");
 
-	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
+	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
 		return MONGO_DATABASE_FACTORY;
 	}
@@ -90,7 +89,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	protected void cleanupCollections(MongoDatabaseFactory mongoDbFactory, String... additionalCollectionsToDrop) {
+	protected void cleanupCollections(MongoDbFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
@@ -185,7 +184,7 @@ public abstract class MongoDbAvailableTests {
 	public static class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
-				MongoDatabaseFactory mongoDbFactory,
+				MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);

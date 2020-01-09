@@ -62,7 +62,7 @@
 	</bean>
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.MongoDatabaseFactory"/>
+		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
 	</bean>
 
 	<bean id="mongoConverter"

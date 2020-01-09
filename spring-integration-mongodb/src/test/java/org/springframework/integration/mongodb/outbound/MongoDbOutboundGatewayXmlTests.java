@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
@@ -53,7 +53,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Before
 	public void setUp() throws Exception {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
 		mongoTemplate.save(this.createPerson("Artem"), COLLECTION_NAME);
@@ -64,7 +64,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@After
 	public void cleanUp() throws Exception {
-		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
 		mongoTemplate.dropCollection(COLLECTION_NAME);

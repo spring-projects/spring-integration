@@ -81,7 +81,7 @@ ext {
 	log4jVersion = '2.13.0'
 	micrometerVersion = '1.3.2'
 	mockitoVersion = '3.2.4'
-	mongoDriverVersion = '4.0.0-SNAPSHOT'
+	mongoDriverVersion = '1.12.0'
 	mysqlVersion = '8.0.18'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.9'
@@ -93,7 +93,7 @@ ext {
 	smackVersion = '4.3.4'
 	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.BUILD-SNAPSHOT'
 	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-BUILD-SNAPSHOT'
-	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.BUILD-SNAPSHOT'
+	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.M1'
 	springRetryVersion = '1.2.5.RELEASE'
 	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.3.BUILD-SNAPSHOT'
 	springWsVersion = '3.0.8.RELEASE'
@@ -591,11 +591,10 @@ project('spring-integration-mongodb') {
 	description = 'Spring Integration MongoDB Support'
 	dependencies {
 		api project(':spring-integration-core')
-		api ('org.springframework.data:spring-data-mongodb:3.0.0.BUILD-SNAPSHOT') {
+		api ('org.springframework.data:spring-data-mongodb') {
 			exclude group: 'org.springframework'
 		}
 		optionalApi "org.mongodb:mongodb-driver-reactivestreams:$mongoDriverVersion"
-		optionalApi "org.mongodb:mongodb-driver-sync:$mongoDriverVersion"
 	}
 }
 

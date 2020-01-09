@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.bson.Document;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -58,21 +58,21 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	private final String collectionName;
 
 	/**
-	 * Configure the MongoDbMetadataStore by provided {@link MongoDatabaseFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * default collection name - {@link #DEFAULT_COLLECTION_NAME}.
 	 * @param factory the mongodb factory
 	 */
-	public MongoDbMetadataStore(MongoDatabaseFactory factory) {
+	public MongoDbMetadataStore(MongoDbFactory factory) {
 		this(factory, DEFAULT_COLLECTION_NAME);
 	}
 
 	/**
-	 * Configure the MongoDbMetadataStore by provided {@link MongoDatabaseFactory} and
+	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
 	 * collection name
 	 * @param factory the mongodb factory
 	 * @param collectionName the collection name where it persists the data
 	 */
-	public MongoDbMetadataStore(MongoDatabaseFactory factory, String collectionName) {
+	public MongoDbMetadataStore(MongoDbFactory factory, String collectionName) {
 		this(new MongoTemplate(factory), collectionName);
 	}
 

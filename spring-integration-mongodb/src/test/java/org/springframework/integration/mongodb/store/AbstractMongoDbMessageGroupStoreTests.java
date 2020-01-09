@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -417,7 +417,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	//	@Test
 	//	@MongoDbAvailable
 	//	public void testConcurrentModifications() throws Exception{
-	//		MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory();
+	//		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 	//		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
 	//		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 	//

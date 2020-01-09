@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2019 the original author or authors.
+ * Copyright 2007-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mongodb.outbound;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
@@ -42,7 +42,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
 	private volatile MongoOperations mongoTemplate;
 
-	private volatile MongoDatabaseFactory mongoDbFactory;
+	private volatile MongoDbFactory mongoDbFactory;
 
 	private volatile MongoConverter mongoConverter;
 
@@ -53,11 +53,11 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	private volatile boolean initialized = false;
 
 	/**
-	 * Will construct this instance using provided {@link MongoDatabaseFactory}
+	 * Will construct this instance using provided {@link MongoDbFactory}
 	 *
 	 * @param mongoDbFactory The mongodb factory.
 	 */
-	public MongoDbStoringMessageHandler(MongoDatabaseFactory mongoDbFactory) {
+	public MongoDbStoringMessageHandler(MongoDbFactory mongoDbFactory) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 
 		this.mongoDbFactory = mongoDbFactory;
@@ -78,7 +78,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Allows you to provide custom {@link MongoConverter} used to assist in serialization
 	 * of data written to MongoDb. Only allowed if this instance was constructed with a
-	 * {@link MongoDatabaseFactory}.
+	 * {@link MongoDbFactory}.
 	 *
 	 * @param mongoConverter The mongo converter.
 	 */

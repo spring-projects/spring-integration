@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019 the original author or authors.
+ * Copyright 2015-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
@@ -45,7 +45,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@Before
 	public void configure() {
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		this.store = new MongoDbMetadataStore(mongoDbFactory);
 	}
 
@@ -53,7 +53,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	public void testConfigureCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
+		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		final MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		store = new MongoDbMetadataStore(template, collectionName);
 		testBasics();
@@ -62,7 +62,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	@Test
 	public void testConfigureFactory() {
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
+		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		store = new MongoDbMetadataStore(mongoDbFactory);
 		testBasics();
 	}
@@ -71,7 +71,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@Test
 	public void testConfigureFactorCustomCollection() {
 		final String collectionName = "testMetadataStore";
-		final MongoDatabaseFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
+		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		store = new MongoDbMetadataStore(mongoDbFactory, collectionName);
 		testBasics();
 	}
