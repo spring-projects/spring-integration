@@ -68,10 +68,10 @@ public abstract class MongoDbAvailableTests {
 	public static final ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY =
 			new SimpleReactiveMongoDatabaseFactory(
 					com.mongodb.reactivestreams.client.MongoClients.create(
-							MongoClientSettings.builder().uuidRepresentation(UuidRepresentation.STANDARD).build()),
+							MongoClientSettings.builder().build()),
 					"test");
 
-	protected MongoDatabaseFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
+	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
 		return MONGO_DATABASE_FACTORY;
 	}

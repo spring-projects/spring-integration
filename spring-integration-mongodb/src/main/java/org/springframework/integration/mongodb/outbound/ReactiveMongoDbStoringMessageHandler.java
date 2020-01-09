@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 	protected Mono<Void> handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 
- 		return evaluateCollectionNameExpression(message)
+		return evaluateCollectionNameExpression(message)
 				.flatMap(collection -> this.mongoTemplate.save(message.getPayload(), collection))
 				.then();
 	}
