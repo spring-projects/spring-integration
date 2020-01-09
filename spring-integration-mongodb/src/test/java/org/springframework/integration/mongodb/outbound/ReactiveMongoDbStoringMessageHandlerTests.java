@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -190,10 +191,11 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		this.input.send(message);
 
 		Query query = new BasicQuery("{'name' : 'Bob'}");
-		Person person = waitFor(this.template.findOne(query, Person.class, "data"));
 
-		assertThat(person.getName()).isEqualTo("Bob");
-		assertThat(person.getAddress().getState()).isEqualTo("PA");
+		await().untilAsserted(() ->
+				assertThat(waitFor(this.template.findOne(query, Person.class, "data")))
+						.isNotNull()
+						.extracting("name", "address.state").contains("Bob", "PA"));
 	}
 
 	private static <T> T waitFor(Mono<T> mono) {

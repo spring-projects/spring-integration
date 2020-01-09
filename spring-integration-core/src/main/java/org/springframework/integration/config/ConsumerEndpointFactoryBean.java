@@ -221,7 +221,7 @@ public class ConsumerEndpointFactoryBean
 		if (!(this.handler instanceof ReactiveMessageHandlerAdapter)) {
 			adviceChain();
 		}
-		else {
+		else if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			LOGGER.warn("the advice chain cannot be applied to a 'ReactiveMessageHandler'");
 		}
 		if (this.channelResolver == null) {
