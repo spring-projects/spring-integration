@@ -27,20 +27,41 @@ import org.springframework.util.Assert;
  * for synchronous invocations.
  * A subscription to the returned reactive type from {@link ReactiveMessageHandler#handleMessage(Message)}
  * call is done directly in the {@link #handleMessage} implementation.
+ * <p>
+ * The framework wraps a target {@link ReactiveMessageHandler} into this instance automatically
+ * for XML and Annotation configuration. For Java DSL it is recommended to wrap for generic usage
+ * ({@code .handle(MessageHandle)}) or it has to be done in the
+ * {@link org.springframework.integration.dsl.MessageHandlerSpec}
+ * implementation for protocol-specif {@link ReactiveMessageHandler}.
+ * <p>
+ * The framework unwraps a delegate {@link ReactiveMessageHandler} whenever it can compose
+ * reactive streams, e.g. {@link org.springframework.integration.endpoint.ReactiveStreamsConsumer}.
  *
  * @author Artem Bilan
  *
  * @since 5.3
+ *
+ * @see org.springframework.integration.endpoint.ReactiveStreamsConsumer
  */
 public class ReactiveMessageHandlerAdapter implements MessageHandler {
 
 	private final ReactiveMessageHandler delegate;
 
+	/**
+	 * Instantiate based on the provided {@link ReactiveMessageHandler}.
+	 * @param reactiveMessageHandler the {@link ReactiveMessageHandler} to delegate to.
+	 */
 	public ReactiveMessageHandlerAdapter(ReactiveMessageHandler reactiveMessageHandler) {
 		Assert.notNull(reactiveMessageHandler, "'reactiveMessageHandler' must not be null");
 		this.delegate = reactiveMessageHandler;
 	}
 
+	/**
+	 * Get access to the delegate {@link ReactiveMessageHandler}.
+	 * Typically used in the framework internally in components which can compose reactive streams internally
+	 * and allow us to avoid an explicit {@code subscribe()} call.
+	 * @return the {@link ReactiveMessageHandler} this instance is delegating to.
+	 */
 	public ReactiveMessageHandler getDelegate() {
 		return this.delegate;
 	}

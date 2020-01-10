@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package org.springframework.integration.handler.advice;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.aopalliance.aop.Advice;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,21 +27,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 public class ExpressionEvaluatingRequestHandlerAdviceTests {
 
 	@Autowired
@@ -70,14 +70,16 @@ public class ExpressionEvaluatingRequestHandlerAdviceTests {
 
 		@Bean
 		public IntegrationFlow advised() {
-			return f -> f.handle((GenericHandler<String>) (payload, headers) -> {
-				if (payload.equals("good")) {
-					return null;
-				}
-				else {
-					throw new RuntimeException("some failure");
-				}
-			}, c -> c.advice(expressionAdvice()));
+			return f -> f
+					.<String>handle((payload, headers) -> {
+								if (payload.equals("good")) {
+									return null;
+								}
+								else {
+									throw new RuntimeException("some failure");
+								}
+							},
+							c -> c.advice(expressionAdvice()));
 		}
 
 		@Bean

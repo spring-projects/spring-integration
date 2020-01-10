@@ -32,7 +32,7 @@ import org.springframework.messaging.Message;
 /**
  * A {@link MessageHandlerSpec} extension for the MongoDb Outbound endpoint {@link MongoDbOutboundGateway}
  *
- * @author Xavier Padr?
+ * @author Xavier Padro
  * @author Artem Bilan
  *
  * @since 5.0

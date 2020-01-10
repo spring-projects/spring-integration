@@ -17,7 +17,9 @@
 package org.springframework.integration.mongodb.dsl;
 
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 /**
@@ -50,6 +52,30 @@ public final class MongoDb {
 	 */
 	public static MongoDbOutboundGatewaySpec outboundGateway(MongoOperations mongoTemplate) {
 		return new MongoDbOutboundGatewaySpec(mongoTemplate);
+	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageHandlerSpec} builder instance
+	 * based on the provided {@link ReactiveMongoDatabaseFactory}.
+	 * @param mongoDbFactory the {@link ReactiveMongoDatabaseFactory} to use.
+	 * @return the {@link MongoDbOutboundGatewaySpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageHandlerSpec reactiveOutboundChannelAdapter(
+			ReactiveMongoDatabaseFactory mongoDbFactory) {
+
+		return new ReactiveMongoDbMessageHandlerSpec(mongoDbFactory);
+	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageHandlerSpec} builder instance
+	 * based on the provided {@link ReactiveMongoOperations}.
+	 * @param mongoTemplate the {@link ReactiveMongoOperations} to use.
+	 * @return the {@link ReactiveMongoDbMessageHandlerSpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageHandlerSpec reactiveOutboundChannelAdapter(ReactiveMongoOperations mongoTemplate) {
+		return new ReactiveMongoDbMessageHandlerSpec(mongoTemplate);
 	}
 
 	private MongoDb() {

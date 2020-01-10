@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.dsl.flows;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
@@ -33,8 +32,7 @@ import java.util.function.Supplier;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -64,8 +62,8 @@ import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.LoggingHandler;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
@@ -93,7 +91,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -104,7 +104,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 5.0
  */
 @ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class IntegrationFlowTests {
 
@@ -191,15 +191,12 @@ public class IntegrationFlowTests {
 		assertThat(this.beanFactory.containsBean("expressionFilter.handler")).isTrue();
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("100").setReplyChannel(replyChannel).build();
-		try {
-			this.inputChannel.send(message);
-			fail("Expected MessageDispatchingException");
-		}
-		catch (Exception e) {
-			assertThat(e).isInstanceOf(MessageDeliveryException.class);
-			assertThat(e.getCause()).isInstanceOf(MessageDispatchingException.class);
-			assertThat(e.getMessage()).contains("Dispatcher has no subscribers");
-		}
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.inputChannel.send(message))
+				.withCauseInstanceOf(MessageDispatchingException.class)
+				.withMessageContaining("Dispatcher has no subscribers");
+
 		this.controlBus.send("@payloadSerializingTransformer.start()");
 
 		final AtomicBoolean used = new AtomicBoolean();
@@ -670,7 +667,7 @@ public class IntegrationFlowTests {
 		public IntegrationFlow wireTapFlow1() {
 			return IntegrationFlows.from("tappedChannel1")
 					.wireTap("tapChannel", wt -> wt.selector(m -> m.getPayload().equals("foo")))
-					.handle(loggingMessageHandler())
+					.handle(new ReactiveMessageHandlerAdapter((message) -> Mono.just(message).log().then()))
 					.get();
 		}
 
@@ -820,9 +817,10 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow errorRecovererFlow() {
 			return IntegrationFlows.from(Function.class, (gateway) -> gateway.beanName("errorRecovererFunction"))
-					.handle((GenericHandler<?>) (p, h) -> {
-						throw new RuntimeException("intentional");
-					}, e -> e.advice(retryAdvice()))
+					.<Object>handle((p, h) -> {
+								throw new RuntimeException("intentional");
+							},
+							e -> e.advice(retryAdvice()))
 					.get();
 		}
 
@@ -903,7 +901,7 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(Consumer.class,
 					(gateway) -> gateway.beanName("globalErrorChannelResolutionFunction"))
 					.channel(c -> c.executor(taskExecutor))
-					.handle((GenericHandler<?>) (p, h) -> {
+					.handle((p, h) -> {
 						throw new RuntimeException("intentional");
 					})
 					.get();
