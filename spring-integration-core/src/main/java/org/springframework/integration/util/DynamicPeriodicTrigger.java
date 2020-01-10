@@ -18,7 +18,6 @@ package org.springframework.integration.util;
 
 import java.time.Duration;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -48,8 +47,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 	private boolean fixedRate = false;
 
 	/**
-	 * Create a trigger with the given period in milliseconds. The underlying
-	 * {@link TimeUnit} will be initialized to TimeUnit.MILLISECONDS.
+	 * Create a trigger with the given period in milliseconds.
 	 * @param period Must not be negative
 	 */
 	public DynamicPeriodicTrigger(long period) {
@@ -68,10 +66,8 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	/**
-	 * Specify the delay for the initial execution. It will be evaluated in
-	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
-	 * provided upon instantiation, the default is milliseconds.
-	 * @param initialDuration the initial delay in milliseconds.
+	 * Specify the delay for the initial execution.
+	 * @param initialDuration the initial delay.
 	 * @since 5.1
 	 */
 	public void setInitialDuration(Duration initialDuration) {
@@ -139,7 +135,9 @@ public class DynamicPeriodicTrigger implements Trigger {
 		else if (this.fixedRate) {
 			return new Date(lastScheduled.getTime() + this.duration.toMillis());
 		}
-		return new Date(triggerContext.lastCompletionTime().getTime() + this.duration.toMillis()); // NOSONAR never null here
+		return
+				new Date(triggerContext.lastCompletionTime().getTime() + // NOSONAR never null here
+						this.duration.toMillis());
 	}
 
 	@Override
@@ -182,6 +180,5 @@ public class DynamicPeriodicTrigger implements Trigger {
 			return this.initialDuration.equals(other.initialDuration);
 		}
 	}
-
 
 }
