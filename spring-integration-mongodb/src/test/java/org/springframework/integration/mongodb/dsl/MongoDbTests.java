@@ -17,7 +17,9 @@
 package org.springframework.integration.mongodb.dsl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,8 +36,10 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.config.EnableIntegration;
@@ -255,6 +259,25 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		bulkOperations.execute();
 	}
 
+	@Autowired
+	@Qualifier("reactiveStore.input")
+	private MessageChannel reactiveStoreInput;
+
+	@Test
+	@MongoDbAvailable
+	public void testReactiveMongoDbMessageHandler() {
+		this.reactiveStoreInput.send(MessageBuilder.withPayload(createPerson("Bob")).build());
+
+		ReactiveMongoTemplate reactiveMongoTemplate = new ReactiveMongoTemplate(REACTIVE_MONGO_DATABASE_FACTORY);
+
+		await().untilAsserted(() ->
+				assertThat(
+						reactiveMongoTemplate.findOne(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data")
+								.block(Duration.ofSeconds(10)))
+						.isNotNull()
+						.extracting("name", "address.state").contains("Bob", "PA"));
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -394,6 +417,14 @@ public class MongoDbTests extends MongoDbAvailableTests {
 					.collectionName(COLLECTION_NAME)
 					.entityClass(Person.class);
 		}
+
+		@Bean
+		public IntegrationFlow reactiveStore() {
+			return f -> f
+					.channel(MessageChannels.flux())
+					.handle(MongoDb.reactiveOutboundChannelAdapter(REACTIVE_MONGO_DATABASE_FACTORY));
+		}
+
 
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -26,8 +27,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -40,6 +45,9 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import reactor.core.publisher.Mono;
 
@@ -48,19 +56,25 @@ import reactor.core.publisher.Mono;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author David Turanski
+ * @author Artem Bilan
  *
  * @since 5.3
  */
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
 	private ReactiveMongoTemplate template;
 
 	private ReactiveMongoDatabaseFactory mongoDbFactory;
 
+	@Autowired
+	private MessageChannel input;
+
 	@Before
 	public void setUp() {
-		mongoDbFactory = this.prepareReactiveMongoFactory("foo");
-		template = new ReactiveMongoTemplate(mongoDbFactory);
+		this.mongoDbFactory = prepareReactiveMongoFactory("foo");
+		this.template = new ReactiveMongoTemplate(this.mongoDbFactory);
 	}
 
 	@Test
@@ -82,6 +96,7 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 	public void validateMessageHandlingWithDefaultCollection() {
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(this.mongoDbFactory);
 		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
 		waitFor(handler.handleMessage(message));
@@ -99,6 +114,7 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(this.mongoDbFactory);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
 		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
@@ -119,6 +135,7 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(this.mongoDbFactory);
 		handler.setCollectionNameExpression(new LiteralExpression(null));
 		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 
 		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob")).build();
@@ -139,6 +156,7 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		converter = spy(converter);
 		handler.setMongoConverter(converter);
 		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
 		waitFor(handler.handleMessage(message));
@@ -161,6 +179,7 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		ReactiveMongoDbStoringMessageHandler handler = new ReactiveMongoDbStoringMessageHandler(writingTemplate);
 		handler.setCollectionNameExpression(new LiteralExpression("foo"));
 		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setApplicationContext(mock(ApplicationContext.class, Answers.RETURNS_MOCKS));
 		handler.afterPropertiesSet();
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).build();
 		waitFor(handler.handleMessage(message));
@@ -172,8 +191,22 @@ public class ReactiveMongoDbStoringMessageHandlerTests extends MongoDbAvailableT
 		assertThat(person.getAddress().getState()).isEqualTo("PA");
 	}
 
+	@Test
+	@MongoDbAvailable
+	public void testReactiveMongoMessageHandlerFromApplicationContext() {
+		Message<Person> message = MessageBuilder.withPayload(createPerson("Bob")).build();
+		this.input.send(message);
+
+		Query query = new BasicQuery("{'name' : 'Bob'}");
+
+		await().untilAsserted(() ->
+				assertThat(waitFor(this.template.findOne(query, Person.class, "data")))
+						.isNotNull()
+						.extracting("name", "address.state").contains("Bob", "PA"));
+	}
+
 	private static <T> T waitFor(Mono<T> mono) {
-		return mono.block(Duration.ofSeconds(3));
+		return mono.block(Duration.ofSeconds(10));
 	}
 
 }

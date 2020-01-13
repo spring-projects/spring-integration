@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import reactor.core.publisher.Mono;
  * collection is identified by evaluation of the {@link #collectionNameExpression}.
  *
  * @author David Turanski
+ * @author Artme Bilan
  *
  * @since 5.3
  */
@@ -104,7 +105,9 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
-			this.mongoTemplate = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			ReactiveMongoTemplate mongoTemplate = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			mongoTemplate.setApplicationContext(getApplicationContext());
+			this.mongoTemplate = mongoTemplate;
 		}
 		this.initialized = true;
 	}

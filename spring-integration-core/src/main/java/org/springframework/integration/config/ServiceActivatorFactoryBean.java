@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,7 +49,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	@Override
 	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
-		MessageHandler handler = null;
+		MessageHandler handler;
 		handler = createDirectHandlerIfPossible(targetObject, targetMethodName);
 		if (handler == null) {
 			handler = configureHandler(
@@ -67,26 +69,30 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	 */
 	protected MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
-		if (targetObject instanceof MessageHandler
-				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
+		if ((targetObject instanceof MessageHandler || targetObject instanceof ReactiveMessageHandler)
+				&& methodIsHandleMessageOrEmpty(targetMethodName)) {
 			if (targetObject instanceof AbstractMessageProducingHandler) {
 				// should never happen but just return it if it's already an AMPH
 				return (MessageHandler) targetObject;
 			}
-			/*
-			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
-			 * and the super class will inject the advice chain to advise the handler method if needed.
-			 */
-			handler = new ReplyProducingMessageHandlerWrapper((MessageHandler) targetObject);
-
+			if (targetObject instanceof ReactiveMessageHandler) {
+				handler = new ReactiveMessageHandlerAdapter((ReactiveMessageHandler) targetObject);
+			}
+			else {
+				/*
+				 * Return a reply-producing message handler so that we still get 'produced no reply' messages
+				 * and the super class will inject the advice chain to advise the handler method if needed.
+				 */
+				handler = new ReplyProducingMessageHandlerWrapper((MessageHandler) targetObject);
+			}
 		}
 		return handler;
 	}
 
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
-		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
-		processor.setBeanFactory(this.getBeanFactory());
+		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<>(expression);
+		processor.setBeanFactory(getBeanFactory());
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		handler.setPrimaryExpression(expression);
 		return this.configureHandler(handler);
@@ -94,7 +100,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	@Override
 	protected <T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
-		return this.configureHandler(new ServiceActivatingHandler(processor));
+		return configureHandler(new ServiceActivatingHandler(processor));
 	}
 
 	protected MessageHandler configureHandler(ServiceActivatingHandler handler) {
@@ -115,7 +121,6 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	@Override
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		super.postProcessReplyProducer(handler);
-
 		if (this.headers != null) {
 			handler.setNotPropagatedHeaders(this.headers);
 		}

@@ -237,6 +237,7 @@ configure(javaProjects) { subproject ->
 
 		testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
 		testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
+		testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -471,7 +472,6 @@ project('spring-integration-gemfire') {
 		api "commons-io:commons-io:$commonsIoVersion"
 
 		testImplementation project(':spring-integration-stream')
-		testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl'
 	}
 }
 

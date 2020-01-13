@@ -39,7 +39,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
- * @author Xavier Padr?
+ * @author Xavier Padro
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -52,7 +54,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 	private ApplicationContext context;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
@@ -63,7 +65,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 	}
 
 	@After
-	public void cleanUp() throws Exception {
+	public void cleanUp() {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory);
 
@@ -73,7 +75,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testSingleQuery() throws Exception {
+	public void testSingleQuery() {
 		EventDrivenConsumer consumer = context.getBean("gatewaySingleQuery", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -87,7 +89,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testSingleQueryWithTemplate() throws Exception {
+	public void testSingleQueryWithTemplate() {
 		EventDrivenConsumer consumer = context.getBean("gatewayWithTemplate", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -101,7 +103,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testSingleQueryExpression() throws Exception {
+	public void testSingleQueryExpression() {
 		EventDrivenConsumer consumer = context.getBean("gatewaySingleQueryExpression", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -120,7 +122,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testQueryExpression() throws Exception {
+	public void testQueryExpression() {
 		EventDrivenConsumer consumer = context.getBean("gatewayQueryExpression", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -139,7 +141,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testQueryExpressionWithLimit() throws Exception {
+	public void testQueryExpressionWithLimit() {
 		EventDrivenConsumer consumer = context.getBean("gatewayQueryExpressionLimit", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 
@@ -157,7 +159,7 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testCollectionCallback() throws Exception {
+	public void testCollectionCallback() {
 		EventDrivenConsumer consumer = context.getBean("gatewayCollectionCallback", EventDrivenConsumer.class);
 		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
 

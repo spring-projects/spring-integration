@@ -65,16 +65,20 @@ public abstract class MongoDbAvailableTests {
 							MongoClientSettings.builder().build()),
 					"test");
 
+	public static final ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY =
+			new SimpleReactiveMongoDatabaseFactory(
+					com.mongodb.reactivestreams.client.MongoClients.create(
+							MongoClientSettings.builder().build()),
+					"test");
+
 	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
 		return MONGO_DATABASE_FACTORY;
 	}
 
 	protected ReactiveMongoDatabaseFactory prepareReactiveMongoFactory(String... additionalCollectionsToDrop) {
-		ReactiveMongoDatabaseFactory mongoDbFactory = new SimpleReactiveMongoDatabaseFactory(
-				com.mongodb.reactivestreams.client.MongoClients.create(), "test");
-		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
-		return mongoDbFactory;
+		cleanupCollections(REACTIVE_MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);
+		return REACTIVE_MONGO_DATABASE_FACTORY;
 	}
 
 	protected void cleanupCollections(ReactiveMongoDatabaseFactory mongoDbFactory,

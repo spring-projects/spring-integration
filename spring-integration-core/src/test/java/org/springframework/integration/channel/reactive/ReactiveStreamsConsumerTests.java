@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
@@ -49,7 +49,12 @@ import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
+
+import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -260,5 +265,44 @@ public class ReactiveStreamsConsumerTests {
 		assertThat(result.size()).isEqualTo(3);
 		assertThat(result).containsExactly(testMessage, testMessage2, testMessage2);
 	}
+
+	@Test
+	public void testReactiveStreamsConsumerFluxMessageChannelReactiveMessageHandler() {
+		FluxMessageChannel testChannel = new FluxMessageChannel();
+
+		EmitterProcessor<Message<?>> processor = EmitterProcessor.create(2, false);
+
+		ReactiveMessageHandler messageHandler =
+				m -> {
+					processor.onNext(m);
+					return Mono.empty();
+				};
+
+		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, messageHandler);
+		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		reactiveConsumer.stop();
+
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> testChannel.send(testMessage))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.withMessageContaining("doesn't have subscribers to accept messages");
+
+		reactiveConsumer.start();
+
+		Message<?> testMessage2 = new GenericMessage<>("test2");
+		testChannel.send(testMessage2);
+
+		StepVerifier.create(processor)
+				.expectNext(testMessage, testMessage2)
+				.thenCancel()
+				.verify();
+	}
+
 
 }
