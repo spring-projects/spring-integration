@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
@@ -104,7 +105,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
 
-	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
 	protected final List<String> messageHandlerAttributes = new ArrayList<>(); // NOSONAR
 
@@ -156,15 +157,17 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		MessageHandler handler = createHandler(bean, method, annotations);
 
-		orderable(method, handler);
-		producerOrRouter(annotations, handler);
+		if (!(handler instanceof ReactiveMessageHandlerAdapter)) {
+			orderable(method, handler);
+			producerOrRouter(annotations, handler);
 
-		if (!handler.equals(sourceHandler)) {
-			handler = registerHandlerBean(beanName, method, handler);
+			if (!handler.equals(sourceHandler)) {
+				handler = registerHandlerBean(beanName, method, handler);
+			}
+
+			handler = annotated(method, handler);
+			handler = adviceChain(beanName, annotations, handler);
 		}
-
-		handler = annotated(method, handler);
-		handler = adviceChain(beanName, annotations, handler);
 
 		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
 		if (endpoint != null) {
@@ -379,7 +382,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
 					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 			if (inputChannel instanceof Publisher) {
-				endpoint = new ReactiveStreamsConsumer(inputChannel, handler);
+				if (handler instanceof ReactiveMessageHandlerAdapter) {
+					endpoint = new ReactiveStreamsConsumer(inputChannel,
+							((ReactiveMessageHandlerAdapter) handler).getDelegate());
+				}
+				else {
+					endpoint = new ReactiveStreamsConsumer(inputChannel, handler);
+				}
 			}
 			else {
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);

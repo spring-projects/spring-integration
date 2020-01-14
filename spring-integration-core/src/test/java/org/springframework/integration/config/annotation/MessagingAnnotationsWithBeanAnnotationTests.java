@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,6 +55,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
@@ -73,6 +73,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.support.ErrorMessage;
@@ -80,7 +81,11 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -90,7 +95,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MessagingAnnotationsWithBeanAnnotationTests {
 
@@ -224,6 +229,25 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 				.isThrownBy(() -> new AnnotationConfigApplicationContext(InvalidContextConfiguration.class))
 				.withMessageContaining("The attribute causing the ambiguity is: [applySequence].");
 	}
+
+	@Autowired
+	private MessageChannel reactiveMessageHandlerChannel;
+
+	@Autowired
+	private ContextConfiguration contextConfiguration;
+
+	@Test
+	public void testReactiveMessageHandler() {
+		this.reactiveMessageHandlerChannel.send(new GenericMessage<>("test"));
+
+		StepVerifier.create(
+				this.contextConfiguration.messageMonoProcessor
+						.map(Message::getPayload)
+						.cast(String.class))
+				.expectNext("test")
+				.verifyComplete();
+	}
+
 
 	@Configuration
 	@EnableIntegration
@@ -401,6 +425,23 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
 		public Consumer<Message<?>> messageConsumerAsService() {
 			return collector()::add;
+		}
+
+		MonoProcessor<Message<?>> messageMonoProcessor = MonoProcessor.create();
+
+		@Bean
+		MessageChannel reactiveMessageHandlerChannel() {
+			return new FluxMessageChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "reactiveMessageHandlerChannel")
+		public ReactiveMessageHandler reactiveMessageHandlerService() {
+			return (message) -> {
+				messageMonoProcessor.onNext(message);
+				messageMonoProcessor.onComplete();
+				return Mono.empty();
+			};
 		}
 
 	}

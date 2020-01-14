@@ -467,3 +467,29 @@ private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
     }
 ----
 ====
+
+[[mongodb-reactive-channel-adapters]]
+=== MongoDB Reactive Channel Adapters
+
+Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` implementation is provided.
+It is based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.
+This is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
+See more information in the <<./reactive-streams.adoc/reactive-message-handler,ReactiveMessageHandler>>.
+
+From configuration perspective there is no difference with many other standard channel adapters.
+For example with Java DSL such a channel adapter could be used like:
+
+====
+[source, java]
+----
+@Bean
+public IntegrationFlow reactiveMongoDbFlow(ReactiveMongoDatabaseFactory mongoDbFactory) {
+    return f -> f
+            .channel(MessageChannels.flux())
+            .handle(MongoDb.reactiveOutboundChannelAdapter(mongoDbFactory));
+}
+----
+====
+
+In this sample we are going to connect to the MongoDb via provided `ReactiveMongoDatabaseFactory` and store a data from request message into a default collection with the `data` name.
+The real operation is going to be performed on-demand from the reactive stream composition in the internally created `ReactiveStreamsConsumer`.

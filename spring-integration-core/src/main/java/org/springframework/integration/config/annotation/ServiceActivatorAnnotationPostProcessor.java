@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.ReactiveMessageHandlerAdapter;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.ReactiveMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -53,9 +55,12 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		AbstractReplyProducingMessageHandler serviceActivator;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			final Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			serviceActivator = extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class);
 			if (serviceActivator == null) {
+				if (target instanceof ReactiveMessageHandler) {
+					return new ReactiveMessageHandlerAdapter((ReactiveMessageHandler) target);
+				}
 				if (target instanceof MessageHandler) {
 					/*
 					 * Return a reply-producing message handler so that we still get 'produced no reply' messages
