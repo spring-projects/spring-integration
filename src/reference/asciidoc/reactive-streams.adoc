@@ -105,6 +105,18 @@ A result of the function is wrapped into a `Mono<Message<?>>` for flat-mapping i
 
 See <<./dsl.adoc#java-dsl,Java DSL Chapter>> for more information.
 
+[[reactive-message-handler]]
+=== `ReactiveMessageHandler`
+
+Starting with version 5.3, the `ReactiveMessageHandler` is supported natively in the framework.
+This type of message handler is designed for reactive clients which return a reactive type for on-demand subscription for low-level operation execution and doesn't provide any reply data to continue a reactive stream composition.
+When a `ReactiveMessageHandler` is used in the imperative integration flow, the `handleMessage()` result in subscribed immediately after return, just because there is no reactive streams composition in such a flow to honor back-pressure.
+In this case the framework wraps this `ReactiveMessageHandler` into a `ReactiveMessageHandlerAdapter` - a plain implementation of `MessageHandler`.
+However when a `ReactiveStreamsConsumer` is involved in the flow (e.g. when channel to consume is a `FluxMessageChannel`), such a `ReactiveMessageHandler` is composed to the whole reactive stream with a `flatMap()` Reactor operator to honor back-pressure during consumption.
+
+One of the out-of-the-box `ReactiveMessageHandler` implementation is a `ReactiveMongoDbStoringMessageHandler` for Outbound Channel Adapter.
+See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
+
 [[reactive-channel-adapters]]
 === Reactive Channel Adapters
 
@@ -120,7 +132,7 @@ A reactive outbound channel adapter implementation is about initiation (or conti
 An inbound payload could be a reactive type per se or as an event of the whole integration flow which is a part of reactive stream on top.
 A returned reactive type can be subscribed immediately if we are in one-way, fire-and-forget scenario, or it is propagated downstream (request-reply scenarios) for further integration flow or an explicit subscription in the target business logic, but still downstream preserving reactive streams semantics.
 
-Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>> and <<./rsocket.adoc#rsocket,RSocket>>.
+Currently Spring Integration provides channel adapter (or gateway) implementations for <<./webflux.adoc#webflux,WebFlux>>, <<./rsocket.adoc#rsocket,RSocket>> and <<./mongodb.adoc#mongodb,MongoDb>>.
 Also an https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-cassandra[Apache Cassandra Extension] provides a `MessageHandler` implementation for the Cassandra reactive driver.
 More reactive channel adapters are coming, for example for https://r2dbc.io/[R2DBC], https://mongodb.github.io/mongo-java-driver-reactivestreams/[MongoDB], for Apache Kafka in https://github.com/spring-projects/spring-integration-kafka[Spring Integration Kafka] based on the `ReactiveKafkaProducerTemplate` and `ReactiveKafkaConsumerTemplate` from https://spring.io/projects/spring-kafka[Spring for Apache Kafka] etc.
 For many other non-reactive channel adapters thread pools are recommended to avoid blocking during reactive stream processing.

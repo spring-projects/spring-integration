@@ -29,8 +29,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -82,7 +81,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -96,7 +95,7 @@ import reactor.test.StepVerifier;
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class MessagingAnnotationsWithBeanAnnotationTests {
 
