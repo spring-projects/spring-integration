@@ -55,6 +55,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.expression.EnvironmentAccessor;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.converter.Converter;
@@ -65,6 +66,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -94,6 +96,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.Pausable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
@@ -148,6 +151,9 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	private ContextConfiguration2 contextConfiguration2;
 
 	@Autowired
 	private PollableChannel input;
@@ -283,6 +289,10 @@ public class EnableIntegrationTests {
 
 	@Autowired
 	private PublisherAnnotationBeanPostProcessor publisherAnnotationBeanPostProcessor;
+
+	@Autowired
+	@Qualifier("controlBusEndpoint")
+	private EventDrivenConsumer controlBusEndpoint;
 
 	@Test
 	public void testAnnotatedServiceActivator() throws Exception {
@@ -427,6 +437,12 @@ public class EnableIntegrationTests {
 		assertThat(beansOfType.keySet()
 				.contains("enableIntegrationTests.ContextConfiguration2.controlBus.serviceActivator.handler"))
 				.isFalse();
+
+		assertThat(this.controlBusEndpoint.getBeanName())
+				.isEqualTo(this.contextConfiguration2.controlBusEndpoint.getBeanName());
+
+		assertThat(this.controlBusEndpoint.getHandler())
+				.isSameAs(this.contextConfiguration2.controlBusEndpoint.getHandler());
 	}
 
 	@Test
@@ -1065,13 +1081,19 @@ public class EnableIntegrationTests {
 
 		@Bean
 		@ServiceActivator(inputChannel = "controlBusChannel")
+		@EndpointId("controlBusEndpoint")
 		@Role("bar")
 		public ExpressionControlBusFactoryBean controlBus() {
 			return new ExpressionControlBusFactoryBean();
 		}
 
+		@Autowired
+		@Qualifier("controlBusEndpoint")
+		@Lazy
+		private EventDrivenConsumer controlBusEndpoint;
+
 		@Bean
-		public Pausable pausable() {
+		public Pausable pausable(@Qualifier("controlBusChannel") @Lazy MessageChannel controlBusChannel) {
 			return new Pausable() {
 
 				private volatile boolean running;

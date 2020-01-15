@@ -136,8 +136,7 @@ The chapters that follow elaborate and provide sample code as well as configurat
 ==== Message Transformer
 
 A message transformer is responsible for converting a message's content or structure and returning the modified message.
-Probably the most common type of transformer is one that converts the payload of the message from one format to another (such as
-from XML to `java.lang.String`).
+Probably the most common type of transformer is one that converts the payload of the message from one format to another (such as from XML to `java.lang.String`).
 Similarly, a transformer can add, remove, or modify the message's header values.
 
 [[overview-endpoints-filter]]
@@ -213,7 +212,7 @@ Spring Integration provides a number of channel adapters, which are described in
 .An inbound channel adapter endpoint connects a source system to a `MessageChannel`.
 image::images/source-endpoint.jpg[align="center", scaledwidth=100%]
 
-NOTE: Message sources can be pollable (for example, POP3) or message-driven_ (for example, IMAP Idle).
+NOTE: Message sources can be pollable (for example, POP3) or message-driven (for example, IMAP Idle).
 In the preceding diagram, this is depicted by the "`clock`" symbol and the solid arrow (poll) and the dotted arrow (message-driven).
 
 .An outbound channel adapter endpoint connects a `MessageChannel` to a target system.
@@ -294,7 +293,7 @@ Consider the following example of an annotated bean:
 ====
 [source, java]
 ----
-@Configuratiom
+@Configuration
 public class SomeConfiguration {
 
     @Bean
@@ -317,7 +316,7 @@ Starting with version 5.0.4, you can modify these names by using the `@EndpointI
 ====
 [source, java]
 ----
-@Configuratiom
+@Configuration
 public class SomeConfiguration {
 
     @Bean("someService.handler")             <1>
@@ -405,13 +404,10 @@ For example, many endpoints consist of a `MessageHandler` bean and a `ConsumerEn
 
 The first time a Spring Integration namespace element is encountered, the framework automatically declares a number of beans (a task scheduler, an implicit channel creator, and others) that are used to support the runtime environment.
 
-IMPORTANT: Version 4.0 introduced the `@EnableIntegration` annotation, to allow the
-registration of Spring Integration infrastructure beans (see the
-https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[Javadoc]).
+IMPORTANT: Version 4.0 introduced the `@EnableIntegration` annotation, to allow the registration of Spring Integration infrastructure beans (see the https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[Javadoc]).
 This annotation is required when only Java configuration is used -- for example with Spring Boot or Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
 
-The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components
-and two or more child contexts that use Spring Integration.
+The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components and two or more child contexts that use Spring Integration.
 It lets these common components be declared once only, in the parent context.
 
 The `@EnableIntegration` annotation registers many infrastructure components with the application context.
@@ -605,8 +601,7 @@ Its main implementations are:
 When you use messaging annotations or the Java DSL, you need to worry about these components, because the Framework automatically produces them with appropriate annotations and `BeanPostProcessor` implementations.
 When building components manually, you should use the `ConsumerEndpointFactoryBean` to help determine the target `AbstractEndpoint` consumer implementation to create, based on the provided `inputChannel` property.
 
-On the other hand, the `ConsumerEndpointFactoryBean` delegates to an another first class citizen in the Framework:
-`org.springframework.messaging.MessageHandler`.
+On the other hand, the `ConsumerEndpointFactoryBean` delegates to an another first class citizen in the Framework - `org.springframework.messaging.MessageHandler`.
 The goal of the implementation of this interface is to handle the message consumed by the endpoint from the channel.
 All EIP components in Spring Integration are `MessageHandler` implementations (for example, `AggregatingMessageHandler`, `MessageTransformingHandler`, `AbstractMessageSplitter`, and others).
 The target protocol outbound adapters (`FileWritingMessageHandler`, `HttpRequestExecutingMessageHandler`, `AbstractMqttMessageHandler`, and others) are also `MessageHandler` implementations.

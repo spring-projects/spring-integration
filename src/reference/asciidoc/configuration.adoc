@@ -315,8 +315,7 @@ public class ThingService {
 ====
 
 NOTE: The value of the annotation can also be a SpEL expression (for example, `someHeader.toUpperCase()`), which is useful when you wish to manipulate the header value before injecting it.
-It also provides an optional `required` property, which specifies whether the attribute value must be available within
-the headers.
+It also provides an optional `required` property, which specifies whether the attribute value must be available within the headers.
 The default value for the `required` property is `true`.
 
 For several of these annotations, when a message-handling method returns a non-null value, the endpoint tries to send a reply.
@@ -345,8 +344,9 @@ public class ThingService {
 
 The processing of these annotations creates the same beans as the corresponding XML components -- `AbstractEndpoint` instances and `MessageHandler` instances (or `MessageSource` instances for the inbound channel adapter).
 See <<annotations_on_beans>>.
-The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`
-(for example, for the preceding example the bean name is `thingService.otherThing.serviceActivator`) for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
+The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`.
+In the preceding example the bean name is `thingService.otherThing.serviceActivator` for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
+Such a name can be customized using an `@EndpointId` annotation alongside with these messaging annotations.
 The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by <<./message-history.adoc#message-history,the message history>>.
 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
@@ -354,6 +354,28 @@ They default to `true` and `0`, respectively.
 To change the state of an endpoint (such as ` start()` or `stop()`), you can obtain a reference to the endpoint bean by using the `BeanFactory` (or autowiring) and invoke the methods.
 Alternatively, you can send a command message to the `Control Bus` (see <<./control-bus.adoc#control-bus,Control Bus>>).
 For these purposes, you should use the `beanName` mentioned earlier in the preceding paragraph.
+
+[IMPORTANT]
+=====
+Channels automatically created after parsing the mentioned annotations (when no specific channel bean is configured), and the corresponding consumer endpoints, are declared as beans near the end of the context initialization.
+These beans **can** be autowired in other services, but they have to be marked with the `@Lazy` annotation because the definitions, typically, won't yet be available during normal autowiring processing.
+
+====
+[source, java]
+----
+@Autowired
+@Lazy
+@Qualifier("someChannel")
+MessageChannel someChannel;
+...
+
+@Bean
+Thing1 dependsOnSPCA(@Qualifier("someInboundAdapter") @Lazy SourcePollingChannelAdapter someInboundAdapter) {
+    ...
+}
+----
+====
+=====
 
 [[configuration-using-poller-annotation]]
 ==== Using the `@Poller` Annotation
