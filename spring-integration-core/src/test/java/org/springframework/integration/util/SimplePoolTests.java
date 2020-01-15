@@ -16,17 +16,17 @@
 
 package org.springframework.integration.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.Test;
-
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Gary Russell
@@ -146,7 +146,27 @@ public class SimplePoolTests {
 		pool.releaseItem(s1);
 		assertThat(permits.availablePermits()).isEqualTo(2);
 	}
+	
+	@Test
+	public void testSizeUpdateIfNotAllocated() {
+		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		pool.setPoolSize(5);
+		assertThat(pool.getPoolSize()).isEqualTo(5);
+	}
 
+	@Test
+	public void testSizeUpdateIfAllocated() {
+		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		List<String> allocated = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			allocated.add(pool.getItem());
+		}
+		for (int i = 0; i < 10; i++) {
+			pool.releaseItem(allocated.get(i));
+		}
+		pool.setPoolSize(5);
+		assertThat(pool.getPoolSize()).isEqualTo(5);
+	}
 
 	private SimplePool<String> stringPool(int size, final Set<String> strings,
 			final AtomicBoolean stale) {

@@ -102,11 +102,9 @@ public class SimplePool<T> implements Pool<T> {
 					break;
 				}
 				T item = this.available.poll();
-				if (item == null) {
-					this.permits.release();
-					break;
+				if (item != null) {
+					doRemoveItem(item);
 				}
-				doRemoveItem(item);
 				this.poolSize.decrementAndGet();
 				delta++;
 			}
