@@ -355,7 +355,27 @@ To change the state of an endpoint (such as ` start()` or `stop()`), you can obt
 Alternatively, you can send a command message to the `Control Bus` (see <<./control-bus.adoc#control-bus,Control Bus>>).
 For these purposes, you should use the `beanName` mentioned earlier in the preceding paragraph.
 
-IMPORTANT: The auto-created channels after parsing the mentioned annotations (when no specific bean is configured)  and also created internally consumer endpoints can be autowired in other services, but they have to be marked with `@Lazy` annotation - they are registered in the application context context later than regular bean definitions parsing phase.
+[IMPORTANT]
+=====
+Channels automatically created after parsing the mentioned annotations (when no specific channel bean is configured), and the corresponding consumer endpoints, are declared as beans near the end of the context initialization.
+These beans **can** be autowired in other services, but they have to be marked with the `@Lazy` annotation because the definitions, typically, won't yet be available during normal autowiring processing.
+
+====
+[source, java]
+----
+@Autowired
+@Lazy
+@Qualifier("someChannel")
+MessageChannel someChannel;
+...
+
+@Bean
+Thing1 dependsOnSPCA(@Qualifier("someInboundAdapter") @Lazy SourcePollingChannelAdapter someInboundAdapter) {
+    ...
+}
+----
+====
+=====
 
 [[configuration-using-poller-annotation]]
 ==== Using the `@Poller` Annotation
