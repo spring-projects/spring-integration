@@ -149,26 +149,27 @@ public class SimplePoolTests {
 		pool.releaseItem(s1);
 		assertThat(permits.availablePermits()).isEqualTo(2);
 	}
-	
+
 	@Test
 	public void testSizeUpdateIfNotAllocated() {
 		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
 		pool.setWaitTimeout(0);
 		pool.setPoolSize(5);
 		assertThat(pool.getPoolSize()).isEqualTo(5);
-		
+
 		// allocating all available items to check permits
 		Set<String> allocatedItems = new HashSet<>();
 		for (int i = 0; i < 5; i++) {
 			allocatedItems.add(pool.getItem());
 		}
 		assertThat(allocatedItems).hasSize(5);
-		
+
 		// no more items can be allocated (indirect check of permits)
 		try {
 			pool.getItem();
 			fail("No more items should be allocated");
-		} catch (PoolItemNotAvailableException e) {
+		}
+		catch (PoolItemNotAvailableException e) {
 			// permits state correctly
 		}
 	}
@@ -181,7 +182,7 @@ public class SimplePoolTests {
 		for (int i = 0; i < 10; i++) {
 			allocated.add(pool.getItem());
 		}
-		
+
 		// release only 2 items
 		for (int i = 0; i < 2; i++) {
 			pool.releaseItem(allocated.get(i));
@@ -189,28 +190,29 @@ public class SimplePoolTests {
 
 		// trying to reduce pool size
 		pool.setPoolSize(5);
-		
+
 		// at this moment the actual pool size can be reduced only partially, because
 		// only 2 items have been released, so 8 items are in use
 		assertThat(pool.getPoolSize()).isEqualTo(8);
 		assertThat(pool.getAllocatedCount()).isEqualTo(8);
 		assertThat(pool.getIdleCount()).isEqualTo(0);
-		
+
 		// releasing 3 items
 		for (int i = 2; i < 5; i++) {
 			pool.releaseItem(allocated.get(i));
 		}
-		
+
 		// now pool size should be reduced
 		assertThat(pool.getPoolSize()).isEqualTo(5);
 		assertThat(pool.getAllocatedCount()).isEqualTo(5);
 		assertThat(pool.getIdleCount()).isEqualTo(0);
-		
+
 		// no more items can be allocated (indirect check of permits)
 		try {
 			pool.getItem();
 			fail("No more items should be allocated");
-		} catch (PoolItemNotAvailableException e) {
+		}
+		catch (PoolItemNotAvailableException e) {
 			// permits state correctly
 		}
 	}
