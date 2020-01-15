@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * demand up to the limit.
  *
  * @author Gary Russell
+ * @author Sergey Bogatyrev
  * @since 2.2
  *
  */
@@ -102,11 +103,9 @@ public class SimplePool<T> implements Pool<T> {
 					break;
 				}
 				T item = this.available.poll();
-				if (item == null) {
-					this.permits.release();
-					break;
+				if (item != null) {
+					doRemoveItem(item);
 				}
-				doRemoveItem(item);
 				this.poolSize.decrementAndGet();
 				delta++;
 			}
