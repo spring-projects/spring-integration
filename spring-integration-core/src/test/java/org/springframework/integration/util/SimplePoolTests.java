@@ -16,20 +16,23 @@
 
 package org.springframework.integration.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.Test;
-import org.springframework.integration.test.util.TestUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import org.junit.Test;
+
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
+ * @author Sergey Bogatyrev
  * @since 2.2
  *
  */
@@ -150,22 +153,66 @@ public class SimplePoolTests {
 	@Test
 	public void testSizeUpdateIfNotAllocated() {
 		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		pool.setWaitTimeout(0);
 		pool.setPoolSize(5);
 		assertThat(pool.getPoolSize()).isEqualTo(5);
+		
+		// allocating all available items to check permits
+		Set<String> allocatedItems = new HashSet<>();
+		for (int i = 0; i < 5; i++) {
+			allocatedItems.add(pool.getItem());
+		}
+		assertThat(allocatedItems).hasSize(5);
+		
+		// no more items can be allocated (indirect check of permits)
+		try {
+			pool.getItem();
+			fail("No more items should be allocated");
+		} catch (PoolItemNotAvailableException e) {
+			// permits state correctly
+		}
 	}
 
 	@Test
 	public void testSizeUpdateIfAllocated() {
 		SimplePool<String> pool = stringPool(10, new HashSet<>(), new AtomicBoolean());
+		pool.setWaitTimeout(0);
 		List<String> allocated = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
 			allocated.add(pool.getItem());
 		}
-		for (int i = 0; i < 10; i++) {
+		
+		// release only 2 items
+		for (int i = 0; i < 2; i++) {
 			pool.releaseItem(allocated.get(i));
 		}
+
+		// trying to reduce pool size
 		pool.setPoolSize(5);
+		
+		// at this moment the actual pool size can be reduced only partially, because
+		// only 2 items have been released, so 8 items are in use
+		assertThat(pool.getPoolSize()).isEqualTo(8);
+		assertThat(pool.getAllocatedCount()).isEqualTo(8);
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		
+		// releasing 3 items
+		for (int i = 2; i < 5; i++) {
+			pool.releaseItem(allocated.get(i));
+		}
+		
+		// now pool size should be reduced
 		assertThat(pool.getPoolSize()).isEqualTo(5);
+		assertThat(pool.getAllocatedCount()).isEqualTo(5);
+		assertThat(pool.getIdleCount()).isEqualTo(0);
+		
+		// no more items can be allocated (indirect check of permits)
+		try {
+			pool.getItem();
+			fail("No more items should be allocated");
+		} catch (PoolItemNotAvailableException e) {
+			// permits state correctly
+		}
 	}
 
 	private SimplePool<String> stringPool(int size, final Set<String> strings,

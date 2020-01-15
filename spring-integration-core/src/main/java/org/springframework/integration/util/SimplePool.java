@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * demand up to the limit.
  *
  * @author Gary Russell
+ * @author Sergey Bogatyrev
  * @since 2.2
  *
  */
