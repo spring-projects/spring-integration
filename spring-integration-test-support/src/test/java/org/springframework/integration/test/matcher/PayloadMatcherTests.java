@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.test.matcher;
 
 import java.math.BigDecimal;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -39,33 +39,34 @@ public class PayloadMatcherTests {
 
 	@Test
 	public void hasPayload_withEqualValue_matches() {
-		Assert.assertThat(this.message, PayloadMatcher.hasPayload(new BigDecimal("1.123")));
+		MatcherAssert.assertThat(this.message, PayloadMatcher.hasPayload(new BigDecimal("1.123")));
 	}
 
 	@Test
 	public void hasPayload_withNotEqualValue_notMatching() {
-		Assert.assertThat(this.message, Matchers.not(PayloadMatcher.hasPayload(new BigDecimal("456"))));
+		MatcherAssert.assertThat(this.message, Matchers.not(PayloadMatcher.hasPayload(new BigDecimal("456"))));
 	}
 
 	@Test
 	public void hasPayload_withMatcher_matches() {
-		Assert.assertThat(this.message, PayloadMatcher.hasPayload(Matchers.is(Matchers.instanceOf(BigDecimal.class))));
-		Assert.assertThat(this.message, PayloadMatcher.hasPayload(Matchers.notNullValue()));
+		MatcherAssert.assertThat(this.message,
+				PayloadMatcher.hasPayload(Matchers.is(Matchers.instanceOf(BigDecimal.class))));
+		MatcherAssert.assertThat(this.message, PayloadMatcher.hasPayload(Matchers.notNullValue()));
 	}
 
 	@Test
 	public void hasPayload_withNotMatchingMatcher_notMatching() {
-		Assert.assertThat(this.message,
+		MatcherAssert.assertThat(this.message,
 				Matchers.not((PayloadMatcher.hasPayload(Matchers.is(Matchers.instanceOf(String.class))))));
 	}
 
 	@Test
 	public void readableException() {
 		try {
-			Assert.assertThat(this.message, PayloadMatcher.hasPayload("woot"));
+			MatcherAssert.assertThat(this.message, PayloadMatcher.hasPayload("woot"));
 		}
 		catch (AssertionError ae) {
-			Assert.assertThat(ae.getMessage(), Matchers.containsString("Expected: a Message with payload: "));
+			MatcherAssert.assertThat(ae.getMessage(), Matchers.containsString("Expected: a Message with payload: "));
 		}
 	}
 
