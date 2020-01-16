@@ -28,9 +28,32 @@ To download, install, and run MongoDB, see the https://www.mongodb.org/downloads
 [[mongodb-connection]]
 === Connecting to MongoDb
 
+==== Blocking or Reactive?
+
+Beginning with version 5.3, Spring Integration provides support for reactive MongoDB drivers to enable non-blocking I/O when accessing MongoDB.
+To enable reactive support, add the MongoDB reactive streams driver to your dependencies:
+
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.mongodb</groupId>
+    <artifactId>mongodb-driver-reactivestreams</artifactId>
+    <version>1.12.0</version>
+  </dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.mongodb:mongodb-driver-reactivestreams:1.12.0"
+----
+
 To begin interacting with MongoDB, you first need to connect to it.
 Spring Integration builds on the support provided by another Spring project, https://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB].
-It provides a factory class called `MongoDbFactory`, which simplifies integration with the MongoDB Client API.
+It provides factory classes called `MongoDbFactory` and `ReactiveMongoDatabaseFactory`, which simplify integration with the MongoDB Client API.
+
+TIP: Spring Data provides provides the blocking MongoDB driver by default but you may opt-in for reactive usage by including the above dependency.
 
 ==== Using `MongoDbFactory`
 
@@ -68,7 +91,7 @@ The following example shows how to use `SimpleMongoDbFactory`, the out-of-the-bo
 ====
 [source,java]
 ----
-MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(com.mongodb.client.MongoClients.create(), "test");
 ----
 ====
 
@@ -79,7 +102,7 @@ The following example shows how to use `SimpleMongoDbFactory` in XML configurati
 ----
 <bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoDbFactory">
     <constructor-arg>
-        <bean class="com.mongodb.Mongo"/>
+        <bean class="com.mongodb.client.MongoClients" factory-method="create"/>
     </constructor-arg>
     <constructor-arg value="test"/>
 </bean>
@@ -87,8 +110,35 @@ The following example shows how to use `SimpleMongoDbFactory` in XML configurati
 ====
 
 `SimpleMongoDbFactory` takes two arguments: a `Mongo` instance and a `String` that specifies the name of the database.
-If you need to configure properties such as `host`, `port`, and others, you can pass those by using one of the constructors provided by the underlying `Mongo` class.
+If you need to configure properties such as `host`, `port`, and others, you can pass those by using one of the constructors provided by the underlying `MongoClients` class.
 For more information on how to configure MongoDB, see the https://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
+
+==== Using `ReactiveMongoDatabaseFactory`
+
+To connect to MongoDB with the reactive driver, you can use an implementation of the `ReactiveMongoDatabaseFactory` interface.
+
+The following example shows how to use `SimpleReactiveMongoDatabaseFactory`, the out-of-the-box implementation, in Java:
+
+====
+[source,java]
+----
+new SimpleReactiveMongoDatabaseFactory(com.mongodb.reactivestreams.client.MongoClients.create(), "test");
+----
+====
+
+The following example shows how to use `SimpleReactiveMongoDatabaseFactory` in XML configuration:
+
+====
+[source,xml]
+----
+<bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleReactiveMongoDatabaseFactory">
+    <constructor-arg>
+        <bean class="com.mongodb.reactivestreams.client.MongoClients" factory-method="create"/>
+    </constructor-arg>
+    <constructor-arg value="test"/>
+</bean>
+----
+====
 
 [[mongodb-message-store]]
 === MongoDB Message Store
@@ -471,9 +521,10 @@ private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
 [[mongodb-reactive-channel-adapters]]
 === MongoDB Reactive Channel Adapters
 
-Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` implementation is provided.
-It is based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.
-This is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
+Starting with version 5.3, the `ReactiveMongoDbStoringMessageHandler` and `ReactiveMongoDbMessageSource` implementations are provided.
+They are based on the `ReactiveMongoOperations` from Spring Data and requires a `org.mongodb:mongodb-driver-reactivestreams` dependency.
+
+The `ReactiveMongoDbStoringMessageHandler` is an implementation of the `ReactiveMessageHandler` which is supported natively in the framework when reactive streams composition is involved in the integration flow definition.
 See more information in the <<./reactive-streams.adoc/reactive-message-handler,ReactiveMessageHandler>>.
 
 From configuration perspective there is no difference with many other standard channel adapters.
