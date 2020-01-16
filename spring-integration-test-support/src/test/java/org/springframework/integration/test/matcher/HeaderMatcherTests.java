@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -52,7 +52,7 @@ public class HeaderMatcherTests {
 
 	Message<?> message;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		message = MessageBuilder.withPayload(ANY_PAYLOAD)
 				.setHeader(ANY_HEADER_KEY, ANY_HEADER_VALUE)
@@ -61,45 +61,45 @@ public class HeaderMatcherTests {
 
 	@Test
 	public void hasEntry_withValidKeyValue_matches() {
-		Assert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, ANY_HEADER_VALUE));
-		Assert.assertThat(message, HeaderMatcher.hasHeader(OTHER_HEADER_KEY, OTHER_HEADER_VALUE));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, ANY_HEADER_VALUE));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeader(OTHER_HEADER_KEY, OTHER_HEADER_VALUE));
 	}
 
 	@Test
 	public void hasEntry_withUnknownKey_notMatching() {
-		Assert.assertThat(message, Matchers.not(HeaderMatcher.hasHeader("test.unknown", ANY_HEADER_VALUE)));
+		MatcherAssert.assertThat(message, Matchers.not(HeaderMatcher.hasHeader("test.unknown", ANY_HEADER_VALUE)));
 	}
 
 	@Test
 	public void hasEntry_withValidKeyAndMatcherValue_matches() {
-		Assert.assertThat(message,
+		MatcherAssert.assertThat(message,
 				HeaderMatcher.hasHeader(ANY_HEADER_KEY, Matchers.instanceOf(String.class)));
-		Assert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, Matchers.notNullValue()));
-		Assert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, Matchers.is(ANY_HEADER_VALUE)));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, Matchers.notNullValue()));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeader(ANY_HEADER_KEY, Matchers.is(ANY_HEADER_VALUE)));
 	}
 
 	@Test
 	public void hasEntry_withValidKeyAndMatcherValue_notMatching() {
-		Assert.assertThat(message,
+		MatcherAssert.assertThat(message,
 				Matchers.not(HeaderMatcher.hasHeader(ANY_HEADER_KEY,
 						Matchers.is(Matchers.instanceOf(Integer.class)))));
 	}
 
 	@Test
 	public void hasKey_withValidKey_matches() {
-		Assert.assertThat(message, HeaderMatcher.hasHeaderKey(ANY_HEADER_KEY));
-		Assert.assertThat(message, HeaderMatcher.hasHeaderKey(OTHER_HEADER_KEY));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeaderKey(ANY_HEADER_KEY));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasHeaderKey(OTHER_HEADER_KEY));
 	}
 
 	@Test
 	public void hasKey_withInvalidKey_notMatching() {
-		Assert.assertThat(message, Matchers.not(HeaderMatcher.hasHeaderKey(UNKNOWN_KEY)));
+		MatcherAssert.assertThat(message, Matchers.not(HeaderMatcher.hasHeaderKey(UNKNOWN_KEY)));
 	}
 
 	@Test
 	public void hasAllEntries_withMessageHeader_matches() {
 		Map<String, Object> expectedInHeaderMap = message.getHeaders();
-		Assert.assertThat(message, HeaderMatcher.hasAllHeaders(expectedInHeaderMap));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasAllHeaders(expectedInHeaderMap));
 	}
 
 	@Test
@@ -107,7 +107,7 @@ public class HeaderMatcherTests {
 		Map<String, Object> expectedInHeaderMap = new HashMap<>();
 		expectedInHeaderMap.put(ANY_HEADER_KEY, ANY_HEADER_VALUE);
 		expectedInHeaderMap.put(OTHER_HEADER_KEY, Matchers.is(OTHER_HEADER_VALUE));
-		Assert.assertThat(message, HeaderMatcher.hasAllHeaders(expectedInHeaderMap));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasAllHeaders(expectedInHeaderMap));
 	}
 
 	@Test
@@ -115,7 +115,7 @@ public class HeaderMatcherTests {
 		Map<String, Object> expectedInHeaderMap = new HashMap<>();
 		expectedInHeaderMap.put(ANY_HEADER_KEY, ANY_HEADER_VALUE); // valid
 		expectedInHeaderMap.put(UNKNOWN_KEY, Matchers.not(Matchers.nullValue())); // fails
-		Assert.assertThat(message, Matchers.not(HeaderMatcher.hasAllHeaders(expectedInHeaderMap)));
+		MatcherAssert.assertThat(message, Matchers.not(HeaderMatcher.hasAllHeaders(expectedInHeaderMap)));
 		expectedInHeaderMap.remove(UNKNOWN_KEY);
 		expectedInHeaderMap.put(OTHER_HEADER_KEY, ANY_HEADER_VALUE); // fails
 	}
@@ -123,11 +123,11 @@ public class HeaderMatcherTests {
 	@Test
 	public void readableException_singleHeader() {
 		try {
-			Assert.assertThat(message, HeaderMatcher.hasHeader("corn", "bread"));
+			MatcherAssert.assertThat(message, HeaderMatcher.hasHeader("corn", "bread"));
 		}
 		catch (AssertionError ae) {
-			Assert.assertThat(ae.getMessage(), Matchers.containsString("Expected: a Message with Headers containing "
-			));
+			MatcherAssert.assertThat(ae.getMessage(),
+					Matchers.containsString("Expected: a Message with Headers containing "));
 		}
 	}
 
@@ -137,53 +137,53 @@ public class HeaderMatcherTests {
 			Map<String, String> entries = new HashMap<>();
 			entries.put("corn", "bread");
 			entries.put("chocolate", "pudding");
-			Assert.assertThat(message, HeaderMatcher.hasAllHeaders(entries));
+			MatcherAssert.assertThat(message, HeaderMatcher.hasAllHeaders(entries));
 		}
 		catch (AssertionError ae) {
-			Assert.assertThat(ae.getMessage(), Matchers.containsString("Expected: a Message with Headers containing "
-			));
+			MatcherAssert.assertThat(ae.getMessage(),
+					Matchers.containsString("Expected: a Message with Headers containing "));
 		}
 	}
 
 	@Test
 	public void hasMessageId_sameId() {
-		Assert.assertThat(message, HeaderMatcher.hasMessageId(message.getHeaders().getId()));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasMessageId(message.getHeaders().getId()));
 	}
 
 	@Test
 	public void hasCorrelationId_() {
 		UUID correlationId = message.getHeaders().getId();
 		message = MessageBuilder.withPayload("blabla").setHeader("correlationId", correlationId).build();
-		Assert.assertThat(message, HeaderMatcher.hasCorrelationId(correlationId));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasCorrelationId(correlationId));
 	}
 
 	@Test
 	public void hasSequenceNumber_() {
 		int sequenceNumber = 123;
 		message = MessageBuilder.fromMessage(message).setHeader("sequenceNumber", sequenceNumber).build();
-		Assert.assertThat(message, HeaderMatcher.hasSequenceNumber(sequenceNumber));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasSequenceNumber(sequenceNumber));
 	}
 
 	@Test
 	public void hasSequenceSize_() {
 		int sequenceSize = 123;
 		message = MessageBuilder.fromMessage(message).setHeader("sequenceSize", sequenceSize).build();
-		Assert.assertThat(message, HeaderMatcher.hasSequenceSize(sequenceSize));
-		Assert.assertThat(message, HeaderMatcher.hasSequenceSize(Matchers.is(sequenceSize)));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasSequenceSize(sequenceSize));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasSequenceSize(Matchers.is(sequenceSize)));
 	}
 
 	@Test
 	public void hasTimestamp_() {
-		Assert.assertThat(message, HeaderMatcher.hasTimestamp(new Date(message.getHeaders().getTimestamp())));
+		MatcherAssert.assertThat(message, HeaderMatcher.hasTimestamp(new Date(message.getHeaders().getTimestamp())));
 	}
 
 	@Test
 	public void hasExpirationDate_() {
-		Assert.assertThat(message, Matchers.not(HeaderMatcher.hasExpirationDate(Matchers.any(Long.class))));
+		MatcherAssert.assertThat(message, Matchers.not(HeaderMatcher.hasExpirationDate(Matchers.any(Long.class))));
 		Date expirationDate = new Date(System.currentTimeMillis() + 10000);
 		message = MessageBuilder.fromMessage(message).setHeader("expirationDate", expirationDate.getTime()).build();
-		Assert.assertThat(message, HeaderMatcher.hasExpirationDate(expirationDate));
-		Assert.assertThat(message,
+		MatcherAssert.assertThat(message, HeaderMatcher.hasExpirationDate(expirationDate));
+		MatcherAssert.assertThat(message,
 				HeaderMatcher.hasExpirationDate(Matchers.not(Matchers.is((System.currentTimeMillis())))));
 	}
 

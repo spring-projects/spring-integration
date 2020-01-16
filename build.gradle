@@ -13,10 +13,10 @@ buildscript {
 plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'org.asciidoctor.convert' version '1.6.1'
-	id 'io.spring.nohttp' version '0.0.3.RELEASE' apply false
-	id 'org.ajoberstar.grgit' version '4.0.0'
+	id 'io.spring.nohttp' version '0.0.4.RELEASE' apply false
+	id 'org.ajoberstar.grgit' version '4.0.1'
 	id "io.spring.dependency-management" version '1.0.8.RELEASE'
-	id 'com.jfrog.artifactory' version '4.11.0' apply false
+	id 'com.jfrog.artifactory' version '4.13.0' apply false
 }
 
 if (System.getenv('TRAVIS') || System.getenv('bamboo_buildKey')) {
@@ -49,7 +49,7 @@ ext {
 	aspectjVersion = '1.9.5'
 	assertjVersion = '3.14.0'
 	assertkVersion = '0.20'
-	awaitilityVersion = '4.0.1'
+	awaitilityVersion = '4.0.2'
 	commonsDbcp2Version = '2.7.0'
 	commonsIoVersion = '2.6'
 	commonsNetVersion = '3.6'
@@ -72,29 +72,29 @@ ext {
 	jrubyVersion = '9.2.9.0'
 	jschVersion = '0.1.55'
 	jsonpathVersion = '2.4.0'
-	junit4Version = '4.12'
+	junit4Version = '4.13'
 	junitJupiterVersion = '5.5.2'
 	jythonVersion = '2.7.0'
 	kryoShadedVersion = '4.0.2'
 	lettuceVersion = '5.2.1.RELEASE'
 	log4jVersion = '2.13.0'
-	micrometerVersion = '1.3.2'
+	micrometerVersion = '1.3.3'
 	mockitoVersion = '3.2.4'
 	mongoDriverVersion = '1.12.0'
 	mysqlVersion = '8.0.18'
 	pahoMqttClientVersion = '1.2.0'
 	postgresVersion = '42.2.9'
-	reactorVersion = 'Dysprosium-BUILD-SNAPSHOT'
+	reactorVersion = 'Dysprosium-SR3'
 	resilience4jVersion = '1.2.0'
 	romeToolsVersion = '1.12.2'
 	rsocketVersion = '1.0.0-RC5'
 	servletApiVersion = '4.0.1'
 	smackVersion = '4.3.4'
-	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.BUILD-SNAPSHOT'
-	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-BUILD-SNAPSHOT'
+	springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.2.3.RELEASE'
+	springDataVersion = project.hasProperty('springDataVersion') ? project.springDataVersion : 'Neumann-M1'
 	springSecurityVersion = project.hasProperty('springSecurityVersion') ? project.springSecurityVersion : '5.3.0.M1'
 	springRetryVersion = '1.2.5.RELEASE'
-	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.3.BUILD-SNAPSHOT'
+	springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.2.3.RELEASE'
 	springWsVersion = '3.0.8.RELEASE'
 	tomcatVersion = "9.0.30"
 	xstreamVersion = '1.4.11.1'
