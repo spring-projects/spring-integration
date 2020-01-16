@@ -105,9 +105,9 @@ public class ReactiveMongoDbStoringMessageHandler extends AbstractReactiveMessag
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.mongoTemplate == null) {
-			ReactiveMongoTemplate mongoTemplate = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
-			mongoTemplate.setApplicationContext(getApplicationContext());
-			this.mongoTemplate = mongoTemplate;
+			ReactiveMongoTemplate template = new ReactiveMongoTemplate(this.mongoDbFactory, this.mongoConverter);
+			template.setApplicationContext(getApplicationContext());
+			this.mongoTemplate = template;
 		}
 		this.initialized = true;
 	}

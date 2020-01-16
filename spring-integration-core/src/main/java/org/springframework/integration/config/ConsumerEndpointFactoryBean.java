@@ -196,26 +196,7 @@ public class ConsumerEndpointFactoryBean
 					"Consider specifying the 'beanName' property on this ConsumerEndpointFactoryBean.");
 		}
 		else {
-			try {
-				if (!this.beanName.startsWith("org.springframework")) {
-					MessageHandler targetHandler = this.handler;
-					if (AopUtils.isAopProxy(targetHandler)) {
-						Object target = ((Advised) targetHandler).getTargetSource().getTarget();
-						if (target instanceof MessageHandler) {
-							targetHandler = (MessageHandler) target;
-						}
-					}
-					if (targetHandler instanceof IntegrationObjectSupport) {
-						((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
-					}
-				}
-			}
-			catch (Exception e) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Could not set component name for handler "
-							+ this.handler + " for " + this.beanName + " :" + e.getMessage());
-				}
-			}
+			populateComponentNameIfAny();
 		}
 
 		if (!(this.handler instanceof ReactiveMessageHandlerAdapter)) {
@@ -228,6 +209,29 @@ public class ConsumerEndpointFactoryBean
 			this.channelResolver = ChannelResolverUtils.getChannelResolver(this.beanFactory);
 		}
 		initializeEndpoint();
+	}
+
+	private void populateComponentNameIfAny() {
+		try {
+			if (!this.beanName.startsWith("org.springframework")) {
+				MessageHandler targetHandler = this.handler;
+				if (AopUtils.isAopProxy(targetHandler)) {
+					Object target = ((Advised) targetHandler).getTargetSource().getTarget();
+					if (target instanceof MessageHandler) {
+						targetHandler = (MessageHandler) target;
+					}
+				}
+				if (targetHandler instanceof IntegrationObjectSupport) {
+					((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
+				}
+			}
+		}
+		catch (Exception e) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Could not set component name for handler "
+						+ this.handler + " for " + this.beanName + " :" + e.getMessage());
+			}
+		}
 	}
 
 	private void adviceChain() {
