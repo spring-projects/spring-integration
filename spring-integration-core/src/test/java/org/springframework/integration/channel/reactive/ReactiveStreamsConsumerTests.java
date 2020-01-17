@@ -99,6 +99,8 @@ public class ReactiveStreamsConsumerTests {
 
 		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result).containsExactly(testMessage, testMessage2);
+
+		reactiveConsumer.stop();
 	}
 
 
@@ -222,6 +224,8 @@ public class ReactiveStreamsConsumerTests {
 		verify(testSubscriber, never()).onComplete();
 
 		assertThat(messages.isEmpty()).isTrue();
+
+		reactiveConsumer.stop();
 	}
 
 	@Test
@@ -264,6 +268,8 @@ public class ReactiveStreamsConsumerTests {
 		assertThat(stopLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(result.size()).isEqualTo(3);
 		assertThat(result).containsExactly(testMessage, testMessage2, testMessage2);
+
+		endpointFactoryBean.stop();
 	}
 
 	@Test
@@ -302,7 +308,8 @@ public class ReactiveStreamsConsumerTests {
 				.expectNext(testMessage, testMessage2)
 				.thenCancel()
 				.verify();
-	}
 
+		reactiveConsumer.stop();
+	}
 
 }
