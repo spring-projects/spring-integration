@@ -38,7 +38,6 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.messaging.Message;
 
-import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -60,16 +59,11 @@ public abstract class MongoDbAvailableTests {
 	public MongoDbAvailableRule mongoDbAvailableRule = new MongoDbAvailableRule();
 
 	public static final MongoDbFactory MONGO_DATABASE_FACTORY =
-			new SimpleMongoClientDbFactory(
-					MongoClients.create(
-							MongoClientSettings.builder().build()),
-					"test");
+			new SimpleMongoClientDbFactory(MongoClients.create(), "test");
 
 	public static final ReactiveMongoDatabaseFactory REACTIVE_MONGO_DATABASE_FACTORY =
 			new SimpleReactiveMongoDatabaseFactory(
-					com.mongodb.reactivestreams.client.MongoClients.create(
-							MongoClientSettings.builder().build()),
-					"test");
+					com.mongodb.reactivestreams.client.MongoClients.create(), "test");
 
 	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		cleanupCollections(MONGO_DATABASE_FACTORY, additionalCollectionsToDrop);

@@ -30,12 +30,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.conversions.Bson;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -44,7 +42,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
-import org.springframework.messaging.MessageChannel;
 
 import com.mongodb.BasicDBObject;
 import reactor.core.publisher.Flux;
@@ -57,19 +54,6 @@ import reactor.test.StepVerifier;
  * @since 5.3
  */
 public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
-
-	private ReactiveMongoTemplate template;
-
-	private ReactiveMongoDatabaseFactory mongoDbFactory;
-
-	@Autowired
-	private MessageChannel input;
-
-	@Before
-	public void setUp() {
-		this.mongoDbFactory = prepareReactiveMongoFactory("foo");
-		this.template = new ReactiveMongoTemplate(this.mongoDbFactory);
-	}
 
 	@Test
 	public void withNullMongoDBFactory() {

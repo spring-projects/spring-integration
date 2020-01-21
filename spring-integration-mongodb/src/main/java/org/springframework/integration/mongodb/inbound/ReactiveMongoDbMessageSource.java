@@ -18,6 +18,9 @@ package org.springframework.integration.mongodb.inbound;
 
 import org.reactivestreams.Publisher;
 
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -40,31 +43,46 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * An instance of {@link org.springframework.integration.core.MessageSource} which returns
+ * a {@link org.springframework.messaging.Message} with a payload which is the result of
+ * execution of a {@link Query}. When {@code expectSingleResult} is false (default), the MongoDb
+ * {@link Query} is executed using {@link ReactiveMongoOperations#find(Query, Class)} method which
+ * returns a {@link Flux}. The returned {@link Flux} will be used as the payload of the
+ * {@link org.springframework.messaging.Message} returned by the {@link #receive()}
+ * method.
+ * <p>
+ * When expectSingleResult is true, the {@link ReactiveMongoOperations#findOne(Query, Class)} is
+ * used instead, and the message payload will be a {@link Mono} for the single object returned from the
+ * query.
+ *
  * @author David Turanski
  *
  * @since 5.3
  */
-public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publisher<?>> {
+public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publisher<?>> implements ApplicationContextAware {
+
 	private final Expression queryExpression;
 
-	private volatile Expression collectionNameExpression = new LiteralExpression("data");
+	private Expression collectionNameExpression = new LiteralExpression("data");
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
-	private volatile ReactiveMongoOperations reactiveMongoTemplate;
+	private ReactiveMongoOperations reactiveMongoTemplate;
 
-	private volatile MongoConverter mongoConverter;
+	private MongoConverter mongoConverter;
 
-	private volatile ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
+	private ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
+
+	private Class<?> entityClass = DBObject.class;
+
+	private boolean expectSingleResult = false;
+
+	private ApplicationContext applicationContext;
 
 	private volatile boolean initialized = false;
 
-	private volatile Class<?> entityClass = DBObject.class;
-
-	private volatile boolean expectSingleResult = false;
-
 	/**
-	 * Creates an instance with the provided {@link ReactiveMongoDatabaseFactory} and SpEL expression
+	 * Create an instance with the provided {@link ReactiveMongoDatabaseFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string
 	 * (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
@@ -80,7 +98,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	}
 
 	/**
-	 * Creates an instance with the provided {@link ReactiveMongoOperations} and SpEL expression
+	 * Create an instance with the provided {@link ReactiveMongoOperations} and SpEL expression
 	 * which should resolve to a Mongo 'query' string
 	 * (see https://www.mongodb.org/display/DOCS/Querying).
 	 * It assumes that the {@link ReactiveMongoOperations} is fully initialized and ready to be used.
@@ -97,7 +115,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	}
 
 	/**
-	 * Allows you to set the type of the entityClass that will be passed to the
+	 * Allow you to set the type of the entityClass that will be passed to the
 	 * {@link ReactiveMongoTemplate#find(Query, Class)} or {@link ReactiveMongoTemplate#findOne(Query, Class)}
 	 * method.
 	 * Default is {@link DBObject}.
@@ -109,13 +127,13 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	}
 
 	/**
-	 * Allows you to manage which find* method to invoke on {@link ReactiveMongoTemplate}.
+	 * Allow you to manage which find* method to invoke on {@link ReactiveMongoTemplate}.
 	 * Default is 'false', which means the {@link #receive()} method will use
 	 * the {@link ReactiveMongoTemplate#find(Query, Class)} method. If set to 'true',
 	 * {@link #receive()} will use {@link ReactiveMongoTemplate#findOne(Query, Class)},
 	 * and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
-	 * identified by {{@link #entityClass} instead of a List.
+	 * identified by {@link #entityClass} instead of a List.
 	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
@@ -123,7 +141,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	}
 
 	/**
-	 * Sets the SpEL {@link Expression} that should resolve to a collection name
+	 * Set the SpEL {@link Expression} that should resolve to a collection name
 	 * used by the {@link Query}. The resulting collection name will be included
 	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 * @param collectionNameExpression The collection name expression.
@@ -134,7 +152,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	}
 
 	/**
-	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
+	 * Allow you to provide a custom {@link MongoConverter} used to assist in deserialization
 	 * data read from MongoDb. Only allowed if this instance was constructed with a
 	 * {@link ReactiveMongoDatabaseFactory}.
 	 * @param mongoConverter The mongo converter.
@@ -160,16 +178,20 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
 		}
 		if (this.reactiveMongoTemplate == null) {
-			this.reactiveMongoTemplate = new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, this.mongoConverter);
+			ReactiveMongoTemplate template = new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, this.mongoConverter);
+			if (this.applicationContext != null) {
+				template.setApplicationContext(this.applicationContext);
+			}
+			this.reactiveMongoTemplate = template;
 		}
 		this.initialized = true;
 	}
 
 	/**
-	 * Will execute a {@link Query} returning its results as the Message payload.
-	 * The payload can be either {@link Flux} of {@link Mono} of objects of type
-	 * identified by {{@link #entityClass}, or a single element of type identified by {{@link #entityClass}
-	 * based on the value of {{@link #expectSingleResult} attribute which defaults to 'false' resulting
+	 * Execute a {@link Query} returning its results as the Message payload.
+	 * The payload can be either {@link Flux} or {@link Mono} of objects of type
+	 * identified by {@link #entityClass}, or a single element of type identified by {@link #entityClass}
+	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
 	 * {@link Flux}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
@@ -210,8 +232,11 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName);
 		}
 
-//	   TODO: Do we need to add any reactive transaction support?
-
 		return messageBuilder;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 }
