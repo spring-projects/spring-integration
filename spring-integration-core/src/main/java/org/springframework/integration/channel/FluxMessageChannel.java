@@ -78,8 +78,14 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				Flux.from(publisher)
 						.delaySubscription(this.subscribedSignal.filter(Boolean::booleanValue).next())
 						.publishOn(Schedulers.boundedElastic())
-						.doOnNext(this::send)
-						.onErrorContinue((ex, message) -> logger.warn("Error during processing event: " + message, ex))
+						.doOnNext((message) -> {
+							try {
+								send(message);
+							}
+							catch (Exception ex) {
+								logger.warn("Error during processing event: " + message, ex);
+							}
+						})
 						.subscribe());
 	}
 
