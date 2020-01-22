@@ -32,14 +32,26 @@ import java.util.Optional;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
@@ -161,6 +173,20 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
+	public void validateWithConfiguredPollerFlow() {
+		ApplicationContext context = new AnnotationConfigApplicationContext(TestContext.class);
+		FluxMessageChannel output = context.getBean(FluxMessageChannel.class);
+		StepVerifier.create(output)
+				.assertNext(
+						message -> assertThat(((Person) message.getPayload()).getName()).isEqualTo("Oleg"))
+				.then(()-> context.getBean(SourcePollingChannelAdapter.class).stop())
+				.thenCancel()
+				.verify();
+
+	}
+
+	@Test
+	@MongoDbAvailable
 	@SuppressWarnings("unchecked")
 	public void validatePipelineInModifyOut() {
 
@@ -209,6 +235,39 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	private static <T> T waitFor(Mono<T> mono) {
 		return mono.block(Duration.ofSeconds(10));
+	}
+
+	@Configuration
+	@EnableIntegration
+	static class TestContext {
+
+		@Bean
+		FluxMessageChannel output() {
+			return new FluxMessageChannel();
+		}
+
+		@Bean
+		public MessageSource<Publisher<?>> mongodbMessageSource(ReactiveMongoDatabaseFactory mongoDatabaseFactory) {
+			Expression queryExpression = new LiteralExpression("{}");
+			ReactiveMongoDbMessageSource reactiveMongoDbMessageSource =
+					new ReactiveMongoDbMessageSource(mongoDatabaseFactory, queryExpression);
+			reactiveMongoDbMessageSource.setEntityClass(Person.class);
+			return reactiveMongoDbMessageSource;
+		}
+
+		@Bean
+		ReactiveMongoDatabaseFactory mongoDatabaseFactory() {
+			return MongoDbAvailableTests.REACTIVE_MONGO_DATABASE_FACTORY;
+		}
+
+		@Bean
+		public IntegrationFlow pollingFlow(MessageSource<Publisher<?>> mongodbMessageSource) {
+			return IntegrationFlows.from(mongodbMessageSource,
+					c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+					.split()
+					.channel("output")
+					.get();
+		}
 	}
 
 }
