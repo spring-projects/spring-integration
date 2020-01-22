@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.messaging.SubscribableChannel;
 
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -87,13 +86,13 @@ public final class MessageChannelReactiveUtils {
 		public void subscribe(Subscriber<? super Message<T>> subscriber) {
 			Flux
 					.<Message<T>>create(sink ->
-									sink.onRequest(n -> {
-										Message<?> m;
-										while (!sink.isCancelled() && n-- > 0
-												&& (m = this.channel.receive()) != null) { // NOSONAR
-											sink.next((Message<T>) m);
-										}
-									}))
+							sink.onRequest(n -> {
+								Message<?> m;
+								while (!sink.isCancelled() && n-- > 0
+										&& (m = this.channel.receive()) != null) { // NOSONAR
+									sink.next((Message<T>) m);
+								}
+							}))
 					.subscribeOn(Schedulers.elastic())
 					.subscribe(subscriber);
 		}
