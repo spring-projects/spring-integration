@@ -21,11 +21,15 @@ import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.expression.ValueExpression;
 
 /**
  * Factory class for building MongoDb components
  *
  * @author Xavier Padro
+ * @author Artem Bilan
  *
  * @since 5.0
  */
@@ -74,9 +78,68 @@ public final class MongoDb {
 	 * @return the {@link ReactiveMongoDbMessageHandlerSpec} instance
 	 * @since 5.3
 	 */
-	public static ReactiveMongoDbMessageHandlerSpec reactiveOutboundChannelAdapter(ReactiveMongoOperations mongoTemplate) {
+	public static ReactiveMongoDbMessageHandlerSpec reactiveOutboundChannelAdapter(
+			ReactiveMongoOperations mongoTemplate) {
+
 		return new ReactiveMongoDbMessageHandlerSpec(mongoTemplate);
 	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link ReactiveMongoDatabaseFactory}.
+	 * @param mongoDbFactory the {@link ReactiveMongoDatabaseFactory} to use.
+	 * @param query the MongoDb query
+	 * @return the {@link ReactiveMongoDbMessageSourceSpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageSourceSpec reactiveInboundChannelAdapter(
+			ReactiveMongoDatabaseFactory mongoDbFactory, String query) {
+
+		return new ReactiveMongoDbMessageSourceSpec(mongoDbFactory, new LiteralExpression(query));
+	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link ReactiveMongoDatabaseFactory}.
+	 * @param mongoDbFactory the {@link ReactiveMongoDatabaseFactory} to use.
+	 * @param query the MongoDb query DSL object
+	 * @return the {@link ReactiveMongoDbMessageSourceSpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageSourceSpec reactiveInboundChannelAdapter(
+			ReactiveMongoDatabaseFactory mongoDbFactory, Query query) {
+
+		return new ReactiveMongoDbMessageSourceSpec(mongoDbFactory, new ValueExpression<>(query));
+	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link ReactiveMongoOperations}.
+	 * @param mongoTemplate the {@link ReactiveMongoOperations} to use.
+	 * @param query the MongoDb query
+	 * @return the {@link ReactiveMongoDbMessageSourceSpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageSourceSpec reactiveInboundChannelAdapter(ReactiveMongoOperations mongoTemplate,
+			String query) {
+
+		return new ReactiveMongoDbMessageSourceSpec(mongoTemplate, new LiteralExpression(query));
+	}
+
+	/**
+	 * Create a {@link ReactiveMongoDbMessageSourceSpec} builder instance
+	 * based on the provided {@link ReactiveMongoOperations}.
+	 * @param mongoTemplate the {@link ReactiveMongoOperations} to use.
+	 * @param query the MongoDb query DSL object
+	 * @return the {@link ReactiveMongoDbMessageSourceSpec} instance
+	 * @since 5.3
+	 */
+	public static ReactiveMongoDbMessageSourceSpec reactiveInboundChannelAdapter(ReactiveMongoOperations mongoTemplate,
+			Query query) {
+
+		return new ReactiveMongoDbMessageSourceSpec(mongoTemplate, new ValueExpression<>(query));
+	}
+
 
 	private MongoDb() {
 	}

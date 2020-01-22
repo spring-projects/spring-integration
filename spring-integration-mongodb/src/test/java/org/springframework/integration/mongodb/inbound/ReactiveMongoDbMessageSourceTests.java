@@ -32,7 +32,6 @@ import java.util.Optional;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -47,10 +46,10 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.mongodb.dsl.MongoDb;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
@@ -245,30 +244,14 @@ public class ReactiveMongoDbMessageSourceTests extends MongoDbAvailableTests {
 	static class TestContext {
 
 		@Bean
-		FluxMessageChannel output() {
-			return new FluxMessageChannel();
-		}
-
-		@Bean
-		public MessageSource<Publisher<?>> mongodbMessageSource(ReactiveMongoDatabaseFactory mongoDatabaseFactory) {
-			Expression queryExpression = new LiteralExpression("{'name' : 'Oleg'}");
-			ReactiveMongoDbMessageSource reactiveMongoDbMessageSource =
-					new ReactiveMongoDbMessageSource(mongoDatabaseFactory, queryExpression);
-			reactiveMongoDbMessageSource.setEntityClass(Person.class);
-			return reactiveMongoDbMessageSource;
-		}
-
-		@Bean
-		ReactiveMongoDatabaseFactory mongoDatabaseFactory() {
-			return MongoDbAvailableTests.REACTIVE_MONGO_DATABASE_FACTORY;
-		}
-
-		@Bean
-		public IntegrationFlow pollingFlow(MessageSource<Publisher<?>> mongodbMessageSource) {
+		public IntegrationFlow pollingFlow() {
 			return IntegrationFlows
-					.from(mongodbMessageSource, c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+					.from(MongoDb.reactiveInboundChannelAdapter(
+							MongoDbAvailableTests.REACTIVE_MONGO_DATABASE_FACTORY, "{'name' : 'Oleg'}")
+									.entityClass(Person.class),
+							c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.split()
-					.channel(output())
+					.channel(c -> c.flux("output"))
 					.get();
 		}
 
