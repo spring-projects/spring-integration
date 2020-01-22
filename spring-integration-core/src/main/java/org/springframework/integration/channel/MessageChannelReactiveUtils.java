@@ -93,8 +93,7 @@ public final class MessageChannelReactiveUtils {
 												&& (m = this.channel.receive()) != null) { // NOSONAR
 											sink.next((Message<T>) m);
 										}
-									}),
-							FluxSink.OverflowStrategy.IGNORE)
+									}))
 					.subscribeOn(Schedulers.elastic())
 					.subscribe(subscriber);
 		}
