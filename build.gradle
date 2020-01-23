@@ -922,17 +922,16 @@ asciidoctor {
 		}
 	}
 	options doctype: 'book', eruby: 'erubis'
+
 	attributes 'docinfo': 'shared',
-		// use provided stylesheet
 		stylesdir: "css/",
 		stylesheet: 'spring.css',
 		'linkcss': true,
 		'icons': 'font',
 		'sectanchors': '',
-		// use provided highlighter
 		'source-highlighter=highlight.js',
 		'highlightjsdir=js/highlight',
-		'highlightjs-theme=atom-one-dark-reasonable',
+		'highlightjs-theme': 'github',
 		'idprefix': '',
 		'idseparator': '-',
 		'spring-version': project.version,
