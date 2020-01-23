@@ -35,6 +35,7 @@ import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.mongodb.DBObject;
@@ -55,11 +56,15 @@ import reactor.core.publisher.Mono;
  * query.
  *
  * @author David Turanski
+ * @author Artem Bilan
  *
  * @since 5.3
  */
 public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publisher<?>>
 		implements ApplicationContextAware {
+
+	@Nullable
+	private final ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
 
 	private final Expression queryExpression;
 
@@ -70,8 +75,6 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	private ReactiveMongoOperations reactiveMongoTemplate;
 
 	private MongoConverter mongoConverter;
-
-	private ReactiveMongoDatabaseFactory reactiveMongoDatabaseFactory;
 
 	private Class<?> entityClass = DBObject.class;
 
@@ -93,7 +96,6 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 
 		Assert.notNull(reactiveMongoDatabaseFactory, "'reactiveMongoDatabaseFactory' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-
 		this.reactiveMongoDatabaseFactory = reactiveMongoDatabaseFactory;
 		this.queryExpression = queryExpression;
 	}
@@ -109,6 +111,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 	public ReactiveMongoDbMessageSource(ReactiveMongoOperations reactiveMongoTemplate, Expression queryExpression) {
 		Assert.notNull(reactiveMongoTemplate, "'reactiveMongoTemplate' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
+		this.reactiveMongoDatabaseFactory = null;
 		this.reactiveMongoTemplate = reactiveMongoTemplate;
 		this.queryExpression = queryExpression;
 	}

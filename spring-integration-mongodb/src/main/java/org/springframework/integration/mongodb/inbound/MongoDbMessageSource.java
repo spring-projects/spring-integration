@@ -34,6 +34,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -45,7 +46,7 @@ import com.mongodb.DBObject;
  * a {@link org.springframework.messaging.Message} with a payload which is the result of
  * execution of a {@link Query}. When expectSingleResult is false (default), the MongoDb
  * {@link Query} is executed using {@link MongoOperations#find(Query, Class)} method which
- * returns a {@link List}. The returned {@link List} will be used as the payoad of the
+ * returns a {@link List}. The returned {@link List} will be used as the payload of the
  * {@link org.springframework.messaging.Message} returned by the {{@link #receive()}
  * method. An empty {@link List} is treated as null, thus resulting in no
  * {@link org.springframework.messaging.Message} returned by the {{@link #receive()}
@@ -65,28 +66,28 @@ import com.mongodb.DBObject;
  */
 public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
+	@Nullable
+	private final MongoDbFactory mongoDbFactory;
+
 	private final Expression queryExpression;
 
-	private volatile Expression collectionNameExpression = new LiteralExpression("data");
+	private Expression collectionNameExpression = new LiteralExpression("data");
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
-	private volatile MongoOperations mongoTemplate;
+	private MongoOperations mongoTemplate;
 
-	private volatile MongoConverter mongoConverter;
+	private MongoConverter mongoConverter;
 
-	private volatile MongoDbFactory mongoDbFactory;
+	private Class<?> entityClass = DBObject.class;
+
+	private boolean expectSingleResult = false;
 
 	private volatile boolean initialized = false;
 
-	private volatile Class<?> entityClass = DBObject.class;
-
-	private volatile boolean expectSingleResult = false;
-
 	/**
 	 * Creates an instance with the provided {@link MongoDbFactory} and SpEL expression
-	 * which should resolve to a MongoDb 'query' string
-	 * (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a MongoDb 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
@@ -94,15 +95,13 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	public MongoDbMessageSource(MongoDbFactory mongoDbFactory, Expression queryExpression) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-
 		this.mongoDbFactory = mongoDbFactory;
 		this.queryExpression = queryExpression;
 	}
 
 	/**
 	 * Creates an instance with the provided {@link MongoOperations} and SpEL expression
-	 * which should resolve to a Mongo 'query' string
-	 * (see https://www.mongodb.org/display/DOCS/Querying).
+	 * which should resolve to a Mongo 'query' string (see https://www.mongodb.org/display/DOCS/Querying).
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param mongoTemplate The mongo template.
@@ -111,15 +110,14 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	public MongoDbMessageSource(MongoOperations mongoTemplate, Expression queryExpression) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
-
+		this.mongoDbFactory = null;
 		this.mongoTemplate = mongoTemplate;
 		this.queryExpression = queryExpression;
 	}
 
 	/**
 	 * Allows you to set the type of the entityClass that will be passed to the
-	 * {@link MongoTemplate#find(Query, Class)} or {@link MongoTemplate#findOne(Query, Class)}
-	 * method.
+	 * {@link MongoTemplate#find(Query, Class)} or {@link MongoTemplate#findOne(Query, Class)} method.
 	 * Default is {@link DBObject}.
 	 * @param entityClass The entity class.
 	 */
@@ -135,7 +133,7 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)},
 	 * and the payload of the returned {@link org.springframework.messaging.Message}
 	 * will be the returned target Object of type
-	 * identified by {{@link #entityClass} instead of a List.
+	 * identified by {@link #entityClass} instead of a List.
 	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
@@ -188,8 +186,8 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	/**
 	 * Will execute a {@link Query} returning its results as the Message payload.
 	 * The payload can be either {@link List} of elements of objects of type
-	 * identified by {{@link #entityClass}, or a single element of type identified by {{@link #entityClass}
-	 * based on the value of {{@link #expectSingleResult} attribute which defaults to 'false' resulting
+	 * identified by {@link #entityClass}, or a single element of type identified by {@link #entityClass}
+	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
 	 * {@link List}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
@@ -218,12 +216,10 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 		Object result = null;
 		if (this.expectSingleResult) {
-			result = this.mongoTemplate.
-					findOne(query, this.entityClass, collectionName);
+			result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
 		}
 		else {
-			List<?> results = this.mongoTemplate.
-					find(query, this.entityClass, collectionName);
+			List<?> results = this.mongoTemplate.find(query, this.entityClass, collectionName);
 			if (!CollectionUtils.isEmpty(results)) {
 				result = results;
 			}
