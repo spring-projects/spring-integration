@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -69,6 +71,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jayadev Sirimamilla
  *
  * @since 5.0
  */
@@ -542,7 +545,6 @@ public class RouterTests {
 	private MessageChannel nestedScatterGatherFlowInput;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testNestedScatterGather() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> request = MessageBuilder.withPayload("this is a test")
@@ -600,6 +602,25 @@ public class RouterTests {
 	public void propagateErrorFromGatherer() {
 		assertThatThrownBy(() -> propagateErrorFromGathererGateway.apply("bar"))
 				.hasMessage("intentional");
+	}
+
+	@Autowired
+	@Qualifier("scatterGatherInSubFlow.input")
+	MessageChannel scatterGatherInSubFlowChannel;
+
+
+	@Test
+	public void testNestedScatterGatherSuccess() {
+		PollableChannel replyChannel = new QueueChannel();
+		this.scatterGatherInSubFlowChannel.send(
+				org.springframework.integration.support.MessageBuilder.withPayload("baz")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("baz", receive.getPayload());
+
 	}
 
 	@Configuration
@@ -906,7 +927,19 @@ public class RouterTests {
 										throw new RuntimeException("intentional");
 									}),
 							sg -> sg.gatherTimeout(100))
+					.transform(m -> "This should not be executed, results must have been propagated to Error Channel")
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow scatterGatherInSubFlow() {
+			return flow -> flow.scatterGather(s -> s.applySequence(true)
+							.recipientFlow(inflow -> inflow
+									.scatterGather(s1 -> s1.applySequence(true)
+													.recipientFlow(IntegrationFlowDefinition::bridge),
+											g -> g.outputProcessor(MessageGroup::getOne)
+									)),
+					g -> g.outputProcessor(MessageGroup::getOne));
 		}
 
 	}
