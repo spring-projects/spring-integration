@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,13 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Abdul Zaheer
+ * @author Jayadev Sirimamilla
  *
  * @since 4.1
  */
 public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
-
-	private static final String ORIGINAL_REPLY_CHANNEL = "originalReplyChannel";
 
 	private static final String ORIGINAL_ERROR_CHANNEL = "originalErrorChannel";
 
@@ -178,9 +177,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		MessageHeaders headers = message.getHeaders();
 		return getMessageBuilderFactory()
 				.fromMessage(message)
-				.setHeader(MessageHeaders.REPLY_CHANNEL, headers.get(ORIGINAL_REPLY_CHANNEL))
 				.setHeader(MessageHeaders.ERROR_CHANNEL, headers.get(ORIGINAL_ERROR_CHANNEL))
-				.removeHeaders(ORIGINAL_REPLY_CHANNEL, ORIGINAL_ERROR_CHANNEL)
 				.build();
 	}
 
@@ -193,7 +190,6 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 				getMessageBuilderFactory()
 						.fromMessage(requestMessage)
 						.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannel)
-						.setHeader(ORIGINAL_REPLY_CHANNEL, requestMessageHeaders.getReplyChannel())
 						.setHeader(ORIGINAL_ERROR_CHANNEL, requestMessageHeaders.getErrorChannel())
 						.setReplyChannel(this.gatherChannel)
 						.setErrorChannelName(this.errorChannelName)
@@ -201,7 +197,15 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
-		return gatherResultChannel.receive(this.gatherTimeout);
+		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
+		if (gatherResult != null) {
+			return getMessageBuilderFactory()
+					.fromMessage(gatherResult)
+					.removeHeaders(GATHER_RESULT_CHANNEL, ORIGINAL_ERROR_CHANNEL,
+							MessageHeaders.REPLY_CHANNEL, MessageHeaders.ERROR_CHANNEL);
+		}
+
+		return null;
 	}
 
 	@Override
