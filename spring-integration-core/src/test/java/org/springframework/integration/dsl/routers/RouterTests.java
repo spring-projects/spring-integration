@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -592,6 +592,25 @@ public class RouterTests {
 				.withMessage("intentional");
 	}
 
+	@Autowired
+	@Qualifier("scatterGatherflow.input")
+	MessageChannel scatterGatherflowChannel;
+
+
+	@Test
+	public void testNestedScatterGatherSuccess() {
+		PollableChannel replyChannel = new QueueChannel();
+		this.scatterGatherflowChannel.send(
+				org.springframework.integration.support.MessageBuilder.withPayload("baz")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("baz");
+
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -898,6 +917,30 @@ public class RouterTests {
 							sg -> sg.gatherTimeout(100))
 					.get();
 		}
+		@Bean
+		public IntegrationFlow scatterGatherflow() {
+
+			return flow -> flow.log()
+					.scatterGather(s -> s.applySequence(true).requiresReply(true)
+									.recipient("scatterGatherInnerflow.input"),
+							g -> g.outputProcessor(mg -> mg.getOne().getPayload()),
+							sg -> sg.errorChannel("scatterGatherErrorChannel").gatherTimeout(1000)
+					)
+					.log()
+					.bridge();
+		}
+
+
+		@Bean
+		public IntegrationFlow scatterGatherInnerflow() {
+			return f -> f
+					.scatterGather(s -> s.applySequence(true).requiresReply(true)
+									.recipientFlow(sf -> sf.log().bridge()),
+							g -> g.outputProcessor(mg -> mg.getOne().getPayload()),
+							sg -> sg.errorChannel("scatterGatherErrorChannel").gatherTimeout(1000)
+					);
+		}
+
 
 	}
 
