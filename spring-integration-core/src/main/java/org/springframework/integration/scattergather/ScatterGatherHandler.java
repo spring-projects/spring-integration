@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 the original author or authors.
+ * Copyright 2014-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,21 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
-		return gatherResultChannel.receive(this.gatherTimeout);
+		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
+		if (gatherResult != null && (requestMessageHeaders.containsKey(ORIGINAL_REPLY_CHANNEL)
+				|| requestMessageHeaders.containsKey(ORIGINAL_ERROR_CHANNEL)
+				|| requestMessageHeaders.containsKey(GATHER_RESULT_CHANNEL))) {
+			return getMessageBuilderFactory()
+					.fromMessage(gatherResult)
+					.removeHeader(GATHER_RESULT_CHANNEL)
+					.setHeader(GATHER_RESULT_CHANNEL, requestMessageHeaders.get(GATHER_RESULT_CHANNEL))
+					.setHeader(ORIGINAL_REPLY_CHANNEL, requestMessageHeaders.get(ORIGINAL_REPLY_CHANNEL))
+					.setHeader(ORIGINAL_ERROR_CHANNEL, requestMessageHeaders.get(ORIGINAL_ERROR_CHANNEL))
+					.setHeader(MessageHeaders.REPLY_CHANNEL, requestMessage.getHeaders().getReplyChannel())
+					.build();
+		}
+
+		return gatherResult;
 	}
 
 	@Override
