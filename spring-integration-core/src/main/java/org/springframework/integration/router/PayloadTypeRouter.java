@@ -59,7 +59,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 		return (closestMatch != null) ? Collections.singletonList(closestMatch) : null;
 	}
 
-	private String findClosestMatch(Class<?> type, boolean isArray) {
+	private String findClosestMatch(Class<?> type, boolean isArray) { // NOSONAR
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new LinkedList<>();
 		for (String candidate : getChannelMappings().keySet()) {

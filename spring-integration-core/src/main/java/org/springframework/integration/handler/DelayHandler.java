@@ -347,48 +347,54 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private long determineDelayForMessage(Message<?> message) {
+		if (this.delayExpression != null) {
+			return determineDelayFromExpression(message);
+		}
+		else {
+			return defaultDelay;
+		}
+	}
+
+	private long determineDelayFromExpression(Message<?> message) {
+		long delay = this.defaultDelay;
 		DelayedMessageWrapper delayedMessageWrapper = null;
 		if (message.getPayload() instanceof DelayedMessageWrapper) {
 			delayedMessageWrapper = (DelayedMessageWrapper) message.getPayload();
 		}
-
-		long delay = this.defaultDelay;
-		if (this.delayExpression != null) {
-			Exception delayValueException = null;
-			Object delayValue = null;
+		Exception delayValueException = null;
+		Object delayValue = null;
+		try {
+			delayValue = this.delayExpression.getValue(this.evaluationContext,
+					delayedMessageWrapper != null ? delayedMessageWrapper.getOriginal() : message);
+		}
+		catch (EvaluationException e) {
+			delayValueException = e;
+		}
+		if (delayValue instanceof Date) {
+			long current = delayedMessageWrapper != null
+					? delayedMessageWrapper.getRequestDate()
+					: System.currentTimeMillis();
+			delay = ((Date) delayValue).getTime() - current;
+		}
+		else if (delayValue != null) {
 			try {
-				delayValue = this.delayExpression.getValue(this.evaluationContext,
-						delayedMessageWrapper != null ? delayedMessageWrapper.getOriginal() : message);
+				delay = Long.parseLong(delayValue.toString());
 			}
-			catch (EvaluationException e) {
+			catch (NumberFormatException e) {
 				delayValueException = e;
 			}
-			if (delayValue instanceof Date) {
-				long current = delayedMessageWrapper != null
-						? delayedMessageWrapper.getRequestDate()
-						: System.currentTimeMillis();
-				delay = ((Date) delayValue).getTime() - current;
-			}
-			else if (delayValue != null) {
-				try {
-					delay = Long.valueOf(delayValue.toString());
-				}
-				catch (NumberFormatException e) {
-					delayValueException = e;
+		}
+		if (delayValueException != null) {
+			if (this.ignoreExpressionFailures) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Failed to get delay value from 'delayExpression': " +
+							delayValueException.getMessage() +
+							". Will fall back to default delay: " + this.defaultDelay);
 				}
 			}
-			if (delayValueException != null) {
-				if (this.ignoreExpressionFailures) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to get delay value from 'delayExpression': " +
-								delayValueException.getMessage() +
-								". Will fall back to default delay: " + this.defaultDelay);
-					}
-				}
-				else {
-					throw new IllegalStateException("Error occurred during 'delay' value determination",
-							delayValueException);
-				}
+			else {
+				throw new IllegalStateException("Error occurred during 'delay' value determination",
+						delayValueException);
 			}
 		}
 		return delay;

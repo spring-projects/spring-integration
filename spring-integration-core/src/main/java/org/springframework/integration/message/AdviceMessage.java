@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -52,7 +53,7 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 
 	/**
 	 * A constructor with the {@link MessageHeaders} instance to use.
-	 * <p><strong>Note:</strong> the given {@code MessageHeaders} instance is used
+	 * <p><strong>Note:</strong> the given {@link MessageHeaders} instance is used
 	 * directly in the new message, i.e. it is not copied.
 	 * @param payload the message payload (never {@code null})
 	 * @param headers message headers
@@ -74,6 +75,26 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 		builder.setLength(builder.length() - 1);
 		builder.append(", inputMessage=").append(this.inputMessage.toString()).append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof AdviceMessage)) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		AdviceMessage<?> that = (AdviceMessage<?>) o;
+		return Objects.equals(this.inputMessage, that.inputMessage);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), this.inputMessage);
 	}
 
 }

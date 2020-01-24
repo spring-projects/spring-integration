@@ -174,7 +174,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
-	@Override
+	@Override // NOSONAR
 	protected void handleMessageInternal(Message<?> message) {
 		switch (this.level) {
 			case FATAL:

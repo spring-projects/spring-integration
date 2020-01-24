@@ -63,7 +63,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 						@Override
 						protected boolean removeEldestEntry(Entry<String, MessageChannel> eldest) {
-							return this.size() > AbstractMappingMessageRouter.this.dynamicChannelLimit;
+							return size() > AbstractMappingMessageRouter.this.dynamicChannelLimit;
 						}
 
 					});
@@ -288,14 +288,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelKeys, Message<?> message) {
-		if (channelKeys == null) {
-			return;
-		}
 		for (Object channelKey : channelKeys) {
-			if (channelKey == null) {
-				continue;
-			}
-			else if (channelKey instanceof MessageChannel) {
+			if (channelKey instanceof MessageChannel) {
 				channels.add((MessageChannel) channelKey);
 			}
 			else if (channelKey instanceof MessageChannel[]) {

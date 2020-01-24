@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Diego Belfer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 
 	private final OrderComparator comparator = new OrderComparator();
@@ -69,7 +71,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	private final Set<E> unmodifiableElements;
 
 	OrderedAwareCopyOnWriteArraySet() {
-		this.elements = new CopyOnWriteArraySet<E>();
+		this.elements = new CopyOnWriteArraySet<>();
 		this.unmodifiableElements = Collections.unmodifiableSet(this.elements);
 	}
 
@@ -87,14 +89,12 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		Assert.notNull(o, "Can not add NULL object");
 		this.writeLock.lock();
 		try {
-			boolean present = false;
 			if (o instanceof Ordered) {
-				present = this.addOrderedElement((Ordered) o);
+				return addOrderedElement((Ordered) o);
 			}
 			else {
-				present = this.elements.add(o);
+				return this.elements.add(o);
 			}
-			return present;
 		}
 		finally {
 			this.writeLock.unlock();
@@ -110,7 +110,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		this.writeLock.lock();
 		try {
 			for (E object : c) {
-				this.add(object);
+				add(object);
 			}
 			return true;
 		}
@@ -119,25 +119,17 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean remove(Object o) {
 		this.writeLock.lock();
 		try {
-			boolean removed = this.elements.remove(o);
-			//unmodifiableElements = Collections.unmodifiableSet(this);
-			return removed;
+			return this.elements.remove(o);
 		}
 		finally {
 			this.writeLock.unlock();
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		if (CollectionUtils.isEmpty(c)) {
