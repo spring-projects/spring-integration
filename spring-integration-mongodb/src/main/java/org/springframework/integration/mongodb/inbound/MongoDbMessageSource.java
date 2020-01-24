@@ -177,7 +177,7 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 			//Register MongoDB query API package so FQCN can be avoided in query-expression.
 			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
 		}
-		if (this.mongoTemplate == null) {
+		if (this.mongoDbFactory != null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
 		this.initialized = true;

@@ -39,21 +39,20 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.mongodb.DBObject;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * An instance of {@link org.springframework.integration.core.MessageSource} which returns
  * a {@link org.springframework.messaging.Message} with a payload which is the result of
  * execution of a {@link Query}. When {@code expectSingleResult} is false (default), the MongoDb
  * {@link Query} is executed using {@link ReactiveMongoOperations#find(Query, Class)} method which
- * returns a {@link Flux}. The returned {@link Flux} will be used as the payload of the
+ * returns a {@link reactor.core.publisher.Flux}.
+ * The returned {@link reactor.core.publisher.Flux} will be used as the payload of the
  * {@link org.springframework.messaging.Message} returned by the {@link #receive()}
  * method.
  * <p>
  * When {@code expectSingleResult} is true, the {@link ReactiveMongoOperations#findOne(Query, Class)} is
- * used instead, and the message payload will be a {@link Mono} for the single object returned from the
- * query.
+ * used instead, and the message payload will be a {@link reactor.core.publisher.Mono}
+ * for the single object returned from the query.
  *
  * @author David Turanski
  * @author Artem Bilan
@@ -183,7 +182,7 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 			//Register MongoDB query API package so FQCN can be avoided in query-expression.
 			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
 		}
-		if (this.reactiveMongoTemplate == null) {
+		if (this.reactiveMongoDatabaseFactory != null) {
 			ReactiveMongoTemplate template =
 					new ReactiveMongoTemplate(this.reactiveMongoDatabaseFactory, this.mongoConverter);
 			if (this.applicationContext != null) {
@@ -196,11 +195,12 @@ public class ReactiveMongoDbMessageSource extends AbstractMessageSource<Publishe
 
 	/**
 	 * Execute a {@link Query} returning its results as the Message payload.
-	 * The payload can be either {@link Flux} or {@link Mono} of objects of type
-	 * identified by {@link #entityClass}, or a single element of type identified by {@link #entityClass}
+	 * The payload can be either {@link reactor.core.publisher.Flux} or
+	 * {@link reactor.core.publisher.Mono} of objects of type identified by {@link #entityClass},
+	 * or a single element of type identified by {@link #entityClass}
 	 * based on the value of {@link #expectSingleResult} attribute which defaults to 'false' resulting
 	 * {@link org.springframework.messaging.Message} with payload of type
-	 * {@link Flux}. The collection name used in the
+	 * {@link reactor.core.publisher.Flux}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override

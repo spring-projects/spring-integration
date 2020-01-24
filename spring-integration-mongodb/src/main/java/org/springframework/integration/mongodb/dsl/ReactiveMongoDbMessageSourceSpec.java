@@ -21,7 +21,6 @@ import java.util.function.Supplier;
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.MessageSourceSpec;
@@ -49,7 +48,7 @@ public class ReactiveMongoDbMessageSourceSpec
 
 	/**
 	 * Allow you to set the type of the entityClass that will be passed to the
-	 * {@link ReactiveMongoOperations#find(Query, Class)} or {@link ReactiveMongoOperations#findOne(Query, Class)}
+	 * {@link ReactiveMongoOperations#find} or {@link ReactiveMongoOperations#findOne}
 	 * method.
 	 * Default is {@link com.mongodb.DBObject}.
 	 * @param entityClass The entity class.
