@@ -42,9 +42,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -62,6 +64,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Jayadev Sirimamilla
  *
  * @since 5.0
  */
@@ -920,27 +923,15 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow scatterGatherflow() {
 
-			return flow -> flow.log()
-					.scatterGather(s -> s.applySequence(true).requiresReply(true)
-									.recipient("scatterGatherInnerflow.input"),
-							g -> g.outputProcessor(mg -> mg.getOne().getPayload()),
-							sg -> sg.errorChannel("scatterGatherErrorChannel").gatherTimeout(1000)
-					)
-					.log()
-					.bridge();
-		}
-
-
-		@Bean
-		public IntegrationFlow scatterGatherInnerflow() {
-			return f -> f
-					.scatterGather(s -> s.applySequence(true).requiresReply(true)
-									.recipientFlow(sf -> sf.log().bridge()),
-							g -> g.outputProcessor(mg -> mg.getOne().getPayload()),
-							sg -> sg.errorChannel("scatterGatherErrorChannel").gatherTimeout(1000)
+			return flow -> flow.scatterGather(s -> s.applySequence(true)
+									.recipientFlow(inflow -> inflow
+											.scatterGather(s1 -> s1.applySequence(true)
+															.recipientFlow(IntegrationFlowDefinition::bridge)
+													, g -> g.outputProcessor(MessageGroup::getOne)
+											))
+							, g -> g.outputProcessor(MessageGroup::getOne)
 					);
 		}
-
 
 	}
 
