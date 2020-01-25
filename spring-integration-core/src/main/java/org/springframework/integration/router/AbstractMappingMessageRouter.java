@@ -312,13 +312,14 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			else if (channelKey instanceof Collection) {
 				addToCollection(channels, (Collection<?>) channelKey, message);
 			}
-			else if (getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
+			else if (channelKey != null &&
+					getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
 				String converted = getConversionService().convert(channelKey, String.class);
 				if (converted != null) {
 					addChannelFromString(channels, converted, message);
 				}
 			}
-			else {
+			else if (channelKey != null) {
 				throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
 			}
 		}
