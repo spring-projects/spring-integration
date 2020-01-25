@@ -926,10 +926,10 @@ public class RouterTests {
 			return flow -> flow.scatterGather(s -> s.applySequence(true)
 									.recipientFlow(inflow -> inflow
 											.scatterGather(s1 -> s1.applySequence(true)
-															.recipientFlow(IntegrationFlowDefinition::bridge)
-													, g -> g.outputProcessor(MessageGroup::getOne)
-											))
-							, g -> g.outputProcessor(MessageGroup::getOne)
+															.recipientFlow(IntegrationFlowDefinition::bridge),
+													g -> g.outputProcessor(MessageGroup::getOne)
+											)),
+					g -> g.outputProcessor(MessageGroup::getOne)
 					);
 		}
 
