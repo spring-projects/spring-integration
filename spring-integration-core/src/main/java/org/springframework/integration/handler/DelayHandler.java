@@ -385,19 +385,23 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			}
 		}
 		if (delayValueException != null) {
-			if (this.ignoreExpressionFailures) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Failed to get delay value from 'delayExpression': " +
-							delayValueException.getMessage() +
-							". Will fall back to default delay: " + this.defaultDelay);
-				}
-			}
-			else {
-				throw new IllegalStateException("Error occurred during 'delay' value determination",
-						delayValueException);
-			}
+			handleDelayValueException(delayValueException);
 		}
 		return delay;
+	}
+
+	private void handleDelayValueException(Exception delayValueException) {
+		if (this.ignoreExpressionFailures) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Failed to get delay value from 'delayExpression': " +
+						delayValueException.getMessage() +
+						". Will fall back to default delay: " + this.defaultDelay);
+			}
+		}
+		else {
+			throw new IllegalStateException("Error occurred during 'delay' value determination",
+					delayValueException);
+		}
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {

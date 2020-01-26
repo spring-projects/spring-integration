@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,12 +38,11 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Karol Dowbecki
+ *
  * @since 2.2
  *
  */
 public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, Map<String, ?>> {
-
-	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
 
 	public static final String FACILITY = "FACILITY";
 
@@ -59,6 +58,8 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	public static final String UNDECODED = "UNDECODED";
 
+	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
+
 	private final Pattern pattern = Pattern.compile("<([^>]+)>(.{15}) ([^ ]+) ([a-zA-Z0-9]{0,32})(.*)", Pattern.DOTALL);
 
 	@Override
@@ -69,85 +70,86 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 		if (isByteArray) {
 			return this.transform((byte[]) payload);
 		}
-		else if (isString) {
+		else {
 			return this.transform((String) payload);
 		}
-		return null;
 	}
 
 	private Map<String, ?> transform(byte[] payloadBytes) {
-		String payload;
-		try {
-			payload = new String(payloadBytes, "UTF-8");
-		}
-		catch (@SuppressWarnings("unused") UnsupportedEncodingException e) {
-			payload = new String(payloadBytes);
-		}
-		return transform(payload);
+		return transform(new String(payloadBytes, StandardCharsets.UTF_8));
 	}
 
 	private Map<String, ?> transform(String payload) {
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<>();
 		Matcher matcher = this.pattern.matcher(payload);
 		if (matcher.matches()) {
-			try {
-				String facilityString = matcher.group(1);
-				int facility = Integer.parseInt(facilityString);
-				int severity = facility & 0x7;
-				facility = facility >> 3;
-				map.put(FACILITY, facility);
-				map.put(SEVERITY, severity);
-				String timestamp = matcher.group(2);
-				try {
-					LocalDate localDate = this.dateTimeFormatter.parse(timestamp, LocalDate::from);
-					Calendar calendar = Calendar.getInstance();
-					int year = calendar.get(Calendar.YEAR);
-					int month = calendar.get(Calendar.MONTH);
-					calendar.setTime(Date.valueOf(localDate));
-					/*
-					 * syslog date doesn't include a year so we
-					 * need to insert the current year - adjusted
-					 * if necessary if close to midnight on Dec 31.
-					 */
-					if (month == 11 && calendar.get(Calendar.MONTH) == 0) {
-						calendar.set(Calendar.YEAR, year + 1);
-					}
-					else if (month == 0 && calendar.get(Calendar.MONTH) == 1) {
-						calendar.set(Calendar.YEAR, year - 1);
-					}
-					else {
-						calendar.set(Calendar.YEAR, year);
-					}
-					map.put(TIMESTAMP, calendar.getTime());
-				}
-				catch (@SuppressWarnings("unused") Exception e) {
-					/*
-					 * If we can't parse the timestamp, return it as an
-					 * unmodified String. (Postel's law).
-					 */
-					map.put(TIMESTAMP, timestamp);
-				}
-				map.put(HOST, matcher.group(3));
-				if (StringUtils.hasLength(matcher.group(4))) {
-					map.put(TAG, matcher.group(4));
-				}
-				map.put(MESSAGE, matcher.group(5));
-			}
-			catch (Exception e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Could not decode:" + payload, e);
-				}
-				map.clear();
-				map.put(UNDECODED, payload);
-			}
+			parseMatcherToMap(payload, matcher, map);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Could not decode:" + payload);
+				logger.debug("Could not decode: " + payload);
 			}
 			map.put(UNDECODED, payload);
 		}
 		return map;
+	}
+
+	private void parseMatcherToMap(Object payload, Matcher matcher, Map<String, Object> map) {
+		try {
+			String facilityString = matcher.group(1);
+			int facility = Integer.parseInt(facilityString);
+			int severity = facility & 0x7;
+			facility = facility >> 3;
+			map.put(FACILITY, facility);
+			map.put(SEVERITY, severity);
+			String timestamp = matcher.group(2);
+			parseTimestampToMap(timestamp, map);
+			map.put(HOST, matcher.group(3));
+			String tag = matcher.group(4);
+			if (StringUtils.hasLength(tag)) {
+				map.put(TAG, tag);
+			}
+			map.put(MESSAGE, matcher.group(5));
+		}
+		catch (Exception e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Could not decode: " + payload, e);
+			}
+			map.clear();
+			map.put(UNDECODED, payload);
+		}
+	}
+
+	private void parseTimestampToMap(String timestamp, Map<String, Object> map) {
+		try {
+			LocalDate localDate = this.dateTimeFormatter.parse(timestamp, LocalDate::from);
+			Calendar calendar = Calendar.getInstance();
+			int year = calendar.get(Calendar.YEAR);
+			int month = calendar.get(Calendar.MONTH);
+			calendar.setTime(Date.valueOf(localDate));
+			/*
+			 * syslog date doesn't include a year so we
+			 * need to insert the current year - adjusted
+			 * if necessary if close to midnight on Dec 31.
+			 */
+			if (month == 11 && calendar.get(Calendar.MONTH) == Calendar.JANUARY) {
+				calendar.set(Calendar.YEAR, year + 1);
+			}
+			else if (month == 0 && calendar.get(Calendar.MONTH) == Calendar.FEBRUARY) {
+				calendar.set(Calendar.YEAR, year - 1);
+			}
+			else {
+				calendar.set(Calendar.YEAR, year);
+			}
+			map.put(TIMESTAMP, calendar.getTime());
+		}
+		catch (@SuppressWarnings("unused") Exception e) {
+			/*
+			 * If we can't parse the timestamp, return it as an
+			 * unmodified String. (Postel's law).
+			 */
+			map.put(TIMESTAMP, timestamp);
+		}
 	}
 
 }

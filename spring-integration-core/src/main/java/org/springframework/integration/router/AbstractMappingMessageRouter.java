@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -292,36 +293,40 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			return;
 		}
 		for (Object channelKey : channelKeys) {
-			if (channelKey instanceof MessageChannel) {
-				channels.add((MessageChannel) channelKey);
+			addChannelKeyToCollection(channels, message, channelKey);
+		}
+	}
+
+	private void addChannelKeyToCollection(Collection<MessageChannel> channels, Message<?> message, Object channelKey) {
+		ConversionService conversionService = getRequiredConversionService();
+		if (channelKey instanceof MessageChannel) {
+			channels.add((MessageChannel) channelKey);
+		}
+		else if (channelKey instanceof MessageChannel[]) {
+			channels.addAll(Arrays.asList((MessageChannel[]) channelKey));
+		}
+		else if (channelKey instanceof String) {
+			addChannelFromString(channels, (String) channelKey, message);
+		}
+		else if (channelKey instanceof Class) {
+			addChannelFromString(channels, ((Class<?>) channelKey).getName(), message);
+		}
+		else if (channelKey instanceof String[]) {
+			for (String indicatorName : (String[]) channelKey) {
+				addChannelFromString(channels, indicatorName, message);
 			}
-			else if (channelKey instanceof MessageChannel[]) {
-				channels.addAll(Arrays.asList((MessageChannel[]) channelKey));
+		}
+		else if (channelKey instanceof Collection) {
+			addToCollection(channels, (Collection<?>) channelKey, message);
+		}
+		else if (channelKey != null && conversionService.canConvert(channelKey.getClass(), String.class)) {
+			String converted = conversionService.convert(channelKey, String.class);
+			if (converted != null) {
+				addChannelFromString(channels, converted, message);
 			}
-			else if (channelKey instanceof String) {
-				addChannelFromString(channels, (String) channelKey, message);
-			}
-			else if (channelKey instanceof Class) {
-				addChannelFromString(channels, ((Class<?>) channelKey).getName(), message);
-			}
-			else if (channelKey instanceof String[]) {
-				for (String indicatorName : (String[]) channelKey) {
-					addChannelFromString(channels, indicatorName, message);
-				}
-			}
-			else if (channelKey instanceof Collection) {
-				addToCollection(channels, (Collection<?>) channelKey, message);
-			}
-			else if (channelKey != null &&
-					getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
-				String converted = getConversionService().convert(channelKey, String.class);
-				if (converted != null) {
-					addChannelFromString(channels, converted, message);
-				}
-			}
-			else if (channelKey != null) {
-				throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
-			}
+		}
+		else if (channelKey != null) {
+			throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
 		}
 	}
 
