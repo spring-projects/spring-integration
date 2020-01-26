@@ -96,20 +96,20 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	private void parseMatcherToMap(Object payload, Matcher matcher, Map<String, Object> map) {
 		try {
-			String facilityString = matcher.group(1);
+			String facilityString = matcher.group(1); // NOSONAR
 			int facility = Integer.parseInt(facilityString);
 			int severity = facility & 0x7;
 			facility = facility >> 3;
 			map.put(FACILITY, facility);
 			map.put(SEVERITY, severity);
-			String timestamp = matcher.group(2);
+			String timestamp = matcher.group(2); // NOSONAR
 			parseTimestampToMap(timestamp, map);
-			map.put(HOST, matcher.group(3));
-			String tag = matcher.group(4);
+			map.put(HOST, matcher.group(3)); // NOSONAR
+			String tag = matcher.group(4); // NOSONAR
 			if (StringUtils.hasLength(tag)) {
 				map.put(TAG, tag);
 			}
-			map.put(MESSAGE, matcher.group(5));
+			map.put(MESSAGE, matcher.group(5)); // NOSONAR
 		}
 		catch (Exception e) {
 			if (logger.isDebugEnabled()) {
@@ -132,10 +132,10 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 			 * need to insert the current year - adjusted
 			 * if necessary if close to midnight on Dec 31.
 			 */
-			if (month == 11 && calendar.get(Calendar.MONTH) == Calendar.JANUARY) {
+			if (month == Calendar.DECEMBER && calendar.get(Calendar.MONTH) == Calendar.JANUARY) {
 				calendar.set(Calendar.YEAR, year + 1);
 			}
-			else if (month == 0 && calendar.get(Calendar.MONTH) == Calendar.FEBRUARY) {
+			else if (month == Calendar.JANUARY && calendar.get(Calendar.MONTH) == Calendar.FEBRUARY) {
 				calendar.set(Calendar.YEAR, year - 1);
 			}
 			else {

@@ -353,42 +353,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			try {
 				while (isRunning()) {
 					try {
-
-						if (logger.isDebugEnabled()) {
-							logger.debug("Acquiring the lock for " + this.context);
-						}
-
-						// We always try to acquire the lock, in case it expired
-						boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
-								TimeUnit.MILLISECONDS);
-						if (!this.locked) {
-							if (acquired) {
-								// Success: we are now leader
-								this.locked = true;
-								handleGranted();
-							}
-							else if (isPublishFailedEvents()) {
-								publishFailedToAcquire();
-							}
-						}
-						else if (acquired) {
-							// If we were able to acquire it but we were already locked we
-							// should release it
-							this.lock.unlock();
-							if (isRunning()) {
-								// Give it a chance to expire.
-								Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
-							}
-						}
-						else {
-							this.locked = false;
-							// We were not able to acquire it, therefore not leading any more
-							handleRevoked();
-							if (isRunning()) {
-								// Try again quickly in case the lock holder dropped it
-								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
-							}
-						}
+						tryAcquireLock();
 					}
 					catch (Exception e) {
 						if (handleLockException(e)) {
@@ -414,7 +379,44 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			return null;
 		}
 
-		private boolean handleLockException(Exception e) {
+		private void tryAcquireLock() throws InterruptedException {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Acquiring the lock for " + this.context);
+			}
+			// We always try to acquire the lock, in case it expired
+			boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
+					TimeUnit.MILLISECONDS);
+			if (!this.locked) {
+				if (acquired) {
+					// Success: we are now leader
+					this.locked = true;
+					handleGranted();
+				}
+				else if (isPublishFailedEvents()) {
+					publishFailedToAcquire();
+				}
+			}
+			else if (acquired) {
+				// If we were able to acquire it but we were already locked we
+				// should release it
+				this.lock.unlock();
+				if (isRunning()) {
+					// Give it a chance to expire.
+					Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
+				}
+			}
+			else {
+				this.locked = false;
+				// We were not able to acquire it, therefore not leading any more
+				handleRevoked();
+				if (isRunning()) {
+					// Try again quickly in case the lock holder dropped it
+					Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+				}
+			}
+		}
+
+		private boolean handleLockException(Exception ex) {
 			if (this.locked) {
 				this.locked = false;
 				try {
@@ -429,17 +431,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				handleRevoked();
 			}
 
-			if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
+			if (ex instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
 				Thread.currentThread().interrupt();
 				if (isRunning()) {
-					logger.warn("Restarting LeaderSelector for " + this.context + " because of error.", e);
-					LockRegistryLeaderInitiator.this.future =
-							LockRegistryLeaderInitiator.this.executorService.submit(
-									() -> {
-										// Give it a chance to elect some other leader.
-										Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
-										return call();
-									});
+					restartSelectorBecauseOfError(ex);
 				}
 				return true;
 			}
@@ -456,10 +451,21 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Error acquiring the lock for " + this.context +
-							". " + (isRunning() ? "Retrying..." : ""), e);
+							". " + (isRunning() ? "Retrying..." : ""), ex);
 				}
 			}
 			return false;
+		}
+
+		private void restartSelectorBecauseOfError(Exception ex) {
+			logger.warn("Restarting LeaderSelector for " + this.context + " because of error.", ex);
+			LockRegistryLeaderInitiator.this.future =
+					LockRegistryLeaderInitiator.this.executorService.submit(
+							() -> {
+								// Give it a chance to elect some other leader.
+								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+								return call();
+							});
 		}
 
 		public boolean isLeader() {

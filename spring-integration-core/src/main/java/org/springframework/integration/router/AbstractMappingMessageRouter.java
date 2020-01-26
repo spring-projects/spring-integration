@@ -293,7 +293,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			return;
 		}
 		for (Object channelKey : channelKeys) {
-			addChannelKeyToCollection(channels, message, channelKey);
+			if (channelKey != null) {
+				addChannelKeyToCollection(channels, message, channelKey);
+			}
 		}
 	}
 
@@ -319,13 +321,13 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		else if (channelKey instanceof Collection) {
 			addToCollection(channels, (Collection<?>) channelKey, message);
 		}
-		else if (channelKey != null && conversionService.canConvert(channelKey.getClass(), String.class)) {
+		else if (conversionService.canConvert(channelKey.getClass(), String.class)) {
 			String converted = conversionService.convert(channelKey, String.class);
 			if (converted != null) {
 				addChannelFromString(channels, converted, message);
 			}
 		}
-		else if (channelKey != null) {
+		else {
 			throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
 		}
 	}
