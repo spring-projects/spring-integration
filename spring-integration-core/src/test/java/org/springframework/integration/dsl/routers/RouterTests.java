@@ -918,6 +918,7 @@ public class RouterTests {
 										throw new RuntimeException("intentional");
 									}),
 							sg -> sg.gatherTimeout(100))
+					.transform(m -> "This should not be executed, results must have been propagated to Error Channel")
 					.get();
 		}
 		@Bean
