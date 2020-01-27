@@ -613,6 +613,20 @@ public class RouterTests {
 
 	}
 
+	@Test(timeout = 11000)
+	public void testNestedScatterGatherSequenceTest() {
+		PollableChannel replyChannel = new QueueChannel();
+		this.scatterGatherInSubFlowChannel.send(
+				MessageBuilder.withPayload("sequencetest")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("sequencetest");
+
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -926,7 +940,8 @@ public class RouterTests {
 			return flow -> flow.scatterGather(s -> s.applySequence(true)
 							.recipientFlow(inflow -> inflow
 									.scatterGather(s1 -> s1.applySequence(true)
-													.recipientFlow(IntegrationFlowDefinition::bridge),
+													.recipientFlow(IntegrationFlowDefinition::bridge)
+													.recipientFlow("sequencetest"::equals, IntegrationFlowDefinition::bridge),
 											g -> g.outputProcessor(MessageGroup::getOne)
 									)),
 					g -> g.outputProcessor(MessageGroup::getOne));
