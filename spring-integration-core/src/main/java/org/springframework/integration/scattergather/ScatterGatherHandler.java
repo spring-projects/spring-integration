@@ -38,7 +38,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.InterceptableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -56,6 +55,8 @@ import org.springframework.util.ClassUtils;
 public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
+
+	private static final String ORIGINAL_ERROR_CHANNEL = "originalErrorChannel";
 
 	private final MessageChannel scatterChannel;
 
@@ -165,7 +166,8 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		MessageHeaders headers = message.getHeaders();
 		return getMessageBuilderFactory()
 				.fromMessage(message)
-				.setHeader(MessageHeaders.ERROR_CHANNEL, headers.get(GATHER_RESULT_CHANNEL))
+				.setHeader(MessageHeaders.ERROR_CHANNEL, headers.get(ORIGINAL_ERROR_CHANNEL))
+				.removeHeaders(ORIGINAL_ERROR_CHANNEL)
 				.build();
 	}
 
@@ -178,6 +180,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 				getMessageBuilderFactory()
 						.fromMessage(requestMessage)
 						.setHeader(GATHER_RESULT_CHANNEL, gatherResultChannel)
+						.setHeader(ORIGINAL_ERROR_CHANNEL, requestMessageHeaders.getErrorChannel())
 						.setReplyChannel(this.gatherChannel)
 						.setErrorChannelName(this.errorChannelName)
 						.build();
@@ -185,14 +188,11 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
 		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
-
 		if (gatherResult != null) {
-			if (gatherResult instanceof ErrorMessage) {
-				throw (RuntimeException) gatherResult.getPayload();
-			}
 			return getMessageBuilderFactory()
 					.fromMessage(gatherResult)
 					.setHeader(GATHER_RESULT_CHANNEL, requestMessageHeaders.get(GATHER_RESULT_CHANNEL))
+					.setHeader(ORIGINAL_ERROR_CHANNEL, requestMessageHeaders.get(ORIGINAL_ERROR_CHANNEL))
 					.setHeader(MessageHeaders.REPLY_CHANNEL, requestMessage.getHeaders().getReplyChannel())
 					.setHeader(MessageHeaders.ERROR_CHANNEL, requestMessage.getHeaders().getErrorChannel())
 					.build();
