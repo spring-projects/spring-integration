@@ -416,7 +416,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 		}
 
-		private boolean handleLockException(Exception ex) {
+		private boolean handleLockException(Exception ex) { // NOSONAR
 			if (this.locked) {
 				this.locked = false;
 				try {
