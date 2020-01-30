@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.util.StringUtils;
 
 /**
@@ -46,7 +47,6 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 		builder.addPropertyValue("expectReply", false);
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
 		String headerMapper = element.getAttribute("header-mapper");
@@ -60,8 +60,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
-			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+			BeanDefinitionBuilder headerMapperBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultHttpHeaderMapper.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element,
 					"mapped-request-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
@@ -90,6 +90,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 			}
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
 		}
 		return builder;
 	}

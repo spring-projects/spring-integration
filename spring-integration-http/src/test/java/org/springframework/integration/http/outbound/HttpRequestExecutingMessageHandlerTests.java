@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.http.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -36,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -59,13 +57,19 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Mark Fisher
@@ -99,14 +103,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(form).build();
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(request.getHeaders().getContentType()).isNotNull();
@@ -134,14 +135,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(form).build();
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -168,14 +166,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(form).build();
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof Map<?, ?>).isTrue();
@@ -202,14 +197,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("c", new String[] { "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -250,14 +242,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("c", new String[] { "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -299,14 +288,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("a", new Object[] { null, 4, null });
 		form.put("b", "4");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -347,14 +333,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("a", list);
 		form.put("b", "4");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -394,14 +377,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("a", list);
 		form.put("b", "4");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -437,14 +417,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("b", Collections.EMPTY_LIST);
 		form.put("c", Collections.singletonList("3"));
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -482,14 +459,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("b", Collections.EMPTY_LIST);
 		form.put("c", Collections.singletonList(new City("Mohnton")));
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -524,14 +498,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		form.put("b", "foo");
 		form.put("c", null);
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof MultiValueMap<?, ?>).isTrue();
@@ -560,14 +531,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		byte[] bytes = "Hello World".getBytes();
 		Message<?> message = MessageBuilder.withPayload(bytes).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof byte[]).isTrue();
@@ -586,14 +554,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
-		assertThat(exception.getCause().getMessage()).isEqualTo("intentional");
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message))
+				.withStackTraceContaining("intentional");
+
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertThat(body instanceof Source).isTrue();
@@ -644,89 +609,73 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
-		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
-		try {
-			handler.handleMessage(message);
-			fail("An Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload(mock(Source.class)).build()))
+				.withStackTraceContaining("intentional");
+
+		assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 
 		//HEAD
 		handler.setHttpMethod(HttpMethod.HEAD);
 
-		message = MessageBuilder.withPayload(mock(Source.class)).build();
-		try {
-			handler.handleMessage(message);
-			fail("An Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload(mock(Source.class)).build()))
+				.withStackTraceContaining("intentional");
+
+		assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 
 
 		//DELETE
 		handler.setHttpMethod(HttpMethod.DELETE);
 
-		message = MessageBuilder.withPayload(mock(Source.class)).build();
-		try {
-			handler.handleMessage(message);
-			fail("An Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isEqualTo(MediaType.TEXT_XML);
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload(mock(Source.class)).build()))
+				.withStackTraceContaining("intentional");
+
+		assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isEqualTo(MediaType.TEXT_XML);
 
 		//TRACE
 		handler.setHttpMethod(HttpMethod.TRACE);
 
-		message = MessageBuilder.withPayload(mock(Source.class)).build();
-		try {
-			handler.handleMessage(message);
-			fail("An Exception expected");
-		}
-		catch (Exception e) {
-			assertThat(e.getCause().getMessage()).isEqualTo("intentional");
-			assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(MessageBuilder.withPayload(mock(Source.class)).build()))
+				.withStackTraceContaining("intentional");
+
+		assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
 	}
 
-	@Test // INT-2275
-	public void testOutboundChannelAdapterWithinChain() throws URISyntaxException {
+	@Test
+	public void testOutboundChannelAdapterWithinChain() {
 		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
-		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
+		MockRestTemplate2 restTemplate = ctx.getBean("restTemplate", MockRestTemplate2.class);
 		channel.send(MessageBuilder.withPayload("test").build());
-		Mockito.verify(restTemplate).exchange(Mockito.eq(new URI("http://localhost/test1/%2f")),
-				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.<Class<Object>>eq(null));
+
+		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://localhost/test1/%2f");
+
 		HttpRequestExecutingMessageHandler handler = ctx.getBean("chain$child.adapter.handler",
 				HttpRequestExecutingMessageHandler.class);
+
 		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel")).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
 
-	@Test // INT-1029
-	public void testHttpOutboundGatewayWithinChain() throws URISyntaxException {
+	@Test
+	public void testHttpOutboundGatewayWithinChain() {
 		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundGatewayWithinChain", MessageChannel.class);
-		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
+		MockRestTemplate2 restTemplate = ctx.getBean("restTemplate", MockRestTemplate2.class);
 		channel.send(MessageBuilder.withPayload("test").build());
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
 		assertThat(((ResponseEntity<?>) receive.getPayload()).getStatusCode()).isEqualTo(HttpStatus.OK);
-		Mockito.verify(restTemplate).exchange(
-				Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain")),
-				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class),
-				Mockito.eq(new ParameterizedTypeReference<List<String>>() {
 
-				}));
+		assertThat(restTemplate.actualUrl.get())
+				.isEqualTo("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain");
+
 		ctx.close();
 	}
 
@@ -739,11 +688,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		String theURL = "https://bar/baz?foo#bar";
 		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
-		try {
-			handler.handleRequestMessage(message);
-		}
-		catch (Exception e) {
-		}
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(message));
+
 		assertThat(restTemplate.actualUrl.get()).isEqualTo(theURL);
 	}
 
@@ -757,18 +705,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 				restTemplate
 		);
 
-		// This flag is set by default to true, but for sake of clarity for the reader we explicitly set it here again
-		handler.setEncodeUri(true);
-
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-		Message<?> message = new GenericMessage<>("test-äöü&%");
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception ignored) {
-		}
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test-äöü&%")));
+
 		assertThat(restTemplate.actualUrl.get()).isEqualTo("https://example.com?query=test-%C3%A4%C3%B6%C3%BC%26%25");
 	}
 
@@ -776,39 +719,40 @@ public class HttpRequestExecutingMessageHandlerTests {
 	public void testUriEncodedDisabled() {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		MockRestTemplate restTemplate = new MockRestTemplate();
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		restTemplate.setUriTemplateHandler(uriBuilderFactory);
 
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://example.com?query={query}",
 				restTemplate
 		);
 
-		handler.setEncodeUri(false);
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-		Message<?> message = new GenericMessage<>("test-äöü");
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception ignored) {
-		}
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test-äöü")));
+
 		assertThat(restTemplate.actualUrl.get()).isEqualTo("https://example.com?query=test-äöü");
 	}
 
 	@Test
 	public void testInt2455UriNotEncoded() {
 		MockRestTemplate restTemplate = new MockRestTemplate();
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		restTemplate.setUriTemplateHandler(uriBuilderFactory);
+
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				new SpelExpressionParser().parseExpression("'https://my.RabbitMQ.com/api/' + payload"), restTemplate);
-		handler.setEncodeUri(false);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue?foo#bar").build();
-		try {
-			handler.handleRequestMessage(message);
-		}
-		catch (Exception e) {
-		}
+
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("queues/%2f/si.test.queue?foo#bar")));
+
 		assertThat(restTemplate.actualUrl.get())
 				.isEqualTo("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
 	}
@@ -830,17 +774,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
 
-		Message<?> message = MessageBuilder.withPayload("foo").build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.withStackTraceContaining("404 Not Found");
+
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		assertThat(exception.getCause().getMessage()).contains("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertThat(accept.size() > 0).isTrue();
 		assertThat(accept.get(0).getType()).isEqualTo("application");
@@ -866,17 +805,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
 
-		Message<?> message = MessageBuilder.withPayload("foo").build();
-		Exception exception = null;
-		try {
-			handler.handleMessage(message);
-		}
-		catch (Exception e) {
-			exception = e;
-		}
+		assertThatExceptionOfType(Exception.class)
+				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
+				.withStackTraceContaining("404 Not Found");
+
 		assertThat(requestHeaders.getAccept()).isNotNull();
 		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		assertThat(exception.getCause().getMessage()).contains("404 Not Found");
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertThat(accept.size() > 0).isTrue();
 		assertThat(accept.get(0).getType()).isEqualTo("application");
@@ -933,12 +867,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		private final AtomicReference<String> actualUrl = new AtomicReference<>();
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
-				Class<T> responseType) throws RestClientException {
-
-			this.actualUrl.set(uri.toString());
-			this.lastRequestEntity.set(requestEntity);
+		@Nullable
+		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
+				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+			this.actualUrl.set(url.toString());
+			this.lastRequestEntity.set(TestUtils.getPropertyValue(requestCallback, "requestEntity", HttpEntity.class));
 			throw new RuntimeException("intentional");
 		}
 
@@ -947,16 +880,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@SuppressWarnings("unused")
 	private static class MockRestTemplate2 extends RestTemplate {
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
-				Class<T> responseType) throws RestClientException {
-			return new ResponseEntity<T>(HttpStatus.OK);
+		private final AtomicReference<String> actualUrl = new AtomicReference<>();
+
+		MockRestTemplate2() {
+			DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+			uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+			setUriTemplateHandler(uriBuilderFactory);
 		}
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI url, HttpMethod method, HttpEntity<?> requestEntity,
-				ParameterizedTypeReference<T> responseType) throws RestClientException {
-			return new ResponseEntity<T>(HttpStatus.OK);
+		@Nullable
+		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
+				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+			this.actualUrl.set(url.toString());
+			try {
+				return responseExtractor.extractData(new MockClientHttpResponse(new byte[0], HttpStatus.OK));
+			}
+			catch (IOException ex) {
+				throw new ResourceAccessException("I/O error on " + method.name() +
+						" request for \"" + url + "\": " + ex.getMessage(), ex);
+			}
 		}
 
 	}

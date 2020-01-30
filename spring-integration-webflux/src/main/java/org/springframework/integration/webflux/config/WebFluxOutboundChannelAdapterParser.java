@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.config.HttpOutboundChannelAdapterParser;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
@@ -51,6 +52,9 @@ public class WebFluxOutboundChannelAdapterParser extends HttpOutboundChannelAdap
 			builder.getBeanDefinition()
 					.getConstructorArgumentValues()
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
+		}
+		else {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
 		}
 
 		String type = element.getAttribute("publisher-element-type");

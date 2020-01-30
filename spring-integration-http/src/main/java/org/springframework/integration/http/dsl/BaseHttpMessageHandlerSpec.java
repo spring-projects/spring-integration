@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * The base {@link MessageHandlerSpec} for {@link AbstractHttpRequestExecutingMessageHandler}s.
@@ -71,9 +72,22 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	 * expanding and before send request via underlying implementation. The default value is <code>true</code>.
 	 * @param encodeUri true if the URI should be encoded.
 	 * @return the spec
+	 * @deprecated since 5.3 in favor of {@link #encodingMode}
 	 */
+	@Deprecated
 	public S encodeUri(boolean encodeUri) {
 		this.target.setEncodeUri(encodeUri);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link DefaultUriBuilderFactory.EncodingMode} for uri construction.
+	 * @param encodingMode to use for uri construction.
+	 * @return the spec
+	 * @since 5.3
+	 */
+	public S encodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
+		this.target.setEncodingMode(encodingMode);
 		return _this();
 	}
 
