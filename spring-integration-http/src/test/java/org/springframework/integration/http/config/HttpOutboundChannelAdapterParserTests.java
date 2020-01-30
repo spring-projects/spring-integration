@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -117,8 +118,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
-		));
+		DirectFieldAccessor templateAccessor =
+				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -126,7 +127,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 	}
 
@@ -143,8 +144,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
 		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(77);
 		assertThat(endpointAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
-		));
+		DirectFieldAccessor templateAccessor =
+				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
@@ -160,7 +161,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2/{foo}");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.GET.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
@@ -207,8 +208,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
-		));
+		DirectFieldAccessor templateAccessor =
+				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -216,7 +217,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 
 		//INT-3055
@@ -241,8 +242,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
-		));
+		DirectFieldAccessor templateAccessor =
+				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -251,7 +252,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 	}
 
@@ -276,8 +277,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
-		));
+		DirectFieldAccessor templateAccessor =
+				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -286,7 +287,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
 	}
 
