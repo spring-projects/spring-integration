@@ -31,6 +31,7 @@
 							  request-factory="testRequestFactory"
 							  error-handler="testErrorHandler"
 							  order="77"
+							  encoding-mode="VALUES_ONLY"
 							  auto-startup="false">
 		<uri-variable name="foo" expression="headers.bar"/>
 

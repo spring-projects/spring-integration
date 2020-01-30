@@ -17,13 +17,12 @@
 package org.springframework.integration.http.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +45,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Mark Fisher
@@ -60,8 +59,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Biju Kunjummen
  * @author Shiliang Li
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
 @DirtiesContext
 public class HttpOutboundChannelAdapterParserTests {
 
@@ -112,13 +110,15 @@ public class HttpOutboundChannelAdapterParserTests {
 		RestTemplate restTemplate =
 				TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
 		assertThat(restTemplate).isNotSameAs(customRestTemplate);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
+				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
+		));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -134,7 +134,8 @@ public class HttpOutboundChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	public void fullConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfig);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
+				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
@@ -142,7 +143,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
 		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(77);
 		assertThat(endpointAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
+		));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue())
@@ -171,6 +173,10 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(mappedResponseHeaders.length).isEqualTo(0);
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1")).isTrue();
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
+		assertThat(
+				TestUtils.getPropertyValue(handler,
+						"restTemplate.uriTemplateHandler.encodingMode", DefaultUriBuilderFactory.EncodingMode.class))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
 	@Test
@@ -180,10 +186,12 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(restTemplate).isEqualTo(customRestTemplate);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void failWithRestTemplateAndRestAttributes() {
-		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass())
-				.close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml",
+								getClass()));
 	}
 
 	@Test
@@ -192,13 +200,15 @@ public class HttpOutboundChannelAdapterParserTests {
 		RestTemplate restTemplate =
 				TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate", RestTemplate.class);
 		assertThat(restTemplate).isSameAs(customRestTemplate);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
+				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
+		));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -224,13 +234,15 @@ public class HttpOutboundChannelAdapterParserTests {
 		RestTemplate restTemplate =
 				TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate", RestTemplate.class);
 		assertThat(restTemplate).isNotSameAs(customRestTemplate);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
+				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
+		));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -257,13 +269,15 @@ public class HttpOutboundChannelAdapterParserTests {
 				TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate",
 						RestTemplate.class);
 		assertThat(restTemplate).isSameAs(customRestTemplate);
-		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
+				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertThat(handlerAccessor.getPropertyValue("expectReply")).isEqualTo(false);
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"
+		));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
@@ -281,21 +295,23 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(this.withPoller1).isInstanceOf(PollingConsumer.class);
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void failWithUrlAndExpression() {
-		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml",
-				this.getClass()).close();
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml",
+								getClass()));
 	}
 
 	public static class StubErrorHandler implements ResponseErrorHandler {
 
 		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
+		public boolean hasError(ClientHttpResponse response) {
 			return false;
 		}
 
 		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
+		public void handleError(ClientHttpResponse response) {
 		}
 
 	}

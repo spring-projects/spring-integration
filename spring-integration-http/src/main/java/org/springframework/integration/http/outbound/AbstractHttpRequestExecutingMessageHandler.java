@@ -82,7 +82,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private static final List<HttpMethod> NO_BODY_HTTP_METHODS =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.TRACE);
 
-	DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory();
+	protected final DefaultUriBuilderFactory uriFactory = new DefaultUriBuilderFactory(); // NOSONAR - final
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
@@ -115,7 +115,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	public AbstractHttpRequestExecutingMessageHandler(Expression uriExpression) {
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.uriExpression = uriExpression;
-		this.uriFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
 	}
 
 	/**
@@ -138,6 +137,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	/**
 	 * Set the encoding mode to use.
 	 * By default this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES}.
+	 * For more complicated scenarios consider to configure an {@link org.springframework.web.util.UriTemplateHandler}
+	 * on an externally provided {@link org.springframework.web.client.RestTemplate}.
 	 * @param encodingMode the mode to use for uri encoding
 	 * @since 5.3
 	 */

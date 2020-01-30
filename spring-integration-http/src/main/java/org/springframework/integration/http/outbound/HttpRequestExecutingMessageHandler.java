@@ -117,6 +117,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		super(uriExpression);
 		this.restTemplateExplicitlySet = restTemplate != null;
 		this.restTemplate = (this.restTemplateExplicitlySet ? restTemplate : new RestTemplate());
+		if (!this.restTemplateExplicitlySet) {
+			this.restTemplate.setUriTemplateHandler(this.uriFactory);
+		}
 	}
 
 	@Override
