@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.http;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -27,8 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Locale;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -47,7 +45,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -64,7 +62,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
  *
  * @since 3.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class HttpProxyScenarioTests {
 
@@ -122,8 +120,8 @@ public class HttpProxyScenarioTests {
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
 		Mockito.doAnswer(invocation -> {
-			URI uri = invocation.getArgument(0);
-			assertThat(uri).isEqualTo(new URI("http://testServer/test?foo=bar&FOO=BAR"));
+			String uri = invocation.getArgument(0);
+			assertThat(uri).isEqualTo("http://testServer/test?foo=bar&FOO=BAR");
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
 			assertThat(httpHeaders.getIfModifiedSince()).isEqualTo(ifModifiedSince);
@@ -134,8 +132,9 @@ public class HttpProxyScenarioTests {
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Disposition", contentDispositionValue);
 			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
-				Mockito.any(HttpEntity.class), (Class<?>) isNull());
+		}).when(template)
+				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
+						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
 		dfa.setPropertyValue("restTemplate", template);
@@ -175,8 +174,8 @@ public class HttpProxyScenarioTests {
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 		Mockito.doAnswer(invocation -> {
-			URI uri = invocation.getArgument(0);
-			assertThat(uri).isEqualTo(new URI("http://testServer/testmp"));
+			String uri = invocation.getArgument(0);
+			assertThat(uri).isEqualTo("http://testServer/testmp");
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
 			assertThat(httpHeaders.getFirst("Connection")).isEqualTo("Keep-Alive");
@@ -191,8 +190,9 @@ public class HttpProxyScenarioTests {
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Type", "text/plain");
 			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
-				Mockito.any(HttpEntity.class), (Class<?>) isNull());
+		}).when(template)
+				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
+						Mockito.any(HttpEntity.class), (Class<?>) isNull(), Mockito.anyMap());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
 		dfa.setPropertyValue("restTemplate", template);

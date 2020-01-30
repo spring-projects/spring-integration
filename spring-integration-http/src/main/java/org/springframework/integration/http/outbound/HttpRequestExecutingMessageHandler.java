@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.http.outbound;
 
 import java.net.URI;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
@@ -29,12 +29,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler}
@@ -63,6 +65,8 @@ import org.springframework.web.client.RestTemplate;
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
 	private final RestTemplate restTemplate;
+
+	private final boolean restTemplateExplicitlySet;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -109,14 +113,21 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param restTemplate The rest template.
 	 */
-	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestTemplate restTemplate) {
+	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(uriExpression);
-		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
+		this.restTemplateExplicitlySet = restTemplate != null;
+		this.restTemplate = (this.restTemplateExplicitlySet ? restTemplate : new RestTemplate());
 	}
 
 	@Override
 	public String getComponentType() {
-		return (this.isExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
+		return (isExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
+	}
+
+	private void assertLocalRestTemplate(String option) {
+		Assert.isTrue(!this.restTemplateExplicitlySet,
+				() -> "The option '" + option + "' must be provided on the externally configured RestTemplate: "
+						+ this.restTemplate);
 	}
 
 	/**
@@ -125,6 +136,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
+		assertLocalRestTemplate("errorHandler");
 		this.restTemplate.setErrorHandler(errorHandler);
 	}
 
@@ -135,6 +147,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
+		assertLocalRestTemplate("messageConverters");
 		this.restTemplate.setMessageConverters(messageConverters);
 	}
 
@@ -144,24 +157,43 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+		assertLocalRestTemplate("requestFactory");
 		this.restTemplate.setRequestFactory(requestFactory);
 	}
 
 	@Override
-	protected Object exchange(Supplier<URI> uriSupplier, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			Object expectedResponseType, Message<?> requestMessage) {
+	public void setEncodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
+		assertLocalRestTemplate("encodingMode on UriTemplateHandler");
+		super.setEncodingMode(encodingMode);
+	}
 
-		URI uri = uriSupplier.get();
+	@Override
+	protected Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables) {
+
 		ResponseEntity<?> httpResponse;
 		try {
-			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
-						(ParameterizedTypeReference<?>) expectedResponseType);
+			if (uri instanceof URI) {
+				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+					httpResponse = this.restTemplate.exchange((URI) uri, httpMethod, httpRequest,
+							(ParameterizedTypeReference<?>) expectedResponseType);
+				}
+				else {
+					httpResponse = this.restTemplate.exchange((URI) uri, httpMethod, httpRequest,
+							(Class<?>) expectedResponseType);
+				}
 			}
 			else {
-				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
-						(Class<?>) expectedResponseType);
+				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+					httpResponse = this.restTemplate.exchange((String) uri, httpMethod, httpRequest,
+							(ParameterizedTypeReference<?>) expectedResponseType, uriVariables);
+				}
+				else {
+					httpResponse = this.restTemplate.exchange((String) uri, httpMethod, httpRequest,
+							(Class<?>) expectedResponseType, uriVariables);
+				}
 			}
+
 			return getReply(httpResponse);
 		}
 		catch (RestClientException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 		builder.addPropertyValue("expectReply", false);
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
 		String headerMapper = element.getAttribute("header-mapper");
@@ -90,6 +89,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 			}
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding-mode");
 		}
 		return builder;
 	}

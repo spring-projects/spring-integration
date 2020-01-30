@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -36,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -59,13 +57,19 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Mark Fisher
@@ -695,38 +699,38 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 	}
 
-	@Test // INT-2275
-	public void testOutboundChannelAdapterWithinChain() throws URISyntaxException {
+	@Test
+	public void testOutboundChannelAdapterWithinChain() {
 		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
-		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
+		MockRestTemplate2 restTemplate = ctx.getBean("restTemplate", MockRestTemplate2.class);
 		channel.send(MessageBuilder.withPayload("test").build());
-		Mockito.verify(restTemplate).exchange(Mockito.eq(new URI("http://localhost/test1/%2f")),
-				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.<Class<Object>>eq(null));
+
+		assertThat(restTemplate.actualUrl.get()).isEqualTo("http://localhost/test1/%2f");
+
 		HttpRequestExecutingMessageHandler handler = ctx.getBean("chain$child.adapter.handler",
 				HttpRequestExecutingMessageHandler.class);
+
 		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel")).isEqualTo(Boolean.TRUE);
 		ctx.close();
 	}
 
-	@Test // INT-1029
-	public void testHttpOutboundGatewayWithinChain() throws URISyntaxException {
+	@Test
+	public void testHttpOutboundGatewayWithinChain() {
 		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundGatewayWithinChain", MessageChannel.class);
-		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
+		MockRestTemplate2 restTemplate = ctx.getBean("restTemplate", MockRestTemplate2.class);
 		channel.send(MessageBuilder.withPayload("test").build());
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
 		assertThat(((ResponseEntity<?>) receive.getPayload()).getStatusCode()).isEqualTo(HttpStatus.OK);
-		Mockito.verify(restTemplate).exchange(
-				Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain")),
-				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class),
-				Mockito.eq(new ParameterizedTypeReference<List<String>>() {
 
-				}));
+		assertThat(restTemplate.actualUrl.get())
+				.isEqualTo("http://localhost:51235/%2f/testApps?param=http+Outbound+Gateway+Within+Chain");
+
 		ctx.close();
 	}
 
@@ -757,9 +761,6 @@ public class HttpRequestExecutingMessageHandlerTests {
 				restTemplate
 		);
 
-		// This flag is set by default to true, but for sake of clarity for the reader we explicitly set it here again
-		handler.setEncodeUri(true);
-
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -776,13 +777,15 @@ public class HttpRequestExecutingMessageHandlerTests {
 	public void testUriEncodedDisabled() {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		MockRestTemplate restTemplate = new MockRestTemplate();
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		restTemplate.setUriTemplateHandler(uriBuilderFactory);
 
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://example.com?query={query}",
 				restTemplate
 		);
 
-		handler.setEncodeUri(false);
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -798,9 +801,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void testInt2455UriNotEncoded() {
 		MockRestTemplate restTemplate = new MockRestTemplate();
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		restTemplate.setUriTemplateHandler(uriBuilderFactory);
+
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				new SpelExpressionParser().parseExpression("'https://my.RabbitMQ.com/api/' + payload"), restTemplate);
-		handler.setEncodeUri(false);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue?foo#bar").build();
@@ -933,12 +939,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		private final AtomicReference<String> actualUrl = new AtomicReference<>();
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
-				Class<T> responseType) throws RestClientException {
-
-			this.actualUrl.set(uri.toString());
-			this.lastRequestEntity.set(requestEntity);
+		@Nullable
+		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
+				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+			this.actualUrl.set(url.toString());
+			this.lastRequestEntity.set(TestUtils.getPropertyValue(requestCallback, "requestEntity", HttpEntity.class));
 			throw new RuntimeException("intentional");
 		}
 
@@ -947,16 +952,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@SuppressWarnings("unused")
 	private static class MockRestTemplate2 extends RestTemplate {
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
-				Class<T> responseType) throws RestClientException {
-			return new ResponseEntity<T>(HttpStatus.OK);
+		private final AtomicReference<String> actualUrl = new AtomicReference<>();
+
+		MockRestTemplate2() {
+			DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+			uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+			setUriTemplateHandler(uriBuilderFactory);
 		}
 
-		@Override
-		public <T> ResponseEntity<T> exchange(URI url, HttpMethod method, HttpEntity<?> requestEntity,
-				ParameterizedTypeReference<T> responseType) throws RestClientException {
-			return new ResponseEntity<T>(HttpStatus.OK);
+		@Nullable
+		protected <T> T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback,
+				@Nullable ResponseExtractor<T> responseExtractor) throws RestClientException {
+			this.actualUrl.set(url.toString());
+			try {
+				return responseExtractor.extractData(new MockClientHttpResponse(new byte[0], HttpStatus.OK));
+			}
+			catch (IOException ex) {
+				throw new ResourceAccessException("I/O error on " + method.name() +
+						" request for \"" + url + "\": " + ex.getMessage(), ex);
+			}
 		}
 
 	}
