@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.util.StringUtils;
 
 /**
@@ -59,8 +60,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
-			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+			BeanDefinitionBuilder headerMapperBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(DefaultHttpHeaderMapper.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element,
 					"mapped-request-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2017-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package org.springframework.integration.webflux.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,15 +32,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Artem Bilan
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class WebFluxOutboundChannelAdapterParserTests {
 
@@ -75,8 +75,12 @@ public class WebFluxOutboundChannelAdapterParserTests {
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString())
 				.isEqualTo(HttpMethod.POST.name());
-		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(Charset.forName("UTF-8"));
+		assertThat(handlerAccessor.getPropertyValue("charset")).isEqualTo(StandardCharsets.UTF_8);
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(true);
+		assertThat(
+				TestUtils.getPropertyValue(handler, "webClient.uriBuilderFactory.encodingMode",
+						DefaultUriBuilderFactory.EncodingMode.class))
+				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
 	@Test

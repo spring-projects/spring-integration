@@ -10,7 +10,8 @@
 
 	<si:channel id="requests"/>
 
-	<outbound-channel-adapter id="reactiveMinimalConfig" url="http://localhost/test1" channel="requests"/>
+	<outbound-channel-adapter id="reactiveMinimalConfig" url="http://localhost/test1" channel="requests"
+							  encoding-mode="VALUES_ONLY"/>
 
 	<outbound-channel-adapter id="reactiveWebClientConfig" url="http://localhost/test1" channel="requests"
 							  web-client="webClient"

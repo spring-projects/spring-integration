@@ -703,12 +703,13 @@ List<NameValuePair> nameValuePairs =
 ----
 ====
 
+[[http-uri-encoding]]
 ==== Controlling URI Encoding
 
 By default, the URL string is encoded (see https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.
 In some scenarios with a non-standard URI (such as the RabbitMQ REST API), it is undesirable to perform the encoding.
-The `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` provide an `encode-uri` attribute.
-To disable encoding the URL, set this attribute to `false` (by default, it is `true`).
+The `<http:outbound-gateway/>` and `<http:outbound-channel-adapter/>` provide an `encoding-mode` attribute.
+To disable encoding the URL, set this attribute to `NONE` (by default, it is `TEMPLATE_AND_VALUES`).
 If you wish to partially encode some of the URL, use an `expression` within a `<uri-variable/>`, as the following example shows:
 
 ====
@@ -721,6 +722,10 @@ If you wish to partially encode some of the URL, use an `expression` within a `<
 </http:outbound-gateway>
 ----
 ====
+
+With Java DSL this option can be controlled by the `BaseHttpMessageHandlerSpec.encodingMode()` option.
+Same configuration applies for similar outbound components in the <<./webflux.adoc/[webflux,WebFlux module>>.
+For much sophisticated scenarios it is recommended to configure an `UriTemplateHandler` on the externally provided `RestTemplate`; or in case of WebFlux - `WebClient` with it `UriBuilderFactory`.
 
 [[http-java-config]]
 === Configuring HTTP Endpoints with Java
