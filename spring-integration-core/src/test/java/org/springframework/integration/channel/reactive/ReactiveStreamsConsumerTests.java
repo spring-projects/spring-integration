@@ -46,6 +46,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.test.condition.LogLevels;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -165,6 +166,7 @@ public class ReactiveStreamsConsumerTests {
 		reactiveConsumer.stop();
 	}
 
+	@LogLevels(level = "trace", categories = "org.springframework.integration")
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReactiveStreamsConsumerPollableChannel() throws InterruptedException {
