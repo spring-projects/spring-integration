@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,12 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -43,9 +45,11 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
-public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMapper<T> {
+public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMapper<T>, BeanClassLoaderAware {
 
 	/**
 	 * A special pattern that only matches standard request headers.
@@ -74,9 +78,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	private final Collection<String> replyHeaderNames;
 
-	private volatile HeaderMatcher requestHeaderMatcher;
+	private HeaderMatcher requestHeaderMatcher;
 
-	private volatile HeaderMatcher replyHeaderMatcher;
+	private HeaderMatcher replyHeaderMatcher;
+
+	private ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	/**
 	 * Create a new instance.
@@ -94,6 +100,15 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		this.replyHeaderNames = replyHeaderNames;
 		this.requestHeaderMatcher = createDefaultHeaderMatcher(this.standardHeaderPrefix, this.requestHeaderNames);
 		this.replyHeaderMatcher = createDefaultHeaderMatcher(this.standardHeaderPrefix, this.replyHeaderNames);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	protected ClassLoader getClassLoader() {
+		return this.classLoader;
 	}
 
 	/**

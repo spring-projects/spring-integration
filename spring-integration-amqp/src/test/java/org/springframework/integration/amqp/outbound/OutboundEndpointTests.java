@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.amqp.core.Message;
@@ -38,10 +39,13 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.converter.AbstractJavaTypeMapper;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -50,6 +54,7 @@ import org.springframework.scheduling.TaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class OutboundEndpointTests {
@@ -94,9 +99,9 @@ public class OutboundEndpointTests {
 				new SimpleMessageListenerContainer(connectionFactory), "replyTo"));
 		amqpTemplate.setTaskScheduler(mock(TaskScheduler.class));
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(amqpTemplate);
-		willAnswer(
-				invocation -> amqpTemplate.new RabbitMessageFuture("foo", invocation.getArgument(2)))
-					.given(amqpTemplate).sendAndReceive(anyString(), anyString(), any(Message.class));
+		willAnswer(invocation -> amqpTemplate.new RabbitMessageFuture("foo", invocation.getArgument(2)))
+				.given(amqpTemplate)
+				.sendAndReceive(anyString(), anyString(), any(Message.class));
 		gateway.setExchangeName("foo");
 		gateway.setRoutingKey("bar");
 		gateway.setDelayExpressionString("42");
@@ -156,6 +161,33 @@ public class OutboundEndpointTests {
 		assertThat(amqpMessage.get()).isNotNull();
 		assertThat(amqpMessage.get().getMessageProperties().getContentType()).isEqualTo("bar");
 		assertThat(amqpMessage.get().getMessageProperties().getHeaders().get(MessageHeaders.REPLY_CHANNEL)).isNull();
+	}
+
+	@Test
+	public void testReplyHeadersWin() {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		TestRabbitTemplate amqpTemplate = spy(new TestRabbitTemplate(connectionFactory));
+		amqpTemplate.setUseTemporaryReplyQueues(true);
+		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
+		endpoint.setExpectReply(true);
+		willAnswer(invocation ->
+				org.springframework.amqp.core.MessageBuilder.withBody(new byte[0])
+						.setHeader(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
+						.build()
+		).given(amqpTemplate)
+				.doSendAndReceiveWithTemporary(isNull(), isNull(), any(Message.class), isNull());
+		QueueChannel replyChannel = new QueueChannel();
+		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.forClass(Date.class))
+				.setReplyChannel(replyChannel)
+				.build();
+		endpoint.handleMessage(message);
+		org.springframework.messaging.Message<?> receive = replyChannel.receive(10_000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getHeaders())
+				.containsEntry(AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME, String.class.getName())
+				.containsEntry(JsonHeaders.TYPE_ID, String.class.getName())
+				.containsEntry(JsonHeaders.RESOLVABLE_TYPE, ResolvableType.forClass(String.class));
 	}
 
 	/**
