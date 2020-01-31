@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.mapping.support.JsonHeaders;
-import org.springframework.lang.Nullable;
 
 /**
  * Strategy interface to convert an Object to/from the JSON representation.
@@ -102,29 +100,7 @@ public interface JsonObjectMapper<N, P> {
 			}
 		}
 
-
-		map.put(JsonHeaders.RESOLVABLE_TYPE, buildResolvableType(targetClass, contentClass, keyClass));
-	}
-
-	static ResolvableType buildResolvableType(Class<?> targetClass, @Nullable Class<?> contentClass,
-			@Nullable Class<?> keyClass) {
-
-		if (keyClass != null) {
-			return TypeDescriptor
-					.map(targetClass,
-							TypeDescriptor.valueOf(keyClass),
-							TypeDescriptor.valueOf(contentClass))
-					.getResolvableType();
-		}
-		else if (contentClass != null) {
-			return TypeDescriptor
-					.collection(targetClass,
-							TypeDescriptor.valueOf(contentClass))
-					.getResolvableType();
-		}
-		else {
-			return ResolvableType.forClass(targetClass);
-		}
+		map.put(JsonHeaders.RESOLVABLE_TYPE, JsonHeaders.buildResolvableType(targetClass, contentClass, keyClass));
 	}
 
 }

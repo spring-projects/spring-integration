@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Transformer implementation that converts a JSON string payload into an instance of the
  * provided target Class. By default this transformer uses
  * {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider}
- * factory to get an instance of Jackson 1 or Jackson 2 JSON-processor
- * {@linkplain JsonObjectMapper} implementation depending on the jackson-databind or
- * jackson-mapper-asl libs on the classpath. Any other {@linkplain JsonObjectMapper}
+ * factory to get an instance of Jackson JSON-processor
+ * if jackson-databind lib is present on the classpath. Any other {@linkplain JsonObjectMapper}
  * implementation can be provided.
  * <p>Since version 3.0, you can omit the target class and the target type can be
  * determined by the {@link JsonHeaders} type entries - including the contents of a
@@ -47,10 +45,11 @@ import org.springframework.util.ClassUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  *
+ * @since 2.0
+ *
  * @see JsonObjectMapper
  * @see org.springframework.integration.support.json.JsonObjectMapperProvider
  *
- * @since 2.0
  */
 public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
@@ -149,37 +148,13 @@ public class JsonToObjectTransformer extends AbstractTransformer implements Bean
 		Object valueType = headers.get(JsonHeaders.RESOLVABLE_TYPE);
 		Object typeIdHeader = headers.get(JsonHeaders.TYPE_ID);
 		if (!(valueType instanceof ResolvableType) && typeIdHeader != null) {
-			Class<?> targetClass = getClassForValue(typeIdHeader);
-			Class<?> contentClass = null;
-			Class<?> keyClass = null;
-			Object contentTypeHeader = headers.get(JsonHeaders.CONTENT_TYPE_ID);
-			if (contentTypeHeader != null) {
-				contentClass = getClassForValue(contentTypeHeader);
-			}
-			Object keyTypeHeader = headers.get(JsonHeaders.KEY_TYPE_ID);
-			if (keyTypeHeader != null) {
-				keyClass = getClassForValue(keyTypeHeader);
-			}
-
-			valueType = JsonObjectMapper.buildResolvableType(targetClass, contentClass, keyClass);
+			valueType =
+					JsonHeaders.buildResolvableType(this.classLoader, typeIdHeader,
+							headers.get(JsonHeaders.CONTENT_TYPE_ID), headers.get(JsonHeaders.KEY_TYPE_ID));
 		}
 		return valueType instanceof ResolvableType
 				? (ResolvableType) valueType
 				: null;
-	}
-
-	private Class<?> getClassForValue(Object classValue) {
-		if (classValue instanceof Class<?>) {
-			return (Class<?>) classValue;
-		}
-		else {
-			try {
-				return ClassUtils.forName(classValue.toString(), this.classLoader);
-			}
-			catch (ClassNotFoundException | LinkageError e) {
-				throw new IllegalStateException(e);
-			}
-		}
 	}
 
 }
