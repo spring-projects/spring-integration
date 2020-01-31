@@ -615,8 +615,8 @@ public class RouterTests {
 	}
 
 	@Autowired
-			@Qualifier("scatterGatherWiretapChannel")
-	PollableChannel scatterGatherWiretapChannel;
+	@Qualifier("scatterGatherWireTapChannel")
+	PollableChannel scatterGatherWireTapChannel;
 
 	@Timeout(11000)
 	@Test
@@ -627,18 +627,18 @@ public class RouterTests {
 						.setReplyChannel(replyChannel)
 						.build());
 
-		Message<?> wiretapMessage1 = scatterGatherWiretapChannel.receive(10000);
+		Message<?> wiretapMessage1 = scatterGatherWireTapChannel.receive(10000);
 		assertThat(wiretapMessage1).isNotNull();
 		MessageHeaders headers1 = wiretapMessage1.getHeaders();
-		Message<?> wiretapMessage2 = scatterGatherWiretapChannel.receive(10000);
+		Message<?> wiretapMessage2 = scatterGatherWireTapChannel.receive(10000);
 		assertThat(wiretapMessage2).isNotNull()
 				.extracting(Message::getHeaders)
-				.isEqualToComparingOnlyGivenFields(headers1, "correlationId", "gatherResultChannel", "sequenceSize", "sequenceNo");
+				.isEqualToComparingOnlyGivenFields(headers1, "correlationId",
+						"gatherResultChannel", "sequenceSize", "sequenceNo");
 		Message<?> receive = replyChannel.receive(10000);
 
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("sequencetest");
-
 
 	}
 
@@ -953,18 +953,19 @@ public class RouterTests {
 		}
 
 		@Bean
-		public PollableChannel scatterGatherWiretapChannel() {
+		public PollableChannel scatterGatherWireTapChannel() {
 			return new QueueChannel();
 		}
+
 		@Bean
 		public IntegrationFlow scatterGatherInSubFlow() {
 			return flow -> flow.scatterGather(s -> s.applySequence(true)
-							.recipientFlow(inflow -> inflow.wireTap(scatterGatherWiretapChannel())
+							.recipientFlow(inflow -> inflow.wireTap(scatterGatherWireTapChannel())
 									.scatterGather(s1 -> s1.applySequence(true)
 													.recipientFlow(IntegrationFlowDefinition::bridge)
 													.recipientFlow("sequencetest"::equals, IntegrationFlowDefinition::bridge),
 											g -> g.outputProcessor(MessageGroup::getOne)
-									).wireTap(scatterGatherWiretapChannel()).bridge()),
+									).wireTap(scatterGatherWireTapChannel()).bridge()),
 					g -> g.outputProcessor(MessageGroup::getOne));
 		}
 
