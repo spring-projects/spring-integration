@@ -171,6 +171,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@Override
+	@Nullable
 	protected Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables) {
 
@@ -197,7 +198,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 				}
 			}
 
-			return getReply(httpResponse);
+			if (isExpectReply()) {
+				return getReply(httpResponse);
+			}
+			else {
+				return null;
+			}
+
 		}
 		catch (RestClientException e) {
 			throw new MessageHandlingException(requestMessage,

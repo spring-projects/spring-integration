@@ -61,7 +61,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Base class for http outbound adapter/gateway.
@@ -123,7 +122,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * {@link org.springframework.web.client.RestTemplate}. The default value is
 	 * <code>true</code>.
 	 * @param encodeUri true if the URI should be encoded.
-	 * @see UriComponentsBuilder
+	 * @see org.springframework.web.util.UriComponentsBuilder
 	 * @deprecated since 5.3 in favor of {@link #setEncodingMode}
 	 */
 	@Deprecated
@@ -295,6 +294,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	@Override
+	@Nullable
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		HttpMethod httpMethod = determineHttpMethod(requestMessage);
 		if (this.extractPayloadExplicitlySet && logger.isWarnEnabled() && !shouldIncludeRequestBody(httpMethod)) {
@@ -320,34 +320,32 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		return exchange(uri, httpMethod, httpRequest, expectedResponseType, requestMessage, uriVariables);
 	}
 
+	@Nullable
 	protected abstract Object exchange(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
 			Object expectedResponseType, Message<?> requestMessage, Map<String, ?> uriVariables);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
-		if (this.expectReply) {
-			HttpHeaders httpHeaders = httpResponse.getHeaders();
-			Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
-			if (this.transferCookies) {
-				doConvertSetCookie(headers);
-			}
-
-			AbstractIntegrationMessageBuilder<?> replyBuilder;
-			MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
-			if (httpResponse.hasBody()) {
-				Object responseBody = httpResponse.getBody();
-				replyBuilder = (responseBody instanceof Message<?>)
-						? messageBuilderFactory.fromMessage((Message<?>) responseBody)
-						: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
-
-			}
-			else {
-				replyBuilder = messageBuilderFactory.withPayload(httpResponse);
-			}
-			replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-					httpResponse.getStatusCode());
-			return replyBuilder.copyHeaders(headers);
+		HttpHeaders httpHeaders = httpResponse.getHeaders();
+		Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
+		if (this.transferCookies) {
+			doConvertSetCookie(headers);
 		}
-		return null;
+
+		AbstractIntegrationMessageBuilder<?> replyBuilder;
+		MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
+		if (httpResponse.hasBody()) {
+			Object responseBody = httpResponse.getBody();
+			replyBuilder = (responseBody instanceof Message<?>)
+					? messageBuilderFactory.fromMessage((Message<?>) responseBody)
+					: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
+
+		}
+		else {
+			replyBuilder = messageBuilderFactory.withPayload(httpResponse);
+		}
+		replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+				httpResponse.getStatusCode());
+		return replyBuilder.copyHeaders(headers);
 	}
 
 	/**
