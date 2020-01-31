@@ -119,8 +119,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					.acceptIfHasText(AmqpHeaders.CONTENT_TYPE, amqpMessageProperties.getContentType(), headers::put)
 					.acceptIfHasText(AmqpHeaders.CORRELATION_ID, amqpMessageProperties.getCorrelationId(), headers::put)
 					.acceptIfNotNull(AmqpHeaders.RECEIVED_DELIVERY_MODE,
-							amqpMessageProperties.getReceivedDeliveryMode(),
-							headers::put);
+							amqpMessageProperties.getReceivedDeliveryMode(), headers::put);
 			long deliveryTag = amqpMessageProperties.getDeliveryTag();
 			JavaUtils.INSTANCE
 					.acceptIfCondition(deliveryTag > 0, AmqpHeaders.DELIVERY_TAG, deliveryTag, headers::put)
@@ -128,8 +127,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			Integer messageCount = amqpMessageProperties.getMessageCount();
 			JavaUtils.INSTANCE
 					.acceptIfCondition(messageCount != null && messageCount > 0, AmqpHeaders.MESSAGE_COUNT,
-							messageCount,
-							headers::put)
+							messageCount, headers::put)
 					.acceptIfHasText(AmqpHeaders.MESSAGE_ID, amqpMessageProperties.getMessageId(), headers::put);
 			Integer priority = amqpMessageProperties.getPriority();
 			JavaUtils.INSTANCE
@@ -144,8 +142,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 					.acceptIfNotNull(AmqpHeaders.REPLY_TO, amqpMessageProperties.getReplyTo(), headers::put)
 					.acceptIfNotNull(AmqpHeaders.TIMESTAMP, amqpMessageProperties.getTimestamp(), headers::put)
 					.acceptIfHasText(AmqpHeaders.TYPE, amqpMessageProperties.getType(), headers::put)
-					.acceptIfHasText(AmqpHeaders.RECEIVED_USER_ID, amqpMessageProperties
-							.getReceivedUserId(), headers::put);
+					.acceptIfHasText(AmqpHeaders.RECEIVED_USER_ID,
+							amqpMessageProperties.getReceivedUserId(), headers::put);
 
 			for (String jsonHeader : JsonHeaders.HEADERS) {
 				Object value = amqpMessageProperties.getHeaders().get(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""));
