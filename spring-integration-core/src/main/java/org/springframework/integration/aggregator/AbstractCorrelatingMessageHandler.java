@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -59,6 +60,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -89,6 +91,7 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  * @author Enrique Rodriguez
  * @author Meherzad Lahewala
+ * @author Jayadev Sirimamilla
  *
  * @since 2.0
  */
@@ -535,43 +538,44 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private void removeEmptyGroupAfterTimeout(MessageGroup messageGroup, long timeout) {
 		Object groupId = messageGroup.getGroupId();
 		UUID groupUuid = UUIDConverter.getUUID(groupId);
-		ScheduledFuture<?> scheduledFuture = getTaskScheduler()
-				.schedule(() -> {
-					Lock lock = this.lockRegistry.obtain(groupUuid.toString());
+		ScheduledFuture<?> scheduledFuture =
+				getTaskScheduler()
+						.schedule(() -> {
+							Lock lock = this.lockRegistry.obtain(groupUuid.toString());
 
-					try {
-						lock.lockInterruptibly();
-						try {
-							this.expireGroupScheduledFutures.remove(groupUuid);
-							/*
-							 * Obtain a fresh state for group from the MessageStore,
-							 * since it could be changed while we have waited for lock.
-							 */
-							MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
-							boolean removeGroup = groupNow.size() == 0 &&
-									groupNow.getLastModified()
-											<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
-							if (removeGroup) {
-								if (this.logger.isDebugEnabled()) {
-									this.logger.debug("Removing empty group: " + groupUuid);
+							try {
+								lock.lockInterruptibly();
+								try {
+									this.expireGroupScheduledFutures.remove(groupUuid);
+									/*
+									 * Obtain a fresh state for group from the MessageStore,
+									 * since it could be changed while we have waited for lock.
+									 */
+									MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
+									boolean removeGroup = groupNow.size() == 0 &&
+											groupNow.getLastModified()
+													<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+									if (removeGroup) {
+										if (this.logger.isDebugEnabled()) {
+											this.logger.debug("Removing empty group: " + groupUuid);
+										}
+										remove(messageGroup);
+									}
 								}
-								remove(messageGroup);
+								finally {
+									lock.unlock();
+								}
 							}
-						}
-						finally {
-							lock.unlock();
-						}
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("Thread was interrupted while trying to obtain lock."
-									+ "Rescheduling empty MessageGroup [ " + groupId + "] for removal.");
-						}
-						removeEmptyGroupAfterTimeout(messageGroup, timeout);
-					}
+							catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+								if (this.logger.isDebugEnabled()) {
+									this.logger.debug("Thread was interrupted while trying to obtain lock."
+											+ "Rescheduling empty MessageGroup [ " + groupId + "] for removal.");
+								}
+								removeEmptyGroupAfterTimeout(messageGroup, timeout);
+							}
 
-				}, new Date(System.currentTimeMillis() + timeout));
+						}, new Date(System.currentTimeMillis() + timeout));
 
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Schedule empty MessageGroup [ " + groupId + "] for removal.");
@@ -590,19 +594,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				final Object groupId = messageGroup.getGroupId();
 				final long timestamp = messageGroup.getTimestamp();
 				final long lastModified = messageGroup.getLastModified();
-				ScheduledFuture<?> scheduledFuture = getTaskScheduler()
-						.schedule(() -> {
-							try {
-								processForceRelease(groupId, timestamp, lastModified);
-							}
-							catch (MessageDeliveryException e) {
-								if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
-									AbstractCorrelatingMessageHandler.this.logger.warn("The MessageGroup ["
-											+ groupId + "] is rescheduled by the reason of:", e);
-								}
-								scheduleGroupToForceComplete(groupId);
-							}
-						}, new Date(System.currentTimeMillis() + groupTimeout));
+				ScheduledFuture<?> scheduledFuture =
+						getTaskScheduler()
+								.schedule(() -> {
+									try {
+										processForceRelease(groupId, timestamp, lastModified);
+									}
+									catch (MessageDeliveryException e) {
+										if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
+											AbstractCorrelatingMessageHandler.this.logger.warn("The MessageGroup ["
+													+ groupId + "] is rescheduled by the reason of:", e);
+										}
+										scheduleGroupToForceComplete(groupId);
+									}
+								}, new Date(System.currentTimeMillis() + groupTimeout));
 
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
@@ -768,7 +773,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			Collection<Message<?>> partialSequence) {
 
 		Message<?> lastReleasedMessage = Collections.max(partialSequence, this.sequenceNumberComparator);
-		return new IntegrationMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
+		return StaticMessageHeaderAccessor.getSequenceNumber(lastReleasedMessage);
 	}
 
 	protected MessageGroup store(Object correlationKey, Message<?> message) {
@@ -830,17 +835,23 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				partialSequence = (Collection<Message<?>>) result;
 			}
 
-			if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
-				AbstractIntegrationMessageBuilder<?> messageBuilder;
+			if (this.popSequence && partialSequence == null) {
+				AbstractIntegrationMessageBuilder<?> messageBuilder = null;
 				if (result instanceof AbstractIntegrationMessageBuilder<?>) {
 					messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
 				}
-				else {
-					messageBuilder = getMessageBuilderFactory()
+				else if (!(result instanceof Message<?>)) {
+					messageBuilder =
+							getMessageBuilderFactory()
 							.withPayload(result)
 							.copyHeaders(message.getHeaders());
 				}
-				result = messageBuilder.popSequenceDetails();
+				else if (compareSequences((Message<?>) result, message)) {
+					messageBuilder =
+							getMessageBuilderFactory()
+							.fromMessage((Message<?>) result);
+				}
+				result = messageBuilder != null ? messageBuilder.popSequenceDetails() : result;
 			}
 		}
 		finally {
@@ -850,6 +861,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 		sendOutputs(result, message);
 		return partialSequence;
+	}
+
+	private static boolean compareSequences(Message<?> msg1, Message<?> msg2) {
+		Object sequence1 = msg1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
+		Object sequence2 = msg2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
+		return ObjectUtils.nullSafeEquals(sequence1, sequence2);
+
 	}
 
 	protected void verifyResultCollectionConsistsOfMessages(Collection<?> elements) {

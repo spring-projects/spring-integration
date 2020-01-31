@@ -33,6 +33,12 @@ See <<./reactive-streams.adoc/reactive-message-handler,ReactiveMessageHandler>> 
 `spring-integration-mongodb` module now provides channel adapter implementations for Reactive MongoDB driver support in Spring Data.
 See <<./mongodb.adoc#mongodb-reactive-channel-adapters,MongoDB Reactive Channel Adapters>> for more information.
 
+[[x5.3-AbstractCorrelatingMessageHandler]]
+==== Aggregator Changes
+
+If the `MessageGroupProcessor` returns a `Message`, the `MessageBuilder.popSequenceDetails()` is performed on the output message if the `sequenceDetails` matches with first message of group.
+See <<./aggregator.adoc#aggregator-api,Aggregator Programming Model>> for more information.
+
 [[x5.3-general]]
 === General Changes
 

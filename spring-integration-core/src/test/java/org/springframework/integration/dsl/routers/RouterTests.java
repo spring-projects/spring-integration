@@ -18,7 +18,6 @@ package org.springframework.integration.dsl.routers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,6 +50,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
@@ -198,7 +198,6 @@ public class RouterTests {
 
 	@Test
 	public void testRecipientListRouter() {
-
 		Message<String> fooMessage = MessageBuilder.withPayload("fooPayload").setHeader("recipient", true).build();
 		Message<String> barMessage = MessageBuilder.withPayload("barPayload").setHeader("recipient", true).build();
 		Message<String> bazMessage = new GenericMessage<>("baz");
@@ -290,14 +289,9 @@ public class RouterTests {
 		assertThat(result2b).isNotNull();
 		assertThat(result2b.getPayload()).isEqualTo("bar");
 
-		try {
-			this.routerMethodInput.send(badMessage);
-			fail("MessageDeliveryException expected.");
-		}
-		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage()).contains("No channel resolved by router");
-		}
-
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.routerMethodInput.send(badMessage))
+				.withMessageContaining("No channel resolved by router");
 	}
 
 	@Test
@@ -319,15 +313,10 @@ public class RouterTests {
 		assertThat(result2b).isNotNull();
 		assertThat(result2b.getPayload()).isEqualTo("bar");
 
-		try {
-			this.routerMethod2Input.send(badMessage);
-			fail("DestinationResolutionException expected.");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause()).isInstanceOf(DestinationResolutionException.class);
-			assertThat(e.getCause().getMessage()).contains("failed to look up MessageChannel with name 'bad-channel'");
-		}
-
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.routerMethod2Input.send(badMessage))
+				.withCauseInstanceOf(DestinationResolutionException.class)
+				.withStackTraceContaining("failed to look up MessageChannel with name 'bad-channel'");
 	}
 
 	@Test
@@ -349,19 +338,14 @@ public class RouterTests {
 		assertThat(result2b).isNotNull();
 		assertThat(result2b.getPayload()).isEqualTo("bar");
 
-		try {
-			this.routerMethod3Input.send(badMessage);
-			fail("DestinationResolutionException expected.");
-		}
-		catch (MessagingException e) {
-			assertThat(e.getCause()).isInstanceOf(DestinationResolutionException.class);
-			assertThat(e.getCause().getMessage()).contains("failed to look up MessageChannel with name 'bad-channel'");
-		}
+		assertThatExceptionOfType(MessagingException.class)
+				.isThrownBy(() -> this.routerMethod3Input.send(badMessage))
+				.withCauseInstanceOf(DestinationResolutionException.class)
+				.withStackTraceContaining("failed to look up MessageChannel with name 'bad-channel'");
 	}
 
 	@Test
 	public void testMultiRouter() {
-
 		Message<String> fooMessage = new GenericMessage<>("foo");
 		Message<String> barMessage = new GenericMessage<>("bar");
 		Message<String> badMessage = new GenericMessage<>("bad");
@@ -382,13 +366,9 @@ public class RouterTests {
 		assertThat(result2b).isNotNull();
 		assertThat(result2b.getPayload()).isEqualTo("bar");
 
-		try {
-			this.routerMultiInput.send(badMessage);
-			fail("MessageDeliveryException expected.");
-		}
-		catch (MessageDeliveryException e) {
-			assertThat(e.getMessage()).contains("No channel resolved by router");
-		}
+		assertThatExceptionOfType(MessageDeliveryException.class)
+				.isThrownBy(() -> this.routerMultiInput.send(badMessage))
+				.withMessageContaining("No channel resolved by router");
 	}
 
 	@Autowired
@@ -609,6 +589,34 @@ public class RouterTests {
 		Message<?> receive = replyChannel.receive(10000);
 		assertThat(receive).isNotNull();
 		assertThat(receive.getPayload()).isEqualTo("baz");
+
+	}
+
+	@Autowired
+	@Qualifier("scatterGatherWireTapChannel")
+	PollableChannel scatterGatherWireTapChannel;
+
+	@Test
+	public void testNestedScatterGatherSequenceTest() {
+		PollableChannel replyChannel = new QueueChannel();
+		this.scatterGatherInSubFlowChannel.send(
+				MessageBuilder.withPayload("sequencetest")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> wiretapMessage1 = scatterGatherWireTapChannel.receive(10000);
+		assertThat(wiretapMessage1).isNotNull();
+		MessageHeaders headers1 = wiretapMessage1.getHeaders();
+		Message<?> wiretapMessage2 = scatterGatherWireTapChannel.receive(10000);
+		assertThat(wiretapMessage2).isNotNull()
+				.extracting(Message::getHeaders)
+				.isEqualToComparingOnlyGivenFields(headers1, IntegrationMessageHeaderAccessor.CORRELATION_ID,
+						"gatherResultChannel", IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+						IntegrationMessageHeaderAccessor.SEQUENCE_SIZE);
+		Message<?> receive = replyChannel.receive(10000);
+
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("sequencetest");
 
 	}
 
@@ -903,6 +911,7 @@ public class RouterTests {
 					.build();
 		}
 
+
 		@Bean
 		public IntegrationFlow propagateErrorFromGatherer(TaskExecutor taskExecutor) {
 			return IntegrationFlows.from(Function.class)
@@ -921,13 +930,20 @@ public class RouterTests {
 		}
 
 		@Bean
+		public PollableChannel scatterGatherWireTapChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow scatterGatherInSubFlow() {
 			return flow -> flow.scatterGather(s -> s.applySequence(true)
-							.recipientFlow(inflow -> inflow
+							.recipientFlow(inflow -> inflow.wireTap(scatterGatherWireTapChannel())
 									.scatterGather(s1 -> s1.applySequence(true)
-													.recipientFlow(IntegrationFlowDefinition::bridge),
+													.recipientFlow(IntegrationFlowDefinition::bridge)
+													.recipientFlow("sequencetest"::equals,
+															IntegrationFlowDefinition::bridge),
 											g -> g.outputProcessor(MessageGroup::getOne)
-									)),
+									).wireTap(scatterGatherWireTapChannel()).bridge()),
 					g -> g.outputProcessor(MessageGroup::getOne));
 		}
 
