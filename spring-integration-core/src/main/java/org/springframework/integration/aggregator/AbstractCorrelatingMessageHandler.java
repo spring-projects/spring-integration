@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -830,17 +831,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				partialSequence = (Collection<Message<?>>) result;
 			}
 
-			if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
-				AbstractIntegrationMessageBuilder<?> messageBuilder;
+			if (this.popSequence && partialSequence == null) {
+				AbstractIntegrationMessageBuilder<?> messageBuilder = null;
 				if (result instanceof AbstractIntegrationMessageBuilder<?>) {
 					messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
 				}
-				else {
+				else if (!(result instanceof Message<?>)) {
 					messageBuilder = getMessageBuilderFactory()
 							.withPayload(result)
 							.copyHeaders(message.getHeaders());
 				}
-				result = messageBuilder.popSequenceDetails();
+				else if (compareSequences((Message) result, message)) {
+					messageBuilder = getMessageBuilderFactory()
+							.fromMessage((Message) result);
+				}
+				result = null != messageBuilder ? messageBuilder.popSequenceDetails() : result;
 			}
 		}
 		finally {
@@ -850,6 +855,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 		sendOutputs(result, message);
 		return partialSequence;
+	}
+
+	private boolean compareSequences(Message<?> msg1, Message<?> msg2) {
+		Object sequence1 = msg1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
+		Object sequence2 = msg2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS);
+		return ObjectUtils.nullSafeEquals(sequence1, sequence2);
+
 	}
 
 	protected void verifyResultCollectionConsistsOfMessages(Collection<?> elements) {
