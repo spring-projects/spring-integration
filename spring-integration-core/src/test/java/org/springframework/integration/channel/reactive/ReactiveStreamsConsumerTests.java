@@ -32,6 +32,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -63,6 +65,8 @@ import reactor.test.StepVerifier;
  * @since 5.0
  */
 public class ReactiveStreamsConsumerTests {
+
+	private static final Log LOGGER = LogFactory.getLog(ReactiveStreamsConsumerTests.class);
 
 	@Test
 	public void testReactiveStreamsConsumerFluxMessageChannel() throws InterruptedException {
@@ -215,6 +219,8 @@ public class ReactiveStreamsConsumerTests {
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 
 		testChannel.send(testMessage2);
+
+		LOGGER.debug("Messages to poll: " + messages);
 
 		message = messages.poll(10, TimeUnit.SECONDS);
 		assertThat(message).isSameAs(testMessage);
